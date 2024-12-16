@@ -77,7 +77,7 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
 
 #### NADA
 Før du kan visualisere dataen ved bruk av Metabase, må vi legge til datapakken vår i NADA.
-1. Gå til `data.intern.nav.no` (dev - `data.intern.dev.nav.no`)
+1. Gå til `data.ansatt.nav.no` (dev - `data.intern.dev.nav.no`)
 2. Finn fram til supstonad - eksempel på hvordan du kan finne fram
    - klikk på `Utforsk områder`
    - velg `Produkområde Pensjon` i selected øverst til venstre
@@ -99,7 +99,7 @@ Mer info om NADA, etc kan finnes på `docs.knada.io`
 #### Metabase
 Hvis du vil visualisere dataen fra BigQuery, kan dette gjøres i Metabase. Datasettet må ha vært lagt til i NADA. Hvis ikke dette er gjort, må du gjøre det først. 
 Tilgang til metabase kommer når du har lagt til GCP i `myapps.microsoft.com` (???)
-1. gå og logg inn til `metabase.intern.nav.no` (dev - `metabase.intern.dev.nav.no`)
+1. gå og logg inn til `metabase.ansatt.nav.no` (dev - `metabase.intern.dev.nav.no`)
 2. Åpne sidepanelet til venstre: PO Pensjon -> Team Supplerende Stønad
 3. Klikk på `new`
    - Her er det litt valg muligheter.
