@@ -39,6 +39,7 @@ truncate
     grunnlag_bosituasjon,
     klage,
     regulering,
+    reguleringssupplement,
     revurdering,
     revurdering_tilbakekreving,
     behandling,
