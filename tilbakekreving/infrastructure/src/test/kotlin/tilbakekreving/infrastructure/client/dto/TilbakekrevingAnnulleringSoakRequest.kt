@@ -15,13 +15,13 @@ class TilbakekrevingAnnulleringSoakRequest {
             eksternVedtakId,
             saksbehandletAv,
         ) shouldBe """
-    <ns1:kravgrunnlagAnnulerRequest xmlns:ns1=“http://okonomi.nav.no/tilbakekrevingService/”  xmlns:ns2=“urn:no:nav:tilbakekreving:kravgrunnlag:annuller:v1">
-        <ns1:annullerkravgrunnlag>
-            <ns2:kodeAksjon>A</ns2:kodeAksjon>
-            <ns2:vedtakId>$eksternVedtakId</ns2:vedtakId>
-            <ns2:saksbehId>$saksbehandletAv</ns2:saksbehId>
-        </ns1:annullerkravgrunnlag>
-    </ns1:kravgrunnlagAnnulerRequest>
+    <ns1:annullerKravgrunnlagRequest xmlns:ns1="urn:no:nav:tilbakekreving:kravgrunnlag:annuller:v1">
+        <ns1:annullerKravgrunnlag>
+            <ns1:kodeAksjon>A</ns1:kodeAksjon>
+            <ns1:vedtakId>$eksternVedtakId</ns1:vedtakId>
+            <ns1:saksbehId>$saksbehandletAv</ns1:saksbehId>
+        </ns1:annullerKravgrunnlag>
+    </ns1:annullerKravgrunnlagRequest>
         """.trimIndent()
     }
 }
