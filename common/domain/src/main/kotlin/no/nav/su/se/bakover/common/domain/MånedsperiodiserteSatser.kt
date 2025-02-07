@@ -53,7 +53,7 @@ fun <T> RåSatser<T>.periodisert(tidligsteTilgjengeligeMåned: Måned): Månedss
                     emptyList()
                 }
             }
-        }.let { Månedssatser(it) }
+        }.let { Månedssatser(it.toNonEmptyList<Månedssats<T>>()) }
 }
 
 data class RåSatser<T>(
@@ -84,9 +84,6 @@ data class Månedssatser<T>(
     val satser: NonEmptyList<Månedssats<T>>,
 ) : List<Månedssats<T>> by satser {
     constructor(sats: Månedssats<T>) : this(nonEmptyListOf(sats))
-    constructor(satser: List<Månedssats<T>>) : this(
-        satser.toNonEmptyList<Månedssats<T>>(),
-    )
 
     init {
         satser.map { it.måned }.let {

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
 import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
@@ -58,18 +60,20 @@ internal class OversendKlageTest {
 
     @Test
     fun `fant ikke klage`() {
+        val (sak, _) = oversendtKlage()
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn null
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         val klageId = KlageId.generer()
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klageId,
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.FantIkkeKlage.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -81,41 +85,51 @@ internal class OversendKlageTest {
 
     @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
-        val klage = vurdertKlageTilAttestering().second
+        val (sak, klage) = vurdertKlageTilAttestering()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `kunne ikke lage brevrequest`() {
-        val klage = vurdertKlageTilAttestering().second
+        val (sak, klage) = vurdertKlageTilAttestering()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn null
             },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            dokumentHendelseRepo = mock {
+                on { hentVedtaksbrevdatoForSakOgVedtakId(any(), any(), anyOrNull()) } doReturn null
+            },
+
         )
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(
             KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
         ).left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(any())
         mocks.verifyNoMoreInteractions()
     }
@@ -125,8 +139,10 @@ internal class OversendKlageTest {
         val (sak, klage) = vurdertKlageTilAttestering()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
 
             brevServiceMock = mock {
@@ -135,6 +151,7 @@ internal class OversendKlageTest {
         )
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageDokument(
@@ -142,7 +159,7 @@ internal class OversendKlageTest {
         ).left()
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
 
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
@@ -167,12 +184,19 @@ internal class OversendKlageTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
+                on {
+                    lagDokument(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn null
@@ -180,12 +204,13 @@ internal class OversendKlageTest {
         )
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left()
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
@@ -215,8 +240,10 @@ internal class OversendKlageTest {
         )
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
@@ -230,12 +257,13 @@ internal class OversendKlageTest {
         )
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
@@ -288,6 +316,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         opprettetKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -297,6 +326,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra påbegynt vilkårsvurdering`() {
         påbegyntVilkårsvurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -306,6 +336,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
         utfyltVilkårsvurdertKlageTilVurdering().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -315,6 +346,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering avvist`() {
         utfyltAvvistVilkårsvurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -324,6 +356,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering til vurdering`() {
         bekreftetVilkårsvurdertKlageTilVurdering().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -333,6 +366,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering avvist`() {
         bekreftetAvvistVilkårsvurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -342,6 +376,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra påbegynt vurdering`() {
         påbegyntVurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -351,6 +386,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra utfylt vurdering`() {
         utfyltVurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -360,6 +396,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra bekreftet vurdering`() {
         bekreftetVurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -369,6 +406,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang underkjent vurdering`() {
         underkjentKlageTilVurdering().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -378,6 +416,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang underkjent vurdering avvist`() {
         underkjentAvvistKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -387,6 +426,7 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         oversendtKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
@@ -396,23 +436,25 @@ internal class OversendKlageTest {
     fun `Ugyldig tilstandsovergang fra avvist`() {
         iverksattAvvistKlage().also {
             verifiserUgyldigTilstandsovergang(
+                sak = it.first,
                 klage = it.second,
             )
         }
     }
 
-    private fun verifiserUgyldigTilstandsovergang(klage: Klage) {
+    private fun verifiserUgyldigTilstandsovergang(sak: Sak, klage: Klage) {
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
         ) shouldBe KunneIkkeOversendeKlage.UgyldigTilstand(klage::class).left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -428,12 +470,14 @@ internal class OversendKlageTest {
         )
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
 
             brevServiceMock = mock {
@@ -451,6 +495,7 @@ internal class OversendKlageTest {
 
         var expectedKlage: OversendtKlage?
         mocks.service.oversend(
+            sakId = sak.id,
             klageId = klage.id,
             attestant = attestant,
         ).getOrElse { fail(it.toString()) }.also {
@@ -466,7 +511,7 @@ internal class OversendKlageTest {
         }
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
@@ -508,7 +553,10 @@ internal class OversendKlageTest {
             argThat { it shouldBe expectedKlage },
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe klage.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) })
+        verify(mocks.oppgaveService).lukkOppgave(
+            argThat { it shouldBe klage.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
         mocks.verifyNoMoreInteractions()
     }
 }

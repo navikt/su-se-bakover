@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import dokument.domain.brev.BrevService
+import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -26,6 +27,7 @@ internal data class KlageServiceMocks(
     val oppgaveService: OppgaveService = defaultMock(),
     val queryJournalpostClient: QueryJournalpostClient = defaultMock(),
     val observer: StatistikkEventObserver = defaultMock(),
+    val dokumentHendelseRepo: DokumentHendelseRepo = defaultMock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(
@@ -37,6 +39,7 @@ internal data class KlageServiceMocks(
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
         queryJournalpostClient = queryJournalpostClient,
+        dokumentHendelseRepo = dokumentHendelseRepo,
         clock = clock,
     ).apply {
         addObserver(observer)

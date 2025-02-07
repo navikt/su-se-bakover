@@ -1125,11 +1125,12 @@ open class AccessCheckProxy(
                 }
 
                 override fun oversend(
+                    sakId: UUID,
                     klageId: KlageId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.oversend(klageId, attestant)
+                    return services.klageService.oversend(sakId, klageId, attestant)
                 }
 
                 override fun iverksettAvvistKlage(
@@ -1141,11 +1142,12 @@ open class AccessCheckProxy(
                 }
 
                 override fun brevutkast(
+                    sakId: UUID,
                     klageId: KlageId,
                     ident: NavIdentBruker,
                 ): Either<KunneIkkeLageBrevutkast, PdfA> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId, ident)
+                    return services.klageService.brevutkast(sakId, klageId, ident)
                 }
 
                 override fun avslutt(

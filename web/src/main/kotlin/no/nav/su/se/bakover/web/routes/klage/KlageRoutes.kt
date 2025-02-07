@@ -229,18 +229,21 @@ internal fun Route.klageRoutes(
 
     post("$KLAGE_PATH/{klageId}/brevutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withKlageId { klageId ->
-                klageService.brevutkast(
-                    ident = call.suUserContext.hentNavIdentBruker(),
-                    klageId = KlageId(klageId),
-                ).fold(
-                    ifLeft = {
-                        call.svar(it.toErrorJson())
-                    },
-                    ifRight = {
-                        call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                    },
-                )
+            call.withSakId { sakId ->
+                call.withKlageId { klageId ->
+                    klageService.brevutkast(
+                        sakId = sakId,
+                        ident = call.suUserContext.hentNavIdentBruker(),
+                        klageId = KlageId(klageId),
+                    ).fold(
+                        ifLeft = {
+                            call.svar(it.toErrorJson())
+                        },
+                        ifRight = {
+                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                        },
+                    )
+                }
             }
         }
     }
@@ -410,35 +413,38 @@ internal fun Route.klageRoutes(
 
     post("$KLAGE_PATH/{klageId}/oversend") {
         authorize(Brukerrolle.Attestant) {
-            call.withKlageId { klageId ->
-                klageService.oversend(
-                    klageId = KlageId(klageId),
-                    attestant = NavIdentBruker.Attestant(
-                        call.suUserContext.navIdent,
-                    ),
-                ).map {
-                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                    call.svar(Resultat.json(OK, serialize(it.toJson())))
-                }.mapLeft {
-                    call.svar(
-                        when (it) {
-                            KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                            KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
-                                "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
-                                "fant_ikke_journalpostid_knyttet_til_vedtaket",
-                            )
+            call.withSakId { sakId ->
+                call.withKlageId { klageId ->
+                    klageService.oversend(
+                        sakId = sakId,
+                        klageId = KlageId(klageId),
+                        attestant = NavIdentBruker.Attestant(
+                            call.suUserContext.navIdent,
+                        ),
+                    ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        call.svar(
+                            when (it) {
+                                KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
+                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                                KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
+                                    "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
+                                    "fant_ikke_journalpostid_knyttet_til_vedtaket",
+                                )
 
-                            KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans -> InternalServerError.errorJson(
-                                "Kunne ikke oversende til klageinstans",
-                                "kunne_ikke_oversende_til_klageinstans",
-                            )
+                                KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans -> InternalServerError.errorJson(
+                                    "Kunne ikke oversende til klageinstans",
+                                    "kunne_ikke_oversende_til_klageinstans",
+                                )
 
-                            is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
-                            is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
-                        },
-                    )
+                                is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
+                                is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
+                            },
+                        )
+                    }
                 }
             }
         }
