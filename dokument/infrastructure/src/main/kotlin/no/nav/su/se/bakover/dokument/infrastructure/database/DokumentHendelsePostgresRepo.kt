@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgres
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class DokumentHendelsePostgresRepo(
@@ -216,6 +217,8 @@ class DokumentHendelsePostgresRepo(
         }
     }
 
+    private val vedaksbrevdatoFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
     /**
      * @param sakId Vi tar inn sakId også siden den er indeksert.
      */
@@ -237,7 +240,8 @@ class DokumentHendelsePostgresRepo(
                 mapOf("sakId" to sakId, "vedtakId" to vedtakId.toString()),
                 it,
             ) {
-                it.localDate("vedtaksbrevdato")
+                val uformatertDato = it.string("vedtaksbrevdato")
+                LocalDate.parse(uformatertDato, vedaksbrevdatoFormatter)
             }
         }
     }
