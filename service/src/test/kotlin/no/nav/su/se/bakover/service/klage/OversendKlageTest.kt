@@ -201,6 +201,9 @@ internal class OversendKlageTest {
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn null
             },
+            dokumentHendelseRepo = mock {
+                on { hentJournalpostIdForSakOgVedtakId(any(), any(), anyOrNull()) } doReturn null
+            },
         )
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.oversend(
@@ -226,6 +229,7 @@ internal class OversendKlageTest {
             anyOrNull(),
         )
         verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.dokumentHendelseRepo).hentJournalpostIdForSakOgVedtakId(any(), any(), anyOrNull())
         mocks.verifyNoMoreInteractions()
     }
 

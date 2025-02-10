@@ -12,6 +12,7 @@ import dokument.domain.hendelser.JournalførtDokument
 import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.database.DistribuertDokumentHendelseDbJson.Companion.dataDbJson
@@ -242,6 +243,30 @@ class DokumentHendelsePostgresRepo(
             ) {
                 val uformatertDato = it.string("vedtaksbrevdato")
                 LocalDate.parse(uformatertDato, vedaksbrevdatoFormatter)
+            }
+        }
+    }
+
+    override fun hentJournalpostIdForSakOgVedtakId(
+        sakId: UUID,
+        vedtakId: UUID,
+        sessionContext: SessionContext?,
+    ): JournalpostId? {
+        return sessionContext.withOptionalSession(sessionFactory) {
+            // generertDokumentJson er lagret som en string (escaped json)
+            """
+            select (h1.data->>'journalpostId') as journalpostId
+            from hendelse h1
+            join hendelse h2 on (h1.data->>'relaterteHendelse')::uuid = h2.hendelseId
+            where h1.sakid = :sakId 
+            and h1.type = '$JournalførtDokument'
+            and (h2.data->'dokumentMeta'->>'vedtakId') = :vedtakId
+            """.trimIndent().hent(
+                // vedtakId: Vi gjør en string-comparison, så slipper vi kaste til ::uuid
+                mapOf("sakId" to sakId, "vedtakId" to vedtakId.toString()),
+                it,
+            ) {
+                JournalpostId(it.string("journalpostId"))
             }
         }
     }

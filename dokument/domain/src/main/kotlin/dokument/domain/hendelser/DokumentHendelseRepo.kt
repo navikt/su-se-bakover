@@ -2,6 +2,7 @@ package dokument.domain.hendelser
 
 import dokument.domain.Dokument
 import dokument.domain.DokumentHendelser
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -43,12 +44,34 @@ interface DokumentHendelseRepo {
         dokumentId: UUID,
         sessionContext: SessionContext? = null,
     ): Dokument.MedMetadata?
+
     fun hentHendelse(hendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
     fun hentFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): HendelseFil?
-    fun hentHendelseOgFilFor(hendelseId: HendelseId, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
-    fun hentHendelseOgFilForDokumentId(dokumentId: UUID, sessionContext: SessionContext? = null): Pair<DokumentHendelse?, HendelseFil?>
+    fun hentHendelseOgFilFor(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext? = null,
+    ): Pair<DokumentHendelse?, HendelseFil?>
+
+    fun hentHendelseOgFilForDokumentId(
+        dokumentId: UUID,
+        sessionContext: SessionContext? = null,
+    ): Pair<DokumentHendelse?, HendelseFil?>
 
     fun hentHendelseForDokumentId(dokumentId: UUID, sessionContext: SessionContext? = null): DokumentHendelse?
-    fun hentHendelseForRelatertHendelseId(relatertHendelseId: HendelseId, sessionContext: SessionContext? = null): DokumentHendelse?
-    fun hentVedtaksbrevdatoForSakOgVedtakId(sakId: UUID, vedtakId: UUID, sessionContext: SessionContext? = null): LocalDate?
+    fun hentHendelseForRelatertHendelseId(
+        relatertHendelseId: HendelseId,
+        sessionContext: SessionContext? = null,
+    ): DokumentHendelse?
+
+    fun hentVedtaksbrevdatoForSakOgVedtakId(
+        sakId: UUID,
+        vedtakId: UUID,
+        sessionContext: SessionContext? = null,
+    ): LocalDate?
+
+    fun hentJournalpostIdForSakOgVedtakId(
+        sakId: UUID,
+        vedtakId: UUID,
+        sessionContext: SessionContext? = null,
+    ): JournalpostId?
 }

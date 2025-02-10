@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
@@ -326,9 +327,9 @@ class KlageServiceImpl(
             distribueringsadresse = null,
         )
 
-        val journalpostIdForVedtak = vedtakService.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
+        val journalpostIdForVedtak = hentJournalpostIdForVedtakId(sakId, vedtakId)
             ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().onLeft {
-                log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak ${oversendtKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
+                log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak $vedtakId (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
 
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
@@ -423,7 +424,9 @@ class KlageServiceImpl(
         (klage as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
             KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(fra = klage::class),
         ).left()
-        val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class)).left()
+        val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+            KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class),
+        ).left()
         val vedtaksbrevdato = hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId)
             ?: run {
                 log.error("Kunne ikke generere brevutkast for sak. Fant ikke vedtaksbrevdato for sak $sakId og vedtakId $vedtakId")
@@ -450,6 +453,11 @@ class KlageServiceImpl(
             klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klageId)
                 ?: dokumentHendelseRepo.hentVedtaksbrevdatoForSakOgVedtakId(sakId, vedtakId)
             )
+    }
+
+    private fun hentJournalpostIdForVedtakId(sakId: UUID, vedtakId: UUID): JournalpostId? {
+        return vedtakService.hentJournalpostId(vedtakId)
+            ?: dokumentHendelseRepo.hentJournalpostIdForSakOgVedtakId(sakId, vedtakId)
     }
 
     override fun avslutt(

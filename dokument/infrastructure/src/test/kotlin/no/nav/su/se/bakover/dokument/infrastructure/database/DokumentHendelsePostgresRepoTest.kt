@@ -29,7 +29,7 @@ class DokumentHendelsePostgresRepoTest {
                 relaterteHendelse = relaterteHendelse,
                 generertDokumentJson = """{
                      "personalia": {
-                       "dato": "2021-02-01"
+                       "dato": "01.02.2021"
                      }
                     }
                 """.trimIndent(),
