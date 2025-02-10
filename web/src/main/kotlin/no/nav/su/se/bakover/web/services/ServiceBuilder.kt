@@ -226,6 +226,7 @@ data object ServiceBuilder {
             oppgaveService = oppgaveService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
+            dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
         ).apply { addObserver(statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,

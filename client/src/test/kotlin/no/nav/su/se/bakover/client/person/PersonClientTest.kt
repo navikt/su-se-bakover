@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
@@ -52,7 +51,7 @@ internal class PersonClientTest {
         @Test
         fun `andre kall med nytt token hentes ikke fra cache`() {
             val mocks = PersonClientConfigTestMocks(
-                BrukertokenGenerator(listOf("1", "2")),
+                BrukertokenGenerator(nonEmptyListOf("1", "2").map { JwtToken.BrukerToken(it) }),
             )
             val first =
                 mocks.personClient.person(fnr = mocks.fnr).also { it shouldBe mocks.person().right() }.getOrFail()
@@ -169,10 +168,6 @@ internal class PersonClientTest {
     private class BrukertokenGenerator(
         private val brukerTokens: NonEmptyList<JwtToken.BrukerToken> = nonEmptyListOf(JwtToken.BrukerToken("bruker-token")),
     ) : List<JwtToken.BrukerToken> by brukerTokens {
-
-        constructor(brukerTokens: List<String>) : this(
-            brukerTokens.map { JwtToken.BrukerToken(it) }.toNonEmptyList(),
-        )
 
         var currentIndex = 0
         fun next(): JwtToken.BrukerToken = brukerTokens[currentIndex++ % brukerTokens.size]

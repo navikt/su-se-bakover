@@ -165,7 +165,7 @@ internal class OversendKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { oversend(any(), any()) } doReturn feilkode.left()
+            on { oversend(any(), any(), any()) } doReturn feilkode.left()
         }
         testApplication {
             application {
@@ -188,7 +188,7 @@ internal class OversendKlageTest {
     fun `kan iverksette klage`() {
         val oversendtKlage = oversendtKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { oversend(any(), any()) } doReturn oversendtKlage.right()
+            on { oversend(any(), any(), any()) } doReturn oversendtKlage.right()
         }
         testApplication {
             application {

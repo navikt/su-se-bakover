@@ -8,6 +8,7 @@ import arrow.core.right
 import behandling.klage.domain.KlageId
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
+import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.journalføring.ErTilknyttetSak
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
+import no.nav.su.se.bakover.domain.klage.KanGenerereBrevutkast
 import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -30,6 +32,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -57,6 +60,8 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
+import java.util.UUID
 
 class KlageServiceImpl(
     private val sakService: SakService,
@@ -67,6 +72,7 @@ class KlageServiceImpl(
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
     private val queryJournalpostClient: QueryJournalpostClient,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
     val clock: Clock,
 ) : KlageService {
 
@@ -135,7 +141,8 @@ class KlageServiceImpl(
             throw RuntimeException("Fant ikke sak med id ${command.sakId}")
         }
         command.vedtakId?.let {
-            val vedtak = sak.hentVedtakForId(command.vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+            val vedtak =
+                sak.hentVedtakForId(command.vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
             if (!vedtak.skalSendeBrev) {
                 // Dersom vi ikke har sendt ut et vedtaksbrev, kan det ikke beklages.
                 return KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
@@ -248,7 +255,7 @@ class KlageServiceImpl(
                     } ?: OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs,
                 ),
             ).mapLeft {
-                log.error("Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
+                log.error("Send klagebehandling til attestering: Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
             }
         }
     }
@@ -272,26 +279,38 @@ class KlageServiceImpl(
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(klage.saksbehandler.navIdent),
                 ),
             ).mapLeft {
-                log.error("Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
+                log.error("Underkjenn klagebehandling: Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
             }
         }
     }
 
     override fun oversend(
+        sakId: UUID,
         klageId: KlageId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
-        val klage = (klageRepo.hentKlage(klageId) ?: return KunneIkkeOversendeKlage.FantIkkeKlage.left()).let {
-            it as? KlageTilAttestering.Vurdert ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class)
-                .left()
-        }
+        val sak = sakService.hentSak(sakId)
+            .getOrElse {
+                throw java.lang.IllegalStateException("Kunne ikke generere brevutkast for sak. Fant ikke sak med id $sakId og klageId $klageId")
+            }
 
+        val klage = (
+            sak.hentKlage(klageId)
+                ?: run {
+                    log.error("Kunne ikke generere brevutkast for sak. Fant ikke klage med id $klageId på sak $sakId")
+                    return KunneIkkeOversendeKlage.FantIkkeKlage.left()
+                }
+
+            ).let {
+            (it as? KlageTilAttestering.Vurdert) ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class).left()
+        }
+        val vedtakId = klage.vilkårsvurderinger.vedtakId
         val oversendtKlage =
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
-            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
+            hentVedtaksbrevDato = { hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId) },
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
@@ -390,18 +409,47 @@ class KlageServiceImpl(
     }
 
     override fun brevutkast(
+        sakId: UUID,
         klageId: KlageId,
         ident: NavIdentBruker,
     ): Either<KunneIkkeLageBrevutkast, PdfA> {
+        val sak = sakService.hentSak(sakId)
+            .getOrElse { throw IllegalStateException("Kunne ikke generere brevutkast for sak. Fant ikke sak med id $sakId og klageId $klageId") }
+        val klage = sak.hentKlage(klageId)
+            ?: run {
+                log.error("Kunne ikke generere brevutkast for sak. Fant ikke klage med id $klageId på sak $sakId")
+                return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+            }
+        (klage as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+            KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(fra = klage::class),
+        ).left()
+        val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class)).left()
+        val vedtaksbrevdato = hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId)
+            ?: run {
+                log.error("Kunne ikke generere brevutkast for sak. Fant ikke vedtaksbrevdato for sak $sakId og vedtakId $vedtakId")
+                return KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato)
+                    .left()
+            }
         return genererBrevutkastForKlage(
             klageId = klageId,
             ident = ident,
-            hentKlage = { klageRepo.hentKlage(klageId) },
-            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klageId) },
+            hentKlage = { klage },
+            hentVedtaksbrevDato = { vedtaksbrevdato },
             genererPdf = {
                 brevService.lagDokument(command = it).map { it.generertDokument }
             },
         )
+    }
+
+    private fun hentVedtaksbrevDatoForKlage(
+        sakId: UUID,
+        vedtakId: UUID,
+        klageId: KlageId,
+    ): LocalDate? {
+        return (
+            klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klageId)
+                ?: dokumentHendelseRepo.hentVedtaksbrevdatoForSakOgVedtakId(sakId, vedtakId)
+            )
     }
 
     override fun avslutt(

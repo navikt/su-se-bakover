@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
@@ -38,61 +39,73 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.ZoneOffset
+import java.util.UUID
 
 internal class HentBrevutkastTest {
 
     @Test
     fun `fant ikke klage`() {
+        val (sak, _) = påbegyntVurdertKlage()
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn null
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         )
         val klageId = KlageId.generer()
         mocks.service.brevutkast(
+            sakId = sak.id,
             klageId = klageId,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeKlage.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke knyttet vedtak`() {
-        val klage = påbegyntVurdertKlage().second
+        val (sak, klage) = påbegyntVurdertKlage()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn null
             },
-
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            dokumentHendelseRepo = mock {
+                on { hentVedtaksbrevdatoForSakOgVedtakId(any(), any(), anyOrNull()) } doReturn null
+            },
         )
 
         mocks.service.brevutkast(
+            sakId = sak.id,
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato)
             .left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
+        verify(mocks.dokumentHendelseRepo).hentVedtaksbrevdatoForSakOgVedtakId(any(), any(), anyOrNull())
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke saksbehandler`() {
-        val klage = påbegyntVurdertKlage().second
+        val (sak, klage) = påbegyntVurdertKlage()
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
         mocks.service.brevutkast(
+            sakId = sak.id,
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(
@@ -100,7 +113,7 @@ internal class HentBrevutkastTest {
         ).left()
 
         verify(mocks.brevServiceMock).lagDokument(any(), anyOrNull())
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
     }
@@ -112,8 +125,10 @@ internal class HentBrevutkastTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
@@ -121,6 +136,7 @@ internal class HentBrevutkastTest {
         )
 
         mocks.service.brevutkast(
+            sakId = sak.id,
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(
@@ -128,7 +144,7 @@ internal class HentBrevutkastTest {
         ).left()
 
         verify(mocks.brevServiceMock).lagDokument(any(), anyOrNull())
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
     }
@@ -140,21 +156,23 @@ internal class HentBrevutkastTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
-
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
             brevServiceMock = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         )
 
         mocks.service.brevutkast(
+            sakId = sak.id,
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.KunneIkkeGenererePdf(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
@@ -182,10 +200,11 @@ internal class HentBrevutkastTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
-
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
             brevServiceMock = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
@@ -194,9 +213,9 @@ internal class HentBrevutkastTest {
             },
         )
 
-        mocks.service.brevutkast(klageId = klage.id, ident = saksbehandler) shouldBe pdfAsBytes.right()
+        mocks.service.brevutkast(sakId = sak.id, klageId = klage.id, ident = saksbehandler) shouldBe pdfAsBytes.right()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
@@ -223,10 +242,11 @@ internal class HentBrevutkastTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
-
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
             brevServiceMock = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
@@ -235,9 +255,9 @@ internal class HentBrevutkastTest {
             },
         )
 
-        mocks.service.brevutkast(klageId = klage.id, ident = saksbehandler) shouldBe pdfAsBytes.right()
+        mocks.service.brevutkast(sakId = sak.id, klageId = klage.id, ident = saksbehandler) shouldBe pdfAsBytes.right()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
@@ -292,19 +312,22 @@ internal class HentBrevutkastTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
 
         )
 
         mocks.service.brevutkast(
+            sakId = sak.id,
             klageId = klage.id,
             ident = saksbehandler,
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class))
             .left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -407,8 +430,10 @@ internal class HentBrevutkastTest {
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
 
             brevServiceMock = mock {
@@ -419,9 +444,9 @@ internal class HentBrevutkastTest {
             },
         )
 
-        mocks.service.brevutkast(klageId = klage.id, ident = utførtAv) shouldBe pdfAsBytes.right()
+        mocks.service.brevutkast(sakId = sak.id, klageId = klage.id, ident = utførtAv) shouldBe pdfAsBytes.right()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         if (brevRequest is KlageDokumentCommand.Oppretthold) {
             verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         }
@@ -449,6 +474,7 @@ internal class HentBrevutkastTest {
             },
             anyOrNull(),
         )
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
     }
 }

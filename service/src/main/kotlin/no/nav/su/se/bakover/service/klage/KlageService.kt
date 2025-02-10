@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
+import java.util.UUID
 
 interface KlageService {
     fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage>
@@ -53,14 +54,14 @@ interface KlageService {
 
     fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage>
 
-    fun oversend(klageId: KlageId, attestant: NavIdentBruker.Attestant): Either<KunneIkkeOversendeKlage, OversendtKlage>
+    fun oversend(sakId: UUID, klageId: KlageId, attestant: NavIdentBruker.Attestant): Either<KunneIkkeOversendeKlage, OversendtKlage>
 
     fun iverksettAvvistKlage(
         klageId: KlageId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage>
 
-    fun brevutkast(klageId: KlageId, ident: NavIdentBruker): Either<KunneIkkeLageBrevutkast, PdfA>
+    fun brevutkast(sakId: UUID, klageId: KlageId, ident: NavIdentBruker): Either<KunneIkkeLageBrevutkast, PdfA>
 
     fun avslutt(
         klageId: KlageId,
