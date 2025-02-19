@@ -71,7 +71,7 @@ kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json",
 kotest-extensions = { group = "io.kotest", name = "kotest-extensions", version.ref = "kotest"}
 kotest-assertions-arrow = { group = "io.kotest.extensions", name = "kotest-assertions-arrow", version = "1.4.0"}
 
-kafka-clients = { group = "org.apache.kafka", name = "kafka-clients", version = "3.8.0"}
+kafka-clients = { group = "org.apache.kafka", name = "kafka-clients", version = "7.0.1-ccs"}
 kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer", version.ref = "confluent"}
 
 flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway"}
