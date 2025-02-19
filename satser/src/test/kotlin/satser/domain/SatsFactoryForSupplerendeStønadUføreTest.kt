@@ -457,6 +457,80 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         }
 
         @Test
+        fun `ordinær - fiktiv G`() {
+            // fiktivt gbeløp 128552, omregningsfaktor: 1.03647563
+            val satsFactory = SatsFactoryForSupplerendeStønad(
+                grunnbeløpsendringer = satser.domain.supplerendestønad.grunnbeløpsendringer +
+                    Grunnbeløpsendring(1.mai(2025), 24.mai(2025), 128552, BigDecimal(1.036476)),
+            )
+            satsFactory.gjeldende(påDato = 2.juli(2025)).ordinærUføre(juli(2025)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = juli(2025),
+                    satskategori = Satskategori.ORDINÆR,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = juli(2025),
+                        grunnbeløpPerÅr = 128552,
+                        ikrafttredelse = 24.mai(2025),
+                        virkningstidspunkt = 1.mai(2025),
+                        omregningsfaktor = BigDecimal(1.036476),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.329),
+                        satsKategori = Satskategori.ORDINÆR,
+                        ikrafttredelse = 1.juli(2024),
+                        virkningstidspunkt = 1.juli(2024),
+                        måned = juli(2025),
+                    ),
+                    // 2.529 * G2024-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("541.84668"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("299397.608") // 2.329 * G2025-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("24949.8007") // 2.329 * G2025-5 / 12
+                it.satsForMånedAvrundet shouldBe 24950
+                it.satsForMånedAsDouble shouldBe 24949.800666666666
+                it.ikrafttredelse shouldBe 24.mai(2025)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 541.84668
+            }
+        }
+
+        @Test
+        fun `høy sats - fiktiv G`() {
+            // fiktivt gbeløp 128552, omregningsfaktor: 1.03647563
+            val satsFactory = SatsFactoryForSupplerendeStønad(
+                grunnbeløpsendringer = satser.domain.supplerendestønad.grunnbeløpsendringer +
+                    Grunnbeløpsendring(1.mai(2025), 24.mai(2025), 128552, BigDecimal(1.036476)),
+            )
+            satsFactory.gjeldende(påDato = 2.juli(2025)).høyUføre(juli(2025)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = juli(2025),
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = juli(2025),
+                        grunnbeløpPerÅr = 128552,
+                        ikrafttredelse = 24.mai(2025),
+                        virkningstidspunkt = 1.mai(2025),
+                        omregningsfaktor = BigDecimal(1.036476),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.529),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.juli(2024),
+                        virkningstidspunkt = 1.juli(2024),
+                        måned = juli(2025),
+                    ),
+                    // 2.529 * G2024-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("541.84668"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("325108.008") // 2.529 * G2025-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("27092.3340") // 2.529 * G2025-5 / 12
+                it.satsForMånedAvrundet shouldBe 27092
+                it.satsForMånedAsDouble shouldBe 27092.334
+                it.ikrafttredelse shouldBe 24.mai(2025)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 541.84668
+            }
+        }
+
+        @Test
         fun `finn siste g-endringsdato for 2021-04-30`() {
             val expectedIkrafttredelse = 4.september(2020)
             satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(april(2021)).let {
