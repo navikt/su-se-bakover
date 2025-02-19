@@ -3,3 +3,8 @@ paths-ignore:
   - '**/gradle/**'
   - '**/.gradle/**'
   - "**/build/"
+queries:
+  - uses: security-and-quality
+    queries:
+      - exclude:
+          severity: note
