@@ -6,6 +6,10 @@ metadata:
   labels:
     team: supstonad
 spec:
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
     application:
       enabled: true
