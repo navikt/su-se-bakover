@@ -7,6 +7,10 @@ metadata:
     team: supstonad
 spec:
   azure:
+    observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
     application:
       enabled: true
       tenant: nav.no
