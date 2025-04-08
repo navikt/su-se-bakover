@@ -79,7 +79,7 @@ private fun sjekkUtbetalingMotSimulering(
                 simulering.hentTotalUtbetaling().filter { linje.periode.overlapper(it.periode) }
             val simuleringsperiode = simuleringsperioderOgBeløp.map { it.periode }.minAndMaxOfOrNull()
             val simuleringsbeløp = simuleringsperioderOgBeløp.sumOf { it.beløp.sum() }
-            if (simuleringsperiode != linje.periode) {
+            if (simuleringsperiode != null && simuleringsperiode != linje.periode) {
                 forskjeller.add(
                     ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode(
                         utbetalingsperiode = linje.periode,
@@ -89,11 +89,13 @@ private fun sjekkUtbetalingMotSimulering(
                     ),
                 )
             }
-            if (simuleringsbeløp != linje.beløp) {
-                ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp(
-                    periode = linje.periode,
-                    simulertBeløp = simuleringsbeløp,
-                    utbetalingsbeløp = linje.beløp,
+            if (simuleringsperiode != null && simuleringsbeløp != (linje.beløp * linje.periode.getAntallMåneder())) {
+                forskjeller.add(
+                    ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp(
+                        periode = linje.periode,
+                        simulertBeløp = simuleringsbeløp,
+                        utbetalingsbeløp = linje.beløp,
+                    ),
                 )
             }
         }
