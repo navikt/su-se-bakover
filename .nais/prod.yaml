@@ -6,11 +6,11 @@ metadata:
   labels:
     team: supstonad
 spec:
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
-    observability:
-      autoInstrumentation:
-        enabled: true
-        runtime: java
     application:
       enabled: true
       tenant: nav.no
