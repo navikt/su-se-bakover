@@ -53,244 +53,242 @@ import vilkår.uføre.domain.Uføregrad
 
 internal class SøknadsbehandlingAlderKomponentTest {
     @Test
-    fun `skal ikke kunne sende inn alderssøknad`() {
+    fun `skal kunne sende inn alderssøknad`() {
         withKomptestApplication(
             clock = 17.juni(2022).fixedClock(),
         ) { appComponents ->
 
-            assertThrows<IllegalStateException> {
-                appComponents.services.søknad.nySøknad(
-                    søknadInnhold = søknadsinnholdAlder(),
-                    identBruker = saksbehandler,
-                )
+            appComponents.services.søknad.nySøknad(
+                søknadInnhold = søknadsinnholdAlder(),
+                identBruker = saksbehandler,
+            )
 
-                val sak = appComponents.services.sak.hentSak(fnrOver67, Sakstype.ALDER).getOrFail()
-                val søknad = sak.søknader.single()
+            val sak = appComponents.services.sak.hentSak(fnrOver67, Sakstype.ALDER).getOrFail()
+            val søknad = sak.søknader.single()
 
-                søknad.type shouldBe Sakstype.ALDER
+            søknad.type shouldBe Sakstype.ALDER
 
-                val (_, søknadsbehandling) = appComponents.services.søknadsbehandling.søknadsbehandlingService.opprett(
-                    request = SøknadsbehandlingService.OpprettRequest(
-                        søknadId = søknad.id,
-                        sakId = sak.id,
-                        saksbehandler = saksbehandler,
-                    ),
-                ).getOrFail()
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.oppdaterStønadsperiode(
-                    request = SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                        behandlingId = søknadsbehandling.id,
-                        stønadsperiode = stønadsperiode2022,
-                        sakId = sak.id,
-                        saksbehandler = saksbehandler,
-                        saksbehandlersAvgjørelse = null,
-                    ),
-                ).getOrFail()
-
-                assertThrows<IllegalArgumentException> {
-                    appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUførevilkår(
-                        request = LeggTilUførevurderingerRequest(
-                            behandlingId = søknadsbehandling.id,
-                            vurderinger = nonEmptyListOf(
-                                LeggTilUførevilkårRequest(
-                                    behandlingId = søknadsbehandling.id,
-                                    periode = stønadsperiode2022.periode,
-                                    uføregrad = Uføregrad.parse(50),
-                                    forventetInntekt = 0,
-                                    oppfylt = UførevilkårStatus.VilkårOppfylt,
-                                    begrunnelse = "dette bør ikke gå",
-                                ),
-                            ),
-                        ),
-                        saksbehandler = saksbehandler,
-                    )
-                }.also {
-                    it.message shouldBe "Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)"
-                }
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(
-                    request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
-                        behandlingId = søknadsbehandling.id,
-                        vilkår = tilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
-                        saksbehandler = saksbehandler,
-                    ),
-                ).getOrFail()
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilPensjonsVilkår(
-                    request = LeggTilPensjonsVilkårRequest(
-                        behandlingId = søknadsbehandling.id,
-                        vilkår = pensjonsVilkårInnvilget(periode = stønadsperiode2022.periode),
-                    ),
+            val (_, søknadsbehandling) = appComponents.services.søknadsbehandling.søknadsbehandlingService.opprett(
+                request = SøknadsbehandlingService.OpprettRequest(
+                    søknadId = søknad.id,
+                    sakId = sak.id,
                     saksbehandler = saksbehandler,
-                )
+                ),
+            ).getOrFail()
 
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                    request = LeggTilFamiliegjenforeningRequest(
-                        behandlingId = søknadsbehandling.id,
-                        vurderinger = listOf(
-                            FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
-                        ),
-                    ),
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.oppdaterStønadsperiode(
+                request = SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                    behandlingId = søknadsbehandling.id,
+                    stønadsperiode = stønadsperiode2022,
+                    sakId = sak.id,
                     saksbehandler = saksbehandler,
-                )
+                    saksbehandlersAvgjørelse = null,
+                ),
+            ).getOrFail()
 
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilLovligOpphold(
-                    request = LeggTilLovligOppholdRequest(
+            assertThrows<IllegalArgumentException> {
+                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUførevilkår(
+                    request = LeggTilUførevurderingerRequest(
                         behandlingId = søknadsbehandling.id,
-                        vurderinger = listOf(
-                            LovligOppholdVurderinger(
-                                stønadsperiode2022.periode,
-                                LovligOppholdVilkårStatus.VilkårOppfylt,
-                            ),
-                        ),
-                    ),
-                    saksbehandler = saksbehandler,
-                )
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilPersonligOppmøteVilkår(
-                    request = LeggTilPersonligOppmøteVilkårRequest(
-                        behandlingId = søknadsbehandling.id,
-                        vilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode2022.periode),
-                    ),
-                    saksbehandler = saksbehandler,
-                )
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFastOppholdINorgeVilkår(
-                    request = LeggTilFastOppholdINorgeRequest(
-                        behandlingId = søknadsbehandling.id,
-                        vilkår = fastOppholdVilkårInnvilget(periode = stønadsperiode2022.periode),
-                    ),
-                    saksbehandler = saksbehandler,
-                )
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilInstitusjonsoppholdVilkår(
-                    request = LeggTilInstitusjonsoppholdVilkårRequest(
-                        behandlingId = søknadsbehandling.id,
-                        vilkår = institusjonsoppholdvilkårInnvilget(periode = stønadsperiode2022.periode),
-                    ),
-                    saksbehandler = saksbehandler,
-                )
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilBosituasjongrunnlag(
-                    request = LeggTilBosituasjonerCommand(
-                        behandlingId = søknadsbehandling.id,
-                        bosituasjoner = listOf(
-                            LeggTilBosituasjonCommand(
+                        vurderinger = nonEmptyListOf(
+                            LeggTilUførevilkårRequest(
+                                behandlingId = søknadsbehandling.id,
                                 periode = stønadsperiode2022.periode,
-                                epsFnr = null,
-                                delerBolig = false,
-                                ektemakeEllerSamboerUførFlyktning = null,
-                                epsFylt67 = null,
+                                uføregrad = Uføregrad.parse(50),
+                                forventetInntekt = 0,
+                                oppfylt = UførevilkårStatus.VilkårOppfylt,
+                                begrunnelse = "dette bør ikke gå",
                             ),
                         ),
                     ),
                     saksbehandler = saksbehandler,
-                ).getOrFail()
+                )
+            }.also {
+                it.message shouldBe "Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)"
+            }
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(
+                request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = tilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
+                    saksbehandler = saksbehandler,
+                ),
+            ).getOrFail()
 
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
-                    request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
-                ).getOrFail().also { oppdatert ->
-                    oppdatert.vilkårsvurderinger.opplysningspliktVilkår()
-                    oppdatert.vilkårsvurderinger.resultat() shouldBe Vurdering.Uavklart
-                    oppdatert.grunnlagsdata.also {
-                        it.fradragsgrunnlag shouldBe emptyList()
-                        it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilPensjonsVilkår(
+                request = LeggTilPensjonsVilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = pensjonsVilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
+                saksbehandler = saksbehandler,
+            )
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
+                request = LeggTilFamiliegjenforeningRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vurderinger = listOf(
+                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
+                    ),
+                ),
+                saksbehandler = saksbehandler,
+            )
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilLovligOpphold(
+                request = LeggTilLovligOppholdRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vurderinger = listOf(
+                        LovligOppholdVurderinger(
+                            stønadsperiode2022.periode,
+                            LovligOppholdVilkårStatus.VilkårOppfylt,
+                        ),
+                    ),
+                ),
+                saksbehandler = saksbehandler,
+            )
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilPersonligOppmøteVilkår(
+                request = LeggTilPersonligOppmøteVilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
+                saksbehandler = saksbehandler,
+            )
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFastOppholdINorgeVilkår(
+                request = LeggTilFastOppholdINorgeRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = fastOppholdVilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
+                saksbehandler = saksbehandler,
+            )
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilInstitusjonsoppholdVilkår(
+                request = LeggTilInstitusjonsoppholdVilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = institusjonsoppholdvilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
+                saksbehandler = saksbehandler,
+            )
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilBosituasjongrunnlag(
+                request = LeggTilBosituasjonerCommand(
+                    behandlingId = søknadsbehandling.id,
+                    bosituasjoner = listOf(
+                        LeggTilBosituasjonCommand(
+                            periode = stønadsperiode2022.periode,
+                            epsFnr = null,
+                            delerBolig = false,
+                            ektemakeEllerSamboerUførFlyktning = null,
+                            epsFylt67 = null,
+                        ),
+                    ),
+                ),
+                saksbehandler = saksbehandler,
+            ).getOrFail()
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
+                request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
+            ).getOrFail().also { oppdatert ->
+                oppdatert.vilkårsvurderinger.opplysningspliktVilkår()
+                oppdatert.vilkårsvurderinger.resultat() shouldBe Vurdering.Uavklart
+                oppdatert.grunnlagsdata.also {
+                    it.fradragsgrunnlag shouldBe emptyList()
+                    it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
+                }
+            }
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFormuevilkår(
+                request = LeggTilFormuevilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    formuegrunnlag = nonEmptyListOf(
+                        LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                            periode = stønadsperiode2022.periode,
+                            epsFormue = null,
+                            søkersFormue = Formueverdier.empty(),
+                            begrunnelse = null,
+                            måInnhenteMerInformasjon = false,
+                        ),
+                    ),
+                    saksbehandler = saksbehandler,
+                    tidspunkt = fixedTidspunkt,
+                ),
+            )
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUtenlandsopphold(
+                LeggTilFlereUtenlandsoppholdRequest(
+                    behandlingId = søknadsbehandling.id,
+                    request = nonEmptyListOf(
+                        LeggTilUtenlandsoppholdRequest(
+                            behandlingId = søknadsbehandling.id.value,
+                            periode = stønadsperiode2022.periode,
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                        ),
+                    ),
+                ),
+                saksbehandler = saksbehandler,
+            ).getOrFail()
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFradragsgrunnlag(
+                request = LeggTilFradragsgrunnlagRequest(
+                    behandlingId = søknadsbehandling.id,
+                    fradragsgrunnlag = listOf(
+                        fradragsgrunnlagArbeidsinntekt1000(
+                            periode = stønadsperiode2022.periode,
+                        ),
+                    ),
+                ),
+                saksbehandler = saksbehandler,
+            ).getOrFail()
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
+                request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
+            ).getOrFail().also { oppdatert ->
+                oppdatert.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Innvilget>()
+
+                oppdatert.grunnlagsdata.also {
+                    it.fradragsgrunnlag.single().also {
+                        it.månedsbeløp shouldBe 1000.0
+                        it.fradragstype shouldBe Fradragstype.Arbeidsinntekt
                     }
+                    it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
                 }
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFormuevilkår(
-                    request = LeggTilFormuevilkårRequest(
-                        behandlingId = søknadsbehandling.id,
-                        formuegrunnlag = nonEmptyListOf(
-                            LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
-                                periode = stønadsperiode2022.periode,
-                                epsFormue = null,
-                                søkersFormue = Formueverdier.empty(),
-                                begrunnelse = null,
-                                måInnhenteMerInformasjon = false,
-                            ),
-                        ),
-                        saksbehandler = saksbehandler,
-                        tidspunkt = fixedTidspunkt,
-                    ),
-                )
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUtenlandsopphold(
-                    LeggTilFlereUtenlandsoppholdRequest(
-                        behandlingId = søknadsbehandling.id,
-                        request = nonEmptyListOf(
-                            LeggTilUtenlandsoppholdRequest(
-                                behandlingId = søknadsbehandling.id.value,
-                                periode = stønadsperiode2022.periode,
-                                status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                            ),
-                        ),
-                    ),
+            }
+
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.beregn(
+                request = SøknadsbehandlingService.BeregnRequest(
+                    behandlingId = søknadsbehandling.id,
+                    begrunnelse = null,
                     saksbehandler = saksbehandler,
-                ).getOrFail()
+                ),
+            ).getOrFail().also {
+                it.beregning.getSumYtelse() shouldBe 195188
+                it.beregning.getSumFradrag() shouldBe 12000
+                it.beregning.getMånedsberegninger().all { it.getSats() == Satskategori.HØY } shouldBe true
+                it.beregning.getMånedsberegninger().count { it.getSatsbeløp() == 16868.75 } shouldBe 4
+                it.beregning.getMånedsberegninger().count { it.getSatsbeløp() == 17464.25 } shouldBe 8
+                it.beregning.getMånedsberegninger() shouldHaveSize 12
+            }
 
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFradragsgrunnlag(
-                    request = LeggTilFradragsgrunnlagRequest(
-                        behandlingId = søknadsbehandling.id,
-                        fradragsgrunnlag = listOf(
-                            fradragsgrunnlagArbeidsinntekt1000(
-                                periode = stønadsperiode2022.periode,
-                            ),
-                        ),
-                    ),
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.simuler(
+                request = SøknadsbehandlingService.SimulerRequest(
+                    behandlingId = søknadsbehandling.id,
                     saksbehandler = saksbehandler,
-                ).getOrFail()
+                ),
+            ).getOrFail().also {
+                it.simulering.hentTotalUtbetaling().sum() shouldBe 195188
+                it.simulering.hentTilUtbetaling().sum() shouldBe 195188
+            }
 
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
-                    request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
-                ).getOrFail().also { oppdatert ->
-                    oppdatert.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Innvilget>()
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(
+                request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = utilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
+                    saksbehandler = saksbehandler,
+                ),
+            ).getOrFail().also {
+                it.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Avslag>()
+            }
 
-                    oppdatert.grunnlagsdata.also {
-                        it.fradragsgrunnlag.single().also {
-                            it.månedsbeløp shouldBe 1000.0
-                            it.fradragstype shouldBe Fradragstype.Arbeidsinntekt
-                        }
-                        it.bosituasjon.single().shouldBeType<Bosituasjon.Fullstendig.Enslig>()
-                    }
-                }
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.beregn(
-                    request = SøknadsbehandlingService.BeregnRequest(
-                        behandlingId = søknadsbehandling.id,
-                        begrunnelse = null,
-                        saksbehandler = saksbehandler,
-                    ),
-                ).getOrFail().also {
-                    it.beregning.getSumYtelse() shouldBe 195188
-                    it.beregning.getSumFradrag() shouldBe 12000
-                    it.beregning.getMånedsberegninger().all { it.getSats() == Satskategori.HØY } shouldBe true
-                    it.beregning.getMånedsberegninger().count { it.getSatsbeløp() == 16868.75 } shouldBe 4
-                    it.beregning.getMånedsberegninger().count { it.getSatsbeløp() == 17464.25 } shouldBe 8
-                    it.beregning.getMånedsberegninger() shouldHaveSize 12
-                }
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.simuler(
-                    request = SøknadsbehandlingService.SimulerRequest(
-                        behandlingId = søknadsbehandling.id,
-                        saksbehandler = saksbehandler,
-                    ),
-                ).getOrFail().also {
-                    it.simulering.hentTotalUtbetaling().sum() shouldBe 195188
-                    it.simulering.hentTilUtbetaling().sum() shouldBe 195188
-                }
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(
-                    request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
-                        behandlingId = søknadsbehandling.id,
-                        vilkår = utilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
-                        saksbehandler = saksbehandler,
-                    ),
-                ).getOrFail().also {
-                    it.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Avslag>()
-                }
-
-                appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
-                    request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
-                ).getOrFail().also { oppdatert ->
-                    oppdatert.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Avslag>()
-                }
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
+                request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
+            ).getOrFail().also { oppdatert ->
+                oppdatert.vilkårsvurderinger.resultat().shouldBeType<Vurdering.Avslag>()
             }
         }
     }

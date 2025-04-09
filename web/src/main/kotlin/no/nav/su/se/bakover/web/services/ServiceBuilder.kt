@@ -94,6 +94,7 @@ data object ServiceBuilder {
             personService = personService,
             oppgaveService = oppgaveService,
             clock = clock,
+            kanSendeInnAlderssøknad = applicationConfig.naisCluster != ApplicationConfig.NaisCluster.Prod,
         ).apply {
             addObserver(statistikkEventObserver)
         }

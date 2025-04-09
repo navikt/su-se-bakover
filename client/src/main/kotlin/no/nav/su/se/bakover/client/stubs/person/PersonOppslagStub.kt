@@ -51,7 +51,7 @@ data class PersonOppslagStub(
             kanKontaktesDigitalt = true,
         ),
         vergemål = null,
-        dødsdato = dødsdato,
+        dødsdato = null,
     )
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =

@@ -14,6 +14,7 @@ import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -218,8 +219,8 @@ class SakServiceImpl(
             },
             ifRight = { saker ->
                 AlleredeGjeldendeSakForBruker(
-                    uføre = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.UFØRE }),
-                    alder = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.ALDER }),
+                    uføre = sakTilBegrensetSakInfo(saker.singleOrNullOrThrow { it.type == Sakstype.UFØRE }),
+                    alder = sakTilBegrensetSakInfo(saker.singleOrNullOrThrow { it.type == Sakstype.ALDER }),
                 )
             },
         )

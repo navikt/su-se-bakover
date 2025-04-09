@@ -44,6 +44,7 @@ class SøknadServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val clock: Clock,
+    private val kanSendeInnAlderssøknad: Boolean,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -274,7 +275,7 @@ class SøknadServiceImpl(
     }
 
     private fun SøknadInnhold.kanSendeInnSøknad(): Boolean = when (this) {
-        is SøknadsinnholdAlder -> throw IllegalStateException("Innsending av alderssøknad er ikke støttet for")
+        is SøknadsinnholdAlder -> kanSendeInnAlderssøknad
         is SøknadsinnholdUføre -> true
     }
 }

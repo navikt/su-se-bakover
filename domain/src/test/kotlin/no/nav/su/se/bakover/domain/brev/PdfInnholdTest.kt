@@ -80,6 +80,7 @@ internal class PdfInnholdTest {
                 ),
             ),
             sakstype = Sakstype.UFØRE,
+            erAldersbrev = false,
         )
 
         val actualJson = serialize(innvilgetVedtak)
