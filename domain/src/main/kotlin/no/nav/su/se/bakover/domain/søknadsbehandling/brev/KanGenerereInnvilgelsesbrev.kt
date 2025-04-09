@@ -55,9 +55,9 @@ sealed interface KanGenerereInnvilgelsesbrev : KanGenerereBrev {
         return IverksettSøknadsbehandlingDokumentCommand.Innvilgelse(
             beregning = beregning,
             harEktefelle = bosituasjon.harEPS(),
-            // TODO jah: 1) vil ikke lenger fungere for alder. 2) kan kanskje dra ut i en mer generell funksjon.
+            // TODO ALDER - Uførevilkår fungerer kun ved uføre behandlinger - Her må vi ha bedre støtte for uføre/alder
             forventetInntektStørreEnn0 = vilkårsvurderinger.uføreVilkår()
-                .getOrNull()!!.grunnlag.harForventetInntektStørreEnn0(),
+                .getOrNull()?.grunnlag?.harForventetInntektStørreEnn0() ?: false,
             saksbehandler = saksbehandler,
             attestant = attestant,
             fritekst = fritekst,

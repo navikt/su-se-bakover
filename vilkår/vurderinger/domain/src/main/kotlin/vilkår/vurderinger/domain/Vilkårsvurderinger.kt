@@ -19,6 +19,9 @@ import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 
+/**
+ * TODO ALDER - Må legge inn vilkår for alderspensjon og familiegjenforening
+ */
 interface Vilkårsvurderinger {
     val vilkår: Set<Vilkår>
 

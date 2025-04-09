@@ -125,7 +125,7 @@ internal class PersonRoutesKtTest {
                         "kanKontaktesDigitalt": true
                     },
                     "vergemål": null,
-                    "dødsdato": "2021-01-21"
+                    "dødsdato": null
                 }
             """.trimIndent()
 
