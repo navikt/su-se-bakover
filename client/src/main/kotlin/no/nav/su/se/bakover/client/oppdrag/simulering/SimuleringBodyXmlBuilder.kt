@@ -93,7 +93,7 @@ internal fun buildXmlRequestBody(
                     <typeGrad>${grad.typeGrad.value}</typeGrad>
                     <grad>${grad.grad}</grad>
                 </ns3:grad>"""
-                }
+                } ?: ""
             }
                 <ns3:attestant>
                     <attestantId>${linje.saksbehId}</attestantId>
