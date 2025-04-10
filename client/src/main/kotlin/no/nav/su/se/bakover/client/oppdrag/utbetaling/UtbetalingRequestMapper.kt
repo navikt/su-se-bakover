@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdrags
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKodeStatusLinje
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilUføregrad
 import no.nav.su.se.bakover.common.domain.extensions.and
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
@@ -61,7 +62,7 @@ internal fun toUtbetalingRequest(
                             refDelytelseId = null,
                             refFagsystemId = null,
                             attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
-                            grad = it.tilUføregrad(),
+                            grad = if (utbetaling.sakstype == Sakstype.ALDER) null else it.tilUføregrad(),
                             // Referanse til hvilken utbetaling linjen tilhører
                             utbetalingId = utbetaling.id.toString(),
                         )
@@ -87,7 +88,7 @@ internal fun toUtbetalingRequest(
                             refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                             refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                             attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
-                            grad = it.tilUføregrad(),
+                            grad = if (utbetaling.sakstype == Sakstype.ALDER) null else it.tilUføregrad(),
                             // Referanse til hvilken utbetaling linjen tilhører
                             utbetalingId = utbetaling.id.toString(),
                         )
