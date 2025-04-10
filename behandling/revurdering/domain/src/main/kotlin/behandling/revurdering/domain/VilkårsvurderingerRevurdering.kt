@@ -168,9 +168,9 @@ sealed interface VilkårsvurderingerRevurdering : Vilkårsvurderinger {
     data class Alder(
         override val lovligOpphold: LovligOppholdVilkår,
         override val formue: FormueVilkår = FormueVilkår.IkkeVurdert,
-        override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
-        override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
-        override val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
+        override val utenlandsopphold: UtenlandsoppholdVilkår,
+        override val opplysningsplikt: OpplysningspliktVilkår,
+        override val institusjonsopphold: InstitusjonsoppholdVilkår,
         val pensjon: PensjonsVilkår,
         val familiegjenforening: FamiliegjenforeningVilkår,
         override val fastOpphold: FastOppholdINorgeVilkår,
@@ -202,6 +202,7 @@ sealed interface VilkårsvurderingerRevurdering : Vilkårsvurderinger {
                 familiegjenforening = familiegjenforening.lagTidslinje(periode),
                 fastOpphold = fastOpphold.lagTidslinje(periode),
                 personligOppmøte = personligOppmøte.lagTidslinje(periode),
+                institusjonsopphold = institusjonsopphold.lagTidslinje(periode),
             )
         }
 
