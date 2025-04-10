@@ -84,6 +84,7 @@ data class GjeldendeVedtaksdata(
                         familiegjenforening = it.familiegjenforeningvilkår(),
                         fastOpphold = it.fastOppholdINorgeVilkår(),
                         personligOppmøte = it.personligOppmøteVilkår(),
+                        institusjonsopphold = it.institusjonsoppholdVilkår(),
                     )
 
                     else -> throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")

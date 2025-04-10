@@ -150,6 +150,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         ),
                         fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(revurderingId, session),
                         personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(revurderingId, session),
+                        institusjonsopphold = institusjonsoppholdVilkårsvurderingPostgresRepo.hent(revurderingId, session),
                     )
                 }
 
