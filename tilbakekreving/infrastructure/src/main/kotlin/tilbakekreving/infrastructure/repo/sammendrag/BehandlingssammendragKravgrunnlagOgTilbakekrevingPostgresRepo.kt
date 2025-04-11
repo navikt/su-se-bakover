@@ -34,7 +34,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             sessionContext = sessionContext,
         ) { row ->
             val saksnummer = Saksnummer(row.long("saksnummer"))
-            val sakType = Sakstype.from(row.string("type"))
+            val sakType = Sakstype.from(row.string("sakType"))
             val periode = Periode.create(
                 fraOgMed = LocalDate.parse(row.string("fraOgMed")),
                 tilOgMed = LocalDate.parse(row.string("tilOgMed")),
@@ -55,7 +55,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
                     behandlingStartet = kravgrunnlagTidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.ÅPEN,
-                    sakType = sakType
+                    sakType = sakType,
                 )
                 else -> Behandlingssammendrag(
                     saksnummer = saksnummer,
@@ -63,7 +63,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt!!,
                     status = tilbakekrevingstype!!.toBehandlingssamendragStatus(),
-                    sakType = sakType
+                    sakType = sakType,
                 )
             }
         }
@@ -78,7 +78,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             sessionContext = sessionContext,
         ) { row ->
             val saksnummer = Saksnummer(row.long("saksnummer"))
-            val sakType = Sakstype.from(row.string("type"))
+            val sakType = Sakstype.from(row.string("sakType"))
             val periode = Periode.create(
                 fraOgMed = LocalDate.parse(row.string("fraOgMed")),
                 tilOgMed = LocalDate.parse(row.string("tilOgMed")),
@@ -98,7 +98,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.IVERKSATT,
-                    sakType = sakType
+                    sakType = sakType,
                 )
                 tilbakekrevingstype == null && !kravgrunnlagstatus.erAvsluttet() -> null
                 tilbakekrevingstype != null && tilbakekrevingstype !in avsluttetTilbakekrevingstyper -> null
@@ -108,7 +108,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.AVBRUTT,
-                    sakType = sakType
+                    sakType = sakType,
                 )
                 tilbakekrevingstype == null && kravgrunnlagstatus.erAvsluttet() -> Behandlingssammendrag(
                     saksnummer = saksnummer,
@@ -116,7 +116,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
                     behandlingStartet = kravgrunnlagTidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.AVSLUTTET,
-                    sakType = sakType
+                    sakType = sakType,
                 )
                 else -> Behandlingssammendrag(
                     saksnummer = saksnummer,
@@ -124,7 +124,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt!!,
                     status = tilbakekrevingstype!!.toBehandlingssamendragStatus(),
-                    sakType = sakType
+                    sakType = sakType,
                 )
             }
         }

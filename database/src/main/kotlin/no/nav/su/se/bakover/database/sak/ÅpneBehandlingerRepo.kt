@@ -49,7 +49,7 @@ internal class ÅpneBehandlingerRepo(
                      where b.status not like ('IVERKSATT%') and b.lukket = false
                  ),
                  revurderinger as (
-                     select sak.sakId, sak.saksnummer,sak.sakType, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
+                     select sak.sakId, sak.saksnummer, sak.sakType, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
                      from sak
                               join revurdering r on r.sakid = sak.sakId
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null

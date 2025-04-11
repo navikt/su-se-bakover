@@ -235,7 +235,6 @@ internal fun Route.sakRoutes(
         }
     }
 
-
     get("$SAK_PATH/behandlinger/apne") {
         authorize(Brukerrolle.Saksbehandler) {
             val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()

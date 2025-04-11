@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -112,6 +113,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
             )
         }
@@ -126,6 +128,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                 behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
         )
     }
@@ -147,6 +150,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = uavklartSøkandsbehandling.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = saksnr1,
@@ -154,6 +158,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentSøknadsbehandling.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = saksnr2,
@@ -161,6 +166,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
             )
         }
@@ -175,6 +181,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = uavklartSøkandsbehandling.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
             Behandlingssammendrag(
                 saksnummer = saksnr1,
@@ -182,6 +189,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentSøknadsbehandling.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
             Behandlingssammendrag(
                 saksnummer = saksnr2,
@@ -189,6 +197,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
         )
     }
@@ -228,6 +237,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = saknr1,
@@ -235,6 +245,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = simulertRevurdering.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = saknr2,
@@ -242,6 +253,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = saknr2,
@@ -249,6 +261,7 @@ internal class SakServiceImplTest {
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
             )
         }
@@ -263,6 +276,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = opprettetRevurdering.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
             Behandlingssammendrag(
                 saksnummer = saknr1,
@@ -270,6 +284,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = simulertRevurdering.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
             Behandlingssammendrag(
                 saksnummer = saknr2,
@@ -277,6 +292,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
             Behandlingssammendrag(
                 saksnummer = saknr2,
@@ -284,6 +300,7 @@ internal class SakServiceImplTest {
                 status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringRevurdering.opprettet,
                 periode = år(2021),
+                sakType = Sakstype.UFØRE,
             ),
         )
     }
