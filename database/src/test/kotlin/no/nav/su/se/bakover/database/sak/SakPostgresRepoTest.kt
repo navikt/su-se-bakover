@@ -120,7 +120,7 @@ internal class SakPostgresRepoTest {
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = null,
                     status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
-                    periode = null,
+                    periode = null,sakType = Sakstype.UFØRE
                 ),
             )
         }
@@ -178,28 +178,28 @@ internal class SakPostgresRepoTest {
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = null,
-                    periode = null,
+                    periode = null,sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2022),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = søknadsbehandling.opprettet,
-                    periode = år(2021),
+                    periode = år(2021),sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2023),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjent.opprettet,
-                    periode = år(2021),
+                    periode = år(2021),sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2024),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttestering.opprettet,
-                    periode = år(2021),
+                    periode = år(2021),sakType = Sakstype.UFØRE
                 ),
                 // Vi hopper over 1 saksnummer siden den blir lagret som en del når vi lager en revurdering gjennom
                 // hjelpe funksjoner
@@ -208,42 +208,42 @@ internal class SakPostgresRepoTest {
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
-                    periode = år(2021),
+                    periode = år(2021),sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2027),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
-                    periode = år(2021),
+                    periode = år(2021),sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2028),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentRevurdering.opprettet,
-                    periode = år(2021),
+                    periode = år(2021),sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2030),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetKlage.opprettet,
-                    periode = null,
+                    periode = null,sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2031),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = vurdertKlage.opprettet,
-                    periode = null,
+                    periode = null,sakType = Sakstype.UFØRE
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(nummer = 2032),
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KLAGE,
                     status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = klageTilAttestering.opprettet,
-                    periode = null,
+                    periode = null,sakType = Sakstype.UFØRE
                 ),
             )
         }

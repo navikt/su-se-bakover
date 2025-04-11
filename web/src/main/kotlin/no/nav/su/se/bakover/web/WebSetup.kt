@@ -65,6 +65,7 @@ internal fun Application.setupKtor(
     installMetrics(suMetrics.prometheusMeterRegistry)
     naisRoutes(suMetrics.prometheusMeterRegistry)
 
+    //TODO: hvorfor må denne gå mot frontend sin mockoauth?
     configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 

@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
@@ -42,12 +43,13 @@ internal class FerdigeBehandlingerRepo(
                 //language=sql
                 """
             with sak as (
-                select id as sakId, saksnummer
+                select id as sakId, saksnummer, type as sakType
                 from sak
             ),
                  behandlinger as (
                      select sak.sakId,
                             sak.saksnummer,
+                            sak.sakType,
                             b.status            as status,
                             'SØKNADSBEHANDLING' as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
@@ -59,6 +61,7 @@ internal class FerdigeBehandlingerRepo(
                  revurderinger as (
                      select sak.sakId,
                             sak.saksnummer,
+                            sak.sakType,
                             r.revurderingstype                                         as status,
                             'REVURDERING'                                              as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
@@ -70,6 +73,7 @@ internal class FerdigeBehandlingerRepo(
                  klage as (
                      select sak.sakId,
                             sak.saksnummer,
+                            sak.sakType,
                             k.type                                                     as status,
                             'KLAGE'                                                    as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
@@ -102,6 +106,7 @@ internal class FerdigeBehandlingerRepo(
         val behandlingstype = BehandlingsTypeDB.valueOf(string("type"))
 
         return Behandlingssammendrag(
+            sakType = Sakstype.from(string("sakType")),
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentStatus(behandlingstype),

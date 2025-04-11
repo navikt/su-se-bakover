@@ -3,6 +3,7 @@ package tilbakekreving.infrastructure.repo.sammendrag
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
@@ -33,6 +34,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             sessionContext = sessionContext,
         ) { row ->
             val saksnummer = Saksnummer(row.long("saksnummer"))
+            val sakType = Sakstype.from(row.string("type"))
             val periode = Periode.create(
                 fraOgMed = LocalDate.parse(row.string("fraOgMed")),
                 tilOgMed = LocalDate.parse(row.string("tilOgMed")),
@@ -53,6 +55,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
                     behandlingStartet = kravgrunnlagTidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.ÅPEN,
+                    sakType = sakType
                 )
                 else -> Behandlingssammendrag(
                     saksnummer = saksnummer,
@@ -60,6 +63,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt!!,
                     status = tilbakekrevingstype!!.toBehandlingssamendragStatus(),
+                    sakType = sakType
                 )
             }
         }
@@ -74,6 +78,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             sessionContext = sessionContext,
         ) { row ->
             val saksnummer = Saksnummer(row.long("saksnummer"))
+            val sakType = Sakstype.from(row.string("type"))
             val periode = Periode.create(
                 fraOgMed = LocalDate.parse(row.string("fraOgMed")),
                 tilOgMed = LocalDate.parse(row.string("tilOgMed")),
@@ -93,6 +98,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.IVERKSATT,
+                    sakType = sakType
                 )
                 tilbakekrevingstype == null && !kravgrunnlagstatus.erAvsluttet() -> null
                 tilbakekrevingstype != null && tilbakekrevingstype !in avsluttetTilbakekrevingstyper -> null
@@ -102,6 +108,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.AVBRUTT,
+                    sakType = sakType
                 )
                 tilbakekrevingstype == null && kravgrunnlagstatus.erAvsluttet() -> Behandlingssammendrag(
                     saksnummer = saksnummer,
@@ -109,6 +116,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
                     behandlingStartet = kravgrunnlagTidspunkt,
                     status = Behandlingssammendrag.Behandlingsstatus.AVSLUTTET,
+                    sakType = sakType
                 )
                 else -> Behandlingssammendrag(
                     saksnummer = saksnummer,
@@ -116,6 +124,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                     behandlingStartet = tilbakekrevingstidspunkt!!,
                     status = tilbakekrevingstype!!.toBehandlingssamendragStatus(),
+                    sakType = sakType
                 )
             }
         }
