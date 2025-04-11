@@ -3,6 +3,7 @@ package tilbakekreving.infrastructure.repo.sammendrag
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.august
@@ -100,6 +101,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                         behandlingStartet = h1.filterIsInstance<IverksattHendelse>().single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.IVERKSATT,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak2.saksnummer,
@@ -107,6 +109,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                         behandlingStartet = h2.hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.AVBRUTT,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak3.saksnummer,
@@ -114,6 +117,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
                         behandlingStartet = h3.eksternTidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.AVSLUTTET,
+                        sakType = Sakstype.UFØRE,
                     ),
                 ).sortedBy { it.saksnummer.nummer }
         }
@@ -182,6 +186,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingstype = Behandlingssammendrag.Behandlingstype.TILBAKEKREVING,
                         behandlingStartet = h1.hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak2.saksnummer,
@@ -190,6 +195,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h2.filterIsInstance<ForhåndsvarsletTilbakekrevingsbehandlingHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak3.saksnummer,
@@ -198,6 +204,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h3.filterIsInstance<VurdertTilbakekrevingsbehandlingHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak4.saksnummer,
@@ -206,6 +213,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h4.filterIsInstance<BrevTilbakekrevingsbehandlingHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak5.saksnummer,
@@ -214,6 +222,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h5.filterIsInstance<NotatTilbakekrevingsbehandlingHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak6.saksnummer,
@@ -222,6 +231,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h6.filterIsInstance<TilAttesteringHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak7.saksnummer,
@@ -230,6 +240,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h7.filterIsInstance<UnderkjentHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak8.saksnummer,
@@ -238,6 +249,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingStartet = h8.filterIsInstance<OppdatertKravgrunnlagPåTilbakekrevingHendelse>()
                             .single().hendelsestidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
+                        sakType = Sakstype.UFØRE,
                     ),
                     Behandlingssammendrag(
                         saksnummer = sak9.saksnummer,
@@ -245,6 +257,7 @@ internal class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepoTest
                         behandlingstype = Behandlingssammendrag.Behandlingstype.KRAVGRUNNLAG,
                         behandlingStartet = h9!!.eksternTidspunkt,
                         status = Behandlingssammendrag.Behandlingsstatus.ÅPEN,
+                        sakType = Sakstype.UFØRE,
                     ),
                 ).sortedBy { it.saksnummer.nummer }
         }

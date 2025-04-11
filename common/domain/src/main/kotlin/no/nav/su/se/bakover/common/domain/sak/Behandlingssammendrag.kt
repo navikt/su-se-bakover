@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
  * @param behandlingStartet Dette skulle egentlig vært sistEndret
  */
 data class Behandlingssammendrag(
+    val sakType: Sakstype,
     val saksnummer: Saksnummer,
     val periode: DatoIntervall?,
     val behandlingstype: Behandlingstype,

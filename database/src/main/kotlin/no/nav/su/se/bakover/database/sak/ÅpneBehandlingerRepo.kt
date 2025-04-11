@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
@@ -38,23 +39,23 @@ internal class ÅpneBehandlingerRepo(
                 //language=postgresql
                 """
                 with sak as (
-                select id as sakId, saksnummer
+                select id as sakId, saksnummer, type as sakType
                 from sak
             ),
                  behandlinger as (
-                     select sak.sakId, sak.saksnummer, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type, (stønadsperiode ->> 'periode')::jsonb as periode
+                     select sak.sakId, sak.saksnummer, sak.sakType, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type, (stønadsperiode ->> 'periode')::jsonb as periode
                      from sak
                               join behandling b on b.sakid = sak.sakId
                      where b.status not like ('IVERKSATT%') and b.lukket = false
                  ),
                  revurderinger as (
-                     select sak.sakId, sak.saksnummer, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
+                     select sak.sakId, sak.saksnummer, sak.sakType, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
                      from sak
                               join revurdering r on r.sakid = sak.sakId
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
                  ),
                  klage as (
-                     select sak.sakId, sak.saksnummer, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
+                     select sak.sakId, sak.saksnummer, sak.sakType, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
                      from sak
                               join klage k on sak.sakId = k.sakid
                      where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
@@ -63,6 +64,7 @@ internal class ÅpneBehandlingerRepo(
                      select
                         sak.sakId,
                         sak.saksnummer,
+                        sak.sakType,
                         null::timestamp as opprettet,
                         'NY_SØKNAD' as status,
                         'SØKNAD' as type,
@@ -98,6 +100,7 @@ internal class ÅpneBehandlingerRepo(
         val behandlingstype = BehandlingsTypeDB.valueOf(string("type"))
 
         return Behandlingssammendrag(
+            sakType = Sakstype.from(string("sakType")),
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentÅpenBehandlingStatus(behandlingstype),

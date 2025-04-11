@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -43,6 +44,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattSøknadsbehandlingInnvilget.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
@@ -50,6 +52,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattSøknadsbehadnlingAvslagMedBeregning.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.AVSLAG,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2023),
@@ -57,6 +60,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattSøknadsbehadnlingAvslagUtenBeregning.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.AVSLAG,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
             )
         }
@@ -88,6 +92,7 @@ internal class FerdigeBehandlingerRepoTest {
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
                             status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                             periode = år(2021),
+                            sakType = Sakstype.UFØRE,
                         )
                     },
                 Behandlingssammendrag(
@@ -96,6 +101,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattRevurderingInnvilget.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingOpphørt.tilRevurdering)!!
                     .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
@@ -105,6 +111,7 @@ internal class FerdigeBehandlingerRepoTest {
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
                             status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                             periode = år(2021),
+                            sakType = Sakstype.UFØRE,
                         )
                     },
 
@@ -114,6 +121,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattRevurderingOpphørt.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.OPPHØR,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.behandling.tilRevurdering)!!
                     .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
@@ -123,6 +131,7 @@ internal class FerdigeBehandlingerRepoTest {
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
                             status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                             periode = år(2021),
+                            sakType = Sakstype.UFØRE,
                         )
                     },
 
@@ -132,6 +141,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattStansAvYtelse.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.STANS,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!
                     .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
@@ -141,6 +151,7 @@ internal class FerdigeBehandlingerRepoTest {
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
                             status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                             periode = år(2021),
+                            sakType = Sakstype.UFØRE,
                         )
                     },
                 Behandlingssammendrag(
@@ -149,6 +160,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattGjenopptak.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.GJENOPPTAK,
                     periode = februar(2021)..desember(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 testDataHelper.vedtakRepo.hentVedtakForId(beregnetRevurdering.tilRevurdering)!!
                     .shouldBeType<VedtakInnvilgetSøknadsbehandling>().behandling.let {
@@ -158,6 +170,7 @@ internal class FerdigeBehandlingerRepoTest {
                             behandlingStartet = it.attesteringer.hentSisteAttestering().opprettet,
                             status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                             periode = år(2021),
+                            sakType = Sakstype.UFØRE,
                         )
                     },
             )
@@ -198,6 +211,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = vedtakSak1.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2021),
@@ -205,6 +219,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = oversendtKlage.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.OVERSENDT,
                     periode = null,
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
@@ -212,6 +227,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = vedtakSak2.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2022),
@@ -219,6 +235,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = iverksattAvvistKlage.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.AVSLAG,
                     periode = null,
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2023),
@@ -226,6 +243,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = vedtakSak3.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2024),
@@ -233,6 +251,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = vedtakSak4.behandling.attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
             )
         }
@@ -258,6 +277,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = revurderingSak.søknadsbehandlinger.single().attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
                 Behandlingssammendrag(
                     saksnummer = Saksnummer(2024),
@@ -265,6 +285,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingStartet = klageSak.søknadsbehandlinger.single().attesteringer.hentSisteAttestering().opprettet,
                     status = Behandlingssammendrag.Behandlingsstatus.INNVILGET,
                     periode = år(2021),
+                    sakType = Sakstype.UFØRE,
                 ),
 
             )
