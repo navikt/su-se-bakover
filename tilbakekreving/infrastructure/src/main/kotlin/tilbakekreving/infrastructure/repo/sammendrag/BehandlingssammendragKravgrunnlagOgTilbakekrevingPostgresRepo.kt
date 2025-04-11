@@ -242,6 +242,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                 SELECT
                     kravgrunnlag.sakId,
                     sak.saksnummer,
+                    sak.type as sakType,
                     CASE
                         WHEN status.statusTidspunkt > kravgrunnlag.kravgrunnlagTidspunkt THEN status.status
                         ELSE kravgrunnlag.status
@@ -264,6 +265,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     SisteTilbakekrevingsbehandlingHendelse sth ON sth.kravgrunnlagPåSakHendelseId = kravgrunnlag.hendelseId
                     AND sth.sakId = kravgrunnlag.sakId
                 GROUP BY
+                    sak.type,
                     kravgrunnlag.sakId,
                     sak.saksnummer,
                     kravgrunnlag.status,
