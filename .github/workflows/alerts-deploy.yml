@@ -27,6 +27,6 @@ jobs:
       id-token: write # needed for push-image
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      var: SLACK_ALERTS_CHANNEL=#su_alerts,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5
+      var: SLACK_ALERTS_CHANNEL=#su_alerts_prod,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5
       cluster: prod-fss
       resource: alerts.yml
