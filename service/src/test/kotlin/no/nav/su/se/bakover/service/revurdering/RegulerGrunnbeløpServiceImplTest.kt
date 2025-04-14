@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -55,7 +56,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
     @Test
     fun `oppdaterer uførevilkåret når nytt uføregrunnlag legges til`() {
         val (sak, opprettetRevurdering) = opprettetRevurdering(
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet)),
+            informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Uførhet)),
         )
 
         val nyttUføregrunnlag = Uføregrunnlag(
@@ -113,7 +114,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                                 ),
                             ),
                         ),
-                        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet))
+                        informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(sak.type, listOf(Revurderingsteg.Uførhet))
                             .markerSomVurdert(Revurderingsteg.Uførhet),
                     )
                 },

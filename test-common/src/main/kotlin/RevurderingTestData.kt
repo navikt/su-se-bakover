@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -86,7 +87,7 @@ val revurderingsårsak =
 
 fun opprettRevurderingFraSaksopplysninger(
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
     clock: Clock = tikkendeFixedClock(),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
@@ -177,7 +178,7 @@ fun opprettetRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -203,7 +204,7 @@ fun beregnetRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -243,7 +244,7 @@ fun simulertRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -310,7 +311,7 @@ fun revurderingTilAttestering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -354,7 +355,7 @@ fun revurderingUnderkjent(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     clock: Clock = tikkendeFixedClock(),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -392,7 +393,7 @@ fun iverksattRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -493,7 +494,7 @@ fun vedtakRevurdering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Inntekt)),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,

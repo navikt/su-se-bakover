@@ -92,7 +92,8 @@ internal class OpprettRevurderingServiceTest {
                         søknadsbehandling.periode,
                     )
                 }
-                opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
+                opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.opprettMedVurderinger(
+                    sak.type,
                     mapOf(
                         Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                     ),

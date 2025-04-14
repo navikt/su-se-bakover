@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import org.jetbrains.kotlin.utils.keysToMap
 
 data class InformasjonSomRevurderes private constructor(
@@ -15,28 +16,50 @@ data class InformasjonSomRevurderes private constructor(
             informasjonSomRevurderes = informasjonSomRevurderes + mapOf(revurderingsteg to Vurderingstatus.Vurdert),
         )
     }
+
     fun harValgtFormue(): Boolean = this.containsKey(Revurderingsteg.Formue)
     fun harValgtUtenlandsopphold(): Boolean = this.containsKey(Revurderingsteg.Utenlandsopphold)
 
     companion object {
-        fun create(revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {
-            return tryCreate(revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
+
+        fun opprettUtenVurderinger(sakstype: Sakstype, revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {
+            return opprettUtenVurderingerMedFeilmelding(sakstype, revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(revurderingsteg: List<Revurderingsteg>): Either<MåRevurdereMinstEnTing, InformasjonSomRevurderes> {
-            if (revurderingsteg.isEmpty()) return MåRevurdereMinstEnTing.left()
+        fun opprettUtenVurderingerMedFeilmelding(
+            sakstype: Sakstype,
+            revurderingsteg: List<Revurderingsteg>,
+        ): Either<UgyldigForRevurdering, InformasjonSomRevurderes> {
+            val ugyldigForRevurdering = ugyldigForRevurdering(sakstype, revurderingsteg)
+            if (ugyldigForRevurdering != null) return ugyldigForRevurdering.left()
             return InformasjonSomRevurderes(revurderingsteg.keysToMap { Vurderingstatus.IkkeVurdert }).right()
         }
 
-        fun create(revurderingsteg: Map<Revurderingsteg, Vurderingstatus>): InformasjonSomRevurderes {
-            return tryCreate(revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
+        fun opprettMedVurderinger(
+            sakstype: Sakstype,
+            revurderingsteg: Map<Revurderingsteg, Vurderingstatus>,
+        ): InformasjonSomRevurderes {
+            return opprettMedVurderingerOgFeilmelding(sakstype, revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(revurderingsteg: Map<Revurderingsteg, Vurderingstatus>): Either<MåRevurdereMinstEnTing, InformasjonSomRevurderes> {
-            if (revurderingsteg.isEmpty()) return MåRevurdereMinstEnTing.left()
+        fun opprettMedVurderingerOgFeilmelding(
+            sakstype: Sakstype,
+            revurderingsteg: Map<Revurderingsteg, Vurderingstatus>,
+        ): Either<UgyldigForRevurdering, InformasjonSomRevurderes> {
+            val ugyldigForRevurdering = ugyldigForRevurdering(sakstype, revurderingsteg.keys.toList())
+            if (ugyldigForRevurdering != null) return ugyldigForRevurdering.left()
             return InformasjonSomRevurderes(revurderingsteg).right()
+        }
+
+        private fun ugyldigForRevurdering(
+            sakstype: Sakstype,
+            revurderingsteg: List<Revurderingsteg>,
+        ): UgyldigForRevurdering? {
+            if (revurderingsteg.isEmpty()) return MåRevurdereMinstEnTing
+            return null
         }
     }
 
-    data object MåRevurdereMinstEnTing
+    sealed interface UgyldigForRevurdering
+    data object MåRevurdereMinstEnTing : UgyldigForRevurdering
 }

@@ -26,7 +26,8 @@ fun Sak.oppdaterRevurdering(
             }
         }.left()
     }
-    val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(
+    val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
+        sakstype = this.type,
         revurderingsteg = command.informasjonSomRevurderes,
     ).getOrElse {
         return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()

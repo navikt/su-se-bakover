@@ -178,7 +178,8 @@ internal class OppdaterRevurderingServiceTest {
                 )
                 oppdatertRevurdering.vilkårsvurderinger.erLik(sak.søknadsbehandlinger.single().vilkårsvurderinger)
                 oppdatertRevurdering.vilkårsvurderinger.vilkår.all { it.perioderSlåttSammen == listOf(oppdatertPeriode) }
-                oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
+                oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.opprettMedVurderinger(
+                    sak.type,
                     mapOf(
                         Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                     ),

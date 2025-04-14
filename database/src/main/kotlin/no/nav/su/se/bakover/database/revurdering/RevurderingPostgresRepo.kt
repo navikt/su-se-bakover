@@ -556,7 +556,7 @@ internal class RevurderingPostgresRepo(
 
         val informasjonSomRevurderes =
             deserializeMapNullable<Revurderingsteg, Vurderingstatus>(stringOrNull("informasjonSomRevurderes"))?.let {
-                InformasjonSomRevurderes.create(it)
+                InformasjonSomRevurderes.opprettMedVurderinger(sakinfo.type, it)
             }
 
         // Merk at denne ikke inneholder eksterneGrunnlag
