@@ -68,4 +68,46 @@ internal class InformasjonSomRevurderesTest {
             emptyList(),
         ) shouldBe InformasjonSomRevurderes.MåRevurdereMinstEnTing.left()
     }
+
+    @Test
+    fun `opprettelse av alder må kan ikke ha steg uførhet`() {
+        assertThrows<IllegalArgumentException> {
+            InformasjonSomRevurderes.opprettUtenVurderinger(
+                Sakstype.ALDER,
+                listOf(Revurderingsteg.Uførhet),
+            )
+        }
+        InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
+            Sakstype.ALDER,
+            listOf(Revurderingsteg.Uførhet),
+        ) shouldBe InformasjonSomRevurderes.UførhetErUgyldigForAlder.left()
+    }
+
+    @Test
+    fun `opprettelse av alder må kan ikke ha steg flyktning`() {
+        assertThrows<IllegalArgumentException> {
+            InformasjonSomRevurderes.opprettUtenVurderinger(
+                Sakstype.ALDER,
+                listOf(Revurderingsteg.Flyktning),
+            )
+        }
+        InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
+            Sakstype.ALDER,
+            listOf(Revurderingsteg.Flyktning),
+        ) shouldBe InformasjonSomRevurderes.FlyktningErUgyldigForAlder.left()
+    }
+
+    @Test
+    fun `opprettelse av uføre må kan ikke ha steg familiegjenforening`() {
+        assertThrows<IllegalArgumentException> {
+            InformasjonSomRevurderes.opprettUtenVurderinger(
+                Sakstype.UFØRE,
+                listOf(Revurderingsteg.Familiegjenforening),
+            )
+        }
+        InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
+            Sakstype.UFØRE,
+            listOf(Revurderingsteg.Familiegjenforening),
+        ) shouldBe InformasjonSomRevurderes.FamiliegjenforeningErUgyldigForUføre.left()
+    }
 }

@@ -22,8 +22,14 @@ data class InformasjonSomRevurderes private constructor(
 
     companion object {
 
-        fun opprettUtenVurderinger(sakstype: Sakstype, revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {
-            return opprettUtenVurderingerMedFeilmelding(sakstype, revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
+        fun opprettUtenVurderinger(
+            sakstype: Sakstype,
+            revurderingsteg: List<Revurderingsteg>,
+        ): InformasjonSomRevurderes {
+            return opprettUtenVurderingerMedFeilmelding(
+                sakstype,
+                revurderingsteg,
+            ).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
         fun opprettUtenVurderingerMedFeilmelding(
@@ -39,10 +45,13 @@ data class InformasjonSomRevurderes private constructor(
             sakstype: Sakstype,
             revurderingsteg: Map<Revurderingsteg, Vurderingstatus>,
         ): InformasjonSomRevurderes {
-            return opprettMedVurderingerOgFeilmelding(sakstype, revurderingsteg).getOrElse { throw IllegalArgumentException(it.toString()) }
+            return opprettMedVurderingerOgFeilmelding(
+                sakstype,
+                revurderingsteg,
+            ).getOrElse { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun opprettMedVurderingerOgFeilmelding(
+        private fun opprettMedVurderingerOgFeilmelding(
             sakstype: Sakstype,
             revurderingsteg: Map<Revurderingsteg, Vurderingstatus>,
         ): Either<UgyldigForRevurdering, InformasjonSomRevurderes> {
@@ -56,10 +65,23 @@ data class InformasjonSomRevurderes private constructor(
             revurderingsteg: List<Revurderingsteg>,
         ): UgyldigForRevurdering? {
             if (revurderingsteg.isEmpty()) return MåRevurdereMinstEnTing
+            when (sakstype) {
+                Sakstype.ALDER -> {
+                    if (revurderingsteg.contains(Revurderingsteg.Uførhet)) return UførhetErUgyldigForAlder
+                    if (revurderingsteg.contains(Revurderingsteg.Flyktning)) return FlyktningErUgyldigForAlder
+                }
+
+                Sakstype.UFØRE -> {
+                    if (revurderingsteg.contains(Revurderingsteg.Familiegjenforening)) return FamiliegjenforeningErUgyldigForUføre
+                }
+            }
             return null
         }
     }
 
     sealed interface UgyldigForRevurdering
     data object MåRevurdereMinstEnTing : UgyldigForRevurdering
+    data object UførhetErUgyldigForAlder : UgyldigForRevurdering
+    data object FlyktningErUgyldigForAlder : UgyldigForRevurdering
+    data object FamiliegjenforeningErUgyldigForUføre : UgyldigForRevurdering
 }
