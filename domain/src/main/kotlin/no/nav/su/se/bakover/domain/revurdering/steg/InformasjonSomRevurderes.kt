@@ -35,7 +35,7 @@ data class InformasjonSomRevurderes private constructor(
         fun opprettUtenVurderingerMedFeilmelding(
             sakstype: Sakstype,
             revurderingsteg: List<Revurderingsteg>,
-        ): Either<UgyldigForRevurdering, InformasjonSomRevurderes> {
+        ): Either<UgyldigRevurderingsteg, InformasjonSomRevurderes> {
             val ugyldigForRevurdering = ugyldigForRevurdering(sakstype, revurderingsteg)
             if (ugyldigForRevurdering != null) return ugyldigForRevurdering.left()
             return InformasjonSomRevurderes(revurderingsteg.keysToMap { Vurderingstatus.IkkeVurdert }).right()
@@ -54,7 +54,7 @@ data class InformasjonSomRevurderes private constructor(
         private fun opprettMedVurderingerOgFeilmelding(
             sakstype: Sakstype,
             revurderingsteg: Map<Revurderingsteg, Vurderingstatus>,
-        ): Either<UgyldigForRevurdering, InformasjonSomRevurderes> {
+        ): Either<UgyldigRevurderingsteg, InformasjonSomRevurderes> {
             val ugyldigForRevurdering = ugyldigForRevurdering(sakstype, revurderingsteg.keys.toList())
             if (ugyldigForRevurdering != null) return ugyldigForRevurdering.left()
             return InformasjonSomRevurderes(revurderingsteg).right()
@@ -63,7 +63,7 @@ data class InformasjonSomRevurderes private constructor(
         private fun ugyldigForRevurdering(
             sakstype: Sakstype,
             revurderingsteg: List<Revurderingsteg>,
-        ): UgyldigForRevurdering? {
+        ): UgyldigRevurderingsteg? {
             if (revurderingsteg.isEmpty()) return MåRevurdereMinstEnTing
             when (sakstype) {
                 Sakstype.ALDER -> {
@@ -80,10 +80,10 @@ data class InformasjonSomRevurderes private constructor(
         }
     }
 
-    sealed interface UgyldigForRevurdering
-    data object MåRevurdereMinstEnTing : UgyldigForRevurdering
-    data object UførhetErUgyldigForAlder : UgyldigForRevurdering
-    data object FlyktningErUgyldigForAlder : UgyldigForRevurdering
-    data object FamiliegjenforeningErUgyldigForUføre : UgyldigForRevurdering
-    data object PensjonErUgyldigForUføre : UgyldigForRevurdering
+    sealed interface UgyldigRevurderingsteg
+    data object MåRevurdereMinstEnTing : UgyldigRevurderingsteg
+    data object UførhetErUgyldigForAlder : UgyldigRevurderingsteg
+    data object FlyktningErUgyldigForAlder : UgyldigRevurderingsteg
+    data object FamiliegjenforeningErUgyldigForUføre : UgyldigRevurderingsteg
+    data object PensjonErUgyldigForUføre : UgyldigRevurderingsteg
 }
