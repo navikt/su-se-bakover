@@ -70,7 +70,7 @@ internal class InformasjonSomRevurderesTest {
     }
 
     @Test
-    fun `opprettelse av alder må kan ikke ha steg uførhet`() {
+    fun `opprettelse av alder kan ikke ha steg uførhet`() {
         assertThrows<IllegalArgumentException> {
             InformasjonSomRevurderes.opprettUtenVurderinger(
                 Sakstype.ALDER,
@@ -84,7 +84,7 @@ internal class InformasjonSomRevurderesTest {
     }
 
     @Test
-    fun `opprettelse av alder må kan ikke ha steg flyktning`() {
+    fun `opprettelse av alder kan ikke ha steg flyktning`() {
         assertThrows<IllegalArgumentException> {
             InformasjonSomRevurderes.opprettUtenVurderinger(
                 Sakstype.ALDER,
@@ -98,7 +98,7 @@ internal class InformasjonSomRevurderesTest {
     }
 
     @Test
-    fun `opprettelse av uføre må kan ikke ha steg familiegjenforening`() {
+    fun `opprettelse av uføre kan ikke ha steg familiegjenforening`() {
         assertThrows<IllegalArgumentException> {
             InformasjonSomRevurderes.opprettUtenVurderinger(
                 Sakstype.UFØRE,
@@ -109,5 +109,19 @@ internal class InformasjonSomRevurderesTest {
             Sakstype.UFØRE,
             listOf(Revurderingsteg.Familiegjenforening),
         ) shouldBe InformasjonSomRevurderes.FamiliegjenforeningErUgyldigForUføre.left()
+    }
+
+    @Test
+    fun `opprettelse av uføre kan ikke ha steg pensjon`() {
+        assertThrows<IllegalArgumentException> {
+            InformasjonSomRevurderes.opprettUtenVurderinger(
+                Sakstype.UFØRE,
+                listOf(Revurderingsteg.Pensjon),
+            )
+        }
+        InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
+            Sakstype.UFØRE,
+            listOf(Revurderingsteg.Pensjon),
+        ) shouldBe InformasjonSomRevurderes.PensjonErUgyldigForUføre.left()
     }
 }

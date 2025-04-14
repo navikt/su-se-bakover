@@ -73,6 +73,7 @@ data class InformasjonSomRevurderes private constructor(
 
                 Sakstype.UFØRE -> {
                     if (revurderingsteg.contains(Revurderingsteg.Familiegjenforening)) return FamiliegjenforeningErUgyldigForUføre
+                    if (revurderingsteg.contains(Revurderingsteg.Pensjon)) return PensjonErUgyldigForUføre
                 }
             }
             return null
@@ -84,4 +85,5 @@ data class InformasjonSomRevurderes private constructor(
     data object UførhetErUgyldigForAlder : UgyldigForRevurdering
     data object FlyktningErUgyldigForAlder : UgyldigForRevurdering
     data object FamiliegjenforeningErUgyldigForUføre : UgyldigForRevurdering
+    data object PensjonErUgyldigForUføre : UgyldigForRevurdering
 }
