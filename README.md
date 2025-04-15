@@ -4,6 +4,8 @@
 
 ### Lokalt oppsett
 
+Kjør `get_started.sh` for å konfigurere opp hooks. Denne setter hook pathen for git lokalt for dette prosjektet.
+
 sjekkliste:
 
 1. ha riktig gradle versjon (kan finnes i `build.gradle.kts` - let etter `gradleVersion =`)

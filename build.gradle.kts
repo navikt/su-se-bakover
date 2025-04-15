@@ -215,7 +215,7 @@ tasks.register<Copy>("gitHooks") {
     into(".git/hooks")
 }
 
-//TODO: burde fligge direkte inne i hooks vel også kan hooken kjøre en egendefinert task ala //dependsOn("spotlessApply")...
+//TODO: kan slettes
 tasks.named("build") {
     dependsOn(":gitHooks")
 }
