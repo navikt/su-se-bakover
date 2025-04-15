@@ -5,6 +5,7 @@
 ### Lokalt oppsett
 
 Kjør `get_started.sh` for å konfigurere opp hooks. Denne setter hook pathen for git lokalt for dette prosjektet.
+Nå kan alle git hooks legges inn under `scripts/hooks`.
 
 sjekkliste:
 
