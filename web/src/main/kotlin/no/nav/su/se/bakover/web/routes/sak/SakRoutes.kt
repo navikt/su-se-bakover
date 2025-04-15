@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurdering
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.journalpost.JournalpostJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
-import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktDto.Companion.toDto
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import vilkår.formue.domain.FormuegrenserFactory
@@ -238,14 +238,14 @@ internal fun Route.sakRoutes(
     get("$SAK_PATH/behandlinger/apne") {
         authorize(Brukerrolle.Saksbehandler) {
             val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
-            call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toJson())))
+            call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toDto())))
         }
     }
 
     get("$SAK_PATH/behandlinger/ferdige") {
         authorize(Brukerrolle.Saksbehandler) {
             val ferdigeBehandlinger = sakService.hentFerdigeBehandlingerForAlleSaker()
-            call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
+            call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toDto())))
         }
     }
 

@@ -87,6 +87,9 @@ internal data class SakJson(
     }
 }
 
+/*
+    Duplikat av enum class Sakstype(val value: String) {...
+ */
 enum class SakstypeJson {
     ALDER,
     UFØRE,
