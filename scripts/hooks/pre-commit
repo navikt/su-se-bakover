@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo '[git pre-commit hook] executing gradle spotlessCheck before commit. Did you remember git add? Run ./gradlew spotlessApply to automaticcaly fix linting errors.'
+echo '[git pre-commit hook] executing gradle spotlessApply before commit.'
 
 # https://stackoverflow.com/questions/20479794/how-do-i-properly-git-stash-pop-in-pre-commit-hooks-to-get-a-clean-working-tree
 # First, stash index and work dir, keeping only the
@@ -20,7 +20,7 @@ if [ "$old_stash" = "$new_stash" ]; then
 fi
 
 # Run checks
-./gradlew spotlessCheck --daemon
+./gradlew spotlessApply --daemon
 status=$?
 
 

@@ -215,9 +215,11 @@ tasks.register<Copy>("gitHooks") {
     into(".git/hooks")
 }
 
+//TODO: burde ligge direkte inne i hooks vel også kan hooken kjøre en egendefinert task ala //dependsOn("spotlessApply")...
 tasks.named("build") {
     dependsOn(":gitHooks")
 }
+
 // TODO jah: Fix find + grep
 //apply(from = "gradle/checkImports.gradle.kts")
 
