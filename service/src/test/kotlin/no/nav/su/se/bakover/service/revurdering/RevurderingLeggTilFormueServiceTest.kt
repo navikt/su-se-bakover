@@ -8,6 +8,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
@@ -61,7 +62,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             begrunnelse = null,
         )
         val (sak, opprettet) = opprettetRevurdering(
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
+            informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(Sakstype.UFØRE, listOf(Revurderingsteg.Formue)),
         )
 
         RevurderingServiceMocks(
@@ -82,7 +83,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             ).getOrFail()
 
             actual.shouldBeType<RevurderingOgFeilmeldingerResponse>().let { response ->
-                response.revurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
+                response.revurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.opprettMedVurderinger(
+                    sak.type,
                     mapOf(Revurderingsteg.Formue to Vurderingstatus.Vurdert),
                 )
                 response.revurdering.vilkårsvurderinger.formue.shouldBeType<FormueVilkår.Vurdert>().let {
@@ -299,7 +301,8 @@ internal class RevurderingLeggTilFormueServiceTest {
     @Test
     fun `når formue blir avslått, og uførhet er det også, får vi feil om at utfallet ikke støttes pga opphør av flere vilkår`() {
         val (sak, opprettet) = opprettetRevurdering(
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+            informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderinger(
+                Sakstype.UFØRE,
                 listOf(
                     Revurderingsteg.Uførhet,
                     Revurderingsteg.Formue,
