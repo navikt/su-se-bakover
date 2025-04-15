@@ -210,16 +210,6 @@ fun Test.sharedTestSetup() {
     jvmArgs = listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")
 }
 
-tasks.register<Copy>("gitHooks") {
-    from("scripts/hooks/pre-commit")
-    into(".git/hooks")
-}
-
-//TODO: burde fligge direkte inne i hooks vel også kan hooken kjøre en egendefinert task ala //dependsOn("spotlessApply")...
-tasks.named("build") {
-    dependsOn(":gitHooks")
-}
-
 // TODO jah: Fix find + grep
 //apply(from = "gradle/checkImports.gradle.kts")
 
