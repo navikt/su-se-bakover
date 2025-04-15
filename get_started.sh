@@ -1,3 +1,4 @@
 #!/bin/sh
 
-git config --local core.hooksPath .scripts/hooks/
+git config --local core.hooksPath scripts/hooks/
+chmod +x scripts/
