@@ -15,10 +15,10 @@ internal data class BehandlingsoversiktDto(
     companion object {
         fun List<Behandlingssammendrag>.toDto() = this.map {
             BehandlingsoversiktDto(
-                sakType = it.sakType.name,
+                sakType = it.sakType.value,
                 saksnummer = it.saksnummer.toString(),
                 typeBehandling = it.behandlingstype.name,
-                status = it.status?.toString(),
+                status = it.status?.name,
                 behandlingStartet = it.behandlingStartet?.toString(),
                 periode = it.periode?.toJson(),
             )
