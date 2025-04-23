@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 
 internal const val PERSON_PATH = "/rest/v1/person"
@@ -36,12 +37,17 @@ class KontaktOgReservasjonsregisterClient(
                 deserialize<HentKontaktinformasjonRepsonse>(json).toKontaktinformasjon()
             },
             {
-                val errorMessage = "Feil ved henting av digital kontaktinformasjon. Status=${response.statusCode} Body=${String(response.data)}"
+                val errorMessage =
+                    "Feil ved henting av digital kontaktinformasjon. Status=${response.statusCode} Body=${
+                        String(response.data)
+                    }"
                 if (response.statusCode == 500) {
                     // Eksempel json-response: `{"melding":"Det oppsto en feil ved kall til Maskinporten"}`
-                    log.warn(errorMessage, it)
+                    log.warn(errorMessage + "Se sikkerlogg for mer kontekst.", it)
+                    sikkerLogg.warn(errorMessage + "Fnr: $fnr", it)
                 } else {
-                    log.error(errorMessage, it)
+                    log.error(errorMessage + "Se sikkerlogg for mer kontekst.", it)
+                    sikkerLogg.error(errorMessage + "Fnr: $fnr", it)
                 }
                 KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
             },
