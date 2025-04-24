@@ -152,7 +152,7 @@ subprojects {
     }
 
     // Run `./gradlew allDeps` to get a dependency graph
-    task("allDeps", DependencyReportTask::class) {}
+    tasks.register("allDeps", DependencyReportTask::class) {}
 
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
@@ -186,14 +186,13 @@ subprojects {
         systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
 }
-
-configurations {
-    all {
-        // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
-        exclude(group = "org.apache.logging.log4j", module = "log4j-core")
-        // Ref dependabot PR 8 - https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9
-        // We exclude this and include jdk18on instead.
-        exclude(group= "org.bouncycastle", module= "bcprov-jdk15on")
+allprojects {
+    configurations.all {
+            // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
+            exclude(group = "org.apache.logging.log4j", module = "log4j-core")
+            // Ref dependabot PR 8 - https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9
+            // We exclude this and include jdk18on instead.
+            exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
 }
 

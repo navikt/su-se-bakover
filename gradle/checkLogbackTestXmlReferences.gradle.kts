@@ -3,15 +3,16 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 val checkLogbackTestXmlReferences by tasks.registering {
     group = "verification"
+    val rootDir = project.rootDir
+    val sharedConfigFileLocation = File("${rootDir}/bootstrap/src/test/resources/logbackConfig-test.xml")
     doLast {
-        val sharedConfigFileLocation = File("${project.rootDir}/bootstrap/src/test/resources/logbackConfig-test.xml")
         if (!sharedConfigFileLocation.exists()) {
             throw IllegalStateException("Logback configuration file not found at ${sharedConfigFileLocation.absolutePath}")
         }
 
         val excludeDirs = setOf(".github", ".gradle", ".idea", "build", "build", "bootstrap")
 
-        val logbackTestFiles = project.rootDir.walkTopDown()
+        val logbackTestFiles = rootDir.walkTopDown()
             .onEnter { dir ->
                 !excludeDirs.contains(dir.name)
             }
