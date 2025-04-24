@@ -73,9 +73,9 @@ private data class SimuleringDatabaseJson(
     }
 
     data class SimuleringsperiodeJson(
-        @JsonAlias("fraOgMed", "fom")
+        @param:JsonAlias("fraOgMed", "fom")
         val fraOgMed: String,
-        @JsonAlias("tilOgMed", "tom")
+        @param:JsonAlias("tilOgMed", "tom")
         val tilOgMed: String,
         val utbetaling: List<Utbetaling>,
     ) {
@@ -155,9 +155,9 @@ private data class SimuleringDatabaseJson(
             }
 
             data class Detaljer(
-                @JsonAlias("faktiskFraOgMed", "faktiskFom")
+                @param:JsonAlias("faktiskFraOgMed", "faktiskFom")
                 val faktiskFraOgMed: String,
-                @JsonAlias("faktiskTilOgMed", "faktiskTom")
+                @param:JsonAlias("faktiskTilOgMed", "faktiskTom")
                 val faktiskTilOgMed: String,
                 val konto: String,
                 val belop: Int,

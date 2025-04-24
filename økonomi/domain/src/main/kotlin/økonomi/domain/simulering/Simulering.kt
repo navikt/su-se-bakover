@@ -192,9 +192,9 @@ data class SimulertUtbetaling(
 }
 
 data class SimulertDetaljer(
-    @JsonAlias("faktiskFraOgMed", "faktiskFom")
+    @param:JsonAlias("faktiskFraOgMed", "faktiskFom")
     val faktiskFraOgMed: LocalDate,
-    @JsonAlias("faktiskTilOgMed", "faktiskTom")
+    @param:JsonAlias("faktiskTilOgMed", "faktiskTom")
     val faktiskTilOgMed: LocalDate,
     val konto: String,
     val belop: Int,
