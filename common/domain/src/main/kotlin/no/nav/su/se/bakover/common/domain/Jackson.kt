@@ -10,6 +10,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.serialization.jackson.JacksonConverter
 import org.slf4j.LoggerFactory
+import kotlin.reflect.KClass
 
 /**
  * TODO jah: Denne bør ligger under common:infrastructure, men brukes blant annet av BrevInnhold, som ligger i domain. Dette krever en gradvis refaktorering.
@@ -67,9 +68,8 @@ inline fun <reified T> String.deserializeList(): List<T> {
 }
 
 inline fun <reified T> deserialize(value: String): T {
-    return privateObjectMapper.readValue<T>(value).also {
-        throwIfContainsDomainObjects(it)
-    }
+    throwIfContainsDomainTypes(T::class)
+    return privateObjectMapper.readValue<T>(value)
 }
 
 inline fun <reified T> deserializeNullable(value: String?): T? {
@@ -104,6 +104,17 @@ fun jsonNode(value: String): com.fasterxml.jackson.databind.JsonNode {
 
 fun jacksonConverter(): JacksonConverter {
     return JacksonConverter(privateObjectMapper)
+}
+
+fun <T> throwIfContainsDomainTypes(vararg types: KClass<T>?) {
+    types.forEach { type ->
+        if (type == null) return
+        val exclusionList = listOf("Simulering")
+        val currentType: String = type.java.simpleName
+        if (exclusionList.contains(currentType)) {
+            throw IllegalStateException("Don't serialize/deserialize domain types: $currentType")
+        }
+    }
 }
 
 fun throwIfContainsDomainObjects(vararg types: Any?) {
