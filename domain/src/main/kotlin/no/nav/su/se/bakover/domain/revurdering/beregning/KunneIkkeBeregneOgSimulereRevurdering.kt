@@ -7,8 +7,7 @@ import kotlin.reflect.KClass
 sealed interface KunneIkkeBeregneOgSimulereRevurdering {
     data object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering
     data object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-        KunneIkkeBeregneOgSimulereRevurdering
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeBeregneOgSimulereRevurdering
 
     data class UgyldigBeregningsgrunnlag(
         val reason: beregning.domain.UgyldigBeregningsgrunnlag,
@@ -16,6 +15,5 @@ sealed interface KunneIkkeBeregneOgSimulereRevurdering {
 
     data object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering
 
-    data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) :
-        KunneIkkeBeregneOgSimulereRevurdering
+    data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeBeregneOgSimulereRevurdering
 }

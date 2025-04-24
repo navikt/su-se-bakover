@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.common.tid
 import java.time.Clock
 import java.time.Year
 
-data class YearRange(override val start: Year, override val endInclusive: Year) : ClosedRange<Year>, Collection<Year> {
+data class YearRange(override val start: Year, override val endInclusive: Year) :
+    ClosedRange<Year>,
+    Collection<Year> {
 
     constructor(start: Int, endInclusive: Int) : this(Year.of(start), Year.of(endInclusive))
 

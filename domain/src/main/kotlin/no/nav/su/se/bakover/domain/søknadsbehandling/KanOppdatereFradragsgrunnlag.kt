@@ -13,7 +13,9 @@ import java.time.Clock
 /**
  * Denne skiller seg fra [KanOppdaterePeriodeBosituasjonVilkår] ved at man kun kan oppdatere fradrag dersom de initielle vilkårene er innvilget.
  */
-sealed interface KanOppdatereFradragsgrunnlag : Søknadsbehandling, KanOppdaterePeriodeGrunnlagVilkår {
+sealed interface KanOppdatereFradragsgrunnlag :
+    Søknadsbehandling,
+    KanOppdaterePeriodeGrunnlagVilkår {
     /**
      * Oppdaterer fradragsgrunnlag, legger til en ny hendelse og endrer tilstand til [VilkårsvurdertSøknadsbehandling.Innvilget]
      * For å fjerne alle fradragsgrunnlag, sendes en tom liste.

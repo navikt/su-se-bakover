@@ -23,7 +23,10 @@ interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
     val klageinstanshendelser: Klageinstanshendelser
 }
 
-sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast {
+sealed interface VurdertKlage :
+    Klage,
+    VurdertKlageFelter,
+    KanGenerereBrevutkast {
     /**
      * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
      */
@@ -114,7 +117,9 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
         private val forrigeSteg: VilkårsvurdertKlage.Bekreftet.TilVurdering,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vurderinger: VurderingerTilKlage.Påbegynt,
-    ) : VurdertKlage, KlageSomKanVurderes, VilkårsvurdertKlage.Bekreftet.TilVurderingFelter by forrigeSteg {
+    ) : VurdertKlage,
+        KlageSomKanVurderes,
+        VilkårsvurdertKlage.Bekreftet.TilVurderingFelter by forrigeSteg {
 
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -168,7 +173,11 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
         private val forrigeSteg: Påbegynt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vurderinger: VurderingerTilKlage.Utfylt,
-    ) : VurdertKlage, UtfyltFelter, KlageSomKanVurderes, KanBekrefteKlagevurdering, VurdertKlageFelter by forrigeSteg {
+    ) : VurdertKlage,
+        UtfyltFelter,
+        KlageSomKanVurderes,
+        KanBekrefteKlagevurdering,
+        VurdertKlageFelter by forrigeSteg {
 
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -233,7 +242,10 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter, KanGenerereBrevutkast
         override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
         override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
         override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
-    ) : VurdertKlage, KlageSomKanVurderes, KanBekrefteKlagevurdering, UtfyltFelter by forrigeSteg {
+    ) : VurdertKlage,
+        KlageSomKanVurderes,
+        KanBekrefteKlagevurdering,
+        UtfyltFelter by forrigeSteg {
 
         override fun erÅpen() = true
 

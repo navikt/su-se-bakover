@@ -52,10 +52,14 @@ open class DatoIntervall(
      * false: Det finnes ingen dager som overlapper
      */
     infix fun overlapper(other: DatoIntervall): Boolean =
-        starterSamtidigEllerTidligere(other) && slutterInni(other) ||
-            other.starterSamtidigEllerTidligere(this) && other.slutterInni(this) ||
-            starterSamtidigEllerTidligere(other) && slutterEtter(other) ||
-            other.starterSamtidigEllerTidligere(this) && other.slutterEtter(this)
+        starterSamtidigEllerTidligere(other) &&
+            slutterInni(other) ||
+            other.starterSamtidigEllerTidligere(this) &&
+            other.slutterInni(this) ||
+            starterSamtidigEllerTidligere(other) &&
+            slutterEtter(other) ||
+            other.starterSamtidigEllerTidligere(this) &&
+            other.slutterEtter(this)
 
     infix fun overlapperExcludingEndDate(other: DatoIntervall): Boolean {
         return this.fraOgMed < other.tilOgMed && this.tilOgMed > other.fraOgMed
@@ -75,7 +79,8 @@ open class DatoIntervall(
     infix fun slutterTidligere(other: DatoIntervall) = tilOgMed.isBefore(other.tilOgMed)
     infix fun slutterEtter(other: DatoIntervall) = tilOgMed.isAfter(other.tilOgMed)
     infix fun slutterInni(other: DatoIntervall) = (starterSamtidigEllerTidligere(other) || starterEtter(other)) &&
-        !før(other) && slutterSamtidigEllerTidligere(other)
+        !før(other) &&
+        slutterSamtidigEllerTidligere(other)
 
     infix fun før(other: DatoIntervall) = tilOgMed.isBefore(other.fraOgMed)
     infix fun etter(other: DatoIntervall) = fraOgMed.isAfter(other.tilOgMed)

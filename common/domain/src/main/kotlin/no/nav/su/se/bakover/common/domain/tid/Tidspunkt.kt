@@ -34,7 +34,10 @@ class Tidspunkt
 private constructor(
     @JsonValue
     val instant: Instant,
-) : Temporal by instant, TemporalAdjuster by instant, Comparable<Tidspunkt>, Serializable by instant {
+) : Temporal by instant,
+    TemporalAdjuster by instant,
+    Comparable<Tidspunkt>,
+    Serializable by instant {
 
     init {
         val maxNanoPrecision = when (tidspunktPresisjon) {
@@ -98,7 +101,9 @@ operator fun Instant.compareTo(tidspunkt: Tidspunkt): Int {
 fun Tidspunkt.fixedClock(): Clock = Clock.fixed(instant, ZoneOffset.UTC)
 
 fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Boolean {
-    return (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(
-        tilOgMed.instant,
-    )
+    return (this == fraOgMed || this == tilOgMed) ||
+        this.instant.isAfter(fraOgMed.instant) &&
+        this.instant.isBefore(
+            tilOgMed.instant,
+        )
 }

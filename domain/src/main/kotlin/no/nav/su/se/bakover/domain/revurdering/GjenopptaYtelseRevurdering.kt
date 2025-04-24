@@ -61,7 +61,8 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         val begrunnelse: String,
         override val avsluttetTidspunkt: Tidspunkt,
         override val avsluttetAv: NavIdentBruker?,
-    ) : GjenopptaYtelseRevurdering, Avbrutt {
+    ) : GjenopptaYtelseRevurdering,
+        Avbrutt {
         override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis =
             underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
@@ -171,7 +172,8 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : GjenopptaYtelseRevurdering, BehandlingMedAttestering {
+    ) : GjenopptaYtelseRevurdering,
+        BehandlingMedAttestering {
 
         override val beregning = null
         override fun erÅpen() = false

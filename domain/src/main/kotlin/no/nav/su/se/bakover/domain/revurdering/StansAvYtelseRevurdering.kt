@@ -54,7 +54,8 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         val begrunnelse: String,
         override val avsluttetTidspunkt: Tidspunkt,
         override val avsluttetAv: NavIdentBruker?,
-    ) : StansAvYtelseRevurdering, Avbrutt {
+    ) : StansAvYtelseRevurdering,
+        Avbrutt {
         override val tilRevurdering = underliggendeStansAvYtelse.tilRevurdering
         override val vedtakSomRevurderesMånedsvis = underliggendeStansAvYtelse.vedtakSomRevurderesMånedsvis
         override val sakinfo = underliggendeStansAvYtelse.sakinfo
@@ -174,7 +175,8 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
             begrunnelse = null,
             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         ),
-    ) : StansAvYtelseRevurdering, BehandlingMedAttestering {
+    ) : StansAvYtelseRevurdering,
+        BehandlingMedAttestering {
 
         override val beregning = null
         override fun erÅpen() = false

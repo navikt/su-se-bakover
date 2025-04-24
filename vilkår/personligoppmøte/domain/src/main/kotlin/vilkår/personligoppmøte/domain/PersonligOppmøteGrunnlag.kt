@@ -59,7 +59,8 @@ data class PersonligOppmøteGrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val årsak: PersonligOppmøteÅrsak,
-) : Grunnlag, KanPlasseresPåTidslinje<PersonligOppmøteGrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<PersonligOppmøteGrunnlag> {
 
     fun vurdering(): Vurdering {
         return årsak.tilVurdering()

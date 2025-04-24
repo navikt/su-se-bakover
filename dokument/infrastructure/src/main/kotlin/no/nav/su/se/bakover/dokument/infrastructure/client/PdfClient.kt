@@ -46,9 +46,7 @@ class PdfClient(private val baseUrl: String) : PdfGenerator {
  * Removing all asci control characters from u0000 to u001F
  * Internal for testing
  */
-internal value class XmlValidString private constructor(
-    val value: String,
-) {
+internal value class XmlValidString private constructor(val value: String) {
     companion object {
         fun create(unvalidated: String): XmlValidString {
             val regexFilterLiteralControlCharacters = Regex("(\\\\u00[0-1][0-9A-F])")

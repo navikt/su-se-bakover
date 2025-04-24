@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
 import org.junit.jupiter.api.Test
 
-internal class BoforholdTest() {
+internal class BoforholdTest {
     private val oppgittAdresse = OppgittAdresse.BorPåAdresse(
         adresselinje = "Brugata 55",
         postnummer = "0183",

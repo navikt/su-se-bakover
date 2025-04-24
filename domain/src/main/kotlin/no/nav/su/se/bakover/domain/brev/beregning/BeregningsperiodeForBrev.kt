@@ -28,6 +28,7 @@ fun List<Beregningsperiode>.harFradrag(): Boolean {
     return this.any {
         // TODO jah: Rest av Avkorting. Brukes kun fra brev. Det skal egentlig ikke finnes nye avkortingsfradrag i nye behandlinger. Undersøk om vi kan fjerne denne filtreringen.
         it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }
-            .isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty()
+            .isNotEmpty() ||
+            it.fradrag.eps.fradrag.isNotEmpty()
     }
 }

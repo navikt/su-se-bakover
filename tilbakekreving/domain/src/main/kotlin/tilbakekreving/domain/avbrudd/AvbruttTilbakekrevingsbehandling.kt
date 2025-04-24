@@ -14,7 +14,8 @@ data class AvbruttTilbakekrevingsbehandling(
     override val avsluttetAv: NavIdentBruker,
     override val versjon: Hendelsesversjon,
     val begrunnelse: String,
-) : Tilbakekrevingsbehandling by forrigeSteg, Avbrutt {
+) : Tilbakekrevingsbehandling by forrigeSteg,
+    Avbrutt {
 
     override fun erÅpen() = false
     override fun erAvsluttet() = true

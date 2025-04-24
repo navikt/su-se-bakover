@@ -19,7 +19,8 @@ data class VurderingsperiodeUføre private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Uføregrunnlag?,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeUføre> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeUføre> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUføre {
         return this.copy(

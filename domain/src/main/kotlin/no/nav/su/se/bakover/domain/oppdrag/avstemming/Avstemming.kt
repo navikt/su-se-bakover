@@ -102,13 +102,15 @@ sealed interface Avstemming {
             val løpendeUtbetalinger = utbetalinger
                 .filter { it.opprettet <= opprettetTilOgMed.instant } // 1
                 .groupBy { it.saksnummer } // 2
-                .mapValues { entry -> // 3
+                .mapValues { entry ->
+                    // 3
                     UtbetalingslinjerPerSak(
                         saksnummer = entry.key,
                         utbetalinger = entry.value,
                     )
                 }
-                .mapValues { entry -> // 4
+                .mapValues { entry ->
+                    // 4
                     /**
                      * Dersom [løpendeFraOgMed] ikke er den første dagen i en måned, må denne justeres til å være det.
                      * Funksjonelt vil dette gi det samme resultatet som følge av at minste varighet på en [Periode]
@@ -127,7 +129,8 @@ sealed interface Avstemming {
                 }
                 .filterNot { it.value.second.isEmpty() } // 5
                 .mapValues { pair -> pair.value.first to pair.value.second.map { it.kopiertFraId } } // 6
-                .map { entry -> // 7
+                .map { entry ->
+                    // 7
                     OppdragForKonsistensavstemming(
                         saksnummer = entry.value.first.saksnummer,
                         fagområde = entry.value.first.fagområde,

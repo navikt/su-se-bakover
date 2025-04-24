@@ -39,7 +39,8 @@ sealed interface FullSupplerendeStønadForMåned {
         val grunnbeløp: GrunnbeløpForMåned,
         val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
         override val toProsentAvHøyForMåned: BigDecimal,
-    ) : Comparable<FullSupplerendeStønadForMåned>, FullSupplerendeStønadForMåned {
+    ) : Comparable<FullSupplerendeStønadForMåned>,
+        FullSupplerendeStønadForMåned {
 
         override val satsPerÅr: BigDecimal =
             grunnbeløp.grunnbeløpPerÅr
@@ -73,7 +74,8 @@ sealed interface FullSupplerendeStønadForMåned {
         override val satskategori: Satskategori,
         val garantipensjonForMåned: GarantipensjonForMåned,
         override val toProsentAvHøyForMåned: BigDecimal,
-    ) : Comparable<FullSupplerendeStønadForMåned>, FullSupplerendeStønadForMåned {
+    ) : Comparable<FullSupplerendeStønadForMåned>,
+        FullSupplerendeStønadForMåned {
 
         override val satsPerÅr: BigDecimal = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
 

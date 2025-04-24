@@ -66,7 +66,8 @@ sealed interface BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling, KanSimuleres {
+    ) : BeregnetSøknadsbehandling,
+        KanSimuleres {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val simulering: Simulering? = null
 
@@ -157,7 +158,10 @@ sealed interface BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : BeregnetSøknadsbehandling, ErAvslag, KanSendesTilAttestering, KanGenerereAvslagsbrev {
+    ) : BeregnetSøknadsbehandling,
+        ErAvslag,
+        KanSendesTilAttestering,
+        KanGenerereAvslagsbrev {
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 

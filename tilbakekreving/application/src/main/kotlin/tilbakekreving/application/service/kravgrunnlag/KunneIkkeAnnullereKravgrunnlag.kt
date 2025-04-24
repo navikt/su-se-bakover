@@ -9,6 +9,5 @@ sealed interface KunneIkkeAnnullereKravgrunnlag {
     data object SakenHarIkkeKravgrunnlagSomKanAnnulleres : KunneIkkeAnnullereKravgrunnlag
     data object FantIkkeKravgrunnlag : KunneIkkeAnnullereKravgrunnlag
     data object BehandlingenErIFeilTilstandForÅAnnullere : KunneIkkeAnnullereKravgrunnlag
-    data class FeilMotTilbakekrevingskomponenten(val underliggende: KunneIkkeAnnullerePåbegynteVedtak) :
-        KunneIkkeAnnullereKravgrunnlag
+    data class FeilMotTilbakekrevingskomponenten(val underliggende: KunneIkkeAnnullerePåbegynteVedtak) : KunneIkkeAnnullereKravgrunnlag
 }

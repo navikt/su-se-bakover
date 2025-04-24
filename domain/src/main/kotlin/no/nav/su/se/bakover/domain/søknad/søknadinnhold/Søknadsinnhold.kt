@@ -177,11 +177,9 @@ data class SøknadsinnholdUføre private constructor(
 }
 
 sealed interface FeilVedOpprettelseAvSøknadinnhold {
-    data class DataVedOpphodlstillatelseErInkonsekvent(val underliggendeFeil: FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder) :
-        FeilVedOpprettelseAvSøknadinnhold
+    data class DataVedOpphodlstillatelseErInkonsekvent(val underliggendeFeil: FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder) : FeilVedOpprettelseAvSøknadinnhold
 
-    data class DataVedBoforholdOgEktefelleErInkonsekvent(val underliggendeFeil: FeilVedValideringAvBoforholdOgEktefelle) :
-        FeilVedOpprettelseAvSøknadinnhold
+    data class DataVedBoforholdOgEktefelleErInkonsekvent(val underliggendeFeil: FeilVedValideringAvBoforholdOgEktefelle) : FeilVedOpprettelseAvSøknadinnhold
 }
 
 sealed interface FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder {

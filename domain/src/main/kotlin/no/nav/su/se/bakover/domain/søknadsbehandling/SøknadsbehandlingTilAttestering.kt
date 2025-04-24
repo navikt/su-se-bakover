@@ -27,7 +27,9 @@ import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
-sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGenerereBrev {
+sealed interface SøknadsbehandlingTilAttestering :
+    Søknadsbehandling,
+    KanGenerereBrev {
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     override fun erÅpen() = true
     override fun erAvsluttet() = false
@@ -60,7 +62,8 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
-    ) : SøknadsbehandlingTilAttestering, KanGenerereInnvilgelsesbrev {
+    ) : SøknadsbehandlingTilAttestering,
+        KanGenerereInnvilgelsesbrev {
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
@@ -126,7 +129,10 @@ sealed interface SøknadsbehandlingTilAttestering : Søknadsbehandling, KanGener
         }
     }
 
-    sealed interface Avslag : SøknadsbehandlingTilAttestering, ErAvslag, KanGenerereAvslagsbrev {
+    sealed interface Avslag :
+        SøknadsbehandlingTilAttestering,
+        ErAvslag,
+        KanGenerereAvslagsbrev {
         override val beregning: Beregning?
         abstract override val aldersvurdering: Aldersvurdering
 

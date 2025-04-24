@@ -1259,7 +1259,8 @@ fun vilkårsvurdertSøknadsbehandling(
         }
 
         val medFradrag = if (customGrunnlag.customOrDefault { defaultGrunnlagsdata.fradragsgrunnlag }
-                .isNotEmpty() && vilkårsvurdert is VilkårsvurdertSøknadsbehandling.Innvilget
+                .isNotEmpty() &&
+            vilkårsvurdert is VilkårsvurdertSøknadsbehandling.Innvilget
         ) {
             vilkårsvurdert.oppdaterFradragsgrunnlag(
                 saksbehandler = saksbehandler,

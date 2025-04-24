@@ -4,8 +4,7 @@ import økonomi.domain.simulering.ForskjellerMellomUtbetalingslinjeOgSimulerings
 import økonomi.domain.simulering.SimuleringFeilet
 
 sealed interface KryssjekkAvTidslinjeOgSimuleringFeilet {
-    data class KryssjekkFeilet(val feil: ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode) :
-        KryssjekkAvTidslinjeOgSimuleringFeilet
+    data class KryssjekkFeilet(val feil: ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode) : KryssjekkAvTidslinjeOgSimuleringFeilet
 
     data object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : KryssjekkAvTidslinjeOgSimuleringFeilet
 

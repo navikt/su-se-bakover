@@ -7,11 +7,9 @@ sealed interface KunneIkkeStarteNySøknadsbehandling {
     data object FantIkkeVedtak : KunneIkkeStarteNySøknadsbehandling
     data object FantIkkeSak : KunneIkkeStarteNySøknadsbehandling
     data object VedtakErIkkeAvslag : KunneIkkeStarteNySøknadsbehandling
-    data class FeilVedOpprettelseAvSøknadsbehandling(val feil: KunneIkkeOppretteSøknadsbehandling) :
-        KunneIkkeStarteNySøknadsbehandling
+    data class FeilVedOpprettelseAvSøknadsbehandling(val feil: KunneIkkeOppretteSøknadsbehandling) : KunneIkkeStarteNySøknadsbehandling
 
-    data class FeilVedHentingAvPersonForOpprettelseAvOppgave(val feil: KunneIkkeHentePerson) :
-        KunneIkkeStarteNySøknadsbehandling
+    data class FeilVedHentingAvPersonForOpprettelseAvOppgave(val feil: KunneIkkeHentePerson) : KunneIkkeStarteNySøknadsbehandling
 
     data object ÅpenBehandlingFinnes : KunneIkkeStarteNySøknadsbehandling
 

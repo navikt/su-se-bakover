@@ -38,7 +38,8 @@ sealed interface LovligOppholdVilkår : Vilkår {
 
     data class Vurdert private constructor(
         override val vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
-    ) : LovligOppholdVilkår, VurdertVilkår {
+    ) : LovligOppholdVilkår,
+        VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()

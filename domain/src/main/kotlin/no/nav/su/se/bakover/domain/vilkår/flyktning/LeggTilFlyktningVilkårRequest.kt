@@ -10,14 +10,11 @@ data class LeggTilFlyktningVilkårRequest(
 )
 
 sealed interface KunneIkkeLeggeTilFlyktningVilkår {
-    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår) :
-        KunneIkkeLeggeTilFlyktningVilkår
+    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår) : KunneIkkeLeggeTilFlyktningVilkår
 
-    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår) :
-        KunneIkkeLeggeTilFlyktningVilkår
+    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår) : KunneIkkeLeggeTilFlyktningVilkår
 
     data object FantIkkeBehandling : KunneIkkeLeggeTilFlyktningVilkår
 
-    data class UgyldigFlyktningVilkår(val feil: FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår) :
-        KunneIkkeLeggeTilFlyktningVilkår
+    data class UgyldigFlyktningVilkår(val feil: FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår) : KunneIkkeLeggeTilFlyktningVilkår
 }

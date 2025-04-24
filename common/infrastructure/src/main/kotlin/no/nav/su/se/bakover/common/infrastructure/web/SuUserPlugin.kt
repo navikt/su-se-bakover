@@ -68,8 +68,7 @@ val ApplicationCall.correlationId: CorrelationId
         log.warn("Prøvde hente header $CORRELATION_ID_HEADER fra ApplicationCall, men var null. Genererte en ny: $it")
     }
 
-class SuUserRouteSelector :
-    RouteSelector() {
+class SuUserRouteSelector : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = RouteSelectorEvaluation.Constant
 
     override fun toString(): String = "(with user)"

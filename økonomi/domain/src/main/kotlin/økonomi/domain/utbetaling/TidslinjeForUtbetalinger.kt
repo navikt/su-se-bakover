@@ -158,8 +158,9 @@ data class TidslinjeForUtbetalinger private constructor(
                 .sortedBy { it.periode.fraOgMed }
                 .also {
                     require(
-                        it.isNotEmpty() && it.map { it.periode }.minsteAntallSammenhengendePerioder()
-                            .single() == nyPeriode,
+                        it.isNotEmpty() &&
+                            it.map { it.periode }.minsteAntallSammenhengendePerioder()
+                                .single() == nyPeriode,
                     ) {
                         "Tidslinje med reaktivering $reaktivering mangler nye linjer for reaktiveringsperiode. Fant: $it"
                     }

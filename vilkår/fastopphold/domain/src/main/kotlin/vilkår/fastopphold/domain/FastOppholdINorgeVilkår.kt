@@ -36,7 +36,8 @@ sealed interface FastOppholdINorgeVilkår : Vilkår {
 
     data class Vurdert private constructor(
         override val vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
-    ) : FastOppholdINorgeVilkår, VurdertVilkår {
+    ) : FastOppholdINorgeVilkår,
+        VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()

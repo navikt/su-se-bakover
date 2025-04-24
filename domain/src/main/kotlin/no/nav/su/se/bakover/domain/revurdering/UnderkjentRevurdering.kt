@@ -41,7 +41,9 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed interface UnderkjentRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbrevvalg {
+sealed interface UnderkjentRevurdering :
+    RevurderingKanBeregnes,
+    LeggTilVedtaksbrevvalg {
     abstract override val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     val attestering: Attestering.Underkjent

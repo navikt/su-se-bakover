@@ -4,6 +4,5 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTil
 
 sealed interface KunneIkkeBeregne {
 
-    data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
-        KunneIkkeBeregne
+    data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne
 }

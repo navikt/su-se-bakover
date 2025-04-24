@@ -195,7 +195,10 @@ sealed interface UnderkjentSøknadsbehandling :
         }
     }
 
-    sealed interface Avslag : UnderkjentSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
+    sealed interface Avslag :
+        UnderkjentSøknadsbehandling,
+        ErAvslag,
+        KanGenerereAvslagsbrev {
 
         override fun erÅpen() = true
         override fun erAvsluttet() = false
@@ -217,7 +220,11 @@ sealed interface UnderkjentSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
-        ) : Avslag, KanBeregnes, KanSendesTilAttestering, KanOppdatereFradragsgrunnlag, KanGenerereAvslagsbrev {
+        ) : Avslag,
+            KanBeregnes,
+            KanSendesTilAttestering,
+            KanOppdatereFradragsgrunnlag,
+            KanGenerereAvslagsbrev {
 
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val simulering: Simulering? = null

@@ -16,7 +16,8 @@ data class OversendtKlage(
     private val forrigeSteg: KlageTilAttestering.Vurdert,
     override val klageinstanshendelser: Klageinstanshendelser,
     override val attesteringer: Attesteringshistorikk,
-) : Klage, VurdertKlage.UtfyltFelter by forrigeSteg {
+) : Klage,
+    VurdertKlage.UtfyltFelter by forrigeSteg {
 
     /**
      * Merk at i et større perspektiv, f.eks. fra klageinstansen (KA) eller statistikk, vil denne anses som åpen/ikke ferdigbehandlet.

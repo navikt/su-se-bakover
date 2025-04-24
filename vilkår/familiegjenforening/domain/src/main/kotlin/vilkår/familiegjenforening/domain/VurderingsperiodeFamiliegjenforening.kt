@@ -16,7 +16,8 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Grunnlag? = null,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFamiliegjenforening> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeFamiliegjenforening> {
 
     override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeFamiliegjenforening {
         return when (args) {

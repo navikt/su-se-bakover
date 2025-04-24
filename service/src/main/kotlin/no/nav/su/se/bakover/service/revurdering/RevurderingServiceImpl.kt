@@ -493,10 +493,12 @@ class RevurderingServiceImpl(
 
                 val potensielleVarsel = listOf(
                     (
-                        eksisterendeUtbetalinger.isNotEmpty() && !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                            nyBeregning = beregnetRevurdering.beregning,
-                        ).resultat && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
+                        eksisterendeUtbetalinger.isNotEmpty() &&
+                            !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                                nyBeregning = beregnetRevurdering.beregning,
+                            ).resultat &&
+                            !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
                         ) to Varselmelding.BeløpsendringUnder10Prosent,
                     gjeldendeVedtaksdata.let { gammel ->
                         (gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } && beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }) to Varselmelding.FradragOgFormueForEPSErFjernet

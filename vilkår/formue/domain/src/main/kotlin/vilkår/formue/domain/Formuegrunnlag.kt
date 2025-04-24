@@ -19,7 +19,8 @@ data class Formuegrunnlag private constructor(
     override val opprettet: Tidspunkt,
     val epsFormue: Formueverdier?,
     val søkersFormue: Formueverdier,
-) : Grunnlag, KanPlasseresPåTidslinje<Formuegrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<Formuegrunnlag> {
 
     fun harEPSFormue(): Boolean {
         return epsFormue != null

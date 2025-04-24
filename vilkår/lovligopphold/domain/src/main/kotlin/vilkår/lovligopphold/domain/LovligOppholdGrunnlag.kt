@@ -11,7 +11,8 @@ data class LovligOppholdGrunnlag(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val periode: Periode,
-) : Grunnlag, KanPlasseresPåTidslinje<LovligOppholdGrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<LovligOppholdGrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): LovligOppholdGrunnlag {
         return tryCreate(

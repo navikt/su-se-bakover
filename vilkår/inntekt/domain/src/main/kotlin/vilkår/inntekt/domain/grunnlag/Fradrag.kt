@@ -7,7 +7,9 @@ import java.math.BigDecimal
 /**
  * TODO: Dette burde egentlig vært et beregningsfradrag, mens Fradragsgrunnlag ikke refererer til denne.
  */
-sealed interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
+sealed interface Fradrag :
+    PeriodisertInformasjon,
+    KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype
     val månedsbeløp: Double
     val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?

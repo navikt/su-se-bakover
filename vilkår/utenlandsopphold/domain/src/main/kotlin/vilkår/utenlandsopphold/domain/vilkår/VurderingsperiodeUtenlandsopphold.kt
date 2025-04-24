@@ -19,7 +19,8 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Utenlandsoppholdgrunnlag?,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUtenlandsopphold {
         return create(

@@ -17,7 +17,8 @@ import no.nav.su.se.bakover.common.tid.periode.måneder
  */
 data class NonEmptySlåttSammenIkkeOverlappendePerioder private constructor(
     override val perioder: NonEmptyList<Periode>,
-) : NonEmptyIkkeOverlappendePerioder(perioder), SlåttSammenIkkeOverlappendePerioder {
+) : NonEmptyIkkeOverlappendePerioder(perioder),
+    SlåttSammenIkkeOverlappendePerioder {
 
     companion object {
         fun create(vararg perioder: Periode): NonEmptySlåttSammenIkkeOverlappendePerioder {

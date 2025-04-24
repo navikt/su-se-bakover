@@ -37,7 +37,8 @@ sealed interface OpplysningspliktVilkår : Vilkår {
 
     data class Vurdert private constructor(
         override val vurderingsperioder: Nel<VurderingsperiodeOpplysningsplikt>,
-    ) : OpplysningspliktVilkår, VurdertVilkår {
+    ) : OpplysningspliktVilkår,
+        VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()

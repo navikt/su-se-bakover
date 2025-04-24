@@ -110,7 +110,8 @@ sealed interface Utbetaling : Comparable<Utbetaling> {
             private val simulertUtbetaling: SimulertUtbetaling,
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
-        ) : OversendtUtbetaling, Utbetaling by simulertUtbetaling {
+        ) : OversendtUtbetaling,
+            Utbetaling by simulertUtbetaling {
             init {
                 kontrollerUtbetalingslinjer()
             }

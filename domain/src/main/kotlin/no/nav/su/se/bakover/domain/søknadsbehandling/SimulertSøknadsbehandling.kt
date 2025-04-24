@@ -48,7 +48,13 @@ data class SimulertSøknadsbehandling(
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Søknadsbehandling, KanOppdaterePeriodeBosituasjonVilkår, KanBeregnes, KanSimuleres, KanSendesTilAttestering, KanGenerereInnvilgelsesbrev, KanOppdatereFradragsgrunnlag {
+) : Søknadsbehandling,
+    KanOppdaterePeriodeBosituasjonVilkår,
+    KanBeregnes,
+    KanSimuleres,
+    KanSendesTilAttestering,
+    KanGenerereInnvilgelsesbrev,
+    KanOppdatereFradragsgrunnlag {
     // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv (vi kan ikke la aldersvurdering eie den). Også må init sjekke at aldersperioden har samme periode.
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
 

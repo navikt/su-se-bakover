@@ -15,7 +15,8 @@ data class VurderingsperiodeFlyktning private constructor(
     override val opprettet: Tidspunkt,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFlyktning> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeFlyktning> {
     override val grunnlag: Grunnlag? = null
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFlyktning {

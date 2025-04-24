@@ -12,4 +12,5 @@ data class TilbakekrevingsbehandlingTilAttestering(
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
     val sendtTilAttesteringAv: NavIdentBruker.Saksbehandler,
-) : ErUtfylt by forrigeSteg, UnderBehandlingEllerTilAttestering
+) : ErUtfylt by forrigeSteg,
+    UnderBehandlingEllerTilAttestering

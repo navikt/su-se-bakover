@@ -39,7 +39,9 @@ import java.util.UUID
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
  */
-sealed interface Klage : Klagefelter, BehandlingMedAttestering {
+sealed interface Klage :
+    Klagefelter,
+    BehandlingMedAttestering {
 
     /**
      * Convenience funksjon for å slippe store when-blokker.

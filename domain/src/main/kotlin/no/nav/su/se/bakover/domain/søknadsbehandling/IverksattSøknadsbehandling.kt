@@ -43,7 +43,9 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBrev {
+sealed interface IverksattSøknadsbehandling :
+    Søknadsbehandling,
+    KanGenerereBrev {
     abstract override val id: SøknadsbehandlingId
     abstract override val opprettet: Tidspunkt
     abstract override val sakId: UUID
@@ -79,7 +81,8 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
-    ) : IverksattSøknadsbehandling, KanGenerereInnvilgelsesbrev {
+    ) : IverksattSøknadsbehandling,
+        KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -114,7 +117,10 @@ sealed interface IverksattSøknadsbehandling : Søknadsbehandling, KanGenerereBr
         }
     }
 
-    sealed interface Avslag : IverksattSøknadsbehandling, ErAvslag, KanGenerereAvslagsbrev {
+    sealed interface Avslag :
+        IverksattSøknadsbehandling,
+        ErAvslag,
+        KanGenerereAvslagsbrev {
         val erSøknadÅpen: Boolean get() = søknad !is Søknad.Journalført.MedOppgave.Lukket
 
         /**

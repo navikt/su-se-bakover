@@ -16,8 +16,7 @@ import java.time.LocalDate
 
 data class PersonOppslagStub(
     val dødsdato: LocalDate? = 21.januar(2021),
-) :
-    PersonOppslag {
+) : PersonOppslag {
 
     fun nyTestPerson(fnr: Fnr) = Person(
         ident = Ident(fnr, AktørId("2437280977705")),

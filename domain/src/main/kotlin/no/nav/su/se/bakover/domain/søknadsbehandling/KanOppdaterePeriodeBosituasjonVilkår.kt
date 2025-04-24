@@ -36,7 +36,9 @@ import java.time.Clock
 /**
  * TODO jah: Mulig å splitte denne inn i 3 interfaces KanOppdatereStønadsperiode, KanOppdatereBosituasjon og KanOppdatereVilkår
  */
-sealed interface KanOppdaterePeriodeBosituasjonVilkår : Søknadsbehandling, KanOppdaterePeriodeGrunnlagVilkår {
+sealed interface KanOppdaterePeriodeBosituasjonVilkår :
+    Søknadsbehandling,
+    KanOppdaterePeriodeGrunnlagVilkår {
 
     abstract override fun leggTilSkatt(skatt: EksterneGrunnlagSkatt): Either<KunneIkkeLeggeTilSkattegrunnlag, KanOppdaterePeriodeBosituasjonVilkår>
 

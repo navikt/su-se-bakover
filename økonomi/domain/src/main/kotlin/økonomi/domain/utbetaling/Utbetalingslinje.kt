@@ -17,7 +17,9 @@ import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Stans
 import java.time.Clock
 import java.time.LocalDate
 
-sealed interface Utbetalingslinje : PeriodisertInformasjon, Comparable<Utbetalingslinje> {
+sealed interface Utbetalingslinje :
+    PeriodisertInformasjon,
+    Comparable<Utbetalingslinje> {
     val id: UUID30 // delytelseId
 
     // TODO jah: Fjern eller la den arve utbetalingen sin. Vurder samme med databasen.

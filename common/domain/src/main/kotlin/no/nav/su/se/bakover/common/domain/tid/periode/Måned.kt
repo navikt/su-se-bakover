@@ -17,7 +17,10 @@ data class Måned private constructor(
     // TODO jah: Lag/bruk PeriodeJson for serialisering/deserialisering og fjern Jackson-referanser.
     @JsonIgnore
     val årOgMåned: YearMonth,
-) : Periode(årOgMåned), Temporal by årOgMåned, TemporalAdjuster by årOgMåned, Comparable<Måned> {
+) : Periode(årOgMåned),
+    Temporal by årOgMåned,
+    TemporalAdjuster by årOgMåned,
+    Comparable<Måned> {
     operator fun rangeTo(that: Måned): Periode {
         if (this == that) return this
         return create(this.fraOgMed, that.tilOgMed).also {

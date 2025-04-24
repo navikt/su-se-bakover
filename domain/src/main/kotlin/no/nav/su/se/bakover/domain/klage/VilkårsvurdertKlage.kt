@@ -17,7 +17,9 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
 
-sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
+sealed interface VilkårsvurdertKlage :
+    Klage,
+    VilkårsvurdertKlageFelter {
 
     data class Påbegynt(
         override val id: KlageId,
@@ -212,7 +214,8 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
             override val datoKlageMottatt: LocalDate,
             override val vurderinger: VurderingerTilKlage?,
             override val klageinstanshendelser: Klageinstanshendelser,
-        ) : Utfylt, TilVurderingFelter {
+        ) : Utfylt,
+            TilVurderingFelter {
 
             override fun erÅpen() = true
             override fun erAvsluttet() = false
@@ -361,7 +364,9 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
      * Denne bekreftet representer en klage som er blitt utfylt, og saksbehandler har gått et steg videre i prosessen
      * Her vil dem starte vurderingen, eller avvisningen.
      */
-    sealed interface Bekreftet : VilkårsvurdertKlage, BekreftetFelter {
+    sealed interface Bekreftet :
+        VilkårsvurdertKlage,
+        BekreftetFelter {
 
         data class Avvist(
             override val id: KlageId,
@@ -377,7 +382,9 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
             override val datoKlageMottatt: LocalDate,
             // Så vi kan ta vare på fritekst hvis vi går tilbake til vilkårsvurderingen igjen.
             val fritekstTilAvvistVedtaksbrev: String?,
-        ) : Bekreftet, BekreftetFelter, KanLeggeTilFritekstTilAvvistBrev {
+        ) : Bekreftet,
+            BekreftetFelter,
+            KanLeggeTilFritekstTilAvvistBrev {
 
             override fun erÅpen() = true
             override fun erAvsluttet() = false
@@ -484,7 +491,9 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
             override val datoKlageMottatt: LocalDate,
             override val vurderinger: VurderingerTilKlage?,
             override val klageinstanshendelser: Klageinstanshendelser,
-        ) : Bekreftet, TilVurderingFelter, KlageSomKanVurderes {
+        ) : Bekreftet,
+            TilVurderingFelter,
+            KlageSomKanVurderes {
 
             override fun erÅpen() = true
             override fun erAvsluttet() = false

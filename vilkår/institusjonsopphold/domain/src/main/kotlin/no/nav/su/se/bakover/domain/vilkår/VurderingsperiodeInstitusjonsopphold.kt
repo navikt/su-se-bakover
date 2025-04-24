@@ -15,7 +15,8 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
     override val opprettet: Tidspunkt,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeInstitusjonsopphold> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeInstitusjonsopphold> {
 
     override val grunnlag: Grunnlag? = null
 

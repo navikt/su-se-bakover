@@ -59,7 +59,8 @@ sealed interface FormueVilkår : Vilkår {
 
     data class Vurdert private constructor(
         override val vurderingsperioder: Nel<VurderingsperiodeFormue>,
-    ) : FormueVilkår, VurdertVilkår {
+    ) : FormueVilkår,
+        VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()
