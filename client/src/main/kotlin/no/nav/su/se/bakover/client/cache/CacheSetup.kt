@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import java.time.Duration
 
-internal fun <K, V> newCache(
+internal fun <K : Any, V : Any> newCache(
     maximumSize: Long = 500,
     expireAfterWrite: Duration = Duration.ofMinutes(1),
     cacheName: String,

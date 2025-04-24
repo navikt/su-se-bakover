@@ -16,7 +16,7 @@ class SuMetrics() {
         .unit(io.prometheus.metrics.model.snapshots.Unit.SECONDS)
         .register(prometheusMeterRegistry.prometheusRegistry)
 
-    fun <K, V> monitorCache(cache: Cache<K, V>, cacheName: String) {
+    fun <K : Any, V : Any> monitorCache(cache: Cache<K, V>, cacheName: String) {
         CaffeineCacheMetrics.monitor(prometheusMeterRegistry, cache, cacheName)
     }
 }
