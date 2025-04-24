@@ -21,7 +21,7 @@ internal data class BehandlingsstatistikkDto(
     val relatertBehandlingId: UUID? = null,
     val sakId: UUID,
     val søknadId: UUID? = null,
-    @JsonSerialize(using = ToStringSerializer::class)
+    @param:JsonSerialize(using = ToStringSerializer::class)
     val saksnummer: Long,
     val behandlingType: Behandlingstype,
     val behandlingTypeBeskrivelse: String?,

@@ -14,7 +14,7 @@ import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
  * Vi bruker samme representasjon i databasen for et fradrag for en spesifikk måned eller for en lengre periode.
  */
 internal data class PersistertFradrag(
-    @JsonProperty("fradragstype")
+    @param:JsonProperty("fradragstype")
     val kategori: Fradragstype.Kategori,
     val beskrivelse: String?,
     val månedsbeløp: Double,

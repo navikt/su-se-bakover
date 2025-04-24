@@ -16,6 +16,7 @@ fun String.shouldBeSimilarJsonTo(expectedJson: String, vararg ignoredPaths: Stri
             "Expected JSON to be similar to $expectedJson but was $this",
             expectedJson,
             this,
+            // Strict array order, not object order.
             JSONCompareMode.STRICT,
         )
     } else {
@@ -23,6 +24,7 @@ fun String.shouldBeSimilarJsonTo(expectedJson: String, vararg ignoredPaths: Stri
             expectedJson,
             this,
             CustomComparator(
+                // Strict array order, not object order.
                 JSONCompareMode.STRICT,
                 *customizations.toTypedArray(),
             ),

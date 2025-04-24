@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 
 data object DokDistFordelingStub : DokDistFordeling {
     override fun bestillDistribusjon(
-        journalPostId: JournalpostId,
+        journalpostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,
         distribueringsadresse: Distribueringsadresse?,

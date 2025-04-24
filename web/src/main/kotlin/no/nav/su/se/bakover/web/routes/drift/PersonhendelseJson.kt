@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 internal data class PersonhendelseJson(
     // uuid
-    @JsonProperty("_id")
+    @param:JsonProperty("_id")
     val id: String,
     val data: Data,
     // blanding av fnr+aktørid
@@ -29,7 +29,7 @@ internal data class PersonhendelseJson(
 ) {
     data class Timestamp(
         // F.eks. 2021-09-02T12:00:00.000Z
-        @JsonProperty("\$date")
+        @param:JsonProperty("\$date")
         val date: String,
     )
 

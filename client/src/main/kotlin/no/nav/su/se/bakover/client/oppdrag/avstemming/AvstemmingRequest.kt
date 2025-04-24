@@ -314,7 +314,7 @@ internal data class Grensesnittsavstemming(
     val nokkelFom: String,
     val nokkelTom: String,
 ) : Aksjonsdata {
-    @JacksonXmlProperty
+    @field:JacksonXmlProperty
     override val avstemmingType: AvstemmingType = AvstemmingType.GRENSESNITTAVSTEMMING
 
     fun start(): Grensesnittsavstemming {
@@ -343,7 +343,7 @@ internal data class Konsistensavstemming(
     override val avleverendeAvstemmingId: String,
     val tidspunktAvstemmingTom: String,
 ) : Aksjonsdata {
-    @JacksonXmlProperty
+    @field:JacksonXmlProperty
     override val avstemmingType: AvstemmingType = AvstemmingType.KONSISTENSAVSTEMMING
 
     fun start(): KonsistensavstemmingData {

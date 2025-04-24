@@ -33,7 +33,7 @@ object KlarteIkkeDeserialisereTilbakekrevingsresponsen
 
 @JacksonXmlRootElement(localName = "Envelope", namespace = "http://schemas.xmlsoap.org/soap/envelope/")
 internal data class Envelope(
-    @JacksonXmlProperty(localName = "Body")
+    @param:JacksonXmlProperty(localName = "Body")
     val body: Body,
 )
 

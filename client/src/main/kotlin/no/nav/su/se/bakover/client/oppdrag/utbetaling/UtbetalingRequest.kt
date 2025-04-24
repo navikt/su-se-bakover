@@ -54,7 +54,7 @@ data class UtbetalingRequest(
         @field:JacksonXmlProperty(localName = "avstemming-115")
         val avstemming: Avstemming,
         @field:JacksonXmlProperty(localName = "oppdrags-enhet-120")
-        @JacksonXmlElementWrapper(useWrapping = false)
+        @field:JacksonXmlElementWrapper(useWrapping = false)
         val oppdragsEnheter: List<OppdragsEnhet>,
         @field:JacksonXmlProperty(localName = "oppdrags-linje-150")
         val oppdragslinjer: List<Oppdragslinje>,

@@ -3,6 +3,7 @@ dependencies {
     implementation(project(":common:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":hendelse:domain"))
+    implementation(project(":vilkår:uføre:domain"))
     implementation(project(":domain"))
     implementation(project(":oppgave:domain"))
     implementation(project(":vedtak:domain"))
