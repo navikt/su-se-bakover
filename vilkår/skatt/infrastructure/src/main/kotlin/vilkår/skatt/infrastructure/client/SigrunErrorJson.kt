@@ -26,7 +26,7 @@ private data class SigrunErrorJson(
     /** Eksempeldata: /api/spesifisertsummertskattegrunnlag */
     val path: String? = null,
     /** Eksempeldata: {"kode":"SSG-007","melding":"Fant ikke noen person for gitt personidentifikator.","korrelasjonsid":"5d79e63c-6bd0-7e59-aa63-287c8812dd14"} */
-    @JsonAlias("ske-message")
+    @param:JsonAlias("ske-message")
     val skeMessage: SkeMessage? = null,
 ) {
     /**
