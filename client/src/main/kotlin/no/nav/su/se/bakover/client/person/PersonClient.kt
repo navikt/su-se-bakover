@@ -50,7 +50,7 @@ internal class PersonClient(
     ),
 ) : PersonOppslag {
 
-    private fun <Value, Error> Cache<FnrCacheKey, Value>.getOrAdd(
+    private fun <Value : Any, Error : Any> Cache<FnrCacheKey, Value>.getOrAdd(
         key: FnrCacheKey,
         mappingFunction: () -> Either<Error, Value>,
     ): Either<Error, Value> {
