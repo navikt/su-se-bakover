@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.oppdrag.simulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -64,8 +63,8 @@ private fun logErr(
     )
     sikkerLogg.error(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
-        serialize(attestantsSimulering, true),
-        serialize(saksbehandlersSimulering, true),
+        attestantsSimulering,
+        saksbehandlersSimulering,
     )
 }
 

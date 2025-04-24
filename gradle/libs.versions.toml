@@ -8,7 +8,7 @@ wiremock = "3.13.0"
 jupiter = "5.12.2"
 kotlin = "2.1.20"
 ktor = "3.1.2"
-arrow = "1.2.4"
+arrow = "2.1.0"
 jackson = "2.19.0"
 confluent = "7.9.0"
 micrometer = "1.14.6"
@@ -69,7 +69,7 @@ prometheus-metrics-core = { group = "io.prometheus", name = "prometheus-metrics-
 kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest"}
 kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotest"}
 kotest-extensions = { group = "io.kotest", name = "kotest-extensions", version.ref = "kotest"}
-kotest-assertions-arrow = { group = "io.kotest.extensions", name = "kotest-assertions-arrow", version = "1.4.0"}
+kotest-assertions-arrow = { group = "io.kotest.extensions", name = "kotest-assertions-arrow", version = "2.0.0"}
 
 kafka-clients = { group = "org.apache.kafka", name = "kafka-clients", version = "7.0.1-ccs"}
 kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer", version.ref = "confluent"}

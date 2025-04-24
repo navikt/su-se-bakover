@@ -40,7 +40,7 @@ internal fun toUtbetalingRequest(
                 tidspktMelding = utbetaling.avstemmingsnøkkel.opprettet.toOppdragTimestamp(),
                 kodeKomponent = OppdragDefaults.KODE_KOMPONENT,
             ),
-            oppdragslinjer = utbetaling.utbetalingslinjer.map {
+            oppdragslinjer = utbetaling.utbetalingslinjer.toList().map {
                 when (it) {
                     is Utbetalingslinje.Endring -> {
                         UtbetalingRequest.Oppdragslinje(
@@ -94,7 +94,7 @@ internal fun toUtbetalingRequest(
                         )
                     }
                 }
-            }.toNonEmptyList(),
+            },
         ),
     )
 }
