@@ -112,7 +112,7 @@ internal class DokDistFordelingClientTest {
                     ),
             )
             client.bestillDistribusjon(
-                journalPostId = journalpostId,
+                journalpostId = journalpostId,
                 distribusjonstype = distribusjonstype,
                 distribusjonstidspunkt = distribusjonstidspunkt,
                 distribueringsadresse = distribueringsadresse,

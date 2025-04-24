@@ -4,6 +4,12 @@ import beregning.domain.Beregning
 import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
 import beregning.domain.Beregningsperiode
+import io.kotest.assertions.json.ArrayOrder
+import io.kotest.assertions.json.FieldComparison
+import io.kotest.assertions.json.NumberFormat
+import io.kotest.assertions.json.PropertyOrder
+import io.kotest.assertions.json.TypeCoercion
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -119,7 +125,14 @@ internal class PersistertBeregningTest {
             }
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
-        JSONAssert.assertEquals(expectedJson, actualJson, true)
+        actualJson.shouldEqualJson {
+            propertyOrder = PropertyOrder.Strict
+            arrayOrder = ArrayOrder.Strict
+            fieldComparison = FieldComparison.Strict
+            numberFormat = NumberFormat.Strict
+            typeCoercion = TypeCoercion.Disabled
+            expectedJson
+        }
         actualJson.deserialiserBeregning(satsFactoryTest, Sakstype.UFØRE, saksnummer, false) shouldBe actualBeregning
     }
 

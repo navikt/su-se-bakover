@@ -12,7 +12,7 @@ internal fun String.deserializeSimulerBeregningResponse(): SimulerBeregningRespo
 
 @JacksonXmlRootElement(localName = "Envelope", namespace = "http://schemas.xmlsoap.org/soap/envelope/")
 data class Envelope(
-    @JacksonXmlProperty(localName = "Body")
+    @param:JacksonXmlProperty(localName = "Body")
     val body: Body,
 )
 

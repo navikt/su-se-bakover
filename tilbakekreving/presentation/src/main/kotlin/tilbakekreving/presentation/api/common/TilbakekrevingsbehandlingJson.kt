@@ -54,7 +54,6 @@ data class TilbakekrevingsbehandlingJson(
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
                 is AvbruttTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.AVBRUTT
-                else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend")
             },
             vurderinger = this.vurderingerMedKrav?.toJson(),
             forhåndsvarselsInfo = forhåndsvarselsInfo.toJson(),
@@ -68,8 +67,6 @@ data class TilbakekrevingsbehandlingJson(
 
                 is TilbakekrevingsbehandlingTilAttestering -> this.sendtTilAttesteringAv.toString()
                 is IverksattTilbakekrevingsbehandling -> this.forrigeSteg.sendtTilAttesteringAv.toString()
-
-                else -> throw IllegalStateException("tilbakekreving $id har ikke en mappet tilstand til frontend for sendTilAttesteringAv")
             },
             attesteringer = this.attesteringer.toJson(),
             erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,

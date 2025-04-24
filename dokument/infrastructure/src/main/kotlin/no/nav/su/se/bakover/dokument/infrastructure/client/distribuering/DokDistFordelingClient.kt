@@ -31,13 +31,13 @@ class DokDistFordelingClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun bestillDistribusjon(
-        journalPostId: JournalpostId,
+        journalpostId: JournalpostId,
         distribusjonstype: Distribusjonstype,
         distribusjonstidspunkt: Distribusjonstidspunkt,
         distribueringsadresse: Distribueringsadresse?,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
         val requestBody = toDokDistRequestJson(
-            journalpostId = journalPostId,
+            journalpostId = journalpostId,
             distribusjonstype = distribusjonstype,
             distribusjonstidspunkt = distribusjonstidspunkt,
             distribueringsadresse = distribueringsadresse,
@@ -50,12 +50,12 @@ class DokDistFordelingClient(
             .body(requestBody).responseString()
 
         return result.fold(
-            { hentBrevbestillingsId(it, journalPostId).right() },
+            { hentBrevbestillingsId(it, journalpostId).right() },
             {
                 val response = it.response
                 // 409 conflict. journalposten har allerede fått bestilt distribusjon -
                 if (response.statusCode == 409) {
-                    hentBrevbestillingsId(String(response.data), journalPostId).right()
+                    hentBrevbestillingsId(String(response.data), journalpostId).right()
                 } else {
                     log.error(
                         "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
