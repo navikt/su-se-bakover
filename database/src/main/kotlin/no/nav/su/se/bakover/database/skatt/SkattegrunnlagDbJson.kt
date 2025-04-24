@@ -51,7 +51,7 @@ internal data class SkattegrunnlagDbJson(
 
     companion object {
         internal fun Skattegrunnlag.toDbJson(): String = SkattegrunnlagDbJson(
-            årsgrunnlag = this.årsgrunnlag.map { it.toDbJson() },
+            årsgrunnlag = this.årsgrunnlag.toList().map { it.toDbJson() },
         ).let { serialize(it) }
 
         fun toSkattegrunnlag(

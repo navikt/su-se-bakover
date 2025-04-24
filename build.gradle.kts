@@ -1,3 +1,4 @@
+import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
@@ -155,7 +156,7 @@ subprojects {
     // Run `./gradlew allDeps` to get a dependency graph
     tasks.register("allDeps", DependencyReportTask::class) {}
 
-    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+    configure<SpotlessExtension> {
         kotlin {
             /** spotless støtter ikke .editorconfig enda så vi må duplisere den her :( */
             ktlint().editorConfigOverride(

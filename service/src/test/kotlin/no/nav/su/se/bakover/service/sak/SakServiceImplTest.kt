@@ -36,15 +36,11 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
-import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.revurderingTilAttestering
-import no.nav.su.se.bakover.test.revurderingUnderkjent
+import no.nav.su.se.bakover.test.sak.SakFakeRepo
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
-import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -203,109 +199,6 @@ internal class SakServiceImplTest {
     }
 
     @Test
-    fun `henter bare åpne revurderinger på en sak`() {
-        val saknr1 = Saksnummer(2021)
-        val saknr2 = Saksnummer(2022)
-
-        val clock = tikkendeFixedClock()
-
-        val opprettetRevurdering = opprettetRevurdering(
-            saksnummer = saknr1,
-            clock = clock,
-        ).second
-        val simulertRevurdering = simulertRevurdering(
-            saksnummer = saknr1,
-            clock = clock,
-        ).second
-
-        val underkjentInnvilgetRevurdering =
-            revurderingUnderkjent(
-                saksnummer = saknr2,
-                clock = clock,
-            ).second
-        val tilAttesteringRevurdering =
-            revurderingTilAttestering(
-                saksnummer = saknr2,
-                clock = clock,
-            ).second
-
-        val sakRepo: SakRepo = mock {
-            on { hentÅpneBehandlinger() } doReturn listOf(
-                Behandlingssammendrag(
-                    saksnummer = saknr1,
-                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
-                    behandlingStartet = opprettetRevurdering.opprettet,
-                    periode = år(2021),
-                    sakType = Sakstype.UFØRE,
-                ),
-                Behandlingssammendrag(
-                    saksnummer = saknr1,
-                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                    status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
-                    behandlingStartet = simulertRevurdering.opprettet,
-                    periode = år(2021),
-                    sakType = Sakstype.UFØRE,
-                ),
-                Behandlingssammendrag(
-                    saksnummer = saknr2,
-                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                    status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
-                    behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
-                    periode = år(2021),
-                    sakType = Sakstype.UFØRE,
-                ),
-                Behandlingssammendrag(
-                    saksnummer = saknr2,
-                    behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                    status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
-                    behandlingStartet = tilAttesteringRevurdering.opprettet,
-                    periode = år(2021),
-                    sakType = Sakstype.UFØRE,
-                ),
-            )
-        }
-
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
-        val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
-
-        sakerMedÅpneRevurderinger shouldBe listOf(
-            Behandlingssammendrag(
-                saksnummer = saknr1,
-                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
-                behandlingStartet = opprettetRevurdering.opprettet,
-                periode = år(2021),
-                sakType = Sakstype.UFØRE,
-            ),
-            Behandlingssammendrag(
-                saksnummer = saknr1,
-                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                status = Behandlingssammendrag.Behandlingsstatus.UNDER_BEHANDLING,
-                behandlingStartet = simulertRevurdering.opprettet,
-                periode = år(2021),
-                sakType = Sakstype.UFØRE,
-            ),
-            Behandlingssammendrag(
-                saksnummer = saknr2,
-                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                status = Behandlingssammendrag.Behandlingsstatus.UNDERKJENT,
-                behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
-                periode = år(2021),
-                sakType = Sakstype.UFØRE,
-            ),
-            Behandlingssammendrag(
-                saksnummer = saknr2,
-                behandlingstype = Behandlingssammendrag.Behandlingstype.REVURDERING,
-                status = Behandlingssammendrag.Behandlingsstatus.TIL_ATTESTERING,
-                behandlingStartet = tilAttesteringRevurdering.opprettet,
-                periode = år(2021),
-                sakType = Sakstype.UFØRE,
-            ),
-        )
-    }
-
-    @Test
     fun `oppretter fritekst dokument`() {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
         val sakRepo: SakRepo = mock {
@@ -399,7 +292,7 @@ internal class SakServiceImplTest {
         }
 
         val actual =
-            SakServiceImpl(mock(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
+            SakServiceImpl(SakFakeRepo(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
                 request = JournalførOgSendOpplastetPdfSomBrevCommand(
                     sakId = expecedSakId,
                     saksbehandler = saksbehandler,
