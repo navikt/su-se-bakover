@@ -53,12 +53,12 @@ dependencies {
     implementation(rootProject.libs.mockito.kotlin)
 }
 
-task<JavaExec>("nySøknad") {
+tasks.register<JavaExec>("nySøknad") {
     classpath = project(":web-regresjonstest").sourceSets["test"].runtimeClasspath
     mainClass.set("no.nav.su.se.bakover.web.søknad.ny.OpprettNySakMedSøknadLokaltKt")
 }
 
-task<JavaExec>("nySøknadsbehandling") {
+tasks.register<JavaExec>("nySøknadsbehandling") {
     classpath = project(":web-regresjonstest").sourceSets["test"].runtimeClasspath
     mainClass.set("no.nav.su.se.bakover.web.søknadsbehandling.OpprettSakMedSøknadOgSøknadsbehandlingLokaltKt")
 }
