@@ -11,7 +11,7 @@ data class Oppholdstillatelse private constructor(
     val statsborgerskapAndreLand: Boolean,
     val statsborgerskapAndreLandFritekst: String? = null,
 ) {
-    enum class OppholdstillatelseType() {
+    enum class OppholdstillatelseType {
         MIDLERTIDIG,
         PERMANENT,
     }

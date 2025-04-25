@@ -12,7 +12,9 @@ import java.time.Clock
  * Undertyper:
  * - [VedtakOpphørMedUtbetaling]
  */
-sealed interface Opphørsvedtak : VedtakSomKanRevurderes, Revurderingsvedtak {
+sealed interface Opphørsvedtak :
+    VedtakSomKanRevurderes,
+    Revurderingsvedtak {
     override val behandling: IverksattRevurdering.Opphørt
     override val beregning: Beregning
     override val simulering: Simulering

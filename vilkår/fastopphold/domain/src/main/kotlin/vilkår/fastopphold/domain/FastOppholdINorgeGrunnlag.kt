@@ -11,7 +11,8 @@ data class FastOppholdINorgeGrunnlag(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val periode: Periode,
-) : Grunnlag, KanPlasseresPåTidslinje<FastOppholdINorgeGrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<FastOppholdINorgeGrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): FastOppholdINorgeGrunnlag = FastOppholdINorgeGrunnlag(
         id = id,

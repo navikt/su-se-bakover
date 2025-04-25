@@ -19,7 +19,8 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
     override val grunnlag: Opplysningspliktgrunnlag,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeOpplysningsplikt {
         return create(

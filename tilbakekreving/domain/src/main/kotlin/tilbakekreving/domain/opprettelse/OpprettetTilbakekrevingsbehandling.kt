@@ -28,7 +28,11 @@ data class OpprettetTilbakekrevingsbehandling(
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
     override val erKravgrunnlagUtdatert: Boolean,
-) : KanForhåndsvarsle, KanVurdere, KanOppdatereKravgrunnlag, KanOppdatereNotat, KanAnnullere {
+) : KanForhåndsvarsle,
+    KanVurdere,
+    KanOppdatereKravgrunnlag,
+    KanOppdatereNotat,
+    KanAnnullere {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
     override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()

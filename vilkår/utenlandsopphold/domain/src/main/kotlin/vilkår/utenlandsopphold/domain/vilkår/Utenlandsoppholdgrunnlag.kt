@@ -14,7 +14,8 @@ data class Utenlandsoppholdgrunnlag(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val periode: Periode,
-) : Grunnlag, KanPlasseresPåTidslinje<Utenlandsoppholdgrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<Utenlandsoppholdgrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): Utenlandsoppholdgrunnlag {
         return tryCreate(

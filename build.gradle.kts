@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    id("com.diffplug.spotless") version "6.25.0"
+    id("com.diffplug.spotless") version "7.0.3"
 }
 
 version = "0.0.1"
@@ -163,6 +163,8 @@ subprojects {
                     "insert_final_newline" to true,
                     "ij_kotlin_allow_trailing_comma_on_call_site" to true,
                     "ij_kotlin_allow_trailing_comma" to true,
+                    "ktlint_standard_function-signature" to "disabled",
+                    "ktlint_standard_function-expression-body" to "disabled",
                 ),
             )
             // jah: diktat er veldig intrusive - virker ikke som den gir så stor verdi uten å disable veldig mange regler.

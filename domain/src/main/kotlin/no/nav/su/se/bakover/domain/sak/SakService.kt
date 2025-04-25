@@ -103,8 +103,7 @@ data class OpprettDokumentRequest(
 )
 
 sealed interface KunneIkkeOppretteDokument {
-    data class KunneIkkeLageDokument(val feil: dokument.domain.KunneIkkeLageDokument) :
-        KunneIkkeOppretteDokument
+    data class KunneIkkeLageDokument(val feil: dokument.domain.KunneIkkeLageDokument) : KunneIkkeOppretteDokument
 
     data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeOppretteDokument
 }

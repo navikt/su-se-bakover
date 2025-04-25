@@ -35,7 +35,8 @@ data class VurderingsperiodeFormue private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Formuegrunnlag,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFormue> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeFormue> {
 
     init {
         require(periode == grunnlag.periode) {

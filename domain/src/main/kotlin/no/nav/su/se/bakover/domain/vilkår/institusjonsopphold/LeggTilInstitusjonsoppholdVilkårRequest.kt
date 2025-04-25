@@ -10,11 +10,9 @@ data class LeggTilInstitusjonsoppholdVilkårRequest(
 )
 
 sealed interface KunneIkkeLeggeTilInstitusjonsoppholdVilkår {
-    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår) :
-        KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
-    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår) :
-        KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilInstitusjonsoppholdVilkår) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
     data object FantIkkeBehandling : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 }

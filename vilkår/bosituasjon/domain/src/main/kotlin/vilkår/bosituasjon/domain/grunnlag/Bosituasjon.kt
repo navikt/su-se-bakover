@@ -108,7 +108,9 @@ sealed interface Bosituasjon : Grunnlag {
         }
     }
 
-    sealed interface Fullstendig : Bosituasjon, KanPlasseresPåTidslinje<Fullstendig> {
+    sealed interface Fullstendig :
+        Bosituasjon,
+        KanPlasseresPåTidslinje<Fullstendig> {
         abstract override val satskategori: Satskategori
 
         /**

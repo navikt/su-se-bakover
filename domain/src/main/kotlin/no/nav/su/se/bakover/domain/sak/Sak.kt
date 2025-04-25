@@ -496,8 +496,7 @@ data class Sak(
             val feil: no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.KunneIkkeOppdatereStønadsperiode,
         ) : KunneIkkeOppdatereStønadsperiode
 
-        data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) :
-            KunneIkkeOppdatereStønadsperiode
+        data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
     }
 
     /**

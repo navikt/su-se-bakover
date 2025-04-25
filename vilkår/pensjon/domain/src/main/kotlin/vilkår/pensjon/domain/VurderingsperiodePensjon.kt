@@ -19,7 +19,8 @@ data class VurderingsperiodePensjon private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Pensjonsgrunnlag,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePensjon {
         return create(

@@ -19,12 +19,16 @@ interface KlageTilAttesteringFelter : VilkårsvurdertKlageFelter {
     override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
 }
 
-sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGenerereBrevutkast {
+sealed interface KlageTilAttestering :
+    Klage,
+    KlageTilAttesteringFelter,
+    KanGenerereBrevutkast {
 
     data class Avvist(
         private val forrigeSteg: AvvistKlage,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : KlageTilAttestering, AvvistKlageFelter by forrigeSteg {
+    ) : KlageTilAttestering,
+        AvvistKlageFelter by forrigeSteg {
 
         override fun erÅpen() = true
 
@@ -80,7 +84,8 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter, KanGene
     data class Vurdert(
         private val forrigeSteg: VurdertKlage.Bekreftet,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : KlageTilAttestering, VurdertKlage.UtfyltFelter by forrigeSteg {
+    ) : KlageTilAttestering,
+        VurdertKlage.UtfyltFelter by forrigeSteg {
         /**
          * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
          */

@@ -30,7 +30,9 @@ data class Fradragsgrunnlag private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     val fradrag: Fradrag,
-) : Grunnlag, Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
+) : Grunnlag,
+    Fradrag by fradrag,
+    KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
     override val periode: Periode = fradrag.periode
 
     /**

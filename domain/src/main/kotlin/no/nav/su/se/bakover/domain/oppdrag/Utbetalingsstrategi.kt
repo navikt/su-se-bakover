@@ -78,8 +78,9 @@ sealed interface Utbetalingsstrategi {
                 }
 
                 !(
-                    LocalDate.now(clock).startOfMonth() == stansDato || LocalDate.now(clock).plusMonths(1)
-                        .startOfMonth() == stansDato
+                    LocalDate.now(clock).startOfMonth() == stansDato ||
+                        LocalDate.now(clock).plusMonths(1)
+                            .startOfMonth() == stansDato
                     ) -> {
                     return KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
                 }

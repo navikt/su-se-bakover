@@ -13,7 +13,8 @@ import kotlin.reflect.KClass
 data class IverksattAvvistKlage(
     private val forrigeSteg: KlageTilAttestering.Avvist,
     override val attesteringer: Attesteringshistorikk,
-) : Klage, AvvistKlageFelter by forrigeSteg {
+) : Klage,
+    AvvistKlageFelter by forrigeSteg {
 
     override fun erÅpen() = false
 

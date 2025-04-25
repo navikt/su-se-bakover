@@ -203,7 +203,9 @@ sealed interface Søknad {
              *
              * En Lukket søknad kan enten føre til et vedtak eller et avbrudd.
              */
-            sealed interface Lukket : MedOppgave, Avsluttet {
+            sealed interface Lukket :
+                MedOppgave,
+                Avsluttet {
                 override val id: UUID
                 override val opprettet: Tidspunkt
                 override val sakId: UUID
@@ -294,7 +296,8 @@ sealed interface Søknad {
                     override val innsendtAv: NavIdentBruker,
                     override val lukketTidspunkt: Tidspunkt,
                     override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
-                ) : Lukket, Avbrutt {
+                ) : Lukket,
+                    Avbrutt {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val avsluttetAv: NavIdentBruker = lukketAv
                     override val brevvalg =
@@ -337,7 +340,8 @@ sealed interface Søknad {
                     override val lukketTidspunkt: Tidspunkt,
                     override val lukketAv: Saksbehandler,
                     override val innsendtAv: NavIdentBruker,
-                ) : Lukket, Avbrutt {
+                ) : Lukket,
+                    Avbrutt {
                     override val avsluttetTidspunkt: Tidspunkt = lukketTidspunkt
                     override val avsluttetAv: NavIdentBruker = lukketAv
                     override val brevvalg =

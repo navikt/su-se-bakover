@@ -14,7 +14,8 @@ data class VurderingsperiodePersonligOppmøte(
     override val opprettet: Tidspunkt,
     override val grunnlag: PersonligOppmøteGrunnlag,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
     override val vurdering: Vurdering = grunnlag.vurdering()
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePersonligOppmøte {

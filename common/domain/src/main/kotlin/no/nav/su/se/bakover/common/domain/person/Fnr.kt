@@ -9,7 +9,9 @@ import com.fasterxml.jackson.annotation.JsonValue
  */
 data class Fnr
 @JsonCreator(mode = DELEGATING)
-constructor(private val fnr: String) {
+constructor(
+    private val fnr: String,
+) {
 
     private val fnrPattern = Regex("[0-9]{11}")
 

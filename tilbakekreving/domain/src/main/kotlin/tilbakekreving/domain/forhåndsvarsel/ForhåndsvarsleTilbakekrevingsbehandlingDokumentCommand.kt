@@ -18,7 +18,8 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val fritekst: String?,
     val kravgrunnlag: Kravgrunnlag,
-) : GenererDokumentCommand, SakshendelseCommand {
+) : GenererDokumentCommand,
+    SakshendelseCommand {
     override val utførtAv: NavIdentBruker? = null
     override val brukerroller: List<Brukerrolle> = emptyList()
 }

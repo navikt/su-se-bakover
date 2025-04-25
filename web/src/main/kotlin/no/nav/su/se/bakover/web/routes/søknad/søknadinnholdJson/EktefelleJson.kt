@@ -26,6 +26,5 @@ data class EktefelleJson(val formue: FormueJson, val inntektOgPensjon: InntektOg
 }
 
 sealed interface FeilVedOpprettelseAvEktefelleJson {
-    data class FeilVedOpprettelseAvFormueEktefelle(val underliggendeFeil: FeilVedOpprettelseAvFormue) :
-        FeilVedOpprettelseAvEktefelleJson
+    data class FeilVedOpprettelseAvFormueEktefelle(val underliggendeFeil: FeilVedOpprettelseAvFormue) : FeilVedOpprettelseAvEktefelleJson
 }

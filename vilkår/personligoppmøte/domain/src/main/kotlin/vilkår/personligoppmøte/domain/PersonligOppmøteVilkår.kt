@@ -34,7 +34,8 @@ sealed interface PersonligOppmøteVilkår : Vilkår {
 
     data class Vurdert(
         override val vurderingsperioder: Nel<VurderingsperiodePersonligOppmøte>,
-    ) : PersonligOppmøteVilkår, VurdertVilkår {
+    ) : PersonligOppmøteVilkår,
+        VurdertVilkår {
 
         init {
             kastHvisPerioderErUsortertEllerHarDuplikater()

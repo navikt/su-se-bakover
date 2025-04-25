@@ -31,7 +31,9 @@ data class VedtakOpphørUtenUtbetaling(
     override val beregning: Beregning,
     override val simulering: Simulering,
     override val dokumenttilstand: Dokumenttilstand,
-) : VedtakIngenEndringIYtelse, Opphørsvedtak, Revurderingsvedtak {
+) : VedtakIngenEndringIYtelse,
+    Opphørsvedtak,
+    Revurderingsvedtak {
     override val avsluttetAv: NavIdentBruker = attestant
     override val utbetalingId = null
 

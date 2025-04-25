@@ -20,7 +20,8 @@ data class Opplysningspliktgrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val beskrivelse: OpplysningspliktBeskrivelse,
-) : Grunnlag, KanPlasseresPåTidslinje<Opplysningspliktgrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<Opplysningspliktgrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): Opplysningspliktgrunnlag {
         return tryCreate(

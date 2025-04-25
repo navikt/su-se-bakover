@@ -19,7 +19,8 @@ data class AvsluttetKlage(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     val begrunnelse: String,
     override val avsluttetTidspunkt: Tidspunkt,
-) : Klage by underliggendeKlage, Avbrutt {
+) : Klage by underliggendeKlage,
+    Avbrutt {
     override val avsluttetAv: NavIdentBruker = saksbehandler
 
     /**

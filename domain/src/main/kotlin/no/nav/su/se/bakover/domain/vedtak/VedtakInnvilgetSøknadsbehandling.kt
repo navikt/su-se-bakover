@@ -25,7 +25,8 @@ data class VedtakInnvilgetSøknadsbehandling private constructor(
     override val simulering: Simulering,
     override val utbetalingId: UUID30,
     override val dokumenttilstand: Dokumenttilstand,
-) : VedtakEndringIYtelse, VedtakIverksattSøknadsbehandling {
+) : VedtakEndringIYtelse,
+    VedtakIverksattSøknadsbehandling {
 
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()

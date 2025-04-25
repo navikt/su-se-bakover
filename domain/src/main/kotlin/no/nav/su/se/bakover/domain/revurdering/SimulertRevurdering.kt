@@ -47,7 +47,9 @@ import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbrevvalg {
+sealed interface SimulertRevurdering :
+    RevurderingKanBeregnes,
+    LeggTilVedtaksbrevvalg {
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
@@ -228,7 +230,8 @@ sealed interface SimulertRevurdering : RevurderingKanBeregnes, LeggTilVedtaksbre
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
-    ) : SimulertRevurdering, LeggTilVedtaksbrevvalg {
+    ) : SimulertRevurdering,
+        LeggTilVedtaksbrevvalg {
         override val erOpphørt = true
 
         override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {

@@ -171,7 +171,9 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-    ) : VilkårsvurdertSøknadsbehandling, KanBeregnes, KanOppdatereFradragsgrunnlag {
+    ) : VilkårsvurdertSøknadsbehandling,
+        KanBeregnes,
+        KanOppdatereFradragsgrunnlag {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
@@ -212,7 +214,10 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
-    ) : VilkårsvurdertSøknadsbehandling, KanSendesTilAttestering, KanGenerereAvslagsbrev, ErAvslag {
+    ) : VilkårsvurdertSøknadsbehandling,
+        KanSendesTilAttestering,
+        KanGenerereAvslagsbrev,
+        ErAvslag {
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 

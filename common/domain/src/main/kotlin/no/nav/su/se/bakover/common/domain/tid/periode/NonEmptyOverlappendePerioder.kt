@@ -16,7 +16,8 @@ import no.nav.su.se.bakover.common.tid.periode.harOverlappende
  */
 data class NonEmptyOverlappendePerioder private constructor(
     override val perioder: NonEmptyList<Periode>,
-) : NonEmptyPerioder, List<Periode> by perioder {
+) : NonEmptyPerioder,
+    List<Periode> by perioder {
 
     companion object {
         fun create(perioder: NonEmptyList<Periode>): NonEmptyOverlappendePerioder {

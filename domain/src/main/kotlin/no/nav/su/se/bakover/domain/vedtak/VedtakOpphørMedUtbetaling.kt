@@ -28,7 +28,9 @@ data class VedtakOpphørMedUtbetaling private constructor(
     override val simulering: Simulering,
     override val utbetalingId: UUID30,
     override val dokumenttilstand: Dokumenttilstand,
-) : VedtakEndringIYtelse, Opphørsvedtak, Revurderingsvedtak {
+) : VedtakEndringIYtelse,
+    Opphørsvedtak,
+    Revurderingsvedtak {
 
     init {
         require(periode == behandling.periode)

@@ -16,7 +16,9 @@ import vilkår.common.domain.Avslagsgrunn
 import vilkår.formue.domain.firstOrThrowIfMultipleOrEmpty
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
-sealed interface KanGenerereAvslagsbrev : KanGenerereBrev, ErAvslag {
+sealed interface KanGenerereAvslagsbrev :
+    KanGenerereBrev,
+    ErAvslag {
 
     override fun lagBrevutkastCommandForSaksbehandler(
         satsFactory: SatsFactory,

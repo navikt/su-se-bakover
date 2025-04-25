@@ -12,7 +12,8 @@ data class Pensjonsgrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val pensjonsopplysninger: Pensjonsopplysninger,
-) : Grunnlag, KanPlasseresPåTidslinje<Pensjonsgrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<Pensjonsgrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): Pensjonsgrunnlag {
         return copy(periode = periode)

@@ -75,7 +75,8 @@ private fun validerTotrinnskontroll(
     command: IverksettSøknadsbehandlingCommand,
     søknadsbehandling: SøknadsbehandlingTilAttestering,
 ): Either<KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Unit> {
-    return if (command.saksbehandlerOgAttestantKanIkkeVæreDenSamme && saksbehandlerOgAttestantErLike(
+    return if (command.saksbehandlerOgAttestantKanIkkeVæreDenSamme &&
+        saksbehandlerOgAttestantErLike(
             søknadsbehandling = søknadsbehandling,
             attestering = command.attestering,
         )

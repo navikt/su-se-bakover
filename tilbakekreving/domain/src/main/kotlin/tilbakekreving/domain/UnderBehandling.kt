@@ -54,7 +54,8 @@ sealed interface UnderBehandling :
         override val kravgrunnlag: Kravgrunnlag = forrigeSteg.kravgrunnlag,
         override val erKravgrunnlagUtdatert: Boolean = forrigeSteg.erKravgrunnlagUtdatert,
         override val notat: NonBlankString? = forrigeSteg.notat,
-    ) : UnderBehandling, KanEndres by forrigeSteg {
+    ) : UnderBehandling,
+        KanEndres by forrigeSteg {
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
@@ -142,7 +143,10 @@ sealed interface UnderBehandling :
         override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
         override val notat: NonBlankString? = forrigeSteg.notat,
-    ) : UnderBehandling, KanEndres, UnderBehandlingEllerTilAttestering by forrigeSteg, ErUtfylt {
+    ) : UnderBehandling,
+        KanEndres,
+        UnderBehandlingEllerTilAttestering by forrigeSteg,
+        ErUtfylt {
 
         constructor(
             forrigeSteg: TilbakekrevingsbehandlingTilAttestering,

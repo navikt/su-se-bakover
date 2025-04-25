@@ -167,18 +167,13 @@ data class SøknadsinnholdUføreJson(
 }
 
 sealed interface KunneIkkeLageSøknadinnhold {
-    data class FeilVedOpprettelseAvOppholdstillatelseWeb(val underliggendeFeil: FeilVedOpprettelseAvOppholdstillatelse) :
-        KunneIkkeLageSøknadinnhold
+    data class FeilVedOpprettelseAvOppholdstillatelseWeb(val underliggendeFeil: FeilVedOpprettelseAvOppholdstillatelse) : KunneIkkeLageSøknadinnhold
 
-    data class FeilVedOpprettelseAvBoforholdWeb(val underliggendeFeil: FeilVedOpprettelseAvBoforhold) :
-        KunneIkkeLageSøknadinnhold
+    data class FeilVedOpprettelseAvBoforholdWeb(val underliggendeFeil: FeilVedOpprettelseAvBoforhold) : KunneIkkeLageSøknadinnhold
 
-    data class FeilVedOpprettelseAvFormueWeb(val underliggendeFeil: FeilVedOpprettelseAvFormue) :
-        KunneIkkeLageSøknadinnhold
+    data class FeilVedOpprettelseAvFormueWeb(val underliggendeFeil: FeilVedOpprettelseAvFormue) : KunneIkkeLageSøknadinnhold
 
-    data class FeilVedOpprettelseAvEktefelleWeb(val underliggendeFeil: FeilVedOpprettelseAvEktefelleJson) :
-        KunneIkkeLageSøknadinnhold
+    data class FeilVedOpprettelseAvEktefelleWeb(val underliggendeFeil: FeilVedOpprettelseAvEktefelleJson) : KunneIkkeLageSøknadinnhold
 
-    data class FeilVedOpprettelseAvSøknadinnholdWeb(val underliggendeFeil: FeilVedOpprettelseAvSøknadinnhold) :
-        KunneIkkeLageSøknadinnhold
+    data class FeilVedOpprettelseAvSøknadinnholdWeb(val underliggendeFeil: FeilVedOpprettelseAvSøknadinnhold) : KunneIkkeLageSøknadinnhold
 }

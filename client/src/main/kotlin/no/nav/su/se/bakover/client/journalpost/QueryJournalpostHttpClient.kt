@@ -201,11 +201,13 @@ internal class QueryJournalpostHttpClient(
                     .toDomain()
                     .sortedBy { it.datoOpprettet }
                     .lastOrNull {
-                        periode.inneholder(it.datoOpprettet) && (
-                            it.tittel.inneholder(kontrollnotatTittel) || it.tittel.inneholder(
-                                dokumentasjonAvOppfølgingsamtaleTittel,
-                            )
-                            )
+                        periode.inneholder(it.datoOpprettet) &&
+                            (
+                                it.tittel.inneholder(kontrollnotatTittel) ||
+                                    it.tittel.inneholder(
+                                        dokumentasjonAvOppfølgingsamtaleTittel,
+                                    )
+                                )
                     }
                     ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
             }

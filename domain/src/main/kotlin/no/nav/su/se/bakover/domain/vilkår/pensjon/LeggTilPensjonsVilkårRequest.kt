@@ -11,11 +11,9 @@ data class LeggTilPensjonsVilkårRequest(
 )
 
 sealed interface KunneIkkeLeggeTilPensjonsVilkår {
-    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår) :
-        KunneIkkeLeggeTilPensjonsVilkår
+    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår) : KunneIkkeLeggeTilPensjonsVilkår
 
-    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPensjonsVilkår) :
-        KunneIkkeLeggeTilPensjonsVilkår
+    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPensjonsVilkår) : KunneIkkeLeggeTilPensjonsVilkår
 
     data object FantIkkeBehandling : KunneIkkeLeggeTilPensjonsVilkår
 

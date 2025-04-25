@@ -18,7 +18,8 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
     override val grunnlag: FastOppholdINorgeGrunnlag?,
     override val vurdering: Vurdering,
     override val periode: Periode,
-) : Vurderingsperiode, KanPlasseresPåTidslinje<VurderingsperiodeFastOppholdINorge> {
+) : Vurderingsperiode,
+    KanPlasseresPåTidslinje<VurderingsperiodeFastOppholdINorge> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFastOppholdINorge {
         return create(

@@ -18,7 +18,8 @@ data class Uføregrunnlag(
     val uføregrad: Uføregrad,
     /** Kan ikke være negativ. */
     val forventetInntekt: Int,
-) : Grunnlag, KanPlasseresPåTidslinje<Uføregrunnlag> {
+) : Grunnlag,
+    KanPlasseresPåTidslinje<Uføregrunnlag> {
     init {
         if (forventetInntekt < 0) throw IllegalArgumentException("forventetInntekt kan ikke være mindre enn 0")
     }

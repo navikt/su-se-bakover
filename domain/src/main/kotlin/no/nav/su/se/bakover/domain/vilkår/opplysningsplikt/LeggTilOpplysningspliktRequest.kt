@@ -25,14 +25,11 @@ sealed interface LeggTilOpplysningspliktRequest {
 }
 
 sealed interface KunneIkkeLeggeTilOpplysningsplikt {
-    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt) :
-        KunneIkkeLeggeTilOpplysningsplikt
+    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt) : KunneIkkeLeggeTilOpplysningsplikt
 
-    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOpplysningsplikt) :
-        KunneIkkeLeggeTilOpplysningsplikt
+    data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOpplysningsplikt) : KunneIkkeLeggeTilOpplysningsplikt
 
     data object FantIkkeBehandling : KunneIkkeLeggeTilOpplysningsplikt
 
-    data class UgyldigOpplysningspliktVilkår(val feil: KunneIkkeLageOpplysningspliktVilkår) :
-        KunneIkkeLeggeTilOpplysningsplikt
+    data class UgyldigOpplysningspliktVilkår(val feil: KunneIkkeLageOpplysningspliktVilkår) : KunneIkkeLeggeTilOpplysningsplikt
 }

@@ -216,8 +216,7 @@ interface SøknadsbehandlingService {
             val underliggende: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
         ) : KunneIkkeLeggeTilUføreVilkår
 
-        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår) :
-            KunneIkkeLeggeTilUføreVilkår
+        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår) : KunneIkkeLeggeTilUføreVilkår
     }
 
     sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkårService {
@@ -231,8 +230,7 @@ interface SøknadsbehandlingService {
             val feil: UgyldigFamiliegjenforeningVilkår,
         ) : KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 
-        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår) :
-            KunneIkkeLeggeTilFamiliegjenforeningVilkårService
+        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår) : KunneIkkeLeggeTilFamiliegjenforeningVilkårService
     }
 
     sealed interface KunneIkkeLeggeTilFradragsgrunnlag {
@@ -243,8 +241,7 @@ interface SøknadsbehandlingService {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag
 
-        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
-            KunneIkkeLeggeTilFradragsgrunnlag
+        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradragsgrunnlag
 
         data object FradrageneMåSlåsSammen : KunneIkkeLeggeTilFradragsgrunnlag
     }
@@ -257,7 +254,6 @@ interface SøknadsbehandlingService {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilUtenlandsopphold
 
-        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold) :
-            KunneIkkeLeggeTilUtenlandsopphold
+        data class Domenefeil(val underliggende: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold) : KunneIkkeLeggeTilUtenlandsopphold
     }
 }

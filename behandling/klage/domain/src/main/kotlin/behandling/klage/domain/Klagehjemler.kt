@@ -27,7 +27,8 @@ sealed interface Klagehjemler : List<Hjemmel> {
 
     data class IkkeUtfylt private constructor(
         private val hjemler: List<Hjemmel> = emptyList(),
-    ) : Klagehjemler, List<Hjemmel> by hjemler {
+    ) : Klagehjemler,
+        List<Hjemmel> by hjemler {
         companion object {
             fun create(): IkkeUtfylt {
                 return IkkeUtfylt()
@@ -40,7 +41,8 @@ sealed interface Klagehjemler : List<Hjemmel> {
      */
     data class Utfylt private constructor(
         private val hjemler: NonEmptyList<Hjemmel>,
-    ) : Klagehjemler, List<Hjemmel> by hjemler {
+    ) : Klagehjemler,
+        List<Hjemmel> by hjemler {
         companion object {
             /**
              * Kun ment å brukes fra databaselaget og tester
