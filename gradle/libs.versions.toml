@@ -114,7 +114,7 @@ org-json = { group = "org.json", name = "json", version = "20240303"}
 
 nimbus-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.47"}
 
-kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version = "0.26.0"}
+kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version = "0.27.0"}
 
 google-cloud-bom = { group = "com.google.cloud", name = "libraries-bom", version = "26.52.0"}
 # google-cloud-bigquery versjon er hentet fra google-cloud-bom
