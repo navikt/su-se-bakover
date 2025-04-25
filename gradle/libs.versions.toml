@@ -11,7 +11,7 @@ ktor = "2.3.12"
 arrow = "1.2.4"
 jackson = "2.19.0"
 confluent = "7.9.0"
-micrometer = "1.13.6"
+micrometer = "1.14.6"
 flyway = "10.20.0"
 kotest = "5.9.1"
 
