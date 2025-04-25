@@ -2,7 +2,7 @@
 format.version = "1.1"
 
 [versions]
-slf4j = "2.0.16"
+slf4j = "2.0.17"
 kittinunf = "2.3.1"
 wiremock = "3.13.0"
 jupiter = "5.11.4"
