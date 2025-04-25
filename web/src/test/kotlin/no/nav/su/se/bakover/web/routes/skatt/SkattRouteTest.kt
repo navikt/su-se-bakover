@@ -4,7 +4,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.readBytes
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -94,7 +94,7 @@ class SkattRouteTest {
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.OK
-                    this.readBytes() shouldBe pdfAsBytes.getContent()
+                    readRawBytes() shouldBe pdfAsBytes.getContent()
                     this.contentType() shouldBe ContentType.Application.Pdf
                 }
             }
@@ -156,7 +156,7 @@ class SkattRouteTest {
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.OK
-                    this.readBytes() shouldBe pdfAsBytes.getContent()
+                    readRawBytes() shouldBe pdfAsBytes.getContent()
                     this.contentType() shouldBe ContentType.Application.Pdf
                 }
             }

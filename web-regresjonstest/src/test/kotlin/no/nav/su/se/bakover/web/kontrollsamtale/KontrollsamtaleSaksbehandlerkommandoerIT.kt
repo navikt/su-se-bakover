@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehan
 import org.junit.jupiter.api.Test
 
 internal class KontrollsamtaleSaksbehandlerkommandoerIT {
-
     @Test
     fun `opprett, endre og annuller kontrollsamtale`() {
         withTestApplicationAndEmbeddedDb { appComponents ->

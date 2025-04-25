@@ -8,15 +8,16 @@ import arrow.core.separateEither
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
-import io.ktor.http.content.streamProvider
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.whenever
@@ -74,7 +75,7 @@ internal fun Route.reguler(
                         parts.forEachPart {
                             when (it) {
                                 is PartData.FileItem -> {
-                                    val fileBytes = it.streamProvider().readBytes()
+                                    val fileBytes = it.provider().readRemaining().readByteArray()
                                     csvData = String(fileBytes)
                                 }
 
@@ -207,7 +208,7 @@ internal fun Route.reguler(
 
                         parts.forEachPart {
                             when (it) {
-                                is PartData.FileItem -> file = String(it.streamProvider().readBytes())
+                                is PartData.FileItem -> file = String(it.provider().readRemaining().readByteArray())
 
                                 is PartData.FormItem -> {
                                     when (it.name) {
@@ -304,7 +305,7 @@ internal fun Route.reguler(
                         parts.forEachPart {
                             when (it) {
                                 is PartData.FileItem -> {
-                                    parseCSVFromString(String(it.streamProvider().readBytes()), clock).fold(
+                                    parseCSVFromString(String(it.provider().readRemaining().readByteArray()), clock).fold(
                                         ifLeft = { call.svar(it) },
                                         ifRight = {
                                             if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {

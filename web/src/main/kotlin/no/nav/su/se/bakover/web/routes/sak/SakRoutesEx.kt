@@ -1,15 +1,17 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import dokument.domain.distribuering.Distribueringsadresse
+import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
-import io.ktor.http.content.streamProvider
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receiveMultipart
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
+import java.util.ArrayList
 import java.util.UUID
 
 data class DistribueringsadresseBody(
@@ -47,12 +49,26 @@ suspend fun ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak(
      * 3. pdf
      * 4. distribueringsadresse - Denne er den eneste som er optional, og kommer sist i rekkefølgen
      */
-    val journaltittel: String = (parts[0] as PartData.FormItem).value
+    val journaltittel: String = (parts[0] as PartData.FormItem).let { partdata ->
+        partdata.value.also {
+            partdata.dispose
+        }
+    }
     val distribusjonstype: dokument.domain.Distribusjonstype =
-        Distribusjonstype.valueOf((parts[1] as PartData.FormItem).value).toDomain()
-    val pdfContent: ByteArray = (parts[2] as PartData.FileItem).streamProvider().readBytes()
+        (parts[1] as PartData.FormItem).let { partdata ->
+            Distribusjonstype.valueOf(partdata.value).toDomain().also {
+                partdata.dispose
+            }
+        }
+    val pdfContent: ByteArray = (parts[2] as PartData.FileItem).let { partdata ->
+        partdata.provider().readRemaining().readByteArray().also {
+            partdata.dispose
+        }
+    }
     val distribueringsadresse: Distribueringsadresse? = parts.getOrNull(3)?.let {
-        val distribueringsadresseAsJson = (it as PartData.FormItem).value
+        val partdata = it as PartData.FormItem
+        val distribueringsadresseAsJson = partdata.value
+        partdata.dispose
         deserialize<DistribueringsadresseBody>(distribueringsadresseAsJson).toDomain()
     }
 
@@ -64,4 +80,19 @@ suspend fun ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak(
         distribueringsadresse = distribueringsadresse,
         distribusjonstype = distribusjonstype,
     )
+}
+
+// Kopiert fra ktor 3.1.2 - io.ktor.http.content
+// TODO jah: Bør skrive om dette til forEachPart, men kan kanskje være en idé og se på requesten fra frontend samtidig.
+private suspend fun MultiPartData.readAllParts(): List<PartData> {
+    var part = readPart() ?: return emptyList()
+    val parts = ArrayList<PartData>()
+    parts.add(part)
+
+    do {
+        part = readPart() ?: break
+        parts.add(part)
+    } while (true)
+
+    return parts
 }

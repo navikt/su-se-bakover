@@ -7,11 +7,11 @@ import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
-import io.ktor.http.content.streamProvider
-import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -72,11 +72,13 @@ private suspend fun getDataFromMultipartOrResultat(
     parts: MultiPartData,
 ): Either<Resultat, Pair<Måned, List<Personhendelse.IkkeTilknyttetSak>>> {
     // forventer at første parten er datoen
-    val fraOgMed = parts.readPart().let {
-        when (it) {
+    val fraOgMed = parts.readPart().let { part ->
+        when (part) {
             is PartData.FormItem -> {
                 Either.catch {
-                    LocalDate.parse(it.value).toMåned().right()
+                    LocalDate.parse(part.value).also {
+                        part.dispose
+                    }.toMåned().right()
                 }.getOrElse {
                     HttpStatusCode.BadRequest.errorJson(
                         "Måned er ikke gyldig",
@@ -93,7 +95,8 @@ private suspend fun getDataFromMultipartOrResultat(
     val personhendelser = parts.readPart().let {
         when (it) {
             is PartData.FileItem -> {
-                val fileBytes = it.streamProvider().readBytes()
+                val fileBytes = it.provider().readRemaining().readByteArray()
+                it.dispose
                 val fileAsString = String(fileBytes)
                 Either.catch {
                     deserializeList<PersonhendelseJson>(fileAsString).mapNotNull {

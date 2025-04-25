@@ -6,7 +6,7 @@ import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.readBytes
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
@@ -189,7 +189,7 @@ internal class DokumentRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler),
             ).let {
                 it.status shouldBe HttpStatusCode.OK
-                it.readBytes() shouldBe dokument.generertDokument.getContent()
+                it.readRawBytes() shouldBe dokument.generertDokument.getContent()
                 verify(services.brev).hentDokument(argThat { it shouldBe id })
             }
         }

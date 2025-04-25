@@ -188,6 +188,15 @@ subprojects {
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
         systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
+    if (project.name == "web-regresjonstest") {
+        tasks.test.configure {
+            // jah: Fikk problemer med at reg-testene fikk timeout etter opgpradering til ktor 3
+            maxParallelForks = 1
+            systemProperties["junit.jupiter.execution.parallel.enabled"] = false
+            systemProperties["junit.jupiter.execution.parallel.mode.default"] = "same_thread"
+            systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "same_thread"
+        }
+    }
 }
 allprojects {
     configurations.all {

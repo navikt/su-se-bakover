@@ -6,7 +6,6 @@ import com.auth0.jwt.interfaces.Payload
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.auth.Principal
 import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.plugins.callid.callId
@@ -66,23 +65,23 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
     } else {
         Either.catch {
             payload.getClaim("groups")?.asList(String::class.java) ?: emptyList<String>()
-        }.getOrElse { emptyList<String>() }
+        }.getOrElse { emptyList() }
     }
 }
 
-fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String {
+fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: JWTPrincipal?): String {
     return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         "Z9999999"
     } else {
-        (principal as JWTPrincipal).payload.getClaim("NAVident").asString()
+        principal!!.payload.getClaim("NAVident").asString()
     }
 }
 
-fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String {
+fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: JWTPrincipal?): String {
     return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         "Ulrik Utvikler"
     } else {
-        (principal as JWTPrincipal).payload.getClaim("name").asString()
+        principal!!.payload.getClaim("name").asString()
     }
 }
 
@@ -126,13 +125,6 @@ suspend inline fun ApplicationCall.withStringParam(parameterName: String, ifRigh
     this.parameter(parameterName).fold(
         ifLeft = { this.svar(it) },
         ifRight = { ifRight(it) },
-    )
-}
-
-inline fun ApplicationCall.withFnr(ifRight: (Fnr) -> Unit) {
-    this.parameter("fnr").fold(
-        { it },
-        { Fnr.tryCreate(it)?.let(ifRight) ?: Either.Left("Ugyldig fødselsnummer format") },
     )
 }
 

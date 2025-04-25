@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.common.infrastructure.web
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.util.pipeline.PipelineContext
+import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.RoutingHandler
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 
-suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
+suspend fun RoutingContext.authorize(
     vararg autoriserteRoller: Brukerrolle,
-    build: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit,
+    body: RoutingHandler,
 ) {
     /**
      * Det er løgn at kallet til [suUserContext] alltid er trygt (null-safe) her. Det er en forutsetning at vi har vært innom
@@ -24,6 +24,6 @@ suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
             ),
         )
     } else {
-        build()
+        body()
     }
 }

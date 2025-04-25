@@ -4,10 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.RouteScopedPlugin
 import io.ktor.server.application.createRouteScopedPlugin
-import io.ktor.server.application.install
 import io.ktor.server.application.isHandled
 import io.ktor.server.auth.AuthenticationChecked
-import io.ktor.server.auth.Principal
 import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
@@ -61,15 +59,13 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
 val ApplicationCall.suUserContext: SuUserContext
     get() = SuUserContext.from(this)
 
-val ApplicationCall.callId get() = correlationId
-
 val ApplicationCall.correlationId: CorrelationId
     get() = request.header(CORRELATION_ID_HEADER)?.let { CorrelationId(it) } ?: CorrelationId.generate().also {
         log.warn("Prøvde hente header $CORRELATION_ID_HEADER fra ApplicationCall, men var null. Genererte en ny: $it")
     }
 
 class SuUserRouteSelector : RouteSelector() {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = RouteSelectorEvaluation.Constant
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = RouteSelectorEvaluation.Constant
 
     override fun toString(): String = "(with user)"
 }
@@ -97,7 +93,7 @@ private fun brukerinfoPlugin(
                 call.isHandled -> {
                     /** En annen plugin i pipelinen har allerede gitt en respons på kallet, ikke gjør noe. */
                 }
-                call.principal<Principal>() == null -> {
+                call.principal<Any>() == null -> {
                     /**
                      * Krev at autentiseringen er gjennomført før vi henter ut brukerinfo fra token.
                      * Rekkefølgen her er viktig, og styres pt av hvor i route-hierarkiet man kaller på [withUser]
