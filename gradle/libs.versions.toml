@@ -22,7 +22,7 @@ jcl-over-slf4j = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "
 log4j-over-slf4j = { group = "org.slf4j", name = "log4j-over-slf4j", version.ref = "slf4j" }
 
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version = "1.5.14" }
-logstash-logback-encoder = { group = "net.logstash.logback", name = "logstash-logback-encoder", version = "8.0" }
+logstash-logback-encoder = { group = "net.logstash.logback", name = "logstash-logback-encoder", version = "8.1" }
 logback-syslog4j = { group = "com.papertrailapp", name = "logback-syslog4j", version = "1.0.0" }
 
 kittinunf-fuel = { group = "com.github.kittinunf.fuel", name = "fuel", version.ref = "kittinunf" }
