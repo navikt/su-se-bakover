@@ -68,7 +68,6 @@ dependencies {
     compileOnly(rootProject.libs.embedded.postgres) {
         exclude("org.apache.commons", "commons-compress")
     }
-    compileOnly(rootProject.libs.jupiter.api)
     api(rootProject.libs.wiremock) {
         exclude(group = "junit")
     }
