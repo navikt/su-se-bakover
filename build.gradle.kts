@@ -94,10 +94,10 @@ subprojects {
         // We exclude jdk15on because of security issues. We use jdk18on instead.
         implementation(rootProject.libs.bcprov.jdk18on)
 
-        testRuntimeOnly(rootProject.libs.jupiter.engine)
+        testImplementation(enforcedPlatform(rootProject.libs.junit.bom))
+        testImplementation(rootProject.libs.junit.jupiter)
+        testRuntimeOnly(rootProject.libs.junit.platform.launcher)
 
-        testImplementation(rootProject.libs.jupiter.api)
-        testImplementation(rootProject.libs.jupiter.params)
         testImplementation(rootProject.libs.kotest.assertions.core)
         testImplementation(rootProject.libs.kotest.assertions.json)
         testImplementation(rootProject.libs.kotest.extensions)
