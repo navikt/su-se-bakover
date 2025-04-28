@@ -238,7 +238,7 @@ fun Application.susebakover(
                 dokumentKomponenter = dokumentkomponenter,
                 distribuerDokumentService = distribuerDokumentService,
             )
-            environment.monitor.subscribe(ApplicationStopping) {
+            this.monitor.subscribe(ApplicationStopping) {
                 jobberOgConsumers.stop()
             }
         }

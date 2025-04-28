@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.web.regulering
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
-import io.ktor.client.request.forms.append
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
@@ -54,9 +55,14 @@ internal fun regulerAutomatiskMultipart(
             roller = listOf(Brukerrolle.Drift),
             formData = formData {
                 append("fraOgMedMåned", "$fraOgMed")
-                append("csvFile", "file.csv") {
-                    this.append(supplement)
-                }
+                append(
+                    "csvFile",
+                    supplement,
+                    Headers.build {
+                        append(HttpHeaders.ContentType, "text/csv")
+                        append(HttpHeaders.ContentDisposition, "filename=file.csv")
+                    },
+                )
             },
             correlationId = correlationId.toString(),
             client = client,
@@ -81,9 +87,14 @@ internal fun ettersendSupplement(
             roller = listOf(Brukerrolle.Drift),
             formData = formData {
                 append("fraOgMedMåned", "$fraOgMed")
-                append("csvFile", "file.csv") {
-                    this.append(supplement)
-                }
+                append(
+                    "csvFile",
+                    supplement,
+                    Headers.build {
+                        append(HttpHeaders.ContentType, "text/csv")
+                        append(HttpHeaders.ContentDisposition, "filename=file.csv")
+                    },
+                )
             },
             correlationId = correlationId.toString(),
             client = client,

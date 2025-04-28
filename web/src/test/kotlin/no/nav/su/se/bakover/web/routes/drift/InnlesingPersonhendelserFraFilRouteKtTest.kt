@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.forms.append
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
@@ -149,9 +151,14 @@ class InnlesingPersonhendelserFraFilRouteKtTest {
                 roller = listOf(Brukerrolle.Drift),
                 formData = formData {
                     append("fraOgMed", "2021-01-01")
-                    append("csvFile", "file.json") {
-                        this.append(personhendelseJsonFileContent)
-                    }
+                    append(
+                        "csvFile",
+                        personhendelseJsonFileContent,
+                        Headers.build {
+                            append(HttpHeaders.ContentType, "application/json")
+                            append(HttpHeaders.ContentDisposition, "filename=file.json")
+                        },
+                    )
                 },
             ).apply {
                 this.bodyAsText() shouldBe """{"status": "OK"}"""

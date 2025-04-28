@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.readBytes
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -90,7 +90,7 @@ internal class AvsluttRevurderingRouteTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                this.readBytes() shouldBe "byteArray".toByteArray()
+                readRawBytes() shouldBe "byteArray".toByteArray()
                 this.contentType() shouldBe ContentType.Application.Pdf
             }
         }
