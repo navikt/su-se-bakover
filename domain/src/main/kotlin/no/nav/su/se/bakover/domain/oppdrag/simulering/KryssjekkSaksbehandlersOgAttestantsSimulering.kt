@@ -63,8 +63,8 @@ private fun logErr(
     )
     sikkerLogg.error(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
-        attestantsSimulering,
-        saksbehandlersSimulering,
+        attestantsSimulering.toString(),
+        saksbehandlersSimulering.toString(),
     )
 }
 

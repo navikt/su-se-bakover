@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -86,6 +87,7 @@ open class DatoIntervall(
     infix fun etter(other: DatoIntervall) = fraOgMed.isAfter(other.tilOgMed)
 
     /** Inkluderer første og siste dag. */
+    @JsonIgnore
     fun antallDager(): Long = ChronoUnit.DAYS.between(fraOgMed, tilOgMed.plusDays(1))
 
     infix fun tilstøter(other: DatoIntervall): Boolean {
@@ -134,6 +136,7 @@ open class DatoIntervall(
     /**
      * @return Liste med alle dager i [DatoIntervall], sortert og unike.
      */
+    @JsonIgnore
     fun dager(): List<LocalDate> {
         return (0 until antallDager()).map { fraOgMed.plusDays(it) }
     }
@@ -141,6 +144,7 @@ open class DatoIntervall(
     /**
      * Periode i formatet "dd.MM.yyyy - dd.MM.yyyy".
      */
+    @JsonIgnore
     fun ddMMyyyy(): String {
         val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.of("nb", "NO"))
         return "${this.fraOgMed.format(formatter)} - ${this.tilOgMed.format(formatter)}"
@@ -149,8 +153,10 @@ open class DatoIntervall(
     override fun equals(other: Any?) =
         other is DatoIntervall && fraOgMed == other.fraOgMed && tilOgMed == other.tilOgMed
 
+    @JsonIgnore
     override fun hashCode() = 31 * fraOgMed.hashCode() + tilOgMed.hashCode()
 
+    @JsonIgnore
     override fun toString(): String {
         return "DatoIntervall(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
     }

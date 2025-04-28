@@ -56,6 +56,7 @@ open class Periode protected constructor(
      * @throws IllegalStateException dersom fraOgMed er LocalDate.MIN eller tilOgMed er LocalDate.MAX
      * @throws ArithmeticException dersom antall måneder er større enn en Int.
      */
+    @JsonIgnore
     fun måneder(): NonEmptyList<Måned> {
         return (0L until getAntallMåneder()).map {
             val currentMonth = fraOgMed.plusMonths(it)
@@ -119,10 +120,12 @@ open class Periode protected constructor(
         )
     }
 
+    @JsonIgnore
     fun erMåned(): Boolean {
         return getAntallMåneder() == 1
     }
 
+    @JsonIgnore
     fun tilPerioder() = NonEmptySlåttSammenIkkeOverlappendePerioder.create(this)
 
     companion object {
@@ -169,8 +172,10 @@ open class Periode protected constructor(
     override fun equals(other: Any?) = super.equals(other)
 
     /** Bruker [DatoIntervall] sin hashCode */
+    @JsonIgnore
     override fun hashCode() = super.hashCode()
 
+    @JsonIgnore
     override fun toString(): String {
         return "Periode(fraOgMed=$fraOgMed, tilOgMed=$tilOgMed)"
     }
@@ -178,6 +183,7 @@ open class Periode protected constructor(
     /**
      * Plusser 1 måned på tilOgMed.
      */
+    @JsonIgnore
     fun forlengMedEnMåned(): Periode = create(fraOgMed = fraOgMed, tilOgMed = tilOgMed.plusMonths(1).endOfMonth())
 
     fun forlengMedPeriode(periode: Periode): Periode {
