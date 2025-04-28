@@ -10,7 +10,6 @@ dependencies {
     implementation(project(":behandling:common:domain"))
 
     testImplementation(project(":test-common"))
-    // Mockito
     testImplementation(project(":vilkår:utenlandsopphold:domain"))
     testImplementation(project(":hendelse:domain"))
     testImplementation(project(":økonomi:domain"))

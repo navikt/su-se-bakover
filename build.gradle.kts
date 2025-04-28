@@ -106,6 +106,7 @@ subprojects {
 
         testImplementation(rootProject.libs.jsonassert)
         testImplementation(rootProject.libs.mockito.kotlin)
+        testImplementation(rootProject.libs.mockito)
         testImplementation(
             enforcedPlatform(rootProject.libs.embedded.postgres.binaries.bom),
         )

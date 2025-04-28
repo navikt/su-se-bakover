@@ -50,6 +50,7 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
+    implementation(rootProject.libs.mockito)
     implementation(rootProject.libs.mockito.kotlin)
 }
 
