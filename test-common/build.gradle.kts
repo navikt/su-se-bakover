@@ -63,6 +63,7 @@ dependencies {
 
     compileOnly(rootProject.libs.kotest.assertions.core)
     compileOnly(rootProject.libs.mockito.kotlin)
+    compileOnly(rootProject.libs.mockito)
     compileOnly(rootProject.libs.jsonassert)
     compileOnly(rootProject.libs.embedded.postgres) {
         exclude("org.apache.commons", "commons-compress")
