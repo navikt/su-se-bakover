@@ -2,12 +2,6 @@ name: 'Push image'
 description: 'Push image'
 
 inputs:
-  identity_provider:
-    required: true
-    description: 'secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER'
-  project_id:
-    required: true
-    description: 'vars.NAIS_MANAGEMENT_PROJECT_ID'
   tag:
     required: true
     description: 'github.sha'

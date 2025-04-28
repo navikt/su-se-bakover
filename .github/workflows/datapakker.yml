@@ -33,16 +33,12 @@ jobs:
       - name: Push image soknad
         uses: ./.github/actions/push-image
         with:
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/soknad/Dockerfile
           image_suffix: 'datapakker-soknad-job'
       - name: Push image fritekstAvslag
         uses: ./.github/actions/push-image
         with:
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/fritekstAvslag/Dockerfile
           image_suffix: 'datapakker-fritekstavslag-job'

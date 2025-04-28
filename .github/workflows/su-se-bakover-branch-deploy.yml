@@ -41,8 +41,6 @@ jobs:
       - name: Push image
         uses: ./.github/actions/push-image
         with:
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ github.sha }}
           image_suffix: 'app'
   deploy-to-preprod:
