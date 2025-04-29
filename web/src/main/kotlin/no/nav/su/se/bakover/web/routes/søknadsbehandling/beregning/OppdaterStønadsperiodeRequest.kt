@@ -7,7 +7,6 @@ import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -44,12 +43,6 @@ internal data class OppdaterStønadsperiodeRequest(
                 },
             )
         }
-    }
-
-    companion object {
-        fun Stønadsperiode.toJson() = StønadsperiodeJson(periode.toJson())
-
-        internal data class StønadsperiodeJson(val periode: PeriodeJson)
     }
 }
 

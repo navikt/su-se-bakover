@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PeriodeDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
@@ -18,6 +19,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -206,7 +209,7 @@ internal class ReguleringPostgresRepo(
                         mapOf(
                             "id" to regulering.id.value,
                             "sakId" to regulering.sakId,
-                            "periode" to serialize(regulering.periode),
+                            "periode" to serialize(regulering.periode.toDbJson()),
                             "opprettet" to regulering.opprettet,
                             "saksbehandler" to regulering.saksbehandler.navIdent,
                             "beregning" to regulering.beregning,
@@ -288,7 +291,7 @@ internal class ReguleringPostgresRepo(
         )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
-        val periode = deserialize<Periode>(string("periode"))
+        val periode = deserialize<PeriodeDbJson>(string("periode")).toDomain()
 
         // Merk at denne ikke inneholder eksterneGrunnlag
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
