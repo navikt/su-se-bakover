@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
@@ -29,13 +29,14 @@ internal fun Route.pensjonsVilkårRoutes(
 ) {
     post("$REVURDERING_PATH/{revurderingId}/pensjon") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBehandlingId {
+            call.withRevurderingId {
                 call.withBody<List<LeggTilVurderingsperiodePensjonsvilkårJson>> { body ->
                     call.svar(
                         revurderingService.leggTilPensjonsVilkår(
                             request = LeggTilPensjonsVilkårRequest(
                                 behandlingId = RevurderingId(it),
-                                vilkår = body.toDomain(clock).getOrElse { return@authorize call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock)
+                                    .getOrElse { return@authorize call.svar(it.tilResultat()) },
                             ),
                         ).fold(
                             { it.tilResultat() },

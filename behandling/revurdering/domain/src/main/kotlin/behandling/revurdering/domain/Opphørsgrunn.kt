@@ -18,6 +18,7 @@ enum class Opphørsgrunn {
     BOR_OG_OPPHOLDER_SEG_I_NORGE,
     PERSONLIG_OPPMØTE,
     INNLAGT_PÅ_INSTITUSJON,
+    ALDERSPENSJON,
     ;
 
     // TODO: bør lage en paragraf-type/enum - Se Avslagsgrunn.kt
@@ -33,6 +34,7 @@ enum class Opphørsgrunn {
         BOR_OG_OPPHOLDER_SEG_I_NORGE -> listOf(1, 2, 3, 4)
         PERSONLIG_OPPMØTE -> listOf(17)
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
+        ALDERSPENSJON -> TODO("Legge til liste med paragrafer for vilkår alderspensjon")
     }
 }
 
@@ -51,9 +53,9 @@ fun Avslagsgrunn.tilOpphørsgrunn(): Opphørsgrunn {
         Avslagsgrunn.MANGLENDE_DOKUMENTASJON -> Opphørsgrunn.MANGLENDE_DOKUMENTASJON
         Avslagsgrunn.SØKNAD_MANGLER_DOKUMENTASJON -> TODO()
         Avslagsgrunn.FAMILIEGJENFORENING -> TODO("legg inn opphørsgrunn når det skal revurderes")
-        Avslagsgrunn.MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
-        Avslagsgrunn.MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
-        Avslagsgrunn.MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
+        Avslagsgrunn.ALDERSPENSJON_FOLKETRYGDEN -> Opphørsgrunn.ALDERSPENSJON
+        Avslagsgrunn.ALDERSPENSJON_ANDRE_NORSKE_PENSJONSORDNINGER -> Opphørsgrunn.ALDERSPENSJON
+        Avslagsgrunn.ALDERSPENSJON_UTENLANDSKE_PENSJONSORDNINGER -> Opphørsgrunn.ALDERSPENSJON
     }
 }
 
