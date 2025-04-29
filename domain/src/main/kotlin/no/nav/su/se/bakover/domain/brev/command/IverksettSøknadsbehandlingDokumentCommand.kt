@@ -35,7 +35,8 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
-        val forventetInntektStørreEnn0: Boolean,
+        // Kun relevant for uføre
+        val forventetInntektStørreEnn0: Boolean?,
         val satsoversikt: Satsoversikt?,
         val sakstype: Sakstype,
     ) : IverksettSøknadsbehandlingDokumentCommand

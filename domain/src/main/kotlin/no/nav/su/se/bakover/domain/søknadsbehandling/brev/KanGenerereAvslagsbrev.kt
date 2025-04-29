@@ -77,9 +77,8 @@ sealed interface KanGenerereAvslagsbrev :
             ),
             saksbehandler = saksbehandler,
             attestant = attestant,
-            // TODO jah: 1) vil ikke lenger fungere for alder. 2) kan kanskje dra ut i en mer generell funksjon.
             forventetInntektStørreEnn0 = vilkårsvurderinger.uføreVilkår()
-                .getOrNull()!!.grunnlag.harForventetInntektStørreEnn0(),
+                .getOrNull()?.grunnlag?.harForventetInntektStørreEnn0(),
             fritekst = fritekst,
             saksnummer = saksnummer,
             fødselsnummer = fnr,

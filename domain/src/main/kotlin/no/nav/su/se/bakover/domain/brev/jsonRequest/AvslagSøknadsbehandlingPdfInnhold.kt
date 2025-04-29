@@ -23,7 +23,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
     val saksbehandlerNavn: String,
     val attestantNavn: String,
     val fritekst: String,
-    val forventetInntektStørreEnn0: Boolean,
+    val forventetInntektStørreEnn0: Boolean?,
     val formueVerdier: FormueForBrev?,
     val satsoversikt: Satsoversikt?,
     override val sakstype: Sakstype,
