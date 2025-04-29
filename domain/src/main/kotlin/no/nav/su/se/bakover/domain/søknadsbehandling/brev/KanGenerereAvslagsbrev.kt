@@ -5,7 +5,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import behandling.søknadsbehandling.domain.avslag.Avslag
 import behandling.søknadsbehandling.domain.avslag.ErAvslag
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -78,11 +77,8 @@ sealed interface KanGenerereAvslagsbrev :
             ),
             saksbehandler = saksbehandler,
             attestant = attestant,
-            forventetInntektStørreEnn0 = when (sakstype) {
-                Sakstype.UFØRE -> vilkårsvurderinger.uføreVilkår()
-                    .getOrNull()!!.grunnlag.harForventetInntektStørreEnn0()
-                Sakstype.ALDER -> false
-            },
+            forventetInntektStørreEnn0 = vilkårsvurderinger.uføreVilkår()
+                .getOrNull()?.grunnlag?.harForventetInntektStørreEnn0(),
             fritekst = fritekst,
             saksnummer = saksnummer,
             fødselsnummer = fnr,
