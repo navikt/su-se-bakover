@@ -57,9 +57,9 @@ sealed interface PensjonsVilkår : Vilkår {
             Vurdering.Innvilget -> emptyList()
             Vurdering.Uavklart -> emptyList()
             Vurdering.Avslag -> listOfNotNull(
-                this.grunnlag.find { it.pensjonsopplysninger.søktUtenlandskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER },
-                this.grunnlag.find { it.pensjonsopplysninger.søktPensjonFolketrygd.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN },
-                this.grunnlag.find { it.pensjonsopplysninger.søktAndreNorskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER },
+                this.grunnlag.find { it.pensjonsopplysninger.søktUtenlandskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.ALDERSPENSJON_UTENLANDSKE_PENSJONSORDNINGER },
+                this.grunnlag.find { it.pensjonsopplysninger.søktPensjonFolketrygd.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.ALDERSPENSJON_FOLKETRYGDEN },
+                this.grunnlag.find { it.pensjonsopplysninger.søktAndreNorskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.ALDERSPENSJON_ANDRE_NORSKE_PENSJONSORDNINGER },
             )
         }
 
