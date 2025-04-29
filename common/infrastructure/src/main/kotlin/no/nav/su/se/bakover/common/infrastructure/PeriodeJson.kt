@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+/** Ment brukt i web-laget (ikke db). For db, se: [no.nav.su.se.bakover.common.infrastructure.persistence.PeriodeDbJson] */
 data class PeriodeJson(
     val fraOgMed: String,
     val tilOgMed: String,

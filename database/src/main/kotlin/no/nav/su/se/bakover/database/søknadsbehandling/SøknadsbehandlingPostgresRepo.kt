@@ -8,7 +8,6 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -18,11 +17,14 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionCon
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.StønadsperiodeDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.TransactionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -60,14 +62,14 @@ import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
-internal data class BaseSøknadsbehandlingDb(
+private data class BaseSøknadsbehandlingDb(
     val id: SøknadsbehandlingId,
     val opprettet: Tidspunkt,
     val sakId: UUID,
     val søknad: Søknad.Journalført.MedOppgave,
     val oppgaveId: OppgaveId,
     val fritekstTilBrev: String?,
-    val stønadsperiode: Stønadsperiode?,
+    val stønadsperiode: StønadsperiodeDbJson?,
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling,
     val eksterneGrunnlag: EksterneGrunnlag,
@@ -79,7 +81,7 @@ internal data class BaseSøknadsbehandlingDb(
     val aldersvurdering: String?,
 )
 
-internal data class SøknadsbehandlingDb(
+private data class SøknadsbehandlingDb(
     val base: BaseSøknadsbehandlingDb,
     val beregning: Beregning?,
     val simulering: Simulering?,
@@ -89,6 +91,176 @@ internal data class SøknadsbehandlingDb(
         grunnlagsdata = base.grunnlagsdata,
         vilkårsvurderinger = base.vilkårsvurderinger,
         eksterneGrunnlag = base.eksterneGrunnlag,
+    )
+}
+
+private fun Søknadsbehandling.toDb(): SøknadsbehandlingDb {
+    val base = this.toBase()
+    return when (this) {
+        is BeregnetSøknadsbehandling.Avslag -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is BeregnetSøknadsbehandling.Innvilget -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is IverksattSøknadsbehandling.Avslag.MedBeregning -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = null,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is IverksattSøknadsbehandling.Innvilget -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = this.simulering,
+                lukket = this.erLukket,
+            )
+        }
+
+        is LukketSøknadsbehandling -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = this.simulering,
+                lukket = this.erLukket,
+            )
+        }
+
+        is SimulertSøknadsbehandling -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = this.simulering,
+                lukket = this.erLukket,
+            )
+        }
+
+        is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = null,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is SøknadsbehandlingTilAttestering.Innvilget -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = this.simulering,
+                lukket = this.erLukket,
+            )
+        }
+
+        is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = null,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is UnderkjentSøknadsbehandling.Innvilget -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = this.beregning,
+                simulering = this.simulering,
+                lukket = this.erLukket,
+            )
+        }
+
+        is VilkårsvurdertSøknadsbehandling.Avslag -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = null,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is VilkårsvurdertSøknadsbehandling.Innvilget -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = null,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+
+        is VilkårsvurdertSøknadsbehandling.Uavklart -> {
+            SøknadsbehandlingDb(
+                base = base,
+                beregning = null,
+                simulering = null,
+                lukket = this.erLukket,
+            )
+        }
+    }
+}
+
+private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
+    return BaseSøknadsbehandlingDb(
+        id = this.id,
+        opprettet = this.opprettet,
+        sakId = this.sakId,
+        søknad = this.søknad,
+        oppgaveId = this.oppgaveId,
+        fritekstTilBrev = this.fritekstTilBrev,
+        stønadsperiode = this.stønadsperiode?.toDbJson(),
+        grunnlagsdata = this.grunnlagsdata,
+        vilkårsvurderinger = this.vilkårsvurderinger,
+        eksterneGrunnlag = this.eksterneGrunnlag,
+        attesteringer = this.attesteringer,
+        sakstype = this.sakstype,
+        status = this.status(),
+        saksbehandler = this.saksbehandler.toString(),
+        søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
+        aldersvurdering = this.aldersvurdering?.toDBJson(),
     )
 }
 
@@ -106,176 +278,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 lagre(søknadsbehandling.toDb(), tx)
             }
         }
-    }
-
-    fun Søknadsbehandling.toDb(): SøknadsbehandlingDb {
-        val base = this.toBase()
-        return when (this) {
-            is BeregnetSøknadsbehandling.Avslag -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is BeregnetSøknadsbehandling.Innvilget -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is IverksattSøknadsbehandling.Avslag.MedBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is IverksattSøknadsbehandling.Avslag.UtenBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is IverksattSøknadsbehandling.Innvilget -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = this.simulering,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is LukketSøknadsbehandling -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = this.simulering,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is SimulertSøknadsbehandling -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = this.simulering,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is SøknadsbehandlingTilAttestering.Innvilget -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = this.simulering,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is UnderkjentSøknadsbehandling.Innvilget -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = this.beregning,
-                    simulering = this.simulering,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is VilkårsvurdertSøknadsbehandling.Avslag -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is VilkårsvurdertSøknadsbehandling.Innvilget -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-
-            is VilkårsvurdertSøknadsbehandling.Uavklart -> {
-                SøknadsbehandlingDb(
-                    base = base,
-                    beregning = null,
-                    simulering = null,
-                    lukket = this.erLukket,
-                )
-            }
-        }
-    }
-
-    private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
-        return BaseSøknadsbehandlingDb(
-            id = this.id,
-            opprettet = this.opprettet,
-            sakId = this.sakId,
-            søknad = this.søknad,
-            oppgaveId = this.oppgaveId,
-            fritekstTilBrev = this.fritekstTilBrev,
-            stønadsperiode = this.stønadsperiode,
-            grunnlagsdata = this.grunnlagsdata,
-            vilkårsvurderinger = this.vilkårsvurderinger,
-            eksterneGrunnlag = this.eksterneGrunnlag,
-            attesteringer = this.attesteringer,
-            sakstype = this.sakstype,
-            status = this.status(),
-            saksbehandler = this.saksbehandler.toString(),
-            søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
-            aldersvurdering = this.aldersvurdering?.toDBJson(),
-        )
     }
 
     private fun hentSkatteIDerForBehandling(
@@ -490,7 +492,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
 
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
-        val stønadsperiode = deserializeNullable<Stønadsperiode>(stringOrNull("stønadsperiode"))
+        val stønadsperiode = deserializeNullable<StønadsperiodeDbJson>(stringOrNull("stønadsperiode"))?.toDomain()
 
         val aldersvurdering =
             stønadsperiode?.let { AldersvurderingJson.toAldersvurdering(string("aldersvurdering"), it) }

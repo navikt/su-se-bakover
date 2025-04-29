@@ -6,12 +6,13 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PeriodeDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
@@ -111,7 +112,7 @@ internal class FerdigeBehandlingerRepo(
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentStatus(behandlingstype),
             behandlingStartet = tidspunkt("iverksattOpprettet"),
-            periode = stringOrNull("periode")?.let { deserialize<Periode>(it) },
+            periode = stringOrNull("periode")?.let { deserialize<PeriodeDbJson>(it) }?.toDomain(),
         )
     }
 

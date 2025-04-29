@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PeriodeDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
@@ -26,6 +27,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
+import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -75,7 +78,7 @@ import java.util.UUID
  */
 private data class BaseRevurderingDb(
     val id: RevurderingId,
-    val periode: Periode,
+    val periode: PeriodeDbJson,
     val opprettet: Tidspunkt,
     val oppdatert: Tidspunkt?,
     val tilRevurdering: UUID,
@@ -102,7 +105,7 @@ private data class RevurderingDb(
 private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
     return BaseRevurderingDb(
         id = this.id,
-        periode = this.periode,
+        periode = this.periode.toDbJson(),
         opprettet = this.opprettet,
         oppdatert = this.oppdatert,
         tilRevurdering = this.tilRevurdering,
@@ -123,7 +126,7 @@ private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
 private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
     return BaseRevurderingDb(
         id = this.id,
-        periode = this.periode,
+        periode = this.periode.toDbJson(),
         opprettet = this.opprettet,
         oppdatert = this.oppdatert,
         tilRevurdering = this.tilRevurdering,
@@ -144,7 +147,7 @@ private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb 
 private fun Revurdering.toBaseRevurderingDb(): BaseRevurderingDb {
     return BaseRevurderingDb(
         id = this.id,
-        periode = this.periode,
+        periode = this.periode.toDbJson(),
         opprettet = this.opprettet,
         oppdatert = this.oppdatert,
         tilRevurdering = this.tilRevurdering,
@@ -526,7 +529,7 @@ internal class RevurderingPostgresRepo(
     private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
         val id = RevurderingId(uuid("id"))
         val status = RevurderingsType.valueOf(string("revurderingsType"))
-        val periode = deserialize<Periode>(string("periode"))
+        val periode = deserialize<PeriodeDbJson>(string("periode")).toDomain()
         val opprettet = tidspunkt("opprettet")
         val oppdatert = tidspunktOrNull("oppdatert")
         val tilRevurdering = uuid("vedtakSomRevurderesId")
