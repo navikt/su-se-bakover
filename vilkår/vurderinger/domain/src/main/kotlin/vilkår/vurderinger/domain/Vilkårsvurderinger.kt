@@ -37,6 +37,8 @@ interface Vilkårsvurderinger {
     val avslagsgrunner: List<Avslagsgrunn> get() = vilkår.flatMap { it.avslagsgrunner }
 
     fun uføreVilkår(): Either<VilkårEksistererIkke, UføreVilkår>
+
+    // TODO Er denne nødvendig lenger?
     fun uføreVilkårKastHvisAlder(): UføreVilkår
     fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår>
     fun fastOppholdVilkår(): FastOppholdINorgeVilkår = fastOpphold

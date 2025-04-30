@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.separateEither
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -46,9 +47,15 @@ interface GrunnlagsdataOgVilkårsvurderinger {
     fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): GrunnlagsdataOgVilkårsvurderinger
     fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): GrunnlagsdataOgVilkårsvurderinger
 
-    fun sjekkOmGrunnlagOgVilkårErKonsistent(): Either<Set<Konsistensproblem>, Unit> {
+    fun sjekkOmGrunnlagOgVilkårErKonsistent(
+        sakstype: Sakstype,
+    ): Either<Set<Konsistensproblem>, Unit> {
+        val uføreEllerAlder = when (sakstype) {
+            Sakstype.ALDER -> TODO("Må det lages en konsistenssjekk for Alder vilkår?")
+            Sakstype.UFØRE -> Uføre(this.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag).resultat
+        }
         return setOf(
-            Uføre(this.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag).resultat,
+            uføreEllerAlder,
             BosituasjonKonsistensProblem(this.grunnlagsdata.bosituasjonSomFullstendig()).resultat,
             Formue(this.vilkårsvurderinger.formue.grunnlag).resultat,
             BosituasjonOgFradrag(
