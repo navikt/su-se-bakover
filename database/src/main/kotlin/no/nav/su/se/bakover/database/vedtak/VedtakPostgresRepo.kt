@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.database.AvslagsgrunnDbJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
@@ -36,6 +37,8 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
+import no.nav.su.se.bakover.database.toDbJson
+import no.nav.su.se.bakover.database.toDomain
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -485,7 +488,7 @@ internal class VedtakPostgresRepo(
                 erAvbrutt = behandling.erAvbrutt(),
             )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
-        val avslagsgrunner = deserializeListNullable<Avslagsgrunn>(stringOrNull("avslagsgrunner"))
+        val avslagsgrunner: List<Avslagsgrunn>? = deserializeListNullable<AvslagsgrunnDbJson>(stringOrNull("avslagsgrunner"))?.map { it.toDomain() }
 
         val journalpostId: JournalpostId? = stringOrNull("journalpostid")?.let { JournalpostId(it) }
         val brevbestillingId: BrevbestillingId? = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) }
@@ -731,7 +734,7 @@ internal class VedtakPostgresRepo(
                     "attestant" to vedtak.attestant,
                     "beregning" to vedtak.beregning,
                     "vedtaktype" to VedtakType.AVSLAG,
-                    "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
+                    "avslagsgrunner" to vedtak.avslagsgrunner.toDbJson().serialize(),
                 ),
                 tx,
             )
