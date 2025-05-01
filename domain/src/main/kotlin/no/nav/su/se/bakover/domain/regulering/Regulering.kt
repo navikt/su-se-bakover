@@ -116,6 +116,7 @@ sealed interface Regulering : Stønadsbehandling {
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
                     saksnummer,
+                    sakstype,
                 ).getOrElse {
                     return it.left()
                 }
@@ -156,8 +157,9 @@ sealed interface Regulering : Stønadsbehandling {
         private fun getReguleringstypeVedGenerelleProblemer(
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             saksnummer: Saksnummer,
+            sakstype: Sakstype,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, Reguleringstype> {
-            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent().fold(
+            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype).fold(
                 { konsistensproblemer ->
                     val message =
                         "Kunne ikke opprette regulering for saksnummer $saksnummer." +
