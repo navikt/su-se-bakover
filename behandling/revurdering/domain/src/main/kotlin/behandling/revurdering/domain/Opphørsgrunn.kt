@@ -34,7 +34,7 @@ enum class Opphørsgrunn {
         BOR_OG_OPPHOLDER_SEG_I_NORGE -> listOf(1, 2, 3, 4)
         PERSONLIG_OPPMØTE -> listOf(17)
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
-        ALDERSPENSJON -> TODO("Legge til liste med paragrafer for vilkår alderspensjon")
+        ALDERSPENSJON -> listOf(6)
     }
 }
 
