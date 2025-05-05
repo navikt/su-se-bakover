@@ -4,6 +4,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.tid.periode.august
@@ -26,6 +27,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
                 stønadsperiode2021,
@@ -50,6 +52,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår(
                 Year.of(1953),
@@ -75,6 +78,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeRight().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår(
                 Year.of(1960),
@@ -100,6 +104,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår(
                 Year.of(1954),
@@ -126,6 +131,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeRight().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
                 1.august(1954),
@@ -153,6 +159,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
                 31.juli(1954),
@@ -179,6 +186,7 @@ internal class AldersvurderingTest {
             person = person,
             saksbehandlersAvgjørelse = null,
             clock = fixedClock,
+            saksType = Sakstype.UFØRE,
         ).shouldBeLeft().let {
             it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
                 31.juli(1950),

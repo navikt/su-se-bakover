@@ -425,6 +425,7 @@ internal fun FeilVedHentingAvGjeldendeVedtaksdataForPeriode.tilResultat(): Resul
     }
 }
 
+// TODO: egen validering for alder her? Må ha et bedre system for å skille på sakstype spesifikke feil
 internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
     return when (this) {
         is Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> fantIkkeBehandling
@@ -446,6 +447,10 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
                 is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> "rett på uføre med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato -> "Ikke rett på alder med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår -> "Ikke rett på alder med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsdato -> "Rett på alder med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsår -> "Rett på alder med fødselsår"
             }
 
             BadRequest.errorJson(

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.sikkerLogg
 import person.domain.Person
 import java.time.Clock
@@ -39,11 +40,13 @@ sealed interface Aldersvurdering {
                 person: Person,
                 saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
                 clock: Clock,
+                saksType: Sakstype,
             ): Either<Vurdert, Vurdert> {
                 return Vurdert(
                     maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.avgjørBasertPåFødselsdatoEllerFødselsår(
                         stønadsperiode = stønadsperiode,
                         fødsel = person.fødsel,
+                        saksType = saksType,
                     ),
                     saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
                     aldersinformasjon = Aldersinformasjon.createAldersinformasjon(person, clock),
@@ -66,6 +69,18 @@ sealed interface Aldersvurdering {
                             } else {
                                 it.left()
                             }
+                        }
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder -> {
+                            it.also {
+                                if (saksbehandlersAvgjørelse is SaksbehandlersAvgjørelse.Avgjort) {
+                                    sikkerLogg.error("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på alder. Fnr ${person.ident.fnr} for stønadsperiode $stønadsperiode")
+                                    throw IllegalArgumentException("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på alder. Se sikker logg for mer context")
+                                }
+                            }
+                            it.right()
+                        }
+                        is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder -> {
+                            it.left()
                         }
                     }
                 }

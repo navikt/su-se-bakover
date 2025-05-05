@@ -6,6 +6,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.juli
@@ -62,6 +63,7 @@ internal class OppdaterStønadsperiodeTest {
         maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.avgjørBasertPåFødselsdatoEllerFødselsår(
             stønadsperiode2021,
             person().fødsel,
+            saksType = Sakstype.UFØRE,
         ),
         saksbehandlersAvgjørelse = null,
         aldersinformasjon = Aldersinformasjon.createAldersinformasjon(

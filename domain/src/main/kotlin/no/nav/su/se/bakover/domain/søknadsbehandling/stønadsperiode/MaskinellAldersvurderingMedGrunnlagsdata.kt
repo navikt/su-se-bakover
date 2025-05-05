@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import person.domain.Person
+import vilkår.uføre.domain.ALDER_MINSTE_ALDER
 import vilkår.uføre.domain.UFØRETRYGD_MAX_ALDER
 import java.time.LocalDate
 import java.time.Year
@@ -19,32 +21,36 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
     val fødselsdato: LocalDate?
     val fødselsår: Year?
 
-    fun tidligsteGyldigeFødselsdato(): LocalDate = stønadsperiode.tidligsteGyldigeFødselsdato()
+    fun tidligsteGyldigeFødselsdato(): LocalDate = stønadsperiode.tidligsteGyldigeFødselsdatoUfoere()
 
     companion object {
         // Hvis du har fødselsdag 1 dag før dette, så er du for gammel
-        fun Stønadsperiode.tidligsteGyldigeFødselsdato(): LocalDate =
+        fun Stønadsperiode.tidligsteGyldigeFødselsdatoUfoere(): LocalDate =
             periode.tilOgMed.startOfMonth().minusYears(UFØRETRYGD_MAX_ALDER.toLong())
 
+        fun Stønadsperiode.tidligsteGyldigeFødselsdatoAlder(): LocalDate =
+            periode.fraOgMed.startOfMonth().minusYears(ALDER_MINSTE_ALDER.toLong())
+
+        // TODO: tester for alle disse?
         fun avgjørBasertPåFødselsdatoEllerFødselsår(
             stønadsperiode: Stønadsperiode,
             fødsel: Person.Fødsel?,
+            saksType: Sakstype,
         ): MaskinellAldersvurderingMedGrunnlagsdata {
             val fødselsdato = getFødselsdato(fødsel)
             val fødselsår = getFødselsår(fødsel)
-            val sisteMånedIPeriode = stønadsperiode.måneder().last()
 
             return if (fødselsdato != null) {
                 avgjørBasertPåFødselsdato(
                     fødselsdato = fødselsdato,
                     fødselsår = fødselsår!!,
                     stønadsperiode = stønadsperiode,
+                    saksType = saksType,
                 )
             } else if (fødselsår == null) {
                 Ukjent.UtenFødselsår(stønadsperiode)
             } else {
-                val sisteÅrIPeriode = sisteMånedIPeriode.årOgMåned.year
-                avgjørBasertPåFødseslår(fødselsår, stønadsperiode, sisteÅrIPeriode)
+                avgjørBasertPåFødseslår(fødselsår, stønadsperiode, saksType = saksType)
             }
         }
 
@@ -64,37 +70,102 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
             fødselsdato: LocalDate,
             fødselsår: Year,
             stønadsperiode: Stønadsperiode,
+            saksType: Sakstype,
         ): MaskinellAldersvurderingMedGrunnlagsdata {
-            return if (fødselsdato < stønadsperiode.tidligsteGyldigeFødselsdato()) {
-                IkkeRettPåUføre.MedFødselsdato(
-                    fødselsdato = fødselsdato,
-                    fødselsår = fødselsår,
-                    stønadsperiode = stønadsperiode,
-                )
+            return if (saksType == Sakstype.UFØRE) {
+                if (fødselsdato < stønadsperiode.tidligsteGyldigeFødselsdatoUfoere()) {
+                    IkkeRettPåUføre.MedFødselsdato(
+                        fødselsdato = fødselsdato,
+                        fødselsår = fødselsår,
+                        stønadsperiode = stønadsperiode,
+                    )
+                } else {
+                    RettPåUføre.MedFødselsdato(
+                        fødselsdato = fødselsdato,
+                        fødselsår = fødselsår,
+                        stønadsperiode = stønadsperiode,
+                    )
+                }
             } else {
-                RettPåUføre.MedFødselsdato(
-                    fødselsdato = fødselsdato,
-                    fødselsår = fødselsår,
-                    stønadsperiode = stønadsperiode,
-                )
+                // TODO: Skal vi ha vurdering her eller bare ok?
+                if (fødselsdato >= stønadsperiode.tidligsteGyldigeFødselsdatoAlder()) {
+                    RettPaaAlder.MedFødselsdato(
+                        fødselsdato = fødselsdato,
+                        fødselsår = fødselsår,
+                        stønadsperiode = stønadsperiode,
+                    )
+                } else {
+                    IkkeRettPaaAlder.MedFødselsdato(
+                        fødselsdato = fødselsdato,
+                        fødselsår = fødselsår,
+                        stønadsperiode = stønadsperiode,
+                    )
+                }
             }
         }
 
         private fun avgjørBasertPåFødseslår(
             fødselsår: Year,
             stønadsperiode: Stønadsperiode,
-            sisteÅrIPeriode: Int,
+            saksType: Sakstype,
         ): MaskinellAldersvurderingMedGrunnlagsdata {
-            return if (fødselsår.value < (sisteÅrIPeriode - 67)) {
-                IkkeRettPåUføre.MedFødselsår(
-                    fødselsår = fødselsår,
-                    stønadsperiode = stønadsperiode,
-                )
-            } else if (fødselsår.value > (sisteÅrIPeriode - 67)) {
-                RettPåUføre.MedFødselsår(fødselsår, stønadsperiode)
-            } else {
-                Ukjent.MedFødselsår(fødselsår, stønadsperiode)
+            when (saksType) {
+                Sakstype.ALDER -> {
+                    val foersteMånedIPeriode = stønadsperiode.måneder().first()
+                    val foersteAarIPeriode = foersteMånedIPeriode.årOgMåned.year
+                    return if (fødselsår.value >= (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
+                        RettPaaAlder.MedFødselsår(fødselsår, stønadsperiode)
+                    } else if (fødselsår.value < (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
+                        IkkeRettPaaAlder.MedFødselsår(fødselsår, stønadsperiode)
+                    } else {
+                        Ukjent.MedFødselsår(fødselsår, stønadsperiode)
+                    }
+                }
+                Sakstype.UFØRE -> {
+                    val sisteMånedIPeriode = stønadsperiode.måneder().last()
+                    val sisteÅrIPeriode = sisteMånedIPeriode.årOgMåned.year
+                    return if (fødselsår.value < (sisteÅrIPeriode - UFØRETRYGD_MAX_ALDER)) {
+                        IkkeRettPåUføre.MedFødselsår(
+                            fødselsår = fødselsår,
+                            stønadsperiode = stønadsperiode,
+                        )
+                    } else if (fødselsår.value > (sisteÅrIPeriode - UFØRETRYGD_MAX_ALDER)) {
+                        RettPåUføre.MedFødselsår(fødselsår, stønadsperiode)
+                    } else {
+                        Ukjent.MedFødselsår(fødselsår, stønadsperiode)
+                    }
+                }
             }
+        }
+    }
+
+    sealed interface RettPaaAlder : MaskinellAldersvurderingMedGrunnlagsdata {
+        data class MedFødselsdato(
+            override val fødselsdato: LocalDate,
+            override val fødselsår: Year,
+            override val stønadsperiode: Stønadsperiode,
+        ) : RettPaaAlder
+
+        data class MedFødselsår(
+            override val fødselsår: Year,
+            override val stønadsperiode: Stønadsperiode,
+        ) : RettPaaAlder {
+            override val fødselsdato: LocalDate? = null
+        }
+    }
+
+    sealed interface IkkeRettPaaAlder : MaskinellAldersvurderingMedGrunnlagsdata {
+        data class MedFødselsdato(
+            override val fødselsdato: LocalDate,
+            override val fødselsår: Year,
+            override val stønadsperiode: Stønadsperiode,
+        ) : IkkeRettPaaAlder
+
+        data class MedFødselsår(
+            override val fødselsår: Year,
+            override val stønadsperiode: Stønadsperiode,
+        ) : IkkeRettPaaAlder {
+            override val fødselsdato: LocalDate? = null
         }
     }
 

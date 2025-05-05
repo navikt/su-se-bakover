@@ -29,6 +29,7 @@ import java.time.Clock
  *          - Ikke tatt høyde for SU-Alder
  *          - Det er ikke sikkert at personen har fødselsinformasjon (ikke garantert fra api)
  */
+// TODO: må ha inn sakstype her og ikke gjøre Aldersvurdering.Vurdert.vurder( eller ha egen impl her......
 fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
     søknadsbehandlingId: SøknadsbehandlingId,
     stønadsperiode: Stønadsperiode,
@@ -57,6 +58,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         person = person,
         saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         clock = clock,
+        saksType = type,
     ).getOrElse {
         return Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre(it).left()
     }
