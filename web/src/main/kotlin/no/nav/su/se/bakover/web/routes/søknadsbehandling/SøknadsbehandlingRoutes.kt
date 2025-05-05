@@ -11,7 +11,6 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -425,7 +424,6 @@ internal fun FeilVedHentingAvGjeldendeVedtaksdataForPeriode.tilResultat(): Resul
     }
 }
 
-// TODO: egen validering for alder her? Må ha et bedre system for å skille på sakstype spesifikke feil
 internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
     return when (this) {
         is Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> fantIkkeBehandling
@@ -447,15 +445,29 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
                 is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> "rett på uføre med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
-                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato -> "Ikke rett på alder med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår -> "Ikke rett på alder med fødselsår"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsdato -> "Rett på alder med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsår -> "Rett på alder med fødselsår"
+                else -> throw IllegalStateException("Ukjent maskinellvurdering for uføre ${this.vurdering}")
             }
 
             BadRequest.errorJson(
                 "Aldersvurdering gir ikke rett på uføre. Stønadsperioden må justeres, eller overstyres. vurdering - $maskinellVurdering",
                 "aldersvurdering_gir_ikke_rett_på_uføre",
+            )
+        }
+
+        is Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåAlder -> {
+            val maskinellVurdering = when ((this.vurdering as Aldersvurdering.Vurdert).maskinellVurdering) {
+                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato -> "Ikke rett på alder med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår -> "Ikke rett på alder med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsdato -> "rett på alder med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsår -> "rett på alder med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
+                else -> throw IllegalStateException("Ukjent maskinellvurdering for alder ${this.vurdering}")
+            }
+
+            BadRequest.errorJson(
+                "Aldersvurdering gir ikke rett på alder. Stønadsperioden må justeres, eller overstyres. vurdering - $maskinellVurdering",
+                "aldersvurdering_gir_ikke_rett_på_alder",
             )
         }
     }

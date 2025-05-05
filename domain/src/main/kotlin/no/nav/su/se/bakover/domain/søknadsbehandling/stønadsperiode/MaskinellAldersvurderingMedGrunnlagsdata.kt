@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.time.Year
 
 /**
- * Brukes per nå bare for SU-uføre. Kan utvides videre når SU-Alder skal inn
+ * Brukes per nå bare for SU-uføre og SU-alder.
  *
  * Et vilkår for å få SU-uføre stønad en gitt måned er at du ikke har fylt 67 år forrige måned, eller tidligere.
  *
@@ -87,7 +87,6 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
                     )
                 }
             } else {
-                // TODO: Skal vi ha vurdering her eller bare ok?
                 if (fødselsdato >= stønadsperiode.tidligsteGyldigeFødselsdatoAlder()) {
                     RettPaaAlder.MedFødselsdato(
                         fødselsdato = fødselsdato,

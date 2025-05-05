@@ -491,6 +491,7 @@ data class Sak(
     sealed interface KunneIkkeOppdatereStønadsperiode {
         data object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode
         data class AldersvurderingGirIkkeRettPåUføre(val vurdering: Aldersvurdering) : KunneIkkeOppdatereStønadsperiode
+        data class AldersvurderingGirIkkeRettPåAlder(val vurdering: Aldersvurdering) : KunneIkkeOppdatereStønadsperiode
 
         data class KunneIkkeOppdatereGrunnlagsdata(
             val feil: no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.KunneIkkeOppdatereStønadsperiode,
