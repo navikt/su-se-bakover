@@ -29,7 +29,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
             periode.tilOgMed.startOfMonth().minusYears(UFØRETRYGD_MAX_ALDER.toLong())
 
         fun Stønadsperiode.tidligsteGyldigeFødselsdatoAlder(): LocalDate =
-            periode.fraOgMed.startOfMonth().minusYears(ALDER_MINSTE_ALDER.toLong())
+            periode.fraOgMed.startOfMonth().minusYears(ALDER_MINSTE_ALDER.toLong() + 1)
 
         // TODO: tester for alle disse?
         fun avgjørBasertPåFødselsdatoEllerFødselsår(
@@ -87,7 +87,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
                     )
                 }
             } else {
-                if (fødselsdato >= stønadsperiode.tidligsteGyldigeFødselsdatoAlder()) {
+                if (fødselsdato < stønadsperiode.tidligsteGyldigeFødselsdatoAlder()) {
                     RettPaaAlder.MedFødselsdato(
                         fødselsdato = fødselsdato,
                         fødselsår = fødselsår,
