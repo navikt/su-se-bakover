@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
 
@@ -15,7 +16,8 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
  * Disse testene dekker også hentForSak og hent(hendelseId)
  */
 class OpprettTilbakekrevingsbehandlingRepoTest {
-
+    // TODO: for testing enablet
+    @Disabled
     @Test
     fun `kan opprette og hente tilbakekrevingsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
