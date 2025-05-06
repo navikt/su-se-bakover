@@ -70,7 +70,7 @@ sealed interface Aldersvurdering {
                                 it.left()
                             }
                         }
-                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder -> {
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU -> {
                             it.also {
                                 if (saksbehandlersAvgjørelse is SaksbehandlersAvgjørelse.Avgjort) {
                                     sikkerLogg.error("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på alder. Fnr ${person.ident.fnr} for stønadsperiode $stønadsperiode")

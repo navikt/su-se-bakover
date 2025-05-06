@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import person.domain.Person
 import vilkår.uføre.domain.ALDER_MINSTE_ALDER
@@ -29,7 +30,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
             periode.tilOgMed.startOfMonth().minusYears(UFØRETRYGD_MAX_ALDER.toLong())
 
         fun Stønadsperiode.tidligsteGyldigeFødselsdatoAlder(): LocalDate =
-            periode.fraOgMed.startOfMonth().minusYears(ALDER_MINSTE_ALDER.toLong() + 1)
+            periode.fraOgMed.startOfMonth().minusYears(ALDER_MINSTE_ALDER.toLong())
 
         // TODO: tester for alle disse?
         fun avgjørBasertPåFødselsdatoEllerFødselsår(
@@ -87,8 +88,8 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
                     )
                 }
             } else {
-                if (fødselsdato < stønadsperiode.tidligsteGyldigeFødselsdatoAlder()) {
-                    RettPaaAlder.MedFødselsdato(
+                if (fødselsdato.isEqualOrBefore(stønadsperiode.tidligsteGyldigeFødselsdatoAlder())) {
+                    RettPaaAlderSU.MedFødselsdato(
                         fødselsdato = fødselsdato,
                         fødselsår = fødselsår,
                         stønadsperiode = stønadsperiode,
@@ -113,7 +114,7 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
                     val foersteMånedIPeriode = stønadsperiode.måneder().first()
                     val foersteAarIPeriode = foersteMånedIPeriode.årOgMåned.year
                     return if (fødselsår.value >= (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
-                        RettPaaAlder.MedFødselsår(fødselsår, stønadsperiode)
+                        RettPaaAlderSU.MedFødselsår(fødselsår, stønadsperiode)
                     } else if (fødselsår.value < (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
                         IkkeRettPaaAlder.MedFødselsår(fødselsår, stønadsperiode)
                     } else {
@@ -138,17 +139,17 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
         }
     }
 
-    sealed interface RettPaaAlder : MaskinellAldersvurderingMedGrunnlagsdata {
+    sealed interface RettPaaAlderSU : MaskinellAldersvurderingMedGrunnlagsdata {
         data class MedFødselsdato(
             override val fødselsdato: LocalDate,
             override val fødselsår: Year,
             override val stønadsperiode: Stønadsperiode,
-        ) : RettPaaAlder
+        ) : RettPaaAlderSU
 
         data class MedFødselsår(
             override val fødselsår: Year,
             override val stønadsperiode: Stønadsperiode,
-        ) : RettPaaAlder {
+        ) : RettPaaAlderSU {
             override val fødselsdato: LocalDate? = null
         }
     }

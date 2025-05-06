@@ -134,8 +134,8 @@ internal class AldersvurderingJson(
                         is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato -> MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO
                         is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår -> MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR
 
-                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsdato -> MaskinellVurdering.RETT_MED_FØDSELSDATO
-                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsår -> MaskinellVurdering.RETT_MED_FØDSELSÅR
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsdato -> MaskinellVurdering.RETT_MED_FØDSELSDATO
+                        is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsår -> MaskinellVurdering.RETT_MED_FØDSELSÅR
                     },
                     fødselsdato = fødselsdato?.toString(),
                     fødselsår = fødselsår?.value,

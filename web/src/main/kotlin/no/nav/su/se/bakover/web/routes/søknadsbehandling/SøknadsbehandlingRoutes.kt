@@ -458,8 +458,8 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
             val maskinellVurdering = when ((this.vurdering as Aldersvurdering.Vurdert).maskinellVurdering) {
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato -> "Ikke rett på alder med fødselsdato"
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår -> "Ikke rett på alder med fødselsår"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsdato -> "rett på alder med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder.MedFødselsår -> "rett på alder med fødselsår"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsdato -> "rett på alder med fødselsdato"
+                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsår -> "rett på alder med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
                 else -> throw IllegalStateException("Ukjent maskinellvurdering for alder ${this.vurdering}")

@@ -28,7 +28,7 @@ data class AldersvurderingJson(
                             is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre -> MaskinellVurderingsresultat.RETT_PÅ_UFØRE
                             is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent -> MaskinellVurderingsresultat.UKJENT
                             is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder -> MaskinellVurderingsresultat.RETT_PÅ_ALDER
-                            is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlder -> MaskinellVurderingsresultat.IKKE_RETT_PÅ_ALDER
+                            is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU -> MaskinellVurderingsresultat.IKKE_RETT_PÅ_ALDER
                         }.toString(),
                     )
                 }
