@@ -39,7 +39,7 @@ data class PersonOppslagStub(
         statsborgerskap = "NOR",
         sivilstand = null,
         fødsel = Person.Fødsel.MedFødselsdato(
-            dato = 1.januar(1990),
+            dato = 1.januar(1990), // TODO: denne må baseres på sakstype....
         ),
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         skjermet = false,

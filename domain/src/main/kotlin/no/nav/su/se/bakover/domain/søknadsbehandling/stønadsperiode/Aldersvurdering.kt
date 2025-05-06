@@ -71,12 +71,6 @@ sealed interface Aldersvurdering {
                             }
                         }
                         is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU -> {
-                            it.also {
-                                if (saksbehandlersAvgjørelse is SaksbehandlersAvgjørelse.Avgjort) {
-                                    sikkerLogg.error("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på alder. Fnr ${person.ident.fnr} for stønadsperiode $stønadsperiode")
-                                    throw IllegalArgumentException("Saksbehandler kan ikke ta en avgjørelse på en maskinell vurdering som gir rett på alder. Se sikker logg for mer context")
-                                }
-                            }
                             it.right()
                         }
                         is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder -> {

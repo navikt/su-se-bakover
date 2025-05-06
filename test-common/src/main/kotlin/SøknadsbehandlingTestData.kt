@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -566,6 +567,13 @@ fun nySøknadsbehandlingUtenStønadsperiode(
     }
 }
 
+private fun hentPerson(sakstype: Sakstype, fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+    return when (sakstype) {
+        Sakstype.ALDER -> person(fnr = fnr, fødsel = Person.Fødsel.MedFødselsdato(1.januar(1954))).right()
+        Sakstype.UFØRE -> return person(fnr = fnr).right()
+    }
+}
+
 /**
  * Oppretter en søknadsbehandling med bagrunn i [sakOgSøknad]. Støtter både uføre og alder.
  */
@@ -598,9 +606,11 @@ fun nySøknadsbehandlingMedStønadsperiode(
         )
     },
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person> = { person(fnr = fnr).right() },
     saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse? = null,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
+    if (sakOgSøknad.first.type != sakstype) {
+        throw RuntimeException("Inkonsistent testdataoppset, sakstype må være lik i sak og sakstype param")
+    }
     return nySøknadsbehandlingUtenStønadsperiode(
         clock = clock,
         sakOgSøknad = sakOgSøknad,
@@ -613,7 +623,7 @@ fun nySøknadsbehandlingMedStønadsperiode(
             clock = clock,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(LocalDate.now(clock)),
             saksbehandler = saksbehandler,
-            hentPerson = hentPerson,
+            hentPerson = { _ -> hentPerson(sakstype, fnr) },
             saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         ).getOrFail() as Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>
     }
@@ -1103,6 +1113,7 @@ fun vilkårsvurdertSøknadsbehandling(
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
         saksbehandler = saksbehandler,
+        sakstype = sakOgSøknad.first.type,
     ).let { (sak, søknadsbehandling) ->
         val vilkårsvurdert = when (defaultVilkår) {
             is VilkårsvurderingerSøknadsbehandling.Alder -> {
