@@ -31,7 +31,6 @@ class PersonhendelseServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
-        sikkerLogg.debug("Personhendelse - sjekker match på bruker og EPS. Hendelse: {}", personhendelse)
         prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
         prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
     }
@@ -128,13 +127,6 @@ class PersonhendelseServiceImpl(
     ): Either<Unit, Unit> {
         return when {
             !vedtaksammendragForSak.erInnvilgetForMånedEllerSenere(fraOgMedEllerSenere) -> Unit.left()
-                .also {
-                    sikkerLogg.debug(
-                        "Personhendelse - Forkaster hendelse som ikke er knyttet til aktiv/løpende sak. Hendelse: {}",
-                        personhendelse,
-                    )
-                }
-
             else -> {
                 sikkerLogg.info(
                     "Personhendelse - treff på saksnummer {}. isLiveRun: {}, Vedtakssammendrag: {}, Hendelse: {}",
