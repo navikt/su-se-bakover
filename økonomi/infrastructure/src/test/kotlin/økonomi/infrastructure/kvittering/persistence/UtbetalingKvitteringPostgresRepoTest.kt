@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.utbetaling.kvittering.råUtbetalingskvitteringhendelse
 import no.nav.su.se.bakover.test.utbetaling.kvittering.utbetalingskvitteringPåSakHendelse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import økonomi.domain.utbetaling.Utbetaling
 
@@ -43,8 +42,6 @@ class UtbetalingKvitteringPostgresRepoTest {
         }
     }
 
-    // TODO: for testing enablet
-    @Disabled
     @Test
     fun `ubehandlet knyttet til sak`() {
         withMigratedDb { dataSource ->
