@@ -155,7 +155,6 @@ data object SharedRegressionTestData {
                 grunnbeløpFactory = satsFactoryIDag.grunnbeløpFactory,
                 tidligsteTilgjengeligeMåned = satsFactoryIDag.tidligsteTilgjengeligeMåned,
             )
-            // TODO: personservice instansieringen her tar ikke høyde for alderssaker
             ServiceBuilder.build(
                 databaseRepos = databaseRepos,
                 clients = clients,
