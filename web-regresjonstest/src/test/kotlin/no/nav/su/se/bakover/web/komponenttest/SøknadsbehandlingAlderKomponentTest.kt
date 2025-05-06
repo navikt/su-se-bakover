@@ -6,8 +6,10 @@ import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonComman
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.fixedClock
+import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
@@ -41,7 +43,7 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
-import org.junit.jupiter.api.Disabled
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import satser.domain.Satskategori
@@ -53,12 +55,17 @@ import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.uføre.domain.Uføregrad
 
 internal class SøknadsbehandlingAlderKomponentTest {
-    // Mangler riktig alder
-    // TODO: for testing enablet
-    @Disabled
+
     @Test
     fun `skal kunne sende inn alderssøknad`() {
         withKomptestApplication(
+            clientsBuilder = { databaseRepos, clock, _applicationConfig ->
+                TestClientsBuilder(
+                    clock = clock,
+                    databaseRepos = databaseRepos,
+                    personOppslag = PersonOppslagStub(fødselsdato = 1.januar(1954)),
+                ).build(_applicationConfig)
+            },
             clock = 17.juni(2022).fixedClock(),
         ) { appComponents ->
 

@@ -16,6 +16,7 @@ import java.time.LocalDate
 
 data class PersonOppslagStub(
     val dødsdato: LocalDate? = 21.januar(2021),
+    val fødselsdato: LocalDate = 1.januar(1990),
 ) : PersonOppslag {
 
     fun nyTestPerson(fnr: Fnr) = Person(
@@ -39,7 +40,7 @@ data class PersonOppslagStub(
         statsborgerskap = "NOR",
         sivilstand = null,
         fødsel = Person.Fødsel.MedFødselsdato(
-            dato = 1.januar(1990), // TODO: denne må baseres på sakstype....
+            dato = fødselsdato,
         ),
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         skjermet = false,
