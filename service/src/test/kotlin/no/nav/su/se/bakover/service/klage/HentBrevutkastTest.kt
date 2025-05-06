@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering

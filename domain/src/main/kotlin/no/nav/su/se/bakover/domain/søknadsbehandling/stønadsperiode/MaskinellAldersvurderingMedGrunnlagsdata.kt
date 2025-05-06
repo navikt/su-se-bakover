@@ -22,8 +22,6 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
     val fødselsdato: LocalDate?
     val fødselsår: Year?
 
-    fun tidligsteGyldigeFødselsdato(): LocalDate = stønadsperiode.tidligsteGyldigeFødselsdatoUfoere()
-
     companion object {
         // Hvis du har fødselsdag 1 dag før dette, så er du for gammel
         fun Stønadsperiode.tidligsteGyldigeFødselsdatoUfoere(): LocalDate =
@@ -32,7 +30,6 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
         fun Stønadsperiode.tidligsteGyldigeFødselsdatoAlder(): LocalDate =
             periode.fraOgMed.startOfMonth().minusYears(ALDER_MINSTE_ALDER.toLong())
 
-        // TODO: tester for alle disse?
         fun avgjørBasertPåFødselsdatoEllerFødselsår(
             stønadsperiode: Stønadsperiode,
             fødsel: Person.Fødsel?,
@@ -113,9 +110,9 @@ sealed interface MaskinellAldersvurderingMedGrunnlagsdata {
                 Sakstype.ALDER -> {
                     val foersteMånedIPeriode = stønadsperiode.måneder().first()
                     val foersteAarIPeriode = foersteMånedIPeriode.årOgMåned.year
-                    return if (fødselsår.value >= (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
+                    return if (fødselsår.value <= (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
                         RettPaaAlderSU.MedFødselsår(fødselsår, stønadsperiode)
-                    } else if (fødselsår.value < (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
+                    } else if (fødselsår.value > (foersteAarIPeriode - ALDER_MINSTE_ALDER)) {
                         IkkeRettPaaAlder.MedFødselsår(fødselsår, stønadsperiode)
                     } else {
                         Ukjent.MedFødselsår(fødselsår, stønadsperiode)
