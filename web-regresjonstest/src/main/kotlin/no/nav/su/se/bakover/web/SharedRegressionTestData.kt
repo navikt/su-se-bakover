@@ -122,10 +122,11 @@ data object SharedRegressionTestData {
         clock: Clock = fixedClock,
         utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
         satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
+        personOppslagStub: PersonOppslag = PersonOppslagStub(),
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
         withMigratedDb { dataSource ->
-            val appComponents = AppComponents.from(dataSource, clock, utbetalingerKjørtTilOgMed, satsFactory, applicationConfig)
+            val appComponents = AppComponents.from(dataSource, clock, utbetalingerKjørtTilOgMed, satsFactory, applicationConfig, personOppslagStub)
             testApplication {
                 application {
                     testSusebakover(appComponents = appComponents)

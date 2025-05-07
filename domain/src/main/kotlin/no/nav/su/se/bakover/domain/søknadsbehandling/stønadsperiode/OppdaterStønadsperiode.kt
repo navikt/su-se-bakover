@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -26,7 +27,6 @@ import java.time.Clock
  *     - Stønadsperioden kan overlappe med opphørte måneder som ikke har blitt tilbakekrevet. Her må saksbehandler selv lage en økonomioppgave så det ikke blir dobbeltutbetaling.
  *  - Stønadsperioden kan ikke være lenger enn til og med måneden søker blir 67 år.
  *      - Begrensninger:
- *          - Ikke tatt høyde for SU-Alder
  *          - Det er ikke sikkert at personen har fødselsinformasjon (ikke garantert fra api)
  */
 fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
@@ -57,8 +57,12 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
         person = person,
         saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
         clock = clock,
+        saksType = type,
     ).getOrElse {
-        return Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre(it).left()
+        return when (type) {
+            Sakstype.ALDER -> Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåAlder(it).left()
+            Sakstype.UFØRE -> Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre(it).left()
+        }
     }
     return internalOppdater(
         søknadsbehandling = søknadsbehandling,

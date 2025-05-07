@@ -4,6 +4,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.dokument.application.DokumentServices
 import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
+import person.domain.PersonOppslag
 import person.domain.PersonService
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
@@ -103,6 +105,7 @@ class AppComponents private constructor(
             utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
             satsFactoryParam: SatsFactoryForSupplerendeStønad = satsFactoryTest,
             applicationConfig: ApplicationConfig,
+            personOppslagStub: PersonOppslag = PersonOppslagStub(),
         ): AppComponents {
             return instance(
                 clock = clockParam,
@@ -120,6 +123,7 @@ class AppComponents private constructor(
                         clock = clock,
                         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         databaseRepos = db,
+                        personOppslag = personOppslagStub,
                     ).build(_applicationConfig)
                 },
                 serviceBuilder = { databaseRepos, clients, clock, satsFactory ->

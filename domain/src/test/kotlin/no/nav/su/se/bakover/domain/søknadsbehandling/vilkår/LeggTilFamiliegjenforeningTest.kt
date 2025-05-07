@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.vilkår
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
@@ -32,6 +33,7 @@ internal class LeggTilFamiliegjenforeningTest {
     fun `kan legge til familiegjenforening ved uavklart`() {
         val fnr = Fnr.generer()
         val uavklart = nySøknadsbehandlingMedStønadsperiode(
+            sakstype = Sakstype.ALDER,
             sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
                 fnr = fnr,
                 søknadInnhold = søknadsinnholdAlder(personopplysninger = Personopplysninger(fnr)),
