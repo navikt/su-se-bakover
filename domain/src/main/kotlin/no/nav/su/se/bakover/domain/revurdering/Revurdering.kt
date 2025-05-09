@@ -43,6 +43,8 @@ import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import vilkår.common.domain.inneholderAlle
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
+import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
@@ -188,6 +190,10 @@ sealed interface Revurdering :
         return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
+    fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    }
+
     fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
@@ -225,6 +231,22 @@ sealed interface Revurdering :
         ) : KunneIkkeLeggeTilOpplysningsplikt
 
         data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
+    }
+
+    sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+
+        data class UgyldigVilkår(
+            val feil: UgyldigFamiliegjenforeningVilkår,
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+        data object VilkårKunRelevantForAlder : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+
+        data object FantIkkeBehandling : KunneIkkeLeggeTilFamiliegjenforeningVilkår
     }
 
     sealed interface KunneIkkeLeggeTilPensjonsVilkår {
@@ -280,6 +302,17 @@ sealed interface Revurdering :
         return oppdaterOpplysnigspliktInternal(opplysningspliktVilkår).map {
             it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Opplysningsplikt))
         }
+    }
+
+    fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdertInternal(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder())) {
+            return KunneIkkeLeggeTilFamiliegjenforeningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        if (Sakstype.ALDER != sakstype) {
+            return KunneIkkeLeggeTilFamiliegjenforeningVilkår.VilkårKunRelevantForAlder.left()
+        }
+        val revurdering = oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
+        return revurdering.map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Familiegjenforening)) }
     }
 
     /**

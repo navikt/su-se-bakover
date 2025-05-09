@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
@@ -247,6 +248,27 @@ class RevurderingServiceImpl(
             revurdering.oppdaterPensjonsvilkårOgMarkerSomVurdert(request.vilkår).mapLeft {
                 KunneIkkeLeggeTilPensjonsVilkår.Revurdering(it)
             }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
+        }
+    }
+
+    override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår, RevurderingOgFeilmeldingerResponse> {
+        return hent(request.behandlingId as RevurderingId).mapLeft {
+            Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.FantIkkeBehandling
+        }.flatMap { revurdering ->
+
+            val familiegjenforeningVilkår = request.toVilkår(
+                clock = clock,
+                stønadsperiode = revurdering.periode,
+            ).getOrElse {
+                return Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigVilkår(it).left()
+            }
+
+            return revurdering.oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(
+                vilkår = familiegjenforeningVilkår,
+            ).map {
                 revurderingRepo.lagre(it)
                 identifiserFeilOgLagResponse(it)
             }
