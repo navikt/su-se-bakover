@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.opphold.KunneIkkeOppdater
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
@@ -74,10 +72,6 @@ data class OpprettetRevurdering(
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
-
-    override fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
-        return oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdertInternal(vilkår)
-    }
 
     override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(
         vilkår: PensjonsVilkår.Vurdert,

@@ -190,10 +190,6 @@ sealed interface Revurdering :
         return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
-        return KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
-    }
-
     fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
@@ -304,7 +300,7 @@ sealed interface Revurdering :
         }
     }
 
-    fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdertInternal(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
+    fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
