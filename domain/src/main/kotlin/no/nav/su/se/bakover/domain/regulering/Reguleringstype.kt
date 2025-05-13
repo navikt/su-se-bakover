@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
@@ -36,13 +37,15 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         )
     }
 
-    this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
-        if (it.grunnlag.harForventetInntektStørreEnn0()) {
-            problemer.add(
-                ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(
-                    begrunnelse = "Forventet inntekt er større enn 0",
-                ),
-            )
+    if (this.vilkårsvurderinger is VilkårsvurderingerRevurdering.Uføre) {
+        this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
+            if (it.grunnlag.harForventetInntektStørreEnn0()) {
+                problemer.add(
+                    ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(
+                        begrunnelse = "Forventet inntekt er større enn 0",
+                    ),
+                )
+            }
         }
     }
 
