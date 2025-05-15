@@ -64,27 +64,19 @@ internal class KonsistensavstemmingJob(
                     },
                     {
                         Fagområde.entries.forEach { fagområde ->
-                            when (fagområde) {
-                                Fagområde.SUALDER -> {
-                                    // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
-                                }
-
-                                Fagområde.SUUFORE -> {
-                                    if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(
-                                            idag,
-                                            fagområde,
-                                        )
-                                    ) {
-                                        log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
-                                        avstemmingService.konsistensavstemming(idag, fagområde)
-                                            .fold(
-                                                { log.error("$jobName feilet: $it") },
-                                                { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
-                                            )
-                                    } else {
-                                        log.info("Konsistensavstemming allerede utført for dato: $idag")
-                                    }
-                                }
+                            if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(
+                                    idag,
+                                    fagområde,
+                                )
+                            ) {
+                                log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
+                                avstemmingService.konsistensavstemming(idag, fagområde)
+                                    .fold(
+                                        { log.error("$jobName feilet: $it") },
+                                        { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
+                                    )
+                            } else {
+                                log.info("Konsistensavstemming allerede utført for dato: $idag")
                             }
                         }
                     },

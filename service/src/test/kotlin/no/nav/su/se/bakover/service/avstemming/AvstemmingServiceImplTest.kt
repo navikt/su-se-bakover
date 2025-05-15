@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
@@ -26,8 +28,12 @@ import org.mockito.kotlin.whenever
 import økonomi.domain.Fagområde
 
 internal class AvstemmingServiceImplTest {
-    @Test
-    fun `konsistensavstemming inkluderer utbetalinger opprettet til og med dagen før konsistensavstemming`() {
+
+    @ParameterizedTest
+    @MethodSource("fagområdeProvider")
+    fun `konsistensavstemming inkluderer utbetalinger opprettet til og med dagen før konsistensavstemming`(
+        fagområde: Fagområde,
+    ) {
         val avstemmingRepoMock = mock<AvstemmingRepo> {
             on { hentUtbetalingerForKonsistensavstemming(any(), any(), any()) } doReturn emptyList()
         }
@@ -46,7 +52,7 @@ internal class AvstemmingServiceImplTest {
             clock = fixedClock,
         ).konsistensavstemming(
             løpendeFraOgMed = expectedLøpendeFraOgMed,
-            fagområde = Fagområde.SUUFORE,
+            fagområde = fagområde,
         ).getOrFail()
 
         konsistensavstemming shouldBe Avstemming.Konsistensavstemming.Ny(
@@ -56,7 +62,7 @@ internal class AvstemmingServiceImplTest {
             opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
             utbetalinger = emptyList(),
             avstemmingXmlRequest = "jippi",
-            fagområde = Fagområde.SUUFORE,
+            fagområde = fagområde,
         )
 
         inOrder(
@@ -66,7 +72,7 @@ internal class AvstemmingServiceImplTest {
             verify(avstemmingRepoMock).hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
                 opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
-                fagområde = Fagområde.SUUFORE,
+                fagområde = fagområde,
             )
             verify(publisherMock).publish(
                 konsistensavstemming.copy(
@@ -77,8 +83,11 @@ internal class AvstemmingServiceImplTest {
         }
     }
 
-    @Test
-    fun `svarer med feil dersom publisering feiler`() {
+    @ParameterizedTest
+    @MethodSource("fagområdeProvider")
+    fun `svarer med feil dersom publisering feiler`(
+        fagområde: Fagområde,
+    ) {
         val avstemmingRepoMock = mock<AvstemmingRepo> {
             on { hentUtbetalingerForKonsistensavstemming(any(), any(), any()) } doReturn emptyList()
         }
@@ -95,7 +104,7 @@ internal class AvstemmingServiceImplTest {
             clock = fixedClock,
         ).konsistensavstemming(
             løpendeFraOgMed = expectedLøpendeFraOgMed,
-            fagområde = Fagområde.SUUFORE,
+            fagområde = fagområde,
         ) shouldBe AvstemmingFeilet.left()
 
         inOrder(
@@ -105,15 +114,18 @@ internal class AvstemmingServiceImplTest {
             verify(avstemmingRepoMock).hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
                 opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
-                fagområde = Fagområde.SUUFORE,
+                fagområde = fagområde,
             )
             verify(publisherMock).publish(any<Avstemming.Konsistensavstemming.Ny>())
             verify(avstemmingRepoMock, never()).opprettKonsistensavstemming(any())
         }
     }
 
-    @Test
-    fun `automatiskKonsistensavstemmingUtførtFor kaller repo med korrekte parametere`() {
+    @ParameterizedTest
+    @MethodSource("fagområdeProvider")
+    fun `automatiskKonsistensavstemmingUtførtFor kaller repo med korrekte parametere`(
+        fagområde: Fagområde,
+    ) {
         val avstemmingRepoMock = mock<AvstemmingRepo> {
             on { konsistensavstemmingUtførtForOgPåDato(any(), any()) } doReturn false
         }
@@ -122,11 +134,19 @@ internal class AvstemmingServiceImplTest {
             repo = avstemmingRepoMock,
             publisher = mock(),
             clock = fixedClock,
-        ).konsistensavstemmingUtførtForOgPåDato(dato = 1.juni(2021), fagområde = Fagområde.SUUFORE) shouldBe false
+        ).konsistensavstemmingUtførtForOgPåDato(dato = 1.juni(2021), fagområde = fagområde) shouldBe false
 
         verify(avstemmingRepoMock).konsistensavstemmingUtførtForOgPåDato(
             dato = 1.juni(2021),
-            fagområde = Fagområde.SUUFORE,
+            fagområde = fagområde,
+        )
+    }
+
+    companion object {
+        @JvmStatic
+        fun fagområdeProvider() = listOf(
+            Arguments.of(Fagområde.SUUFORE),
+            Arguments.of(Fagområde.SUALDER),
         )
     }
 }
