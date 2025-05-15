@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
@@ -141,6 +142,7 @@ internal class AvvistKlageTest {
                 forrigeSteg = klage,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 fritekstTilVedtaksbrev = "en nice fritekst",
+                sakstype = klage.sakstype,
             )
 
             actual shouldBe expected
@@ -166,6 +168,7 @@ internal class AvvistKlageTest {
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
+                sakstype = klage.sakstype,
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
@@ -196,6 +199,7 @@ internal class AvvistKlageTest {
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
+                sakstype = klage.sakstype,
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
@@ -228,6 +232,7 @@ internal class AvvistKlageTest {
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
+                sakstype = klage.sakstype,
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
@@ -253,6 +258,7 @@ internal class AvvistKlageTest {
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
                 saksnummer = klage.saksnummer,
+                sakstype = klage.sakstype,
                 fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
@@ -276,6 +282,7 @@ internal class AvvistKlageTest {
         actual shouldBe KlageTilAttestering.Avvist(
             forrigeSteg = klage,
             saksbehandler = klage.saksbehandler,
+            sakstype = klage.sakstype,
         )
     }
 

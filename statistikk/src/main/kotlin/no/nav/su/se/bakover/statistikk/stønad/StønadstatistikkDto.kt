@@ -36,6 +36,7 @@ internal data class StønadstatistikkDto(
 ) {
     enum class Stønadstype(val beskrivelse: String) {
         SU_UFØR("SU Ufør"),
+        SU_ALDER("SU Alder"),
     }
 
     enum class Vedtakstype(val beskrivelse: String) {

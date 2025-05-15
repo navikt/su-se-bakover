@@ -230,6 +230,7 @@ internal class OpprettKlageTest {
                 oppgaveId = OppgaveId("123"),
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = 1.januar(2021),
+                sakstype = sak.type,
             )
             it shouldBe expectedKlage
             verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected })

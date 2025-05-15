@@ -7,6 +7,7 @@ import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
@@ -32,6 +33,7 @@ data class AvvistKlage(
     override val fritekstTilVedtaksbrev: String,
     override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
     override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
+    override val sakstype: Sakstype,
 ) : Klage,
     AvvistKlageFelter,
     KanLeggeTilFritekstTilAvvistBrev,
@@ -67,6 +69,7 @@ data class AvvistKlage(
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
+            sakstype = sakstype,
         ).right()
     }
 
@@ -90,6 +93,7 @@ data class AvvistKlage(
                 vurderinger = null,
                 klageinstanshendelser = Klageinstanshendelser.empty(),
                 fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
+                sakstype = sakstype,
             )
 
             is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
@@ -104,6 +108,7 @@ data class AvvistKlage(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             )
         }.right()
     }
@@ -120,6 +125,7 @@ data class AvvistKlage(
             forrigeSteg = forrigeSteg,
             saksbehandler = saksbehandler,
             fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+            sakstype = sakstype,
         )
     }
 
@@ -129,6 +135,7 @@ data class AvvistKlage(
         return KlageTilAttestering.Avvist(
             forrigeSteg = this,
             saksbehandler = saksbehandler,
+            sakstype = sakstype,
         ).right()
     }
 
