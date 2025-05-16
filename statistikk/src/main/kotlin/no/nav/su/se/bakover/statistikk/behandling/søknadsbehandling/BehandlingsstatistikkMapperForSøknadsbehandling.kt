@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.statistikk.behandling.behandlingYtelseDetaljer
 import no.nav.su.se.bakover.statistikk.behandling.mottattDato
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.toFunksjonellTid
+import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
 
@@ -169,6 +170,7 @@ private fun StatistikkEvent.Behandling.Søknad.toDto(
         resultatBeskrivelse = behandlingsresultat?.beskrivelse,
         resultatBegrunnelse = resultatBegrunnelse,
         totrinnsbehandling = totrinnsbehandling,
+        ytelseType = this.søknadsbehandling.sakstype.toYtelseType(),
     )
 }
 

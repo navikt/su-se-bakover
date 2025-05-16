@@ -43,6 +43,7 @@ fun opprettetKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -58,6 +59,7 @@ fun opprettetKlage(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
+        sakstype = sakstype,
         saksnummer = sakMedVedtak.saksnummer,
         fnr = sakMedVedtak.fnr,
         journalpostId = journalpostId,
@@ -80,6 +82,7 @@ fun påbegyntVilkårsvurdertKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -100,6 +103,7 @@ fun påbegyntVilkårsvurdertKlage(
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let { (sak, klage) ->
         val vilkårsvurdertKlage = klage.vilkårsvurder(
             saksbehandler = saksbehandler,
@@ -125,6 +129,7 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -148,6 +153,7 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.vilkårsvurder(
             saksbehandler = saksbehandler,
@@ -173,6 +179,7 @@ fun utfyltAvvistVilkårsvurdertKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -193,6 +200,7 @@ fun utfyltAvvistVilkårsvurdertKlage(
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.vilkårsvurder(
             saksbehandler,
@@ -218,6 +226,7 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -246,6 +255,7 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.bekreftVilkårsvurderinger(
             saksbehandler = saksbehandler,
@@ -264,6 +274,7 @@ fun bekreftetAvvistVilkårsvurdertKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -289,6 +300,7 @@ fun bekreftetAvvistVilkårsvurdertKlage(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.bekreftVilkårsvurderinger(
             saksbehandler = saksbehandler,
@@ -307,6 +319,7 @@ fun påbegyntVurdertKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -335,6 +348,7 @@ fun påbegyntVurdertKlage(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.vurder(
             saksbehandler = saksbehandler,
@@ -354,6 +368,7 @@ fun utfyltVurdertKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     fnr: Fnr = Fnr.generer(),
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
@@ -387,6 +402,7 @@ fun utfyltVurdertKlage(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.vurder(
             saksbehandler = saksbehandler,
@@ -406,6 +422,7 @@ fun bekreftetVurdertKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -440,6 +457,7 @@ fun bekreftetVurdertKlage(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.bekreftVurderinger(
             saksbehandler = saksbehandler,
@@ -455,6 +473,7 @@ fun avvistKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
@@ -484,6 +503,7 @@ fun avvistKlage(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.leggTilFritekstTilAvvistVedtaksbrev(
             saksbehandler,
@@ -519,6 +539,7 @@ fun vurdertKlageTilAttestering(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -549,6 +570,7 @@ fun vurdertKlageTilAttestering(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.sendTilAttestering(
             saksbehandler = saksbehandler,
@@ -566,6 +588,7 @@ fun avvistKlageTilAttestering(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -594,6 +617,7 @@ fun avvistKlageTilAttestering(
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         fritekstTilBrev = fritekstTilBrev,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.sendTilAttestering(
             saksbehandler,
@@ -610,6 +634,7 @@ fun underkjentKlageTilVurdering(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -642,6 +667,7 @@ fun underkjentKlageTilVurdering(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.underkjenn(
             underkjentAttestering = Attestering.Underkjent(
@@ -662,6 +688,7 @@ fun underkjentAvvistKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -691,6 +718,7 @@ fun underkjentAvvistKlage(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.underkjenn(
             underkjentAttestering = Attestering.Underkjent(
@@ -712,6 +740,7 @@ fun underkjentTilVurderingKlageTilAttestering(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -741,6 +770,7 @@ fun underkjentTilVurderingKlageTilAttestering(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.sendTilAttestering(
             saksbehandler = saksbehandler,
@@ -757,6 +787,7 @@ fun oversendtKlage(
     klageId: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = Tidspunkt.now(clock).plus(31, ChronoUnit.DAYS),
     sakId: UUID = UUID.randomUUID(),
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -797,6 +828,7 @@ fun oversendtKlage(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.oversend(
             iverksattAttestering = Attestering.Iverksatt(
@@ -815,6 +847,7 @@ fun iverksattAvvistKlage(
     id: KlageId = KlageId.generer(),
     opprettet: Tidspunkt = fixedTidspunkt.plus(31, ChronoUnit.DAYS),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    sakstype: Sakstype = Sakstype.UFØRE,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
@@ -842,6 +875,7 @@ fun iverksattAvvistKlage(
         begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         sakMedVedtak = sakMedVedtak,
+        sakstype = sakstype,
     ).let {
         val klage = it.second.iverksett(
             iverksattAttestering = Attestering.Iverksatt(
@@ -865,6 +899,7 @@ fun createBekreftetVilkårsvurdertKlage(
     opprettet: Tidspunkt,
     sakId: UUID,
     saksnummer: Saksnummer,
+    sakstype: Sakstype = Sakstype.UFØRE,
     fnr: Fnr,
     journalpostId: JournalpostId,
     oppgaveId: OppgaveId,
@@ -890,6 +925,7 @@ fun createBekreftetVilkårsvurdertKlage(
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
+            sakstype = sakstype,
         )
     } else {
         VilkårsvurdertKlage.Bekreftet.TilVurdering(
@@ -906,6 +942,7 @@ fun createBekreftetVilkårsvurdertKlage(
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = klageinstanshendelser,
+            sakstype = sakstype,
         )
     }
 }

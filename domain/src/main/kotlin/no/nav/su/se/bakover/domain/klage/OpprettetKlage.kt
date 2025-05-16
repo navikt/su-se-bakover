@@ -8,6 +8,7 @@ import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -25,6 +26,7 @@ data class OpprettetKlage(
     override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val sakstype: Sakstype,
 ) : Klage {
 
     override val vilkårsvurderinger: VilkårsvurderingerTilKlage? = null
@@ -74,6 +76,7 @@ data class OpprettetKlage(
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
+            sakstype = sakstype,
         )
     }
 
@@ -96,6 +99,7 @@ data class OpprettetKlage(
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = Klageinstanshendelser.empty(),
             fritekstTilAvvistVedtaksbrev = null,
+            sakstype = sakstype,
         )
     }
 }

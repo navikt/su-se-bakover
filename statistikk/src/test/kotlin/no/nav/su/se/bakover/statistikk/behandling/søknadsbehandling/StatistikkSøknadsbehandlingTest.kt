@@ -247,6 +247,7 @@ internal class StatistikkSøknadsbehandlingTest {
                        "sakId":${statistikkEvent.søknadsbehandling.sakId},
                        "søknadId":${statistikkEvent.søknadsbehandling.søknad.id},
                        "saksnummer":"12345676",
+                       "ytelseType":"SUUFORE",
                        "behandlingType":"SOKNAD",
                        "behandlingTypeBeskrivelse":"Søknad for SU Uføre",
                        "behandlingStatus":"$behandlingStatus",

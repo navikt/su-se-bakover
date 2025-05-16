@@ -10,6 +10,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -338,6 +339,8 @@ internal class KlagePostgresRepo(
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
         val saksnummer = Saksnummer(row.long("saksnummer"))
+        // TODO BG - Når klage for alder skal utvikles må nytt felt legges til db og alle eksisterende få "Uføre"
+        val sakstype = Sakstype.UFØRE
         val fnr = Fnr(row.string("fnr"))
         val journalpostId = JournalpostId(row.string("journalpostid"))
         val oppgaveId = OppgaveId(row.string("oppgaveId"))
@@ -392,6 +395,7 @@ internal class KlagePostgresRepo(
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = klageinstanshendelser,
+            sakstype = sakstype,
         )
 
         fun bekreftetAvvistVilkårsvurdertKlage() = VilkårsvurdertKlage.Bekreftet.Avvist(
@@ -407,6 +411,7 @@ internal class KlagePostgresRepo(
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
+            sakstype = sakstype,
         )
 
         fun avvistKlage() = AvvistKlage(
@@ -414,6 +419,7 @@ internal class KlagePostgresRepo(
             saksbehandler = saksbehandler,
             fritekstTilVedtaksbrev = fritekstTilBrev
                 ?: throw IllegalStateException("Fritekst må være utfylt for en avvist klage som er til attestering. id: $id"),
+            sakstype = sakstype,
         )
 
         fun påbegyntVurdertKlage() = VurdertKlage.Påbegynt(
@@ -421,27 +427,32 @@ internal class KlagePostgresRepo(
             saksbehandler = saksbehandler,
             // En påbegynt klage kan ikke ha utfylte vurderinger (det vil være de tilfellene da Påbegynt er representert som forrigeSteg
             vurderinger = if (vurderinger == null || vurderinger is VurderingerTilKlage.Utfylt) VurderingerTilKlage.empty() else vurderinger as VurderingerTilKlage.Påbegynt,
+            sakstype = sakstype,
         )
 
         fun utfyltVurdertKlage() = VurdertKlage.Utfylt(
             forrigeSteg = påbegyntVurdertKlage(),
             saksbehandler = saksbehandler,
             vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
+            sakstype = sakstype,
         )
 
         fun bekreftetVurdertKlage() = VurdertKlage.Bekreftet(
             forrigeSteg = utfyltVurdertKlage(),
             saksbehandler = saksbehandler,
+            sakstype = sakstype,
         )
 
         fun avvistKlageTilAttestering() = KlageTilAttestering.Avvist(
             forrigeSteg = avvistKlage(),
             saksbehandler = saksbehandler,
+            sakstype = sakstype,
         )
 
         fun vurdertKlageTilAttestering() = KlageTilAttestering.Vurdert(
             forrigeSteg = bekreftetVurdertKlage(),
             saksbehandler = saksbehandler,
+            sakstype = sakstype,
         )
 
         val klage = when (Tilstand.fromString(row.string("type"))) {
@@ -455,6 +466,7 @@ internal class KlagePostgresRepo(
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
                 VilkårsvurdertKlage.Påbegynt(
@@ -469,6 +481,7 @@ internal class KlagePostgresRepo(
                     vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    sakstype = sakstype,
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING -> VilkårsvurdertKlage.Utfylt.TilVurdering(
@@ -485,6 +498,7 @@ internal class KlagePostgresRepo(
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klageinstanshendelser = klageinstanshendelser,
+                sakstype = sakstype,
             )
             Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> VilkårsvurdertKlage.Utfylt.Avvist(
                 id = id,
@@ -499,6 +513,7 @@ internal class KlagePostgresRepo(
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilVedtaksbrev = fritekstTilBrev,
+                sakstype = sakstype,
             )
             Tilstand.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING -> bekreftetVilkårsvurdertKlageTilVurdering()
             Tilstand.VILKÅRSVURDERT_BEKREFTET_AVVIST -> bekreftetAvvistVilkårsvurdertKlage()
@@ -512,10 +527,12 @@ internal class KlagePostgresRepo(
                 forrigeSteg = vurdertKlageTilAttestering(),
                 attesteringer = attesteringer,
                 klageinstanshendelser = klageinstanshendelser,
+                sakstype = sakstype,
             )
             Tilstand.IVERKSATT_AVVIST -> IverksattAvvistKlage(
                 forrigeSteg = avvistKlageTilAttestering(),
                 attesteringer = attesteringer,
+                sakstype = sakstype,
             )
         }
         val avsluttet = row.stringOrNull("avsluttet")?.let {

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.statistikk.behandling.BehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
 import no.nav.su.se.bakover.statistikk.behandling.behandlingYtelseDetaljer
 import no.nav.su.se.bakover.statistikk.behandling.revurdering.toResultatBegrunnelse
+import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import java.time.Clock
 
 internal fun StatistikkEvent.Behandling.Stans.toBehandlingsstatistikkDto(
@@ -87,5 +88,6 @@ private fun StansAvYtelseRevurdering.toBehandlingsstatistikk(
         totrinnsbehandling = false,
         // Denne er uforandret i en stans/gjenopptak behandling
         behandlingYtelseDetaljer = this.behandlingYtelseDetaljer(),
+        ytelseType = sakstype.toYtelseType(),
     )
 }

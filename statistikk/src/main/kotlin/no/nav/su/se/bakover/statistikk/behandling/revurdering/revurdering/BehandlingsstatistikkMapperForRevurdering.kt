@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.statistikk.behandling.BehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
 import no.nav.su.se.bakover.statistikk.behandling.behandlingYtelseDetaljer
 import no.nav.su.se.bakover.statistikk.behandling.toFunksjonellTid
+import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import java.time.Clock
 
 internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
@@ -174,6 +175,7 @@ private fun Revurdering.toDto(
         resultat = behandlingResultat?.toString(),
         resultatBeskrivelse = behandlingResultat?.beskrivelse,
         resultatBegrunnelse = resultatBegrunnelse,
+        ytelseType = sakstype.toYtelseType(),
     )
 }
 

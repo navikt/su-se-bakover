@@ -9,6 +9,7 @@ import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
@@ -27,6 +28,7 @@ sealed interface KlageTilAttestering :
     data class Avvist(
         private val forrigeSteg: AvvistKlage,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val sakstype: Sakstype,
     ) : KlageTilAttestering,
         AvvistKlageFelter by forrigeSteg {
 
@@ -57,6 +59,7 @@ sealed interface KlageTilAttestering :
             return IverksattAvvistKlage(
                 forrigeSteg = this,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
+                sakstype = sakstype,
             ).right()
         }
 
@@ -84,6 +87,7 @@ sealed interface KlageTilAttestering :
     data class Vurdert(
         private val forrigeSteg: VurdertKlage.Bekreftet,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val sakstype: Sakstype,
     ) : KlageTilAttestering,
         VurdertKlage.UtfyltFelter by forrigeSteg {
         /**
@@ -134,6 +138,7 @@ sealed interface KlageTilAttestering :
                 forrigeSteg = this,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 klageinstanshendelser = klageinstanshendelser,
+                sakstype = sakstype,
             ).right()
         }
 

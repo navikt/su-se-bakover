@@ -1497,6 +1497,7 @@ class TestDataHelper(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
             clock = clock,
             datoKlageMottatt = fixedLocalDate,
+            sakstype = vedtak.sakstype,
         ).also {
             databaseRepos.klageRepo.lagre(it)
         }

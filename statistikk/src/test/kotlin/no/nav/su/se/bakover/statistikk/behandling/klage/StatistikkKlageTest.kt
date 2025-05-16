@@ -121,6 +121,7 @@ internal class StatistikkKlageTest {
                        "behandlingId":${statistikkEvent.klage.id},
                        "sakId":${statistikkEvent.klage.sakId},
                        "saksnummer":"12345676",
+                       "ytelseType":"SUUFORE",
                        "behandlingType":"KLAGE",
                        "behandlingTypeBeskrivelse":"Klage for SU Uføre",
                        "behandlingStatus":"$behandlingStatus",

@@ -10,6 +10,7 @@ import behandling.klage.domain.VilkårsvurdertKlageFelter
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
@@ -72,6 +73,7 @@ sealed interface VurdertKlage :
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             )
 
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
@@ -89,6 +91,7 @@ sealed interface VurdertKlage :
                 datoKlageMottatt = datoKlageMottatt,
                 klageinstanshendelser = klageinstanshendelser,
                 fritekstTilAvvistVedtaksbrev = null,
+                sakstype = sakstype,
             )
         }.right()
     }
@@ -110,6 +113,7 @@ sealed interface VurdertKlage :
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = klageinstanshendelser,
+            sakstype = sakstype,
         ).right()
     }
 
@@ -117,6 +121,7 @@ sealed interface VurdertKlage :
         private val forrigeSteg: VilkårsvurdertKlage.Bekreftet.TilVurdering,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vurderinger: VurderingerTilKlage.Påbegynt,
+        override val sakstype: Sakstype,
     ) : VurdertKlage,
         KlageSomKanVurderes,
         VilkårsvurdertKlage.Bekreftet.TilVurderingFelter by forrigeSteg {
@@ -130,12 +135,14 @@ sealed interface VurdertKlage :
                     forrigeSteg = this.forrigeSteg,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
+                    sakstype = sakstype,
                 )
 
                 is VurderingerTilKlage.Utfylt -> Utfylt(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
+                    sakstype = sakstype,
                 )
             }
         }
@@ -173,6 +180,7 @@ sealed interface VurdertKlage :
         private val forrigeSteg: Påbegynt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vurderinger: VurderingerTilKlage.Utfylt,
+        override val sakstype: Sakstype,
     ) : VurdertKlage,
         UtfyltFelter,
         KlageSomKanVurderes,
@@ -189,6 +197,7 @@ sealed interface VurdertKlage :
                     forrigeSteg = this.forrigeSteg,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
+                    sakstype = sakstype,
                 )
             }
         }
@@ -201,6 +210,7 @@ sealed interface VurdertKlage :
             return Bekreftet(
                 forrigeSteg = this,
                 saksbehandler = saksbehandler,
+                sakstype = sakstype,
             )
         }
 
@@ -242,6 +252,7 @@ sealed interface VurdertKlage :
         override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
         override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
         override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
+        override val sakstype: Sakstype,
     ) : VurdertKlage,
         KlageSomKanVurderes,
         KanBekrefteKlagevurdering,
@@ -271,6 +282,7 @@ sealed interface VurdertKlage :
             return KlageTilAttestering.Vurdert(
                 forrigeSteg = this,
                 saksbehandler = saksbehandler,
+                sakstype = sakstype,
             ).right()
         }
 

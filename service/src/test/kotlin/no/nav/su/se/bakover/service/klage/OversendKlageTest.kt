@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
 import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
@@ -289,6 +288,7 @@ internal class OversendKlageTest {
                 Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
             ),
             klageinstanshendelser = Klageinstanshendelser.empty(),
+            sakstype = klage.sakstype,
         )
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
@@ -509,6 +509,7 @@ internal class OversendKlageTest {
                     Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
                 ),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
+                sakstype = klage.sakstype,
             )
             it shouldBe expectedKlage
             verify(observerMock).handle(argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual })

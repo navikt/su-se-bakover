@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.statistikk.behandling.BehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
 import no.nav.su.se.bakover.statistikk.behandling.mottattDato
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingResultat
+import no.nav.su.se.bakover.statistikk.sak.YtelseType
+import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import java.time.Clock
 
 internal fun StatistikkEvent.Søknad.toBehandlingsstatistikkDto(
@@ -31,6 +33,7 @@ internal fun StatistikkEvent.Søknad.toBehandlingsstatistikkDto(
                 funksjonellTid = søknad.opprettet,
                 totrinnsbehandling = true,
                 resultat = null,
+                ytelseType = this.søknad.type.toYtelseType(),
             )
 
         is StatistikkEvent.Søknad.Lukket ->
@@ -45,6 +48,7 @@ internal fun StatistikkEvent.Søknad.toBehandlingsstatistikkDto(
                 funksjonellTid = this.søknad.lukketTidspunkt,
                 totrinnsbehandling = false,
                 resultat = this.søknad.toBehandlingResultat(),
+                ytelseType = this.søknad.type.toYtelseType(),
             )
     }
 }
@@ -60,6 +64,7 @@ private fun tilStatistikkbehandling(
     funksjonellTid: Tidspunkt,
     totrinnsbehandling: Boolean,
     resultat: BehandlingResultat?,
+    ytelseType: YtelseType,
 ) = BehandlingsstatistikkDto(
     funksjonellTid = funksjonellTid,
     tekniskTid = Tidspunkt.now(clock),
@@ -80,5 +85,6 @@ private fun tilStatistikkbehandling(
     behandlingStatusBeskrivelse = behandlingStatus.beskrivelse,
     resultat = resultat?.toString(),
     resultatBeskrivelse = resultat?.beskrivelse,
+    ytelseType = ytelseType,
 
 )

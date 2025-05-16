@@ -27,6 +27,7 @@ internal fun StatistikkEvent.SakOpprettet.toBehandlingsstatistikk(
         sakStatus = "OPPRETTET",
         sakStatusBeskrivelse = "Sak er opprettet men ingen vedtak er fattet.",
         versjon = gitCommit?.value,
+        ytelseType = sak.type.toYtelseType(),
     ).let {
         serialize(it).let {
             SchemaValidator.validate(it, sakSchema).map {

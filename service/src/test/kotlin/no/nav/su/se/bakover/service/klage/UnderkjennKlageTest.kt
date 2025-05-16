@@ -260,6 +260,7 @@ internal class UnderkjennKlageTest {
                     vedtakId = klage.vilkårsvurderinger.vedtakId,
                 ).second,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+                sakstype = klage.sakstype,
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         Attestering.Underkjent(
