@@ -32,7 +32,7 @@ internal data class StønadstatistikkDto(
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
     // Alle som gjelder SU Ufør vil være flyktning
-    val flyktningsstatus: String? = "FLYKTNING",
+    val flyktningsstatus: String?,
 ) {
     enum class Stønadstype(val beskrivelse: String) {
         SU_UFØR("SU Ufør"),

@@ -132,6 +132,10 @@ private fun toDto(
             is Opphørsvedtak -> vedtak.behandling.utledOpphørsdato(clock)
             else -> null
         },
+        flyktningsstatus = when (sak.type) {
+            Sakstype.ALDER -> null
+            Sakstype.UFØRE -> "FLYKTNING"
+        },
     )
 }
 
