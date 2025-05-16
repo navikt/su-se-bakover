@@ -16,7 +16,6 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -66,29 +65,24 @@ internal fun Route.sakRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
                 val fnr: String?,
-                val type: String?,
                 val saksnummer: String?,
             )
             call.withBody<Body> { body ->
                 when {
                     body.fnr != null -> {
-                        Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
+                        Either.catch { Fnr(body.fnr) }.fold(
                             ifLeft = {
-                                if (Sakstype.entries.none { it.value == body.type }) {
-                                    return@authorize call.svar(Feilresponser.ugyldigTypeSak)
-                                } else {
-                                    return@authorize call.svar(
-                                        Feilresponser.ugyldigFødselsnummer,
-                                    )
-                                }
+                                return@authorize call.svar(
+                                    Feilresponser.ugyldigFødselsnummer,
+                                )
                             },
-                            ifRight = { (fnr, type) ->
-                                sakService.hentSak(fnr, type)
+                            ifRight = { fnr ->
+                                sakService.hentSaker(fnr)
                                     .mapLeft {
                                         call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                         return@authorize call.svar(
                                             NotFound.errorJson(
-                                                "Fant ikke noen sak av typen ${body.type} for person: ${body.fnr}",
+                                                "Fant ikke noen saker for person: ${body.fnr}",
                                                 "fant_ikke_sak_for_person",
                                             ),
                                         )
@@ -98,7 +92,7 @@ internal fun Route.sakRoutes(
                                         return@authorize call.svar(
                                             Resultat.json(
                                                 OK,
-                                                serialize(it.toJson(clock, formuegrenserFactory)),
+                                                serialize(it.map { it.toJson(clock, formuegrenserFactory) }),
                                             ),
                                         )
                                     }
