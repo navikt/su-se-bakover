@@ -16,6 +16,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -61,11 +62,10 @@ internal fun Route.sakRoutes(
         formuegrenserFactory = formuegrenserFactory,
     )
 
-    post("$SAK_PATH/søk") {
+    post("$SAK_PATH/søk/fnr") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
                 val fnr: String?,
-                val saksnummer: String?,
             )
             call.withBody<Body> { body ->
                 when {
@@ -78,11 +78,60 @@ internal fun Route.sakRoutes(
                             },
                             ifRight = { fnr ->
                                 sakService.hentSaker(fnr)
+                                    .mapLeft { feilmelding ->
+                                        return@authorize call.svar(
+                                            NotFound.errorJson(
+                                                "Fant ikke noen for person: ${body.fnr}",
+                                                "fant_ikke_sak_for_person_fnr",
+                                            ),
+                                        )
+                                    }
+                                    .map {
+                                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                        return@authorize call.svar(
+                                            Resultat.json(
+                                                OK,
+                                                serialize(it.map { sak -> sak.toJson(clock, formuegrenserFactory) }),
+                                            ),
+                                        )
+                                    }
+                            },
+                        )
+                    }
+                    else -> return@authorize call.svar(
+                        BadRequest.errorJson(
+                            "Ingen saker funnet for fødselsnummer",
+                            "mangler_sak_for_fødselsnummer",
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    post("$SAK_PATH/søk") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            data class Body(
+                val fnr: String?,
+                val type: String?,
+                val saksnummer: String?,
+            )
+            call.withBody<Body> { body ->
+                when {
+                    body.fnr != null -> {
+                        Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
+                            ifLeft = {
+                                return@authorize call.svar(
+                                    Feilresponser.ugyldigFødselsnummer,
+                                )
+                            },
+                            ifRight = { (fnr, type) ->
+                                sakService.hentSak(fnr, type)
                                     .mapLeft {
                                         call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                         return@authorize call.svar(
                                             NotFound.errorJson(
-                                                "Fant ikke noen saker for person: ${body.fnr}",
+                                                "Fant ikke noen sak av typen ${body.type} for person: ${body.fnr}",
                                                 "fant_ikke_sak_for_person",
                                             ),
                                         )
@@ -92,7 +141,7 @@ internal fun Route.sakRoutes(
                                         return@authorize call.svar(
                                             Resultat.json(
                                                 OK,
-                                                serialize(it.map { it.toJson(clock, formuegrenserFactory) }),
+                                                serialize(it.toJson(clock, formuegrenserFactory)),
                                             ),
                                         )
                                     }
