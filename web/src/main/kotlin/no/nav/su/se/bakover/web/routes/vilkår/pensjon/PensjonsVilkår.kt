@@ -237,10 +237,6 @@ internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
                 KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder -> {
                     Feilresponser.overlappendeVurderingsperioder
                 }
-
-                KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
-                }
             }
         }
 
