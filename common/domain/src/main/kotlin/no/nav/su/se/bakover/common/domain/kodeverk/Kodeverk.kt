@@ -15,8 +15,10 @@ enum class Tema(val value: String) {
 }
 
 /**
+ * https://kodeverk.ansatt.nav.no/kodeverk/Behandlingstyper/347
  * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Behandlingstyper
  * https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
+ * Disse er generelle for alle mulige ytelser, og her gjelder for begge våre SU_UFØRE_FLYKTNING og SU_ALDER(Behandlingstema)
  */
 enum class Behandlingstype(val value: String) {
     /** UFOR_FLYKT_SOK_SUP;ab0431;ae0034;SUP */
