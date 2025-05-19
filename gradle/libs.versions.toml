@@ -112,7 +112,7 @@ embedded-postgres-binaries-darwin-arm64v8 = { group = "io.zonky.test.postgres", 
 
 xmlunit-matchers = { group = "org.xmlunit", name = "xmlunit-matchers", version = "2.10.0"}
 
-org-json = { group = "org.json", name = "json", version = "20250107"}
+org-json = { group = "org.json", name = "json", version = "20250517"}
 
 nimbus-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "10.2"}
 
