@@ -8,10 +8,6 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 data object Feilresponser {
-    val ugyldigTypeSak = BadRequest.errorJson(
-        "Ugyldig type sak",
-        "ugyldig_type_sak",
-    )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
         "fant_ikke_behandling",

@@ -39,6 +39,36 @@ internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
 
     @Test
+    fun `søk etter sak for fødselsnummer`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        sak = mock {
+                            on { hentSaker(any<Fnr>()) } doReturn listOf(
+                                nySakUføre(
+                                    sakInfo = SakInfo(
+                                        sakId = sakId,
+                                        saksnummer = saksnummer,
+                                        fnr = Fnr(sakFnr01),
+                                        type = Sakstype.UFØRE,
+                                    ),
+                                ).first,
+                            ).right()
+                        },
+                    ),
+                )
+            }
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/søk/fnr", listOf(Brukerrolle.Saksbehandler)) {
+                setBody("""{"fnr":"$sakFnr01" }""")
+            }.apply {
+                status shouldBe OK
+                bodyAsText() shouldContain """"fnr":"$sakFnr01""""
+            }
+        }
+    }
+
+    @Test
     fun `henter sak for fødselsnummer`() {
         testApplication {
             application {
