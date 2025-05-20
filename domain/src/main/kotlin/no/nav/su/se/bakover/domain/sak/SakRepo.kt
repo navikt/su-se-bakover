@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.sak
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -22,7 +21,7 @@ interface SakRepo {
     fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSak(hendelseId: HendelseId): Sak?
-    fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo?
+    fun hentSakInfoForIdenter(fnr: Fnr): List<SakInfo>
     fun hentSakInfo(sakId: UUID): SakInfo?
     fun hentSakInfo(fnr: Fnr): SakInfo?
     fun opprettSak(sak: NySak)

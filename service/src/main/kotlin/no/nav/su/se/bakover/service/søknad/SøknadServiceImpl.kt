@@ -53,6 +53,19 @@ class SøknadServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
+    private fun opprettSøknad(sakInfo: SakInfo, søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Pair<SakInfo, Søknad.Ny> {
+        val søknad = Søknad.Ny(
+            sakId = sakInfo.sakId,
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            søknadInnhold = søknadInnhold,
+            innsendtAv = identBruker,
+        )
+        søknadRepo.opprettSøknad(søknad)
+
+        return Pair(sakInfo, søknad)
+    }
+
     override fun nySøknad(
         søknadInnhold: SøknadInnhold,
         identBruker: NavIdentBruker,
@@ -75,7 +88,50 @@ class SøknadServiceImpl(
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
 
-        val (sakInfo: SakInfo, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
+        // v1
+        val lol: Either<Pair<SakInfo, Søknad.Ny>, Pair<SakInfo, Søknad.Ny>> = sakService.hentSakidOgSaksnummer(fnr)
+            .mapLeft {
+                log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
+                val nySak = sakFactory.nySakMedNySøknad(
+                    fnr = fnr,
+                    søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                    innsendtAv = identBruker,
+                ).also {
+                    sakService.opprettSak(it)
+                }
+                val sakinfo = sakService.hentSakInfo(nySak.id)
+                    .getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                Pair(sakinfo, nySak.søknad)
+            }
+            .map { saker ->
+                log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
+                Either.catch { saker.single() }.fold(
+                    {
+                        val sak = saker.find { it.type == søknadInnhold.type() } ?: return KunneIkkeOppretteSøknad.FeilSakstype.left()
+                        opprettSøknad(sak, søknadInnhold, identBruker)
+                    },
+                    { sak ->
+                        if (sak.type == søknadInnhold.type()) {
+                            opprettSøknad(saker.first(), søknadInnhold, identBruker)
+                        } else {
+                            // opprett ny sak
+                            log.info("Ny søknad: Fant ikke riktig sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
+                            val nySak = sakFactory.nySakMedNySøknad(
+                                fnr = fnr,
+                                søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                                innsendtAv = identBruker,
+                            ).also {
+                                sakService.opprettSak(it)
+                            }
+                            val sakinfo = sakService.hentSakInfo(nySak.id)
+                                .getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                            Pair(sakinfo, nySak.søknad)
+                        }
+                    },
+                )
+            }
+        // v2
+        val lolPair = sakService.hentSakidOgSaksnummer(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
                 val nySak = sakFactory.nySakMedNySøknad(
@@ -85,24 +141,40 @@ class SøknadServiceImpl(
                 ).also {
                     sakService.opprettSak(it)
                 }
-                val sakIdSaksnummerFnr = sakService.hentSakidOgSaksnummer(fnr)
+                val sakinfo = sakService.hentSakInfo(nySak.id)
                     .getOrElse { throw RuntimeException("Feil ved henting av sak") }
-                Pair(sakIdSaksnummerFnr, nySak.søknad)
+                Pair(sakinfo, nySak.søknad)
             },
-            {
+            { saker ->
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
-                val søknad = Søknad.Ny(
-                    sakId = it.sakId,
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(clock),
-                    søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
-                    innsendtAv = identBruker,
+                val lol = Either.catch { saker.single() }.fold(
+                    {
+                        val sak = saker.find { it.type == søknadInnhold.type() } ?: return throw RuntimeException()
+                        opprettSøknad(sak, søknadInnhold, identBruker)
+                    },
+                    { sak ->
+                        if (sak.type == søknadInnhold.type()) {
+                            opprettSøknad(saker.first(), søknadInnhold, identBruker)
+                        } else {
+                            // opprett ny sak
+                            log.info("Ny søknad: Fant ikke riktig sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
+                            val nySak = sakFactory.nySakMedNySøknad(
+                                fnr = fnr,
+                                søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                                innsendtAv = identBruker,
+                            ).also {
+                                sakService.opprettSak(it)
+                            }
+                            val sakinfo = sakService.hentSakInfo(nySak.id)
+                                .getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                            Pair(sakinfo, nySak.søknad)
+                        }
+                    },
                 )
-                søknadRepo.opprettSøknad(søknad)
-
-                Pair(it, søknad)
             },
         )
+
+        // val (sakInfo: SakInfo, søknad: Søknad.Ny) =
         opprettJournalpostOgOppgave(sakInfo, person, søknad)
         observers.forEach { observer ->
             observer.handle(
