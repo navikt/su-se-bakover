@@ -27,6 +27,7 @@ data object FantIkkeSøknad
 sealed interface KunneIkkeOppretteSøknad {
     data object FantIkkePerson : KunneIkkeOppretteSøknad
     data object SøknadsinnsendingIkkeTillatt : KunneIkkeOppretteSøknad
+    data object FeilSakstype : KunneIkkeOppretteSøknad
 }
 
 sealed interface KunneIkkeLageSøknadPdf {

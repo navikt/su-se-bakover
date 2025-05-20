@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.sak
 
-import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -200,18 +199,17 @@ internal class SakPostgresRepo(
 
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
-     * // TODO jah: Denne tar ikke høyde for at en bruker kan ha flere saker(uføre+alder). Vi må da returnere en liste.
      */
-    override fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo? {
+    override fun hentSakInfoForIdenter(fnr: Fnr): List<SakInfo> {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
             sessionFactory.withSession { session ->
                 """
                 SELECT
                     id, saksnummer, fnr, type
                 FROM sak
-                WHERE fnr = ANY (:fnrs)
-                """.trimIndent().hent(
-                    mapOf("fnrs" to personidenter),
+                WHERE fnr = (:fnr)
+                """.trimIndent().hentListe(
+                    mapOf("fnr" to fnr),
                     session,
                 ) { row -> row.toSakInfo() }
             }

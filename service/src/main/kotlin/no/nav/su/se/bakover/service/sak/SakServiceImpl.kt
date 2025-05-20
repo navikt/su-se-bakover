@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
@@ -121,9 +120,13 @@ class SakServiceImpl(
             ?: KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSak.left()
     }
 
-    override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo> {
-        return sakRepo.hentSakInfoForIdenter(personidenter = nonEmptyListOf(fnr.toString()))?.right()
-            ?: FantIkkeSak.left()
+    override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, List<SakInfo>> {
+        val saker = sakRepo.hentSakInfoForIdenter(fnr)
+        return if (saker.isNotEmpty()) {
+            saker.right()
+        } else {
+            FantIkkeSak.left()
+        }
     }
 
     override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
