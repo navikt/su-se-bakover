@@ -25,6 +25,8 @@ const val UFØRETRYGD_MINSTE_ALDER = 18
 const val UFØRETRYGD_MAX_ALDER = 67
 val UFØRETRYGD_ALDERSINTERVALL = UFØRETRYGD_MINSTE_ALDER..UFØRETRYGD_MAX_ALDER
 
+const val ALDER_MINSTE_ALDER = UFØRETRYGD_MAX_ALDER
+
 sealed interface UføreVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Uførhet
     override val grunnlag: List<Uføregrunnlag>

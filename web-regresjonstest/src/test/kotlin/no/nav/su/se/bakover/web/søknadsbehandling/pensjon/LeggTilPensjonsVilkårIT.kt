@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.pensjon
 
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -22,9 +23,10 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class LeggTilPensjonsVilkårIT {
+
     @Test
     fun `legg pensjonsvilkår til søknadsbehandling `() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdato = 1.januar(1954))) {
             nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)

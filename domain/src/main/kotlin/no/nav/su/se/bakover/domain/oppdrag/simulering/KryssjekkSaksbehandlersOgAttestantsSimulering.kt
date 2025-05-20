@@ -16,7 +16,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     fun sjekk(): Either<KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet, Unit> {
         return kontroller().mapLeft {
-            logErr(
+            logInfo(
                 saksbehandlersSimulering = saksbehandlersSimulering,
                 attestantsSimulering = attestantsSimulering.simulering,
                 feil = it,
@@ -51,17 +51,17 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
     }
 }
 
-private fun logErr(
+private fun logInfo(
     saksbehandlersSimulering: Simulering,
     attestantsSimulering: Simulering,
     feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet,
     log: Logger,
 ) {
-    log.error(
+    log.info(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering: ${feil::class}. Se sikkerlogg for detaljer.",
         RuntimeException("Genererer en stacktrace for enklere debugging."),
     )
-    sikkerLogg.error(
+    sikkerLogg.info(
         "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
         attestantsSimulering.toString(),
         saksbehandlersSimulering.toString(),
