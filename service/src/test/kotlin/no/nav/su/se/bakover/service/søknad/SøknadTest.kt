@@ -89,6 +89,12 @@ class SøknadTest {
                     fnr,
                     Sakstype.UFØRE,
                 )
+                on { hentSakInfo(any()) } doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
@@ -102,7 +108,6 @@ class SøknadTest {
                 it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
                 verify(it.sakService).opprettSak(
                     argThat {
                         it shouldBe NySak(
@@ -119,7 +124,8 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.sakService).hentSakInfo(sak.id)
+                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -176,7 +182,7 @@ class SøknadTest {
                 it.journalførSøknadClient,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -258,7 +264,7 @@ class SøknadTest {
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr }, Sakstype.UFØRE)
+                verify(it.sakService).hentSakidOgSaksnummer(sak.fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -368,7 +374,7 @@ class SøknadTest {
                 it.oppgaveService,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
