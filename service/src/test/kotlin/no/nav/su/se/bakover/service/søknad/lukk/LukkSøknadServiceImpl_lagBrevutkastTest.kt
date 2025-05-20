@@ -88,7 +88,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left()
+                on { hentSakidOgSaksnummer(any(),) } doReturn FantIkkeSak.left()
             },
         ).let { serviceAndMocks ->
             shouldThrow<RuntimeException> {
@@ -189,7 +189,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         private val sakService: SakService = mock {
             if (sak != null) {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
-                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(),) } doReturn SakInfo(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
@@ -241,7 +241,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         }
 
         fun verifyHentSakIdOgSaksnummer() {
-            verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr })
+            verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr },)
         }
 
         fun verifyLagBrev(

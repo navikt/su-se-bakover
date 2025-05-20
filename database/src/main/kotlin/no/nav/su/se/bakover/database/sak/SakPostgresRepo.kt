@@ -197,19 +197,16 @@ internal class SakPostgresRepo(
         }
     }
 
-    /***
-     * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
-     */
-    override fun hentSakInfoForIdenter(fnr: Fnr): List<SakInfo> {
+    override fun hentSakInfoForIdenter(fnr: Fnr, sakstype: Sakstype): SakInfo? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
             sessionFactory.withSession { session ->
                 """
                 SELECT
                     id, saksnummer, fnr, type
                 FROM sak
-                WHERE fnr = (:fnr)
-                """.trimIndent().hentListe(
-                    mapOf("fnr" to fnr),
+                WHERE fnr = (:fnr) AND type = (:type)
+                """.trimIndent().hent(
+                    mapOf("fnr" to fnr, "type" to sakstype.value),
                     session,
                 ) { row -> row.toSakInfo() }
             }

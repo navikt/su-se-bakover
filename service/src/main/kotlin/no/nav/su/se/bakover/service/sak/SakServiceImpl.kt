@@ -120,13 +120,8 @@ class SakServiceImpl(
             ?: KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSak.left()
     }
 
-    override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, List<SakInfo>> {
-        val saker = sakRepo.hentSakInfoForIdenter(fnr)
-        return if (saker.isNotEmpty()) {
-            saker.right()
-        } else {
-            FantIkkeSak.left()
-        }
+    override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? {
+        return  sakRepo.hentSakInfoForIdenter(fnr,sakstype)
     }
 
     override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
