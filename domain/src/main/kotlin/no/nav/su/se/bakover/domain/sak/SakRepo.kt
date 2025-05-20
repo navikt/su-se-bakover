@@ -21,7 +21,7 @@ interface SakRepo {
     fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSak(hendelseId: HendelseId): Sak?
-    fun hentSakInfoForIdenter(fnr: Fnr, sakstype: Sakstype): SakInfo?
+    fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype): SakInfo?
     fun hentSakInfo(sakId: UUID): SakInfo?
     fun hentSakInfo(fnr: Fnr): SakInfo?
     fun opprettSak(sak: NySak)

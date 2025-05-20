@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -88,7 +87,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(),) } doReturn FantIkkeSak.left()
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn null
             },
         ).let { serviceAndMocks ->
             shouldThrow<RuntimeException> {
@@ -189,12 +188,12 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         private val sakService: SakService = mock {
             if (sak != null) {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
-                on { hentSakidOgSaksnummer(any(),) } doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     type = Sakstype.UFØRE,
-                ).right()
+                )
             }
         },
         private val brevService: BrevService = mock {
@@ -241,7 +240,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         }
 
         fun verifyHentSakIdOgSaksnummer() {
-            verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr },)
+            verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr }, Sakstype.UFØRE)
         }
 
         fun verifyLagBrev(

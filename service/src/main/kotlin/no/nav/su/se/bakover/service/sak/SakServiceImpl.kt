@@ -121,7 +121,7 @@ class SakServiceImpl(
     }
 
     override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? {
-        return  sakRepo.hentSakInfoForIdenter(fnr,sakstype)
+        return sakRepo.hentSakInfoForIdent(fnr, sakstype)
     }
 
     override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {

@@ -48,7 +48,10 @@ class SakFakeRepo : SakRepo {
         TODO("Not yet implemented")
     }
 
-    override fun hentSakInfoForIdenter(fnr: Fnr): List<SakInfo> {
+    override fun hentSakInfoForIdent(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ): SakInfo? {
         TODO("Not yet implemented")
     }
 

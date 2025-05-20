@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -84,12 +83,12 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(),) } doReturn FantIkkeSak.left() doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn null doReturn SakInfo(
                     sak.id,
                     sak.saksnummer,
                     fnr,
                     Sakstype.UFØRE,
-                ).right()
+                )
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
@@ -103,7 +102,7 @@ class SøknadTest {
                 it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr },)
+                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
                 verify(it.sakService).opprettSak(
                     argThat {
                         it shouldBe NySak(
@@ -120,7 +119,7 @@ class SøknadTest {
                         )
                     },
                 )
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr },)
+                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -152,12 +151,12 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(),) } doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
                     sak.id,
                     sak.saksnummer,
                     fnr,
                     Sakstype.UFØRE,
-                ).right()
+                )
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -177,7 +176,7 @@ class SøknadTest {
                 it.journalførSøknadClient,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr },)
+                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -234,12 +233,12 @@ class SøknadTest {
 
         SøknadServiceOgMocks(
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(),) } doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
                     sak.id,
                     sak.saksnummer,
                     fnr,
                     Sakstype.UFØRE,
-                ).right()
+                )
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -259,7 +258,7 @@ class SøknadTest {
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr },)
+                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr }, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -340,12 +339,12 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(),) } doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
                     sak.id,
                     sak.saksnummer,
                     fnr,
                     Sakstype.UFØRE,
-                ).right()
+                )
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -369,7 +368,7 @@ class SøknadTest {
                 it.oppgaveService,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr },)
+                verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr }, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(

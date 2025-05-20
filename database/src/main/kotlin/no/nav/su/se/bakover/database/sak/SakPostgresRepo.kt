@@ -197,7 +197,7 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakInfoForIdenter(fnr: Fnr, sakstype: Sakstype): SakInfo? {
+    override fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype): SakInfo? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
             sessionFactory.withSession { session ->
                 """

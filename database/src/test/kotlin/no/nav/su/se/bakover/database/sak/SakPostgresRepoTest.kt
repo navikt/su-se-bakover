@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.sak
 
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -44,7 +43,7 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakInfoForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakInfo(
+            repo.hentSakInfoForIdent(nySak.fnr, Sakstype.UFØRE) shouldBe SakInfo(
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
@@ -58,7 +57,8 @@ internal class SakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
-            repo.hentSakInfoForIdenter(nonEmptyListOf(Fnr.generer().toString())) shouldBe null
+            repo.hentSakInfoForIdent(Fnr.generer(), Sakstype.UFØRE) shouldBe null
+            repo.hentSakInfoForIdent(Fnr.generer(), Sakstype.ALDER) shouldBe null
         }
     }
 
@@ -68,34 +68,12 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakInfoForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakInfo(
+            repo.hentSakInfoForIdent(Fnr("1234567890123"), Sakstype.UFØRE) shouldBe SakInfo(
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
                 nySak.type,
             )
-            repo.hentSakInfoForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakInfo(
-                nySak.id,
-                nySak.saksnummer,
-                nySak.fnr,
-                nySak.type,
-            )
-        }
-    }
-
-    @Test
-    fun `hent sakId fra fnr liste med 3 elementer`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.sakRepo
-            val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakInfoForIdenter(
-                nonEmptyListOf(
-                    "1234567890123",
-                    nySak.fnr.toString(),
-                    "1234567890123",
-                ),
-            ) shouldBe SakInfo(nySak.id, nySak.saksnummer, nySak.fnr, nySak.type)
         }
     }
 
