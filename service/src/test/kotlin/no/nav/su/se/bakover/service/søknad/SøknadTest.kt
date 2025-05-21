@@ -133,6 +133,62 @@ class SøknadTest {
     }
 
     @Test
+    fun `ny sak med søknad hvor pdf-generering feilet`() {
+        SøknadServiceOgMocks(
+            personService = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            sakService = mock {
+                on { opprettSak(any()) } doAnswer {}
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn null
+                on { hentSakInfo(any()) } doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
+            },
+            pdfGenerator = mock {
+                on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
+            },
+        ).also {
+            val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
+
+            inOrder(
+                it.personService,
+                it.sakService,
+                it.søknadRepo,
+                it.pdfGenerator,
+            ) {
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
+                verify(it.sakService).opprettSak(any())
+                verify(it.sakService).hentSakInfo(any())
+                verify(it.pdfGenerator).genererPdf(
+                    argThat<SøknadPdfInnhold> {
+                        it shouldBe SøknadPdfInnhold.create(
+                            saksnummer = sak.saksnummer,
+                            søknadsId = it.søknadsId,
+                            navn = person.navn,
+                            søknadOpprettet = actualNySøknad.opprettet,
+                            søknadInnhold = søknadInnhold,
+                            clock = fixedClock,
+                        )
+                    },
+                )
+            }
+            actualSaksnummer shouldBe sak.saksnummer
+            actualNySøknad shouldBe Søknad.Ny(
+                id = actualNySøknad.id,
+                opprettet = fixedTidspunkt,
+                sakId = actualNySøknad.sakId,
+                søknadInnhold = søknadInnhold,
+                innsendtAv = innsender,
+            )
+        }
+    }
+
+    @Test
     fun `eksisterende sak med søknad hvor journalføring feiler`() {
         SøknadServiceOgMocks(
             personService = mock {
