@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -87,7 +88,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn null
+                on { hentSakInfo(any()) } doReturn FantIkkeSak.left()
             },
         ).let { serviceAndMocks ->
             shouldThrow<RuntimeException> {
@@ -97,7 +98,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
             }
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -124,7 +125,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
                 serviceAndMocks.verifyLagBrev()
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -146,7 +147,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
                 serviceAndMocks.verifyLagBrev() // saksbehandlerNavn = ""
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -169,7 +170,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             ) {
                 serviceAndMocks.verifyHentSøknad()
                 serviceAndMocks.verifyLagBrev()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
                 serviceAndMocks.verifyLagBrev()
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -194,6 +195,13 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                     fnr = sak.fnr,
                     type = Sakstype.UFØRE,
                 )
+                on { hentSakInfo(any()) } doReturn
+                    SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = Sakstype.UFØRE,
+                    ).right()
             }
         },
         private val brevService: BrevService = mock {
@@ -239,8 +247,8 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             verify(søknadService).hentSøknad(argThat { it shouldBe søknadId })
         }
 
-        fun verifyHentSakIdOgSaksnummer() {
-            verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr }, Sakstype.UFØRE)
+        fun verifyHentSakInfo() {
+            verify(sakService).hentSakInfo(argThat { it shouldBe sak!!.id })
         }
 
         fun verifyLagBrev(
