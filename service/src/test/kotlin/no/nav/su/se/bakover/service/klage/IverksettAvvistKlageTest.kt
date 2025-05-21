@@ -265,6 +265,7 @@ internal class IverksettAvvistKlageTest {
                     ),
                 ),
             ),
+            sakstype = klage.sakstype,
         )
 
         actual shouldBe expected

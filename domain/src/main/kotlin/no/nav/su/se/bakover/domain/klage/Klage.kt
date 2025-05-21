@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -48,6 +49,8 @@ sealed interface Klage :
      * De fleste tilstandene har denne satt, men hvis ikke vil den være null.
      */
     val vilkårsvurderinger: VilkårsvurderingerTilKlage?
+
+    val sakstype: Sakstype
 
     /**
      * Convenience funksjon for å slippe store when-blokker.
@@ -113,6 +116,7 @@ sealed interface Klage :
         fun ny(
             sakId: UUID,
             saksnummer: Saksnummer,
+            sakstype: Sakstype,
             fnr: Fnr,
             journalpostId: JournalpostId,
             oppgaveId: OppgaveId,
@@ -130,6 +134,7 @@ sealed interface Klage :
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
+                sakstype = sakstype,
             )
         }
     }

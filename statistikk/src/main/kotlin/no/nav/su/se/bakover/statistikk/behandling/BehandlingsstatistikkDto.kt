@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
+import no.nav.su.se.bakover.statistikk.sak.YtelseType
 import java.time.LocalDate
 import java.util.UUID
 
@@ -23,6 +24,7 @@ internal data class BehandlingsstatistikkDto(
     val søknadId: UUID? = null,
     @param:JsonSerialize(using = ToStringSerializer::class)
     val saksnummer: Long,
+    val ytelseType: YtelseType,
     val behandlingType: Behandlingstype,
     val behandlingTypeBeskrivelse: String?,
     val behandlingStatus: String,
