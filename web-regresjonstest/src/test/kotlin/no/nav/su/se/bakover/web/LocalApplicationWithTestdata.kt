@@ -6,7 +6,11 @@ import io.ktor.server.netty.Netty
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import org.slf4j.bridge.SLF4JBridgeHandler
-
+/*
+    LocalApplicationWithTestdata
+    Kjører appen lokalt
+    #lokalkjøring
+ */
 fun main() {
     if (!ApplicationConfig.isRunningLocally()) {
         throw IllegalStateException("You should not run this main method on nais (preprod/prod. See Application.main() instead")
