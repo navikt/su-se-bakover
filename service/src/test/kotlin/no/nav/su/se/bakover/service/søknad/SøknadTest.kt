@@ -77,7 +77,7 @@ class SøknadTest {
     }
 
     @Test
-    fun `ny sak med søknad hvor pdf-generering feilet`() {
+    fun `eksisterende sak med søknad hvor pdf-generering feilet`() {
         SøknadServiceOgMocks(
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
