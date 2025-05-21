@@ -102,10 +102,12 @@ class SøknadTest {
             inOrder(
                 it.personService,
                 it.sakService,
+                it.søknadRepo,
                 it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
                 verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
+                verify(it.søknadRepo).opprettSøknad(any())
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
