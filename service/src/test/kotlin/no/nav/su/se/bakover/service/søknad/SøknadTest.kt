@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -82,19 +82,16 @@ class SøknadTest {
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
             },
+            søknadRepo = mock {
+                on { opprettSøknad(any()) } doAnswer {}
+            },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn null doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
                     sak.id,
                     sak.saksnummer,
                     fnr,
                     Sakstype.UFØRE,
                 )
-                on { hentSakInfo(any()) } doReturn SakInfo(
-                    sak.id,
-                    sak.saksnummer,
-                    fnr,
-                    Sakstype.UFØRE,
-                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
@@ -108,23 +105,6 @@ class SøknadTest {
                 it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).opprettSak(
-                    argThat {
-                        it shouldBe NySak(
-                            id = it.id,
-                            opprettet = it.opprettet,
-                            fnr = fnr,
-                            søknad = Søknad.Ny(
-                                id = it.søknad.id,
-                                opprettet = it.søknad.opprettet,
-                                sakId = it.id,
-                                søknadInnhold = søknadInnhold,
-                                innsendtAv = innsender,
-                            ),
-                        )
-                    },
-                )
-                verify(it.sakService).hentSakInfo(sak.id)
                 verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
