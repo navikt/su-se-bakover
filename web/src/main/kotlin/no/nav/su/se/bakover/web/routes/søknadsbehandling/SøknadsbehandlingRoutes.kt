@@ -450,7 +450,7 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
 
             BadRequest.errorJson(
                 "Aldersvurdering gir ikke rett på uføre. Stønadsperioden må justeres, eller overstyres. vurdering - $maskinellVurdering",
-                "aldersvurdering_gir_ikke_rett_på_uføre",
+                "aldersvurdering_gir_ikke_rett_på_uføre $maskinellVurdering",
             )
         }
 
@@ -467,7 +467,7 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
 
             BadRequest.errorJson(
                 "Aldersvurdering gir ikke rett på alder. Stønadsperioden må justeres, eller overstyres. vurdering - $maskinellVurdering",
-                "aldersvurdering_gir_ikke_rett_på_alder",
+                "aldersvurdering_gir_ikke_rett_på_alder $maskinellVurdering",
             )
         }
     }
