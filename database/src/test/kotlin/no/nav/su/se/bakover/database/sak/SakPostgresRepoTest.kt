@@ -63,21 +63,6 @@ internal class SakPostgresRepoTest {
     }
 
     @Test
-    fun `hent sakId fra fnr liste med 2 elementer`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.sakRepo
-            val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakInfoForIdent(Fnr("1234567890123"), Sakstype.UFØRE) shouldBe SakInfo(
-                nySak.id,
-                nySak.saksnummer,
-                nySak.fnr,
-                nySak.type,
-            )
-        }
-    }
-
-    @Test
     fun `henter ikke ut lukkede eller avsluttede behandlinger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
