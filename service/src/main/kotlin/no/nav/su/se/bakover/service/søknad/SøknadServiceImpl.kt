@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -53,6 +54,38 @@ class SøknadServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
+    private fun opprettSøknadPåEksisterendeSak(
+        sakInfo: SakInfo,
+        søknadInnhold: SøknadInnhold,
+        saksbehandlerEllerVeileder: NavIdentBruker,
+    ): Pair<SakInfo, Søknad.Ny> {
+        val søknad = Søknad.Ny(
+            sakId = sakInfo.sakId,
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            søknadInnhold = søknadInnhold,
+            innsendtAv = saksbehandlerEllerVeileder,
+        )
+        søknadRepo.opprettSøknad(søknad)
+
+        return Pair(sakInfo, søknad)
+    }
+
+    private fun opprettSakOgSøknad(
+        fnr: Fnr,
+        søknadInnhold: SøknadInnhold,
+        saksbehandlerEllerVeileder: NavIdentBruker,
+    ): Pair<SakInfo, Søknad.Ny> {
+        log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
+        val nySak = sakFactory.nySakMedNySøknad(
+            fnr = fnr,
+            søknadInnhold = søknadInnhold,
+            innsendtAv = saksbehandlerEllerVeileder,
+        ).also { sakService.opprettSak(it) }
+        // Henter saksnummeret fra databasen (dette kunne vært returnert fra opprettSak). Dette skal ikke feile.
+        return Pair(sakService.hentSakInfo(nySak.id).getOrNull()!!, nySak.søknad)
+    }
+
     override fun nySøknad(
         søknadInnhold: SøknadInnhold,
         identBruker: NavIdentBruker,
@@ -74,35 +107,24 @@ class SøknadServiceImpl(
         if (fnr != innsendtFødselsnummer) {
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
+        // Det er dette brukeren har søkt på uavhengig hvor mange saker eller hva slags type saker vi har fra før.
+        val sakstypeDetErSøktPå = søknadInnhold.type()
 
-        val (sakInfo: SakInfo, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
-            {
-                log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
-                val nySak = sakFactory.nySakMedNySøknad(
-                    fnr = fnr,
-                    søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
-                    innsendtAv = identBruker,
-                ).also {
-                    sakService.opprettSak(it)
-                }
-                val sakIdSaksnummerFnr = sakService.hentSakidOgSaksnummer(fnr)
-                    .getOrElse { throw RuntimeException("Feil ved henting av sak") }
-                Pair(sakIdSaksnummerFnr, nySak.søknad)
-            },
-            {
-                log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
-                val søknad = Søknad.Ny(
-                    sakId = it.sakId,
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(clock),
-                    søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
-                    innsendtAv = identBruker,
-                )
-                søknadRepo.opprettSøknad(søknad)
-
-                Pair(it, søknad)
-            },
-        )
+        val (sakInfo, søknad) = sakService.hentSakidOgSaksnummer(fnr, sakstypeDetErSøktPå)?.let {
+            // Fant eksisterende sak med denne typen; oppretter ny søknad på eksisterende sak.
+            opprettSøknadPåEksisterendeSak(
+                sakInfo = it,
+                søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                saksbehandlerEllerVeileder = identBruker,
+            )
+        } ?: run {
+            // Fant ikke en sak med denne typen; oppretter ny sak og ny søknad.
+            opprettSakOgSøknad(
+                fnr = fnr,
+                søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                saksbehandlerEllerVeileder = identBruker,
+            )
+        }
         opprettJournalpostOgOppgave(sakInfo, person, søknad)
         observers.forEach { observer ->
             observer.handle(

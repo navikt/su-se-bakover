@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.test.sak
 
 import arrow.atomic.Atomic
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
@@ -49,7 +48,10 @@ class SakFakeRepo : SakRepo {
         TODO("Not yet implemented")
     }
 
-    override fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo? {
+    override fun hentSakInfoForIdent(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ): SakInfo? {
         TODO("Not yet implemented")
     }
 
