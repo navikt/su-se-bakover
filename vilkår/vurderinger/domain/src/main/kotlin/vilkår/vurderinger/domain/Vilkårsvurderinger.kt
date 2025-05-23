@@ -84,7 +84,6 @@ interface Vilkårsvurderinger {
                     PensjonsVilkår.IkkeVurdert,
                     FamiliegjenforeningVilkår.IkkeVurdert,
                     -> emptyList()
-
                     else -> throw IllegalStateException("Feil ved mapping av vilkår $this to periode")
                 }
             }.ifNotEmpty { this.minAndMaxOf() }
@@ -107,9 +106,11 @@ fun Vilkårsvurderinger.kastHvisPerioderErUlike() {
     vilkår.map { Pair(it.vilkår, it.perioderSlåttSammen) }.zipWithNext { a, b ->
         // Vilkår med tomme perioder har ikke blitt vurdert enda.
         if (a.second.isNotEmpty() && b.second.isNotEmpty()) {
-            require(a.second == b.second) {
-                "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
+            if (a.second != b.second) {
+                throw VilkårsvurderingerHarUlikePeriode("Periodene til Vilkårsvurderinger er ulike. $a vs $b.")
             }
         }
     }
 }
+
+data class VilkårsvurderingerHarUlikePeriode(val melding: String) : IllegalStateException(melding)
