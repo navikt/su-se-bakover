@@ -22,6 +22,121 @@ import java.time.Year
 internal class AldersvurderingTest {
     @Nested
     inner class Alder {
+
+        @Test
+        fun `person er for ung - Maskinell vurdering ikke rett på alder MedFødselsdato uten saksbehandlersavgjørelse gir left`() {
+            val januar = 1.januar(1970)
+
+            val person = person(fødsel = Person.Fødsel.MedFødselsdato(januar))
+            Aldersvurdering.Vurdert.vurder(
+                stønadsperiode = stønadsperiode2021,
+                person = person,
+                saksbehandlersAvgjørelse = null,
+                clock = fixedClock,
+                saksType = Sakstype.ALDER,
+            ).shouldBeLeft().let {
+                it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato(
+                    januar,
+                    Year.of(januar.year),
+                    stønadsperiode2021,
+                )
+                it.aldersinformasjon shouldBe Aldersinformasjon.createFromExisting(
+                    alder = 51,
+                    alderSøkerFyllerIÅr = 51,
+                    alderPåTidspunkt = fixedTidspunkt,
+                )
+                it.stønadsperiode shouldBe stønadsperiode2021
+                it.saksbehandlersAvgjørelse shouldBe null
+                it.fødselsdato shouldBe januar
+                it.fødselsår shouldBe Year.of(januar.year)
+            }
+        }
+
+        @Test
+        fun `person er for ung - Maskinell vurdering ikke rett på alder MedFødselsdato MED saksbehandlersavgjørelse gir right`() {
+            val januar = 1.januar(1970)
+
+            val person = person(fødsel = Person.Fødsel.MedFødselsdato(januar))
+            val saksbehandlersAvgjørelse = SaksbehandlersAvgjørelse.Avgjort(fixedTidspunkt)
+            Aldersvurdering.Vurdert.vurder(
+                stønadsperiode = stønadsperiode2021,
+                person = person,
+                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                clock = fixedClock,
+                saksType = Sakstype.ALDER,
+            ).shouldBeRight().let {
+                it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato(
+                    januar,
+                    Year.of(januar.year),
+                    stønadsperiode2021,
+                )
+                it.aldersinformasjon shouldBe Aldersinformasjon.createFromExisting(
+                    alder = 51,
+                    alderSøkerFyllerIÅr = 51,
+                    alderPåTidspunkt = fixedTidspunkt,
+                )
+                it.stønadsperiode shouldBe stønadsperiode2021
+                it.saksbehandlersAvgjørelse shouldBe saksbehandlersAvgjørelse
+                it.fødselsdato shouldBe januar
+                it.fødselsår shouldBe Year.of(januar.year)
+            }
+        }
+
+        @Test
+        fun `person er for ung - Maskinell vurdering ikke rett på alder MedFødselsår uten saksbehandlersavgjørelse gir left`() {
+            val fødselsår = Year.of(1970)
+            val person = person(fødsel = Person.Fødsel.MedFødselsår(fødselsår))
+            Aldersvurdering.Vurdert.vurder(
+                stønadsperiode = stønadsperiode2021,
+                person = person,
+                saksbehandlersAvgjørelse = null,
+                clock = fixedClock,
+                saksType = Sakstype.ALDER,
+            ).shouldBeLeft().let {
+                it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår(
+                    fødselsår,
+                    stønadsperiode2021,
+                )
+                it.aldersinformasjon shouldBe Aldersinformasjon.createFromExisting(
+                    alder = null,
+                    alderSøkerFyllerIÅr = 51,
+                    alderPåTidspunkt = fixedTidspunkt,
+                )
+                it.stønadsperiode shouldBe stønadsperiode2021
+                it.saksbehandlersAvgjørelse shouldBe null
+                it.fødselsdato shouldBe null
+                it.fødselsår shouldBe fødselsår
+            }
+        }
+
+        @Test
+        fun `person er for ung - Maskinell vurdering ikke rett på alder MedFødselsår MED saksbehandlersavgjørelse gir right`() {
+            val fødselsår = Year.of(1970)
+            val person = person(fødsel = Person.Fødsel.MedFødselsår(fødselsår))
+            val saksbehandlersAvgjørelse = SaksbehandlersAvgjørelse.Avgjort(fixedTidspunkt)
+            Aldersvurdering.Vurdert.vurder(
+                stønadsperiode = stønadsperiode2021,
+                person = person,
+                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                clock = fixedClock,
+                saksType = Sakstype.ALDER,
+            ).shouldBeRight().let {
+                it.maskinellVurdering shouldBe MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår(
+                    fødselsår,
+                    stønadsperiode2021,
+                )
+                it.aldersinformasjon shouldBe Aldersinformasjon.createFromExisting(
+                    alder = null,
+                    alderSøkerFyllerIÅr = 51,
+                    alderPåTidspunkt = fixedTidspunkt,
+                )
+                it.stønadsperiode shouldBe stønadsperiode2021
+                it.saksbehandlersAvgjørelse shouldBe saksbehandlersAvgjørelse
+                it.fødselsdato shouldBe null
+                it.fødselsår shouldBe fødselsår
+            }
+        }
+
         @Test
         fun `person har ikke noe fødselsdata - Maskinell vurdering ukjent uten fødselsår`() {
             val person = person(fødsel = null)
