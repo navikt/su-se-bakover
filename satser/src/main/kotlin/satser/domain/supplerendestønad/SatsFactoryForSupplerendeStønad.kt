@@ -93,6 +93,7 @@ val garantipensjonsendringerOrdinær = nonEmptyListOf(
     // https://lovdata.no/dokument/LTI/forskrift/2024-05-24-815 kunngjort 24.05.2024 kl. 14.40
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2024), 24.mai(2024), 216226),
 
+    // https://lovdata.no/dokument/LTI/forskrift/2025-05-23-837 kunngjort 23.05.2025 kl. 14.15
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2025), 23.mai(2025), 224248),
 )
 
