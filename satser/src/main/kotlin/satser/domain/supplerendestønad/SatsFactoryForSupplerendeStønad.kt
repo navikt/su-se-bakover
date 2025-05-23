@@ -59,6 +59,7 @@ val grunnbeløpsendringer = nonEmptyListOf(
     Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477, BigDecimal(1.047726)),
     Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620, BigDecimal(1.064076)),
     Grunnbeløpsendring(1.mai(2024), 24.mai(2024), 124028, BigDecimal(1.045591)),
+    Grunnbeløpsendring(1.mai(2025), 23.mai(2025), 130160, BigDecimal(1.049440)),
 )
 
 val garantipensjonsendringerOrdinær = nonEmptyListOf(
@@ -91,6 +92,8 @@ val garantipensjonsendringerOrdinær = nonEmptyListOf(
 
     // https://lovdata.no/dokument/LTI/forskrift/2024-05-24-815 kunngjort 24.05.2024 kl. 14.40
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2024), 24.mai(2024), 216226),
+
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2025), 23.mai(2025), 224248),
 )
 
 val garantipensjonsendringerHøy = nonEmptyListOf(
@@ -104,6 +107,7 @@ val garantipensjonsendringerHøy = nonEmptyListOf(
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 209571),
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 227468),
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2024), 24.mai(2024), 233746),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2025), 23.mai(2025), 242418),
 )
 
 // TODO - test
@@ -122,8 +126,6 @@ fun Nel<Grunnbeløpsendring>.sisteVirkningstidspunkt(): Måned =
     this.maxByOrNull { it.virkningstidspunkt }!!.virkningstidspunkt.toMåned()
 
 class SatsFactoryForSupplerendeStønad(
-    // TODO(satsfactory_alder) jah: I lov om supplerende stønad ble satsen for alder endret fra minste pensjonsnivå til garantipensjon fra og med 2021-01-01.
-    //  Vi må legge inn minste pensjonsnivå og ta høyde for det før vi skal revurdere tilbake til før 2021-01-01.
     //  På grunn av testene må vi sette sperren til 2020 (TODO jah: fiks testene)
     private val tidligsteTilgjengeligeMåned: Måned = januar(2020),
     private val datoTilFactory: MutableMap<Knekkpunkt, SatsFactoryForSupplerendeStønadPåKnekkpunkt> = mutableMapOf(),
@@ -183,7 +185,8 @@ class SatsFactoryForSupplerendeStønad(
     }
 
     private fun getOrAdd(knekkpunkt: Knekkpunkt): SatsFactoryForSupplerendeStønadPåKnekkpunkt {
-        val måneder = Periode.create(tidligsteTilgjengeligeMåned.fraOgMed, hentSisteVirkningstidspunkt().tilOgMed).måneder()
+        val måneder =
+            Periode.create(tidligsteTilgjengeligeMåned.fraOgMed, hentSisteVirkningstidspunkt().tilOgMed).måneder()
         return datoTilFactory.getOrPut(knekkpunkt) {
             val grunnbeløpFactoryPåKnekkpunkt = GrunnbeløpFactory(
                 grunnbeløpsendringer = grunnbeløpsendringer,
