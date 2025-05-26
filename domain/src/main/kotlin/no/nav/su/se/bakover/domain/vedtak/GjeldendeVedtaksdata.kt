@@ -111,7 +111,7 @@ data class GjeldendeVedtaksdata(
         vedtakPåTidslinje.filter { it.erOpphør() }.map { it.periode }.minsteAntallSammenhengendePerioder()
 
     fun harVedtakOpprettetEtter(tidspunkt: Tidspunkt): Boolean {
-        return vedtakPåTidslinje.any { it.opprettet.toDate() > tidspunkt.toDate() }
+        return vedtakPåTidslinje.any { it.opprettet > tidspunkt }
     }
 
     /**
