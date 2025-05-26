@@ -399,7 +399,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
         "regulering_allerede_ferdigstilt",
     )
 
-    KunneIkkeRegulereManuelt.HarVedtakOpprettetRegulering -> HttpStatusCode.BadRequest.errorJson(
+    KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode -> HttpStatusCode.BadRequest.errorJson(
         "Periodene til regulering sine vilkårsvurderinger er utdatert.",
         "regulering_har_utdaterte_perioder",
     )

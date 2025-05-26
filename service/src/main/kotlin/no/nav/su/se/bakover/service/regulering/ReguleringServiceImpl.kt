@@ -304,7 +304,7 @@ class ReguleringServiceImpl(
             }
         } catch (e: VilkårsvurderingerHarUlikePeriode) {
             log.error("Manuell regulering for sak=${sak.id} feilet på grunn av VilkårsvurderingerHarUlikePeriode", e)
-            return KunneIkkeRegulereManuelt.HarVedtakOpprettetRegulering.left()
+            return KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode.left()
         }
     }
 
