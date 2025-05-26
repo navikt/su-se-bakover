@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntall
 import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vedtak.domain.VedtakSomKanRevurderes
@@ -109,10 +108,6 @@ data class GjeldendeVedtaksdata(
 
     fun opphørtePerioderSlåttSammen(): SlåttSammenIkkeOverlappendePerioder =
         vedtakPåTidslinje.filter { it.erOpphør() }.map { it.periode }.minsteAntallSammenhengendePerioder()
-
-    fun harVedtakOpprettetEtter(tidspunkt: Tidspunkt): Boolean {
-        return vedtakPåTidslinje.any { it.opprettet > tidspunkt }
-    }
 
     /**
      * Bruk heller [gjeldendeVedtakForMåned]
