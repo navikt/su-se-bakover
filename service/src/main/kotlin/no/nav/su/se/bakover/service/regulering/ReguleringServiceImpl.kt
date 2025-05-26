@@ -282,6 +282,10 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
+        if (gjeldendeVedtaksdata.harVedtakOpprettetEtter(regulering.opprettet)) {
+            return KunneIkkeRegulereManuelt.HarVedtakOpprettetRegulering.left()
+        }
+
         return sak.opprettEllerOppdaterRegulering(
             Måned.fra(fraOgMed),
             clock,

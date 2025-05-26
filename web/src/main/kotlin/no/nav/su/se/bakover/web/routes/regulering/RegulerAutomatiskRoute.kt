@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragReque
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
-import vilkår.vurderinger.domain.VilkårsvurderingerHarUlikePeriode
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -144,27 +143,18 @@ internal fun Route.reguler(
             call.withReguleringId { id ->
                 call.withBody<Body> { body ->
                     sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
-                    try {
-                        reguleringService.regulerManuelt(
-                            reguleringId = ReguleringId(id),
-                            uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                            fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                call.svar(Resultat.okJson())
-                            },
-                        )
-                    } catch (e: VilkårsvurderingerHarUlikePeriode) {
-                        call.svar(
-                            HttpStatusCode.BadRequest.errorJson(
-                                "Periodene til regulering sine vilkårsvurderinger er utdatert.",
-                                "regulering_har_utdaterte_perioder",
-                            ),
-                        )
-                    }
+                    reguleringService.regulerManuelt(
+                        reguleringId = ReguleringId(id),
+                        uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                        fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                            call.svar(Resultat.okJson())
+                        },
+                    )
                 }
             }
         }
@@ -407,6 +397,11 @@ internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
     KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
         "Reguleringen er allerede ferdigstilt",
         "regulering_allerede_ferdigstilt",
+    )
+
+    KunneIkkeRegulereManuelt.HarVedtakOpprettetRegulering -> HttpStatusCode.BadRequest.errorJson(
+        "Periodene til regulering sine vilkårsvurderinger er utdatert.",
+        "regulering_har_utdaterte_perioder",
     )
 
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
