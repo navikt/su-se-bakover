@@ -441,8 +441,6 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
             val maskinellVurdering = when ((this.vurdering as Aldersvurdering.Vurdert).maskinellVurdering) {
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato -> "Ikke rett på uføre med fødselsdato"
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår -> "Ikke rett på uføre med fødselsår"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato -> "rett på uføre med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår -> "rett på uføre med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
                 else -> throw IllegalStateException("Ukjent maskinellvurdering for uføre ${this.vurdering}")
@@ -458,8 +456,6 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
             val maskinellVurdering = when ((this.vurdering as Aldersvurdering.Vurdert).maskinellVurdering) {
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato -> "Ikke rett på alder med fødselsdato"
                 is MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår -> "Ikke rett på alder med fødselsår"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsdato -> "rett på alder med fødselsdato"
-                is MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsår -> "rett på alder med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår -> "Ukjent med fødselsår"
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
                 else -> throw IllegalStateException("Ukjent maskinellvurdering for alder ${this.vurdering}")
