@@ -303,6 +303,7 @@ class ReguleringServiceImpl(
                     }
             }
         } catch (e: VilkårsvurderingerHarUlikePeriode) {
+            // TODO Saksbehandler løser dette manuelt. Hvis det skjer ofte kan det vurderes en automatisk løsning.
             log.error("Manuell regulering for sak=${sak.id} feilet på grunn av VilkårsvurderingerHarUlikePeriode", e)
             return KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode.left()
         }
