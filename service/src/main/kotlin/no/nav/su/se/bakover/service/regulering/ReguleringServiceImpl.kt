@@ -302,7 +302,8 @@ class ReguleringServiceImpl(
                             .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
                     }
             }
-        } catch (_: VilkårsvurderingerHarUlikePeriode) {
+        } catch (e: VilkårsvurderingerHarUlikePeriode) {
+            log.error("Manuell regulering for sak=${sak.id} feilet på grunn av VilkårsvurderingerHarUlikePeriode", e)
             return KunneIkkeRegulereManuelt.HarVedtakOpprettetRegulering.left()
         }
     }
