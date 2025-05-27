@@ -45,6 +45,16 @@ internal class KonsistensavstemmingJobTest {
                 fagområde = Fagområde.SUUFORE,
             ).right()
             on { konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock), Fagområde.SUUFORE) } doReturn true
+            on { konsistensavstemming(any(), any()) } doReturn Avstemming.Konsistensavstemming.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = fixedTidspunkt,
+                løpendeFraOgMed = fixedTidspunkt,
+                opprettetTilOgMed = fixedTidspunkt,
+                utbetalinger = listOf(),
+                avstemmingXmlRequest = null,
+                fagområde = Fagområde.SUALDER,
+            ).right()
+            on { konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock), Fagområde.SUALDER) } doReturn true
         }
         KonsistensavstemmingJob.run(
             avstemmingService = avstemmingService,
@@ -56,6 +66,10 @@ internal class KonsistensavstemmingJobTest {
             verify(avstemmingService).konsistensavstemmingUtførtForOgPåDato(
                 LocalDate.now(fixedClock),
                 Fagområde.SUUFORE,
+            )
+            verify(avstemmingService).konsistensavstemmingUtførtForOgPåDato(
+                LocalDate.now(fixedClock),
+                Fagområde.SUALDER,
             )
             verifyNoMoreInteractions(avstemmingService)
         }
@@ -87,7 +101,12 @@ internal class KonsistensavstemmingJobTest {
                 LocalDate.now(fixedClock),
                 Fagområde.SUUFORE,
             )
+            verify(avstemmingService).konsistensavstemmingUtførtForOgPåDato(
+                LocalDate.now(fixedClock),
+                Fagområde.SUALDER,
+            )
             verify(avstemmingService).konsistensavstemming(LocalDate.now(fixedClock), Fagområde.SUUFORE)
+            verify(avstemmingService).konsistensavstemming(LocalDate.now(fixedClock), Fagområde.SUALDER)
             verifyNoMoreInteractions(avstemmingService)
         }
     }

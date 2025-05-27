@@ -240,7 +240,7 @@ internal fun Route.søknadRoutes(
 
 fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
-    KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt -> Forbidden.errorJson(
+    KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt, KunneIkkeOppretteSøknad.FeilSakstype -> Forbidden.errorJson(
         "Innsending av type søknad $type, er ikke tillatt",
         "innsending_av_søknad_ikke_tillatt",
     )
@@ -344,7 +344,3 @@ internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.Attesteringsfeil -> this.feil.tilResultat()
     is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
 }
-
-/*private fun KunneIkkeSendeSøknadsbehandlingTilAttestering.tilResultat(): Resultat = when (this) {
-    ValideringsfeilAttestering.InneholderUfullstendigBosituasjon -> Feilresponser.inneholderUfullstendigeBosituasjoner
-}*/

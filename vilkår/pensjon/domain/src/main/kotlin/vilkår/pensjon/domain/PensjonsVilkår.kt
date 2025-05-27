@@ -117,9 +117,7 @@ sealed interface PensjonsVilkår : Vilkår {
 }
 
 sealed interface KunneIkkeLagePensjonsVilkår {
-    sealed interface Vurderingsperiode : KunneIkkeLagePensjonsVilkår {
-        data object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
-    }
+    sealed interface Vurderingsperiode : KunneIkkeLagePensjonsVilkår
 
     data object OverlappendeVurderingsperioder : KunneIkkeLagePensjonsVilkår
 }

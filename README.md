@@ -20,6 +20,7 @@ sjekkliste:
 
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`. Krever at `start-dev.sh` skriptet
 i [su-se-fremover](https://github.com/navikt/su-se-framover#kj%C3%B8re-lokalt) kjører
+Kjør LocalApplicationWithTestdata
 
 #### Database (Postgres)
 

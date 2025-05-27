@@ -365,7 +365,7 @@ open class AccessCheckProxy(
                     )
                 }
 
-                override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? = kastKanKunKallesFraAnnenService()
                 override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
                     kastKanKunKallesFraAnnenService()
                 }

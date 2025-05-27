@@ -2,7 +2,6 @@ package vilkår.pensjon.domain
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -78,10 +77,6 @@ data class VurderingsperiodePensjon private constructor(
             vurderingsperiode: Periode,
             grunnlag: Pensjonsgrunnlag,
         ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
-            grunnlag.let {
-                if (vurderingsperiode != it.periode) return KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
             return VurderingsperiodePensjon(
                 id = id,
                 opprettet = opprettet,

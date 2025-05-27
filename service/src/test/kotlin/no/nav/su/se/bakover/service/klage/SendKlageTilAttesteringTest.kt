@@ -259,11 +259,13 @@ internal class SendKlageTilAttesteringTest {
                 KlageTilAttestering.Avvist(
                     forrigeSteg = klage,
                     saksbehandler = saksbehandlerSomSendteTilAttestering,
+                    sakstype = klage.sakstype,
                 )
             } else {
                 KlageTilAttestering.Vurdert(
                     forrigeSteg = klage as VurdertKlage.Bekreftet,
                     saksbehandler = saksbehandlerSomSendteTilAttestering,
+                    sakstype = klage.sakstype,
                 )
             }
             it shouldBe expectedKlage!!

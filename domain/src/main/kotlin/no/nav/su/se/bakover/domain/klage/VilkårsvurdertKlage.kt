@@ -10,6 +10,7 @@ import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -33,6 +34,7 @@ sealed interface VilkårsvurdertKlage :
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val sakstype: Sakstype,
     ) : VilkårsvurdertKlage {
 
         override fun erÅpen() = true
@@ -59,6 +61,7 @@ sealed interface VilkårsvurdertKlage :
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = Klageinstanshendelser.empty(),
                     fritekstTilAvvistVedtaksbrev = null,
+                    sakstype = sakstype,
                 )
 
                 is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
@@ -73,6 +76,7 @@ sealed interface VilkårsvurdertKlage :
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    sakstype = sakstype,
                 )
             }.right()
         }
@@ -115,6 +119,7 @@ sealed interface VilkårsvurdertKlage :
             override val datoKlageMottatt: LocalDate,
             // Ønsker å ta vare på dette feltet dersom vi går tilbake til vilkårsvurderingen igjen.
             val fritekstTilVedtaksbrev: String?,
+            override val sakstype: Sakstype,
         ) : Utfylt {
 
             override fun erÅpen() = true
@@ -141,6 +146,7 @@ sealed interface VilkårsvurdertKlage :
                         fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
+                        sakstype = sakstype,
                     )
 
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
@@ -155,6 +161,7 @@ sealed interface VilkårsvurdertKlage :
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     )
                 }.right()
             }
@@ -175,6 +182,7 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
+                    sakstype = sakstype,
                 ).right()
             }
 
@@ -214,6 +222,7 @@ sealed interface VilkårsvurdertKlage :
             override val datoKlageMottatt: LocalDate,
             override val vurderinger: VurderingerTilKlage?,
             override val klageinstanshendelser: Klageinstanshendelser,
+            override val sakstype: Sakstype,
         ) : Utfylt,
             TilVurderingFelter {
 
@@ -245,6 +254,7 @@ sealed interface VilkårsvurdertKlage :
                         klageinstanshendelser = klageinstanshendelser,
                         vurderinger = vurderinger,
                         fritekstTilAvvistVedtaksbrev = null,
+                        sakstype = sakstype,
                     )
 
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
@@ -259,6 +269,7 @@ sealed interface VilkårsvurdertKlage :
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     )
                 }.right()
             }
@@ -280,6 +291,7 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
+                    sakstype = sakstype,
                 ).right()
             }
 
@@ -309,6 +321,7 @@ sealed interface VilkårsvurdertKlage :
                 opprettet: Tidspunkt,
                 sakId: UUID,
                 saksnummer: Saksnummer,
+                sakstype: Sakstype,
                 fnr: Fnr,
                 journalpostId: JournalpostId,
                 oppgaveId: OppgaveId,
@@ -334,6 +347,7 @@ sealed interface VilkårsvurdertKlage :
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+                        sakstype = sakstype,
                     )
                 }
 
@@ -351,6 +365,7 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
+                    sakstype = sakstype,
                 )
             }
         }
@@ -382,6 +397,7 @@ sealed interface VilkårsvurdertKlage :
             override val datoKlageMottatt: LocalDate,
             // Så vi kan ta vare på fritekst hvis vi går tilbake til vilkårsvurderingen igjen.
             val fritekstTilAvvistVedtaksbrev: String?,
+            override val sakstype: Sakstype,
         ) : Bekreftet,
             BekreftetFelter,
             KanLeggeTilFritekstTilAvvistBrev {
@@ -410,6 +426,7 @@ sealed interface VilkårsvurdertKlage :
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                         fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+                        sakstype = sakstype,
                     )
 
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
@@ -424,6 +441,7 @@ sealed interface VilkårsvurdertKlage :
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     )
                 }.right()
             }
@@ -436,6 +454,7 @@ sealed interface VilkårsvurdertKlage :
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
                     fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+                    sakstype = sakstype,
                 )
             }
 
@@ -455,6 +474,7 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+                    sakstype = sakstype,
                 ).right()
             }
 
@@ -491,6 +511,7 @@ sealed interface VilkårsvurdertKlage :
             override val datoKlageMottatt: LocalDate,
             override val vurderinger: VurderingerTilKlage?,
             override val klageinstanshendelser: Klageinstanshendelser,
+            override val sakstype: Sakstype,
         ) : Bekreftet,
             TilVurderingFelter,
             KlageSomKanVurderes {
@@ -523,6 +544,7 @@ sealed interface VilkårsvurdertKlage :
                         vurderinger = vurderinger,
                         klageinstanshendelser = klageinstanshendelser,
                         fritekstTilAvvistVedtaksbrev = null,
+                        sakstype = sakstype,
                     )
 
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
@@ -537,6 +559,7 @@ sealed interface VilkårsvurdertKlage :
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     )
                 }.right()
             }
@@ -559,6 +582,7 @@ sealed interface VilkårsvurdertKlage :
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
+                    sakstype = sakstype,
                 )
             }
 
@@ -574,6 +598,7 @@ sealed interface VilkårsvurdertKlage :
                     ),
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
+                    sakstype = sakstype,
                 )
             }
 
@@ -594,6 +619,7 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
+                    sakstype = sakstype,
                 ).right()
             }
 

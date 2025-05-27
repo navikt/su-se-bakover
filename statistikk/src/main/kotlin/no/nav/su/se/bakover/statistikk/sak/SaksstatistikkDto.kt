@@ -19,7 +19,7 @@ internal data class SaksstatistikkDto(
     val aktorId: Long,
     @param:JsonSerialize(using = ToStringSerializer::class)
     val saksnummer: Long,
-    val ytelseType: String = "SUUFORE",
+    val ytelseType: YtelseType,
     val ytelseTypeBeskrivelse: String? = "Supplerende stønad for uføre flyktninger",
     val sakStatus: String = "OPPRETTET",
     val sakStatusBeskrivelse: String? = null,

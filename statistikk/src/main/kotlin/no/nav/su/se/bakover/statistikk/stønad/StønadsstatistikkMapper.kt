@@ -6,6 +6,7 @@ import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.person.AktørId
@@ -75,7 +76,10 @@ private fun toDto(
     return StønadstatistikkDto(
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
-        stonadstype = StønadstatistikkDto.Stønadstype.SU_UFØR,
+        stonadstype = when (vedtak.sakinfo().type) {
+            Sakstype.ALDER -> StønadstatistikkDto.Stønadstype.SU_ALDER
+            Sakstype.UFØRE -> StønadstatistikkDto.Stønadstype.SU_UFØR
+        },
         sakId = vedtak.behandling.sakId,
         aktorId = aktørId.toString().toLong(),
         sakstype = vedtakstype(vedtak),
@@ -127,6 +131,10 @@ private fun toDto(
         opphorsdato = when (vedtak) {
             is Opphørsvedtak -> vedtak.behandling.utledOpphørsdato(clock)
             else -> null
+        },
+        flyktningsstatus = when (sak.type) {
+            Sakstype.ALDER -> null
+            Sakstype.UFØRE -> "FLYKTNING"
         },
     )
 }

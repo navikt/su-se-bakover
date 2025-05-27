@@ -107,6 +107,7 @@ internal class StatistikkGjenopptaTest {
                        "behandlingId":${statistikkEvent.revurdering.id},
                        "sakId":${statistikkEvent.revurdering.sakId},
                        "saksnummer":"12345676",
+                       "ytelseType":"SUUFORE",
                        "behandlingType":"REVURDERING",
                        "behandlingTypeBeskrivelse":"Revurdering av søknad for SU Uføre",
                        "behandlingStatus":"$behandlingStatus",

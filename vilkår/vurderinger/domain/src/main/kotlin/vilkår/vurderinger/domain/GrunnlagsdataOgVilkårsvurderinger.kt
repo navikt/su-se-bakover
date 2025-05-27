@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.separateEither
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -46,20 +47,30 @@ interface GrunnlagsdataOgVilkårsvurderinger {
     fun oppdaterEksterneGrunnlag(eksternGrunnlag: EksterneGrunnlag): GrunnlagsdataOgVilkårsvurderinger
     fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår): GrunnlagsdataOgVilkårsvurderinger
 
-    fun sjekkOmGrunnlagOgVilkårErKonsistent(): Either<Set<Konsistensproblem>, Unit> {
-        return setOf(
-            Uføre(this.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag).resultat,
-            BosituasjonKonsistensProblem(this.grunnlagsdata.bosituasjonSomFullstendig()).resultat,
-            Formue(this.vilkårsvurderinger.formue.grunnlag).resultat,
-            BosituasjonOgFradrag(
-                this.grunnlagsdata.bosituasjonSomFullstendig(),
-                this.grunnlagsdata.fradragsgrunnlag,
-            ).resultat,
-            BosituasjonOgFormue(
-                this.grunnlagsdata.bosituasjonSomFullstendig(),
-                this.vilkårsvurderinger.formue.grunnlag,
-            ).resultat,
-        ).let {
+    /**
+     * sjekker kun vilkår som er relevant for regulering. Det vil si grunnlag til beregning.
+     */
+    fun sjekkOmGrunnlagOgVilkårErKonsistent(
+        sakstype: Sakstype,
+    ): Either<Set<Konsistensproblem>, Unit> {
+        val uføreVilkår = when (sakstype) {
+            Sakstype.ALDER -> emptySet()
+            Sakstype.UFØRE -> setOf(Uføre(this.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag).resultat)
+        }
+        return (
+            setOf(
+                BosituasjonKonsistensProblem(this.grunnlagsdata.bosituasjonSomFullstendig()).resultat,
+                Formue(this.vilkårsvurderinger.formue.grunnlag).resultat,
+                BosituasjonOgFradrag(
+                    this.grunnlagsdata.bosituasjonSomFullstendig(),
+                    this.grunnlagsdata.fradragsgrunnlag,
+                ).resultat,
+                BosituasjonOgFormue(
+                    this.grunnlagsdata.bosituasjonSomFullstendig(),
+                    this.vilkårsvurderinger.formue.grunnlag,
+                ).resultat,
+            ) + uføreVilkår
+            ).let {
             val problemer = it.separateEither().first.flatten().toSet()
             if (problemer.isEmpty()) Unit.right() else problemer.left()
         }

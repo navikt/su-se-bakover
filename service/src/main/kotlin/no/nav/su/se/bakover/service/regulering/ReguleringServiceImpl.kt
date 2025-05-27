@@ -46,6 +46,7 @@ import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
+import vilkår.vurderinger.domain.VilkårsvurderingerHarUlikePeriode
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
@@ -282,23 +283,29 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
-        return sak.opprettEllerOppdaterRegulering(
-            Måned.fra(fraOgMed),
-            clock,
-            Reguleringssupplement.empty(clock),
-            (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 1].verdi).toBigDecimal(),
-        ).mapLeft {
-            throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
-        }.map { opprettetRegulering ->
-            return opprettetRegulering
-                .copy(reguleringstype = opprettetRegulering.reguleringstype)
-                .leggTilFradrag(fradrag)
-                .leggTilUføre(uføregrunnlag, clock)
-                .leggTilSaksbehandler(saksbehandler)
-                .let {
-                    ferdigstillOgIverksettRegulering(it, sak, true, satsFactory)
-                        .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
-                }
+        try {
+            return sak.opprettEllerOppdaterRegulering(
+                Måned.fra(fraOgMed),
+                clock,
+                Reguleringssupplement.empty(clock),
+                (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 1].verdi).toBigDecimal(),
+            ).mapLeft {
+                throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
+            }.map { opprettetRegulering ->
+                return opprettetRegulering
+                    .copy(reguleringstype = opprettetRegulering.reguleringstype)
+                    .leggTilFradrag(fradrag)
+                    .leggTilUføre(uføregrunnlag, clock)
+                    .leggTilSaksbehandler(saksbehandler)
+                    .let {
+                        ferdigstillOgIverksettRegulering(it, sak, true, satsFactory)
+                            .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
+                    }
+            }
+        } catch (e: VilkårsvurderingerHarUlikePeriode) {
+            // Saksbehandler løser dette manuelt. Hvis det skjer ofte kan det vurderes en automatisk løsning.
+            log.error("Manuell regulering for sak=${sak.id} feilet på grunn av VilkårsvurderingerHarUlikePeriode", e)
+            return KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode.left()
         }
     }
 

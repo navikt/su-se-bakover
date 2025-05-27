@@ -126,6 +126,7 @@ class KlageServiceImpl(
         // Dette er greit så lenge toKlage ikke kan feile. På det tidspunktet må vi gjøre om rekkefølgen.
         return request.toKlage(
             saksnummer = sak.saksnummer,
+            sakstype = sak.type,
             fnr = sak.fnr,
             oppgaveId = oppgaveResponse.oppgaveId,
             clock = clock,

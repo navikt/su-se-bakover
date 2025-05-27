@@ -45,8 +45,15 @@ internal data class PersistertMånedsberegning(
                         måned = måned,
                         satskategori = sats,
                     ).also {
-                        check(satsbeløp.isEqualToTwoDecimals(it.satsForMånedAsDouble))
-                        check(sats == it.satskategori)
+                        if (!satsbeløp.isEqualToTwoDecimals(it.satsForMånedAsDouble) && erAvbrutt != true) {
+                            log.warn(
+                                "Saksnummer $saksnummer: Hentet satsbeløp $satsbeløp fra databasen, mens den utleda verdien for satsForMånedAsDouble var: ${it.satsForMånedAsDouble}",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                        }
+                        require(sats == it.satskategori) {
+                            "Hentet sats $sats fra databasen, mens den utleda verdien for satskategori var: ${it.satskategori}"
+                        }
                     }
                 }
 

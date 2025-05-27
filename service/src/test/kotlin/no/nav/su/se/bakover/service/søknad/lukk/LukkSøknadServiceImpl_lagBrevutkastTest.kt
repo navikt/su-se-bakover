@@ -88,7 +88,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left()
+                on { hentSakInfo(any()) } doReturn FantIkkeSak.left()
             },
         ).let { serviceAndMocks ->
             shouldThrow<RuntimeException> {
@@ -98,7 +98,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
             }
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -125,7 +125,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
                 serviceAndMocks.verifyLagBrev()
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -147,7 +147,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 *serviceAndMocks.allMocks,
             ) {
                 serviceAndMocks.verifyHentSøknad()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
                 serviceAndMocks.verifyLagBrev() // saksbehandlerNavn = ""
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -170,7 +170,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             ) {
                 serviceAndMocks.verifyHentSøknad()
                 serviceAndMocks.verifyLagBrev()
-                serviceAndMocks.verifyHentSakIdOgSaksnummer()
+                serviceAndMocks.verifyHentSakInfo()
                 serviceAndMocks.verifyLagBrev()
             }
             serviceAndMocks.verifyNoMoreInteractions()
@@ -189,12 +189,19 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         private val sakService: SakService = mock {
             if (sak != null) {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
-                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
+                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     type = Sakstype.UFØRE,
-                ).right()
+                )
+                on { hentSakInfo(any()) } doReturn
+                    SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = Sakstype.UFØRE,
+                    ).right()
             }
         },
         private val brevService: BrevService = mock {
@@ -240,8 +247,8 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             verify(søknadService).hentSøknad(argThat { it shouldBe søknadId })
         }
 
-        fun verifyHentSakIdOgSaksnummer() {
-            verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak!!.fnr })
+        fun verifyHentSakInfo() {
+            verify(sakService).hentSakInfo(argThat { it shouldBe sak!!.id })
         }
 
         fun verifyLagBrev(

@@ -40,7 +40,61 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
-internal class SatsFactoryForSupplerendeStønadUføreTest {
+internal class SatsFactoryForSupplerendeStønadTest {
+
+    @Nested
+    inner class Alder {
+
+        @Test
+        fun `ordinær - 1 mai 2025`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2025)).ordinærAlder(mai(2025)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Alder(
+                    måned = mai(2025),
+                    satskategori = Satskategori.ORDINÆR,
+                    garantipensjonForMåned = GarantipensjonForMåned(
+                        måned = mai(2025),
+                        satsKategori = Satskategori.ORDINÆR,
+                        garantipensjonPerÅr = 224248,
+                        ikrafttredelse = 23.mai(2025),
+                        virkningstidspunkt = 1.mai(2025),
+                    ),
+                    // GarantipensjonHøy2025-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("404.03"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("224248")
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("18687.3333") // GarantipensjonHøy2025 / 12
+                it.satsForMånedAvrundet shouldBe 18687
+                it.satsForMånedAsDouble shouldBe 18687.333333333332
+                it.ikrafttredelse shouldBe 23.mai(2025)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 404.03
+            }
+        }
+
+        @Test
+        fun `høy - 1 mai 2025`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2025)).høyAlder(mai(2025)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Alder(
+                    måned = mai(2025),
+                    satskategori = Satskategori.HØY,
+                    garantipensjonForMåned = GarantipensjonForMåned(
+                        måned = mai(2025),
+                        satsKategori = Satskategori.HØY,
+                        garantipensjonPerÅr = 242418,
+                        ikrafttredelse = 23.mai(2025),
+                        virkningstidspunkt = 1.mai(2025),
+                    ),
+                    // GarantipensjonHøy2025-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("404.03"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("242418")
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("20201.5000") // GarantipensjonHøy2025 / 12
+                it.satsForMånedAvrundet shouldBe 20202
+                it.satsForMånedAsDouble shouldBe 20201.5
+                it.ikrafttredelse shouldBe 23.mai(2025)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 404.03
+            }
+        }
+    }
 
     @Nested
     inner class UførFlyktning {
@@ -453,6 +507,70 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                 it.satsForMånedAsDouble shouldBe 26138.901
                 it.ikrafttredelse shouldBe 1.juli(2024)
                 it.toProsentAvHøyForMånedAsDouble shouldBe 522.77802
+            }
+        }
+
+        @Test
+        fun `ordinær - mai 2025`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2025)).ordinærUføre(mai(2025)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = mai(2025),
+                    satskategori = Satskategori.ORDINÆR,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2025),
+                        grunnbeløpPerÅr = 130160,
+                        ikrafttredelse = 23.mai(2025),
+                        virkningstidspunkt = 1.mai(2025),
+                        omregningsfaktor = BigDecimal(1.049440),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.329),
+                        satsKategori = Satskategori.ORDINÆR,
+                        ikrafttredelse = 1.juli(2024),
+                        virkningstidspunkt = 1.juli(2024),
+                        måned = mai(2025),
+                    ),
+                    // 2.529 * G2025-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("548.62440"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("303142.640") // 2.28 * G2025-5
+                it.satsForMåned shouldBe BigDecimal("25261.88666666666666666666666666667") // 2.28 * G2025-5 / 12
+                it.satsForMånedAvrundet shouldBe 25262
+                it.satsForMånedAsDouble shouldBe 25261.886666666665
+                it.ikrafttredelse shouldBe 23.mai(2025)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 548.62440
+            }
+        }
+
+        @Test
+        fun `høy - 1 mai 2025`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2025)).høyUføre(mai(2025)).let {
+                it shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = mai(2025),
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2025),
+                        grunnbeløpPerÅr = 130160,
+                        ikrafttredelse = 23.mai(2025),
+                        virkningstidspunkt = 1.mai(2025),
+                        omregningsfaktor = BigDecimal(1.049440),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.529),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.juli(2024),
+                        virkningstidspunkt = 1.juli(2024),
+                        måned = mai(2025),
+                    ),
+                    // 2.529 * G2025-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("548.62440"),
+                )
+                it.satsPerÅr shouldBe BigDecimal("329174.640") // 2.529 * G2025-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("27431.2200") // 2.529 * G2025-5 / 12
+                it.satsForMånedAvrundet shouldBe 27431
+                it.satsForMånedAsDouble shouldBe 27431.22
+                it.ikrafttredelse shouldBe 23.mai(2025)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 548.62440
             }
         }
 
