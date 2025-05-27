@@ -1,17 +1,21 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
 import io.ktor.client.HttpClient
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.innvilgetPensjonsvilkårJson
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.leggTilOpplysningsplikt
+import no.nav.su.se.bakover.web.leggTilPensjonsVilkår
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
+import no.nav.su.se.bakover.web.søknadsbehandling.familiegjenforening.leggTilFamiliegjenforening
 import no.nav.su.se.bakover.web.søknadsbehandling.fastopphold.leggTilFastOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningVilkårJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
@@ -41,6 +45,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
     client: HttpClient,
     appComponents: AppComponents?,
+    sakstype: Sakstype = Sakstype.UFØRE,
     leggTilStønadsperiode: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         leggTilStønadsperiode(
             sakId = sakId,
@@ -73,6 +78,21 @@ internal fun opprettInnvilgetSøknadsbehandling(
             sakId = sakId,
             behandlingId = behandlingId,
             body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
+            client = client,
+        )
+    },
+    leggTilPensjonsVilkår: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilPensjonsVilkår(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            body = { innvilgetPensjonsvilkårJson(fraOgMed, tilOgMed) },
+            client = client,
+        )
+    },
+    leggTilFamiliegjenforening: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilFamiliegjenforening(
+            sakId = sakId,
+            behandlingId = behandlingId,
             client = client,
         )
     },
@@ -181,6 +201,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
     val søknadResponseJson = nyDigitalSøknad(
         fnr = fnr,
         client = client,
+        sakstype = sakstype,
     )
     val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
     val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
@@ -191,22 +212,47 @@ internal fun opprettInnvilgetSøknadsbehandling(
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
-    return listOf(
+    val behandlingSteg = mutableListOf(
         leggTilStønadsperiode(sakId, behandlingId),
-        leggTilOpplysningsplikt(behandlingId),
-        leggTilUføregrunnlag(sakId, behandlingId),
-        leggTilFlyktningVilkår(sakId, behandlingId),
-        leggTilLovligOppholdINorge(sakId, behandlingId),
-        leggTilFastOppholdINorge(sakId, behandlingId),
-        leggTilInstitusjonsopphold(sakId, behandlingId),
-        leggTilUtenlandsopphold(sakId, behandlingId),
-        leggTilBosituasjon(sakId, behandlingId),
-        leggTilFormue(sakId, behandlingId),
-        leggTilPersonligOppmøte(sakId, behandlingId),
-        fradrag(sakId, behandlingId),
-        beregn(sakId, behandlingId),
-        simuler(sakId, behandlingId),
-        sendTilAttestering(sakId, behandlingId),
-        iverksett(sakId, behandlingId),
-    ).map { it }.last { it != SKIP_STEP } // returner siste verdi hvis steg ikke er hoppet over
+    )
+
+    if (sakstype == Sakstype.ALDER) {
+        behandlingSteg.addAll(
+            listOf(
+                leggTilPensjonsVilkår(sakId, behandlingId),
+                leggTilFamiliegjenforening(sakId, behandlingId),
+            ),
+        )
+    }
+
+    behandlingSteg.add(leggTilOpplysningsplikt(behandlingId))
+
+    if (sakstype == Sakstype.UFØRE) {
+        behandlingSteg.addAll(
+            listOf(
+                leggTilUføregrunnlag(sakId, behandlingId),
+                leggTilFlyktningVilkår(sakId, behandlingId),
+            ),
+        )
+    }
+
+    behandlingSteg.addAll(
+        listOf(
+            leggTilLovligOppholdINorge(sakId, behandlingId),
+            leggTilFastOppholdINorge(sakId, behandlingId),
+            leggTilInstitusjonsopphold(sakId, behandlingId),
+            leggTilUtenlandsopphold(sakId, behandlingId),
+            leggTilBosituasjon(sakId, behandlingId),
+            leggTilFormue(sakId, behandlingId),
+            leggTilPersonligOppmøte(sakId, behandlingId),
+            fradrag(sakId, behandlingId),
+            beregn(sakId, behandlingId),
+            simuler(sakId, behandlingId),
+            sendTilAttestering(sakId, behandlingId),
+            iverksett(sakId, behandlingId),
+        ),
+    )
+
+    return behandlingSteg.map { it }
+        .last { it != SKIP_STEP } // returner siste verdi hvis steg ikke er hoppet over
 }
