@@ -305,7 +305,10 @@ internal fun Route.reguler(
                         parts.forEachPart {
                             when (it) {
                                 is PartData.FileItem -> {
-                                    parseCSVFromString(String(it.provider().readRemaining().readByteArray()), clock).fold(
+                                    parseCSVFromString(
+                                        String(it.provider().readRemaining().readByteArray()),
+                                        clock,
+                                    ).fold(
                                         ifLeft = { call.svar(it) },
                                         ifRight = {
                                             if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
@@ -394,6 +397,11 @@ internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
     KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
         "Reguleringen er allerede ferdigstilt",
         "regulering_allerede_ferdigstilt",
+    )
+
+    KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode -> HttpStatusCode.BadRequest.errorJson(
+        "Periodene til regulering sine vilkårsvurderinger er utdatert.",
+        "regulering_har_utdaterte_perioder",
     )
 
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
