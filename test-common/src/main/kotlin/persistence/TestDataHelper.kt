@@ -108,7 +108,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregnetRevurdering
-import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
@@ -1151,7 +1151,7 @@ class TestDataHelper(
     private fun persisterSøknadsbehandlingBeregnet(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, BeregnetSøknadsbehandling> = { (sak, søknad) ->
-            beregnetSøknadsbehandling(
+            beregnetSøknadsbehandlingInnvilget(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
@@ -1168,7 +1168,7 @@ class TestDataHelper(
     fun persisterSøknadsbehandlingBeregnetInnvilget(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, BeregnetSøknadsbehandling> = { (sak, søknad) ->
-            beregnetSøknadsbehandling(
+            beregnetSøknadsbehandlingInnvilget(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
             )
@@ -1183,7 +1183,7 @@ class TestDataHelper(
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
     ): Pair<Sak, BeregnetSøknadsbehandling.Avslag> {
         return persisterSøknadsbehandlingBeregnet(sakOgSøknad) { (sak, søknad) ->
-            beregnetSøknadsbehandling(
+            beregnetSøknadsbehandlingInnvilget(
                 sakOgSøknad = sak to søknad,
                 clock = clock,
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 600000.0)),

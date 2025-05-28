@@ -5,7 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
-import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySakAlder
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -75,7 +75,7 @@ internal class LeggTilFamiliegjenforeningTest {
     @Test
     fun `kan legge til familiegjenforening ved beregnet innvilget`() {
         val innvilget =
-            beregnetSøknadsbehandling(sakOgSøknad = nySakAlder(), customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
+            beregnetSøknadsbehandlingInnvilget(sakOgSøknad = nySakAlder(), customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
 
         innvilget.second.leggTilFamiliegjenforeningvilkår(
             vilkår = familiegjenforeningVilkårInnvilget(

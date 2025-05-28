@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
@@ -67,7 +67,7 @@ internal class SøknadsbehandlingSkattTest {
 
         @Test
         fun `tilstand beregnet - kan legge til dersom hentet fra før, ellers left`() {
-            beregnetSøknadsbehandling(
+            beregnetSøknadsbehandlingInnvilget(
                 clock = TikkendeKlokke(),
                 eksterneGrunnlag = eksternGrunnlagHentet().copy(
                     skatt = EksterneGrunnlagSkatt.IkkeHentet,
