@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FamiliegjenforeningBody
 import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
@@ -28,7 +29,7 @@ internal fun Route.familiegjenforeningVilkårRoute(
                 call.withBody<FamiliegjenforeningBody> { body ->
                     call.svar(
                         revurderingService.leggTilFamiliegjenforeningvilkår(
-                            request = body.toLeggTilFamiliegjenforeningRequest(revurderingId),
+                            request = body.toLeggTilFamiliegjenforeningRequest(RevurderingId(revurderingId)),
                         ).fold(
                             { it.tilResultat() },
                             {

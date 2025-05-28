@@ -5,6 +5,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -25,7 +26,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PAT
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
-import java.util.UUID
 
 internal fun Route.leggTilFamiliegjenforeningRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
@@ -36,7 +36,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
             call.withBehandlingId { behandlingId ->
                 call.withBody<FamiliegjenforeningBody> { body ->
                     søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                        request = body.toLeggTilFamiliegjenforeningRequest(behandlingId),
+                        request = body.toLeggTilFamiliegjenforeningRequest(SøknadsbehandlingId(behandlingId)),
                         saksbehandler = call.suUserContext.saksbehandler,
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -51,12 +51,13 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
     }
 }
 
+// TODO trekker ut til felles fil..
 internal data class FamiliegjenforeningBody(
     val vurderinger: List<FamiliegjenforeningVurderingBody>,
 ) {
-    fun toLeggTilFamiliegjenforeningRequest(behandlingId: UUID) =
+    fun toLeggTilFamiliegjenforeningRequest(behandlingId: BehandlingsId) =
         LeggTilFamiliegjenforeningRequest(
-            behandlingId = SøknadsbehandlingId(behandlingId),
+            behandlingId = behandlingId,
             vurderinger = vurderinger.map {
                 FamiliegjenforeningVurderinger(
                     periode = it.periode.toPeriode(),

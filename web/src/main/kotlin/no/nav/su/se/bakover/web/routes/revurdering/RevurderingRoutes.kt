@@ -62,6 +62,8 @@ internal fun Route.revurderingRoutes(
 
     avsluttRevurderingRoute(revurderingService, formuegrenserFactory)
 
+    familiegjenforeningVilkårRoute(revurderingService, formuegrenserFactory)
+
     pensjonsVilkårRoutes(revurderingService, formuegrenserFactory, clock)
 
     leggTilLovligOppholdRoute(revurderingService, formuegrenserFactory)
