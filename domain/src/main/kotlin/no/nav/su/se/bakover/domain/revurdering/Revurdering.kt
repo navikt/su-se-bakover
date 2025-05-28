@@ -307,8 +307,9 @@ sealed interface Revurdering :
         if (Sakstype.ALDER != sakstype) {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkår.VilkårKunRelevantForAlder.left()
         }
-        val revurdering = oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).right()
-        return revurdering.map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Familiegjenforening)) }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).oppdaterInformasjonSomRevurderes(
+            informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Familiegjenforening),
+        ).right()
     }
 
     /**

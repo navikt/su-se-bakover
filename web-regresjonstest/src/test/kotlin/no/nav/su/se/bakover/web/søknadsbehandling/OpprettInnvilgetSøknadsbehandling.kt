@@ -218,19 +218,14 @@ internal fun opprettInnvilgetSøknadsbehandling(
         leggTilStønadsperiode(sakId, behandlingId),
     )
 
-    if (sakstype == Sakstype.ALDER) {
-        behandlingSteg.addAll(
+    when (sakstype) {
+        Sakstype.ALDER -> behandlingSteg.addAll(
             listOf(
                 leggTilPensjonsVilkår(sakId, behandlingId),
                 leggTilFamiliegjenforening(sakId, behandlingId),
             ),
         )
-    }
-
-    behandlingSteg.add(leggTilOpplysningsplikt(behandlingId))
-
-    if (sakstype == Sakstype.UFØRE) {
-        behandlingSteg.addAll(
+        Sakstype.UFØRE -> behandlingSteg.addAll(
             listOf(
                 leggTilUføregrunnlag(sakId, behandlingId),
                 leggTilFlyktningVilkår(sakId, behandlingId),
@@ -240,6 +235,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
 
     behandlingSteg.addAll(
         listOf(
+            leggTilOpplysningsplikt(behandlingId),
             leggTilLovligOppholdINorge(sakId, behandlingId),
             leggTilFastOppholdINorge(sakId, behandlingId),
             leggTilInstitusjonsopphold(sakId, behandlingId),

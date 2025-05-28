@@ -257,7 +257,7 @@ class RevurderingServiceImpl(
     override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår, RevurderingOgFeilmeldingerResponse> {
         return hent(request.behandlingId as RevurderingId).mapLeft {
             Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.FantIkkeBehandling
-        }.flatMap { revurdering ->
+        }.map { revurdering ->
 
             val familiegjenforeningVilkår = request.toVilkår(clock = clock).getOrElse {
                 return Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigVilkår(it).left()
