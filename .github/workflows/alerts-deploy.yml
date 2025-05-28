@@ -6,7 +6,10 @@ on:
     paths:
       - 'alerts.yml'
       - '.github/workflows/alerts-deploy.yml'
-
+  workflow_dispatch:
+    paths:
+      - 'alerts.yml'
+      - '.github/workflows/alerts-deploy.yml'
 permissions: { }
 
 jobs:
