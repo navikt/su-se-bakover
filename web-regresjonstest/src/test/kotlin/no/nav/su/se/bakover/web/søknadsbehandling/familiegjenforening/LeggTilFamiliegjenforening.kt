@@ -19,6 +19,8 @@ internal fun leggTilFamiliegjenforening(
     resultat: String = "VilkårOppfylt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/behandlinger/$behandlingId/familiegjenforening",
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
     client: HttpClient,
 ): String {
     return runBlocking {
@@ -34,6 +36,10 @@ internal fun leggTilFamiliegjenforening(
                   {
                     "vurderinger": [
                       {
+                        "periode": {
+                          "fraOgMed": "$fraOgMed",
+                          "tilOgMed": "$tilOgMed"
+                        },
                         "status":"$resultat"
                       }
                     ]

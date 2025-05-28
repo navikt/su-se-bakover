@@ -4,6 +4,7 @@ import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
@@ -20,6 +21,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import vilkår.common.domain.Vurdering
+import java.time.YearMonth
 
 internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
 
@@ -34,7 +36,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = SøknadsbehandlingId.generer(),
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.Uavklart),
+                        FamiliegjenforeningVurderinger(Periode(YearMonth.now()), FamiliegjenforeningvilkårStatus.Uavklart),
                     ),
                 ),
                 saksbehandler = saksbehandler,
@@ -57,7 +59,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = behandlingId,
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
+                        FamiliegjenforeningVurderinger(søknadsbehandling.periode, FamiliegjenforeningvilkårStatus.VilkårOppfylt),
                     ),
                 ),
                 saksbehandler = saksbehandler,

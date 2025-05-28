@@ -259,10 +259,7 @@ class RevurderingServiceImpl(
             Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->
 
-            val familiegjenforeningVilkår = request.toVilkår(
-                clock = clock,
-                stønadsperiode = revurdering.periode,
-            ).getOrElse {
+            val familiegjenforeningVilkår = request.toVilkår(clock = clock).getOrElse {
                 return Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigVilkår(it).left()
             }
 

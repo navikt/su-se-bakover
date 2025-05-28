@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -57,11 +57,17 @@ internal data class FamiliegjenforeningBody(
     fun toLeggTilFamiliegjenforeningRequest(behandlingId: UUID) =
         LeggTilFamiliegjenforeningRequest(
             behandlingId = SøknadsbehandlingId(behandlingId),
-            vurderinger = vurderinger.map { FamiliegjenforeningVurderinger(it.status) },
+            vurderinger = vurderinger.map {
+                FamiliegjenforeningVurderinger(
+                    periode = it.periode.toPeriode(),
+                    status = it.status,
+                )
+            },
         )
 }
 
 internal data class FamiliegjenforeningVurderingBody(
+    val periode: PeriodeJson,
     val status: FamiliegjenforeningvilkårStatus,
 )
 
@@ -71,6 +77,7 @@ private fun SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkå
         this.fra,
         this.til,
     )
+
     is SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService -> feil.tilResultat()
     is SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.Domenefeil -> underliggende.tilResultat()
 }

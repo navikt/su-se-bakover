@@ -93,6 +93,8 @@ internal fun opprettInnvilgetSøknadsbehandling(
         leggTilFamiliegjenforening(
             sakId = sakId,
             behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
             client = client,
         )
     },
