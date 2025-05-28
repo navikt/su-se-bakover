@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 
 internal class LeggTilOpplysningspliktVilkårTest {
@@ -66,7 +66,7 @@ internal class LeggTilOpplysningspliktVilkårTest {
 
     @Test
     fun `vilkårsvurdert innvilget til vilkårsvurdert avslag`() {
-        vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
+        vilkårsvurdertSøknadsbehandlingUføreDefault().also { (_, innvilget) ->
             innvilget.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().also {
                 it.leggTilOpplysningspliktVilkår(
                     vilkår = utilstrekkeligDokumentert(),

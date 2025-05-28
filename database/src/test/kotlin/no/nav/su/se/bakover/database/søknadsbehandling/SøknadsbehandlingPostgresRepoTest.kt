@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterSt
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attesteringIverksatt
-import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
@@ -255,7 +255,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
                     sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(),
                     søknadsbehandling = { (sak, søknad) ->
-                        beregnetSøknadsbehandling(
+                        beregnetSøknadsbehandlingInnvilget(
                             clock = klokkeFørBeregning,
                             beregnetClock = klokkeUnderBeregning,
                             sakOgSøknad = sak to søknad,

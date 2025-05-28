@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.uføre.domain.UføreVilkår
@@ -71,7 +71,7 @@ internal class LeggTilUførevilkårTest {
 
     @Test
     fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
-        vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
+        vilkårsvurdertSøknadsbehandlingUføreDefault(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
             avslag.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().also {
                 it.leggTilUførevilkår(
                     saksbehandler = saksbehandler,
@@ -140,7 +140,7 @@ internal class LeggTilUførevilkårTest {
             søknadsbehandlingVilkårsvurdertAvslag(),
             søknadsbehandlingVilkårsvurdertInnvilget(),
             søknadsbehandlingBeregnetAvslag(),
-            beregnetSøknadsbehandling().mapSecond { it as BeregnetSøknadsbehandling.Innvilget },
+            beregnetSøknadsbehandlingInnvilget().mapSecond { it as BeregnetSøknadsbehandling.Innvilget },
             simulertSøknadsbehandling(),
             søknadsbehandlingUnderkjentInnvilget(),
             søknadsbehandlingUnderkjentAvslagUtenBeregning(),

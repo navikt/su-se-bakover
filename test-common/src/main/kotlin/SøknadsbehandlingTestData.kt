@@ -146,7 +146,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandling: VilkårsvurdertSøknadsbehandling? = null,
 ): Pair<Sak, BeregnetSøknadsbehandling.Innvilget> {
-    return beregnetSøknadsbehandling(
+    return beregnetSøknadsbehandlingInnvilget(
         clock = clock,
         beregnetClock = beregnetClock,
         stønadsperiode = stønadsperiode,
@@ -185,7 +185,7 @@ fun søknadsbehandlingBeregnetAvslag(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandling: VilkårsvurdertSøknadsbehandling? = null,
 ): Pair<Sak, BeregnetSøknadsbehandling.Avslag> {
-    return beregnetSøknadsbehandling(
+    return beregnetSøknadsbehandlingInnvilget(
         clock = clock,
         beregnetClock = beregnetClock,
         stønadsperiode = stønadsperiode,
@@ -858,7 +858,7 @@ fun tilAttesteringSøknadsbehandling(
             }
 
             is VilkårsvurdertSøknadsbehandling.Innvilget -> {
-                beregnetSøknadsbehandling(
+                beregnetSøknadsbehandlingInnvilget(
                     clock = clock,
                     stønadsperiode = stønadsperiode,
                     sakOgSøknad = sakOgSøknad,
@@ -948,7 +948,7 @@ fun simulertSøknadsbehandling(
                 "Dersom man sender inn søknadsbehandling, må saken være oppdatert med søknadsbehandlingen"
             }
             sakOgSøknad.mapSecond { søknadsbehandling }
-        } ?: beregnetSøknadsbehandling(
+        } ?: beregnetSøknadsbehandlingInnvilget(
             clock = clock,
             stønadsperiode = stønadsperiode,
             sakOgSøknad = sakOgSøknad,
@@ -999,7 +999,7 @@ fun beregnetSøknadsbehandlingUføre(
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, BeregnetSøknadsbehandling> {
-    return beregnetSøknadsbehandling(
+    return beregnetSøknadsbehandlingInnvilget(
         clock = clock,
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
@@ -1009,7 +1009,7 @@ fun beregnetSøknadsbehandlingUføre(
     )
 }
 
-fun beregnetSøknadsbehandling(
+fun beregnetSøknadsbehandlingInnvilget(
     clock: Clock = TikkendeKlokke(),
     beregnetClock: Clock = clock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1031,19 +1031,24 @@ fun beregnetSøknadsbehandling(
             saksbehandler = saksbehandler,
         )
         ).let { (sak, vilkårsvurdert) ->
-        (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
-            begrunnelse = null,
-            clock = beregnetClock,
-            satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
-            nySaksbehandler = saksbehandler,
+        when (vilkårsvurdert) {
+            is VilkårsvurdertSøknadsbehandling.Innvilget -> {
+                vilkårsvurdert.beregn(
+                    begrunnelse = null,
+                    clock = beregnetClock,
+                    satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
+                    nySaksbehandler = saksbehandler,
 
-        ).getOrFail().let { beregnet ->
-            sak.oppdaterSøknadsbehandling(beregnet) to beregnet
+                ).getOrFail().let { beregnet ->
+                    sak.oppdaterSøknadsbehandling(beregnet) to beregnet
+                }
+            }
+            else -> throw NotImplementedError("Kan kun støtte innvilget")
         }
     }
 }
 
-fun vilkårsvurdertSøknadsbehandlingUføre(
+fun vilkårsvurdertSøknadsbehandlingUføreDefault(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
