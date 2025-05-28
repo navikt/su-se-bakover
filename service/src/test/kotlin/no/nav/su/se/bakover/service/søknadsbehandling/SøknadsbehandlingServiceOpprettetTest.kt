@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -111,7 +111,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
     @Test
     fun `svarer med feil dersom det allerede finnes en åpen søknadsbehandling`() {
-        var (sak, _) = vilkårsvurdertSøknadsbehandlingUføre()
+        var (sak, _) = vilkårsvurdertSøknadsbehandlingUføreDefault()
 
         val nySøknad = nySøknadJournalførtMedOppgave(
             clock = fixedClock,

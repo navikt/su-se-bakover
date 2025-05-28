@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import vilkår.formue.domain.Formueverdier
 
@@ -17,7 +17,7 @@ internal class LeggTilFormuevilkårTest {
 
     @Test
     fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
-        vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
+        vilkårsvurdertSøknadsbehandlingUføreDefault(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
             avslag.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().also {
                 it.leggTilFormuegrunnlag(
                     request = LeggTilFormuevilkårRequest(
@@ -45,7 +45,7 @@ internal class LeggTilFormuevilkårTest {
 
     @Test
     fun `vilkårsvurdert innvilget til vilkårsvurdert innvilget`() {
-        vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
+        vilkårsvurdertSøknadsbehandlingUføreDefault().also { (_, innvilget) ->
             innvilget.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().also {
                 it.leggTilFormuegrunnlag(
                     request = LeggTilFormuevilkårRequest(

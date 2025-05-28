@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 
@@ -33,7 +33,7 @@ internal class LeggTilInstitusjonsoppholdTest {
 
     @Test
     fun `vilkårsvurdert innvilget til vilkårsvurdert avslag`() {
-        vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
+        vilkårsvurdertSøknadsbehandlingUføreDefault().also { (_, innvilget) ->
             innvilget.shouldBeType<VilkårsvurdertSøknadsbehandling.Innvilget>().also {
                 it.leggTilInstitusjonsoppholdVilkår(
                     saksbehandler = saksbehandler,
@@ -47,7 +47,7 @@ internal class LeggTilInstitusjonsoppholdTest {
 
     @Test
     fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
-        vilkårsvurdertSøknadsbehandlingUføre(
+        vilkårsvurdertSøknadsbehandlingUføreDefault(
             customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
         ).also { (_, avslag) ->
             avslag.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().also {

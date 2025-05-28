@@ -50,7 +50,7 @@ import no.nav.su.se.bakover.test.søknad.nySøknadPåEksisterendeSak
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -390,7 +390,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
     fun `svarer med feil dersom vi ikke får opprettet behandling`() {
         // Legger på en ny søknad som det ikke skal være lov å starte på samtidig som den andre søknadsbehandlingen.
         val (sak, nySøknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = vilkårsvurdertSøknadsbehandlingUføre().first,
+            eksisterendeSak = vilkårsvurdertSøknadsbehandlingUføreDefault().first,
         )
 
         AvslåSøknadServiceAndMocks(

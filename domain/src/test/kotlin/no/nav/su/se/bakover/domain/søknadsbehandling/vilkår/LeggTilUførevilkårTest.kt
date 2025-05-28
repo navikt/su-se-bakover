@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import vilkår.uføre.domain.UføreVilkår
@@ -71,7 +71,7 @@ internal class LeggTilUførevilkårTest {
 
     @Test
     fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
-        vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
+        vilkårsvurdertSøknadsbehandlingUføreDefault(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
             avslag.shouldBeType<VilkårsvurdertSøknadsbehandling.Avslag>().also {
                 it.leggTilUførevilkår(
                     saksbehandler = saksbehandler,

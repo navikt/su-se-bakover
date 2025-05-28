@@ -1009,6 +1009,7 @@ fun beregnetSøknadsbehandlingUføre(
     )
 }
 
+// Skal denne støtte alle vilkårsvurderingsresultat?
 fun beregnetSøknadsbehandling(
     clock: Clock = TikkendeKlokke(),
     beregnetClock: Clock = clock,
@@ -1031,19 +1032,25 @@ fun beregnetSøknadsbehandling(
             saksbehandler = saksbehandler,
         )
         ).let { (sak, vilkårsvurdert) ->
-        (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
-            begrunnelse = null,
-            clock = beregnetClock,
-            satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
-            nySaksbehandler = saksbehandler,
+        when (vilkårsvurdert) {
+            is VilkårsvurdertSøknadsbehandling.Innvilget -> {
+                vilkårsvurdert.beregn(
+                    begrunnelse = null,
+                    clock = beregnetClock,
+                    satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
+                    nySaksbehandler = saksbehandler,
 
-        ).getOrFail().let { beregnet ->
-            sak.oppdaterSøknadsbehandling(beregnet) to beregnet
+                ).getOrFail().let { beregnet ->
+                    sak.oppdaterSøknadsbehandling(beregnet) to beregnet
+                }
+            }
+            is VilkårsvurdertSøknadsbehandling.Avslag -> TODO()
+            is VilkårsvurdertSøknadsbehandling.Uavklart -> TODO()
         }
     }
 }
 
-fun vilkårsvurdertSøknadsbehandlingUføre(
+fun vilkårsvurdertSøknadsbehandlingUføreDefault(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(

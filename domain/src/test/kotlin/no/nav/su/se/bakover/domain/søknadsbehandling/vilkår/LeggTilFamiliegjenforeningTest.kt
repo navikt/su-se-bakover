@@ -13,16 +13,12 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertSøknadsbehandling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
-import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
-import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningAvslag
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
@@ -55,7 +51,7 @@ internal class LeggTilFamiliegjenforeningTest {
 
         innvilget.second.leggTilFamiliegjenforeningvilkår(
             vilkår = familiegjenforeningVilkårInnvilget(
-                nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
+                nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
             saksbehandler = saksbehandler,
         ).shouldBeRight()
@@ -77,10 +73,9 @@ internal class LeggTilFamiliegjenforeningTest {
     }
 
     @Test
-    @Disabled("Beregning er ikke implementert for alder enda")
     fun `kan legge til familiegjenforening ved beregnet innvilget`() {
         val innvilget =
-            beregnetSøknadsbehandling(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
+            beregnetSøknadsbehandling(sakOgSøknad = nySakAlder(), customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
 
         innvilget.second.leggTilFamiliegjenforeningvilkår(
             vilkår = familiegjenforeningVilkårInnvilget(
@@ -91,24 +86,9 @@ internal class LeggTilFamiliegjenforeningTest {
     }
 
     @Test
-    @Disabled("Beregning er ikke implementert for alder enda")
-    fun `kan legge til familiegjenforening ved beregnet avslag`() {
-        val avslag =
-            søknadsbehandlingBeregnetAvslag(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder().vilkår.toList())
-
-        avslag.second.leggTilFamiliegjenforeningvilkår(
-            vilkår = familiegjenforeningVilkårInnvilget(
-                nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
-            ),
-            saksbehandler = saksbehandler,
-        ).shouldBeRight()
-    }
-
-    @Test
-    @Disabled("Beregning er ikke implementert for alder enda")
     fun `kan legge til familiegjenforening ved simulert`() {
         val simulert =
-            simulertSøknadsbehandling(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
+            simulertSøknadsbehandling(sakOgSøknad = nySakAlder(), customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
 
         simulert.second.leggTilFamiliegjenforeningvilkår(
             vilkår = familiegjenforeningVilkårInnvilget(
@@ -119,28 +99,13 @@ internal class LeggTilFamiliegjenforeningTest {
     }
 
     @Test
-    @Disabled("Beregning er ikke implementert for alder enda")
     fun `kan legge til familiegjenforening ved underkjentInnvilget`() {
         val iverksattInnvilget =
-            søknadsbehandlingUnderkjentInnvilget(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
+            søknadsbehandlingUnderkjentInnvilget(sakOgSøknad = nySakAlder(), customVilkår = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder().vilkår.toList())
 
         iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
             vilkår = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
-            ),
-            saksbehandler = saksbehandler,
-        ).shouldBeRight()
-    }
-
-    @Test
-    @Disabled("Beregning er ikke implementert for alder enda")
-    fun `kan legge til familiegjenforening ved underkjentAvslagMedBeregning`() {
-        val iverksattInnvilget =
-            søknadsbehandlingUnderkjentAvslagMedBeregning(customVilkår = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder().vilkår.toList())
-
-        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
-            vilkår = familiegjenforeningVilkårInnvilget(
-                nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
             saksbehandler = saksbehandler,
         ).shouldBeRight()
