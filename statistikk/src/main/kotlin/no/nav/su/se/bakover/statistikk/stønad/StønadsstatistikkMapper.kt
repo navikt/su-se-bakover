@@ -150,7 +150,7 @@ private fun mapBeregning(
         vedtak.periode.måneder().toSet().intersect(beregning.periode.måneder().toSet()).toList()
 
     return månederIVedtakOgBeregning.map { måned ->
-        val fradrag = maxAvForventetInntektOgArbeidsInntekt(alleFradrag[måned]!!)
+        val fradrag = alleFradrag[måned]?.let { maxAvForventetInntektOgArbeidsInntekt(it) } ?: emptyList()
 
         val månedsberegning = månedsberegninger[måned]!!
         StønadstatistikkDto.Månedsbeløp(
