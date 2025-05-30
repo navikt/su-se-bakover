@@ -304,9 +304,6 @@ sealed interface Revurdering :
         if (!periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
-        if (Sakstype.ALDER != sakstype) {
-            return KunneIkkeLeggeTilFamiliegjenforeningVilkår.VilkårKunRelevantForAlder.left()
-        }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).oppdaterInformasjonSomRevurderes(
             informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Familiegjenforening),
         ).right()

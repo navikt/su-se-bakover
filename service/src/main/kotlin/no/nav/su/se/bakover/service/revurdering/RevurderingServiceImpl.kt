@@ -18,6 +18,7 @@ import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.LeggTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -254,13 +256,17 @@ class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, RevurderingOgFeilmeldingerResponse> {
         return hent(request.behandlingId as RevurderingId).mapLeft {
-            Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.FantIkkeBehandling
+            KunneIkkeLeggeTilFamiliegjenforeningVilkår.FantIkkeBehandling
         }.map { revurdering ->
 
+            if (Sakstype.ALDER != revurdering.sakstype) {
+                return KunneIkkeLeggeTilFamiliegjenforeningVilkår.VilkårKunRelevantForAlder.left()
+            }
+
             val familiegjenforeningVilkår = request.toVilkår(clock = clock).getOrElse {
-                return Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigVilkår(it).left()
+                return KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigVilkår(it).left()
             }
 
             return revurdering.oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(
