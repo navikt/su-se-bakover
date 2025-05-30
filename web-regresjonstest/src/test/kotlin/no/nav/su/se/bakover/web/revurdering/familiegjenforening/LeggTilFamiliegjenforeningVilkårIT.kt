@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.hentRevurderingId
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
-import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårRequest
 import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
@@ -61,14 +61,14 @@ class LeggTilFamiliegjenforeningVilkårIT {
                         client = this.client,
                     ).also { revurderingJson ->
                         assertEquals(
-                            FamiliegjenforeningVilkårJson(
+                            FamiliegjenforeningVilkårRequest(
                                 vurderinger = listOf(
                                     VurderingsperiodeFamiliegjenforeningJson(
                                         periode = PeriodeJson(
                                             fraOgMed = "2022-05-01",
                                             tilOgMed = "2022-12-31",
                                         ),
-                                        status = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                                        resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
                                     ),
                                 ),
                             ),
@@ -88,14 +88,14 @@ class LeggTilFamiliegjenforeningVilkårIT {
                     ).also { revurderingJson ->
 
                         assertEquals(
-                            FamiliegjenforeningVilkårJson(
+                            FamiliegjenforeningVilkårRequest(
                                 vurderinger = listOf(
                                     VurderingsperiodeFamiliegjenforeningJson(
                                         periode = PeriodeJson(
                                             fraOgMed = "2022-05-01",
                                             tilOgMed = "2022-12-31",
                                         ),
-                                        status = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
+                                        resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
                                     ),
                                 ),
                             ),

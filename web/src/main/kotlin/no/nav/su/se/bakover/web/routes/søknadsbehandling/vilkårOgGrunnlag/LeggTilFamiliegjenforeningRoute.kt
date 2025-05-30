@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
-import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårRequest
 import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -30,7 +30,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/familiegjenforening") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<FamiliegjenforeningVilkårJson> { body ->
+                call.withBody<FamiliegjenforeningVilkårRequest> { body ->
                     søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
                         request = body.toLeggTilFamiliegjenforeningRequest(SøknadsbehandlingId(behandlingId)),
                         saksbehandler = call.suUserContext.saksbehandler,

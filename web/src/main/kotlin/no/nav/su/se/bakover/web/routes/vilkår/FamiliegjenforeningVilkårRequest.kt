@@ -11,26 +11,33 @@ import vilkår.common.domain.Vurdering
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.familiegjenforening.domain.VurderingsperiodeFamiliegjenforening
 
-data class FamiliegjenforeningVilkårJson(
+data class FamiliegjenforeningVilkårRequest(
     val vurderinger: List<VurderingsperiodeFamiliegjenforeningJson>,
 ) {
 
+    // TODO nødvendig?
     fun toLeggTilFamiliegjenforeningRequest(behandlingId: BehandlingsId) =
         LeggTilFamiliegjenforeningRequest(
             behandlingId = behandlingId,
             vurderinger = vurderinger.map {
                 FamiliegjenforeningVurderinger(
                     periode = it.periode.toPeriode(),
-                    status = it.status,
+                    status = it.resultat,
                 )
             },
         )
+}
 
+data class FamiliegjenforeningVilkårJson(
+    val vurderinger: List<VurderingsperiodeFamiliegjenforeningJson>,
+    val resultat: FamiliegjenforeningvilkårStatus,
+) {
     companion object {
         fun FamiliegjenforeningVilkår.toJson() = when (this) {
             FamiliegjenforeningVilkår.IkkeVurdert -> null
             is FamiliegjenforeningVilkår.Vurdert -> FamiliegjenforeningVilkårJson(
                 vurderinger = vurderingsperioder.map { it.toJson() },
+                resultat = this.vurdering.tilFamiliegjenforeningVilkårStatus(),
             )
         }
     }
@@ -38,12 +45,12 @@ data class FamiliegjenforeningVilkårJson(
 
 data class VurderingsperiodeFamiliegjenforeningJson(
     val periode: PeriodeJson,
-    val status: FamiliegjenforeningvilkårStatus,
+    val resultat: FamiliegjenforeningvilkårStatus,
 ) {
     companion object {
         fun VurderingsperiodeFamiliegjenforening.toJson() = VurderingsperiodeFamiliegjenforeningJson(
             periode = this.periode.toJson(),
-            status = vurdering.tilFamiliegjenforeningVilkårStatus(),
+            resultat = vurdering.tilFamiliegjenforeningVilkårStatus(),
         )
     }
 }
