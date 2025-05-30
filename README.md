@@ -319,3 +319,6 @@ VDI)
 
 1. `SELECT encode(generertdokument, 'base64') FROM dokument where revurderingId = '<REPLACE_ME>';`
 2. `base64 --decode -i input.base64 -o output.pdf`
+
+## Statistikk
+Se https://confluence.adeo.no/spaces/TESUS/pages/514138632/su-topics
