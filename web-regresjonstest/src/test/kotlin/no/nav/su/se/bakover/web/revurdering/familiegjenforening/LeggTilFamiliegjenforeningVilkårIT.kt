@@ -2,21 +2,26 @@ package no.nav.su.se.bakover.web.revurdering.familiegjenforening
 
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.hentRevurderingId
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.familiegjenforening.leggTilFamiliegjenforening
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.JSONAssert
+import kotlin.test.assertEquals
 
 class LeggTilFamiliegjenforeningVilkårIT {
     @Test
@@ -41,73 +46,62 @@ class LeggTilFamiliegjenforeningVilkårIT {
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                     client = this.client,
-                    informasjonSomRevurderes = """
-                        [
-                            "Familiegjenforening"
-                        ]
-                    """.trimIndent(),
+                    informasjonSomRevurderes = serialize(listOf("Familiegjenforening")),
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 
                     leggTilFamiliegjenforening(
                         sakId = sakId,
                         behandlingId = revurderingId,
-                        resultat = "VilkårOppfylt",
+                        resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/revurderinger/$revurderingId/familiegjenforening",
                         client = this.client,
                     ).also { revurderingJson ->
-                        JSONAssert.assertEquals(
-                            JSONObject(RevurderingJson.hentFamiliegjenforeningVilkår(revurderingJson)).toString(),
-                            //language=JSON
-                            """
-                                {
-                                  "vurderinger": [
-                                    {
-                                      "resultat": "VilkårOppfylt",
-                                      "periode": {
-                                        "fraOgMed": "2022-05-01",
-                                        "tilOgMed": "2022-12-31"
-                                      }
-                                    }
-                                  ],
-                                  "resultat": "VilkårOppfylt"
-                                }
-                            """.trimIndent(),
-                            true,
+                        assertEquals(
+                            FamiliegjenforeningVilkårJson(
+                                vurderinger = listOf(
+                                    VurderingsperiodeFamiliegjenforeningJson(
+                                        periode = PeriodeJson(
+                                            fraOgMed = "2022-05-01",
+                                            tilOgMed = "2022-12-31",
+                                        ),
+                                        resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                                    ),
+                                ),
+                                resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                            ),
+                            deserialize(RevurderingJson.hentFamiliegjenforeningVilkår(revurderingJson)),
                         )
                     }
 
                     leggTilFamiliegjenforening(
                         sakId = sakId,
                         behandlingId = revurderingId,
-                        resultat = "VilkårIkkeOppfylt",
+                        resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
                         brukerrolle = Brukerrolle.Saksbehandler,
                         url = "/saker/$sakId/revurderinger/$revurderingId/familiegjenforening",
                         client = this.client,
                     ).also { revurderingJson ->
-                        JSONAssert.assertEquals(
-                            JSONObject(RevurderingJson.hentFamiliegjenforeningVilkår(revurderingJson)).toString(),
-                            //language=JSON
-                            """
-                                {
-                                  "vurderinger": [
-                                    {
-                                      "resultat": "VilkårIkkeOppfylt",
-                                      "periode": {
-                                        "fraOgMed": "2022-05-01",
-                                        "tilOgMed": "2022-12-31"
-                                      }
-                                    }
-                                  ],
-                                  "resultat": "VilkårIkkeOppfylt"
-                                }
-                            """.trimIndent(),
-                            true,
+
+                        assertEquals(
+                            FamiliegjenforeningVilkårJson(
+                                vurderinger = listOf(
+                                    VurderingsperiodeFamiliegjenforeningJson(
+                                        periode = PeriodeJson(
+                                            fraOgMed = "2022-05-01",
+                                            tilOgMed = "2022-12-31",
+                                        ),
+                                        resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
+                                    ),
+                                ),
+                                resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
+                            ),
+                            deserialize(RevurderingJson.hentFamiliegjenforeningVilkår(revurderingJson)),
                         )
                     }
                 }

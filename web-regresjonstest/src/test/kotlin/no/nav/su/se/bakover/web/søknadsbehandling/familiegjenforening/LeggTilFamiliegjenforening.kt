@@ -11,12 +11,17 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FamiliegjenforeningBody
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FamiliegjenforeningVurderingBody
 
 internal fun leggTilFamiliegjenforening(
     sakId: String,
     behandlingId: String,
-    resultat: String = "VilkårOppfylt",
+    resultat: FamiliegjenforeningvilkårStatus = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/behandlinger/$behandlingId/familiegjenforening",
     fraOgMed: String = "2021-01-01",
@@ -31,20 +36,14 @@ internal fun leggTilFamiliegjenforening(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-                  {
-                    "vurderinger": [
-                      {
-                        "periode": {
-                          "fraOgMed": "$fraOgMed",
-                          "tilOgMed": "$tilOgMed"
-                        },
-                        "status":"$resultat"
-                      }
-                    ]
-                  }
-                """.trimIndent(),
+                FamiliegjenforeningBody(
+                    vurderinger = listOf(
+                        FamiliegjenforeningVurderingBody(
+                            periode = PeriodeJson(fraOgMed, tilOgMed),
+                            status = resultat,
+                        ),
+                    ),
+                ).let { serialize(it) },
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

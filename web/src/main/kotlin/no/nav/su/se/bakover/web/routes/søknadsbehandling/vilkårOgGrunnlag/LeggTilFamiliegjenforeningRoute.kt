@@ -52,7 +52,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
 }
 
 // TODO trekker ut til felles fil..
-internal data class FamiliegjenforeningBody(
+data class FamiliegjenforeningBody(
     val vurderinger: List<FamiliegjenforeningVurderingBody>,
 ) {
     fun toLeggTilFamiliegjenforeningRequest(behandlingId: BehandlingsId) =
@@ -67,7 +67,7 @@ internal data class FamiliegjenforeningBody(
         )
 }
 
-internal data class FamiliegjenforeningVurderingBody(
+data class FamiliegjenforeningVurderingBody(
     val periode: PeriodeJson,
     val status: FamiliegjenforeningvilkårStatus,
 )
