@@ -68,10 +68,9 @@ class LeggTilFamiliegjenforeningVilkårIT {
                                             fraOgMed = "2022-05-01",
                                             tilOgMed = "2022-12-31",
                                         ),
-                                        resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                                        status = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
                                     ),
                                 ),
-                                resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
                             ),
                             deserialize(RevurderingJson.hentFamiliegjenforeningVilkår(revurderingJson)),
                         )
@@ -96,10 +95,9 @@ class LeggTilFamiliegjenforeningVilkårIT {
                                             fraOgMed = "2022-05-01",
                                             tilOgMed = "2022-12-31",
                                         ),
-                                        resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
+                                        status = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
                                     ),
                                 ),
-                                resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
                             ),
                             deserialize(RevurderingJson.hentFamiliegjenforeningVilkår(revurderingJson)),
                         )

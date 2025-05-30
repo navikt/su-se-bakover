@@ -28,7 +28,6 @@ data class LeggTilFamiliegjenforeningRequest(
         vurderingsperioder = toVurderingsperiode(clock).toNonEmptyList(),
     )
 
-    // TODO erstatt med tryCreate for å kunne feile hvis overlappende perioder etc....
     private fun toVurderingsperiode(clock: Clock) = vurderinger.map {
         VurderingsperiodeFamiliegjenforening.create(
             opprettet = Tidspunkt.now(clock),

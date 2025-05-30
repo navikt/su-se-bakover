@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.test.application.defaultRequest
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FamiliegjenforeningBody
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FamiliegjenforeningVurderingBody
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson
 
 internal fun leggTilFamiliegjenforening(
     sakId: String,
@@ -36,9 +36,9 @@ internal fun leggTilFamiliegjenforening(
             client = client,
         ) {
             setBody(
-                FamiliegjenforeningBody(
+                FamiliegjenforeningVilkårJson(
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderingBody(
+                        VurderingsperiodeFamiliegjenforeningJson(
                             periode = PeriodeJson(fraOgMed, tilOgMed),
                             status = resultat,
                         ),

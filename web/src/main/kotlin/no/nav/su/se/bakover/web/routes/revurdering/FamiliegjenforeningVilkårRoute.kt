@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FamiliegjenforeningBody
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
 import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -26,7 +26,7 @@ internal fun Route.familiegjenforeningVilkårRoute(
     post("$REVURDERING_PATH/{revurderingId}/familiegjenforening") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<FamiliegjenforeningBody> { body ->
+                call.withBody<FamiliegjenforeningVilkårJson> { body ->
                     call.svar(
                         revurderingService.leggTilFamiliegjenforeningvilkår(
                             request = body.toLeggTilFamiliegjenforeningRequest(RevurderingId(revurderingId)),
