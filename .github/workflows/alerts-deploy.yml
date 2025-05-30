@@ -20,7 +20,7 @@ jobs:
       id-token: write # needed for push-image
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      var: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL=https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729,LOGS_URL_LOKI=https://grafana.nav.cloud.nais.io/goto/KMXkbKBHg?orgId=1
+      var: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL=https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729,LOGS_URL_LOKI=https://grafana.nav.cloud.nais.io/goto/iSvKubfHR?orgId=1
       cluster: dev-fss
       resource: alerts.yml
   deploy_to_prod:
@@ -30,6 +30,6 @@ jobs:
       id-token: write # needed for push-image
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      var: SLACK_ALERTS_CHANNEL=#su_alerts_prod,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5,LOGS_URL_LOKI=https://grafana.nav.cloud.nais.io/goto/KMXkbKBHg?orgId=1
+      var: SLACK_ALERTS_CHANNEL=#su_alerts_prod,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5,LOGS_URL_LOKI=https://grafana.nav.cloud.nais.io/goto/_-eHubfHg?orgId=1
       cluster: prod-fss
       resource: alerts.yml
