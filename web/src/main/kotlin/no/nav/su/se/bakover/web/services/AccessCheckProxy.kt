@@ -919,6 +919,11 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilPensjonsVilkår(request)
                 }
 
+                override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår, RevurderingOgFeilmeldingerResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId)
+                    return services.revurdering.leggTilFamiliegjenforeningvilkår(request)
+                }
+
                 override fun leggTilLovligOppholdVilkår(
                     request: LeggTilLovligOppholdRequest,
                 ) = assertHarTilgangTilRevurdering(request.behandlingId as RevurderingId).let {

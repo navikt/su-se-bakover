@@ -19,6 +19,7 @@ enum class Opphørsgrunn {
     PERSONLIG_OPPMØTE,
     INNLAGT_PÅ_INSTITUSJON,
     ALDERSPENSJON,
+    FAMILIEGJENFORENING,
     ;
 
     // TODO: bør lage en paragraf-type/enum - Se Avslagsgrunn.kt
@@ -35,6 +36,7 @@ enum class Opphørsgrunn {
         PERSONLIG_OPPMØTE -> listOf(17)
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
         ALDERSPENSJON -> listOf(6)
+        FAMILIEGJENFORENING -> listOf(3)
     }
 }
 
@@ -52,7 +54,7 @@ fun Avslagsgrunn.tilOpphørsgrunn(): Opphørsgrunn {
         Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON -> Opphørsgrunn.INNLAGT_PÅ_INSTITUSJON
         Avslagsgrunn.MANGLENDE_DOKUMENTASJON -> Opphørsgrunn.MANGLENDE_DOKUMENTASJON
         Avslagsgrunn.SØKNAD_MANGLER_DOKUMENTASJON -> TODO()
-        Avslagsgrunn.FAMILIEGJENFORENING -> TODO("legg inn opphørsgrunn når det skal revurderes")
+        Avslagsgrunn.FAMILIEGJENFORENING -> Opphørsgrunn.FAMILIEGJENFORENING
         Avslagsgrunn.ALDERSPENSJON_FOLKETRYGDEN -> Opphørsgrunn.ALDERSPENSJON
         Avslagsgrunn.ALDERSPENSJON_ANDRE_NORSKE_PENSJONSORDNINGER -> Opphørsgrunn.ALDERSPENSJON
         Avslagsgrunn.ALDERSPENSJON_UTENLANDSKE_PENSJONSORDNINGER -> Opphørsgrunn.ALDERSPENSJON

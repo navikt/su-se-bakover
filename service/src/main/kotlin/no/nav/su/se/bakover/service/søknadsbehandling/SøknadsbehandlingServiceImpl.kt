@@ -421,10 +421,7 @@ class SøknadsbehandlingServiceImpl(
             fantIkkeBehandlingError = { KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling },
         ).getOrElse { return it.left() }
 
-        val familiegjenforeningVilkår = request.toVilkår(
-            clock = clock,
-            stønadsperiode = søknadsbehandling.stønadsperiode?.periode,
-        ).getOrElse {
+        val familiegjenforeningVilkår = request.toVilkår(clock = clock).getOrElse {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService(it).left()
         }
         familiegjenforeningVilkår.vurderingsperioder.single()

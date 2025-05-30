@@ -137,7 +137,10 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = søknadsbehandling.id,
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
+                        FamiliegjenforeningVurderinger(
+                            stønadsperiode2022.periode,
+                            FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                        ),
                     ),
                 ),
                 saksbehandler = saksbehandler,

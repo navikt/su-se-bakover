@@ -43,6 +43,8 @@ import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import vilkår.common.domain.inneholderAlle
+import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
+import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
 import vilkår.flyktning.domain.FlyktningVilkår
 import vilkår.formue.domain.FormueVilkår
@@ -227,6 +229,22 @@ sealed interface Revurdering :
         data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
+    sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+
+        data class UgyldigVilkår(
+            val feil: UgyldigFamiliegjenforeningVilkår,
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+
+        data object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+        data object VilkårKunRelevantForAlder : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+
+        data object FantIkkeBehandling : KunneIkkeLeggeTilFamiliegjenforeningVilkår
+    }
+
     sealed interface KunneIkkeLeggeTilPensjonsVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Revurdering>,
@@ -280,6 +298,15 @@ sealed interface Revurdering :
         return oppdaterOpplysnigspliktInternal(opplysningspliktVilkår).map {
             it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Opplysningsplikt))
         }
+    }
+
+    fun oppdaterFamiliegjenforeningvilkårOgMarkerSomVurdert(vilkår: FamiliegjenforeningVilkår.Vurdert): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder())) {
+            return KunneIkkeLeggeTilFamiliegjenforeningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(vilkår)).oppdaterInformasjonSomRevurderes(
+            informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Familiegjenforening),
+        ).right()
     }
 
     /**

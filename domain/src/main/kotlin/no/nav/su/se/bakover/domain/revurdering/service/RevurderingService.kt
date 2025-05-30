@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilF
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkkeLeggeTilUtenlandsopphold
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
@@ -141,6 +142,10 @@ interface RevurderingService {
     fun leggTilOpplysningspliktVilkår(
         request: LeggTilOpplysningspliktRequest.Revurdering,
     ): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse>
+
+    fun leggTilFamiliegjenforeningvilkår(
+        request: LeggTilFamiliegjenforeningRequest,
+    ): Either<Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilPensjonsVilkår(
         request: LeggTilPensjonsVilkårRequest,

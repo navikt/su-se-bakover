@@ -16,6 +16,7 @@ enum class FamiliegjenforeningvilkårStatus {
 }
 
 data class FamiliegjenforeningVurderinger(
+    val periode: Periode,
     val status: FamiliegjenforeningvilkårStatus,
 )
 
@@ -23,22 +24,12 @@ data class LeggTilFamiliegjenforeningRequest(
     val behandlingId: BehandlingsId,
     val vurderinger: List<FamiliegjenforeningVurderinger>,
 ) {
-    fun toVilkår(
-        clock: Clock,
-        stønadsperiode: Periode?,
-    ) =
-        if (stønadsperiode == null) {
-            throw IllegalArgumentException("Stønadsperiode er ikke lagt i søknadsbehandling for å legge til familiegjenforening vilkår. id $behandlingId")
-        } else {
-            FamiliegjenforeningVilkår.Vurdert.create(
-                vurderingsperioder = toVurderingsperiode(clock, stønadsperiode).toNonEmptyList(),
-            )
-        }
+    fun toVilkår(clock: Clock) = FamiliegjenforeningVilkår.Vurdert.create(
+        vurderingsperioder = toVurderingsperiode(clock).toNonEmptyList(),
+    )
 
-    private fun toVurderingsperiode(
-        clock: Clock,
-        stønadsperiode: Periode,
-    ) = vurderinger.map {
+    // TODO erstatt med tryCreate for å kunne feile hvis overlappende perioder etc....
+    private fun toVurderingsperiode(clock: Clock) = vurderinger.map {
         VurderingsperiodeFamiliegjenforening.create(
             opprettet = Tidspunkt.now(clock),
             vurdering = when (it.status) {
@@ -46,7 +37,7 @@ data class LeggTilFamiliegjenforeningRequest(
                 FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt -> Vurdering.Avslag
                 FamiliegjenforeningvilkårStatus.Uavklart -> Vurdering.Uavklart
             },
-            periode = stønadsperiode,
+            periode = it.periode,
         )
     }
 }

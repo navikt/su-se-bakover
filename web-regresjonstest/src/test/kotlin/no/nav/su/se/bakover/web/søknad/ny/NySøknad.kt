@@ -12,6 +12,7 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -26,11 +27,13 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
 fun nyDigitalSøknad(
     fnr: String = SharedRegressionTestData.fnr,
     client: HttpClient,
+    sakstype: Sakstype = Sakstype.UFØRE,
 ): String {
     return nySøknad(
-        requestJson = NySøknadJson.Request.nyDigitalSøknad(
-            fnr = fnr,
-        ),
+        requestJson = when (sakstype) {
+            Sakstype.UFØRE -> NySøknadJson.Request.nyDigitalSøknad(fnr)
+            Sakstype.ALDER -> NySøknadJson.Request.nyDigitalAlderssøknad(fnr, SharedRegressionTestData.epsFnr)
+        },
         brukerrolle = Brukerrolle.Veileder,
         client = client,
     )
