@@ -371,7 +371,7 @@ class StansYtelseServiceImpl(
             fraOgMed = fraOgMed,
             clock = clock,
         ).getOrElse {
-            log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
+            log.error("Kunne ikke opprette revurdering for stans av ytelse, sak: ${sak.id}, årsak: $it")
             return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
         }.also {
             if (!it.tidslinjeForVedtakErSammenhengende()) {
