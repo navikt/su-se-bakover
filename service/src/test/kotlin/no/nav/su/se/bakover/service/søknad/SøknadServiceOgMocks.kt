@@ -33,8 +33,7 @@ internal data class SøknadServiceOgMocks(
         personService = personService,
         oppgaveService = oppgaveService,
         clock = fixedClock,
-        // TODO ALDER - muligens må endres når man skal teste aldersting
-        kanSendeInnAlderssøknad = false,
+
     )
 
     fun allMocks() = listOf(
