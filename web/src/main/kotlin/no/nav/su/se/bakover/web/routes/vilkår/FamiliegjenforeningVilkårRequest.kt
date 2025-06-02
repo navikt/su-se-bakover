@@ -15,7 +15,6 @@ data class FamiliegjenforeningVilkårRequest(
     val vurderinger: List<VurderingsperiodeFamiliegjenforeningJson>,
 ) {
 
-    // TODO nødvendig?
     fun toLeggTilFamiliegjenforeningRequest(behandlingId: BehandlingsId) =
         LeggTilFamiliegjenforeningRequest(
             behandlingId = behandlingId,

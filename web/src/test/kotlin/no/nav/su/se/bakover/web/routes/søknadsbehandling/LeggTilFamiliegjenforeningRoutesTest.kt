@@ -108,16 +108,3 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
         }
     }
 }
-/*
-                    //language=JSON
-                    """
-                    {
-                        "vurderinger": [
-                            {
-                                "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
-                                "resultat": "VilkårOppfylt"
-                            }
-                        ]
-                    }
-                    """.trimIndent(),
- */
