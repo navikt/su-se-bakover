@@ -27,7 +27,7 @@ class LeggTilFamiliegjenforeningVilkårIT {
     @Test
     fun `legg til vilkår familiegjenforening`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
-            personOppslagStub = PersonOppslagStub(fødselsdato = 1.januar(1955)),
+            personOppslagStub = PersonOppslagStub(fødselsdato = PersonOppslagStub.foedselsdatoForAlder),
         ) { appComponents ->
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr.toString(),

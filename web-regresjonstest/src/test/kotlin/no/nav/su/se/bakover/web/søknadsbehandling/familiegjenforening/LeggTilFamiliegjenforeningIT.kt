@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.søknadsbehandling.familiegjenforening
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
@@ -27,8 +28,8 @@ import kotlin.test.assertEquals
 class LeggTilFamiliegjenforeningIT {
 
     @Test
-    fun `legg pensjonsvilkår til søknadsbehandling `() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdato = 1.januar(1954))) {
+    fun `legg til familiegjenforening på søknadsbehandling `() {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdato = PersonOppslagStub.foedselsdatoForAlder)) {
             nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)
@@ -43,7 +44,7 @@ class LeggTilFamiliegjenforeningIT {
                             SharedRegressionTestData.epsFnr,
                         )
                     }]",
-                    expectedSakstype = "alder",
+                    expectedSakstype = Sakstype.ALDER.value,
                 )
 
                 nySøknadsbehandling(
@@ -59,7 +60,7 @@ class LeggTilFamiliegjenforeningIT {
                         expectedSøknad = JSONObject(nyBehandlingResponse).getJSONObject("søknad").toString(),
                         expectedSakId = sakId,
                         expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),
-                        expectedSakstype = "alder",
+                        expectedSakstype = Sakstype.ALDER.value,
                         expectedSaksbehandler = "Z990Lokal",
                     )
 
@@ -88,8 +89,8 @@ class LeggTilFamiliegjenforeningIT {
                                 vurderinger = listOf(
                                     VurderingsperiodeFamiliegjenforeningJson(
                                         periode = PeriodeJson(
-                                            fraOgMed = "2022-01-01",
-                                            tilOgMed = "2022-12-31",
+                                            fraOgMed = fraOgMed,
+                                            tilOgMed = tilOgMed,
                                         ),
                                         resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
                                     ),
@@ -113,8 +114,8 @@ class LeggTilFamiliegjenforeningIT {
                                 vurderinger = listOf(
                                     VurderingsperiodeFamiliegjenforeningJson(
                                         periode = PeriodeJson(
-                                            fraOgMed = "2022-01-01",
-                                            tilOgMed = "2022-12-31",
+                                            fraOgMed = fraOgMed,
+                                            tilOgMed = tilOgMed,
                                         ),
                                         resultat = FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt,
                                     ),
