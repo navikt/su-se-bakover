@@ -5,8 +5,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.BehandlingsId
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -19,11 +17,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
-import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
-import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårRequest
 import vilkår.familiegjenforening.domain.UgyldigFamiliegjenforeningVilkår
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -34,7 +30,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/familiegjenforening") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<FamiliegjenforeningBody> { body ->
+                call.withBody<FamiliegjenforeningVilkårRequest> { body ->
                     søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
                         request = body.toLeggTilFamiliegjenforeningRequest(SøknadsbehandlingId(behandlingId)),
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -50,27 +46,6 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
         }
     }
 }
-
-// TODO trekker ut til felles fil..
-data class FamiliegjenforeningBody(
-    val vurderinger: List<FamiliegjenforeningVurderingBody>,
-) {
-    fun toLeggTilFamiliegjenforeningRequest(behandlingId: BehandlingsId) =
-        LeggTilFamiliegjenforeningRequest(
-            behandlingId = behandlingId,
-            vurderinger = vurderinger.map {
-                FamiliegjenforeningVurderinger(
-                    periode = it.periode.toPeriode(),
-                    status = it.status,
-                )
-            },
-        )
-}
-
-data class FamiliegjenforeningVurderingBody(
-    val periode: PeriodeJson,
-    val status: FamiliegjenforeningvilkårStatus,
-)
 
 private fun SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.tilResultat() = when (this) {
     SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling

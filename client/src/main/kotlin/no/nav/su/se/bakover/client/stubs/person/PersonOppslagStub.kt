@@ -15,9 +15,14 @@ import person.domain.Telefonnummer
 import java.time.LocalDate
 
 data class PersonOppslagStub(
-    val dødsdato: LocalDate? = 21.januar(2021),
+    val dødsdato: LocalDate? = foedselsdatoForUføre,
     val fødselsdato: LocalDate = 1.januar(1990),
 ) : PersonOppslag {
+
+    companion object {
+        val foedselsdatoForAlder = 1.januar(1954)
+        val foedselsdatoForUføre = 1.januar(1990)
+    }
 
     fun nyTestPerson(fnr: Fnr) = Person(
         ident = Ident(fnr, AktørId("2437280977705")),

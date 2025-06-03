@@ -9,7 +9,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -17,6 +19,8 @@ import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvi
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårRequest
+import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -79,17 +83,19 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=JSON
-                    """
-                    {
-                        "vurderinger": [
-                            {
-                                "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
-                                "status": "VilkårOppfylt"
-                            }
-                        ]
-                    }
-                    """.trimIndent(),
+                    serialize(
+                        FamiliegjenforeningVilkårRequest(
+                            vurderinger = listOf(
+                                VurderingsperiodeFamiliegjenforeningJson(
+                                    periode = PeriodeJson(
+                                        fraOgMed = "2021-01-01",
+                                        tilOgMed = "2021-12-31",
+                                    ),
+                                    resultat = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                                ),
+                            ),
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.Created
