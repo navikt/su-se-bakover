@@ -167,4 +167,58 @@ class InnlesningReguleringTest {
             }
         }
     }
+
+    @Test
+    fun `Håndterer newline`() {
+        val data = """
+            FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK
+            1111111111;UFOREP;ENDRING;01.04.2024;;15529;14241;UT_ORDINER;14811;13583
+            1111111111;UFOREP;ENDRING;01.04.2024;;15529;14241;UT_GJT;718;658
+            
+        """.trimIndent()
+
+        val actual = parseCSVFromString(data, fixedClock)
+
+        actual.getOrFail().let {
+            it.size shouldBe 1
+            it.first().fnr shouldBe Fnr("01111111111")
+            it.first().perType.let {
+                it.size shouldBe 1
+                it.first().vedtak.let {
+                    it.size shouldBe 1
+                    it.forEach {
+                        it.tilOgMed shouldBe null
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Hopper over tomme linjer`() {
+        val data = """
+            FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK
+            
+            1111111111;UFOREP;ENDRING;01.04.2024;;15529;14241;UT_ORDINER;14811;13583
+            
+            1111111111;UFOREP;ENDRING;01.04.2024;;15529;14241;UT_GJT;718;658
+            
+        """.trimIndent()
+
+        val actual = parseCSVFromString(data, fixedClock)
+
+        actual.getOrFail().let {
+            it.size shouldBe 1
+            it.first().fnr shouldBe Fnr("01111111111")
+            it.first().perType.let {
+                it.size shouldBe 1
+                it.first().vedtak.let {
+                    it.size shouldBe 1
+                    it.forEach {
+                        it.tilOgMed shouldBe null
+                    }
+                }
+            }
+        }
+    }
 }

@@ -15,22 +15,25 @@ fun parseCSVFromString(csv: String, clock: Clock): Either<Resultat, Reguleringss
 private fun parseCSV(csv: List<String>, clock: Clock, rawCsv: String): Either<Resultat, Reguleringssupplement> {
     require(csv.first() == "FNR;K_SAK_T;K_VEDTAK_T;FOM_DATO;TOM_DATO;BRUTTO;NETTO;K_YTELSE_KOMP_T;BRUTTO_YK;NETTO_YK")
     val supplementId = UUID.randomUUID()
-    return csv.drop(1).map {
-        val splitted = it.split(";")
-        PesysUtrekkFromCsv(
-            fnr = splitted[0],
-            sakstype = splitted[1],
-            vedtakstype = splitted[2],
-            fraOgMed = splitted[3],
-            tilOgMed = splitted[4].isEmpty().whenever(
-                isTrue = { null },
-                isFalse = { splitted[4] },
-            ),
-            bruttoYtelse = splitted[5],
-            nettoYtelse = splitted[6],
-            ytelseskomponenttype = splitted[7],
-            bruttoYtelseskomponent = splitted[8],
-            nettoYtelseskomponent = splitted[9],
-        )
-    }.toDomain().map { Reguleringssupplement(supplementId, Tidspunkt.now(clock), it, rawCsv) }
+    return csv.drop(1)
+        .filterNot { it.contains('\n') }
+        .filterNot { it.isEmpty() }
+        .map { linje ->
+            val splitted = linje.split(";")
+            PesysUtrekkFromCsv(
+                fnr = splitted[0],
+                sakstype = splitted[1],
+                vedtakstype = splitted[2],
+                fraOgMed = splitted[3],
+                tilOgMed = splitted[4].isEmpty().whenever(
+                    isTrue = { null },
+                    isFalse = { splitted[4] },
+                ),
+                bruttoYtelse = splitted[5],
+                nettoYtelse = splitted[6],
+                ytelseskomponenttype = splitted[7],
+                bruttoYtelseskomponent = splitted[8],
+                nettoYtelseskomponent = splitted[9],
+            )
+        }.toDomain().map { Reguleringssupplement(supplementId, Tidspunkt.now(clock), it, rawCsv) }
 }
