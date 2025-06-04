@@ -163,14 +163,15 @@ data object DatabaseBuilder {
             queryParameterMappers = queryParameterMappers,
         )
 
+        val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
+            dbMetrics = dbMetrics,
+        )
         val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             dbMetrics = dbMetrics,
             bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
                 dbMetrics = dbMetrics,
             ),
-            fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
-                dbMetrics = dbMetrics,
-            ),
+            fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
             uføreVilkårsvurderingPostgresRepo = UføreVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetrics,
                 uføregrunnlagRepo = UføregrunnlagPostgresRepo(dbMetrics),
@@ -231,6 +232,7 @@ data object DatabaseBuilder {
             supplementPostgresRepo = ReguleringssupplementPostgresRepo(sessionFactory),
             dbMetrics = dbMetrics,
             satsFactory = satsFactory,
+            fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         )
         val revurderingRepo = RevurderingPostgresRepo(
             sessionFactory = sessionFactory,

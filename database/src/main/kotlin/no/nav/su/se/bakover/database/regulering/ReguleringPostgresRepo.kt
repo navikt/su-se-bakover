@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
@@ -39,7 +40,6 @@ import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
-import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -54,6 +55,7 @@ internal class ReguleringPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val supplementPostgresRepo: ReguleringssupplementPostgresRepo,
+    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : ReguleringRepo {
@@ -67,29 +69,26 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
                 """
-                select
-                  s.saksnummer,
-                  s.fnr,
-                  r.id,
-                  case when exists (
-                    select 1
-                    from grunnlag_fradrag g
-                    where g.behandlingid = r.id
-                      and g.fradragstype = 'Fosterhjemsgodtgjørelse'
-                  ) then true else false end as har_fosterhjemsgodtgjørelse
-                from regulering r
-                join sak s on r.sakid = s.id
-                where r.reguleringstatus = 'OPPRETTET' and r.reguleringtype = 'MANUELL'
+                    SELECT
+                      s.saksnummer,
+                      s.fnr,
+                      r.id
+                    FROM regulering r
+                    JOIN sak s ON r.sakid = s.id
+                    WHERE r.reguleringstatus = 'OPPRETTET'
+                      AND r.reguleringtype = 'MANUELL'
+                    GROUP BY s.saksnummer, s.fnr, r.id;
                 """.trimIndent().hentListe(
                     emptyMap(),
                     session,
                 ) {
-                    val harFosterhjemsgodtgjørelse = it.boolean("har_fosterhjemsgodtgjørelse")
+                    val behandlingsid = ReguleringId(it.uuid("id"))
+                    val fradragForRegulering: List<Fradragstype.Kategori> = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session).map { it.fradrag.fradragstype.kategori }.distinct() // For å unngå duplikat visning i frontend
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
-                        reguleringId = ReguleringId(it.uuid("id")),
-                        merknader = if (harFosterhjemsgodtgjørelse) listOf(ReguleringMerknad.Fosterhjemsgodtgjørelse) else emptyList(),
+                        reguleringId = behandlingsid,
+                        fradragsKategori = fradragForRegulering,
                     )
                 }
             }

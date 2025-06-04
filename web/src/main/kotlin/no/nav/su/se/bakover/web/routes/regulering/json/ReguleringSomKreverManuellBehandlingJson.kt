@@ -19,6 +19,6 @@ private fun ReguleringSomKreverManuellBehandling.toJson(): ReguleringSomKreverMa
         saksnummer = this.saksnummer.nummer,
         fnr = this.fnr.toString(),
         reguleringId = this.reguleringId.toString(),
-        merknader = merknader.map { it.toString() },
+        merknader = fradragsKategori.map { it.toString() },
     )
 }

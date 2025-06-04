@@ -22,7 +22,7 @@ sealed class Fradragstype {
      */
     enum class Kategori {
         Alderspensjon,
-        Annet,
+        Annet, // Kommer kun fra saksbehandler
         Arbeidsavklaringspenger,
         Arbeidsinntekt,
 
