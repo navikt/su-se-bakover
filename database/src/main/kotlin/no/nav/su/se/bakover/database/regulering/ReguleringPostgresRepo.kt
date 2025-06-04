@@ -83,17 +83,16 @@ internal class ReguleringPostgresRepo(
                     emptyMap(),
                     session,
                 ) {
-                    val fradragstyper = it.stringOrNull("fradragstyper")?.split(",")
-                    val mappedFradagstype: List<Fradragstype.Kategori>? = fradragstyper?.map {
+                    val fradragstyper = it.stringOrNull("fradragstyper")?.split(",") ?: emptyList()
+                    val mappedFradagstype: List<Fradragstype.Kategori> = fradragstyper.map {
                         Fradragstype.tryParse(it, null)
                             .getOrElse { throw IllegalArgumentException("$it") }
-                    } // TODO: Skal vi kaste her eller bare ignorere de? greit med failsafe jkanskje
-                        ?.map { it.kategori }
+                    }.map { it.kategori }
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
                         reguleringId = ReguleringId(it.uuid("id")),
-                        merknader = mappedFradagstype ?: emptyList(),
+                        merknader = mappedFradagstype,
                     )
                 }
             }
