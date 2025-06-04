@@ -85,7 +85,7 @@ internal class ReguleringPostgresRepo(
                 ) {
                     val fradragstyper = it.stringOrNull("fradragstyper")?.split(",") ?: emptyList()
                     val mappedFradagstype: List<Fradragstype.Kategori> = fradragstyper.map {
-                        Fradragstype.tryParse(it, null)
+                        Fradragstype.tryParse(it, it)
                             .getOrElse { throw IllegalArgumentException("$it") }
                     }.map { it.kategori }
                     ReguleringSomKreverManuellBehandling(
