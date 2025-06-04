@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.regulering
 
+import arrow.core.getOrElse
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
@@ -39,7 +40,6 @@ import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
-import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -67,29 +68,32 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
                 """
-                select
-                  s.saksnummer,
-                  s.fnr,
-                  r.id,
-                  case when exists (
-                    select 1
-                    from grunnlag_fradrag g
-                    where g.behandlingid = r.id
-                      and g.fradragstype = 'Fosterhjemsgodtgjørelse'
-                  ) then true else false end as har_fosterhjemsgodtgjørelse
-                from regulering r
-                join sak s on r.sakid = s.id
-                where r.reguleringstatus = 'OPPRETTET' and r.reguleringtype = 'MANUELL'
+                    SELECT
+                      s.saksnummer,
+                      s.fnr,
+                      r.id,
+                      STRING_AGG(g.fradragstype, ',') AS fradragstyper
+                    FROM regulering r
+                    JOIN sak s ON r.sakid = s.id
+                    LEFT JOIN grunnlag_fradrag g ON g.behandlingid = r.id
+                    WHERE r.reguleringstatus = 'OPPRETTET'
+                      AND r.reguleringtype = 'MANUELL'
+                    GROUP BY s.saksnummer, s.fnr, r.id;
                 """.trimIndent().hentListe(
                     emptyMap(),
                     session,
                 ) {
-                    val harFosterhjemsgodtgjørelse = it.boolean("har_fosterhjemsgodtgjørelse")
+                    val fradragstyper = it.stringOrNull("fradragstyper")?.split(",")
+                    val mappedFradagstype: List<Fradragstype.Kategori>? = fradragstyper?.map {
+                        Fradragstype.tryParse(it, null)
+                            .getOrElse { throw IllegalArgumentException("$it") }
+                    } // TODO: Skal vi kaste her eller bare ignorere de? greit med failsafe jkanskje
+                        ?.map { it.kategori }
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
                         reguleringId = ReguleringId(it.uuid("id")),
-                        merknader = if (harFosterhjemsgodtgjørelse) listOf(ReguleringMerknad.Fosterhjemsgodtgjørelse) else emptyList(),
+                        merknader = mappedFradagstype ?: emptyList(),
                     )
                 }
             }

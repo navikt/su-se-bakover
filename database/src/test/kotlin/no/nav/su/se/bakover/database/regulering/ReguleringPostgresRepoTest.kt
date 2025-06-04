@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -95,7 +94,7 @@ internal class ReguleringPostgresRepoTest {
                 saksnummer = regulering.saksnummer,
                 fnr = regulering.fnr,
                 reguleringId = regulering.id,
-                merknader = listOf(ReguleringMerknad.Fosterhjemsgodtgjørelse),
+                merknader = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             )
         }
     }
