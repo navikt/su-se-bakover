@@ -55,7 +55,7 @@ internal class ReguleringPostgresRepoTest {
                 saksnummer = regulering.saksnummer,
                 fnr = regulering.fnr,
                 reguleringId = regulering.id,
-                merknader = emptyList(),
+                fradragsKategori = emptyList(),
             )
         }
     }
@@ -94,7 +94,7 @@ internal class ReguleringPostgresRepoTest {
                 saksnummer = regulering.saksnummer,
                 fnr = regulering.fnr,
                 reguleringId = regulering.id,
-                merknader = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
+                fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             )
         }
     }

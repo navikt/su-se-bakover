@@ -18,7 +18,7 @@ class ReguleringSomKreverManuellBehandlingJsonTest {
                 saksnummer = Saksnummer(2021),
                 fnr = Fnr("10108000398"),
                 reguleringId = ReguleringId.generer(),
-                merknader = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
+                fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             ),
         )
 

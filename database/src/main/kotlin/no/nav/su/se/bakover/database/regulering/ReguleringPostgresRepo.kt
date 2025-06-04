@@ -88,7 +88,7 @@ internal class ReguleringPostgresRepo(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
                         reguleringId = behandlingsid,
-                        merknader = fradragForRegulering,
+                        fradragsKategori = fradragForRegulering,
                     )
                 }
             }

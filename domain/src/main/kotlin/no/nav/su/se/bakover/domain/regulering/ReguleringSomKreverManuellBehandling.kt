@@ -8,5 +8,5 @@ data class ReguleringSomKreverManuellBehandling(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val reguleringId: ReguleringId,
-    val merknader: List<Fradragstype.Kategori>,
+    val fradragsKategori: List<Fradragstype.Kategori>,
 )
