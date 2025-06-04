@@ -28,7 +28,7 @@ class ReguleringSomKreverManuellBehandlingJsonTest {
                 "saksnummer": 2021,
                 "fnr": "10108000398",
                 "reguleringId": "${domeneobjekt.first().reguleringId}",
-                "merknader": ["Fosterhjemsgodtgjørelse"]
+                "fradragsKategori": ["Fosterhjemsgodtgjørelse"]
             }]
             """.trimIndent()
         }
