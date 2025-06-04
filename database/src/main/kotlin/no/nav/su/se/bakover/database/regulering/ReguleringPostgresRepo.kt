@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.Fradragstype.Kategori
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -85,7 +86,7 @@ internal class ReguleringPostgresRepo(
                 ) {
                     val fradragstyper = it.stringOrNull("fradragstyper")?.split(",") ?: emptyList()
                     val mappedFradagstype: List<Fradragstype.Kategori> = fradragstyper.map {
-                        Fradragstype.tryParse(it, it)
+                        Fradragstype.tryParse(it, if (it.lowercase() === Kategori.Annet.name.lowercase()) it else null)
                             .getOrElse { throw IllegalArgumentException("$it") }
                     }.map { it.kategori }
                     ReguleringSomKreverManuellBehandling(
