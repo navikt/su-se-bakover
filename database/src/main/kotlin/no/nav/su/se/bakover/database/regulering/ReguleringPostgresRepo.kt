@@ -83,7 +83,7 @@ internal class ReguleringPostgresRepo(
                     session,
                 ) {
                     val behandlingsid = ReguleringId(it.uuid("id"))
-                    val fradragForRegulering: List<Fradragstype.Kategori> = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session).map { it.fradrag.fradragstype.kategori }
+                    val fradragForRegulering: List<Fradragstype.Kategori> = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session).map { it.fradrag.fradragstype.kategori }.distinct() // For å unngå duplikat visning i frontend
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
