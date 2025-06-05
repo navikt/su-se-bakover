@@ -30,7 +30,7 @@ internal fun lagRevurderingInntektDokumentKommando(
         forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
             .fold(
                 {
-                    TODO("vilkårsvurdering_alder brev for alder er ikke implementert enda")
+                    false
                 },
                 {
                     it.grunnlag.harForventetInntektStørreEnn0()
