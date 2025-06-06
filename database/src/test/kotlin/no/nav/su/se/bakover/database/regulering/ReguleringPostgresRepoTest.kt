@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrUnder67
@@ -37,7 +38,7 @@ import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {
     @Test
-    fun `hent reguleringer som ikke er iverksatt uten merknad`() {
+    fun `hent reguleringer som ikke er iverksatt uten fradrag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
@@ -45,7 +46,7 @@ internal class ReguleringPostgresRepoTest {
             val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             testDataHelper.persisterReguleringIverksatt()
             regulering.copy(
-                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt)),
+                reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("begrunnelse"))),
             ).also { repo.lagre(it) }
 
             val hentRegulering = repo.hentStatusForÅpneManuelleReguleringer()
@@ -56,12 +57,13 @@ internal class ReguleringPostgresRepoTest {
                 fnr = regulering.fnr,
                 reguleringId = regulering.id,
                 fradragsKategori = emptyList(),
+                årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset),
             )
         }
     }
 
     @Test
-    fun `hent reguleringer som ikke er iverksatt med merknad`() {
+    fun `hent reguleringer som ikke er iverksatt med fradrag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
@@ -95,6 +97,7 @@ internal class ReguleringPostgresRepoTest {
                 fnr = regulering.fnr,
                 reguleringId = regulering.id,
                 fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
+                årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement),
             )
         }
     }

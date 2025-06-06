@@ -9,4 +9,5 @@ data class ReguleringSomKreverManuellBehandling(
     val fnr: Fnr,
     val reguleringId: ReguleringId,
     val fradragsKategori: List<Fradragstype.Kategori>,
+    val årsakTilManuellRegulering: List<ÅrsakTilManuellReguleringKategori>,
 )

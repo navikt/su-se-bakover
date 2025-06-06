@@ -72,7 +72,8 @@ internal class ReguleringPostgresRepo(
                     SELECT
                       s.saksnummer,
                       s.fnr,
-                      r.id
+                      r.id,
+                      r.arsakForManuell
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     WHERE r.reguleringstatus = 'OPPRETTET'
@@ -89,6 +90,7 @@ internal class ReguleringPostgresRepo(
                         fnr = Fnr(it.string("fnr")),
                         reguleringId = behandlingsid,
                         fradragsKategori = fradragForRegulering,
+                        årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell")).map { it.kategori },
                     )
                 }
             }
