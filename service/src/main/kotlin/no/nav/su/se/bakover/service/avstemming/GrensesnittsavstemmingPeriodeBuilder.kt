@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.avstemming
 
 import no.nav.su.se.bakover.common.domain.tid.endOfDay
-import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -16,7 +16,7 @@ internal class GrensesnittsavstemmingPeriodeBuilder(
 
     fun build() = when (sisteAvstemming) {
         null -> AvstemmingsPeriode(
-            fraOgMed = 1.januar(2021).startOfDay(zoneId = zoneIdOslo),
+            fraOgMed = 1.juni(2025).startOfDay(zoneId = zoneIdOslo),
             tilOgMed = LocalDate.now(clock).minusDays(1).endOfDay(zoneIdOslo),
         )
         else -> {
