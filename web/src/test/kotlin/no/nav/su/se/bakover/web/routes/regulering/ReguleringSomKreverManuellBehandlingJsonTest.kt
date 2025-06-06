@@ -19,6 +19,7 @@ class ReguleringSomKreverManuellBehandlingJsonTest {
                 fnr = Fnr("10108000398"),
                 reguleringId = ReguleringId.generer(),
                 fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
+                årsakTilManuellRegulering = emptyList(),
             ),
         )
 
