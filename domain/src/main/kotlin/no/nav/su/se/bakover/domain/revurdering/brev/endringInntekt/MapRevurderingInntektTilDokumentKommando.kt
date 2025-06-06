@@ -21,6 +21,7 @@ internal fun lagRevurderingInntektDokumentKommando(
     return IverksettRevurderingDokumentCommand.Inntekt(
         fødselsnummer = revurdering.fnr,
         saksnummer = revurdering.saksnummer,
+        sakstype = revurdering.sakstype,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.hentAttestantSomIverksatte(),
         beregning = beregning,

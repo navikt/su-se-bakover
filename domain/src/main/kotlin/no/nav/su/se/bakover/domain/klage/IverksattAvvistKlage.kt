@@ -35,6 +35,7 @@ data class IverksattAvvistKlage(
         return KlageDokumentCommand.Avvist(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
+            sakstype = this.sakstype,
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
             fritekst = this.fritekstTilVedtaksbrev,

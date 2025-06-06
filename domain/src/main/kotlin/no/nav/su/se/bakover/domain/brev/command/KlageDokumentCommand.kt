@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.command
 
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import java.time.LocalDate
@@ -14,6 +15,7 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
     data class Oppretthold(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
@@ -27,6 +29,7 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
     data class Avvist(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,

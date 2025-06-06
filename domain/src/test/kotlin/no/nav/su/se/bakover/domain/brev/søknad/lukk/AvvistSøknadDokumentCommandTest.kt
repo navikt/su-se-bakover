@@ -5,6 +5,7 @@ import dokument.domain.brev.Brevvalg
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -49,12 +50,14 @@ internal class AvvistSøknadDokumentCommandTest {
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(null, "fritekst"),
             saksbehandler = saksbehandler,
             fødselsnummer = person.ident.fnr,
+            sakstype = Sakstype.UFØRE,
             saksnummer = Saksnummer(2021),
         ).tilPdfInnhold(
             clock = fixedClock,
             hentPerson = { person.right() },
             hentNavnForIdent = { "saksbehandler".right() },
         ).getOrFail() shouldBe AvvistSøknadVedtakPdfInnhold(
+            Sakstype.UFØRE,
             expectedPersonalia,
             "saksbehandler",
             "fritekst",
@@ -68,11 +71,13 @@ internal class AvvistSøknadDokumentCommandTest {
             saksbehandler = saksbehandler,
             fødselsnummer = person.ident.fnr,
             saksnummer = Saksnummer(2021),
+            sakstype = Sakstype.UFØRE,
         ).tilPdfInnhold(
             clock = fixedClock,
             hentPerson = { person.right() },
             hentNavnForIdent = { "saksbehandler".right() },
         ).getOrFail() shouldBe AvvistSøknadFritekstPdfInnhold(
+            sakstype = Sakstype.UFØRE,
             personalia = expectedPersonalia,
             saksbehandlerNavn = "saksbehandler",
             fritekst = "jeg er fritekst",

@@ -39,6 +39,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
                 fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,
+                sakstype = sak.type,
                 correlationId = command.correlationId,
                 sakId = sak.id,
                 saksbehandler = when (behandling) {

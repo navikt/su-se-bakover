@@ -72,6 +72,7 @@ fun pdfInnholdAvslag() = AvslagSøknadsbehandlingPdfInnhold(
 )
 
 fun pdfInnholdTrukketSøknad() = TrukketSøknadPdfInnhold(
+    sakstype = Sakstype.UFØRE,
     personalia = pdfInnholdPersonalia(),
     datoSøknadOpprettet = "01.01.2020",
     trukketDato = "01.02.2020",

@@ -4,6 +4,7 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.test.brev.pdfInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
@@ -24,6 +25,7 @@ class DokumentMapperKtTest {
             command = FritekstDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = saksbehandler,
                 brevTittel = "tittel",
                 fritekst = "fritekst",
@@ -38,6 +40,7 @@ class DokumentMapperKtTest {
             command = FritekstDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = saksbehandler,
                 brevTittel = "tittel",
                 fritekst = "fritekst",
@@ -51,6 +54,7 @@ class DokumentMapperKtTest {
             command = FritekstDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = saksbehandler,
                 brevTittel = "tittel",
                 fritekst = "fritekst",

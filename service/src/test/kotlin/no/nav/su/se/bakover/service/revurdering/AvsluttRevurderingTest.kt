@@ -7,6 +7,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
@@ -85,7 +86,10 @@ internal class AvsluttRevurderingTest {
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe opprettetRevurdering.id })
-        verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe opprettetRevurdering.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) })
+        verify(oppgaveServiceMock).lukkOppgave(
+            argThat { it shouldBe opprettetRevurdering.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
+        )
         verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() }, anyOrNull())
         verifyNoMoreInteractions(revurderingRepoMock, oppgaveServiceMock)
@@ -141,11 +145,20 @@ internal class AvsluttRevurderingTest {
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
 
-        verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) })
+        verify(oppgaveServiceMock).lukkOppgave(
+            argThat { it shouldBe simulert.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
+        )
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verify(brevServiceMock).lagDokument(
             argThat {
-                it shouldBe AvsluttRevurderingDokumentCommand(fødselsnummer = simulert.fnr, saksnummer = Saksnummer(12345676), saksbehandler = saksbehandler, fritekst = "medFritekst")
+                it shouldBe AvsluttRevurderingDokumentCommand(
+                    sakstype = Sakstype.UFØRE,
+                    fødselsnummer = simulert.fnr,
+                    saksnummer = Saksnummer(12345676),
+                    saksbehandler = saksbehandler,
+                    fritekst = "medFritekst",
+                )
             },
             anyOrNull(),
         )

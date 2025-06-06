@@ -160,6 +160,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = nySøknad.opprettet,
@@ -263,6 +264,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = nySøknad.opprettet,

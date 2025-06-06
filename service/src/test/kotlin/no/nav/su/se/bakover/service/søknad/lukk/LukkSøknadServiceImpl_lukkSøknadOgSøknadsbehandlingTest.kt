@@ -427,6 +427,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                     it shouldBe when (lukkSøknadCommand) {
                         is LukkSøknadCommand.MedBrev.AvvistSøknad -> AvvistSøknadDokumentCommand(
                             saksnummer = sak!!.saksnummer,
+                            sakstype = sak.type,
                             brevvalg = lukkSøknadCommand.brevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev,
                             fødselsnummer = sak.fnr,
                             saksbehandler = saksbehandler,
@@ -435,6 +436,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                         is LukkSøknadCommand.MedBrev.TrekkSøknad -> TrukketSøknadDokumentCommand(
                             trukketDato = 1.januar(2021),
                             saksnummer = sak!!.saksnummer,
+                            sakstype = sak.type,
                             søknadOpprettet = fixedTidspunkt,
                             fødselsnummer = sak.fnr,
                             saksbehandler = saksbehandler,

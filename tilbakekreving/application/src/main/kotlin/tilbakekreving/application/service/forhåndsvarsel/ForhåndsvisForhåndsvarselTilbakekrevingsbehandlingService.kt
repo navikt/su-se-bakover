@@ -40,6 +40,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
         return brevService.lagDokument(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
+                sakstype = sak.type,
                 fritekst = command.fritekst,
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,

@@ -140,6 +140,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         val command = ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
             sakId = sakInfo.sakId,
             fødselsnummer = sakInfo.fnr,
+            sakstype = sakInfo.type,
             saksnummer = sakInfo.saksnummer,
             fritekst = forhåndsvarsleHendelse.fritekst,
             saksbehandler = forhåndsvarsleHendelse.utførtAv,

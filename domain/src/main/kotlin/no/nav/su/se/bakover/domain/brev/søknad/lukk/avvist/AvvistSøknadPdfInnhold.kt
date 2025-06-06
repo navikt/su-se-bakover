@@ -6,9 +6,11 @@ import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbre
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
 
 data class AvvistSøknadVedtakPdfInnhold(
+    override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String?,
@@ -17,6 +19,7 @@ data class AvvistSøknadVedtakPdfInnhold(
 }
 
 data class AvvistSøknadFritekstPdfInnhold(
+    override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String,
@@ -35,12 +38,14 @@ fun AvvistSøknadDokumentCommand.tilAvvistSøknadPdfInnhold(
 ): PdfInnhold {
     return when (brevvalg) {
         is InformasjonsbrevMedFritekst -> AvvistSøknadFritekstPdfInnhold(
+            sakstype = sakstype,
             personalia = personalia,
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = this.brevvalg.fritekst,
         )
 
         is Vedtaksbrev -> AvvistSøknadVedtakPdfInnhold(
+            sakstype = sakstype,
             personalia = personalia,
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = this.brevvalg.fritekst,

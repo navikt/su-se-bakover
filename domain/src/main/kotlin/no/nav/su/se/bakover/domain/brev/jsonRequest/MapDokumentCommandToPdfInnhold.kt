@@ -101,6 +101,7 @@ fun fromBrevCommand(
 
             is InnkallingTilKontrollsamtaleDokumentCommand -> InnkallingTilKontrollsamtalePdfInnhold.fromBrevCommand(
                 personalia = personalia().bind(),
+                sakstype = command.sakstype,
             )
 
             is IverksettSøknadsbehandlingDokumentCommand.Innvilgelse -> InnvilgetSøknadsbehandlingPdfInnhold.fromBrevCommand(

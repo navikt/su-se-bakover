@@ -7,6 +7,7 @@ import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -177,6 +178,7 @@ internal class HentBrevutkastTest {
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
                     fødselsnummer = sak.fnr,
+                    sakstype = Sakstype.UFØRE,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                     attestant = null,
                     fritekst = "",
@@ -219,6 +221,7 @@ internal class HentBrevutkastTest {
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
+                    sakstype = Sakstype.UFØRE,
                     fritekst = "",
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
@@ -261,6 +264,7 @@ internal class HentBrevutkastTest {
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
+                    sakstype = Sakstype.UFØRE,
                     fødselsnummer = sak.fnr,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                     attestant = null,
@@ -339,6 +343,7 @@ internal class HentBrevutkastTest {
             klage = klage,
             KlageDokumentCommand.Oppretthold(
                 fødselsnummer = sak.fnr,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attestant = null,
                 fritekst = "",
@@ -358,6 +363,7 @@ internal class HentBrevutkastTest {
             klage = klage,
             brevRequest = KlageDokumentCommand.Avvist(
                 fødselsnummer = sak.fnr,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attestant = null,
                 fritekst = "dette er en fritekst med person opplysninger",
@@ -376,6 +382,7 @@ internal class HentBrevutkastTest {
 
             brevRequest = KlageDokumentCommand.Oppretthold(
                 fødselsnummer = sak.fnr,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attestant = null,
                 fritekst = "fritekstTilBrev",
@@ -397,6 +404,7 @@ internal class HentBrevutkastTest {
             klage = klage,
             brevRequest = KlageDokumentCommand.Avvist(
                 fødselsnummer = sak.fnr,
+                sakstype = Sakstype.UFØRE,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 attestant = null,
                 fritekst = "dette er en fritekst med person opplysninger",
@@ -454,6 +462,7 @@ internal class HentBrevutkastTest {
                 it shouldBe when (brevRequest) {
                     is KlageDokumentCommand.Avvist -> KlageDokumentCommand.Avvist(
                         fødselsnummer = sak.fnr,
+                        sakstype = Sakstype.UFØRE,
                         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                         attestant = if (expectedIdentClientCalls == 2) NavIdentBruker.Attestant("attestant") else null,
                         fritekst = brevRequest.fritekst,
@@ -462,6 +471,7 @@ internal class HentBrevutkastTest {
 
                     is KlageDokumentCommand.Oppretthold -> KlageDokumentCommand.Oppretthold(
                         fødselsnummer = sak.fnr,
+                        sakstype = Sakstype.UFØRE,
                         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                         attestant = if (expectedIdentClientCalls == 2) NavIdentBruker.Attestant("attestant") else null,
                         fritekst = brevRequest.fritekst,

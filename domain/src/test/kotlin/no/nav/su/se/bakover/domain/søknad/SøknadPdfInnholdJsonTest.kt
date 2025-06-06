@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknad
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.person.Fnr
@@ -44,6 +45,7 @@ class SøknadPdfInnholdJsonTest {
         clock: Clock = fixedClock,
     ) = SøknadPdfInnhold.create(
         saksnummer = saksnummer,
+        sakstype = Sakstype.UFØRE,
         søknadsId = søknadsId,
         navn = navn,
         søknadOpprettet = søknadOpprettet,

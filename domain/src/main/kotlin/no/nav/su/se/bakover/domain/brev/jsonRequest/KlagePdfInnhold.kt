@@ -3,11 +3,13 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 
 sealed interface KlagePdfInnhold : PdfInnhold {
     data class Oppretthold(
+        override val sakstype: Sakstype,
         val personalia: PersonaliaPdfInnhold,
         val saksbehandlerNavn: String,
         val attestantNavn: String?,
@@ -26,6 +28,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
                 attestantNavn: String,
             ): KlagePdfInnhold {
                 return Oppretthold(
+                    sakstype = command.sakstype,
                     personalia = personalia,
                     saksbehandlerNavn = saksbehandlerNavn,
                     attestantNavn = attestantNavn,
@@ -39,6 +42,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
     }
 
     data class Avvist(
+        override val sakstype: Sakstype,
         val personalia: PersonaliaPdfInnhold,
         val saksbehandlerNavn: String,
         val attestantNavn: String?,
@@ -55,6 +59,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
                 attestantNavn: String,
             ): KlagePdfInnhold {
                 return Avvist(
+                    sakstype = command.sakstype,
                     personalia = personalia,
                     saksbehandlerNavn = saksbehandlerNavn,
                     attestantNavn = attestantNavn,

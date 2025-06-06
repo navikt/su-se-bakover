@@ -143,6 +143,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
                 PåminnelseNyStønadsperiodeDokumentCommand(
                     fødselsnummer = sak.fnr,
                     saksnummer = sak.saksnummer,
+                    sakstype = sak.type,
                     utløpsdato = id().yearMonth.atEndOfMonth(),
                     // TODO jah: halvtGrunnbeløp er ikke knyttet til saken i dette tilfellet og kan heller utledes av BrevService.
                     halvtGrunnbeløp = formuegrenserFactory.forDato(dagensDato).formuegrense.avrund(),

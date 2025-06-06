@@ -258,6 +258,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 argThat {
                     it shouldBe TrukketSøknadDokumentCommand(
                         fødselsnummer = sak!!.fnr,
+                        sakstype = sak.type,
                         saksnummer = sak.saksnummer,
                         saksbehandler = lukkSøknadCommand.saksbehandler,
                         trukketDato = lukkSøknadCommand.lukketTidspunkt.toLocalDate(zoneIdOslo),

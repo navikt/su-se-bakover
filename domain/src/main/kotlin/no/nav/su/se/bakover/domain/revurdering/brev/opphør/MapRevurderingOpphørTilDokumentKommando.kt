@@ -27,6 +27,7 @@ internal fun lagRevurderingOpphørtDokumentKommando(
     return IverksettRevurderingDokumentCommand.Opphør(
         fødselsnummer = revurdering.fnr,
         saksnummer = revurdering.saksnummer,
+        sakstype = revurdering.sakstype,
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
         beregning = beregning,
         fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,

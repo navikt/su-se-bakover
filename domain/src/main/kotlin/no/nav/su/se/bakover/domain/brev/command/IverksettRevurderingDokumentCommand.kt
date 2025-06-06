@@ -4,6 +4,7 @@ import behandling.revurdering.domain.Opphørsgrunn
 import beregning.domain.Beregning
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -25,6 +26,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
     data class Inntekt(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant?,
         override val beregning: Beregning,
@@ -38,6 +40,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
     data class Opphør(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         override val beregning: Beregning,
         override val forventetInntektStørreEnn0: Boolean,
         override val harEktefelle: Boolean,

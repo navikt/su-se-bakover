@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 
 data class RevurderingAvInntektPdfInnhold(
+    override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val attestantNavn: String,
@@ -34,6 +36,7 @@ data class RevurderingAvInntektPdfInnhold(
             attestantNavn: String,
         ): RevurderingAvInntektPdfInnhold {
             return RevurderingAvInntektPdfInnhold(
+                sakstype = command.sakstype,
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,

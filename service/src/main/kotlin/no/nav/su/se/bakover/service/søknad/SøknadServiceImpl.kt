@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -202,6 +201,7 @@ class SøknadServiceImpl(
         val pdf = pdfGenerator.genererPdf(
             SøknadPdfInnhold.create(
                 saksnummer = sakInfo.saksnummer,
+                sakstype = sakInfo.type,
                 søknadsId = søknad.id,
                 navn = person.navn,
                 søknadOpprettet = søknad.opprettet,
@@ -280,6 +280,7 @@ class SøknadServiceImpl(
                         pdfGenerator.genererPdf(
                             SøknadPdfInnhold.create(
                                 saksnummer = sak.saksnummer,
+                                sakstype = sak.type,
                                 søknadsId = søknad.id,
                                 navn = person.navn,
                                 søknadOpprettet = søknad.opprettet,

@@ -269,6 +269,7 @@ internal class SakServiceImplTest {
                 it shouldBe FritekstDokumentCommand(
                     fødselsnummer = sak.fnr,
                     saksnummer = sak.saksnummer,
+                    sakstype = Sakstype.UFØRE,
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                     brevTittel = "tittel",
                     fritekst = "fritekst",

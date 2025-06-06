@@ -15,6 +15,7 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
     data class Innvilgelse(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         val beregning: Beregning,
         val harEktefelle: Boolean,
         val forventetInntektStørreEnn0: Boolean,
@@ -22,7 +23,6 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
         val satsoversikt: Satsoversikt,
-        val sakstype: Sakstype,
     ) : IverksettSøknadsbehandlingDokumentCommand
 
     /**
@@ -31,6 +31,7 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
     data class Avslag(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         val avslag: behandling.søknadsbehandling.domain.avslag.Avslag,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
@@ -38,6 +39,5 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
         // Kun relevant for uføre
         val forventetInntektStørreEnn0: Boolean?,
         val satsoversikt: Satsoversikt?,
-        val sakstype: Sakstype,
     ) : IverksettSøknadsbehandlingDokumentCommand
 }
