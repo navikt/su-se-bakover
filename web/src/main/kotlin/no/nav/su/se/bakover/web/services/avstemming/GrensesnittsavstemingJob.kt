@@ -43,18 +43,10 @@ internal class GrensesnittsavstemingJob(
             jobName: String,
         ) {
             Fagområde.entries.forEach { fagområde ->
-                when (fagområde) {
-                    Fagområde.SUALDER -> {
-                        // TODO("simulering_utbetaling_alder legg til ALDER for grensesnittsavstemming")
-                    }
-
-                    Fagområde.SUUFORE -> {
-                        avstemmingService.grensesnittsavstemming(fagområde).fold(
-                            { log.error("$jobName failed with error: $it") },
-                            { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
-                        )
-                    }
-                }
+                avstemmingService.grensesnittsavstemming(fagområde).fold(
+                    { log.error("$jobName failed with error: $it") },
+                    { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
+                )
             }
         }
     }
