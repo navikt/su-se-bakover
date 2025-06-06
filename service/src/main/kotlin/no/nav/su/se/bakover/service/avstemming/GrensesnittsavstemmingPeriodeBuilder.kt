@@ -2,9 +2,12 @@ package no.nav.su.se.bakover.service.avstemming
 
 import no.nav.su.se.bakover.common.domain.tid.endOfDay
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import økonomi.domain.Fagområde
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -14,9 +17,12 @@ internal class GrensesnittsavstemmingPeriodeBuilder(
     private val clock: Clock,
 ) {
 
-    fun build() = when (sisteAvstemming) {
+    fun build(fagområde: Fagområde) = when (sisteAvstemming) {
         null -> AvstemmingsPeriode(
-            fraOgMed = 1.januar(2021).startOfDay(zoneId = zoneIdOslo),
+            fraOgMed = when (fagområde) {
+                Fagområde.SUALDER -> 1.juni(2025).startOfDay(zoneId = zoneIdOslo)
+                Fagområde.SUUFORE -> 1.januar(2021).startOfDay(zoneId = zoneIdOslo)
+            },
             tilOgMed = LocalDate.now(clock).minusDays(1).endOfDay(zoneIdOslo),
         )
         else -> {

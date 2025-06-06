@@ -18,7 +18,7 @@ internal class GrensesnittsavstemmingPeriodeBuilderTest {
 
     @Test
     fun `periode for første avstemming`() {
-        val periode = GrensesnittsavstemmingPeriodeBuilder(null, fixedClock).build()
+        val periode = GrensesnittsavstemmingPeriodeBuilder(null, fixedClock).build(Fagområde.SUUFORE)
         periode.fraOgMed shouldBe 1.januar(2021).startOfDay()
         periode.tilOgMed shouldBe 9.januar(2021).endOfDay()
     }
@@ -34,7 +34,7 @@ internal class GrensesnittsavstemmingPeriodeBuilderTest {
                 fagområde = Fagområde.SUUFORE,
             ),
             fixedClock,
-        ).build()
+        ).build(Fagområde.SUUFORE)
         periode.fraOgMed shouldBe 5.januar(2021).startOfDay()
         periode.tilOgMed shouldBe 9.januar(2021).endOfDay()
     }

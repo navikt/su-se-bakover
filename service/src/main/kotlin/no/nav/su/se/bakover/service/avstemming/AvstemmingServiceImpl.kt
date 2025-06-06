@@ -21,7 +21,7 @@ class AvstemmingServiceImpl(
 ) : AvstemmingService {
     override fun grensesnittsavstemming(fagområde: Fagområde): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
         val periode = GrensesnittsavstemmingPeriodeBuilder(repo.hentSisteGrensesnittsavstemming(fagområde), clock)
-            .build()
+            .build(fagområde)
         return grensesnittsavstemming(periode, fagområde)
     }
 
