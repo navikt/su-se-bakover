@@ -4,7 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
     ignore:
       # Versions follow the Postgres version and should be updated manually
       - dependency-name: io.zonky.test.postgres:embedded-postgres-binaries-bom
