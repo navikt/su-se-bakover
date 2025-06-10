@@ -4,7 +4,6 @@ import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.vilkår.hentUføregrunnlag
 import satser.domain.SatsFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
@@ -32,7 +31,15 @@ internal fun lagRevurderingOpphørtDokumentKommando(
         fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.prøvHentSisteAttestant(),
-        forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
+        forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
+            .fold(
+                {
+                    false
+                },
+                {
+                    it.grunnlag.harForventetInntektStørreEnn0()
+                },
+            ),
         opphørsgrunner = revurdering.utledOpphørsgrunner(clock),
         opphørsperiode = revurdering.periode,
         satsoversikt = Satsoversikt.fra(revurdering, satsFactory),

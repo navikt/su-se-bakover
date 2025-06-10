@@ -7,7 +7,6 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.pensjon.domain.PensjonsVilkår
-import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.vurderinger.domain.VilkårEksistererIkke
 import vilkår.vurderinger.domain.Vilkårsvurderinger
 
@@ -24,16 +23,5 @@ fun Vilkårsvurderinger.familiegjenforening(): Either<VilkårEksistererIkke, Fam
     is VilkårsvurderingerRevurdering.Uføre -> VilkårEksistererIkke.left()
     is VilkårsvurderingerSøknadsbehandling.Alder -> familiegjenforening.right()
     is VilkårsvurderingerSøknadsbehandling.Uføre -> VilkårEksistererIkke.left()
-    else -> throw IllegalStateException("Ukjent vilkårsvurderings-implementasjon: $this")
-}
-
-/**
- * @throws NotImplementedError for alder
- */
-fun Vilkårsvurderinger.hentUføregrunnlag(): List<Uføregrunnlag> = when (this) {
-    is VilkårsvurderingerRevurdering.Uføre -> this.uføre.grunnlag
-    is VilkårsvurderingerSøknadsbehandling.Uføre -> this.uføre.grunnlag
-    is VilkårsvurderingerRevurdering.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
-    is VilkårsvurderingerSøknadsbehandling.Alder -> emptyList() // TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
     else -> throw IllegalStateException("Ukjent vilkårsvurderings-implementasjon: $this")
 }

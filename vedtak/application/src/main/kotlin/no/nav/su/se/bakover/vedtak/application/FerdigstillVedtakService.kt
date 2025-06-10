@@ -72,7 +72,7 @@ class FerdigstillVedtakServiceImpl(
                         .left().also {
                             log.error("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}")
                         }
-                return ferdigstillVedtak(vedtak, transactionContext).map { Unit }
+                return genererBrevOgLukkOppgave(vedtak, transactionContext).map { Unit }
             }
         }
     }
@@ -82,7 +82,7 @@ class FerdigstillVedtakServiceImpl(
     ): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         return vedtakService.hentForVedtakId(vedtakId)!!.let { vedtak ->
             vedtak as VedtakSomKanRevurderes
-            ferdigstillVedtak(vedtak, null).onLeft {
+            genererBrevOgLukkOppgave(vedtak, null).onLeft {
                 log.error(
                     "Kunne ikke ferdigstille vedtak. VedtakId: $vedtakId, behandlingId: ${vedtak.behandling.id}, sakId: ${vedtak.behandling.sakId}, saksnummer: ${vedtak.behandling.saksnummer}. Feil: $it.",
                     RuntimeException("Trigger stacktrace for enklere debugging"),
@@ -107,7 +107,7 @@ class FerdigstillVedtakServiceImpl(
         return erStans() || erReaktivering()
     }
 
-    private fun ferdigstillVedtak(
+    private fun genererBrevOgLukkOppgave(
         vedtak: VedtakSomKanRevurderes,
         transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtak, VedtakFerdigstilt> {
