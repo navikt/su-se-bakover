@@ -190,10 +190,10 @@ sealed interface Søknad {
                  */
                 fun toBrevRequest(
                     lukkSøknadCommand: LukkSøknadCommand,
-                    hentSak: () -> SakInfo,
+                    sak: SakInfo,
                 ): Either<Lukket.KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                     this.lukk(lukkSøknadCommand).lagGenererDokumentKommando(
-                        hentSak = hentSak,
+                        sak = sak,
                     )
             }
 
@@ -221,7 +221,7 @@ sealed interface Søknad {
                  * @return null dersom det ikke skal kunne lages brev.
                  */
                 fun lagGenererDokumentKommando(
-                    hentSak: () -> SakInfo,
+                    sak: SakInfo,
                 ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand>
 
                 data object KanIkkeLageBrevRequestForDenneTilstanden
@@ -263,14 +263,14 @@ sealed interface Søknad {
                     }
 
                     override fun lagGenererDokumentKommando(
-                        hentSak: () -> SakInfo,
+                        sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
                         return when (brevvalg) {
                             is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> KanIkkeLageBrevRequestForDenneTilstanden.left()
                             is Brevvalg.SaksbehandlersValg.SkalSendeBrev -> AvvistSøknadDokumentCommand(
                                 fødselsnummer = fnr,
-                                saksnummer = hentSak().saksnummer,
-                                sakstype = hentSak().type,
+                                saksnummer = sak.saksnummer,
+                                sakstype = sak.type,
                                 brevvalg = brevvalg,
                                 saksbehandler = lukketAv,
                             ).right()
@@ -317,15 +317,15 @@ sealed interface Søknad {
                     }
 
                     override fun lagGenererDokumentKommando(
-                        hentSak: () -> SakInfo,
+                        sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                         TrukketSøknadDokumentCommand(
                             søknadOpprettet = opprettet,
                             trukketDato = trukketDato,
                             saksbehandler = lukketAv,
                             fødselsnummer = fnr,
-                            saksnummer = hentSak().saksnummer,
-                            sakstype = hentSak().type,
+                            saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                         ).right()
                 }
 
@@ -351,7 +351,7 @@ sealed interface Søknad {
                     override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
                     override fun lagGenererDokumentKommando(
-                        hentSak: () -> SakInfo,
+                        sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                         KanIkkeLageBrevRequestForDenneTilstanden.left()
 

@@ -75,7 +75,6 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
                 serviceAndMocks.lagBrevutkast()
             }.message shouldBe "Kunne ikke lage brevutkast for lukk søknad med søknadId ${søknad.id} - kan ikke lages brev i denne tilstanden. Underliggende feil: KanIkkeLageBrevRequestForDenneTilstanden"
             serviceAndMocks.verifyHentSøknad()
-            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
