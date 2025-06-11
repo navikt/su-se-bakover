@@ -446,7 +446,7 @@ data class Sak(
                 }
             },
         ).let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
-            val lagBrevRequest = søknad.lagGenererDokumentKommando { sak.saksnummer }
+            val lagBrevRequest = søknad.lagGenererDokumentKommando(sak.info())
             LukkSøknadOgSøknadsbehandlingResponse(
                 sak = sak,
                 søknad = søknad,

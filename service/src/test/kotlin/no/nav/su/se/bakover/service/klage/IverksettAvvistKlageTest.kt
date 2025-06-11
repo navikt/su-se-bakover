@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
@@ -275,6 +276,7 @@ internal class IverksettAvvistKlageTest {
             argThat {
                 it shouldBe KlageDokumentCommand.Avvist(
                     fødselsnummer = klage.fnr,
+                    sakstype = Sakstype.UFØRE,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                     attestant = NavIdentBruker.Attestant("attestant"),
                     fritekst = "dette er min fritekst",

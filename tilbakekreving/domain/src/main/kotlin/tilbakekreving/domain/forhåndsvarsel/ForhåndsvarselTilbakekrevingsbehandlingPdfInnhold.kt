@@ -3,6 +3,7 @@ package tilbakekreving.domain.forhåndsvarsel
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import java.time.Clock
 import java.time.LocalDate
@@ -14,6 +15,7 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
     val dato: String,
     val sumBruttoSkalTilbakekreve: Int,
     val beregningFeilutbetaltBeløp: List<BeregningFeilutbetaltBeløp>,
+    override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandling
 
@@ -38,6 +40,7 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
                         bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
                     )
                 },
+                sakstype = command.sakstype,
             )
         }
     }

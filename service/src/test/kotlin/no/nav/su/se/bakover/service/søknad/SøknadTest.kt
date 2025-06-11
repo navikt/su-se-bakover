@@ -112,6 +112,7 @@ class SøknadTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = actualNySøknad.opprettet,
@@ -168,6 +169,7 @@ class SøknadTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = actualNySøknad.opprettet,
@@ -236,6 +238,7 @@ class SøknadTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = actualNySøknad.opprettet,
@@ -318,6 +321,7 @@ class SøknadTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = actualNySøknad.opprettet,
@@ -428,6 +432,7 @@ class SøknadTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                             søknadsId = it.søknadsId,
                             navn = person.navn,
                             søknadOpprettet = actualNySøknad.opprettet,

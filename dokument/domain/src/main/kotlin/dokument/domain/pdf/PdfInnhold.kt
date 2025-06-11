@@ -20,9 +20,8 @@ interface PdfInnhold {
     @get:JsonIgnore
     val pdfTemplate: PdfTemplateMedDokumentNavn
 
-    // TODO ØH 21.06.2022: Denne bør være abstract på sikt, og settes for alle brev eksplisitt
     @get:JsonProperty
-    val sakstype: Sakstype get() = Sakstype.UFØRE
+    val sakstype: Sakstype
 
     @JsonProperty
     fun erAldersbrev(): Boolean = this.sakstype == Sakstype.ALDER

@@ -205,6 +205,7 @@ internal class PdfInnholdTest {
                     ),
                 ),
             ),
+            sakstype = Sakstype.UFØRE,
         )
 
         //language=JSON
@@ -271,6 +272,7 @@ internal class PdfInnholdTest {
         val forhåndsvarsel = ForhåndsvarselDokumentCommand(
             fritekst = "fri",
             saksnummer = saksnummer,
+            sakstype = Sakstype.UFØRE,
             fødselsnummer = fnr,
             saksbehandler = saksbehandler,
         )

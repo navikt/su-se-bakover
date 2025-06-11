@@ -142,6 +142,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
         val command = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
             fødselsnummer = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
+            sakstype = sakInfo.type,
             correlationId = correlationId,
             sakId = sakInfo.sakId,
             saksbehandler = behandling.forrigeSteg.sendtTilAttesteringAv,

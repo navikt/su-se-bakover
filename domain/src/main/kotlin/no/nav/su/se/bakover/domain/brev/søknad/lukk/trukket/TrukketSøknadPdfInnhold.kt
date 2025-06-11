@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
@@ -12,6 +13,7 @@ data class TrukketSøknadPdfInnhold(
     val datoSøknadOpprettet: String,
     val trukketDato: String,
     val saksbehandlerNavn: String,
+    override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.TrukketSøknad
 
@@ -26,6 +28,7 @@ data class TrukketSøknadPdfInnhold(
                 datoSøknadOpprettet = command.søknadOpprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
                 trukketDato = command.trukketDato.ddMMyyyy(),
                 saksbehandlerNavn = saksbehandlerNavn,
+                sakstype = command.sakstype,
             )
         }
     }

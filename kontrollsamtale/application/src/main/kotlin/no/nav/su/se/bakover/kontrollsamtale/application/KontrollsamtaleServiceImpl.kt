@@ -8,10 +8,9 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.QueryJournalpostClient
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -84,7 +83,7 @@ class KontrollsamtaleServiceImpl(
                 log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
             }
 
-        val dokument = lagDokument(fødselsnummer = sak.fnr, sakId = sakId, saksnummer = sak.saksnummer).getOrElse {
+        val dokument = lagDokument(sak).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
             return it.left()
         }
@@ -186,14 +185,11 @@ class KontrollsamtaleServiceImpl(
         return kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
     }
 
-    private fun lagDokument(
-        fødselsnummer: Fnr,
-        sakId: UUID,
-        saksnummer: Saksnummer,
-    ): Either<KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument, Dokument.MedMetadata> {
+    private fun lagDokument(sak: Sak): Either<KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument, Dokument.MedMetadata> {
         val brevCommand = InnkallingTilKontrollsamtaleDokumentCommand(
-            fødselsnummer = fødselsnummer,
-            saksnummer = saksnummer,
+            fødselsnummer = sak.fnr,
+            saksnummer = sak.saksnummer,
+            sakstype = sak.type,
         )
         return brevService.lagDokument(command = brevCommand)
             .mapLeft {
@@ -201,7 +197,7 @@ class KontrollsamtaleServiceImpl(
             }
             .map {
                 it.leggTilMetadata(
-                    metadata = Dokument.Metadata(sakId = sakId),
+                    metadata = Dokument.Metadata(sakId = sak.id),
                     // kan ikke sende kontrollsamtale brevet til en annen adresse enn brukerens adresse per nå
                     distribueringsadresse = null,
                 )

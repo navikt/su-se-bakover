@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -22,6 +23,7 @@ internal class PdfClientTest {
 
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
+        sakstype = Sakstype.UFØRE,
         søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH,

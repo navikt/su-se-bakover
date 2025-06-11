@@ -67,6 +67,7 @@ sealed interface SimulertRevurdering :
         return ForhåndsvarselDokumentCommand(
             fødselsnummer = fnr,
             saksnummer = saksnummer,
+            sakstype = sakstype,
             saksbehandler = utførtAv,
             fritekst = fritekst,
         ).right()

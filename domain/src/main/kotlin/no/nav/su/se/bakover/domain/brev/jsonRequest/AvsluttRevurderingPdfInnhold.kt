@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev.jsonRequest
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 
 /**
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentComman
  * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
  */
 data class AvsluttRevurderingPdfInnhold(
+    override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val fritekst: String?,
@@ -23,6 +25,7 @@ data class AvsluttRevurderingPdfInnhold(
             saksbehandlerNavn: String,
         ): AvsluttRevurderingPdfInnhold {
             return AvsluttRevurderingPdfInnhold(
+                sakstype = command.sakstype,
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = command.fritekst,

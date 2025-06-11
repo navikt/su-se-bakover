@@ -181,6 +181,7 @@ sealed interface UnderkjentRevurdering :
             return ForhåndsvarselDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,
+                sakstype = sakstype,
                 saksbehandler = utførtAv,
                 fritekst = fritekst,
 
@@ -242,6 +243,7 @@ sealed interface UnderkjentRevurdering :
             return ForhåndsvarselDokumentCommand(
                 fødselsnummer = fnr,
                 saksnummer = saksnummer,
+                sakstype = sakstype,
                 saksbehandler = utførtAv,
                 fritekst = fritekst,
             ).right()

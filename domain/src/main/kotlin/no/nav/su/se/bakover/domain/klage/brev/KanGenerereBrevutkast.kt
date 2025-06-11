@@ -32,6 +32,7 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
     return KlageDokumentCommand.Avvist(
         fødselsnummer = this.fnr,
         saksnummer = this.saksnummer,
+        sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
         fritekst = this.fritekstTilVedtaksbrev,
@@ -50,6 +51,7 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
     return KlageDokumentCommand.Oppretthold(
         fødselsnummer = this.fnr,
         saksnummer = this.saksnummer,
+        sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
         fritekst = this.fritekstTilVedtaksbrev,

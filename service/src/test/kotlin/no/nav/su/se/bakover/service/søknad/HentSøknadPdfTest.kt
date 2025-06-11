@@ -106,6 +106,7 @@ class HentSøknadPdfTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = Sakstype.UFØRE,
                             søknadsId = søknad.id,
                             navn = person.navn,
                             søknadOpprettet = søknad.opprettet,
@@ -147,6 +148,7 @@ class HentSøknadPdfTest {
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
                             saksnummer = sak.saksnummer,
+                            sakstype = Sakstype.UFØRE,
                             søknadsId = søknad.id,
                             navn = person.navn,
                             søknadOpprettet = søknad.opprettet,

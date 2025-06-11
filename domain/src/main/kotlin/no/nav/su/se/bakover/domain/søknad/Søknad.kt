@@ -9,8 +9,8 @@ import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.Avsluttet
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -190,10 +190,10 @@ sealed interface Søknad {
                  */
                 fun toBrevRequest(
                     lukkSøknadCommand: LukkSøknadCommand,
-                    hentSaksnummer: () -> Saksnummer,
+                    sak: SakInfo,
                 ): Either<Lukket.KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                     this.lukk(lukkSøknadCommand).lagGenererDokumentKommando(
-                        hentSaksnummer = hentSaksnummer,
+                        sak = sak,
                     )
             }
 
@@ -221,7 +221,7 @@ sealed interface Søknad {
                  * @return null dersom det ikke skal kunne lages brev.
                  */
                 fun lagGenererDokumentKommando(
-                    hentSaksnummer: () -> Saksnummer,
+                    sak: SakInfo,
                 ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand>
 
                 data object KanIkkeLageBrevRequestForDenneTilstanden
@@ -263,13 +263,14 @@ sealed interface Søknad {
                     }
 
                     override fun lagGenererDokumentKommando(
-                        hentSaksnummer: () -> Saksnummer,
+                        sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> {
                         return when (brevvalg) {
                             is Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev -> KanIkkeLageBrevRequestForDenneTilstanden.left()
                             is Brevvalg.SaksbehandlersValg.SkalSendeBrev -> AvvistSøknadDokumentCommand(
                                 fødselsnummer = fnr,
-                                saksnummer = hentSaksnummer(),
+                                saksnummer = sak.saksnummer,
+                                sakstype = sak.type,
                                 brevvalg = brevvalg,
                                 saksbehandler = lukketAv,
                             ).right()
@@ -316,14 +317,15 @@ sealed interface Søknad {
                     }
 
                     override fun lagGenererDokumentKommando(
-                        hentSaksnummer: () -> Saksnummer,
+                        sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                         TrukketSøknadDokumentCommand(
                             søknadOpprettet = opprettet,
                             trukketDato = trukketDato,
                             saksbehandler = lukketAv,
                             fødselsnummer = fnr,
-                            saksnummer = hentSaksnummer(),
+                            saksnummer = sak.saksnummer,
+                            sakstype = sak.type,
                         ).right()
                 }
 
@@ -349,7 +351,7 @@ sealed interface Søknad {
                     override val dokumenttilstand: Dokumenttilstand = Dokumenttilstand.SKAL_IKKE_GENERERE
 
                     override fun lagGenererDokumentKommando(
-                        hentSaksnummer: () -> Saksnummer,
+                        sak: SakInfo,
                     ): Either<KanIkkeLageBrevRequestForDenneTilstanden, GenererDokumentCommand> =
                         KanIkkeLageBrevRequestForDenneTilstanden.left()
 

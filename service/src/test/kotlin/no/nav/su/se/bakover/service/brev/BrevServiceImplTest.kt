@@ -14,6 +14,7 @@ import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -95,6 +96,7 @@ internal class BrevServiceImplTest {
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
                 it shouldBe FritekstPdfInnhold(
+                    sakstype = Sakstype.UFØRE,
                     personalia = PersonaliaPdfInnhold(
                         dato = "01.01.2021",
                         fødselsnummer = dokumentCommand.fødselsnummer.toString(),
@@ -116,6 +118,7 @@ internal class BrevServiceImplTest {
 
     private fun fritekstDokumentCommand() = FritekstDokumentCommand(
         fødselsnummer = Fnr.generer(),
+        sakstype = Sakstype.UFØRE,
         saksnummer = saksnummer,
         saksbehandler = saksbehandler,
         brevTittel = "En tittel",
@@ -291,6 +294,7 @@ internal class BrevServiceImplTest {
 
     data object DummyPdfInnhold : PdfInnhold {
         override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.AvslagsVedtak
+        override val sakstype: Sakstype get() = Sakstype.UFØRE
     }
 
     private data class ServiceOgMocks(

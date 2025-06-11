@@ -117,10 +117,8 @@ class LukkSøknadServiceImpl(
         val pdfCommand = søknad.toBrevRequest(
             lukkSøknadCommand = command,
             // TODO jah: Kanskje vi kan legge saksnummer på Søknad? Da kan vi fjerne denne.
-            hentSaksnummer = {
-                sakService.hentSakInfo(søknad.sakId).getOrElse {
-                    throw RuntimeException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - fant ikke saksnummer. Underliggende feil: $it")
-                }.saksnummer
+            sak = sakService.hentSakInfo(søknad.sakId).getOrElse {
+                throw RuntimeException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - fant ikke saksnummer. Underliggende feil: $it")
             },
         ).getOrElse {
             throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - kan ikke lages brev i denne tilstanden. Underliggende feil: $it")

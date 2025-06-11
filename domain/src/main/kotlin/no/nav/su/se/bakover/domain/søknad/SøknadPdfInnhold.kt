@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknad
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 data class SøknadPdfInnhold private constructor(
+    override val sakstype: Sakstype,
     val saksnummer: Saksnummer,
     val søknadsId: UUID,
     val navn: Person.Navn,
@@ -29,12 +31,14 @@ data class SøknadPdfInnhold private constructor(
     companion object {
         fun create(
             saksnummer: Saksnummer,
+            sakstype: Sakstype,
             søknadsId: UUID,
             navn: Person.Navn,
             søknadOpprettet: Tidspunkt,
             søknadInnhold: SøknadInnhold,
             clock: Clock,
         ) = SøknadPdfInnhold(
+            sakstype = sakstype,
             saksnummer = saksnummer,
             søknadsId = søknadsId,
             navn = navn,

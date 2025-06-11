@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 
 @JsonPropertyOrder(
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
     "erAldersbrev",
 )
 data class FritekstPdfInnhold(
+    override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val tittel: String,
@@ -29,6 +31,7 @@ data class FritekstPdfInnhold(
             saksbehandlerNavn: String,
         ): FritekstPdfInnhold {
             return FritekstPdfInnhold(
+                sakstype = command.sakstype,
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 tittel = command.brevTittel,

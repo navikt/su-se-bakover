@@ -34,6 +34,7 @@ fun Revurdering.lagDokumentKommando(
         is AvsluttetRevurdering -> AvsluttRevurderingDokumentCommand(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
+            sakstype = this.sakstype,
             saksbehandler = saksbehandler,
             fritekst = this.brevvalg.fritekst,
         )

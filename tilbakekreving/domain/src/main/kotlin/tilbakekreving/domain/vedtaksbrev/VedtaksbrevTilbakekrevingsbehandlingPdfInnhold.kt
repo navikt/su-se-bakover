@@ -3,6 +3,7 @@ package tilbakekreving.domain.vedtaksbrev
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import tilbakekreving.domain.vedtaksbrev.MånedsoversiktMedSum.Companion.månedsoversiktMedSum
 import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
@@ -11,6 +12,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
+    override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val attestantNavn: String?,
@@ -34,6 +36,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
             clock: Clock,
         ): VedtaksbrevTilbakekrevingsbehandlingPdfInnhold {
             return VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
+                sakstype = command.sakstype,
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,

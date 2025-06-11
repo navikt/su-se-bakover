@@ -155,6 +155,7 @@ class SakServiceImpl(
             FritekstDokumentCommand(
                 fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,
+                sakstype = sak.type,
                 brevTittel = request.tittel,
                 fritekst = request.fritekst,
                 saksbehandler = request.saksbehandler,

@@ -38,6 +38,7 @@ data class OversendtKlage(
         return KlageDokumentCommand.Oppretthold(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
+            sakstype = this.sakstype,
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
             fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
