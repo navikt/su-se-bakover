@@ -1,0 +1,57 @@
+name: Deploy statistikk to dev-gcp [manual deploy]
+on: workflow_dispatch
+
+permissions: {}
+
+jobs:
+  verify-master-is-ancestor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
+          set +e
+          origin_master="$(git rev-parse origin/master)"
+          head="$(git rev-parse HEAD)"
+          echo "Hash for origin master: ${origin_master}. Hash for HEAD: ${head}."
+          merge_base="$(git merge-base $origin_master HEAD)"
+          echo "Merge-base: ${merge_base}"
+          git merge-base --is-ancestor $origin_master HEAD
+          return_code=$?
+          echo "Return code of 'git merge-base': ${return_code}"
+          if [[ return_code -gt 0 ]]; then
+            echo "You have to merge origin/master before you can deploy a branch."
+            exit 1
+          fi
+  build-test-push-image:
+    name: Build, test and push image
+    needs: verify-master-is-ancestor
+    runs-on: ubuntu-latest-8-cores
+    permissions:
+      contents: read
+      id-token: write # needed for push-image
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        uses: ./.github/actions/build-and-test
+      - name: Push image
+        uses: ./.github/actions/push-image
+        with:
+          tag: ${{ github.sha }}
+  deploy-to-dev-gcp:
+    name: dev-gcp
+    runs-on: ubuntu-latest
+    needs: build-test-push-image
+    permissions:
+      contents: read
+      id-token: write
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+    #      TELEMETRY: ${{ steps.docker-build-push.outputs.telemetry }} TODO ??
+          CLUSTER: dev-gcp
+          RESOURCE: statistikk-app/.nais/dev.yaml
+          VAR: image=${{ needs.build-test-push-image.outputs.image }}
