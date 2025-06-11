@@ -33,15 +33,9 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-#  azure:
-    sidecar:
-      enabled: true
-      autoLogin: true
-  kafka:
-    pool: nav-dev
-  env:
-  accessPolicy:
-    outbound:
-      rules:
-    inbound:
-      rules:
+#  env:
+#  accessPolicy:
+#    outbound:
+#      rules:
+#    inbound:
+#      rules:

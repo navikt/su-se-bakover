@@ -31,6 +31,8 @@ jobs:
     permissions:
       contents: read
       id-token: write # needed for push-image
+    outputs:
+      image: ${{ steps.image-push.outputs.image }}
     steps:
       - uses: actions/checkout@v4
       - name: Build and test
@@ -39,6 +41,8 @@ jobs:
         uses: ./.github/actions/push-image
         with:
           tag: ${{ github.sha }}
+      - name: Print docker tag etter publish
+        run: echo 'Docker-tag etter publish er ${{ steps.image-push.outputs.image }} ' >> $GITHUB_STEP_SUMMARY
   deploy-to-dev-gcp:
     name: dev-gcp
     runs-on: ubuntu-latest
@@ -49,6 +53,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Print docker tag før deploy
+        run: echo 'Docker-tag før deploy er ${{ needs.build-test-push-image.outputs.image }} ' >> $GITHUB_STEP_SUMMARY
       - uses: nais/deploy/actions/deploy@v2
         env:
     #      TELEMETRY: ${{ steps.docker-build-push.outputs.telemetry }} TODO ??
