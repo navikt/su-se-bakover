@@ -64,6 +64,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
             Sakstype.UFØRE -> Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre(it).left()
         }
     }
+    // TODO: skal her lagre RETTPÅSU_ALDER men det kommer aldri inn i basen?
     return internalOppdater(
         søknadsbehandling = søknadsbehandling,
         formuegrenserFactory = formuegrenserFactory,

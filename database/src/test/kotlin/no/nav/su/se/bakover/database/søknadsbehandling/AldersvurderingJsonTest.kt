@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Companion.toDBJson
@@ -223,6 +224,7 @@ internal class AldersvurderingJsonTest {
                }
                 """.trimIndent(),
                 stønadsperiode = stønadsperiode2021,
+                sakstype = Sakstype.UFØRE,
             ) shouldBe Aldersvurdering.Historisk(stønadsperiode2021)
         }
 
@@ -241,6 +243,7 @@ internal class AldersvurderingJsonTest {
                }
                 """.trimIndent(),
                 stønadsperiode = stønadsperiode2021,
+                sakstype = Sakstype.UFØRE,
             ) shouldBe Aldersvurdering.SkalIkkeVurderes(stønadsperiode2021)
         }
 
@@ -262,6 +265,7 @@ internal class AldersvurderingJsonTest {
                     }
                     """.trimIndent(),
                     stønadsperiode = stønadsperiode2021,
+                    sakstype = Sakstype.UFØRE,
                 ) shouldBe Aldersvurdering.Vurdert(
                     maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
                         fødselsdato = 1.januar(2000),
@@ -293,6 +297,7 @@ internal class AldersvurderingJsonTest {
                     }
                     """.trimIndent(),
                     stønadsperiode = stønadsperiode2021,
+                    sakstype = Sakstype.UFØRE,
                 ) shouldBe Aldersvurdering.Vurdert(
                     maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår(
                         stønadsperiode = stønadsperiode2021,
@@ -326,6 +331,7 @@ internal class AldersvurderingJsonTest {
                     }
                     """.trimIndent(),
                     stønadsperiode = stønadsperiode2021,
+                    sakstype = Sakstype.UFØRE,
                 ) shouldBe Aldersvurdering.Vurdert(
                     maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
                         fødselsdato = 1.januar(1950),
@@ -357,6 +363,7 @@ internal class AldersvurderingJsonTest {
                     }
                     """.trimIndent(),
                     stønadsperiode = stønadsperiode2021,
+                    sakstype = Sakstype.UFØRE,
                 ) shouldBe Aldersvurdering.Vurdert(
                     maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår(
                         stønadsperiode = stønadsperiode2021,
@@ -390,6 +397,7 @@ internal class AldersvurderingJsonTest {
                     }
                     """.trimIndent(),
                     stønadsperiode = stønadsperiode2021,
+                    sakstype = Sakstype.UFØRE,
                 ) shouldBe Aldersvurdering.Vurdert(
                     maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår(
                         fødselsår = Year.of(1954),
@@ -420,6 +428,7 @@ internal class AldersvurderingJsonTest {
                     }
                     """.trimIndent(),
                     stønadsperiode = stønadsperiode2021,
+                    sakstype = Sakstype.UFØRE,
                 ) shouldBe Aldersvurdering.Vurdert(
                     maskinellVurdering = no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
                         stønadsperiode = stønadsperiode2021,
