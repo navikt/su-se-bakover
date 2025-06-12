@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.brev.opphør
 
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -33,7 +34,11 @@ internal fun lagRevurderingOpphørtDokumentKommando(
         fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.prøvHentSisteAttestant(),
-        forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
+        forventetInntektStørreEnn0 =
+        when (revurdering.sakstype) {
+            Sakstype.UFØRE -> revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0()
+            Sakstype.ALDER -> false
+        },
         opphørsgrunner = revurdering.utledOpphørsgrunner(clock),
         opphørsperiode = revurdering.periode,
         satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
