@@ -64,6 +64,7 @@ fun Sak.oppdaterStønadsperiodeForSøknadsbehandling(
             Sakstype.UFØRE -> Sak.KunneIkkeOppdatereStønadsperiode.AldersvurderingGirIkkeRettPåUføre(it).left()
         }
     }
+
     return internalOppdater(
         søknadsbehandling = søknadsbehandling,
         formuegrenserFactory = formuegrenserFactory,

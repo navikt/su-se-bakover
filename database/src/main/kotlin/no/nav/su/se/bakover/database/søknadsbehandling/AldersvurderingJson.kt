@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersinformasjon
@@ -24,6 +25,7 @@ internal class AldersvurderingJson(
 
     fun toAldersvurdering(
         stønadsperiode: Stønadsperiode,
+        sakstype: Sakstype,
     ): Aldersvurdering {
         val aldersinformasjon = Aldersinformasjon.createFromExisting(
             alder = alder,
@@ -34,64 +36,126 @@ internal class AldersvurderingJson(
             true -> SaksbehandlersAvgjørelse.Avgjort(avgjørelsesTidspunkt!!)
             false -> null
         }
-        return when (vurdering) {
-            MaskinellVurdering.RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
-                    fødselsdato = LocalDate.parse(fødselsdato),
-                    fødselsår = Year.of(fødselsår!!),
-                    stønadsperiode = stønadsperiode,
-                ),
-                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-                aldersinformasjon = aldersinformasjon,
-            )
+        return when (sakstype) {
+            Sakstype.ALDER -> when (vurdering) {
+                MaskinellVurdering.RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsdato(
+                        fødselsdato = LocalDate.parse(fødselsdato),
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
 
-            MaskinellVurdering.RETT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår(
-                    fødselsår = Year.of(fødselsår!!),
-                    stønadsperiode = stønadsperiode,
-                ),
-                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-                aldersinformasjon = aldersinformasjon,
-            )
+                MaskinellVurdering.RETT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPaaAlderSU.MedFødselsår(
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
 
-            MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
-                    fødselsdato = LocalDate.parse(fødselsdato),
-                    fødselsår = Year.of(fødselsår!!),
-                    stønadsperiode = stønadsperiode,
-                ),
-                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-                aldersinformasjon = aldersinformasjon,
-            )
+                MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsdato(
+                        fødselsdato = LocalDate.parse(fødselsdato),
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
 
-            MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår(
-                    fødselsår = Year.of(fødselsår!!),
-                    stønadsperiode = stønadsperiode,
-                ),
-                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-                aldersinformasjon = aldersinformasjon,
-            )
+                MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPaaAlder.MedFødselsår(
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
 
-            MaskinellVurdering.UKJENT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår(
-                    fødselsår = Year.of(fødselsår!!),
-                    stønadsperiode = stønadsperiode,
-                ),
-                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-                aldersinformasjon = aldersinformasjon,
-            )
+                MaskinellVurdering.UKJENT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår(
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
 
-            MaskinellVurdering.UKJENT_UTEN_FØDSELSÅR -> Aldersvurdering.Vurdert(
-                maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
-                    stønadsperiode = stønadsperiode,
-                ),
-                saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
-                aldersinformasjon = aldersinformasjon,
-            )
+                MaskinellVurdering.UKJENT_UTEN_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
 
-            MaskinellVurdering.HISTORISK -> Aldersvurdering.Historisk(stønadsperiode)
-            MaskinellVurdering.SKAL_IKKE_VURDERES -> Aldersvurdering.SkalIkkeVurderes(stønadsperiode)
+                MaskinellVurdering.HISTORISK -> Aldersvurdering.Historisk(stønadsperiode)
+                MaskinellVurdering.SKAL_IKKE_VURDERES -> Aldersvurdering.SkalIkkeVurderes(stønadsperiode)
+            }
+
+            Sakstype.UFØRE -> when (vurdering) {
+                MaskinellVurdering.RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsdato(
+                        fødselsdato = LocalDate.parse(fødselsdato),
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
+
+                MaskinellVurdering.RETT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.RettPåUføre.MedFødselsår(
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
+
+                MaskinellVurdering.IKKE_RETT_MED_FØDSELSDATO -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsdato(
+                        fødselsdato = LocalDate.parse(fødselsdato),
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
+
+                MaskinellVurdering.IKKE_RETT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.IkkeRettPåUføre.MedFødselsår(
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
+
+                MaskinellVurdering.UKJENT_MED_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.MedFødselsår(
+                        fødselsår = Year.of(fødselsår!!),
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
+
+                MaskinellVurdering.UKJENT_UTEN_FØDSELSÅR -> Aldersvurdering.Vurdert(
+                    maskinellVurdering = MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår(
+                        stønadsperiode = stønadsperiode,
+                    ),
+                    saksbehandlersAvgjørelse = saksbehandlersAvgjørelse,
+                    aldersinformasjon = aldersinformasjon,
+                )
+
+                MaskinellVurdering.HISTORISK -> Aldersvurdering.Historisk(stønadsperiode)
+                MaskinellVurdering.SKAL_IKKE_VURDERES -> Aldersvurdering.SkalIkkeVurderes(stønadsperiode)
+            }
         }
     }
 
@@ -157,12 +221,17 @@ internal class AldersvurderingJson(
         fun toAldersvurdering(
             json: String,
             stønadsperiode: Stønadsperiode,
+            sakstype: Sakstype,
         ): Aldersvurdering {
-            return deserialize<AldersvurderingJson>(json).toAldersvurdering(stønadsperiode)
+            return deserialize<AldersvurderingJson>(json).toAldersvurdering(stønadsperiode, sakstype)
         }
     }
 }
 
+/**
+ [MaskinellAldersvurderingMedGrunnlagsdata] mappes til denne og der mister man sakskonteksten, denne blir lagt på igjen ved
+ uthenting siden [MaskinellVurdering] er sakstype agnostisk og vi allerede har fått saker i prod som er lagret slik.
+ */
 enum class MaskinellVurdering {
     RETT_MED_FØDSELSDATO,
     RETT_MED_FØDSELSÅR,

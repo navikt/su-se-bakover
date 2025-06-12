@@ -495,7 +495,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val stønadsperiode = deserializeNullable<StønadsperiodeDbJson>(stringOrNull("stønadsperiode"))?.toDomain()
 
         val aldersvurdering =
-            stønadsperiode?.let { AldersvurderingJson.toAldersvurdering(string("aldersvurdering"), it) }
+            stønadsperiode?.let { AldersvurderingJson.toAldersvurdering(string("aldersvurdering"), it, sakstype) }
 
         val fnr = Fnr(string("fnr"))
 
