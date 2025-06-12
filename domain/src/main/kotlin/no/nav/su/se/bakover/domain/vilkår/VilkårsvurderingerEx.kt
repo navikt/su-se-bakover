@@ -33,7 +33,9 @@ fun Vilkårsvurderinger.familiegjenforening(): Either<VilkårEksistererIkke, Fam
 fun Vilkårsvurderinger.hentUføregrunnlag(): List<Uføregrunnlag> = when (this) {
     is VilkårsvurderingerRevurdering.Uføre -> this.uføre.grunnlag
     is VilkårsvurderingerSøknadsbehandling.Uføre -> this.uføre.grunnlag
-    is VilkårsvurderingerRevurdering.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
-    is VilkårsvurderingerSøknadsbehandling.Alder -> emptyList() // TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
+    is VilkårsvurderingerRevurdering.Alder, is VilkårsvurderingerSøknadsbehandling.Alder -> throw IllegalStateException(
+        "Prøver å hente uføregrunnlag for alder $this",
+    )
+
     else -> throw IllegalStateException("Ukjent vilkårsvurderings-implementasjon: $this")
 }
