@@ -66,14 +66,19 @@ class SakFakeRepo : SakRepo {
         }
     }
 
-    override fun hentSakInfo(fnr: Fnr): SakInfo? {
-        return data.get().values.singleOrNullOrThrow { it.fnr == fnr }?.let {
+    override fun hentSakInfo(fnr: Fnr): List<SakInfo> {
+        val kanskjeSak = data.get().values.singleOrNullOrThrow { it.fnr == fnr }?.let {
             SakInfo(
                 sakId = it.id,
                 fnr = it.fnr,
                 saksnummer = it.saksnummer,
                 type = it.type,
             )
+        }
+        return if (kanskjeSak == null) {
+            emptyList()
+        } else {
+            listOf(kanskjeSak)
         }
     }
 
