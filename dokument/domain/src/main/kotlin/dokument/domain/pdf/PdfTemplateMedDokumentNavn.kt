@@ -63,7 +63,7 @@ sealed interface PdfTemplateMedDokumentNavn {
 
     data object InnkallingTilKontrollsamtale : PdfTemplateMedDokumentNavn {
         override val pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale
-        override val dokumentNavn = "Supplerende stønad ufør flyktning – innkalling til samtale"
+        override val dokumentNavn = "Supplerende stønad – innkalling til samtale"
     }
 
     data object PåminnelseNyStønadsperiode : PdfTemplateMedDokumentNavn {
