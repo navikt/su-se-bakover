@@ -360,7 +360,7 @@ internal class SakServiceImplTest {
         ).first
         val sakRepo: SakRepo = mock {
             on { hentSak(any<UUID>()) } doReturn brukersSak
-            on { hentSakInfo(any<Fnr>()) } doReturn epsSak.info()
+            on { hentSakInfo(any<Fnr>()) } doReturn listOf(epsSak.info())
         }
         SakServiceImpl(
             sakRepo,

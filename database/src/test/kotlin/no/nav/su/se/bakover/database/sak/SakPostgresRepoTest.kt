@@ -96,12 +96,12 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val (sak) = testDataHelper.persisterSøknadsbehandlingIverksatt()
-            val hentetSakInfo = repo.hentSakInfo(sak.fnr)
+            val hentetSakInfo = repo.hentSakInfo(sak.fnr).first()
 
-            hentetSakInfo?.fnr shouldBe sak.fnr
-            hentetSakInfo?.sakId shouldBe sak.id
-            hentetSakInfo?.saksnummer shouldBe sak.saksnummer
-            hentetSakInfo?.type shouldBe sak.type
+            hentetSakInfo.fnr shouldBe sak.fnr
+            hentetSakInfo.sakId shouldBe sak.id
+            hentetSakInfo.saksnummer shouldBe sak.saksnummer
+            hentetSakInfo.type shouldBe sak.type
         }
     }
 
