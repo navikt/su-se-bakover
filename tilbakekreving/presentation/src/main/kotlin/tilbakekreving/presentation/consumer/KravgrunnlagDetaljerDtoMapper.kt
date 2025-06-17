@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import økonomi.domain.Fagområde
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -62,9 +63,8 @@ internal fun KravgrunnlagRootDto.toDomain(
                     require(tilbakekrevingsperiode.tilbakekrevingsbeløp.size == 2) {
                         "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
                     }
-
                     val tilbakekrevingsbeløpForYtelse =
-                        tilbakekrevingsperiode.tilbakekrevingsbeløp.single { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" }
+                        tilbakekrevingsperiode.tilbakekrevingsbeløp.single { it.typeKlasse == "YTEL" && Fagområde.valuesAsStrings().contains(it.kodeKlasse) }
                     val tilbakekrevingsbeløpForFeilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp
                         .single { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" }
                     val bruttoFeilutbetaling =
