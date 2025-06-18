@@ -43,7 +43,7 @@ data class DokumentBody(
  * 3. pdf
  * 4. distribueringsadresse - Denne er den eneste som er optional, og kommer sist i rekkefølgen
  */
-
+// TODO: SOS, burde vært flyttet til egen route modul eller i det minste hatt en test som avslører om den brekkes
 suspend fun ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak(
     sakId: UUID,
 ): JournalførOgSendOpplastetPdfSomBrevCommand {
