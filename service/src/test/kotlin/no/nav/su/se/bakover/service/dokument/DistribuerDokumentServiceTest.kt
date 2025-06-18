@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribuering
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.nyDistribueringsAdresse
-import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.sakinfo
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -273,7 +273,7 @@ internal class DistribuerDokumentServiceTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             tittel = "tittel",
-            generertDokument = pdfATom(),
+            generertDokument = minimumPdfAzeroPadded(),
             generertDokumentJson = "{}",
             metadata = Dokument.Metadata(sakId = sakinfo.sakId),
             distribueringsadresse = distribueringsadresse,

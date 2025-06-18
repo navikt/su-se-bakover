@@ -60,11 +60,15 @@ suspend fun ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak(
                 partdata.dispose
             }
         }
+
     val pdfContent: ByteArray = (parts[2] as PartData.FileItem).let { partdata ->
         partdata.provider().readRemaining().readByteArray().also {
             partdata.dispose
         }
     }
+    require(pdfContent.isNotEmpty()) { "Pdf innhold må ha størrelse, denne var 0 bytes" }
+    val minimumSizeForPdfv1 = 311
+    require(pdfContent.size > minimumSizeForPdfv1) { "Pdf er minimum 312 bytes, denne var ${pdfContent.size} bytes" }
     val distribueringsadresse: Distribueringsadresse? = parts.getOrNull(3)?.let {
         val partdata = it as PartData.FormItem
         val distribueringsadresseAsJson = partdata.value

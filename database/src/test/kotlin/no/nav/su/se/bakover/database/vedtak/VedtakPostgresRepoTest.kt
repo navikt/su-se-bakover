@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -750,7 +750,7 @@ internal class VedtakPostgresRepoTest {
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     tittel = "tittel",
-                    generertDokument = pdfATom(),
+                    generertDokument = minimumPdfAzeroPadded(),
                     generertDokumentJson = """{"some": "json"}""",
                     metadata = Dokument.Metadata(
                         sakId = sak.id,

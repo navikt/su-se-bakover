@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -24,6 +24,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.util.Base64
 import java.util.UUID
 
 internal class DokumentRoutesKtTest {
@@ -102,7 +103,7 @@ internal class DokumentRoutesKtTest {
                         id = dokumentId,
                         opprettet = Tidspunkt.EPOCH,
                         tittel = "en fin tittel",
-                        generertDokument = pdfATom(),
+                        generertDokument = minimumPdfAzeroPadded(),
                         generertDokumentJson = "",
                     ),
                 )
@@ -131,7 +132,7 @@ internal class DokumentRoutesKtTest {
                             "id": "$dokumentId",
                             "tittel": "en fin tittel",
                             "opprettet": "1970-01-01T00:00:00Z",
-                            "dokument": "",
+                            "dokument": "${Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())}",
                             "journalført": false,
                             "brevErBestilt": false
                         }

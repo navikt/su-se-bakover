@@ -11,13 +11,14 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.J
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.util.Base64
 import java.util.UUID
 
 internal class JournalførBrevHttpClientTest {
@@ -39,6 +40,7 @@ internal class JournalførBrevHttpClientTest {
             brevbestillingId = UUID.randomUUID().toString(),
         )
         val dokumentId = UUID.randomUUID()
+        val generertDokumentJson = "{}"
         client.journalførBrev(
             JournalførBrevCommand(
                 saksnummer = saksnummer,
@@ -48,8 +50,8 @@ internal class JournalførBrevHttpClientTest {
                         id = dokumentId,
                         opprettet = fixedTidspunkt,
                         tittel = "tittel",
-                        generertDokument = pdfATom(),
-                        generertDokumentJson = "{}",
+                        generertDokument = minimumPdfAzeroPadded(),
+                        generertDokumentJson = generertDokumentJson,
                     ),
                     metadata = metadata,
                     distribueringsadresse = null,
@@ -74,8 +76,8 @@ internal class JournalførBrevHttpClientTest {
                             tittel = "tittel",
                             brevkode = "XX.YY-ZZ",
                             dokumentvarianter = listOf(
-                                DokumentVariant.ArkivPDF(""),
-                                DokumentVariant.OriginalJson("e30="),
+                                DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())),
+                                DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(generertDokumentJson.toByteArray())),
                             ),
                         ),
                     ),

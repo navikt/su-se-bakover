@@ -757,7 +757,7 @@ fun iverksattSøknadsbehandling(
                 Dokument.UtenMetadata.Vedtak(
                     opprettet = Tidspunkt.now(clock),
                     tittel = "TODO: BrevRequesten bør lages i domenet",
-                    generertDokument = pdfATom(),
+                    generertDokument = minimumPdfAzeroPadded(),
                     generertDokumentJson = "{}",
                 ).right()
             },

@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -68,7 +68,7 @@ internal class BrevServiceImplTest {
 
     @Test
     fun `happy case`() {
-        val pdf = pdfATom()
+        val pdf = minimumPdfAzeroPadded()
 
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
@@ -286,7 +286,7 @@ internal class BrevServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             tittel = "tittel",
-            generertDokument = pdfATom(),
+            generertDokument = minimumPdfAzeroPadded(),
             generertDokumentJson = "{}",
         )
         return utenMetadata.leggTilMetadata(metadata, distribueringsadresse = null)

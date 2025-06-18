@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.kontrollsamtale.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
-import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -226,7 +226,7 @@ internal class KontrollsamtaleServiceImplTest {
         val dokumentCaptor = ArgumentCaptor.forClass(Dokument.MedMetadata.Informasjon::class.java)
         verify(services.brevService).lagreDokument(capture<Dokument.MedMetadata.Informasjon>(dokumentCaptor), any())
         dokumentCaptor.value.opprettet shouldBe Tidspunkt.now(fixedClock)
-        dokumentCaptor.value.generertDokument shouldBe pdfATom()
+        dokumentCaptor.value.generertDokument shouldBe minimumPdfAzeroPadded()
 
         verify(services.oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
