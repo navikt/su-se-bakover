@@ -5,7 +5,6 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receiveMultipart
-import io.ktor.utils.io.readByteArray
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.deserialize
