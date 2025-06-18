@@ -18,6 +18,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.util.Base64
 import java.util.UUID
 
 internal class JournalførBrevHttpClientTest {
@@ -74,7 +75,7 @@ internal class JournalførBrevHttpClientTest {
                             tittel = "tittel",
                             brevkode = "XX.YY-ZZ",
                             dokumentvarianter = listOf(
-                                DokumentVariant.ArkivPDF(""),
+                                DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())),
                                 DokumentVariant.OriginalJson("e30="),
                             ),
                         ),
