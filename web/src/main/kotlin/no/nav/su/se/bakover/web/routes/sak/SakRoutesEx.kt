@@ -37,7 +37,7 @@ data class DokumentBody(
 )
 
 /**
- * Vi forventer en viss rekkefølge fra frontend på innholdet i formdata
+ * Vi forventer disse feltene i multipart formet
  * 1. journaltittel
  * 2. distribusjonstype
  * 3. pdf
