@@ -29,7 +29,6 @@ import java.math.RoundingMode
 import java.time.Clock
 import java.time.Duration
 
-// TODO: hva i huleste gjør denne?
 internal class LokalMottaKravgrunnlagJob(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
