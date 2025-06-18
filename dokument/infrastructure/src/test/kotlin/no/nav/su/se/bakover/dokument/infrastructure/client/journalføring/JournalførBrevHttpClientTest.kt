@@ -40,6 +40,7 @@ internal class JournalførBrevHttpClientTest {
             brevbestillingId = UUID.randomUUID().toString(),
         )
         val dokumentId = UUID.randomUUID()
+        val generertDokumentJson = "{}"
         client.journalførBrev(
             JournalførBrevCommand(
                 saksnummer = saksnummer,
@@ -50,7 +51,7 @@ internal class JournalførBrevHttpClientTest {
                         opprettet = fixedTidspunkt,
                         tittel = "tittel",
                         generertDokument = minimumPdfAzeroPadded(),
-                        generertDokumentJson = "{}",
+                        generertDokumentJson = generertDokumentJson,
                     ),
                     metadata = metadata,
                     distribueringsadresse = null,
@@ -76,7 +77,7 @@ internal class JournalførBrevHttpClientTest {
                             brevkode = "XX.YY-ZZ",
                             dokumentvarianter = listOf(
                                 DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())),
-                                DokumentVariant.OriginalJson("e30="),
+                                DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(generertDokumentJson.toByteArray())),
                             ),
                         ),
                     ),
