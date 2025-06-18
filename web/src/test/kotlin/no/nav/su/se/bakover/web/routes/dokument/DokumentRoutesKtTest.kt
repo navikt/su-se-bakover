@@ -24,6 +24,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.util.Base64
 import java.util.UUID
 
 internal class DokumentRoutesKtTest {
@@ -131,7 +132,7 @@ internal class DokumentRoutesKtTest {
                             "id": "$dokumentId",
                             "tittel": "en fin tittel",
                             "opprettet": "1970-01-01T00:00:00Z",
-                            "dokument": "",
+                            "dokument": "${Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())}",
                             "journalført": false,
                             "brevErBestilt": false
                         }
