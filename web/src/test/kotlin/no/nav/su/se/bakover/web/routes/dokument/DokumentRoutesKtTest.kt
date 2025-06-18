@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -102,7 +102,7 @@ internal class DokumentRoutesKtTest {
                         id = dokumentId,
                         opprettet = Tidspunkt.EPOCH,
                         tittel = "en fin tittel",
-                        generertDokument = pdfATom(),
+                        generertDokument = minimumPdfAzeroPadded(),
                         generertDokumentJson = "",
                     ),
                 )

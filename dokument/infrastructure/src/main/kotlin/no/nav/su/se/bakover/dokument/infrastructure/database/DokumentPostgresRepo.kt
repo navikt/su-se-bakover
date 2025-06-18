@@ -37,6 +37,9 @@ class DokumentPostgresRepo(
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext?) {
+        val size = dokument.generertDokument.getContent().size
+        require(size > 311) { "Pdf dokument må være minst 312 bytes, var $size" }
+
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             sessionFactory.withTransaction(transactionContext) { tx ->
                 """

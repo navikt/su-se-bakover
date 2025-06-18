@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
@@ -140,7 +140,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
         ).let { serviceAndMocks ->
-            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, pdfATom())
+            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, minimumPdfAzeroPadded())
 
             inOrder(
                 *serviceAndMocks.allMocks,
@@ -162,7 +162,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
         ).let { serviceAndMocks ->
-            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, pdfATom())
+            serviceAndMocks.lagBrevutkast() shouldBe Pair(sak.fnr, minimumPdfAzeroPadded())
 
             inOrder(
                 *serviceAndMocks.allMocks,

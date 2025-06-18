@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søkna
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -42,7 +42,7 @@ internal class JournalførSøknadHttpClientTest {
                 saksnummer = saksnummer,
                 sakstype = sakstype,
                 søknadInnholdJson = "{}",
-                pdf = pdfATom(),
+                pdf = minimumPdfAzeroPadded(),
                 datoDokument = fixedTidspunkt,
                 fnr = fnr,
                 navn = Person.Navn(fornavn = "Test", mellomnavn = "T.", etternavn = "Testesen"),

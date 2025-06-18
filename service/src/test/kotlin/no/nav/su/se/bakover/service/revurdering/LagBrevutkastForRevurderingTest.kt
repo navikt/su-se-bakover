@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -41,14 +41,14 @@ internal class LagBrevutkastForRevurderingTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
-                    generertDokument = pdfATom(),
+                    generertDokument = minimumPdfAzeroPadded(),
                     generertDokumentJson = "brev",
                 ).right()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
-            ) shouldBe pdfATom().right()
+            ) shouldBe minimumPdfAzeroPadded().right()
 
             inOrder(
                 *it.all(),

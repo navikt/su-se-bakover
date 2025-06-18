@@ -14,11 +14,13 @@ import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.nyDistribueringsAdresse
-import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.tomPdfA
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import java.util.UUID
 
@@ -41,7 +43,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = pdfATom(),
+                generertDokument = minimumPdfAzeroPadded(),
                 generertDokumentJson = """{"some": "json"}""",
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
@@ -93,7 +95,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = pdfATom(),
+                generertDokument = minimumPdfAzeroPadded(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
                 distribueringsadresse = null,
@@ -146,7 +148,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = pdfATom(),
+                generertDokument = minimumPdfAzeroPadded(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
                 distribueringsadresse = nyDistribueringsAdresse(),
@@ -171,6 +173,27 @@ internal class DokumentPostgresRepoTest {
     }
 
     @Test
+    fun `Krever minst 312 bytes for dokument som skal lagres`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val dokumentRepo = testDataHelper.dokumentRepo
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val original = Dokument.MedMetadata.Vedtak(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                tittel = "tittel",
+                generertDokument = tomPdfA(),
+                generertDokumentJson = """{"some":"json"}""",
+                metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
+                distribueringsadresse = null,
+            )
+            assertThrows<IllegalArgumentException> {
+                dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
+            }
+        }
+    }
+
+    @Test
     fun `oppdaterer dokument distribusjon`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -180,7 +203,7 @@ internal class DokumentPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
-                generertDokument = pdfATom(),
+                generertDokument = minimumPdfAzeroPadded(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(sakId = sak.id, søknadId = sak.søknad.id),
                 distribueringsadresse = null,

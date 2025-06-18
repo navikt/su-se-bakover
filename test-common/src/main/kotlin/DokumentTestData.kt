@@ -11,7 +11,7 @@ import java.util.UUID
 
 fun dokumentUtenMetadataVedtak(
     id: UUID = UUID.randomUUID(),
-    pdf: PdfA = pdfATom(),
+    pdf: PdfA = minimumPdfAzeroPadded(),
     tittel: String = "test-dokument-vedtak",
     generertDokumentJson: String = "{}",
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -46,7 +46,7 @@ fun dokumentMedMetadataVedtak(
 
 fun dokumentUtenMetadataInformasjonAnnet(
     id: UUID = UUID.randomUUID(),
-    pdf: PdfA = pdfATom(),
+    pdf: PdfA = minimumPdfAzeroPadded(),
     tittel: String = "test-dokument-informasjon-annet",
     opprettet: Tidspunkt = fixedTidspunkt,
     generertDokumentJson: String = "{}",
@@ -86,7 +86,7 @@ fun dokumentMedMetadataInformasjonAnnet(
 
 fun dokumentUtenMetadataInformasjonViktig(
     id: UUID = UUID.randomUUID(),
-    pdf: PdfA = pdfATom(),
+    pdf: PdfA = minimumPdfAzeroPadded(),
     tittel: String = "test-dokument-informasjon-viktig",
     generertDokumentJson: String = "{}",
     opprettet: Tidspunkt = fixedTidspunkt,

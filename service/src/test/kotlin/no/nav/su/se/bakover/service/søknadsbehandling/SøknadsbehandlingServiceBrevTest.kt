@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGener
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
-import no.nav.su.se.bakover.test.pdfATom
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -112,7 +112,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
     @Test
     fun `svarer med PdfA dersom alt går fint`() {
-        val generertDokument = pdfATom()
+        val generertDokument = minimumPdfAzeroPadded()
         val dokumentUtenMetadata = Dokument.UtenMetadata.Vedtak(
             opprettet = fixedTidspunkt,
             tittel = "tittel1",

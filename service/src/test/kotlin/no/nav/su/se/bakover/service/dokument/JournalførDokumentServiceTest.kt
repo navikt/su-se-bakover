@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribuering
 import no.nav.su.se.bakover.service.journalføring.JournalføringOgDistribueringsResultat
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksnummer
@@ -121,7 +121,7 @@ class JournalførDokumentServiceTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             tittel = "tittel",
-            generertDokument = pdfATom(),
+            generertDokument = minimumPdfAzeroPadded(),
             generertDokumentJson = "{}",
             metadata = Dokument.Metadata(sakId = sakinfo.sakId),
             distribueringsadresse = null,

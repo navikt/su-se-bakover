@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjør
 import no.nav.su.se.bakover.test.skatt.nySamletSkattegrunnlagForÅrOgStadieOppgjørMedFeilIÅrsgrunnlag
@@ -57,7 +57,7 @@ internal class SkattDokumentServiceImplTest {
         val person = person()
         val personServiceMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn minimumPdfAzeroPadded().right()
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
@@ -114,7 +114,7 @@ internal class SkattDokumentServiceImplTest {
             }.thenReturn(person.right(), eps.right())
         }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn minimumPdfAzeroPadded().right()
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
@@ -177,7 +177,7 @@ internal class SkattDokumentServiceImplTest {
         ).third
         val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn minimumPdfAzeroPadded().right()
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
@@ -240,7 +240,7 @@ internal class SkattDokumentServiceImplTest {
         ).third
         val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn minimumPdfAzeroPadded().right()
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
@@ -299,7 +299,7 @@ internal class SkattDokumentServiceImplTest {
 
         val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn minimumPdfAzeroPadded().right()
         }
         val dokumentSkatt = mock<DokumentSkattRepo> {}
 
@@ -358,7 +358,7 @@ internal class SkattDokumentServiceImplTest {
         val person = person()
         val personMock = mock<PersonService> { on { this.hentPerson(any()) } doReturn person.right() }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<PdfInnhold>()) } doReturn pdfATom().right()
+            on { genererPdf(any<PdfInnhold>()) } doReturn minimumPdfAzeroPadded().right()
         }
 
         val service = mockedServices(
@@ -428,7 +428,7 @@ internal class SkattDokumentServiceImplTest {
 
     @Test
     fun `lager skatte pdf, med eps, og journalfører den`() {
-        val pdf = pdfATom()
+        val pdf = minimumPdfAzeroPadded()
         val skattegrunnlag = nySkattegrunnlag()
         val skattegrunnlagEps = nySkattegrunnlag(fnr = epsFnr)
         val person = person()

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.J
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.pdfATom
+import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -48,7 +48,7 @@ internal class JournalførBrevHttpClientTest {
                         id = dokumentId,
                         opprettet = fixedTidspunkt,
                         tittel = "tittel",
-                        generertDokument = pdfATom(),
+                        generertDokument = minimumPdfAzeroPadded(),
                         generertDokumentJson = "{}",
                     ),
                     metadata = metadata,

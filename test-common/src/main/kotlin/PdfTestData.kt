@@ -15,7 +15,9 @@ import vilkår.skatt.domain.Skattegrunnlag
 import java.time.Clock
 import java.util.UUID
 
-fun pdfATom(): PdfA = PdfA("".toByteArray())
+fun minimumPdfAzeroPadded(): PdfA = PdfA(ByteArray(313))
+
+fun tomPdfA(): PdfA = PdfA("".toByteArray())
 
 fun nySkattegrunnlagsPdfInnhold(): SkattegrunnlagsPdfInnhold {
     return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
