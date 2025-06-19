@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
@@ -23,6 +24,9 @@ import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import tilbakekreving.presentation.consumer.KravgrunnlagDto
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import tilbakekreving.presentation.consumer.KravgrunnlagRootDto
+import økonomi.domain.Fagområde
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -64,6 +68,9 @@ internal class LokalMottaKravgrunnlagJob(
 /**
  * Denne kan gjenbrukes fra regresjonstester.
  *
+ * Så når man iverksetter et vedtak som skal utbetales, legger vi en XML-request på oppdrag sin ibm kø.
+ * lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler går  igjennom alle utbetalinger som er "fake sendt" til OS og persisterer en tilhørende rå kvittering.
+ *
  * @param overstyrUtbetalingId er ment for å trigge mismatch mellom kravgrunnlag og utbetaling. Dersom det er flere som mangler kravgrunnlag, må man sende for alle.
  */
 fun lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
@@ -79,8 +86,9 @@ fun lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
                     "Dersom man ønsker overstyre utbetalingId, må man sende et element per kravgrunnlag som mangler. Kan sende null hvis man ikke vil overstyre et element."
                 }
             }
-        }.mapIndexed { index, (saksnummer, utbetalingId, simulering) ->
+        }.mapIndexed { index, (sakstype, saksnummer, utbetalingId, simulering) ->
             lagKravgrunnlagDetaljerXml(
+                sakstype = sakstype,
                 saksnummer = saksnummer,
                 simulering = simulering,
                 utbetalingId = overstyrUtbetalingId?.get(index) ?: utbetalingId,
@@ -96,6 +104,7 @@ fun lagreRåttKravgrunnlagDetaljerForUtbetalingerSomMangler(
 }
 
 fun lagKravgrunnlagDetaljerXml(
+    sakstype: Sakstype,
     saksnummer: Saksnummer,
     simulering: Simulering,
     utbetalingId: UUID30,
@@ -111,12 +120,14 @@ fun lagKravgrunnlagDetaljerXml(
         kravgrunnlagPåSakHendelseId = HendelseId.generer(),
     )
     return lagKravgrunnlagDetaljerXml(
+        sakstype = sakstype,
         kravgrunnlag = kravgrunnlag,
         fnr = simulering.gjelderId.toString(),
     )
 }
 
 fun lagKravgrunnlagDetaljerXml(
+    sakstype: Sakstype,
     kravgrunnlag: Kravgrunnlag,
     fnr: String,
 ): String {
@@ -126,7 +137,7 @@ fun lagKravgrunnlagDetaljerXml(
                 kravgrunnlagId = kravgrunnlag.eksternKravgrunnlagId,
                 vedtakId = kravgrunnlag.eksternVedtakId,
                 kodeStatusKrav = kravgrunnlag.status.toDtoStatus(),
-                kodeFagområde = "SUUFORE",
+                kodeFagområde = if (sakstype == Sakstype.ALDER) Fagområde.SUALDER.name else Fagområde.SUUFORE.name,
                 fagsystemId = kravgrunnlag.saksnummer.toString(),
                 datoVedtakFagsystem = null,
                 vedtakIdOmgjort = null,
@@ -151,8 +162,8 @@ fun lagKravgrunnlagDetaljerXml(
                         skattebeløpPerMåned = it.betaltSkattForYtelsesgruppen.toString(),
                         tilbakekrevingsbeløp = listOf(
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = "SUUFORE",
-                                typeKlasse = "YTEL",
+                                kodeKlasse = if (sakstype == Sakstype.ALDER) KlasseKode.SUALDER.name else KlasseKode.SUUFORE.name,
+                                typeKlasse = KlasseType.YTEL.name,
                                 belopOpprUtbet = it.bruttoTidligereUtbetalt.toString(),
                                 belopNy = it.bruttoNyUtbetaling.toString(),
                                 belopTilbakekreves = it.bruttoFeilutbetaling.toString(),
@@ -160,8 +171,8 @@ fun lagKravgrunnlagDetaljerXml(
                                 skattProsent = it.skatteProsent.toString(),
                             ),
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = "KL_KODE_FEIL_INNT",
-                                typeKlasse = "FEIL",
+                                kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT.name,
+                                typeKlasse = KlasseType.FEIL.name,
                                 belopOpprUtbet = "0.00",
                                 belopNy = it.bruttoFeilutbetaling.toString(),
                                 belopTilbakekreves = "0.00",
@@ -240,6 +251,7 @@ private fun Kravgrunnlagstatus.toDtoStatus(): String = when (this) {
 }
 
 private data class KravgrunnlagData(
+    val sakstype: Sakstype,
     val saksnummer: Saksnummer,
     val utbetalingId: UUID30,
     val simulering: Simulering,
@@ -264,7 +276,7 @@ private fun finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(
                 FROM xml_data          
             )
           , distinct_utbetaling AS (
-          select DISTINCT ON(u.id) s.saksnummer, u.id, u.simulering, u.opprettet from utbetaling u
+          select DISTINCT ON(u.id) s.saksnummer, s.type, u.id, u.simulering, u.opprettet from utbetaling u
           join sak s on u.sakid = s.id
           JOIN LATERAL jsonb_array_elements_text(simulering->'periodeList') pl ON TRUE
           JOIN LATERAL jsonb_array_elements_text((pl::jsonb)->'utbetaling') ut ON TRUE
@@ -272,7 +284,7 @@ private fun finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(
           AND u.id not in (SELECT extracted_value FROM xml_values where extracted_value is not null)
           ORDER BY u.id, u.opprettet
           )
-          SELECT saksnummer, id, simulering 
+          SELECT saksnummer, type, id, simulering 
           FROM distinct_utbetaling
           ORDER BY opprettet;
         """.trimIndent().hentListe(
@@ -280,6 +292,7 @@ private fun finnSaksnummerOgUtbetalingIdSomManglerKravgrunnlag(
             session = it,
         ) {
             KravgrunnlagData(
+                sakstype = Sakstype.from(it.string("type")),
                 saksnummer = Saksnummer(it.long("saksnummer")),
                 utbetalingId = it.uuid30("id"),
                 simulering = it.string("simulering").deserializeSimulering(),
