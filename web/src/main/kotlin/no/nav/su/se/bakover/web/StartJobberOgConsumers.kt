@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.JobberOgConsumers
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -76,6 +77,7 @@ fun startJobberOgConsumers(
         applicationConfig = applicationConfig,
         clock = clock,
     )
+
     val journalførDokumentService = JournalførDokumentService(
         journalførBrevClient = clients.journalførClients.brev,
         dokumentRepo = databaseRepos.dokumentRepo,
@@ -166,7 +168,7 @@ private fun localJobberOgConsumers(
     val jobber = listOf(
         JournalførDokumentJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofSeconds(10),
+            periode = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             journalføringService = JournalføringService(
                 journalførDokumentService = journalførDokumentService,
@@ -176,7 +178,7 @@ private fun localJobberOgConsumers(
 
         DistribuerDokumentJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofSeconds(10),
+            periode = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             distribueringService = distribuerDokumentService,
         ),
@@ -220,7 +222,7 @@ private fun localJobberOgConsumers(
 
         LokalMottaKravgrunnlagJob.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
+            intervall = Duration.ofMinutes(1),
             sessionFactory = databaseRepos.sessionFactory,
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
             clock = clock,
@@ -234,27 +236,27 @@ private fun localJobberOgConsumers(
             oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
             genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
         ),
 
         DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
         ),
 
         SendPåminnelseNyStønadsperiodeJob.startJob(
-            intervall = Duration.of(1, ChronoUnit.MINUTES),
+            intervall = Duration.ofMinutes(1),
             initialDelay = initialDelay.next(),
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
             runCheckFactory = runCheckFactory,
         ),
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob.startJob(
-            intervall = Duration.of(1, ChronoUnit.MINUTES),
+            intervall = Duration.ofMinutes(1),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             runCheckFactory = runCheckFactory,
@@ -281,7 +283,7 @@ private fun naisJobberOgConsumers(
     jmsConfig: JmsConfig,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
 ): JobberOgConsumers {
-    val isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod
+    val isProd = applicationConfig.naisCluster == NaisCluster.Prod
 
     val jobber = listOfNotNull(
         // holder inst på kun i preprod inntil videre
@@ -420,7 +422,7 @@ private fun naisJobberOgConsumers(
 
         DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
+            intervall = Duration.ofMinutes(4),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
@@ -433,7 +435,7 @@ private fun naisJobberOgConsumers(
             oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
             genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofSeconds(10),
+            intervall = Duration.ofMinutes(4),
             runCheckFactory = runCheckFactory,
         ),
 
