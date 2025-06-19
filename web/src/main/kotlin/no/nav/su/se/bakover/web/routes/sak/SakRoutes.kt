@@ -8,7 +8,6 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -300,7 +299,7 @@ internal fun Route.sakRoutes(
                      * Dersom requesten er multipart, har dem lagt på en allerede generert PDF, og vi skal bare
                      * journalføre, og distribuere denne.
                      */
-                    true -> call.lagCommandForLagreOgSendOpplastetPdfPåSak(sakId).let {
+                    true -> call.parseMultiFormDataMedPdf(sakId).let {
                         sakService.lagreOgSendOpplastetPdfPåSak(request = it)
                         call.svar(Resultat.accepted())
                     }
