@@ -52,10 +52,10 @@ private fun singleMedErrorlogging(listeAvbeløp: List<Tilbakekrevingsbeløp>, pr
         return listeAvbeløp.single { predicate(it) }
     } catch (e: IllegalArgumentException) {
         sikkerLogg.error("Fant flere som matchet predikatet for tilbakekrevingslista: $listeAvbeløp", e)
-        throw RuntimeException("Fant flere som matchet predikatet", e)
+        throw RuntimeException("Fant flere som matchet predikatet, se sikkerlogg", e)
     } catch (e: NoSuchElementException) {
         sikkerLogg.error("Fant ingen som matchet predikatet for tilbakekrevingslista: $listeAvbeløp", e)
-        throw RuntimeException("Fant ingen som matchet predikatet", e)
+        throw RuntimeException("Fant ingen som matchet predikatet, se sikkerlogg", e)
     }
 }
 
