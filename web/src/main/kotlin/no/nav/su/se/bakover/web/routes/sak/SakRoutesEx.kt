@@ -43,7 +43,7 @@ data class DokumentBody(
  * 3. pdf
  * 4. distribueringsadresse - Denne er den eneste som er optional, og kommer sist i rekkefølgen
  */
-suspend fun ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak(
+suspend fun ApplicationCall.parseMultiFormDataMedPdf(
     sakId: UUID,
 ): JournalførOgSendOpplastetPdfSomBrevCommand {
     val parts = this.receiveMultipart()
