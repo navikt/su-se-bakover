@@ -17,6 +17,7 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import økonomi.domain.Fagområde
 import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -56,7 +57,7 @@ internal class KravgrunnlagDtoTest {
                         tilbakekrevingsbeløp = listOf(
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                                 kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT.name,
-                                typeKlasse = "FEIL",
+                                typeKlasse = KlasseType.FEIL.name,
                                 belopOpprUtbet = "0.00",
                                 belopNy = "9989.00",
                                 belopTilbakekreves = "0.00",
@@ -65,7 +66,7 @@ internal class KravgrunnlagDtoTest {
                             ),
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                                 kodeKlasse = KlasseKode.SUUFORE.name,
-                                typeKlasse = "YTEL",
+                                typeKlasse = KlasseType.YTEL.name,
                                 belopOpprUtbet = "9989.00",
                                 belopNy = "0.00",
                                 belopTilbakekreves = "9989.00",
