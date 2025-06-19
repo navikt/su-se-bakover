@@ -5,12 +5,14 @@ import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
+import tilbakekreving.presentation.consumer.KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -45,6 +47,18 @@ internal fun KravgrunnlagRootDto.toHendelse(
     }
 }
 
+private fun singleMedErrorlogging(listeAvbeløp: List<Tilbakekrevingsbeløp>, predicate: (Tilbakekrevingsbeløp) -> Boolean): Tilbakekrevingsbeløp {
+    try {
+        return listeAvbeløp.single { predicate(it) }
+    } catch (e: IllegalArgumentException) {
+        sikkerLogg.error("Fant flere som matchet predikatet for tilbakekrevingslista: $listeAvbeløp", e)
+        throw RuntimeException("Fant flere som matchet predikatet", e)
+    } catch (e: NoSuchElementException) {
+        sikkerLogg.error("Fant ingen som matchet predikatet for tilbakekrevingslista: $listeAvbeløp", e)
+        throw RuntimeException("Fant ingen som matchet predikatet", e)
+    }
+}
+
 internal fun KravgrunnlagRootDto.toDomain(
     hendelseId: HendelseId,
 ): Either<Throwable, Kravgrunnlag> {
@@ -63,10 +77,8 @@ internal fun KravgrunnlagRootDto.toDomain(
                         "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
                     }
 
-                    val tilbakekrevingsbeløpForYtelse =
-                        tilbakekrevingsperiode.tilbakekrevingsbeløp.single { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" }
-                    val tilbakekrevingsbeløpForFeilutbetaling = tilbakekrevingsperiode.tilbakekrevingsbeløp
-                        .single { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" }
+                    val tilbakekrevingsbeløpForYtelse = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" })
+                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" })
                     val bruttoFeilutbetaling =
                         BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
 
