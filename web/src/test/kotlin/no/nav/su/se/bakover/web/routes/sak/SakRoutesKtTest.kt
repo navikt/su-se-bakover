@@ -4,10 +4,16 @@ import arrow.core.right
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -20,6 +26,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
+import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.sakId
@@ -33,10 +41,130 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import java.util.UUID
 
 internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
+
+    /**
+     * Test for [ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak]
+     */
+    @Nested
+    inner class multipartTests {
+        @Test
+        fun `Skal håndtere multiform med pdf og påkrevde felter fra pdf opplasting`() {
+            val mockedSakService = mock<SakService> {}
+            val journalpostTittel = "tittel"
+            val distribusjonstype = Distribusjonstype.VEDTAK.name
+            val pdfByteArray = ByteArray(313)
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            sakService = mockedSakService,
+                        ),
+                    )
+                }
+                defaultRequest(HttpMethod.Post, "$SAK_PATH/${UUID.randomUUID()}/fritekstDokument/lagreOgSend", listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("distribusjonstype", distribusjonstype)
+                                append("tittel", journalpostTittel)
+                                append(
+                                    "pdf",
+                                    pdfByteArray,
+                                    Headers.build {
+                                        append(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
+                                        append(HttpHeaders.ContentDisposition, "filename=file.pdf")
+                                    },
+                                )
+                            },
+                        ),
+                    )
+                }.apply {
+                    status shouldBe HttpStatusCode.Accepted
+                }
+            }
+            verify(mockedSakService, times(1)).lagreOgSendOpplastetPdfPåSak(
+                request = argThat {
+                    it.journaltittel shouldBe journalpostTittel
+                    it.distribusjonstype.name shouldBe distribusjonstype
+                    it.pdf.getContent() shouldBe pdfByteArray
+                },
+            )
+        }
+
+        @Test
+        fun `Skal kaste ved tom pdf i multiform`() {
+            val mockedSakService = mock<SakService> {}
+            val journalpostTittel = "tittel"
+            val distribusjonstype = Distribusjonstype.VEDTAK.name
+            val pdfByteArray = ByteArray(0)
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            sakService = mockedSakService,
+                        ),
+                    )
+                }
+                defaultRequest(HttpMethod.Post, "$SAK_PATH/${UUID.randomUUID()}/fritekstDokument/lagreOgSend", listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("distribusjonstype", distribusjonstype)
+                                append("tittel", journalpostTittel)
+                                append(
+                                    "pdf",
+                                    pdfByteArray,
+                                    Headers.build {
+                                        append(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
+                                        append(HttpHeaders.ContentDisposition, "filename=file.pdf")
+                                    },
+                                )
+                            },
+                        ),
+                    )
+                }.apply {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+            }
+            verify(mockedSakService, times(0)).lagreOgSendOpplastetPdfPåSak(
+                any(),
+            )
+        }
+
+        @Test
+        fun `Skal kaste hvis multiform har feil name for form item`() {
+            val mockedSakService = mock<SakService> {}
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            sakService = mockedSakService,
+                        ),
+                    )
+                }
+                defaultRequest(HttpMethod.Post, "$SAK_PATH/${UUID.randomUUID()}/fritekstDokument/lagreOgSend", listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("tullename", "tull")
+                            },
+                        ),
+                    )
+                }.apply {
+                    status shouldBe HttpStatusCode.InternalServerError
+                }
+            }
+            verify(mockedSakService, times(0)).lagreOgSendOpplastetPdfPåSak(
+                any(),
+            )
+        }
+    }
 
     @Test
     fun `søk etter sak for fødselsnummer`() {
@@ -44,7 +172,7 @@ internal class SakRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
-                        sak = mock {
+                        sakService = mock {
                             on { hentSaker(any<Fnr>()) } doReturn listOf(
                                 nySakUføre(
                                     sakInfo = SakInfo(
@@ -74,7 +202,7 @@ internal class SakRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
-                        sak = mock {
+                        sakService = mock {
                             on { hentSak(any<Fnr>(), any()) } doReturn nySakUføre(
                                 sakInfo = SakInfo(
                                     sakId = sakId,
@@ -104,7 +232,7 @@ internal class SakRoutesKtTest {
                 application {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
-                            sak = mock {
+                            sakService = mock {
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = false,
@@ -150,7 +278,7 @@ internal class SakRoutesKtTest {
                 application {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
-                            sak = mock {
+                            sakService = mock {
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = true,
@@ -196,7 +324,7 @@ internal class SakRoutesKtTest {
                 application {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
-                            sak = mock {
+                            sakService = mock {
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = false,
