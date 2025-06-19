@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlagstatus
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
+import økonomi.domain.Fagområde
+import økonomi.domain.KlasseKode
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -28,7 +30,7 @@ internal class KravgrunnlagDtoTest {
                 kravgrunnlagId = "298604",
                 vedtakId = "436204",
                 kodeStatusKrav = "NY",
-                kodeFagområde = "SUUFORE",
+                kodeFagområde = Fagområde.SUUFORE.name,
                 fagsystemId = "2461",
                 datoVedtakFagsystem = null,
                 vedtakIdOmgjort = "0",
@@ -53,7 +55,7 @@ internal class KravgrunnlagDtoTest {
                         skattebeløpPerMåned = "4395.00",
                         tilbakekrevingsbeløp = listOf(
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = "KL_KODE_FEIL_INNT",
+                                kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT.name,
                                 typeKlasse = "FEIL",
                                 belopOpprUtbet = "0.00",
                                 belopNy = "9989.00",
@@ -62,7 +64,7 @@ internal class KravgrunnlagDtoTest {
                                 skattProsent = "0.0000",
                             ),
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = "SUUFORE",
+                                kodeKlasse = KlasseKode.SUUFORE.name,
                                 typeKlasse = "YTEL",
                                 belopOpprUtbet = "9989.00",
                                 belopNy = "0.00",
