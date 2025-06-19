@@ -237,7 +237,7 @@ data class KravgrunnlagDto(
         )
 
         data class Tilbakekrevingsbeløp(
-            /** F.eks. SUUFORE/SUALDER eller KL_KODE_FEIL_INNT */
+            /** F.eks. SUUFORE og KL_KODE_FEIL_INNT eller SUALDER og KL_KODE_FEIL */
             @field:JsonProperty(value = "kodeKlasse")
             val kodeKlasse: String,
 
