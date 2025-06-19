@@ -61,6 +61,23 @@ private fun singleMedErrorlogging(listeAvbeløp: List<Tilbakekrevingsbeløp>, pr
     }
 }
 
+private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair<Tilbakekrevingsbeløp, Tilbakekrevingsbeløp> {
+    val ytelse = tilbakekrevingsbeløp.filter { it.typeKlasse == KlasseType.YTEL.name }
+        .takeIf { it.size == 1 }
+        ?: throw RuntimeException("Hadde flere linjer av klassetypen YTEL, kun en skal forekomme")
+
+    val tilbakekrevingsbeløpForYtelse =
+        ytelse.first { (it.kodeKlasse == KlasseKode.SUUFORE.name || it.kodeKlasse == KlasseKode.SUALDER.name) }
+
+    val feilbeløp = tilbakekrevingsbeløp.filter { it.typeKlasse == KlasseType.FEIL.name }
+        .takeIf { it.size == 1 }
+        ?: throw RuntimeException("Hadde flere linjer av klassetypen FEIL, kun en skal forekomme")
+    val tilbakekrevingsbeløpForFeilutbetaling = feilbeløp.filter { if (tilbakekrevingsbeløpForYtelse.kodeKlasse == KlasseKode.SUUFORE.name) it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name else it.kodeKlasse == KlasseKode.KL_KODE_FEIL.name }
+        .takeIf { it.size == 1 }
+        ?: throw RuntimeException("Mismatch mellom kodeklassen i beløpet for ytelsen og selve feilen og kodeklassen til beløpet")
+    return Pair(tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling.first())
+}
+
 internal fun KravgrunnlagRootDto.toDomain(
     hendelseId: HendelseId,
 ): Either<Throwable, Kravgrunnlag> {
@@ -79,9 +96,8 @@ internal fun KravgrunnlagRootDto.toDomain(
                         "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
                     }
 
-                    val tilbakekrevingsbeløpForYtelse = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.YTEL.name && (it.kodeKlasse == KlasseKode.SUUFORE.name || it.kodeKlasse == KlasseKode.SUALDER.name) })
+                    val (tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling) = hentBeløp(tilbakekrevingsperiode.tilbakekrevingsbeløp)
 
-                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.FEIL.name && if (tilbakekrevingsbeløpForYtelse.kodeKlasse == KlasseKode.SUUFORE.name) it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name else it.kodeKlasse == KlasseKode.KL_KODE_FEIL.name })
                     val bruttoFeilutbetaling =
                         BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
 
