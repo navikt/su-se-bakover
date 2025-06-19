@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.påsak.KravgrunnlagDetaljerPåSakHendelse
 import tilbakekreving.presentation.consumer.KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp
+import økonomi.domain.KlasseKode
+import økonomi.domain.KlasseType
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -77,8 +79,8 @@ internal fun KravgrunnlagRootDto.toDomain(
                         "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
                     }
 
-                    val tilbakekrevingsbeløpForYtelse = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == "YTEL" && it.kodeKlasse == "SUUFORE" })
-                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == "FEIL" && it.kodeKlasse == "KL_KODE_FEIL_INNT" })
+                    val tilbakekrevingsbeløpForYtelse = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.YTEL.name && (it.kodeKlasse == KlasseKode.SUUFORE.name || it.kodeKlasse == KlasseKode.SUALDER.name) })
+                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.FEIL.name && it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name })
                     val bruttoFeilutbetaling =
                         BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
 
