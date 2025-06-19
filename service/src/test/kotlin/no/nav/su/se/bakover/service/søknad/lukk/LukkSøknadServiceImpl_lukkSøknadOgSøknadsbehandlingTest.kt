@@ -223,7 +223,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad og søknadsbehandling. Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak ${sak.id} og søknad ${søknad.id}"
+            }.message shouldBe "Kunne ikke lukke søknad og søknadsbehandling. Fant ingen oppgave Gosys var nok nede eller tilganger mangler.  Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak ${sak.id} og søknad ${søknad.id}"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()

@@ -95,7 +95,7 @@ sealed interface Søknad {
             override fun lukk(
                 lukkSøknadCommand: LukkSøknadCommand,
             ): MedOppgave.Lukket {
-                throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Fant ingen oppgave Gosys var nok nede eller tilganger mangelr.  Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak $sakId og søknad ${this.id}")
+                throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Fant ingen oppgave Gosys var nok nede eller tilganger mangler.  Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak $sakId og søknad ${this.id}")
             }
 
             fun medOppgave(
