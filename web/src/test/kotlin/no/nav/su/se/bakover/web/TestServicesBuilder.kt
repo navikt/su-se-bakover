@@ -35,7 +35,7 @@ data object TestServicesBuilder {
     fun services(
         avstemming: AvstemmingService = mock(),
         utbetaling: UtbetalingService = mock(),
-        sak: SakService = mock(),
+        sakService: SakService = mock(),
         søknad: SøknadService = mock(),
         brev: BrevService = mock(),
         lukkSøknad: LukkSøknadService = mock(),
@@ -69,7 +69,7 @@ data object TestServicesBuilder {
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
-        sak = sak,
+        sak = sakService,
         søknad = søknad,
         brev = brev,
         lukkSøknad = lukkSøknad,
