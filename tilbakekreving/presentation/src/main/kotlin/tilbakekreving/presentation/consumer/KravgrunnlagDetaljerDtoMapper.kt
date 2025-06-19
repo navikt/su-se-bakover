@@ -80,7 +80,8 @@ internal fun KravgrunnlagRootDto.toDomain(
                     }
 
                     val tilbakekrevingsbeløpForYtelse = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.YTEL.name && (it.kodeKlasse == KlasseKode.SUUFORE.name || it.kodeKlasse == KlasseKode.SUALDER.name) })
-                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.FEIL.name && it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name })
+
+                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.FEIL.name && if (tilbakekrevingsbeløpForYtelse.kodeKlasse == KlasseKode.SUUFORE.name) it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name else it.kodeKlasse == KlasseKode.KL_KODE_FEIL.name })
                     val bruttoFeilutbetaling =
                         BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
 

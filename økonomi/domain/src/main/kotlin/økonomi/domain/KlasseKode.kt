@@ -2,7 +2,7 @@ package økonomi.domain
 
 enum class KlasseKode {
     SUUFORE,
-    KL_KODE_FEIL_INNT,
+    KL_KODE_FEIL_INNT, // Sakstype.UFORE
     TBMOTOBS,
     FSKTSKAT,
 
@@ -10,7 +10,7 @@ enum class KlasseKode {
     UFOREUT,
 
     SUALDER,
-    KL_KODE_FEIL,
+    KL_KODE_FEIL, // Sakstype.ALDER
     ;
 
     companion object {
