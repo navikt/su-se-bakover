@@ -171,7 +171,7 @@ fun lagKravgrunnlagDetaljerXml(
                                 skattProsent = it.skatteProsent.toString(),
                             ),
                             KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                                kodeKlasse = KlasseKode.KL_KODE_FEIL_INNT.name,
+                                kodeKlasse = if (sakstype == Sakstype.ALDER) KlasseKode.KL_KODE_FEIL.name else KlasseKode.KL_KODE_FEIL_INNT.name,
                                 typeKlasse = KlasseType.FEIL.name,
                                 belopOpprUtbet = "0.00",
                                 belopNy = it.bruttoFeilutbetaling.toString(),

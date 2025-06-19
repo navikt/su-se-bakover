@@ -78,9 +78,12 @@ internal fun KravgrunnlagRootDto.toDomain(
                     require(tilbakekrevingsperiode.tilbakekrevingsbeløp.size == 2) {
                         "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
                     }
+                    /*
+                    KL_KODE_FEIL skjer bare hvis it.kodeKlasse == KlasseKode.SUALDER.name
+                     */
 
                     val tilbakekrevingsbeløpForYtelse = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.YTEL.name && (it.kodeKlasse == KlasseKode.SUUFORE.name || it.kodeKlasse == KlasseKode.SUALDER.name) })
-                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.FEIL.name && it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name })
+                    val tilbakekrevingsbeløpForFeilutbetaling = singleMedErrorlogging(tilbakekrevingsperiode.tilbakekrevingsbeløp, { it.typeKlasse == KlasseType.FEIL.name && if (it.kodeKlasse == KlasseKode.SUUFORE.name) it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name else it.kodeKlasse == KlasseKode.KL_KODE_FEIL.name })
                     val bruttoFeilutbetaling =
                         BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
 
