@@ -246,7 +246,8 @@ internal fun Route.klageRoutes(
             }
         }
     }
-
+    /* TODO: Omgjøring her kan tydeligvis aldri skje så all logikk og klasser rundt det er bare støy
+     */
     post("$KLAGE_PATH/{klageId}/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
             fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
