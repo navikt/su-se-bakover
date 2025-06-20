@@ -47,7 +47,7 @@ internal class VurderKlageTest {
             omgjør = null,
             oppretthold = null,
         )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.FantIkkeKlage.left()
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request) shouldBe KunneIkkeVurdereKlage.FantIkkeKlage.left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
@@ -63,7 +63,7 @@ internal class VurderKlageTest {
             omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null),
             oppretthold = null,
         )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
 
         mocks.verifyNoMoreInteractions()
     }
@@ -78,7 +78,7 @@ internal class VurderKlageTest {
             omgjør = KlageVurderingerRequest.Omgjør(null, "UGYLDIG_OMGJØRINGSUTFALL"),
             oppretthold = null,
         )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
         mocks.verifyNoMoreInteractions()
     }
 
@@ -92,7 +92,7 @@ internal class VurderKlageTest {
             omgjør = null,
             oppretthold = KlageVurderingerRequest.Oppretthold(listOf("UGYLDIG_HJEMMEL")),
         )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request) shouldBe KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
         mocks.verifyNoMoreInteractions()
     }
 
@@ -111,7 +111,7 @@ internal class VurderKlageTest {
                 hjemler = listOf(),
             ),
         )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request) shouldBe KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
         mocks.verifyNoMoreInteractions()
     }
 
@@ -198,7 +198,7 @@ internal class VurderKlageTest {
             omgjør = null,
             oppretthold = null,
         )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigTilstand(
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request) shouldBe KunneIkkeVurdereKlage.UgyldigTilstand(
             klage::class,
         ).left()
 
@@ -279,7 +279,7 @@ internal class VurderKlageTest {
             oppretthold = null,
         )
 
-        mocks.service.vurder(request).getOrFail().also {
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
             it.vurderinger shouldBe VurderingerTilKlage.empty()
         }
@@ -311,7 +311,7 @@ internal class VurderKlageTest {
             omgjør = null,
             oppretthold = KlageVurderingerRequest.Oppretthold(listOf("SU_PARAGRAF_3")),
         )
-        mocks.service.vurder(request).getOrFail().also {
+        mocks.service.vurderOmOmgjøringEllerOpprettholdelse(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
             it.vurderinger shouldBe VurderingerTilKlage.Utfylt(
                 fritekstTilOversendelsesbrev = "fritekstTilBrev",

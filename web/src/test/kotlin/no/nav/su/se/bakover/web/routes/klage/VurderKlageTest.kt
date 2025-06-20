@@ -139,7 +139,7 @@ internal class VurderKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { vurder(any()) } doReturn feilkode.left()
+            on { vurderOmOmgjøringEllerOpprettholdelse(any()) } doReturn feilkode.left()
         }
         testApplication {
             application {
@@ -162,7 +162,7 @@ internal class VurderKlageTest {
     fun `kan vurdere klage`() {
         val påbegyntVurdertKlage = påbegyntVurdertKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { vurder(any()) } doReturn påbegyntVurdertKlage.right()
+            on { vurderOmOmgjøringEllerOpprettholdelse(any()) } doReturn påbegyntVurdertKlage.right()
         }
         testApplication {
             application {

@@ -12,7 +12,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -247,7 +246,8 @@ internal fun Route.klageRoutes(
             }
         }
     }
-
+    /* TODO: Omgjøring her kan tydeligvis aldri skje så all logikk og klasser rundt det er bare støy
+     */
     post("$KLAGE_PATH/{klageId}/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
             fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
@@ -288,7 +288,7 @@ internal fun Route.klageRoutes(
 
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
-                    val resultat: Resultat = klageService.vurder(
+                    val resultat: Resultat = klageService.vurderOmOmgjøringEllerOpprettholdelse(
                         request = KlageVurderingerRequest(
                             klageId = KlageId(klageId),
                             fritekstTilBrev = body.fritekstTilBrev,
@@ -318,7 +318,7 @@ internal fun Route.klageRoutes(
     post("$KLAGE_PATH/{klageId}/vurderinger/bekreft") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
-                klageService.bekreftVurderinger(
+                klageService.bekreftOmgjøringEllerOpprettholdelse(
                     klageId = KlageId(klageId),
                     saksbehandler = call.suUserContext.saksbehandler,
                 ).map {

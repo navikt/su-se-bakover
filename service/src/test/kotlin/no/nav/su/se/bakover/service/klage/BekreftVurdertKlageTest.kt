@@ -45,7 +45,7 @@ internal class BekreftVurdertKlageTest {
 
         val klageId = KlageId.generer()
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
-        mocks.service.bekreftVurderinger(
+        mocks.service.bekreftOmgjøringEllerOpprettholdelse(
             klageId = klageId,
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
@@ -144,7 +144,7 @@ internal class BekreftVurdertKlageTest {
                 on { hentKlage(any()) } doReturn klage
             },
         )
-        mocks.service.bekreftVurderinger(
+        mocks.service.bekreftOmgjøringEllerOpprettholdelse(
             klageId = klage.id,
             saksbehandler = klage.saksbehandler,
         ) shouldBe KunneIkkeBekrefteKlagesteg.UgyldigTilstand(klage::class, VurdertKlage.Bekreftet::class).left()
@@ -199,7 +199,7 @@ internal class BekreftVurdertKlageTest {
             },
         )
 
-        mocks.service.bekreftVurderinger(
+        mocks.service.bekreftOmgjøringEllerOpprettholdelse(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
         ).getOrFail().also {

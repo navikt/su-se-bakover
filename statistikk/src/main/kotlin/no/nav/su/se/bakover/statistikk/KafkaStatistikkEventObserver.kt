@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
-import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
+import no.nav.su.se.bakover.statistikk.sak.toSaksStatistikk
 import no.nav.su.se.bakover.statistikk.stønad.toStønadstatistikkDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,7 +30,7 @@ internal class KafkaStatistikkEventObserver(
                     val sak = event.sak
                     personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                         { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                        { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
+                        { aktørId -> publiserEllerLoggFeil(event.toSaksStatistikk(aktørId, gitCommit)) },
                     )
                 }
 

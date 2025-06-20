@@ -1094,17 +1094,17 @@ open class AccessCheckProxy(
                     return services.klageService.bekreftVilkårsvurderinger(klageId, saksbehandler)
                 }
 
-                override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+                override fun vurderOmOmgjøringEllerOpprettholdelse(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
                     assertHarTilgangTilKlage(request.klageId)
-                    return services.klageService.vurder(request)
+                    return services.klageService.vurderOmOmgjøringEllerOpprettholdelse(request)
                 }
 
-                override fun bekreftVurderinger(
+                override fun bekreftOmgjøringEllerOpprettholdelse(
                     klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.bekreftVurderinger(klageId, saksbehandler)
+                    return services.klageService.bekreftOmgjøringEllerOpprettholdelse(klageId, saksbehandler)
                 }
 
                 override fun leggTilAvvistFritekstTilBrev(
