@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
@@ -57,7 +58,7 @@ internal class StatistikkKlageTest {
         val klage = oversendtKlage().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(klage),
-            behandlingStatus = "OVERSENDT",
+            behandlingStatus = BehandlingStatus.OVERSENDT_KA.toString(),
             behandlingStatusBeskrivelse = "Oversendt innstilling til klageinstansen. Denne er unik for klage. Brukes f.eks. ved resultatet [OPPRETTHOLDT].",
             resultat = "OPPRETTHOLDT",
             resultatBeskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",

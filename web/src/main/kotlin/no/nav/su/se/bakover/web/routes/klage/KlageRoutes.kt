@@ -317,7 +317,7 @@ internal fun Route.klageRoutes(
     post("$KLAGE_PATH/{klageId}/vurderinger/bekreft") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
-                klageService.bekreftVurderinger(
+                klageService.bekreftOmgjøringEllerOpprettholdelse(
                     klageId = KlageId(klageId),
                     saksbehandler = call.suUserContext.saksbehandler,
                 ).map {

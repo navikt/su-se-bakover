@@ -36,7 +36,7 @@ interface KlageService {
     ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet>
 
     fun vurderOmOmgjøringEllerOpprettholdelse(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage>
-    fun bekreftVurderinger(
+    fun bekreftOmgjøringEllerOpprettholdelse(
         klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet>

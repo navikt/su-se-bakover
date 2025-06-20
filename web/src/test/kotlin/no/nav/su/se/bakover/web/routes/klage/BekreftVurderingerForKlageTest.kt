@@ -96,7 +96,7 @@ internal class BekreftVurderingerForKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { bekreftVurderinger(any(), any()) } doReturn feilkode.left()
+            on { bekreftOmgjøringEllerOpprettholdelse(any(), any()) } doReturn feilkode.left()
         }
         testApplication {
             application {
@@ -117,7 +117,7 @@ internal class BekreftVurderingerForKlageTest {
     fun `kan bekrefte utfylt vurdert klage`() {
         val bekreftetVurdertKlage = bekreftetVurdertKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { bekreftVurderinger(any(), any()) } doReturn bekreftetVurdertKlage.right()
+            on { bekreftOmgjøringEllerOpprettholdelse(any(), any()) } doReturn bekreftetVurdertKlage.right()
         }
         testApplication {
             application {

@@ -189,13 +189,12 @@ class KlageServiceImpl(
                         vurderinger = mappetKlage.vurderinger,
                     ).also { vurdertKlage ->
                         klageRepo.lagre(vurdertKlage)
-                        observers.notify(StatistikkEvent.Behandling.Klage.OmgjortEllerOpprettHoldt(vurdertKlage))
                     }
                 }
         }
     }
 
-    override fun bekreftVurderinger(
+    override fun bekreftOmgjøringEllerOpprettholdelse(
         klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
@@ -213,6 +212,7 @@ class KlageServiceImpl(
                     saksbehandler = saksbehandler,
                 ).also { bekreftetVurdertKlage ->
                     klageRepo.lagre(bekreftetVurdertKlage)
+                    observers.notify(StatistikkEvent.Behandling.Klage.OmgjortEllerOpprettHoldt(bekreftetVurdertKlage))
                 }
             }
     }

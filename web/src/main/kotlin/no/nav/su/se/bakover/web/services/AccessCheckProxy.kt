@@ -1099,12 +1099,12 @@ open class AccessCheckProxy(
                     return services.klageService.vurderOmOmgjøringEllerOpprettholdelse(request)
                 }
 
-                override fun bekreftVurderinger(
+                override fun bekreftOmgjøringEllerOpprettholdelse(
                     klageId: KlageId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.bekreftVurderinger(klageId, saksbehandler)
+                    return services.klageService.bekreftOmgjøringEllerOpprettholdelse(klageId, saksbehandler)
                 }
 
                 override fun leggTilAvvistFritekstTilBrev(
