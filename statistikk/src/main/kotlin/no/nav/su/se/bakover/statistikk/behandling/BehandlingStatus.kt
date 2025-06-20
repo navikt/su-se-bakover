@@ -28,8 +28,8 @@ internal enum class BehandlingStatus(val value: String, val beskrivelse: String)
         value = "IVERKSATT",
         beskrivelse = "Behandlingen har blitt iverksatt.",
     ),
-    OversendtKlage(
-        value = "OVERSENDT",
+    OVERSENDT_KA(
+        value = "OVERSENDT_KA", // Var tidligere bare OVERSENDT
         beskrivelse = "Oversendt innstilling til klageinstansen. Denne er unik for klage. Brukes f.eks. ved resultatet [OPPRETTHOLDT].",
     ),
     ;

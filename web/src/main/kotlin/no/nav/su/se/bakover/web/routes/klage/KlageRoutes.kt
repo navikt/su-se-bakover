@@ -12,7 +12,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -288,7 +287,7 @@ internal fun Route.klageRoutes(
 
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
-                    val resultat: Resultat = klageService.vurder(
+                    val resultat: Resultat = klageService.vurderOmOmgjøringEllerOpprettholdelse(
                         request = KlageVurderingerRequest(
                             klageId = KlageId(klageId),
                             fritekstTilBrev = body.fritekstTilBrev,

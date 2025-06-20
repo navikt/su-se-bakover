@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -197,6 +198,7 @@ sealed interface StatistikkEvent {
 
             data class Opprettet(override val klage: OpprettetKlage) : Klage
             data class Oversendt(override val klage: OversendtKlage) : Klage
+            data class OmgjortEllerOpprettHoldt(override val klage: VurdertKlage) : Klage
             data class Avvist(
                 val vedtak: Klagevedtak.Avvist,
             ) : Klage {

@@ -35,7 +35,7 @@ interface KlageService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet>
 
-    fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage>
+    fun vurderOmOmgjøringEllerOpprettholdelse(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage>
     fun bekreftVurderinger(
         klageId: KlageId,
         saksbehandler: NavIdentBruker.Saksbehandler,

@@ -50,7 +50,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             klage = this.klage,
             gitCommit = gitCommit,
             clock = clock,
-            behandlingStatus = BehandlingStatus.OversendtKlage,
+            behandlingStatus = BehandlingStatus.OVERSENDT_KA,
             behandlingResultat = BehandlingResultat.OpprettholdtKlage,
             resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler?.toResultatBegrunnelse(),
             // Spesialtilfelle der vi sender en innstilling (ikke vedtak) til klageinstansen som vil si at behandlingen ikke er avsluttet for brukeren.
@@ -74,6 +74,43 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             funksjonellTid = this.klage.avsluttetTidspunkt,
             beslutter = null,
         )
+
+        is StatistikkEvent.Behandling.Klage.OmgjortEllerOpprettHoldt -> toDto(
+            klage = this.klage,
+            gitCommit = gitCommit,
+            clock = clock,
+            behandlingStatus = BehandlingStatus.Avsluttet,
+            behandlingResultat = maptoBehandlingresultat(this.klage.vurderinger),
+            resultatBegrunnelse = null,
+            avsluttet = true,
+            totrinnsbehandling = false,
+            funksjonellTid = Tidspunkt.now(clock), // Ingen avsluttet tidspunkt lagres, litt dumt kanskje.
+            beslutter = null,
+        )
+    }
+}
+
+/*TODO: SOS: Mulig alle Påbegynte tilstander skal være ugyldig status her, men koden åpner for at de kan være tomme når vi mottar fra KA så hva skal man gjøre
+    Problemet her er at det er ingen ordentlig validering ved inngangen til klagen, man åpner for alt uansett og lager klasser deretter.
+    Med streng validering ved inngang på klagen kunne man avgrenset mulighetsrommet her. Se requst.toDomain i vurderOmgjøring()
+ */
+private fun maptoBehandlingresultat(vurderinger: VurderingerTilKlage): BehandlingResultat {
+    return when (vurderinger) {
+        is VurderingerTilKlage.Påbegynt -> {
+            when (vurderinger.vedtaksvurdering) {
+                is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør -> BehandlingResultat.Omgjort
+                is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> BehandlingResultat.Fastholdt
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> BehandlingResultat.Omgjort
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> BehandlingResultat.Fastholdt
+                null -> throw IllegalStateException("Må foreligge en vurdering for klage")
+            }
+        }
+        is VurderingerTilKlage.Utfylt -> {
+            when (vurderinger.vedtaksvurdering) {
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> BehandlingResultat.Omgjort
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> BehandlingResultat.Fastholdt
+            }
+        }
     }
 }
 

@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 
 private val sakSchema: JsonSchema = SchemaValidator.createSchema("/statistikk/sak_schema.json")
 
-internal fun StatistikkEvent.SakOpprettet.toBehandlingsstatistikk(
+internal fun StatistikkEvent.SakOpprettet.toSaksStatistikk(
     aktørId: AktørId,
     gitCommit: GitCommit?,
 ): Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding> {

@@ -172,10 +172,10 @@ class KlageServiceImpl(
         }
     }
 
-    override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
-        return request.toDomain().flatMap { r ->
+    override fun vurderOmOmgjøringEllerOpprettholdelse(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+        return request.toDomain().flatMap { mappetKlage ->
             (
-                klageRepo.hentKlage(r.klageId)
+                klageRepo.hentKlage(mappetKlage.klageId)
                     ?.right()
                     ?: FantIkkeKlage.left()
                 )
@@ -185,10 +185,11 @@ class KlageServiceImpl(
                         ?: KunneIkkeVurdereKlage.UgyldigTilstand(it::class).left()
                 }.map {
                     it.vurder(
-                        saksbehandler = r.saksbehandler,
-                        vurderinger = r.vurderinger,
+                        saksbehandler = mappetKlage.saksbehandler,
+                        vurderinger = mappetKlage.vurderinger,
                     ).also { vurdertKlage ->
                         klageRepo.lagre(vurdertKlage)
+                        observers.notify(StatistikkEvent.Behandling.Klage.OmgjortEllerOpprettHoldt(vurdertKlage))
                     }
                 }
         }

@@ -1094,9 +1094,9 @@ open class AccessCheckProxy(
                     return services.klageService.bekreftVilkårsvurderinger(klageId, saksbehandler)
                 }
 
-                override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+                override fun vurderOmOmgjøringEllerOpprettholdelse(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
                     assertHarTilgangTilKlage(request.klageId)
-                    return services.klageService.vurder(request)
+                    return services.klageService.vurderOmOmgjøringEllerOpprettholdelse(request)
                 }
 
                 override fun bekreftVurderinger(

@@ -4,6 +4,7 @@ package no.nav.su.se.bakover.statistikk.behandling
  * Alle behandlinger som er ferdigbehandlet skal ha et resultat.
  * Helt greit å legge på resultater på det tidspunktet en vurdering gir et klart resultat, selvom det er mellomtilstand.
  * Må sees i kombinasjon med [BehandlingStatus]
+ * se https://confluence.adeo.no/spaces/navdvh/pages/494772092/Teknisk+beskrivelse+av+behov+til+felles+saksbehandlingsstatistikk
  */
 internal enum class BehandlingResultat(val value: String, val beskrivelse: String) {
     Innvilget(
@@ -45,6 +46,16 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
     Avvist(
         value = "AVVIST",
         beskrivelse = "Avvist pga. bl.a. formkrav. En spesifisering av [AVBRUTT].",
+    ),
+    Omgjort(
+        value = "OMGJORT",
+        beskrivelse = "Ved svar fra KA om omgjort",
+    ),
+
+    // Kalles også Oppretthold i vår kode
+    Fastholdt(
+        value = "FASTHOLDT",
+        beskrivelse = "Ved svar fra KA om fastholdt",
     ),
     ;
 
