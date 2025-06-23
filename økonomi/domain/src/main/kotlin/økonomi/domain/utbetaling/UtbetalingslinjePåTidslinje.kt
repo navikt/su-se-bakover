@@ -10,7 +10,7 @@ import java.time.LocalDate
 sealed interface UtbetalingslinjePåTidslinje {
     val kopiertFraId: UUID30
     val periode: Periode
-    val beløp: Int
+    val beløp: Int // Per måned
 
     /**
      * Ekvivalent i denne contexten betyr at linjen er av klasse, har samme [periode] og samme [beløp] som en annen linje.

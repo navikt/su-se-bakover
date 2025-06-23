@@ -212,6 +212,7 @@ class SøknadsbehandlingServiceImpl(
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 uføregrunnlag = uføregrunnlag,
             ).let {
+                log.info("Det vi sender til simulering:\n$it")
                 simulerUtbetaling(
                     tidligereUtbetalinger = sak.utbetalinger,
                     utbetalingForSimulering = it,

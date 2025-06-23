@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
+import no.nav.su.se.bakover.common.domain.tid.erNesteÅr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOfOrNull
 import org.slf4j.Logger
@@ -52,7 +53,7 @@ fun kryssjekkSimuleringMotUtbetaling(
     return Unit.right()
 }
 
-private fun sjekkUtbetalingMotSimulering(
+internal fun sjekkUtbetalingMotSimulering(
     simulering: Simulering,
     utbetalingslinjePåTidslinjer: TidslinjeForUtbetalinger,
 ): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
@@ -78,25 +79,31 @@ private fun sjekkUtbetalingMotSimulering(
             val simuleringsperioderOgBeløp =
                 simulering.hentTotalUtbetaling().filter { linje.periode.overlapper(it.periode) }
             val simuleringsperiode = simuleringsperioderOgBeløp.map { it.periode }.minAndMaxOfOrNull()
+            // Denne vil inneholden summen av alle beløpene som overlapper med linjen. En linje kan inneholde flere måneder
             val simuleringsbeløp = simuleringsperioderOgBeløp.sumOf { it.beløp.sum() }
-            if (simuleringsperiode != null && simuleringsperiode != linje.periode) {
-                forskjeller.add(
-                    ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode(
-                        utbetalingsperiode = linje.periode,
-                        simuleringsperiode = simuleringsperiode,
-                        simulertBeløp = simuleringsbeløp,
-                        utbetalingsbeløp = linje.beløp,
-                    ),
-                )
-            }
-            if (simuleringsperiode != null && simuleringsbeløp != (linje.beløp * linje.periode.getAntallMåneder())) {
-                forskjeller.add(
-                    ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp(
-                        periode = linje.periode,
-                        simulertBeløp = simuleringsbeløp,
-                        utbetalingsbeløp = linje.beløp,
-                    ),
-                )
+            if (simuleringsperiode != null) {
+                if (simuleringsperiode != linje.periode) {
+                    forskjeller.add(
+                        ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode(
+                            utbetalingsperiode = linje.periode,
+                            simuleringsperiode = simuleringsperiode,
+                            simulertBeløp = simuleringsbeløp,
+                            utbetalingsbeløp = linje.beløp,
+                            erNesteÅrISimulering = simuleringsperiode.tilOgMed.erNesteÅr(),
+                        ),
+                    )
+                }
+
+                val totalBeløpForHelePeriodenILinjen = linje.beløp * linje.periode.getAntallMåneder()
+                if (simuleringsbeløp != totalBeløpForHelePeriodenILinjen) {
+                    forskjeller.add(
+                        ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp(
+                            periode = linje.periode,
+                            simulertBeløp = simuleringsbeløp,
+                            utbetalingsbeløp = totalBeløpForHelePeriodenILinjen,
+                        ),
+                    )
+                }
             }
         }
     }
