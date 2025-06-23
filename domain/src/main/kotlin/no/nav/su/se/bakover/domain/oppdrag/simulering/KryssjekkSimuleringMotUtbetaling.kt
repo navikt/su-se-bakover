@@ -57,7 +57,7 @@ private fun sjekkUtbetalingMotSimulering(
     utbetalingslinjePåTidslinjer: TidslinjeForUtbetalinger,
 ): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
     val log: Logger = LoggerFactory.getLogger("sjekkUtbetalingMotSimulering.kt")
-    log.info("Svar fra Simulering:$simulering\nutbetalingslinjePåTidslinjer$utbetalingslinjePåTidslinjer")
+    log.info("utbetalingslinjePåTidslinjer$utbetalingslinjePåTidslinjer")
     val forskjeller = mutableListOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode>()
     // Siden vi kan ha overlappende perioder med dagens utbetalingslinjealgoritme, så må vi lage en tidslinje.
     if (simulering.erAlleMånederUtenUtbetaling()) {
