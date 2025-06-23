@@ -5,7 +5,6 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
-import no.nav.su.se.bakover.common.domain.tid.november
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
@@ -94,7 +93,67 @@ internal class KryssjekkSimuleringMotUtbetaling {
     }
 
     @Test
-    fun `Ulike perioder for simulering og beregning og ulike like beløp skal gi ulike perioder og ulike beløp feil`() {
+    fun `Ulike perioder for simulering og beregning og like like beløp skal gi ulike perioder feil`() {
+        /*
+        beløpene her gir egentlig ikke mening for simuleringen men vi setter den til det samme som 2 månder * beløp 1000 for at det kun skal validere på den ene
+         */
+        val clock = TikkendeKlokke()
+        val simMaaned = SimulertMåned(
+            måned = desember(2025),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.desember(2025),
+                        faktiskTilOgMed = 30.desember(2025),
+                        konto = konto,
+                        belop = 2000,
+                        tilbakeforing = false,
+                        sats = 2000,
+                        typeSats = typeSats,
+                        antallSats = 1,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+        val simulering = Simulering(
+            gjelderId = Fnr.generer(),
+            gjelderNavn = "tester",
+            LocalDate.now(),
+            nettoBeløp = 12345,
+            måneder = listOf(simMaaned),
+            rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
+        )
+        val rekkefølge = Rekkefølge.generator()
+        val første = utbetalingslinjeNy(
+            opprettet = Tidspunkt.now(clock),
+            periode = november(2025)..desember(2025),
+            beløp = 1000,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val test = TidslinjeForUtbetalinger.fra(
+            utbetalinger(
+                clock,
+                første,
+            ),
+        )
+
+        val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
+        val feilklasse = svar.shouldBeLeft()
+        assertTrue(feilklasse.size == 1)
+        feilklasse.first().shouldBeInstanceOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode>()
+    }
+
+    @Test
+    fun `Ulike perioder for simulering og beregning og ulike beløp skal gi ulike perioder og ulike beløp feil`() {
         val clock = TikkendeKlokke()
         val simMaaned = SimulertMåned(
             måned = desember(2025),
