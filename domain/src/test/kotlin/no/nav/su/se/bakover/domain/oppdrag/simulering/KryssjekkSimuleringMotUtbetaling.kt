@@ -5,10 +5,12 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.november
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.utbetaling.utbetalinger
@@ -22,7 +24,6 @@ import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
-import java.time.LocalDate
 import kotlin.test.assertTrue
 
 internal class KryssjekkSimuleringMotUtbetaling {
@@ -66,14 +67,14 @@ internal class KryssjekkSimuleringMotUtbetaling {
         val simulering = Simulering(
             gjelderId = Fnr.generer(),
             gjelderNavn = "tester",
-            LocalDate.now(),
+            1.mai(2025),
             nettoBeløp = 12345,
             måneder = listOf(simMaaned),
             rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
         )
         val rekkefølge = Rekkefølge.generator()
         val første = utbetalingslinjeNy(
-            opprettet = Tidspunkt.now(clock),
+            opprettet = 1.mai(2025).atStartOfDay(zoneIdOslo).toTidspunkt(),
             periode = desember(2025)..desember(2025),
             beløp = 1000,
             rekkefølge = rekkefølge.neste(),
@@ -128,15 +129,14 @@ internal class KryssjekkSimuleringMotUtbetaling {
         val simulering = Simulering(
             gjelderId = Fnr.generer(),
             gjelderNavn = "tester",
-            LocalDate.now(),
+            1.mai(2025),
             nettoBeløp = 12345,
             måneder = listOf(simMaaned),
             rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
         )
         val rekkefølge = Rekkefølge.generator()
-
         val første = utbetalingslinjeNy(
-            opprettet = Tidspunkt.now(clock),
+            opprettet = 1.mai(2025).atStartOfDay(zoneIdOslo).toTidspunkt(),
             periode = november(2025)..desember(2025),
             beløp = beløp,
             rekkefølge = rekkefølge.neste(),
@@ -186,14 +186,14 @@ internal class KryssjekkSimuleringMotUtbetaling {
         val simulering = Simulering(
             gjelderId = Fnr.generer(),
             gjelderNavn = "tester",
-            LocalDate.now(),
+            1.mai(2025),
             nettoBeløp = 12345,
             måneder = listOf(simMaaned),
             rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
         )
         val rekkefølge = Rekkefølge.generator()
         val første = utbetalingslinjeNy(
-            opprettet = Tidspunkt.now(clock),
+            opprettet = 1.mai(2025).atStartOfDay(zoneIdOslo).toTidspunkt(),
             periode = november(2025)..desember(2025),
             beløp = 1000,
             rekkefølge = rekkefølge.neste(),
