@@ -98,6 +98,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
         beløpene her gir egentlig ikke mening for simuleringen men vi setter den til det samme som 2 månder * beløp 1000 for at det kun skal validere på den ene
          */
         val clock = TikkendeKlokke()
+        val beløp = 1000
         val simMaaned = SimulertMåned(
             måned = desember(2025),
             utbetaling = SimulertUtbetaling(
@@ -111,9 +112,9 @@ internal class KryssjekkSimuleringMotUtbetaling {
                         faktiskFraOgMed = 1.desember(2025),
                         faktiskTilOgMed = 30.desember(2025),
                         konto = konto,
-                        belop = 2000,
+                        belop = beløp * 2,
                         tilbakeforing = false,
-                        sats = 2000,
+                        sats = beløp * 2,
                         typeSats = typeSats,
                         antallSats = 1,
                         uforegrad = 0,
@@ -133,10 +134,11 @@ internal class KryssjekkSimuleringMotUtbetaling {
             rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
         )
         val rekkefølge = Rekkefølge.generator()
+
         val første = utbetalingslinjeNy(
             opprettet = Tidspunkt.now(clock),
             periode = november(2025)..desember(2025),
-            beløp = 1000,
+            beløp = beløp,
             rekkefølge = rekkefølge.neste(),
         )
         val test = TidslinjeForUtbetalinger.fra(
