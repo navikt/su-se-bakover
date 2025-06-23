@@ -56,6 +56,8 @@ private fun sjekkUtbetalingMotSimulering(
     simulering: Simulering,
     utbetalingslinjePåTidslinjer: TidslinjeForUtbetalinger,
 ): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
+    val log: Logger = LoggerFactory.getLogger("sjekkUtbetalingMotSimulering.kt")
+    log.info("Svar fra Simulering:$simulering\nutbetalingslinjePåTidslinjer$utbetalingslinjePåTidslinjer")
     val forskjeller = mutableListOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode>()
     // Siden vi kan ha overlappende perioder med dagens utbetalingslinjealgoritme, så må vi lage en tidslinje.
     if (simulering.erAlleMånederUtenUtbetaling()) {
@@ -89,6 +91,7 @@ private fun sjekkUtbetalingMotSimulering(
                     ),
                 )
             }
+            // (linje.beløp * linje.periode.getAntallMåneder()) gir feil antall måneder. Men vet ikke om det er riktig linje her. beløpet for simulering er for hele perioden mens utbetalingsbeløpet er 1775
             if (simuleringsperiode != null && simuleringsbeløp != (linje.beløp * linje.periode.getAntallMåneder())) {
                 forskjeller.add(
                     ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp(
