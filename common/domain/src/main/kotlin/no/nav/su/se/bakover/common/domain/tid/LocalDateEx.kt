@@ -55,3 +55,8 @@ fun List<LocalDate>.erSortertOgUtenDuplikater(): Boolean = this.erSortert() && t
 
 fun LocalDate.ddMMyyyy(): String = this.format(ddMMyyyyFormatter)
 fun LocalDate.toBrevformat(): String = this.format(DateTimeFormatter.ofPattern("d. LLLL yyyy", norwegianLocale))
+
+fun LocalDate.erNesteÅr(): Boolean {
+    val currentYear = LocalDate.now().year
+    return this.year == currentYear + 1
+}

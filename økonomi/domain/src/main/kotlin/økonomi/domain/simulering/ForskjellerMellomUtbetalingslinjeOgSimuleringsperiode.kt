@@ -36,11 +36,13 @@ sealed interface ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode {
 
     /**
      * @param utbetalingsperiode Dette er kun utbetalingens periode, ikke simuleringens periode. Så denne vil være månedsbasert, men en periode kan ha flere perioder.
+     * erNesteÅrISimulering: Hvis neste år og beløpene får mismatch er det mest sannsynlig økonomi som må aktivere simulering for neste år
      */
     data class UlikPeriode(
         val utbetalingsperiode: Periode,
         val simuleringsperiode: DatoIntervall?,
         val simulertBeløp: Int,
         val utbetalingsbeløp: Int,
+        val erNesteÅrISimulering: Boolean,
     ) : ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 }
