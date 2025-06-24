@@ -67,6 +67,7 @@ class KontaktOgReservasjonsregisterClient(
         val (_, response, result) = "${config.url}$PERSONER_PATH".httpPost()
             .authentication().bearer(azure.getSystemToken(config.appId))
             .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
             .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
             .body(request)
             .responseString()
