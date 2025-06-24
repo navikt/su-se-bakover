@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
     "tittel",
     "fritekst",
     "sakstype",
-    "erAldersbrev",
 )
 data class FritekstPdfInnhold(
     override val sakstype: Sakstype,

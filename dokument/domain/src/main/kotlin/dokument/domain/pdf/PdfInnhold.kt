@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.serialize
  */
 @JsonPropertyOrder(
     "sakstype",
-    "erAldersbrev",
 )
 interface PdfInnhold {
     fun toJson(): String = serialize(this)
@@ -22,7 +21,4 @@ interface PdfInnhold {
 
     @get:JsonProperty
     val sakstype: Sakstype
-
-    @JsonProperty
-    fun erAldersbrev(): Boolean = this.sakstype == Sakstype.ALDER
 }

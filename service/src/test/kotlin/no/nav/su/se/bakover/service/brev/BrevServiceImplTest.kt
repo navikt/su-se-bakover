@@ -91,7 +91,7 @@ internal class BrevServiceImplTest {
             .getOrFail() as Dokument.UtenMetadata.Informasjon.Annet
         actual.generertDokument shouldBe pdf
         actual.tittel shouldBe dokumentCommand.brevTittel
-        actual.generertDokumentJson shouldBe """{"personalia":{"dato":"01.01.2021","fødselsnummer":"${dokumentCommand.fødselsnummer}","fornavn":"Tore","etternavn":"Strømøy","saksnummer":12345676},"saksbehandlerNavn":"testname","tittel":"En tittel","fritekst":"Litt fritekst","sakstype":"UFØRE","erAldersbrev":false}"""
+        actual.generertDokumentJson shouldBe """{"personalia":{"dato":"01.01.2021","fødselsnummer":"${dokumentCommand.fødselsnummer}","fornavn":"Tore","etternavn":"Strømøy","saksnummer":12345676},"saksbehandlerNavn":"testname","tittel":"En tittel","fritekst":"Litt fritekst","sakstype":"UFØRE"}"""
 
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {

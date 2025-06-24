@@ -19,7 +19,6 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val fradato: String,
     val tildato: String,
     val forventetInntektStørreEnn0: Boolean,
-    val erAldersbrev: Boolean,
     val harEktefelle: Boolean,
     val beregningsperioder: List<Beregningsperiode>,
     val saksbehandlerNavn: String,
@@ -53,7 +52,6 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
                 fritekst = command.fritekst,
                 satsoversikt = command.satsoversikt,
                 sakstype = command.sakstype,
-                erAldersbrev = command.sakstype == Sakstype.ALDER,
             )
         }
     }
