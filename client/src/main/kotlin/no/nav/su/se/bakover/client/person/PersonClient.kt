@@ -155,7 +155,7 @@ internal class PersonClient(
     )
 
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
-        return config.kontaktOgReservasjonsregister.hentKontaktinformasjonNy(fnr).fold(
+        return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(
             {
                 when (it) {
                     KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert -> null

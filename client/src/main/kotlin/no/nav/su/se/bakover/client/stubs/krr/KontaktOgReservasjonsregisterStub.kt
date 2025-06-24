@@ -16,13 +16,4 @@ data object KontaktOgReservasjonsregisterStub : KontaktOgReservasjonsregister {
             språk = "nb",
         ).right()
     }
-    override fun hentKontaktinformasjonNy(fnr: Fnr): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {
-        return Kontaktinformasjon(
-            epostadresse = "mail@epost.com",
-            mobiltelefonnummer = "90909090",
-            reservert = false,
-            kanVarsles = true,
-            språk = "nb",
-        ).right()
-    }
 }

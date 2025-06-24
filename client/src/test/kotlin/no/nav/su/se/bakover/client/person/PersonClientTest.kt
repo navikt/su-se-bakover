@@ -190,7 +190,7 @@ internal class PersonClientTest {
         val kodeverkMock: Kodeverk = mock()
         val skjermingMock: Skjerming = mock()
         val kontaktOgReservasjonsregisterMock: KontaktOgReservasjonsregister = mock {
-            on { hentKontaktinformasjonNy(fnr) } doReturn kontaktinformasjon.right()
+            on { hentKontaktinformasjon(fnr) } doReturn kontaktinformasjon.right()
         }
         val oauthMock: AzureAd = mock()
 
