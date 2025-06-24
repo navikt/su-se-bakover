@@ -490,7 +490,6 @@ internal class SkattDokumentServiceImplTest {
                             generertDokumentJson = """
                                 {
                                   "sakstype": "ALDER",
-                                  "erAldersbrev":true,
                                   "saksnummer":"fagsystemId",
                                   "behandlingstype":"Frioppslag",
                                   "behandlingsId":null,

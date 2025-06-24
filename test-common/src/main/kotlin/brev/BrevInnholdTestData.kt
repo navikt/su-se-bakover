@@ -43,7 +43,6 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
         ),
     ),
     sakstype = Sakstype.UFØRE,
-    erAldersbrev = false,
 )
 
 fun pdfInnholdAvslag() = AvslagSøknadsbehandlingPdfInnhold(

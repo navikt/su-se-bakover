@@ -80,7 +80,6 @@ internal class PdfInnholdTest {
                 ),
             ),
             sakstype = Sakstype.UFØRE,
-            erAldersbrev = false,
         )
 
         val actualJson = serialize(innvilgetVedtak)
@@ -121,7 +120,6 @@ internal class PdfInnholdTest {
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
                 "fritekst": "",
-                "erAldersbrev": false,
                 "satsoversikt": {
                   "perioder": [
                     {
@@ -159,7 +157,6 @@ internal class PdfInnholdTest {
                   "saksnummer": 2021
               },
               "sakstype": "UFØRE",
-              "erAldersbrev": false,
               "datoSøknadOpprettet": "01.01.2020",
               "trukketDato": "01.02.2020",
               "saksbehandlerNavn": "saksbehandler"
@@ -241,7 +238,6 @@ internal class PdfInnholdTest {
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
                 "fritekst": "",
-                "erAldersbrev": false,
                 "opphørsgrunner" : ["FOR_HØY_INNTEKT"],
                 "avslagsparagrafer" : [1],
                 "forventetInntektStørreEnn0" : false,
@@ -287,7 +283,6 @@ internal class PdfInnholdTest {
                     "saksnummer": 12345676
                 },
                 "sakstype": "UFØRE",
-                "erAldersbrev": false,
                 "saksbehandlerNavn": "saks",
                 "fritekst": "fri",
             }
