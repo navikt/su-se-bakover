@@ -45,20 +45,26 @@ class KontaktOgReservasjonsregisterClient(
 
         return result.fold(
             { json ->
-                val feil = jsonNode(json).get("feil").get(fnr.toString())?.toString()
-                if (feil == null) {
-                    try {
+
+                val jsonNode = jsonNode(json)
+                when {
+                    jsonNode.has("personer") -> {
                         val personFunnet = jsonNode(json).get("personer").get(fnr.toString()).toString()
                         deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
-                    } catch (e: Exception) {
-                        log.error("Feil under deserialisering av respons KRR", e)
+                    }
+
+                    jsonNode.has("feil") -> {
+                        val feil = jsonNode(json).get("feil").get(fnr.toString())?.toString()
+                        val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil. "
+                        log.error(errorMessage + "Se sikkerlogg for mer kontekst.")
+                        sikkerLogg.error(errorMessage + "Fnr: $fnr")
                         KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
                     }
-                } else {
-                    val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil. "
-                    log.error(errorMessage + "Se sikkerlogg for mer kontekst.")
-                    sikkerLogg.error(errorMessage + "Fnr: $fnr")
-                    KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
+
+                    else -> {
+                        log.error("""Feil under deserialisering av respons KRR. Mangler felter "personer" og "feil"""".trimIndent())
+                        KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
+                    }
                 }
             },
             {

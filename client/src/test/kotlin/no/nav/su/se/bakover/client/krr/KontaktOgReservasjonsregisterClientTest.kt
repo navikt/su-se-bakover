@@ -71,7 +71,6 @@ class KontaktOgReservasjonsregisterClientTest {
                     WireMock.okJson(
                         """
                             {
-                              "personer": {},
                               "feil": {
                                 "$fødselsnummer": "person_ikke_funnet"
                               }
