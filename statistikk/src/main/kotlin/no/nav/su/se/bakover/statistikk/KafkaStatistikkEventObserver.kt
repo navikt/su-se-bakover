@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.statistikk
 
 import arrow.core.Either
+import arrow.core.right
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
@@ -48,7 +49,7 @@ internal class KafkaStatistikkEventObserver(
                             hentSak = event.hentSak,
                             clock = clock,
                             gitCommit = gitCommit,
-                        ),
+                        ).right(),
                     )
                 }
             }

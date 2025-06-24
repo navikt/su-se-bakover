@@ -58,6 +58,7 @@ internal data class StønadstatistikkDto(
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
     val flyktningsstatus: String?,
+    val versjon: String?,
 ) {
     enum class Stønadstype(val beskrivelse: String) {
         SU_UFØR("SU Ufør"),
