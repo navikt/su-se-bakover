@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
+import org.jetbrains.kotlin.backend.common.linkage.issues.PartialLinkageErrorsLogged.errorMessage
 import org.slf4j.LoggerFactory
 
 internal const val PERSONER_PATH = "/rest/v1/personer"
@@ -46,8 +47,13 @@ class KontaktOgReservasjonsregisterClient(
             { json ->
                 val feil = jsonNode(json).get("feil").get(fnr.toString())?.toString()
                 if (feil == null) {
-                    val personFunnet = jsonNode(json).get("personer").get(fnr.toString()).toString()
-                    deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
+                    try {
+                        val personFunnet = jsonNode(json).get("personer").get(fnr.toString()).toString()
+                        deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
+                    } catch (e: Exception) {
+                        log.error("Feil under deserialisering av respons KRR", e)
+                        KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
+                    }
                 } else {
                     val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil. "
                     log.error(errorMessage + "Se sikkerlogg for mer kontekst.")
