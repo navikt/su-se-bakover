@@ -1,15 +1,13 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
-import arrow.core.Either
 import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
-import com.networknt.schema.JsonSchema
-import com.networknt.schema.ValidationMessage
+import no.nav.su.se.bakover.common.domain.extensions.hasOneElement
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
-import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -22,7 +20,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.statistikk.SchemaValidator
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
@@ -33,47 +30,52 @@ import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
+import java.time.YearMonth
 import kotlin.math.roundToInt
 
 private val log = LoggerFactory.getLogger("StønadsstatistikkMapper.kt")
 
-private val stønadSchema: JsonSchema = SchemaValidator.createSchema("/statistikk/stonad_schema.json")
-
 internal fun StatistikkEvent.Stønadsvedtak.toStønadstatistikkDto(
-    aktørId: AktørId,
     hentSak: () -> Sak,
     clock: Clock,
     gitCommit: GitCommit?,
-): Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding> {
+): ValidertStatistikkJsonMelding {
     return toDto(
         vedtak = this.vedtak,
-        aktørId = aktørId,
         hentSak = hentSak,
         clock = clock,
         gitCommit = gitCommit,
         funksjonellTid = this.vedtak.opprettet,
     ).let {
-        serialize(it).let {
-            SchemaValidator.validate(it, stønadSchema).map {
-                ValidertStatistikkJsonMelding(
-                    topic = "supstonad.aapen-su-stonad-statistikk-v1",
-                    validertJsonMelding = it,
-                )
-            }
-        }
+        ValidertStatistikkJsonMelding(
+            topic = "supstonad.aapen-su-stonad-statistikk-v1",
+            validertJsonMelding = serialize(it),
+        )
+    }
+}
+
+private fun List<Fnr>.hentEktefelleHvisFinnes(): Fnr? {
+    return if (this.hasOneElement()) {
+        this.first()
+    } else {
+        null
     }
 }
 
 private fun toDto(
     vedtak: VedtakSomKanRevurderes,
-    aktørId: AktørId,
     hentSak: () -> Sak,
     clock: Clock,
     gitCommit: GitCommit?,
     funksjonellTid: Tidspunkt,
 ): StønadstatistikkDto {
     val sak = hentSak()
+    val personNummerEktefelle = vedtak.behandling.grunnlagsdata.eps.hentEktefelleHvisFinnes()
     return StønadstatistikkDto(
+        personnummer = sak.fnr,
+        personNummerEktefelle = personNummerEktefelle,
+        statistikkAarMaaned = YearMonth.now(),
+
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
         stonadstype = when (vedtak.sakinfo().type) {
@@ -81,8 +83,6 @@ private fun toDto(
             Sakstype.UFØRE -> StønadstatistikkDto.Stønadstype.SU_UFØR
         },
         sakId = vedtak.behandling.sakId,
-        aktorId = aktørId.toString().toLong(),
-        sakstype = vedtakstype(vedtak),
         vedtaksdato = vedtak.opprettet.toLocalDate(zoneIdOslo),
         vedtakstype = vedtakstype(vedtak),
         vedtaksresultat = when (vedtak) {

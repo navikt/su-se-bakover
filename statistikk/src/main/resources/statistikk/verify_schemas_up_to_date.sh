@@ -5,5 +5,3 @@ diff "${BASEDIR}/behandling_schema.json" <(curl --silent https://raw.githubuserc
 echo "behandling_schema.json diff: $?"
 diff "${BASEDIR}/sak_schema.json" <(curl --silent https://raw.githubusercontent.com/navikt/saksbehandlingsstatistikk-schema/master/supplerende-stonad-grensesnitt/sak_schema.json?token=)
 echo "behandling_schema.json diff: $?"
-diff "${BASEDIR}/stonad_schema.json" <(curl --silent https://raw.githubusercontent.com/navikt/saksbehandlingsstatistikk-schema/master/supplerende-stonad-grensesnitt/stonad_schema.json?token=)
-echo "behandling_schema.json diff: $?"

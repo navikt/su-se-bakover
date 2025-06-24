@@ -21,3 +21,5 @@ fun <A, B> List<Either<A, B>>.filterLefts(): List<A> = this.filterIsInstance<Eit
 fun <A, B> List<Either<A, B>>.filterRights(): List<B> = this.filterIsInstance<Either.Right<B>>().map { it.value }
 
 fun <A, B> List<Either<A, B>>.split(): Pair<List<A>, List<B>> = this.filterLefts() to this.filterRights()
+
+fun <T> List<T>.hasOneElement(): Boolean = this.size == 1

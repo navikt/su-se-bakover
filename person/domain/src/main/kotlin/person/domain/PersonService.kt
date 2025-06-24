@@ -8,7 +8,7 @@ import java.util.UUID
 interface PersonService {
     fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
     fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
-    fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
+    fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> // TODO: burde fjernes på sikt?
     fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit>
 
     /** Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS. */
