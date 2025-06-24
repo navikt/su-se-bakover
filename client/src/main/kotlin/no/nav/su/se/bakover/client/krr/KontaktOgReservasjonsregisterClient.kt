@@ -5,6 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -34,8 +36,8 @@ class KontaktOgReservasjonsregisterClient(
         )
         val (_, response, result) = "${config.url}$PERSONER_PATH".httpPost()
             .authentication().bearer(azure.getSystemToken(config.appId))
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
+            .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+            .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
             .body(request)
             .responseString()
