@@ -77,6 +77,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
+                    sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
@@ -138,6 +139,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
+                    sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
@@ -201,6 +203,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
+                    sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
@@ -264,6 +267,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
+                    sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,
@@ -323,6 +327,7 @@ internal class SkattDokumentServiceImplTest {
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
+                    sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
                     vedtaksId = vedtak.id,
                     hentet = fixedTidspunkt,

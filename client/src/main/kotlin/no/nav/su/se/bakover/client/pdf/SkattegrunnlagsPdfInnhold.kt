@@ -40,6 +40,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
     companion object {
         fun lagSkattegrunnlagsPdf(
             saksnummer: Saksnummer,
+            sakstype: Sakstype,
             søknadsbehandlingId: SøknadsbehandlingId,
             vedtaksId: UUID,
             hentet: Tidspunkt,
@@ -49,7 +50,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
         ): SkattegrunnlagsPdfInnhold = SkattegrunnlagsPdfInnhold(
             saksnummer = saksnummer.toString(),
             behandlingstype = BehandlingstypeForSkattemelding.Søknadsbehandling,
-            sakstype = Sakstype.UFØRE,
+            sakstype = sakstype,
             behandlingsId = søknadsbehandlingId.value,
             vedtaksId = vedtaksId,
             hentet = hentet,
