@@ -21,7 +21,8 @@ fun tomPdfA(): PdfA = PdfA("".toByteArray())
 
 fun nySkattegrunnlagsPdfInnhold(): SkattegrunnlagsPdfInnhold {
     return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
-        saksnummer = saksnummer,
+        saksnummer = sakinfo.saksnummer,
+        sakstype = sakinfo.type,
         hentet = fixedTidspunkt,
         søknadsbehandlingId = SøknadsbehandlingId.generer(),
         vedtaksId = UUID.randomUUID(),

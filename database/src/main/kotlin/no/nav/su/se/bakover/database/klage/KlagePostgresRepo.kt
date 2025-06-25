@@ -85,13 +85,14 @@ internal class KlagePostgresRepo(
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type)
-                      values(:id, :sakid, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type)
+            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type)
+                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type)
         """.trimIndent()
             .insert(
                 params = mapOf(
                     "id" to klage.id.value,
                     "sakid" to klage.sakId,
+                    "sakstype" to klage.sakstype.value,
                     "opprettet" to klage.opprettet,
                     "journalpostid" to klage.journalpostId,
                     "oppgaveid" to klage.oppgaveId,
@@ -339,8 +340,7 @@ internal class KlagePostgresRepo(
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
         val saksnummer = Saksnummer(row.long("saksnummer"))
-        // TODO BG - Når klage for alder skal utvikles må nytt felt legges til db og alle eksisterende få "Uføre"
-        val sakstype = Sakstype.UFØRE
+        val sakstype = Sakstype.from(row.string("sakstype"))
         val fnr = Fnr(row.string("fnr"))
         val journalpostId = JournalpostId(row.string("journalpostid"))
         val oppgaveId = OppgaveId(row.string("oppgaveId"))

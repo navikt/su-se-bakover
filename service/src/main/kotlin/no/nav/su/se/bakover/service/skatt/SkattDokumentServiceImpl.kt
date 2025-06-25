@@ -140,6 +140,7 @@ class SkattDokumentServiceImpl(
 
         return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
             saksnummer = vedtak.saksnummer,
+            sakstype = vedtak.sakstype,
             søknadsbehandlingId = vedtak.behandling.id,
             vedtaksId = vedtak.id,
             // vi henter skattemeldingene samtidig
