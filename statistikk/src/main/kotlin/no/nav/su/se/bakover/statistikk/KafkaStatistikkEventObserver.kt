@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.statistikk
 
 import arrow.core.Either
+import arrow.core.right
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
@@ -33,25 +34,6 @@ internal class KafkaStatistikkEventObserver(
                         { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
                     )
                 }
-
-                is StatistikkEvent.Stønadsvedtak -> {
-                    val sakinfo = event.vedtak.sakinfo()
-                    personService.hentAktørIdMedSystembruker(sakinfo.fnr).fold(
-                        ifLeft = { log.error("Statistikk: Feil ved henting av aktørId fra fnr ved bruk av systembruker. sakId: ${sakinfo.sakId}. Underliggende feil: $it", RuntimeException("Trigger stacktrace for enklere debug.")) },
-                        ifRight = { aktørId ->
-                            publiserEllerLoggFeil(
-                                event.toStønadstatistikkDto(
-                                    aktørId = aktørId,
-                                    // TODO jah: Føles rart å sende med hele saken her dersom man kun ønsker å kalle `hentGjeldendeBeregningForEndringIYtelsePåDato(...)` lenger inn?
-                                    hentSak = event.hentSak,
-                                    clock = clock,
-                                    gitCommit = gitCommit,
-                                ),
-                            )
-                        },
-                    )
-                }
-
                 is StatistikkEvent.Behandling -> publiserEllerLoggFeil(
                     event.toBehandlingsstatistikkDto(
                         gitCommit,
@@ -60,6 +42,16 @@ internal class KafkaStatistikkEventObserver(
                 )
 
                 is StatistikkEvent.Søknad -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
+
+                is StatistikkEvent.Stønadsvedtak -> {
+                    publiserEllerLoggFeil(
+                        event.toStønadstatistikkDto(
+                            hentSak = event.hentSak,
+                            clock = clock,
+                            gitCommit = gitCommit,
+                        ).right(),
+                    )
+                }
             }
         }.mapLeft {
             log.error("Feil ved publisering av statistikk", it)

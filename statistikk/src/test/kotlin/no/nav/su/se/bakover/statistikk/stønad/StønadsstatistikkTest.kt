@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
-import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.Sak
@@ -30,14 +30,13 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
+import java.time.YearMonth
 
 internal class StønadsstatistikkTest {
 
@@ -48,7 +47,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "STANS",
             vedtaksresultat = "STANSET",
-            sakstype = "STANS",
             funksjonellTid = "${vedtak.opprettet}",
         )
     }
@@ -80,7 +78,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
-            sakstype = "GJENOPPTAK",
             // language=JSON
             månedsbeløp = """[
                 {
@@ -142,7 +139,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak) { sak },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
-            sakstype = "GJENOPPTAK",
             // language=JSON
             månedsbeløp = """[
                 {
@@ -208,7 +204,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak) { sakOgVedtak.first },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
-            sakstype = "GJENOPPTAK",
             // language=JSON
             månedsbeløp = """[
                 {
@@ -245,7 +240,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
             vedtakstype = "REGULERING",
             vedtaksresultat = "REGULERT",
-            sakstype = "REGULERING",
             // language=JSON
             månedsbeløp = """[
                 {
@@ -303,7 +297,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
             vedtakstype = "REVURDERING",
             vedtaksresultat = "INNVILGET",
-            sakstype = "REVURDERING",
             // language=JSON
             månedsbeløp = """[
                 {
@@ -341,7 +334,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(revurdering) { sak },
             vedtakstype = "REVURDERING",
             vedtaksresultat = "OPPHØRT",
-            sakstype = "REVURDERING",
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
             opphørsgrunn = "UFØRHET",
             opphørsdato = januar(2021).fraOgMed,
@@ -360,7 +352,6 @@ internal class StønadsstatistikkTest {
             event = StatistikkEvent.Stønadsvedtak(søknadsbehandling) { sak },
             vedtakstype = "SØKNAD",
             vedtaksresultat = "INNVILGET",
-            sakstype = "SØKNAD",
             // language=JSON
             månedsbeløp = """[
                 {
@@ -389,7 +380,6 @@ internal class StønadsstatistikkTest {
         event: StatistikkEvent.Stønadsvedtak,
         vedtakstype: String,
         vedtaksresultat: String,
-        sakstype: String,
         månedsbeløp: String = "[]",
         opphørsgrunn: String? = null,
         opphørsdato: LocalDate? = null,
@@ -400,13 +390,15 @@ internal class StønadsstatistikkTest {
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,
-            personService = mock {
-                on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("55").right()
-            },
+            personService = mock {},
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         ).statistikkService.handle(event)
-
+        val sak = event.hentSak()
+        val stonadstype = when (sak.type) {
+            Sakstype.ALDER -> StønadstatistikkDto.Stønadstype.SU_ALDER
+            Sakstype.UFØRE -> StønadstatistikkDto.Stønadstype.SU_UFØR
+        }
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe "supstonad.aapen-su-stonad-statistikk-v1" },
             // language=JSON
@@ -415,13 +407,13 @@ internal class StønadsstatistikkTest {
                 JSONAssert.assertEquals(
                     """
                 {
+                  "statistikkAarMaaned": "${YearMonth.now()}",
                   "funksjonellTid": "$funksjonellTid",
                   "tekniskTid": "2021-01-01T01:02:03.456789Z",
-                  "stonadstype": "SU_UFØR",
-                  "sakId": "${event.vedtak.sakinfo().sakId}",
-                  "aktorId": 55,
-                  "sakstype": "$sakstype",
-                  "vedtaksdato": "2021-01-01",
+                  "stonadstype": "$stonadstype",
+                  "sakId": "${sak.id}",
+                  "personnummer": "${sak.fnr}",
+                  "vedtaksdato": "${event.vedtak.opprettet.toLocalDate(zoneIdOslo)}",
                   "vedtakstype": "$vedtakstype",
                   "vedtaksresultat": "$vedtaksresultat",
                   "behandlendeEnhetKode": "4815",
