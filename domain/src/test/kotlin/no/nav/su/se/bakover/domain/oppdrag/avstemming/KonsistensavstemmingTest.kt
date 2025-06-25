@@ -12,9 +12,11 @@ import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.endOfDay
+import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.idag
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -1047,6 +1049,133 @@ internal class KonsistensavstemmingTest {
                         ),
                     ),
                 ),
+            ),
+        )
+    }
+
+    @Test
+    fun `lok`() {
+        val rekkefølge = Rekkefølge.generator()
+        val førsteTidspunkt = Tidspunkt.now(Clock.fixed(30.juni(2023).startOfDay().instant, ZoneOffset.UTC))
+        val første = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = førsteTidspunkt,
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    createUtbetalingslinje(
+                        opprettet = førsteTidspunkt,
+                        fraOgMed = 1.juni(2023),
+                        tilOgMed = 30.juni(2024),
+                        beløp = 1000,
+                        rekkefølge = rekkefølge.neste(),
+                    ),
+                    createUtbetalingslinje(
+                        opprettet = førsteTidspunkt,
+                        fraOgMed = 1.juli(2023),
+                        tilOgMed = 31.mai(2024),
+                        beløp = 1200,
+                        rekkefølge = rekkefølge.neste(),
+                    ),
+                ),
+            ).toNonEmptyList(),
+        )
+
+        val stansTidspunkt = Clock.fixed(29.februar(2024).startOfDay().instant, ZoneOffset.UTC)
+        val stans = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(stansTidspunkt),
+            utbetalingsLinjer = nonEmptyListOf(
+                Utbetalingslinje.Endring.Stans(
+                    utbetalingslinjeSomSkalEndres = første.sisteUtbetalingslinje(),
+                    virkningstidspunkt = 1.juli(2023),
+                    clock = andreKlokke,
+                    rekkefølge = Rekkefølge.start(),
+                ),
+            ),
+        )
+
+        val gjenopptakTidspunkt = Tidspunkt.now(Clock.fixed(2.april(2024).startOfDay().instant, ZoneOffset.UTC))
+        val gjenopptak = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = gjenopptakTidspunkt,
+            utbetalingsLinjer = ForrigeUtbetalingslinjeKoblendeListe(
+                listOf(
+                    createUtbetalingslinje(
+                        opprettet = gjenopptakTidspunkt,
+                        fraOgMed = 1.juli(2023),
+                        tilOgMed = 31.mai(2024),
+                        beløp = 1200,
+                    ),
+                ),
+            ).toNonEmptyList(),
+        )
+
+        val andreTidspunkt = Tidspunkt.now(Clock.fixed(30.mai(2024).startOfDay().instant, ZoneOffset.UTC))
+        val andre = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = andreTidspunkt,
+            utbetalingsLinjer = nonEmptyListOf(
+                createUtbetalingslinje(
+                    opprettet = andreTidspunkt,
+                    fraOgMed = 1.mai(2024),
+                    tilOgMed = 31.mai(2024),
+                    beløp = 2000,
+                ),
+            ),
+        )
+
+        val tredjeTidspunkt = Tidspunkt.now(Clock.fixed(5.juni(2024).startOfDay().instant, ZoneOffset.UTC))
+        val tredje = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = tredjeTidspunkt,
+            utbetalingsLinjer = nonEmptyListOf(
+                createUtbetalingslinje(
+                    opprettet = tredjeTidspunkt,
+                    fraOgMed = 1.juni(2024),
+                    tilOgMed = 31.mai(2025),
+                    beløp = 3000,
+                ),
+            ),
+        )
+
+        val fjerdeTidspunkt = Tidspunkt.now(Clock.fixed(1.juli(2024).startOfDay().instant, ZoneOffset.UTC))
+        val fjerde = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = fjerdeTidspunkt,
+            utbetalingsLinjer = nonEmptyListOf(
+                createUtbetalingslinje(
+                    opprettet = fjerdeTidspunkt,
+                    fraOgMed = 1.juli(2024),
+                    tilOgMed = 31.mai(2025),
+                    beløp = 4000,
+                ),
+            ),
+        )
+
+        val result = Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = 23.mai(2025).startOfDay(),
+            løpendeFraOgMed = 22.mai(2025).startOfDay(),
+            opprettetTilOgMed = 22.mai(2025).startOfDay(),
+            utbetalinger = listOf(første, stans, gjenopptak, andre, tredje, fjerde),
+            avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
+        )
+
+        result.løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    fjerde.utbetalingslinjer[0],
+                ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
             ),
         )
     }
