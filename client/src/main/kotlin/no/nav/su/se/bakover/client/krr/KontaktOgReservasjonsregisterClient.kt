@@ -49,12 +49,12 @@ class KontaktOgReservasjonsregisterClient(
                 val jsonNode = jsonNode(json)
                 when {
                     jsonNode.has("personer") -> {
-                        val personFunnet = jsonNode(json).get("personer").get(fnr.toString()).toString()
+                        val personFunnet = jsonNode.get("personer").get(fnr.toString()).toString()
                         deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
                     }
 
                     jsonNode.has("feil") -> {
-                        val feil = jsonNode(json).get("feil").get(fnr.toString())?.toString()
+                        val feil = jsonNode.get("feil").get(fnr.toString())?.toString()
                         val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil. "
                         log.error(errorMessage + "Se sikkerlogg for mer kontekst.")
                         sikkerLogg.error(errorMessage + "Fnr: $fnr")
