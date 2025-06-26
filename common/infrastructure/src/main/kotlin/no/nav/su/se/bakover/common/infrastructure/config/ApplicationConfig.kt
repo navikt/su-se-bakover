@@ -575,6 +575,7 @@ data class ApplicationConfig(
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
+        fun isProd() = naisCluster() == NaisCluster.Prod
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
 
