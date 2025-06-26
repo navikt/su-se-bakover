@@ -145,7 +145,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbeh
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkattCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
@@ -742,10 +742,10 @@ open class AccessCheckProxy(
                     }
 
                     override fun oppdaterSkattegrunnlag(
-                        command: SøknadsbehandlingSkattCommand,
+                        søknadsbehandlingSkatt: SøknadsbehandlingSkatt,
                     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
-                        assertHarTilgangTilSøknadsbehandling(command.behandlingId)
-                        return service.oppdaterSkattegrunnlag(command)
+                        assertHarTilgangTilSøknadsbehandling(søknadsbehandlingSkatt.behandlingId)
+                        return service.oppdaterSkattegrunnlag(søknadsbehandlingSkatt)
                     }
 
                     override fun lagre(søknadsbehandling: Søknadsbehandling) = kastKanKunKallesFraAnnenService()
