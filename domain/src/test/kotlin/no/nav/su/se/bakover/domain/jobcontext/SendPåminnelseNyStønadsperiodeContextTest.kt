@@ -13,12 +13,10 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 
@@ -76,7 +74,6 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
             lagDokument = { throw IllegalStateException("Skal ikke komme så langt.") },
             lagreDokument = { _, _ -> },
             lagreContext = { _, _ -> },
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(LocalDate.now(clock)),
             hentPerson = { person(dødsdato = 30.november(2021)).right() },
         ).getOrFail()
         actual shouldBe context.copy(

@@ -53,7 +53,6 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                         lagreContext = { ctx, tx ->
                             sendPåminnelseNyStønadsperiodeJobRepo.lagre(ctx, tx)
                         },
-                        formuegrenserFactory = formuegrenserFactory,
                         hentPerson = personService::hentPersonMedSystembruker,
                     ).fold(
                         {

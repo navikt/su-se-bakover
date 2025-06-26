@@ -147,8 +147,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 saksnummer = Saksnummer(3001),
                 sakstype = Sakstype.UFØRE,
                 utløpsdato = LocalDate.of(2021, Month.DECEMBER, 31),
-                halvtGrunnbeløp = 50676,
                 fødselsnummer = sak2.fnr,
+                uføreSomFyller67 = false,
             )
 
             verify(serviceAndMocks.brevService).lagreDokument(
