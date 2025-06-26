@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.job.JobContext
 import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -20,9 +19,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
-import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.time.YearMonth
 
 /**
@@ -131,24 +128,20 @@ data class SendPåminnelseNyStønadsperiodeContext(
         lagDokument: (request: PåminnelseNyStønadsperiodeDokumentCommand) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
         lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
         lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
-        formuegrenserFactory: FormuegrenserFactory,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
         val person = hentPerson(sak.fnr).getOrElse {
             return KunneIkkeSendePåminnelse.FantIkkePerson.left()
         }
         return if (skalSendePåminnelse(sak, person)) {
-            val dagensDato = LocalDate.now(clock)
-            lagDokument(
-                PåminnelseNyStønadsperiodeDokumentCommand(
-                    fødselsnummer = sak.fnr,
-                    saksnummer = sak.saksnummer,
-                    sakstype = sak.type,
-                    utløpsdato = id().yearMonth.atEndOfMonth(),
-                    // TODO jah: halvtGrunnbeløp er ikke knyttet til saken i dette tilfellet og kan heller utledes av BrevService.
-                    halvtGrunnbeløp = formuegrenserFactory.forDato(dagensDato).formuegrense.avrund(),
-                ),
-            ).map { dokument ->
+            val dokumentCommand = PåminnelseNyStønadsperiodeDokumentCommand.ny(
+                sak,
+                person,
+                id().yearMonth.atEndOfMonth(),
+            ).getOrElse {
+                return it.left()
+            }
+            lagDokument(dokumentCommand).map { dokument ->
                 sessionFactory.withTransactionContext { tx ->
                     lagreDokument(
                         dokument.leggTilMetadata(
@@ -183,6 +176,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
 
     sealed interface KunneIkkeSendePåminnelse {
         data object FantIkkePerson : KunneIkkeSendePåminnelse
+        data object PersonManglerFødselsdato : KunneIkkeSendePåminnelse
         data object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
     }
 }
