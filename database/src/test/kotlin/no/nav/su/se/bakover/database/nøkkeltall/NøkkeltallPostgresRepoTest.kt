@@ -120,7 +120,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
                 fnr = fnr,
                 søknadInnhold = søknadinnholdUføre(
-                    fnrWrapper = FnrWrapper(fnr),
+                    personopplysninger = FnrWrapper(fnr),
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,

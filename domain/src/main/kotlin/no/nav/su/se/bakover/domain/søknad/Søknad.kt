@@ -38,7 +38,7 @@ sealed interface Søknad {
         throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak $sakId og søknad ${this.id}")
 
     val fnr: Fnr
-        get() = søknadInnhold.fnrWrapper.fnr
+        get() = søknadInnhold.personopplysninger.fnr
 
     val type: Sakstype
         get() = when (søknadInnhold) {

@@ -34,7 +34,7 @@ class SøknadPdfInnholdJsonTest {
         fnr: Fnr = fnrUnder67,
         epsFnr: Fnr = fnrOver67,
         søknadInnhold: SøknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
-            fnrWrapper = FnrWrapper(fnr),
+            personopplysninger = FnrWrapper(fnr),
             boforhold = boforhold(
                 ektefellePartnerSamboer = EktefellePartnerSamboer(
                     erUførFlyktning = false,
@@ -209,7 +209,7 @@ class SøknadPdfInnholdJsonTest {
     fun `søker bor på annen adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold(
             søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
-                fnrWrapper = FnrWrapper(fnrUnder67),
+                personopplysninger = FnrWrapper(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,
@@ -382,7 +382,7 @@ class SøknadPdfInnholdJsonTest {
     fun `søker oppgir adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold(
             søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
-                fnrWrapper = FnrWrapper(fnrUnder67),
+                personopplysninger = FnrWrapper(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,

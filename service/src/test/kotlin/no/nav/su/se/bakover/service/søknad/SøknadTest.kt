@@ -46,7 +46,7 @@ import java.util.UUID
 class SøknadTest {
 
     private val søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre()
-    private val fnr = søknadInnhold.fnrWrapper.fnr
+    private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub().person(fnr).getOrFail()
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
@@ -301,7 +301,7 @@ class SøknadTest {
             },
             søknadRepo = mock(),
         ).also {
-            val søknadInnhold = søknadinnholdUføre(fnrWrapper = FnrWrapper(sak.fnr))
+            val søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sak.fnr))
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })

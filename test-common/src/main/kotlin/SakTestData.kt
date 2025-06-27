@@ -61,7 +61,7 @@ fun nySakUføre(
         fnr = fnr,
         type = Sakstype.UFØRE,
     ),
-    søknadsInnhold: SøknadsinnholdUføre = søknadinnholdUføre(fnrWrapper = FnrWrapper(sakInfo.fnr)),
+    søknadsInnhold: SøknadsinnholdUføre = søknadinnholdUføre(personopplysninger = FnrWrapper(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(
@@ -80,7 +80,7 @@ fun nySakAlder(
         fnr = fnr,
         type = Sakstype.ALDER,
     ),
-    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(fnrWrapper = FnrWrapper(sakInfo.fnr)),
+    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(personopplysninger = FnrWrapper(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(

@@ -178,7 +178,7 @@ fun søknadsinnholdAlder(
         familiegjenforening = false,
     ),
     oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
-    fnrWrapper: FnrWrapper = FnrWrapper(fnrOver67),
+    personopplysninger: FnrWrapper = FnrWrapper(fnrOver67),
     boforhold: Boforhold = boforhold(epsFnr = fnrUnder67),
     utenlandsopphold: Utenlandsopphold = utenlandsopphold(),
     inntektOgPensjon: InntektOgPensjon = inntektOgPensjon(),
@@ -187,7 +187,7 @@ fun søknadsinnholdAlder(
     ektefelle: Ektefelle? = ektefelle(),
 ) = SøknadsinnholdAlder.tryCreate(
     harSøktAlderspensjon = harSøktAlderspensjon,
-    fnrWrapper = fnrWrapper,
+    personopplysninger = personopplysninger,
     boforhold = boforhold,
     oppholdstillatelseAlder = oppholdstillatelseAlder,
     utenlandsopphold = utenlandsopphold,
@@ -200,7 +200,7 @@ fun søknadsinnholdAlder(
 
 fun søknadinnholdUføre(
     uførevedtak: Uførevedtak = Uførevedtak(true),
-    fnrWrapper: FnrWrapper = FnrWrapper(fnr),
+    personopplysninger: FnrWrapper = FnrWrapper(fnr),
     flyktningsstatus: Flyktningsstatus = Flyktningsstatus(
         registrertFlyktning = false,
     ),
@@ -214,7 +214,7 @@ fun søknadinnholdUføre(
 ) = SøknadsinnholdUføre.tryCreate(
     uførevedtak = uførevedtak,
     flyktningsstatus = flyktningsstatus,
-    fnrWrapper = fnrWrapper,
+    personopplysninger = personopplysninger,
     boforhold = boforhold,
     utenlandsopphold = utenlandsopphold,
     oppholdstillatelse = oppholdstillatelse,

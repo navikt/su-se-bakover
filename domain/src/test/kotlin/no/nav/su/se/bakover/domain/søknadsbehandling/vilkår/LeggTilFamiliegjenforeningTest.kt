@@ -32,7 +32,7 @@ internal class LeggTilFamiliegjenforeningTest {
             sakstype = Sakstype.ALDER,
             sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
                 fnr = fnr,
-                søknadInnhold = søknadsinnholdAlder(fnrWrapper = FnrWrapper(fnr)),
+                søknadInnhold = søknadsinnholdAlder(personopplysninger = FnrWrapper(fnr)),
             ),
         )
 

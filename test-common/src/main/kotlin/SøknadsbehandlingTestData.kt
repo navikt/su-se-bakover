@@ -533,7 +533,7 @@ fun nySøknadsbehandlingUtenStønadsperiode(
     fnr: Fnr = Fnr.generer(),
     journalpostId: JournalpostId = journalpostIdSøknad,
     oppgaveId: OppgaveId = oppgaveIdSøknad,
-    søknadInnhold: SøknadInnhold = søknadinnholdUføre(fnrWrapper = personopplysninger(fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
         saksnummer = saksnummer,

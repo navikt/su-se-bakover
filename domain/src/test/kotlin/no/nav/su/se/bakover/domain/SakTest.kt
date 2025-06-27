@@ -152,7 +152,7 @@ internal class SakTest {
             val (sakEtterNyPeriode, _, nyPeriode) = iverksattSøknadsbehandling(
                 sakOgSøknad = sakEtterOpphør to nySøknadJournalførtMedOppgave(
                     sakId = sakEtterOpphør.id,
-                    søknadInnhold = søknadinnholdUføre(fnrWrapper = FnrWrapper(sakEtterOpphør.fnr)),
+                    søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakEtterOpphør.fnr)),
                 ),
                 stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.desember(2021))),
                 clock = tikkendeKlokke,
@@ -360,7 +360,7 @@ internal class SakTest {
                     clock = fixedClock,
                     sakId = førHull.id,
                     søknadInnhold = søknadinnholdUføre(
-                        fnrWrapper = FnrWrapper(førHull.fnr),
+                        personopplysninger = FnrWrapper(førHull.fnr),
                     ),
                 ),
                 clock = clock,
@@ -388,7 +388,7 @@ internal class SakTest {
                     clock = fixedClock,
                     sakId = førHull.id,
                     søknadInnhold = søknadinnholdUføre(
-                        fnrWrapper = FnrWrapper(førHull.fnr),
+                        personopplysninger = FnrWrapper(førHull.fnr),
                     ),
                 ),
                 clock = clock,
@@ -503,7 +503,7 @@ internal class SakTest {
                         clock = tikkendeKlokke,
                         sakId = sak1.id,
                         søknadInnhold = søknadinnholdUføre(
-                            fnrWrapper = FnrWrapper(sak1.fnr),
+                            personopplysninger = FnrWrapper(sak1.fnr),
                         ),
                     ),
                 ).also { (sak2, _, vedtak2) ->

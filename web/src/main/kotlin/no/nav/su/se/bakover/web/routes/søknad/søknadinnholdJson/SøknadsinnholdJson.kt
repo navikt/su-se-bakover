@@ -77,7 +77,7 @@ data class SøknadsinnholdAlderJson(
         SøknadsinnholdAlder.tryCreate(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
-            fnrWrapper = personopplysninger.toFnrWrapper(),
+            personopplysninger = personopplysninger.toFnrWrapper(),
             boforhold = boforhold.toBoforhold().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
             },
@@ -101,7 +101,7 @@ data class SøknadsinnholdAlderJson(
         fun SøknadsinnholdAlder.toSøknadsinnholdAlderJson() = SøknadsinnholdAlderJson(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjonJson(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlderJson(),
-            personopplysninger = fnrWrapper.toFnrJsonWrapper(),
+            personopplysninger = personopplysninger.toFnrJsonWrapper(),
             boforhold = boforhold.toBoforholdJson(),
             utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),
             oppholdstillatelse = oppholdstillatelse.toOppholdstillatelseJson(),
@@ -129,7 +129,7 @@ data class SøknadsinnholdUføreJson(
     fun toSøknadsinnholdUføre(): Either<KunneIkkeLageSøknadinnhold, SøknadsinnholdUføre> =
         SøknadsinnholdUføre.tryCreate(
             uførevedtak = uførevedtak.toUførevedtak(),
-            fnrWrapper = personopplysninger.toFnrWrapper(),
+            personopplysninger = personopplysninger.toFnrWrapper(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
             boforhold = boforhold.toBoforhold().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
@@ -153,7 +153,7 @@ data class SøknadsinnholdUføreJson(
     companion object {
         fun SøknadsinnholdUføre.toSøknadsinnholdUføreJson() = SøknadsinnholdUføreJson(
             uførevedtak = uførevedtak.toUførevedtakJson(),
-            personopplysninger = fnrWrapper.toFnrJsonWrapper(),
+            personopplysninger = personopplysninger.toFnrJsonWrapper(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatusJson(),
             boforhold = boforhold.toBoforholdJson(),
             utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),

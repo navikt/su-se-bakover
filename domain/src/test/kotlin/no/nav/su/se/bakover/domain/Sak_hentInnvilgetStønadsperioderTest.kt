@@ -37,7 +37,7 @@ internal class Sak_hentInnvilgetStønadsperioderTest {
             stønadsperiode = Stønadsperiode.create(år(2022)),
             sakOgSøknad = sakFørste to nySøknadJournalførtMedOppgave(
                 sakId = sakFørste.id,
-                søknadInnhold = søknadinnholdUføre(fnrWrapper = FnrWrapper(sakFørste.fnr)),
+                søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakFørste.fnr)),
                 clock = clock,
             ),
         )
@@ -61,7 +61,7 @@ internal class Sak_hentInnvilgetStønadsperioderTest {
             stønadsperiode = Stønadsperiode.create(mars(2021)),
             sakOgSøknad = sakFørste to nySøknadJournalførtMedOppgave(
                 sakId = sakFørste.id,
-                søknadInnhold = søknadinnholdUføre(fnrWrapper = FnrWrapper(sakFørste.fnr)),
+                søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakFørste.fnr)),
                 clock = clock,
             ),
         )
@@ -106,7 +106,7 @@ internal class Sak_hentInnvilgetStønadsperioderTest {
             clock = clock,
             sakOgSøknad = sakEtterRevurdering to nySøknadJournalførtMedOppgave(
                 sakId = sakFørste.id,
-                søknadInnhold = søknadinnholdUføre(fnrWrapper = FnrWrapper(sakFørste.fnr)),
+                søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakFørste.fnr)),
                 clock = clock,
             ),
             stønadsperiode = Stønadsperiode.create(januar(2021)),

@@ -18,7 +18,7 @@ internal class MottattDatoMapperTest {
         val søknad = nySakMedNySøknad(
             clock = fixedClockAt(2.januar(2021)),
             søknadInnhold = søknadinnholdUføre(
-                fnrWrapper = FnrWrapper(fnr),
+                personopplysninger = FnrWrapper(fnr),
                 forNav = forNavPapirsøknad(
                     mottaksdatoForSøknad = 1.januar(2021),
                 ),
@@ -32,7 +32,7 @@ internal class MottattDatoMapperTest {
         val søknad = nySakMedNySøknad(
             clock = fixedClockAt(1.januar(2021)),
             søknadInnhold = søknadinnholdUføre(
-                fnrWrapper = FnrWrapper(fnr),
+                personopplysninger = FnrWrapper(fnr),
                 forNav = forNavDigitalSøknad(),
             ),
         ).second

@@ -117,7 +117,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             clock = fixedClock,
             sakId = sak.id,
             søknadInnhold = søknadinnholdUføre(
-                fnrWrapper = FnrWrapper(sak.fnr),
+                personopplysninger = FnrWrapper(sak.fnr),
             ),
         )
 

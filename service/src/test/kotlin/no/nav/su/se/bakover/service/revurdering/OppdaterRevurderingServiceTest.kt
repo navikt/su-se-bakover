@@ -279,7 +279,7 @@ internal class OppdaterRevurderingServiceTest {
             sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
                 sakId = sakMedFørstegangsbehandling.first.id,
                 søknadInnhold = søknadinnholdUføre(
-                    fnrWrapper = FnrWrapper(sakMedFørstegangsbehandling.first.fnr),
+                    personopplysninger = FnrWrapper(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),
             clock = clock,

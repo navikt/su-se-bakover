@@ -449,7 +449,7 @@ open class AccessCheckProxy(
                     søknadInnhold: SøknadInnhold,
                     identBruker: NavIdentBruker,
                 ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
-                    assertHarTilgangTilPerson(søknadInnhold.fnrWrapper.fnr)
+                    assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
 
                     return services.søknad.nySøknad(søknadInnhold, identBruker)
                 }

@@ -53,7 +53,7 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
             val (_, søknadsbehandling) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert(
                 sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(
                     fnr = fnr,
-                    søknadInnhold = søknadsinnholdAlder(fnrWrapper = FnrWrapper(fnr)),
+                    søknadInnhold = søknadsinnholdAlder(personopplysninger = FnrWrapper(fnr)),
                 ),
             ) { (sak, søknad) ->
                 vilkårsvurdertSøknadsbehandling(
