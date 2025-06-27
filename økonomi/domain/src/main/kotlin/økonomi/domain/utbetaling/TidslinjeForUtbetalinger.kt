@@ -115,7 +115,7 @@ data class TidslinjeForUtbetalinger private constructor(
 
         private fun NonEmptyList<Utbetalingslinje>.tidslinje(): TidslinjeForUtbetalinger {
             val sortedBy = this
-                .reversed()
+                .sortedByDescending { it.opprettet }.also { require(it == it.distinct()) }
                 .fold(emptyList<UtbetalingslinjePåTidslinje>()) { acc, element ->
                     val inkluderElementer: List<UtbetalingslinjePåTidslinje> =
                         ((element.periode - acc.map { it.periode })).flatMap { nyPeriode ->
