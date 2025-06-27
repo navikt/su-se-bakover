@@ -62,7 +62,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTil
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkattCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
@@ -702,22 +702,18 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun oppdaterSkattegrunnlag(
-        command: SøknadsbehandlingSkattCommand,
+        søknadsbehandlingSkatt: SøknadsbehandlingSkatt,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(command.behandlingId)
-            ?: throw IllegalStateException("Fant ikke behandling ${command.behandlingId}")
+        val søknadsbehandling = søknadsbehandlingRepo.hent(søknadsbehandlingSkatt.behandlingId)
+            ?: throw IllegalStateException("Fant ikke behandling ${søknadsbehandlingSkatt.behandlingId}")
 
         return søknadsbehandling.leggTilSkatt(
             EksterneGrunnlagSkatt.Hentet(
-                søkers = søknadsbehandling.hentSkattegrunnlagForSøker(
-                    command.saksbehandler,
-                ) { fnr, saksbehandler ->
-                    skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, command.yearRange)
-                },
+                søkers = skatteService.hentSamletSkattegrunnlagForÅr(søknadsbehandling.fnr, søknadsbehandling.saksbehandler, søknadsbehandlingSkatt.yearRange),
                 eps = søknadsbehandling.hentSkattegrunnlagForEps(
-                    command.saksbehandler,
+                    søknadsbehandlingSkatt.saksbehandler,
                 ) { fnr, saksbehandler ->
-                    skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, command.yearRange)
+                    skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, søknadsbehandlingSkatt.yearRange)
                 },
             ),
         ).onRight { søknadsbehandlingRepo.lagre(it) }
@@ -762,11 +758,6 @@ class SøknadsbehandlingServiceImpl(
             }.left()
         }
     }
-
-    private fun Søknadsbehandling.hentSkattegrunnlagForSøker(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        samletSkattegrunnlag: (Fnr, NavIdentBruker.Saksbehandler) -> Skattegrunnlag,
-    ): Skattegrunnlag = samletSkattegrunnlag(fnr, saksbehandler)
 
     private fun Søknadsbehandling.hentSkattegrunnlagForEps(
         saksbehandler: NavIdentBruker.Saksbehandler,

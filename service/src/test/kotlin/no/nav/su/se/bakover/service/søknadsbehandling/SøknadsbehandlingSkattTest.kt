@@ -5,7 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkattCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.saksbehandler
@@ -41,7 +41,7 @@ class SøknadsbehandlingSkattTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             skatteService = skatteServiceMock,
         ).oppdaterSkattegrunnlag(
-            SøknadsbehandlingSkattCommand(
+            SøknadsbehandlingSkatt(
                 søknadsbehandling.id,
                 saksbehandler,
                 YearRange(Year.of(2019), Year.of(2020)),
@@ -84,7 +84,7 @@ class SøknadsbehandlingSkattTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             skatteService = skatteServiceMock,
         ).oppdaterSkattegrunnlag(
-            SøknadsbehandlingSkattCommand(søknadsbehandling.id, saksbehandler, YearRange(Year.of(2019), Year.of(2020))),
+            SøknadsbehandlingSkatt(søknadsbehandling.id, saksbehandler, YearRange(Year.of(2019), Year.of(2020))),
         ).shouldBeLeft()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe søknadsbehandling.id })

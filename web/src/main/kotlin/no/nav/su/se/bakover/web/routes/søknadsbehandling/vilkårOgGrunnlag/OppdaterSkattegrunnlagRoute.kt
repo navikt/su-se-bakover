@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -18,7 +17,7 @@ import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkattCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
 import vilkår.formue.domain.FormuegrenserFactory
@@ -29,7 +28,7 @@ private data class OppdaterSkattegrunnlagBody(
     val fra: String,
     val til: String,
 ) {
-    fun toCommand(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler) = SøknadsbehandlingSkattCommand(
+    fun toCommand(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler) = SøknadsbehandlingSkatt(
         behandlingId = SøknadsbehandlingId(behandlingId),
         saksbehandler = saksbehandler,
         yearRange = YearRange(start = Year.parse(fra), endInclusive = Year.parse(til)),
