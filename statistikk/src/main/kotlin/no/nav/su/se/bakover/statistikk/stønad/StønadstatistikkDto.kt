@@ -38,6 +38,7 @@ import java.util.UUID
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 internal data class StønadstatistikkDto(
+    val harFamilieForening: Boolean? = null,
     val statistikkAarMaaned: YearMonth,
     val personnummer: Fnr,
     val personNummerEktefelle: Fnr? = null,

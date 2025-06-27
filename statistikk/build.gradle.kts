@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":vilkår:inntekt:domain"))
     implementation(project(":vilkår:uføre:domain"))
     implementation(project(":vilkår:vurderinger:domain"))
+    implementation(project(":vilkår:familiegjenforening:domain"))
 
     testImplementation(project(":økonomi:domain"))
     testImplementation(project(":test-common"))
