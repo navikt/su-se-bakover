@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -28,20 +29,44 @@ internal class KafkaStatistikkEventObserver(
         Either.catch {
             when (event) {
                 is StatistikkEvent.SakOpprettet -> {
-                    val sak = event.sak
-                    personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                        { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                        { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                    )
+                    if (ApplicationConfig.isProd()) {
+                        val sak = event.sak
+                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
+                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
+                        )
+                    } else {
+                        val sak = event.sak
+                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
+                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
+                        )
+                    }
                 }
-                is StatistikkEvent.Behandling -> publiserEllerLoggFeil(
-                    event.toBehandlingsstatistikkDto(
-                        gitCommit,
-                        clock,
-                    ),
-                )
-
-                is StatistikkEvent.Søknad -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
+                is StatistikkEvent.Behandling -> {
+                    if (ApplicationConfig.isProd()) {
+                        publiserEllerLoggFeil(
+                            event.toBehandlingsstatistikkDto(
+                                gitCommit,
+                                clock,
+                            ),
+                        )
+                    } else {
+                        publiserEllerLoggFeil(
+                            event.toBehandlingsstatistikkDto(
+                                gitCommit,
+                                clock,
+                            ),
+                        )
+                    }
+                }
+                is StatistikkEvent.Søknad -> {
+                    if (ApplicationConfig.isProd()) {
+                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
+                    } else {
+                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
+                    }
+                }
 
                 is StatistikkEvent.Stønadsvedtak -> {
                     publiserEllerLoggFeil(
