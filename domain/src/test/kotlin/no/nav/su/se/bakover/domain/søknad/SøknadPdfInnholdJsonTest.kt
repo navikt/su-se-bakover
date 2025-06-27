@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnrOver67
@@ -34,7 +34,7 @@ class SøknadPdfInnholdJsonTest {
         fnr: Fnr = fnrUnder67,
         epsFnr: Fnr = fnrOver67,
         søknadInnhold: SøknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
-            personopplysninger = Personopplysninger(fnr),
+            fnrWrapper = FnrWrapper(fnr),
             boforhold = boforhold(
                 ektefellePartnerSamboer = EktefellePartnerSamboer(
                     erUførFlyktning = false,
@@ -209,7 +209,7 @@ class SøknadPdfInnholdJsonTest {
     fun `søker bor på annen adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold(
             søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
-                personopplysninger = Personopplysninger(fnrUnder67),
+                fnrWrapper = FnrWrapper(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,
@@ -382,7 +382,7 @@ class SøknadPdfInnholdJsonTest {
     fun `søker oppgir adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold(
             søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnholdUføre(
-                personopplysninger = Personopplysninger(fnrUnder67),
+                fnrWrapper = FnrWrapper(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Ektefelle
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Flyktningsstatus
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Formue
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.HarSøktAlderspensjon
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Oppholdstillatelse
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.PensjonsOrdningBeløp
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.TrygdeytelseIUtlandet
@@ -35,7 +35,7 @@ import java.time.Month.JANUARY
 
 fun personopplysninger(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-) = Personopplysninger(fnr)
+) = FnrWrapper(fnr)
 
 fun boforhold(
     borOgOppholderSegINorge: Boolean = true,
@@ -178,7 +178,7 @@ fun søknadsinnholdAlder(
         familiegjenforening = false,
     ),
     oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
-    personopplysninger: Personopplysninger = Personopplysninger(fnrOver67),
+    fnrWrapper: FnrWrapper = FnrWrapper(fnrOver67),
     boforhold: Boforhold = boforhold(epsFnr = fnrUnder67),
     utenlandsopphold: Utenlandsopphold = utenlandsopphold(),
     inntektOgPensjon: InntektOgPensjon = inntektOgPensjon(),
@@ -187,7 +187,7 @@ fun søknadsinnholdAlder(
     ektefelle: Ektefelle? = ektefelle(),
 ) = SøknadsinnholdAlder.tryCreate(
     harSøktAlderspensjon = harSøktAlderspensjon,
-    personopplysninger = personopplysninger,
+    fnrWrapper = fnrWrapper,
     boforhold = boforhold,
     oppholdstillatelseAlder = oppholdstillatelseAlder,
     utenlandsopphold = utenlandsopphold,
@@ -200,7 +200,7 @@ fun søknadsinnholdAlder(
 
 fun søknadinnholdUføre(
     uførevedtak: Uførevedtak = Uførevedtak(true),
-    personopplysninger: Personopplysninger = Personopplysninger(fnr),
+    fnrWrapper: FnrWrapper = FnrWrapper(fnr),
     flyktningsstatus: Flyktningsstatus = Flyktningsstatus(
         registrertFlyktning = false,
     ),
@@ -214,7 +214,7 @@ fun søknadinnholdUføre(
 ) = SøknadsinnholdUføre.tryCreate(
     uførevedtak = uførevedtak,
     flyktningsstatus = flyktningsstatus,
-    personopplysninger = personopplysninger,
+    fnrWrapper = fnrWrapper,
     boforhold = boforhold,
     utenlandsopphold = utenlandsopphold,
     oppholdstillatelse = oppholdstillatelse,

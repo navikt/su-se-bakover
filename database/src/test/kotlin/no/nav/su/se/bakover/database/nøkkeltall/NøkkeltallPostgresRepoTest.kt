@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.database.nøkkeltall
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -120,7 +120,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
                 fnr = fnr,
                 søknadInnhold = søknadinnholdUføre(
-                    personopplysninger = Personopplysninger(fnr),
+                    fnrWrapper = FnrWrapper(fnr),
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,

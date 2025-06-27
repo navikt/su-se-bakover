@@ -4,7 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySakAlder
@@ -32,7 +32,7 @@ internal class LeggTilFamiliegjenforeningTest {
             sakstype = Sakstype.ALDER,
             sakOgSøknad = nySakMedjournalførtSøknadOgOppgave(
                 fnr = fnr,
-                søknadInnhold = søknadsinnholdAlder(personopplysninger = Personopplysninger(fnr)),
+                søknadInnhold = søknadsinnholdAlder(fnrWrapper = FnrWrapper(fnr)),
             ),
         )
 

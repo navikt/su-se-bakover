@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
@@ -61,7 +61,7 @@ fun nySakUføre(
         fnr = fnr,
         type = Sakstype.UFØRE,
     ),
-    søknadsInnhold: SøknadsinnholdUføre = søknadinnholdUføre(personopplysninger = Personopplysninger(sakInfo.fnr)),
+    søknadsInnhold: SøknadsinnholdUføre = søknadinnholdUføre(fnrWrapper = FnrWrapper(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(
@@ -80,7 +80,7 @@ fun nySakAlder(
         fnr = fnr,
         type = Sakstype.ALDER,
     ),
-    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(personopplysninger = Personopplysninger(sakInfo.fnr)),
+    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(fnrWrapper = FnrWrapper(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(

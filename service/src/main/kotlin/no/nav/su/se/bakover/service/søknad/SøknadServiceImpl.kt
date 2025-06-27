@@ -88,7 +88,7 @@ class SøknadServiceImpl(
         søknadInnhold: SøknadInnhold,
         identBruker: NavIdentBruker,
     ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad.Ny>> {
-        val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
+        val innsendtFødselsnummer: Fnr = søknadInnhold.fnrWrapper.fnr
 
         if (!søknadInnhold.kanSendeInnSøknad()) {
             return KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt.left()

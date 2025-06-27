@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -354,7 +354,7 @@ internal class OpprettRevurderingServiceTest {
             sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
                 sakId = sakMedFørstegangsbehandling.first.id,
                 søknadInnhold = søknadinnholdUføre(
-                    personopplysninger = Personopplysninger(sakMedFørstegangsbehandling.first.fnr),
+                    fnrWrapper = FnrWrapper(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),
             clock = clock,

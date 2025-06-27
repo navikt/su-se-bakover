@@ -34,7 +34,7 @@ internal class SøknadinnholdTest {
                 eøsborger = null,
                 familiegjenforening = null,
             ),
-            personopplysninger = personopplysninger(),
+            fnrWrapper = personopplysninger(),
             boforhold = boforhold(),
             utenlandsopphold = utenlandsopphold(),
             oppholdstillatelse = Oppholdstillatelse.tryCreate(
@@ -61,7 +61,7 @@ internal class SøknadinnholdTest {
                 eøsborger = false,
                 familiegjenforening = null,
             ),
-            personopplysninger = personopplysninger(),
+            fnrWrapper = personopplysninger(),
             boforhold = boforhold(),
             utenlandsopphold = utenlandsopphold(),
             oppholdstillatelse = Oppholdstillatelse.tryCreate(
@@ -88,7 +88,7 @@ internal class SøknadinnholdTest {
                 eøsborger = false,
                 familiegjenforening = false,
             ),
-            personopplysninger = personopplysninger(),
+            fnrWrapper = personopplysninger(),
             boforhold = Boforhold.tryCreate(
                 borOgOppholderSegINorge = true,
                 delerBolig = true,

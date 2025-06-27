@@ -40,10 +40,10 @@ fun nySakMedNySøknad(
     søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     søknadInnsendtAv: NavIdentBruker = veileder,
-    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(fnrWrapper = personopplysninger(fnr)),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknad.Ny> {
-    require(fnr == søknadInnhold.personopplysninger.fnr) { "Fnr i søknadInnhold må være lik fnr" }
+    require(fnr == søknadInnhold.fnrWrapper.fnr) { "Fnr i søknadInnhold må være lik fnr" }
     return SakFactory(
         uuidFactory = object : UUIDFactory() {
             val ids = LinkedList(listOf(sakId, søknadId))
@@ -67,7 +67,7 @@ fun nySøknadPåEksisterendeSak(
     eksisterendeSak: Sak,
     søknadId: UUID = UUID.randomUUID(),
     søknadInnsendtAv: NavIdentBruker = veileder,
-    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(eksisterendeSak.fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(fnrWrapper = personopplysninger(eksisterendeSak.fnr)),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
     return nySøknadJournalførtMedOppgave(
@@ -168,9 +168,9 @@ fun nySakMedJournalførtSøknadUtenOppgave(
     journalpostId: JournalpostId = journalpostIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     clock: Clock = fixedClock,
-    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(fnrWrapper = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
-    require(fnr == søknadInnhold.personopplysninger.fnr) { "Fnr i søknadInnhold må være lik fnr" }
+    require(fnr == søknadInnhold.fnrWrapper.fnr) { "Fnr i søknadInnhold må være lik fnr" }
     return nySakMedNySøknad(
         saksnummer = saksnummer,
         sakId = sakId,
@@ -197,9 +197,9 @@ fun nySakMedjournalførtSøknadOgOppgave(
     oppgaveId: OppgaveId = oppgaveIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     clock: Clock = fixedClock,
-    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(fnrWrapper = personopplysninger(fnr)),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
-    require(fnr == søknadInnhold.personopplysninger.fnr) { "Fnr i søknadInnhold må være lik fnr" }
+    require(fnr == søknadInnhold.fnrWrapper.fnr) { "Fnr i søknadInnhold må være lik fnr" }
     return nySakMedJournalførtSøknadUtenOppgave(
         saksnummer = saksnummer,
         sakId = sakId,
@@ -258,7 +258,7 @@ fun nySøknadJournalførtMedOppgave(
     clock: Clock = fixedClock,
     sakId: UUID,
     fnr: Fnr = Fnr.generer(),
-    søknadInnhold: SøknadInnhold = søknadinnholdUføre(personopplysninger = personopplysninger(fnr)),
+    søknadInnhold: SøknadInnhold = søknadinnholdUføre(fnrWrapper = personopplysninger(fnr)),
     søknadId: UUID = UUID.randomUUID(),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Søknad.Journalført.MedOppgave.IkkeLukket {
