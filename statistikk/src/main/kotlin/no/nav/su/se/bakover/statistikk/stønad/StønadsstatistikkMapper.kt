@@ -20,12 +20,14 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto
 import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.stønadsklassifisering
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -71,7 +73,29 @@ private fun toDto(
 ): StønadstatistikkDto {
     val sak = hentSak()
     val personNummerEktefelle = vedtak.behandling.grunnlagsdata.eps.hentEktefelleHvisFinnes()
+
+    val harFamiliegjenforening = vedtak.behandling.vilkårsvurderinger.familiegjenforening().fold(
+        { null },
+        {
+            when (it.vurdering) {
+                Vurdering.Avslag -> true
+                Vurdering.Innvilget -> false
+                Vurdering.Uavklart -> null
+            }
+        },
+    )
+
+    val harUtenlandsOpphold = when (vedtak.behandling.vilkårsvurderinger.utenlandsopphold.vurdering) {
+        Vurdering.Avslag -> "JA"
+        Vurdering.Innvilget -> "NEI"
+        Vurdering.Uavklart -> null
+    }
+
+    vedtak.behandling.vilkårsvurderinger
+
     return StønadstatistikkDto(
+        harUtenlandsOpphold = harUtenlandsOpphold,
+        harFamiliegjenforening = harFamiliegjenforening,
         personnummer = sak.fnr,
         personNummerEktefelle = personNummerEktefelle,
         statistikkAarMaaned = YearMonth.now(),
@@ -133,9 +157,10 @@ private fun toDto(
             else -> null
         },
         flyktningsstatus = when (sak.type) {
-            Sakstype.ALDER -> null
+            Sakstype.ALDER -> null // Ikke relevant, vi har ikke opplysningen heller.
             Sakstype.UFØRE -> "FLYKTNING"
         },
+
     )
 }
 
