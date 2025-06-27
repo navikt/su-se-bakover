@@ -85,8 +85,17 @@ private fun toDto(
         },
     )
 
+    val harUtenlandsOpphold = when (vedtak.behandling.vilkårsvurderinger.utenlandsopphold.vurdering) {
+        Vurdering.Avslag -> "JA"
+        Vurdering.Innvilget -> "NEI"
+        Vurdering.Uavklart -> null
+    }
+
+    vedtak.behandling.vilkårsvurderinger
+
     return StønadstatistikkDto(
-        harFamilieForening = harFamiliegjenforening,
+        harUtenlandsOpphold = harUtenlandsOpphold,
+        harFamiliegjenforening = harFamiliegjenforening,
         personnummer = sak.fnr,
         personNummerEktefelle = personNummerEktefelle,
         statistikkAarMaaned = YearMonth.now(),
