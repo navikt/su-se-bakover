@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold.Compani
     JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "uføre"),
 )
 sealed interface SøknadInnhold {
-    val personopplysninger: Personopplysninger
+    val personopplysninger: FnrWrapper
     val boforhold: Boforhold
     val utenlandsopphold: Utenlandsopphold
     val oppholdstillatelse: Oppholdstillatelse
@@ -52,7 +52,7 @@ sealed interface SøknadInnhold {
 data class SøknadsinnholdAlder private constructor(
     val harSøktAlderspensjon: HarSøktAlderspensjon,
     val oppholdstillatelseAlder: OppholdstillatelseAlder,
-    override val personopplysninger: Personopplysninger,
+    override val personopplysninger: FnrWrapper,
     override val boforhold: Boforhold,
     override val utenlandsopphold: Utenlandsopphold,
     override val oppholdstillatelse: Oppholdstillatelse,
@@ -66,7 +66,7 @@ data class SøknadsinnholdAlder private constructor(
         fun tryCreate(
             harSøktAlderspensjon: HarSøktAlderspensjon,
             oppholdstillatelseAlder: OppholdstillatelseAlder,
-            personopplysninger: Personopplysninger,
+            personopplysninger: FnrWrapper,
             boforhold: Boforhold,
             utenlandsopphold: Utenlandsopphold,
             oppholdstillatelse: Oppholdstillatelse,
@@ -121,7 +121,7 @@ data class SøknadsinnholdAlder private constructor(
 
     override fun oppdaterFnr(fnr: Fnr): SøknadsinnholdAlder {
         return this.copy(
-            personopplysninger = Personopplysninger(fnr),
+            personopplysninger = FnrWrapper(fnr),
         )
     }
 }
@@ -129,7 +129,7 @@ data class SøknadsinnholdAlder private constructor(
 data class SøknadsinnholdUføre private constructor(
     val uførevedtak: Uførevedtak,
     val flyktningsstatus: Flyktningsstatus,
-    override val personopplysninger: Personopplysninger,
+    override val personopplysninger: FnrWrapper,
     override val boforhold: Boforhold,
     override val utenlandsopphold: Utenlandsopphold,
     override val oppholdstillatelse: Oppholdstillatelse,
@@ -142,7 +142,7 @@ data class SøknadsinnholdUføre private constructor(
         fun tryCreate(
             uførevedtak: Uførevedtak,
             flyktningsstatus: Flyktningsstatus,
-            personopplysninger: Personopplysninger,
+            personopplysninger: FnrWrapper,
             boforhold: Boforhold,
             utenlandsopphold: Utenlandsopphold,
             oppholdstillatelse: Oppholdstillatelse,
@@ -171,7 +171,7 @@ data class SøknadsinnholdUføre private constructor(
     }
     override fun oppdaterFnr(fnr: Fnr): SøknadsinnholdUføre {
         return this.copy(
-            personopplysninger = Personopplysninger(fnr),
+            personopplysninger = FnrWrapper(fnr),
         )
     }
 }

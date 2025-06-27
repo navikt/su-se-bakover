@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
@@ -301,7 +301,7 @@ class SøknadTest {
             },
             søknadRepo = mock(),
         ).also {
-            val søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sak.fnr))
+            val søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sak.fnr))
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })

@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -145,7 +145,7 @@ internal class GjeldendeVedtaksdataTest {
                 clock = tikkendeKlokke,
                 sakId = sak.id,
                 søknadInnhold = søknadinnholdUføre(
-                    personopplysninger = Personopplysninger(sak.fnr),
+                    personopplysninger = FnrWrapper(sak.fnr),
                 ),
             ),
         )

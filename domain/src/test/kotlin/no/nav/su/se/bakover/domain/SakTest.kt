@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
@@ -152,7 +152,7 @@ internal class SakTest {
             val (sakEtterNyPeriode, _, nyPeriode) = iverksattSøknadsbehandling(
                 sakOgSøknad = sakEtterOpphør to nySøknadJournalførtMedOppgave(
                     sakId = sakEtterOpphør.id,
-                    søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sakEtterOpphør.fnr)),
+                    søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakEtterOpphør.fnr)),
                 ),
                 stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.desember(2021))),
                 clock = tikkendeKlokke,
@@ -360,7 +360,7 @@ internal class SakTest {
                     clock = fixedClock,
                     sakId = førHull.id,
                     søknadInnhold = søknadinnholdUføre(
-                        personopplysninger = Personopplysninger(førHull.fnr),
+                        personopplysninger = FnrWrapper(førHull.fnr),
                     ),
                 ),
                 clock = clock,
@@ -388,7 +388,7 @@ internal class SakTest {
                     clock = fixedClock,
                     sakId = førHull.id,
                     søknadInnhold = søknadinnholdUføre(
-                        personopplysninger = Personopplysninger(førHull.fnr),
+                        personopplysninger = FnrWrapper(førHull.fnr),
                     ),
                 ),
                 clock = clock,
@@ -503,7 +503,7 @@ internal class SakTest {
                         clock = tikkendeKlokke,
                         sakId = sak1.id,
                         søknadInnhold = søknadinnholdUføre(
-                            personopplysninger = Personopplysninger(sak1.fnr),
+                            personopplysninger = FnrWrapper(sak1.fnr),
                         ),
                     ),
                 ).also { (sak2, _, vedtak2) ->
