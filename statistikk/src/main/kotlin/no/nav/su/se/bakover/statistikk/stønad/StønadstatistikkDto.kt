@@ -10,7 +10,8 @@ import java.util.UUID
 
 /**
  * Data transfer object for stønadsstatistikk (support statistics).
- *
+ * @property harUtenlandsOpphold Er dvh sin AVVIK_UTL_OPPHOLD Knyttet opp mot vilkårsvurderingen
+ * @property harFamiliegjenforening Angir om bruker har kommet pga familiegjenforening
  * @property statistikkAarMaaned År og måned statistikken gjelder for.
  * @property personnummer Personens fødselsnummer.
  * @property personNummerEktefelle Fødselsnummer til ektefelle, hvis aktuelt.
@@ -38,6 +39,8 @@ import java.util.UUID
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 internal data class StønadstatistikkDto(
+    val harUtenlandsOpphold: JaNei? = null,
+    val harFamiliegjenforening: JaNei? = null,
     val statistikkAarMaaned: YearMonth,
     val personnummer: Fnr,
     val personNummerEktefelle: Fnr? = null,
