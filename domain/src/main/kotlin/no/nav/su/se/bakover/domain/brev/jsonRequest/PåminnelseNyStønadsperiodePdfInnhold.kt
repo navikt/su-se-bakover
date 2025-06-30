@@ -11,7 +11,8 @@ data class PåminnelseNyStønadsperiodePdfInnhold(
     override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
     val utløpsdato: String,
-    val halvtGrunnbeløp: Int,
+    // Er en bruker med uføre som fyller 67 år i stønadsperiode sin siste måned
+    val uføreSomFyller67: Boolean,
 ) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode
 
@@ -24,7 +25,7 @@ data class PåminnelseNyStønadsperiodePdfInnhold(
                 sakstype = command.sakstype,
                 personalia = personalia,
                 utløpsdato = command.utløpsdato.ddMMyyyy(),
-                halvtGrunnbeløp = command.halvtGrunnbeløp,
+                uføreSomFyller67 = command.uføreSomFyller67,
             )
         }
     }
