@@ -21,6 +21,7 @@ data class PåminnelseNyStønadsperiodeDokumentCommand(
     override val saksnummer: Saksnummer,
     override val sakstype: Sakstype,
     val utløpsdato: LocalDate,
+    // Er en bruker med uføre som fyller 67 år i stønadsperiode sin siste måned
     val uføreSomFyller67: Boolean,
 ) : GenererDokumentCommand {
     companion object {
