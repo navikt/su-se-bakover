@@ -64,6 +64,8 @@ private fun List<Fnr>.hentEktefelleHvisFinnes(): Fnr? {
     }
 }
 
+enum class JaNei { JA, NEI }
+
 private fun toDto(
     vedtak: VedtakSomKanRevurderes,
     hentSak: () -> Sak,
@@ -78,20 +80,18 @@ private fun toDto(
         { null },
         {
             when (it.vurdering) {
-                Vurdering.Avslag -> true
-                Vurdering.Innvilget -> false
+                Vurdering.Avslag -> JaNei.JA
+                Vurdering.Innvilget -> JaNei.NEI
                 Vurdering.Uavklart -> null
             }
         },
     )
 
     val harUtenlandsOpphold = when (vedtak.behandling.vilkårsvurderinger.utenlandsopphold.vurdering) {
-        Vurdering.Avslag -> "JA"
-        Vurdering.Innvilget -> "NEI"
+        Vurdering.Avslag -> JaNei.JA
+        Vurdering.Innvilget -> JaNei.NEI
         Vurdering.Uavklart -> null
     }
-
-    vedtak.behandling.vilkårsvurderinger
 
     return StønadstatistikkDto(
         harUtenlandsOpphold = harUtenlandsOpphold,
