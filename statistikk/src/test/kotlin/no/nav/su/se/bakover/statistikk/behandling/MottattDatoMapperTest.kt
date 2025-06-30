@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.statistikk.behandling
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.januar
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.søknad.forNavDigitalSøknad
@@ -18,7 +18,7 @@ internal class MottattDatoMapperTest {
         val søknad = nySakMedNySøknad(
             clock = fixedClockAt(2.januar(2021)),
             søknadInnhold = søknadinnholdUføre(
-                personopplysninger = Personopplysninger(fnr),
+                personopplysninger = FnrWrapper(fnr),
                 forNav = forNavPapirsøknad(
                     mottaksdatoForSøknad = 1.januar(2021),
                 ),
@@ -32,7 +32,7 @@ internal class MottattDatoMapperTest {
         val søknad = nySakMedNySøknad(
             clock = fixedClockAt(1.januar(2021)),
             søknadInnhold = søknadinnholdUføre(
-                personopplysninger = Personopplysninger(fnr),
+                personopplysninger = FnrWrapper(fnr),
                 forNav = forNavDigitalSøknad(),
             ),
         ).second

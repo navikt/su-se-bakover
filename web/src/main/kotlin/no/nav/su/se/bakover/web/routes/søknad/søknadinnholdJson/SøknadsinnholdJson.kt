@@ -16,13 +16,13 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FnrJsonWrapper.Companion.toFnrJsonWrapper
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.ForNavJson.Companion.toForNavJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FormueJson.Companion.toFormueJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.HarSøktAlderspensjonJson.Companion.toHarSøktAlderspensjonJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InntektOgPensjonJson.Companion.toInntektOgPensjonJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.OppholdstillatelseAlderJson.Companion.toOppholdstillatelseAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson.Companion.toSøknadsinnholdAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UførevedtakJson.Companion.toUførevedtakJson
@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Utenlandsoppho
     JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "uføre"),
 )
 sealed interface SøknadsinnholdJson {
-    val personopplysninger: PersonopplysningerJson
+    val personopplysninger: FnrJsonWrapper
     val boforhold: BoforholdJson
     val utenlandsopphold: UtenlandsoppholdJson
     val oppholdstillatelse: OppholdstillatelseJson
@@ -63,7 +63,7 @@ sealed interface SøknadsinnholdJson {
 data class SøknadsinnholdAlderJson(
     val harSøktAlderspensjon: HarSøktAlderspensjonJson,
     val oppholdstillatelseAlder: OppholdstillatelseAlderJson,
-    override val personopplysninger: PersonopplysningerJson,
+    override val personopplysninger: FnrJsonWrapper,
     override val boforhold: BoforholdJson,
     override val utenlandsopphold: UtenlandsoppholdJson,
     override val oppholdstillatelse: OppholdstillatelseJson,
@@ -77,7 +77,7 @@ data class SøknadsinnholdAlderJson(
         SøknadsinnholdAlder.tryCreate(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
-            personopplysninger = personopplysninger.toPersonopplysninger(),
+            personopplysninger = personopplysninger.toFnrWrapper(),
             boforhold = boforhold.toBoforhold().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
             },
@@ -101,7 +101,7 @@ data class SøknadsinnholdAlderJson(
         fun SøknadsinnholdAlder.toSøknadsinnholdAlderJson() = SøknadsinnholdAlderJson(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjonJson(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlderJson(),
-            personopplysninger = personopplysninger.toPersonopplysningerJson(),
+            personopplysninger = personopplysninger.toFnrJsonWrapper(),
             boforhold = boforhold.toBoforholdJson(),
             utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),
             oppholdstillatelse = oppholdstillatelse.toOppholdstillatelseJson(),
@@ -116,7 +116,7 @@ data class SøknadsinnholdAlderJson(
 data class SøknadsinnholdUføreJson(
     val uførevedtak: UførevedtakJson,
     val flyktningsstatus: FlyktningsstatusJson,
-    override val personopplysninger: PersonopplysningerJson,
+    override val personopplysninger: FnrJsonWrapper,
     override val boforhold: BoforholdJson,
     override val utenlandsopphold: UtenlandsoppholdJson,
     override val oppholdstillatelse: OppholdstillatelseJson,
@@ -129,7 +129,7 @@ data class SøknadsinnholdUføreJson(
     fun toSøknadsinnholdUføre(): Either<KunneIkkeLageSøknadinnhold, SøknadsinnholdUføre> =
         SøknadsinnholdUføre.tryCreate(
             uførevedtak = uførevedtak.toUførevedtak(),
-            personopplysninger = personopplysninger.toPersonopplysninger(),
+            personopplysninger = personopplysninger.toFnrWrapper(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
             boforhold = boforhold.toBoforhold().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
@@ -153,7 +153,7 @@ data class SøknadsinnholdUføreJson(
     companion object {
         fun SøknadsinnholdUføre.toSøknadsinnholdUføreJson() = SøknadsinnholdUføreJson(
             uførevedtak = uførevedtak.toUførevedtakJson(),
-            personopplysninger = personopplysninger.toPersonopplysningerJson(),
+            personopplysninger = personopplysninger.toFnrJsonWrapper(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatusJson(),
             boforhold = boforhold.toBoforholdJson(),
             utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),

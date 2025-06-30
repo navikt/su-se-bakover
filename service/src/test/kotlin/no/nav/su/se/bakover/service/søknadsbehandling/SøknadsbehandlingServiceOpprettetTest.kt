@@ -11,7 +11,7 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -117,7 +117,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             clock = fixedClock,
             sakId = sak.id,
             søknadInnhold = søknadinnholdUføre(
-                personopplysninger = Personopplysninger(sak.fnr),
+                personopplysninger = FnrWrapper(sak.fnr),
             ),
         )
 

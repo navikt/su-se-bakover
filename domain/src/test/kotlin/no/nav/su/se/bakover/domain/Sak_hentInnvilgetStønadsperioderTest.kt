@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
@@ -37,7 +37,7 @@ internal class Sak_hentInnvilgetStønadsperioderTest {
             stønadsperiode = Stønadsperiode.create(år(2022)),
             sakOgSøknad = sakFørste to nySøknadJournalførtMedOppgave(
                 sakId = sakFørste.id,
-                søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sakFørste.fnr)),
+                søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakFørste.fnr)),
                 clock = clock,
             ),
         )
@@ -61,7 +61,7 @@ internal class Sak_hentInnvilgetStønadsperioderTest {
             stønadsperiode = Stønadsperiode.create(mars(2021)),
             sakOgSøknad = sakFørste to nySøknadJournalførtMedOppgave(
                 sakId = sakFørste.id,
-                søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sakFørste.fnr)),
+                søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakFørste.fnr)),
                 clock = clock,
             ),
         )
@@ -106,7 +106,7 @@ internal class Sak_hentInnvilgetStønadsperioderTest {
             clock = clock,
             sakOgSøknad = sakEtterRevurdering to nySøknadJournalførtMedOppgave(
                 sakId = sakFørste.id,
-                søknadInnhold = søknadinnholdUføre(personopplysninger = Personopplysninger(sakFørste.fnr)),
+                søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sakFørste.fnr)),
                 clock = clock,
             ),
             stønadsperiode = Stønadsperiode.create(januar(2021)),
