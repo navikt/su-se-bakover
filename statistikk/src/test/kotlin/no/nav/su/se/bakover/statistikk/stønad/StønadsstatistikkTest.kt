@@ -407,6 +407,7 @@ internal class StønadsstatistikkTest {
                 JSONAssert.assertEquals(
                     """
                 {
+                  "harUtenlandsOpphold": "NEI",
                   "statistikkAarMaaned": "${YearMonth.now()}",
                   "funksjonellTid": "$funksjonellTid",
                   "tekniskTid": "2021-01-01T01:02:03.456789Z",
