@@ -24,7 +24,7 @@ class StatistikkHendelseRepoPostgres(
     override fun lagreHendelse(dto: StønadstatistikkDto) {
         return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
             sessionFactory.withSession { session ->
-                val stoendStatistikkId = UUID.randomUUID()
+                val stoenadStatistikkId = UUID.randomUUID()
                 """
                     INSERT INTO stoenad_statistikk (
                     id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
@@ -44,7 +44,7 @@ class StatistikkHendelseRepoPostgres(
                 """.trimIndent()
                     .insert(
                         mapOf(
-                            "id" to stoendStatistikkId,
+                            "id" to stoenadStatistikkId,
                             "har_utenlandsopphold" to dto.harUtenlandsOpphold?.name,
                             "har_familiegjenforening" to dto.harFamiliegjenforening?.name,
                             "aar_maaned" to dto.statistikkAarMaaned.atDay(1),
@@ -83,7 +83,7 @@ class StatistikkHendelseRepoPostgres(
                         .insert(
                             mapOf(
                                 "id" to manedsbelopId,
-                                "stoenad_statistikk_id" to stoendStatistikkId,
+                                "stoenad_statistikk_id" to stoenadStatistikkId,
                                 "maaned" to mb.måned,
                                 "stonadsklassifisering" to mb.stonadsklassifisering.name,
                                 "bruttosats" to mb.bruttosats,
