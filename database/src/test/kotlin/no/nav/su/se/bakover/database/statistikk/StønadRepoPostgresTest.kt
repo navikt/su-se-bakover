@@ -37,7 +37,7 @@ internal class StønadRepoPostgresTest {
             stonadstype = Stønadstype.SU_ALDER,
             sakId = UUID.randomUUID(),
             vedtaksdato = LocalDate.now(),
-            vedtakstype = Vedtakstype.REVURDERING, // todo sjekk om disse stemmer med de vi kan sender ovder
+            vedtakstype = Vedtakstype.REVURDERING,
             vedtaksresultat = Vedtaksresultat.INNVILGET,
             behandlendeEnhetKode = "4815",
             ytelseVirkningstidspunkt = LocalDate.now(),

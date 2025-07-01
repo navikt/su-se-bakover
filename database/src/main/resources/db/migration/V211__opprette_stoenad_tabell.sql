@@ -1,4 +1,4 @@
-CREATE TABLE stoend_statistikk (
+CREATE TABLE stoenad_statistikk (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     har_utenlandsopphold TEXT,
     har_familiegjenforening TEXT,
@@ -24,13 +24,13 @@ CREATE TABLE stoend_statistikk (
     versjon TEXT
 );
 
-CREATE INDEX idx_stoenadstat_sakid ON stoend_statistikk(sak_id);
-CREATE INDEX idx_stoenadstat_fnr ON stoend_statistikk(personnummer);
-CREATE INDEX idx_stoenadstat_fnr_maaned ON stoend_statistikk(personnummer, aar_maaned);
+CREATE INDEX idx_stoenadstat_sakid ON stoenad_statistikk(sak_id);
+CREATE INDEX idx_stoenadstat_fnr ON stoenad_statistikk(personnummer);
+CREATE INDEX idx_stoenadstat_fnr_maaned ON stoenad_statistikk(personnummer, aar_maaned);
 
 CREATE TABLE manedsbelop (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    stoend_statistikk_id UUID NOT NULL REFERENCES stoend_statistikk(id) ON DELETE CASCADE,
+    stoenad_statistikk_id UUID NOT NULL REFERENCES stoenad_statistikk(id) ON DELETE CASCADE,
     maaned TEXT NOT NULL,
     stonadsklassifisering TEXT,
     bruttosats BIGINT NOT NULL,

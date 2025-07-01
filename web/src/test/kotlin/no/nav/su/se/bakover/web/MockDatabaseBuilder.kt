@@ -25,7 +25,7 @@ import person.domain.PersonRepo
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.UtbetalingRepo
-
+// Disse kan aldri overrides så hvorfor late som?
 data object MockDatabaseBuilder {
     fun build(
         avstemming: AvstemmingRepo = mock(),
@@ -76,6 +76,7 @@ data object MockDatabaseBuilder {
             oppgaveHendelseRepo = oppgaveHendelseRepo,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             dokumentHendelseRepo = dokumentHendelseRepo,
+            statistikkHendelseRepo = mock(),
         )
     }
 }

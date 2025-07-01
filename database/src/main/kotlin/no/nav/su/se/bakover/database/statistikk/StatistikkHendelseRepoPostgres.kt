@@ -26,7 +26,7 @@ class StatistikkHendelseRepoPostgres(
             sessionFactory.withSession { session ->
                 val stoendStatistikkId = UUID.randomUUID()
                 """
-                    INSERT INTO stoend_statistikk (
+                    INSERT INTO stoenad_statistikk (
                     id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
                     personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
                     vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
@@ -75,15 +75,15 @@ class StatistikkHendelseRepoPostgres(
                     val manedsbelopId = UUID.randomUUID()
                     """
                     INSERT INTO manedsbelop (
-                        id, stoend_statistikk_id, maaned, stonadsklassifisering, bruttosats, nettosats, fradrag_sum
+                        id, stoenad_statistikk_id, maaned, stonadsklassifisering, bruttosats, nettosats, fradrag_sum
                     ) VALUES (
-                        :id, :stoend_statistikk_id, :maaned, :stonadsklassifisering, :bruttosats, :nettosats, :fradrag_sum
+                        :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :bruttosats, :nettosats, :fradrag_sum
                     )
                     """.trimIndent()
                         .insert(
                             mapOf(
                                 "id" to manedsbelopId,
-                                "stoend_statistikk_id" to stoendStatistikkId,
+                                "stoenad_statistikk_id" to stoendStatistikkId,
                                 "maaned" to mb.måned,
                                 "stonadsklassifisering" to mb.stonadsklassifisering.name,
                                 "bruttosats" to mb.bruttosats,
@@ -129,7 +129,7 @@ class StatistikkHendelseRepoPostgres(
                     gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
                     gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
                     opphorsdato, flyktningsstatus, versjon
-                FROM stoend_statistikk
+                FROM stoenad_statistikk
                 WHERE personnummer = :fnr
                 """.trimIndent()
                     .hentListe(
@@ -194,14 +194,14 @@ class StatistikkHendelseRepoPostgres(
         )
     }
 
-    private fun hentMånedsbeløp(session: Session, stoendStatistikkId: UUID): List<Månedsbeløp> {
+    private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
         return """
         SELECT id, maaned, stonadsklassifisering, bruttosats, nettosats, fradrag_sum
         FROM manedsbelop
-        WHERE stoend_statistikk_id = :stoend_statistikk_id
+        WHERE stoenad_statistikk_id = :stoenad_statistikk_id
         """.trimIndent()
             .hentListe(
-                params = mapOf("stoend_statistikk_id" to stoendStatistikkId),
+                params = mapOf("stoenad_statistikk_id" to stoenadStatistikkId),
                 session = session,
             ) { row ->
                 val manedsbelopId = UUID.fromString(row.string("id"))
