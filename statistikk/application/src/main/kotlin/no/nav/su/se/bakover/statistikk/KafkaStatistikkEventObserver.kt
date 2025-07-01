@@ -76,7 +76,7 @@ internal class KafkaStatistikkEventObserver(
                             hentSak = event.hentSak,
                             clock = clock,
                             gitCommit = gitCommit,
-                            lagreStatstikkHendelse = { dto -> statistikkService.lagreHendelse(dto) },
+                            lagreStatstikkHendelse = { dto -> if (ApplicationConfig.isNotProd()) statistikkService.lagreHendelse(dto) },
                         ).right(),
                     )
                 }
