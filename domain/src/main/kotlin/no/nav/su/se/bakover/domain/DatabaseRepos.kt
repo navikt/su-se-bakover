@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.statistikk.StønadRepo
+import no.nav.su.se.bakover.domain.statistikk.StatistikkHendelseRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -48,5 +48,5 @@ data class DatabaseRepos(
     val oppgaveHendelseRepo: OppgaveHendelseRepo,
     val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     val dokumentHendelseRepo: DokumentHendelseRepo,
-    val stønadRepo: StønadRepo,
+    val statistikkHendelseRepo: StatistikkHendelseRepo,
 )

@@ -1,16 +1,23 @@
 package no.nav.su.se.bakover.database.statistikk
 
+import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
-import no.nav.su.se.bakover.domain.statistikk.StønadRepo
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.statistikk.StatistikkHendelseRepo
 import statistikk.domain.StønadstatistikkDto
+import java.time.YearMonth
 import java.util.UUID
 
-class StønadRepoPostgres(
+class StatistikkHendelseRepoPostgres(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
-) : StønadRepo {
+) : StatistikkHendelseRepo {
     override fun lagreHendelse(dto: StønadstatistikkDto) {
         return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
             sessionFactory.withSession { session ->
@@ -40,8 +47,8 @@ class StønadRepoPostgres(
                             "statistikk_aar_maaned" to dto.statistikkAarMaaned.atDay(1),
                             "personnummer" to dto.personnummer.toString(),
                             "personnummer_ektefelle" to dto.personNummerEktefelle?.toString(),
-                            "funksjonell_tid" to dto.funksjonellTid.toString(),
-                            "teknisk_tid" to dto.tekniskTid.toString(),
+                            "funksjonell_tid" to dto.funksjonellTid,
+                            "teknisk_tid" to dto.tekniskTid,
                             "stonadstype" to dto.stonadstype.name,
                             "sak_id" to dto.sakId,
                             "vedtaksdato" to dto.vedtaksdato,
@@ -104,6 +111,81 @@ class StønadRepoPostgres(
                             )
                     }
                 }
+            }
+        }
+    }
+
+    private fun Row.toStønadsstatistikk(session: Session): StønadstatistikkDto {
+        val harUtenlandsOpphold = stringOrNull("har_utenlands_opp_hold")?.let { JaNei.valueOf(it) }
+        val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
+        val statistikkAarMaaned = YearMonth.from(localDate("statistikk_aar_maaned"))
+        val personnummerDto = Fnr(string("personnummer"))
+        val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
+        val funksjonellTid = tidspunkt("funksjonell_tid")
+        val tekniskTid = tidspunkt("teknisk_tid")
+        val stonadstype = StønadstatistikkDto.Stønadstype.valueOf(string("stonadstype"))
+        val sakId = UUID.fromString(string("sak_id"))
+        val vedtaksdato = localDate("vedtaksdato")
+        val vedtakstype = StønadstatistikkDto.Vedtakstype.valueOf(string("vedtakstype"))
+        val vedtaksresultat = StønadstatistikkDto.Vedtaksresultat.valueOf(string("vedtaksresultat"))
+        val behandlendeEnhetKode = string("behandlende_enhet_kode")
+        val ytelseVirkningstidspunkt = localDate("ytelse_virkningstidspunkt")
+        val gjeldendeStonadVirkningstidspunkt = localDate("gjeldende_stonad_virkningstidspunkt")
+        val gjeldendeStonadStopptidspunkt = localDate("gjeldende_stonad_stopptidspunkt")
+        val gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart")
+        val gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp")
+        val opphorsgrunn = stringOrNull("opphorsgrunn")
+        val opphorsdato = localDateOrNull("opphorsdato")
+        val flyktningsstatus = stringOrNull("flyktningsstatus")
+        val versjon = stringOrNull("versjon")
+
+        return StønadstatistikkDto(
+            harUtenlandsOpphold = harUtenlandsOpphold,
+            harFamiliegjenforening = harFamiliegjenforening,
+            statistikkAarMaaned = statistikkAarMaaned,
+            personnummer = personnummerDto,
+            personNummerEktefelle = personnummerEktefelle,
+            funksjonellTid = funksjonellTid,
+            tekniskTid = tekniskTid,
+            stonadstype = stonadstype,
+            sakId = sakId,
+            vedtaksdato = vedtaksdato,
+            vedtakstype = vedtakstype,
+            vedtaksresultat = vedtaksresultat,
+            behandlendeEnhetKode = behandlendeEnhetKode,
+            ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
+            gjeldendeStonadVirkningstidspunkt = gjeldendeStonadVirkningstidspunkt,
+            gjeldendeStonadStopptidspunkt = gjeldendeStonadStopptidspunkt,
+            gjeldendeStonadUtbetalingsstart = gjeldendeStonadUtbetalingsstart,
+            gjeldendeStonadUtbetalingsstopp = gjeldendeStonadUtbetalingsstopp,
+            opphorsgrunn = opphorsgrunn,
+            opphorsdato = opphorsdato,
+            flyktningsstatus = flyktningsstatus,
+            versjon = versjon,
+            månedsbeløp = emptyList(), // TODO: fiks nesting her med session
+        )
+    }
+
+    override fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto> {
+        return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id, har_utenlands_opp_hold, har_familiegjenforening, statistikk_aar_maaned, personnummer,
+                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
+                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
+                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
+                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
+                    opphorsdato, flyktningsstatus, versjon
+                FROM stoend_statistikk
+                WHERE personnummer = :fnr
+                """.trimIndent()
+                    .hentListe(
+                        params = mapOf("fnr" to fnr.toString()),
+                        session = session,
+                    ) { row ->
+                        row.toStønadsstatistikk(session)
+                    }
             }
         }
     }

@@ -1,8 +1,3 @@
-CREATE TABLE stonadsklassifisering_dto (
-    kode TEXT PRIMARY KEY,
-    beskrivelse TEXT NOT NULL
-);
-
 CREATE TABLE stoend_statistikk (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     har_utenlands_opp_hold TEXT,
@@ -33,7 +28,7 @@ CREATE TABLE manedsbelop (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     stoend_statistikk_id UUID NOT NULL REFERENCES stoend_statistikk(id) ON DELETE CASCADE,
     maaned TEXT NOT NULL,
-    stonadsklassifisering TEXT NOT NULL REFERENCES stonadsklassifisering_dto(kode),
+    stonadsklassifisering TEXT,
     bruttosats BIGINT NOT NULL,
     nettosats BIGINT NOT NULL,
     fradrag_sum BIGINT NOT NULL
