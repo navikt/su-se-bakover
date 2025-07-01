@@ -10,7 +10,10 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StatistikkHendelseRepo
+import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
+import statistikk.domain.StønadstatistikkDto.Inntekt
+import statistikk.domain.StønadstatistikkDto.Månedsbeløp
 import java.time.YearMonth
 import java.util.UUID
 
@@ -24,14 +27,14 @@ class StatistikkHendelseRepoPostgres(
                 val stoendStatistikkId = UUID.randomUUID()
                 """
                     INSERT INTO stoend_statistikk (
-                    id, har_utenlands_opp_hold, har_familiegjenforening, statistikk_aar_maaned, personnummer,
+                    id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
                     personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
                     vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
                     gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
                     gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
                     opphorsdato, flyktningsstatus, versjon
                     ) VALUES (
-                        :id, :har_utenlands_opp_hold, :har_familiegjenforening, :statistikk_aar_maaned, :personnummer,
+                        :id, :har_utenlandsopphold, :har_familiegjenforening, :aar_maaned, :personnummer,
                         :personnummer_ektefelle, :funksjonell_tid, :teknisk_tid, :stonadstype, :sak_id, :vedtaksdato,
                         :vedtakstype, :vedtaksresultat, :behandlende_enhet_kode, :ytelse_virkningstidspunkt,
                         :gjeldende_stonad_virkningstidspunkt, :gjeldende_stonad_stopptidspunkt,
@@ -42,9 +45,9 @@ class StatistikkHendelseRepoPostgres(
                     .insert(
                         mapOf(
                             "id" to stoendStatistikkId,
-                            "har_utenlands_opp_hold" to dto.harUtenlandsOpphold?.name,
+                            "har_utenlandsopphold" to dto.harUtenlandsOpphold?.name,
                             "har_familiegjenforening" to dto.harFamiliegjenforening?.name,
-                            "statistikk_aar_maaned" to dto.statistikkAarMaaned.atDay(1),
+                            "aar_maaned" to dto.statistikkAarMaaned.atDay(1),
                             "personnummer" to dto.personnummer.toString(),
                             "personnummer_ektefelle" to dto.personNummerEktefelle?.toString(),
                             "funksjonell_tid" to dto.funksjonellTid,
@@ -115,10 +118,35 @@ class StatistikkHendelseRepoPostgres(
         }
     }
 
+    override fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto> {
+        return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
+                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
+                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
+                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
+                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
+                    opphorsdato, flyktningsstatus, versjon
+                FROM stoend_statistikk
+                WHERE personnummer = :fnr
+                """.trimIndent()
+                    .hentListe(
+                        params = mapOf("fnr" to fnr.toString()),
+                        session = session,
+                    ) { row ->
+                        row.toStønadsstatistikk(session)
+                    }
+            }
+        }
+    }
+
     private fun Row.toStønadsstatistikk(session: Session): StønadstatistikkDto {
-        val harUtenlandsOpphold = stringOrNull("har_utenlands_opp_hold")?.let { JaNei.valueOf(it) }
+        val stoendStatistikkId = uuid("id")
+        val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
         val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
-        val statistikkAarMaaned = YearMonth.from(localDate("statistikk_aar_maaned"))
+        val statistikkAarMaaned = YearMonth.from(localDate("aar_maaned"))
         val personnummerDto = Fnr(string("personnummer"))
         val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
         val funksjonellTid = tidspunkt("funksjonell_tid")
@@ -162,31 +190,54 @@ class StatistikkHendelseRepoPostgres(
             opphorsdato = opphorsdato,
             flyktningsstatus = flyktningsstatus,
             versjon = versjon,
-            månedsbeløp = emptyList(), // TODO: fiks nesting her med session
+            månedsbeløp = hentMånedsbeløp(session, stoendStatistikkId),
         )
     }
 
-    override fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto> {
-        return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
-            sessionFactory.withSession { session ->
-                """
-                SELECT
-                    id, har_utenlands_opp_hold, har_familiegjenforening, statistikk_aar_maaned, personnummer,
-                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
-                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
-                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
-                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
-                    opphorsdato, flyktningsstatus, versjon
-                FROM stoend_statistikk
-                WHERE personnummer = :fnr
-                """.trimIndent()
-                    .hentListe(
-                        params = mapOf("fnr" to fnr.toString()),
-                        session = session,
-                    ) { row ->
-                        row.toStønadsstatistikk(session)
-                    }
+    private fun hentMånedsbeløp(session: Session, stoendStatistikkId: UUID): List<Månedsbeløp> {
+        return """
+        SELECT id, maaned, stonadsklassifisering, bruttosats, nettosats, fradrag_sum
+        FROM manedsbelop
+        WHERE stoend_statistikk_id = :stoend_statistikk_id
+        """.trimIndent()
+            .hentListe(
+                params = mapOf("stoend_statistikk_id" to stoendStatistikkId),
+                session = session,
+            ) { row ->
+                val manedsbelopId = UUID.fromString(row.string("id"))
+                val maaned = row.string("maaned")
+                val stonadsklassifisering = StønadsklassifiseringDto.valueOf(row.string("stonadsklassifisering"))
+                val bruttosats = row.long("bruttosats")
+                val nettosats = row.long("nettosats")
+                val fradragSum = row.long("fradrag_sum")
+
+                Månedsbeløp(
+                    måned = maaned,
+                    stonadsklassifisering = stonadsklassifisering,
+                    bruttosats = bruttosats,
+                    nettosats = nettosats,
+                    inntekter = hentInntekter(session, manedsbelopId),
+                    fradragSum = fradragSum,
+                )
             }
-        }
+    }
+
+    private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Inntekt> {
+        return """
+            SELECT inntektstype, belop, tilhorer, er_utenlandsk
+            FROM inntekt
+            WHERE manedsbelop_id = :manedsbelop_id
+        """.trimIndent()
+            .hentListe(
+                params = mapOf("manedsbelop_id" to manedsbelop_id),
+                session = session,
+            ) { row ->
+                Inntekt(
+                    inntektstype = row.string("inntektstype"),
+                    beløp = row.long("belop"),
+                    tilhører = row.string("tilhorer"),
+                    erUtenlandsk = row.boolean("er_utenlandsk"),
+                )
+            }
     }
 }

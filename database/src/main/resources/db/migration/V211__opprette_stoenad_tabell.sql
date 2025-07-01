@@ -1,8 +1,8 @@
 CREATE TABLE stoend_statistikk (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    har_utenlands_opp_hold TEXT,
+    har_utenlandsopphold TEXT,
     har_familiegjenforening TEXT,
-    statistikk_aar_maaned DATE NOT NULL, -- lagre YearMonth as first day of month
+    aar_maaned DATE NOT NULL, -- lagre YearMonth as first day of month
     personnummer TEXT NOT NULL,
     personnummer_ektefelle TEXT,
     funksjonell_tid TIMESTAMPTZ NOT NULL,
@@ -23,6 +23,10 @@ CREATE TABLE stoend_statistikk (
     flyktningsstatus TEXT,
     versjon TEXT
 );
+
+CREATE INDEX idx_stoenadstat_sakid ON stoend_statistikk(sak_id);
+CREATE INDEX idx_stoenadstat_fnr ON stoend_statistikk(personnummer);
+CREATE INDEX idx_stoenadstat_fnr_maaned ON stoend_statistikk(personnummer, aar_maaned);
 
 CREATE TABLE manedsbelop (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -101,8 +101,9 @@ data class StønadstatistikkDto(
     )
 
     /**
-     * @property inntektstype Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv.
+     * @property inntektstype Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv. så basically [Fradragstype.Kategori]
      * @property beløp Inntekten i kroner per måned.
+     * @property tilhører er [FradragTilhører]
      */
     data class Inntekt(
         val inntektstype: String,

@@ -89,7 +89,7 @@ internal class StønadsstatistikkTest {
                   "fradragSum": 3000,
                   "inntekter": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      " inntektstype": "ForventetInntekt",
                       "beløp": 3000,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
