@@ -159,7 +159,7 @@ class SøknadServiceImpl(
                 person = person,
             )
         }.also {
-            log.info("Fant ${it.size} saker uten journalpost.")
+            log.info("Fant ${it.size} søknader uten journalpost.")
         }
     }
 
@@ -179,7 +179,7 @@ class SøknadServiceImpl(
                 fnr = sak.fnr,
                 opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
-        }
+        }.also { log.info("Fant ${it.size} søknader uten gosys-oppgave.") }
     }
 
     private fun opprettJournalpostOgOppgave(
