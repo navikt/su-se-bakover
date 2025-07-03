@@ -51,12 +51,15 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Month
 import java.time.Year
+import java.time.YearMonth
 
 internal class OppdaterStønadsperiodeTest {
 
@@ -152,6 +155,10 @@ internal class OppdaterStønadsperiodeTest {
             }
         }
 
+        /*
+            Innvilget februar 2025 og deretter innvilg januar 2025 skal ikke være mulig.
+            TODO: skal jo være mulig så lenge ingvilg januar tom er før fom februar 2025
+         */
         @Test
         fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
             val clock = TikkendeKlokke()
@@ -186,8 +193,119 @@ internal class OppdaterStønadsperiodeTest {
                     saksbehandler = saksbehandler,
                     hentPerson = { person().right() },
                     saksbehandlersAvgjørelse = null,
+                ).shouldBeRight()
+            }
+        }
+
+        /*
+            Feks hvis man skal revurdere et avslag tilbake i tid der bruker har fått et innvilget vedtak i ettertid
+            Så her har vi en revurderingsperiode for det avslåtte vedtaket som har en TOM som er før FOM for innvilgelsesperioden
+            TODO: lage en test som catcher hvis man gjør innvilgelsen over på ny
+         */
+        @Test
+        fun `stønadsperioder skal kunne legges forut for eksisterende stønadsperioder hvis periodens tom er før de andres fom`() {
+            val clock = TikkendeKlokke()
+            val avslagsperiode = Periode.create(
+                fraOgMed = YearMonth.of(2023, Month.MAY).atDay(1),
+                tilOgMed = YearMonth.of(2024, Month.APRIL).atEndOfMonth(),
+            )
+            val (sakEtterFørstePeriode, _) = vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
+                stønadsperiode = Stønadsperiode.create(periode = avslagsperiode),
+                clock = clock,
+            )
+
+            val innvilgelsesPeriode = Periode.create(
+                fraOgMed = YearMonth.of(2023, Month.OCTOBER).atDay(1),
+                tilOgMed = YearMonth.of(2024, Month.SEPTEMBER).atEndOfMonth(),
+            )
+            val (sakEtterAndrePeriode, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(periode = innvilgelsesPeriode),
+                clock = clock,
+                sakOgSøknad = sakEtterFørstePeriode to nySøknadJournalførtMedOppgave(
+                    sakId = sakEtterFørstePeriode.id,
+                    fnr = sakEtterFørstePeriode.fnr,
+                ),
+            )
+
+            // TODO: MÅ være revurdering? virker ikke som det spiller noen rolle her, men det skjønner ikke testen uansett så...evt test med opprettetRevurdering() fra helpers
+            val (sakEtterTredjePeriode, mellomToAndrePerioder) = nySøknadsbehandlingUtenStønadsperiode(
+                clock = clock,
+                sakOgSøknad = sakEtterAndrePeriode to nySøknadJournalførtMedOppgave(
+                    sakId = sakEtterAndrePeriode.id,
+                    fnr = sakEtterAndrePeriode.fnr,
+                ),
+            )
+
+            sakEtterTredjePeriode.oppdaterSøknadsbehandling(mellomToAndrePerioder).let {
+                val revurderingsPeriodeInnvilgelseEtterKA = Periode.create(
+                    fraOgMed = YearMonth.of(2023, Month.AUGUST).atDay(1),
+                    tilOgMed = YearMonth.of(2023, Month.SEPTEMBER).atEndOfMonth(),
+                )
+                val nyPeriode = Stønadsperiode.create(periode = revurderingsPeriodeInnvilgelseEtterKA)
+
+                it.oppdaterStønadsperiodeForSøknadsbehandling(
+                    søknadsbehandlingId = mellomToAndrePerioder.id,
+                    stønadsperiode = nyPeriode,
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    saksbehandler = saksbehandler,
+                    hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
+                ).shouldBeRight()
+            }
+        }
+
+        @Test
+        fun `stønadsperiode som legges tilbake i tid med en tom over en stønadsperiode for VedtakSomKanRevurderes`() {
+            val clock = TikkendeKlokke()
+            val avslagsperiode = Periode.create(
+                fraOgMed = YearMonth.of(2023, Month.MAY).atDay(1),
+                tilOgMed = YearMonth.of(2024, Month.APRIL).atEndOfMonth(),
+            )
+            val (sakEtterFørstePeriode, _) = vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
+                stønadsperiode = Stønadsperiode.create(periode = avslagsperiode),
+                clock = clock,
+            )
+
+            val innvilgelsesPeriode = Periode.create(
+                fraOgMed = YearMonth.of(2023, Month.OCTOBER).atDay(1),
+                tilOgMed = YearMonth.of(2024, Month.SEPTEMBER).atEndOfMonth(),
+            )
+            val (sakEtterAndrePeriode, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(periode = innvilgelsesPeriode),
+                clock = clock,
+                sakOgSøknad = sakEtterFørstePeriode to nySøknadJournalførtMedOppgave(
+                    sakId = sakEtterFørstePeriode.id,
+                    fnr = sakEtterFørstePeriode.fnr,
+                ),
+            )
+
+            // TODO: MÅ være revurdering? virker ikke som det spiller noen rolle her, men det skjønner ikke testen uansett så...evt test med opprettetRevurdering() fra helpers
+            val (sakEtterTredjePeriode, mellomToAndrePerioder) = nySøknadsbehandlingUtenStønadsperiode(
+                clock = clock,
+                sakOgSøknad = sakEtterAndrePeriode to nySøknadJournalførtMedOppgave(
+                    sakId = sakEtterAndrePeriode.id,
+                    fnr = sakEtterAndrePeriode.fnr,
+                ),
+            )
+
+            sakEtterTredjePeriode.oppdaterSøknadsbehandling(mellomToAndrePerioder).let {
+                val revurderingsPeriodeInnvilgelseEtterKA = Periode.create(
+                    fraOgMed = YearMonth.of(2023, Month.AUGUST).atDay(1),
+                    tilOgMed = YearMonth.of(2023, Month.OCTOBER).atEndOfMonth(),
+                )
+                val nyPeriode = Stønadsperiode.create(periode = revurderingsPeriodeInnvilgelseEtterKA)
+
+                it.oppdaterStønadsperiodeForSøknadsbehandling(
+                    søknadsbehandlingId = mellomToAndrePerioder.id,
+                    stønadsperiode = nyPeriode,
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    saksbehandler = saksbehandler,
+                    hentPerson = { person().right() },
+                    saksbehandlersAvgjørelse = null,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.OverlappendeStønadsperiode(
-                    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer,
+                    StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode,
                 ).left()
             }
         }
