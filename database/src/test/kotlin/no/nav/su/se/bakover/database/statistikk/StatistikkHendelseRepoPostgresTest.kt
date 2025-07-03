@@ -101,7 +101,6 @@ internal class StatistikkHendelseRepoPostgresTest {
         }
     }
 
-    // TODO: lag egen domain elns for statstikk bygger i fellest test så vi kan bygge opp data her
     @Test
     fun `Klarer å lagre gjenopptak med månedsbeløp & inntekter`() {
         withMigratedDb { dataSource ->
@@ -130,7 +129,7 @@ internal class StatistikkHendelseRepoPostgresTest {
                 månedsbeløp = listOf(
                     Månedsbeløp(
                         måned = "2021-01-01",
-                        stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE, // assuming enum or constant
+                        stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
                         bruttosats = 20946L,
                         nettosats = 17946L,
                         inntekter = listOf(
