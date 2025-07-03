@@ -19,7 +19,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":satser"))
     implementation(project(":grunnbeløp"))
-    implementation(project(":statistikk"))
+    implementation(project(":statistikk:domain"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilgangstyring:application"))
     implementation(project(":tilgangstyring:domain"))

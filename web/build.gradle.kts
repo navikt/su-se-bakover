@@ -40,7 +40,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":satser"))
     implementation(project(":service"))
-    implementation(project(":statistikk"))
+    implementation(project(":statistikk:application"))
     implementation(project(":tilbakekreving:application"))
     implementation(project(":tilbakekreving:domain"))
     implementation(project(":tilbakekreving:infrastructure"))
