@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.statistikk
 
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -22,7 +23,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-internal class StønadRepoPostgresTest {
+internal class StatistikkHendelseRepoPostgresTest {
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
     fun genererBasicStønadsstatistikk(list: List<Månedsbeløp>): StønadstatistikkDto {
@@ -97,6 +98,66 @@ internal class StønadRepoPostgresTest {
             førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
             førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.Arbeidsinntekt.kategori.name }
             førsteMånedsbeløp.inntekter.forExactly(1) { it.beløp shouldBe 0L }
+        }
+    }
+
+    @Test
+    fun `Klarer å lagre gjenopptak med månedsbeløp & inntekter`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.statistikkHendelseRepo
+            // hentet fra [StønadsstatistikkTest.Gjenopptak sender med riktig månedsbeløp]
+            val stønadshendelseGjenopptak = StønadstatistikkDto(
+                harUtenlandsOpphold = JaNei.NEI,
+                harFamiliegjenforening = null, // not in JSON, so null
+                statistikkAarMaaned = YearMonth.parse("2025-07"),
+                personnummer = Fnr("64825004709"),
+                personNummerEktefelle = null,
+                funksjonellTid = Tidspunkt.parse("2021-01-01T01:02:58.456789Z"),
+                tekniskTid = Tidspunkt.parse("2021-01-01T01:02:03.456789Z"),
+                stonadstype = Stønadstype.SU_UFØR,
+                sakId = UUID.fromString("6d451208-d0f2-410e-993b-40a2dc56f4fb"),
+                vedtaksdato = LocalDate.parse("2021-01-01"),
+                vedtakstype = Vedtakstype.GJENOPPTAK,
+                vedtaksresultat = Vedtaksresultat.GJENOPPTATT,
+                behandlendeEnhetKode = "4815",
+                ytelseVirkningstidspunkt = LocalDate.parse("2021-01-01"),
+                gjeldendeStonadVirkningstidspunkt = LocalDate.parse("2021-01-01"),
+                gjeldendeStonadStopptidspunkt = LocalDate.parse("2021-01-31"),
+                gjeldendeStonadUtbetalingsstart = LocalDate.parse("2021-01-01"),
+                gjeldendeStonadUtbetalingsstopp = LocalDate.parse("2021-01-31"),
+                månedsbeløp = listOf(
+                    Månedsbeløp(
+                        måned = "2021-01-01",
+                        stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
+                        bruttosats = 20946L,
+                        nettosats = 17946L,
+                        inntekter = listOf(
+                            StønadstatistikkDto.Inntekt(
+                                inntektstype = Fradragstype.ForventetInntekt.kategori.name,
+                                beløp = 3000L,
+                                tilhører = FradragTilhører.BRUKER.toString(),
+                                erUtenlandsk = false,
+                            ),
+                        ),
+                        fradragSum = 3000L,
+                    ),
+                ),
+                opphorsgrunn = null,
+                opphorsdato = null,
+                flyktningsstatus = "FLYKTNING",
+                versjon = UUID.randomUUID().toString(),
+            )
+
+            repo.lagreHendelse(stønadshendelseGjenopptak)
+            val hendelser = repo.hentHendelserForFnr(stønadshendelseGjenopptak.personnummer)
+            hendelser.size shouldBe 1
+            val hendelse = hendelser.first()
+
+            hendelse shouldBe stønadshendelseGjenopptak
+            val førsteMånedsbeløp = hendelse.månedsbeløp.first()
+            førsteMånedsbeløp.stonadsklassifisering shouldBe StønadsklassifiseringDto.BOR_ALENE
+            førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
         }
     }
 }
