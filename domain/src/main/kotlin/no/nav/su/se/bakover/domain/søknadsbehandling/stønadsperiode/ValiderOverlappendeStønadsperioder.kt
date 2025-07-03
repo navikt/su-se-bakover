@@ -27,7 +27,15 @@ private fun Sak.validerOverlappendeIkkeOpphørtePerioder(
         if (stønadsperioder.any { it overlapper periode }) {
             return StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeOverlapperMedIkkeOpphørtStønadsperiode.left()
         }
-        if (stønadsperioder.any { it.starterSamtidigEllerSenere(periode) }) {
+
+        if (stønadsperioder.any {
+                if (periode.fraOgMed.isBefore(it.fraOgMed)) {
+                    !periode.tilOgMed.isBefore(it.fraOgMed)
+                } else {
+                    false
+                }
+            }
+        ) {
             return StøtterIkkeOverlappendeStønadsperioder.StønadsperiodeForSenerePeriodeEksisterer.left()
         }
     }
