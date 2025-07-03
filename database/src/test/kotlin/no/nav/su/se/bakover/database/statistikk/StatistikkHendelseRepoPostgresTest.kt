@@ -22,7 +22,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-internal class StønadRepoPostgresTest {
+internal class StatistikkHendelseRepoPostgresTest {
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
     fun genererBasicStønadsstatistikk(list: List<Månedsbeløp>): StønadstatistikkDto {

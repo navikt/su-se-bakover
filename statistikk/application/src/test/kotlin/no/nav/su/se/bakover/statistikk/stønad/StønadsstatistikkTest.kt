@@ -39,6 +39,11 @@ import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
 import java.time.YearMonth
 
+/*
+Merk ingen av disse går igjennom den faktiske mappingen av data og har ingen typesikkerhet what so ever.
+Kun sikkerthet mtp at gitte datafelt blir publisert på kafka. Kan vurderes å slettes hvis disse flyttes inn i et
+eget service eller databaselag for testing.
+ */
 internal class StønadsstatistikkTest {
 
     @Test
