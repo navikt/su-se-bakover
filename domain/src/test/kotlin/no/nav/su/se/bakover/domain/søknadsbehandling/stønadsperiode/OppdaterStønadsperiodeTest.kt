@@ -155,10 +155,6 @@ internal class OppdaterStønadsperiodeTest {
             }
         }
 
-        /*
-            Innvilget februar 2025 og deretter innvilg januar 2025 skal ikke være mulig.
-            TODO: skal jo være mulig så lenge ingvilg januar tom er før fom februar 2025
-         */
         @Test
         fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
             val clock = TikkendeKlokke()
@@ -200,7 +196,6 @@ internal class OppdaterStønadsperiodeTest {
         /*
             Feks hvis man skal revurdere et avslag tilbake i tid der bruker har fått et innvilget vedtak i ettertid
             Så her har vi en revurderingsperiode for det avslåtte vedtaket som har en TOM som er før FOM for innvilgelsesperioden
-            TODO: lage en test som catcher hvis man gjør innvilgelsen over på ny
          */
         @Test
         fun `stønadsperioder skal kunne legges forut for eksisterende stønadsperioder hvis periodens tom er før de andres fom`() {
