@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
+import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -452,7 +453,16 @@ private fun naisJobberOgConsumers(
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             runCheckFactory = runCheckFactory,
         ),
+
+        FiksSøknaderUtenOppgave.startJob(
+            intervall = Duration.of(1, ChronoUnit.HOURS),
+            initialDelay = initialDelay.next(),
+            søknadService = services.søknad,
+            runCheckFactory = runCheckFactory,
+        ),
+
     )
+
     val consumers = listOfNotNull(
         // holder inst på kun i preprod inntil videre
         if (!isProd) {

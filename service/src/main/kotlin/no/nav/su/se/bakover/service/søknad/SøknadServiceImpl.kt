@@ -145,7 +145,6 @@ class SøknadServiceImpl(
 
     private fun opprettManglendeJournalposteringer(): List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>> {
         return søknadRepo.hentSøknaderUtenJournalpost().map { søknad ->
-            // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Fant ikke sak").left()
@@ -159,12 +158,13 @@ class SøknadServiceImpl(
                 søknad = søknad,
                 person = person,
             )
+        }.also {
+            log.info("Fant ${it.size} søknader uten journalpost.")
         }
     }
 
     private fun opprettManglendeOppgaver(): List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>> {
         return søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave().map { søknad ->
-            // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteOppgave(
@@ -179,7 +179,7 @@ class SøknadServiceImpl(
                 fnr = sak.fnr,
                 opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
-        }
+        }.also { log.info("Fant ${it.size} søknader uten gosys-oppgave.") }
     }
 
     private fun opprettJournalpostOgOppgave(
