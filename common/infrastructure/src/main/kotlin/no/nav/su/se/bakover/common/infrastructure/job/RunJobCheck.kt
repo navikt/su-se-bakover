@@ -15,8 +15,8 @@ data class RunCheckFactory(
     private val applicationConfig: ApplicationConfig,
     private val clock: Clock,
 ) {
-    fun åpningstidStormaskin(): ÅpningstidStormaskin {
-        return ÅpningstidStormaskin(
+    fun manTilFredag0600til2100(): UkedagerMellom0600Og2100 {
+        return UkedagerMellom0600Og2100(
             ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
             clock = clock,
         )
@@ -35,8 +35,11 @@ fun List<RunJobCheck>.shouldRun(): Boolean {
     return map { it.shouldRun() }.all { it }
 }
 
-data class ÅpningstidStormaskin(
-    // TODO jah: Ta inn ZonedDateTime?
+/**
+ * Denne sørger for at den gitte jobben kjører på intervall x man-fredag mellom 06:00-21:00.
+ * Typisk Åpningstid for stormaskin
+ */
+data class UkedagerMellom0600Og2100(
     private val ordinærÅpningstidOppdrag: Pair<LocalTime, LocalTime>,
     private val clock: Clock,
 ) : RunJobCheck {
