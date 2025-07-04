@@ -25,7 +25,7 @@ class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
                 initialDelay = initialDelay,
                 intervall = intervall,
                 log = LoggerFactory.getLogger(StansYtelseVedManglendeOppmøteKontrollsamtaleJob::class.java),
-                runJobCheck = listOf(runCheckFactory.åpningstidStormaskin(), runCheckFactory.leaderPod()),
+                runJobCheck = listOf(runCheckFactory.manTilFredag0600til2100(), runCheckFactory.leaderPod()),
             ) {
                 service.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
             }.let { StansYtelseVedManglendeOppmøteKontrollsamtaleJob(it) }

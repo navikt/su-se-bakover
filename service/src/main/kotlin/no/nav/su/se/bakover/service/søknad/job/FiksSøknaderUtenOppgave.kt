@@ -23,7 +23,7 @@ class FiksSøknaderUtenOppgave(
                 initialDelay = initialDelay,
                 intervall = intervall,
                 log = logger,
-                runJobCheck = listOf(runCheckFactory.leaderPod()),
+                runJobCheck = listOf(runCheckFactory.leaderPod(), runCheckFactory.manTilFredag0600til2100()),
             ) {
                 logger.info("Fikser søknader uten oppgave")
                 søknadService.opprettManglendeJournalpostOgOppgave()

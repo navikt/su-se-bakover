@@ -27,7 +27,7 @@ internal class RunCheckTest {
             applicationConfig = ApplicationConfig.createLocalConfig(),
             clock = Clock.fixed(5.oktober(2022).atTime(4, 0, 0).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
-            it.åpningstidStormaskin().shouldRun() shouldBe false
+            it.manTilFredag0600til2100().shouldRun() shouldBe false
         }
 
         RunCheckFactory(
@@ -37,7 +37,7 @@ internal class RunCheckTest {
             applicationConfig = ApplicationConfig.createLocalConfig(),
             clock = Clock.fixed(5.oktober(2022).atTime(4, 0, 10).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
-            it.åpningstidStormaskin().shouldRun() shouldBe true
+            it.manTilFredag0600til2100().shouldRun() shouldBe true
         }
 
         RunCheckFactory(
@@ -47,7 +47,7 @@ internal class RunCheckTest {
             applicationConfig = ApplicationConfig.createLocalConfig(),
             clock = Clock.fixed(5.oktober(2022).atTime(19, 0, 10).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
-            it.åpningstidStormaskin().shouldRun() shouldBe false
+            it.manTilFredag0600til2100().shouldRun() shouldBe false
         }
 
         RunCheckFactory(
@@ -57,7 +57,7 @@ internal class RunCheckTest {
             applicationConfig = ApplicationConfig.createLocalConfig(),
             clock = Clock.fixed(5.oktober(2022).atTime(18, 59, 59).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
-            it.åpningstidStormaskin().shouldRun() shouldBe true
+            it.manTilFredag0600til2100().shouldRun() shouldBe true
         }
 
         // Skal ikke være åpent i helgen (lørdag)
@@ -68,7 +68,7 @@ internal class RunCheckTest {
             applicationConfig = ApplicationConfig.createLocalConfig(),
             clock = Clock.fixed(25.november(2023).atTime(12, 0, 0).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
-            it.åpningstidStormaskin().shouldRun() shouldBe false
+            it.manTilFredag0600til2100().shouldRun() shouldBe false
         }
 
         // Skal ikke være åpent i helgen (søndag)
@@ -79,7 +79,7 @@ internal class RunCheckTest {
             applicationConfig = ApplicationConfig.createLocalConfig(),
             clock = Clock.fixed(26.november(2023).atTime(12, 0, 0).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
-            it.åpningstidStormaskin().shouldRun() shouldBe false
+            it.manTilFredag0600til2100().shouldRun() shouldBe false
         }
     }
 
@@ -126,7 +126,7 @@ internal class RunCheckTest {
             clock = Clock.fixed(5.oktober(2022).atTime(15, 0, 0).atZone(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC),
         ).let {
             listOf(
-                it.åpningstidStormaskin(),
+                it.manTilFredag0600til2100(),
                 it.leaderPod(),
             ).shouldRun() shouldBe true
         }

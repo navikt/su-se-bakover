@@ -44,11 +44,8 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
         correlationId: CorrelationId,
     ): Either<Nel<Throwable>, List<HendelseId>> {
         return Either.catch {
-            kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(
-                konsumentId = konsumentId,
-            ).map { hendelseId ->
-                prosesserEnHendelse(hendelseId, correlationId)
-            }
+            kravgrunnlagRepo.hentUprosesserteRåttKravgrunnlagHendelser(konsumentId = konsumentId)
+                .map { hendelseId -> prosesserEnHendelse(hendelseId, correlationId) }
         }.mapLeft {
             log.error(
                 "Kunne ikke prosessere kravgrunnlag: Det ble kastet en exception ved hentUprosesserteRåttKravgrunnlagHendelser for konsument $konsumentId",
