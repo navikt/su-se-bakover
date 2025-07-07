@@ -223,15 +223,20 @@ internal class OppdaterStønadsperiodeTest {
             )
 
             // TODO: MÅ være revurdering? virker ikke som det spiller noen rolle her, men det skjønner ikke testen uansett så...evt test med opprettetRevurdering() fra helpers
-            val (sakEtterTredjePeriode, mellomToAndrePerioder) = nySøknadsbehandlingUtenStønadsperiode(
+            val revurderingsPeriodeInnvilgelseEtterKA = Periode.create(
+                fraOgMed = YearMonth.of(2023, Month.AUGUST).atDay(1),
+                tilOgMed = YearMonth.of(2023, Month.SEPTEMBER).atEndOfMonth(),
+            )
+            val (sakMedSøknadsbehandlingsvedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
                 clock = clock,
-                sakOgSøknad = sakEtterAndrePeriode to nySøknadJournalførtMedOppgave(
-                    sakId = sakEtterAndrePeriode.id,
-                    fnr = sakEtterAndrePeriode.fnr,
-                ),
+
+            )
+            val (sak, _) = vedtakRevurdering(
+                revurderingsperiode = revurderingsPeriodeInnvilgelseEtterKA,
+                sakOgVedtakSomKanRevurderes = sakMedSøknadsbehandlingsvedtak to søknadsbehandlingVedtak,
             )
 
-            sakEtterTredjePeriode.oppdaterSøknadsbehandling(mellomToAndrePerioder).let {
+            sak.oppdaterSøknadsbehandling(søknadsbehandlingVedtak.behandling).let {
                 val revurderingsPeriodeInnvilgelseEtterKA = Periode.create(
                     fraOgMed = YearMonth.of(2023, Month.AUGUST).atDay(1),
                     tilOgMed = YearMonth.of(2023, Month.SEPTEMBER).atEndOfMonth(),
@@ -239,7 +244,7 @@ internal class OppdaterStønadsperiodeTest {
                 val nyPeriode = Stønadsperiode.create(periode = revurderingsPeriodeInnvilgelseEtterKA)
 
                 it.oppdaterStønadsperiodeForSøknadsbehandling(
-                    søknadsbehandlingId = mellomToAndrePerioder.id,
+                    søknadsbehandlingId = søknadsbehandlingVedtak.behandling.id,
                     stønadsperiode = nyPeriode,
                     clock = fixedClock,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),

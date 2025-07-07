@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.nyRevurdering
 import java.time.Clock
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
@@ -25,19 +26,27 @@ fun Sak.opprettRevurdering(
     val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(this.type, command.informasjonSomRevurderes)
         .getOrElse { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
+    val revurderingsårsak = command.revurderingsårsak.getOrElse {
+        return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
+    }
+
+    if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
+        if (!this.klager.any { it.erÅpen() }) {
+            return KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage.left()
+        }
+    }
+
+    val periode = command.periode
     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
-        periode = command.periode,
+        periode = periode,
+        revurderingsÅrsak = revurderingsårsak.årsak,
         clock = clock,
     ).getOrElse {
         return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left()
     }
 
-    informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
+    informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
         .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
-
-    val revurderingsårsak = command.revurderingsårsak.getOrElse {
-        return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
-    }
 
     val tidspunkt = Tidspunkt.now(clock)
     return OpprettRevurderingResultatUtenOppgaveId(
@@ -52,10 +61,10 @@ fun Sak.opprettRevurdering(
         },
         opprettRevurdering = { oppgaveId ->
             OpprettetRevurdering(
-                periode = command.periode,
+                periode = periode,
                 opprettet = tidspunkt,
                 oppdatert = tidspunkt,
-                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = command.periode.fraOgMed)!!.id,
+                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
                 vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                 saksbehandler = command.saksbehandler,
                 oppgaveId = oppgaveId,
