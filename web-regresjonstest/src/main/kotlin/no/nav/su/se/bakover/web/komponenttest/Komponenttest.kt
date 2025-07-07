@@ -243,7 +243,6 @@ internal fun withKomptestApplication(
         Tilbakekrevingskomponenter.create(
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
-            personService = services.person,
             hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
             sakService = services.sak,
             oppgaveService = services.oppgave,
@@ -327,7 +326,7 @@ fun Application.testSusebakover(appComponents: AppComponents) {
         clients = appComponents.clients,
         services = appComponents.services,
         accessCheckProxy = appComponents.accessCheckProxy,
-        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _ ->
+        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _ ->
             appComponents.tilbakekrevingskomponenter
         },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,
