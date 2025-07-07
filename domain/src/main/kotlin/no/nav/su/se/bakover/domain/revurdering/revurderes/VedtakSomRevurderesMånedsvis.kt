@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
@@ -34,9 +35,11 @@ private fun Map<Måned, VedtakSomKanRevurderes>.toVedtakSomRevurderesMånedsvis(
 fun Sak.vedtakSomRevurderesMånedsvis(
     periode: Periode,
     clock: Clock,
+    revurderingsÅrsak: Revurderingsårsak.Årsak,
 ): Either<Sak.GjeldendeVedtaksdataErUgyldigForRevurdering, VedtakSomRevurderesMånedsvis> {
     return hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode = periode,
+        revurderingsÅrsak = revurderingsÅrsak,
         clock = clock,
     ).map {
         it.toVedtakSomRevurderesMånedsvis()

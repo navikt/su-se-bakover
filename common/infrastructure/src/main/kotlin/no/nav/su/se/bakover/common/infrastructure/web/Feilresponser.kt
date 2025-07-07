@@ -325,6 +325,13 @@ data object Feilresponser {
         )
     }
 
+    data object Omgjøring {
+        val ingenÅpenKlage = InternalServerError.errorJson(
+            "Kunne ikke opprette revurdering, mangler åpen klage",
+            "kunne_ikke_opprette_revurdering_mangler_åpen_klage",
+        )
+    }
+
     val inneholderUfullstendigeBosituasjoner = BadRequest.errorJson(
         "Behandlingen inneholder ufullstendige bosituasjoner",
         "inneholder_ufullstendige_bosituasjoner",

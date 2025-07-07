@@ -13,6 +13,7 @@ fun RevurderingsårsakDomain.toResultatBegrunnelse(): String {
         RevurderingsårsakDomain.Årsak.MOTTATT_KONTROLLERKLÆRING -> RevurderingsårsakDto.MOTTATT_KONTROLLERKLÆRING
         RevurderingsårsakDomain.Årsak.IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON -> RevurderingsårsakDto.IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON
         RevurderingsårsakDomain.Årsak.MIGRERT -> RevurderingsårsakDto.MIGRERT
+        RevurderingsårsakDomain.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> RevurderingsårsakDto.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN
     }.toString()
 }
 
@@ -26,4 +27,5 @@ internal enum class RevurderingsårsakDto {
     MOTTATT_KONTROLLERKLÆRING,
     IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
     MIGRERT,
+    OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
 }

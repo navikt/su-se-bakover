@@ -21,4 +21,6 @@ sealed interface KunneIkkeOppretteRevurdering {
     data class FantIkkeAktørId(val feil: KunneIkkeHentePerson) : KunneIkkeOppretteRevurdering
 
     data class KunneIkkeOppretteOppgave(val feil: no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave) : KunneIkkeOppretteRevurdering
+
+    data object MåHaEnÅpenKlage : KunneIkkeOppretteRevurdering
 }

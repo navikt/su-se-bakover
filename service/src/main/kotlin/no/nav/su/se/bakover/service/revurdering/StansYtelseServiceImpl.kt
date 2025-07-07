@@ -247,6 +247,7 @@ class StansYtelseServiceImpl(
                         periode = stansperiodeVedIverksettelse,
                         eksisterendeVedtakSomRevurderesMånedsvis = revurdering.vedtakSomRevurderesMånedsvis,
                         clock = clock,
+                        revurderingsÅrsak = revurdering.revurderingsårsak.årsak,
                     ).isLeft()
                 ) {
                     throw KunneIkkeIverksetteStansYtelse.DetHarKommetNyeOverlappendeVedtak.exception()

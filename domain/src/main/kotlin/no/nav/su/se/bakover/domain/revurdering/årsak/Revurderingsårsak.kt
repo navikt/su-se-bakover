@@ -19,6 +19,7 @@ data class Revurderingsårsak(
         MANGLENDE_KONTROLLERKLÆRING,
         MOTTATT_KONTROLLERKLÆRING,
         IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
+        OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
 
         /* Reservert for migrering */
         MIGRERT,
