@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import person.domain.PersonService
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.infrastructure.client.TilbakekrevingClients
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
@@ -31,7 +30,6 @@ class Tilbakekrevingskomponenter(
         fun create(
             clock: Clock,
             sessionFactory: SessionFactory,
-            personService: PersonService,
             hendelsekonsumenterRepo: HendelsekonsumenterRepo,
             sakService: SakService,
             oppgaveService: OppgaveService,

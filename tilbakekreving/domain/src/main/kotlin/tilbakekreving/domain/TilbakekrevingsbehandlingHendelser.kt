@@ -220,6 +220,8 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
      * Et kravgrunnlag er avsluttet dersom vi har iverksatt en tilbakekrevingsbehandling eller kravgrunnlaget har blitt avsluttet på annen måte (statuser fra oppdrag).
      * Merk at et kravgrunnlag vil være utestående helt til behandlingen er iverksatt eller det er overskrevet av en nyere status eller et nyere kravgrunnlag.
      *
+     * NB: Oppdateringer kommer kun fra oppdrag, så derfor vil kun det siste kravgrunnlaget på saken være interessant/gyldig. MAO statuser blir kun endret fra oppdrag.
+     * Implikasjonen av dette er at endringer på kravgrunnlag kommer kun via oppdrag, så vi kan ha mange kravgrunnlag for samme id men kun en åpen ad gangen.
      * @return null dersom det ikke finnet et kravgrunnlag eller kravgrunnlaget ikke er utestående.
      */
     fun hentUteståendeKravgrunnlag(): Kravgrunnlag? {

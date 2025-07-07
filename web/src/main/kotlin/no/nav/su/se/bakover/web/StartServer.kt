@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
-import person.domain.PersonService
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
@@ -118,7 +117,6 @@ fun Application.susebakover(
     tilbakekrevingskomponenter: (
         clock: Clock,
         sessionFactory: SessionFactory,
-        personService: PersonService,
         hendelsekonsumenterRepo: HendelsekonsumenterRepo,
         sakService: SakService,
         oppgaveService: OppgaveService,
@@ -129,11 +127,10 @@ fun Application.susebakover(
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, personService, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, _tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
-            personService = personService,
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             sakService = sak,
             oppgaveService = oppgave,
@@ -199,7 +196,6 @@ fun Application.susebakover(
     tilbakekrevingskomponenter(
         clock,
         databaseRepos.sessionFactory,
-        services.person,
         databaseRepos.hendelsekonsumenterRepo,
         services.sak,
         services.oppgave,
