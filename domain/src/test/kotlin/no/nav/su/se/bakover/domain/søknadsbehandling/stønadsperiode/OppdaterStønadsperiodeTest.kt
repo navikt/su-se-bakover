@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
@@ -45,7 +46,9 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
+import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
@@ -213,7 +216,7 @@ internal class OppdaterStønadsperiodeTest {
                 fraOgMed = YearMonth.of(2023, Month.OCTOBER).atDay(1),
                 tilOgMed = YearMonth.of(2024, Month.SEPTEMBER).atEndOfMonth(),
             )
-            val (sakEtterAndrePeriode, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            val (sakwgewgw, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(periode = innvilgelsesPeriode),
                 clock = clock,
                 sakOgSøknad = sakEtterFørstePeriode to nySøknadJournalførtMedOppgave(
@@ -222,18 +225,22 @@ internal class OppdaterStønadsperiodeTest {
                 ),
             )
 
-            // TODO: MÅ være revurdering? virker ikke som det spiller noen rolle her, men det skjønner ikke testen uansett så...evt test med opprettetRevurdering() fra helpers
             val revurderingsPeriodeInnvilgelseEtterKA = Periode.create(
                 fraOgMed = YearMonth.of(2023, Month.AUGUST).atDay(1),
                 tilOgMed = YearMonth.of(2023, Month.SEPTEMBER).atEndOfMonth(),
             )
             val (sakMedSøknadsbehandlingsvedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
                 clock = clock,
-
             )
+            val (sakogklage, klage) = opprettetKlage(sakMedVedtak = sakMedSøknadsbehandlingsvedtak)
+
             val (sak, _) = vedtakRevurdering(
                 revurderingsperiode = revurderingsPeriodeInnvilgelseEtterKA,
-                sakOgVedtakSomKanRevurderes = sakMedSøknadsbehandlingsvedtak to søknadsbehandlingVedtak,
+                sakOgVedtakSomKanRevurderes = sakogklage to søknadsbehandlingVedtak,
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
+                    Revurderingsårsak.Begrunnelse.create("LOL"),
+                ),
             )
 
             sak.oppdaterSøknadsbehandling(søknadsbehandlingVedtak.behandling).let {

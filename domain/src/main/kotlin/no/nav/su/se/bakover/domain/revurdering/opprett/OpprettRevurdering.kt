@@ -45,8 +45,10 @@ fun Sak.opprettRevurdering(
         return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left()
     }
 
-    informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
-        .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
+    if (revurderingsårsak.årsak != Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
+        informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
+            .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
+    }
 
     val tidspunkt = Tidspunkt.now(clock)
     return OpprettRevurderingResultatUtenOppgaveId(
@@ -64,6 +66,7 @@ fun Sak.opprettRevurdering(
                 periode = periode,
                 opprettet = tidspunkt,
                 oppdatert = tidspunkt,
+                // Tryner her siden gjeldendeVedtaksdata mangler avslåtte vedtak så tlfr lag egen service som ikke er trygda ned
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
                 vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                 saksbehandler = command.saksbehandler,
