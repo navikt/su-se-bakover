@@ -351,7 +351,7 @@ data class Sak(
             return GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes.left()
         }.let {
             if (revurderingsÅrsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
-                it.right()
+                return it.right()
             }
             if (!it.harVedtakIHelePerioden()) {
                 return GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak.left()
