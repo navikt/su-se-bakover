@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -132,12 +133,12 @@ data class Sak(
         periode: Periode,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        return vedtakListe.filterIsInstance<Stønadsvedtak>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left() }
-            .let { vedtakSomKanRevurderes ->
+            .let { stønadsvedtak ->
                 GjeldendeVedtaksdata(
                     periode = periode,
-                    vedtakListe = vedtakSomKanRevurderes.toNonEmptyList(),
+                    vedtakListe = stønadsvedtak.toNonEmptyList(),
                     clock = clock,
                 ).right()
             }
@@ -209,7 +210,7 @@ data class Sak(
     ): List<Månedsberegning> {
         return GjeldendeVedtaksdata(
             periode = periode,
-            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>() // TODO: kommer til å feile her.
                 .filter { it.beregning != null }.ifEmpty { return emptyList() }.toNonEmptyList(),
             clock = clock,
         ).let { gjeldendeVedtaksdata ->
@@ -342,7 +343,7 @@ data class Sak(
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode: Periode,
         clock: Clock,
-        revurderingsÅrsak: Revurderingsårsak.Årsak,
+        revurderingsÅrsak: Revurderingsårsak.Årsak, // TODO: Fjernee denne
     ): Either<GjeldendeVedtaksdataErUgyldigForRevurdering, GjeldendeVedtaksdata> {
         return hentGjeldendeVedtaksdata(
             periode = periode,
@@ -350,9 +351,6 @@ data class Sak(
         ).getOrElse {
             return GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes.left()
         }.let {
-            if (revurderingsÅrsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
-                return it.right()
-            }
             if (!it.harVedtakIHelePerioden()) {
                 return GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak.left()
             }
