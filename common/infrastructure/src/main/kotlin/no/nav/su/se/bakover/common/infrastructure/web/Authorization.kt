@@ -17,6 +17,8 @@ suspend fun RoutingContext.authorize(
     val autorisert = autoriserteRoller.any { call.suUserContext.roller.contains(it) }
 
     if (!autorisert) {
+        log.error("Ugyldig tilgangssjekk, se sikkerlogg")
+        call.sikkerlogg("Trenger roller; ${autoriserteRoller.joinToString { "," }} \n Roller bruker har: ${call.suUserContext.roller.joinToString { "," }}")
         call.svar(
             HttpStatusCode.Forbidden.errorJson(
                 message = "Bruker mangler en av de tillatte rollene: ${autoriserteRoller.toList()}",
