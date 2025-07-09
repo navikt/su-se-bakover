@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
@@ -49,18 +48,6 @@ internal fun KravgrunnlagRootDto.toHendelse(
     }
 }
 
-private fun singleMedErrorlogging(listeAvbeløp: List<Tilbakekrevingsbeløp>, predicate: (Tilbakekrevingsbeløp) -> Boolean): Tilbakekrevingsbeløp {
-    try {
-        return listeAvbeløp.single { predicate(it) }
-    } catch (e: IllegalArgumentException) {
-        sikkerLogg.error("Fant flere som matchet predikatet for tilbakekrevingslista: $listeAvbeløp", e)
-        throw RuntimeException("Fant flere som matchet predikatet, se sikkerlogg", e)
-    } catch (e: NoSuchElementException) {
-        sikkerLogg.error("Fant ingen som matchet predikatet for tilbakekrevingslista: $listeAvbeløp", e)
-        throw RuntimeException("Fant ingen som matchet predikatet, se sikkerlogg", e)
-    }
-}
-
 private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair<Tilbakekrevingsbeløp, Tilbakekrevingsbeløp> {
     val ytelse = tilbakekrevingsbeløp.filter { it.typeKlasse == KlasseType.YTEL.name }
         .takeIf { it.size == 1 }
@@ -92,9 +79,6 @@ internal fun KravgrunnlagRootDto.toDomain(
                 behandler = kravgrunnlagDto.saksbehId,
                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
                 grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
-                    require(tilbakekrevingsperiode.tilbakekrevingsbeløp.size == 2) {
-                        "Forventer at det er to tilbakekrevingsbeløp per måned, en for ytelse og en for feilutbetaling. Hvis dette oppstår må man forstå det rå kravgrunnlaget på nytt."
-                    }
 
                     val (tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling) = hentBeløp(tilbakekrevingsperiode.tilbakekrevingsbeløp)
 
