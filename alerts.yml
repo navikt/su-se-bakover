@@ -31,10 +31,10 @@ spec:
           namespace: supstonad
           severity: critical
       - alert: su-se-bakover-error-logg-grafana
-        expr: 'sum(max_over_time(loki:service:loglevel:count1m{service_namespace="supstonad", service_name="su-se-bakover" detected_level="error"}[15m]) or vector(0)) - sum(max_over_time(loki:service:loglevel:count1m{service_namespace="supstonad", service_name="su-se-bakover" detected_level="error"}[15m] offset 15m) or vector(0)) > 0'
+        expr: '(sum(loki:service:loglevel:count1m{service_namespace="supstonad", service_name="su-se-bakover", detected_level="error"}) / sum(loki:service:loglevel:count1m{service_namespace="supstonad", service_name="su-se-bakover"})) > 0.05'
         for: 1s
         annotations:
-          consequence: "su-se-bakover har fått en ny error i loggen siste 15 min"
+          consequence: "su-se-bakover har fått en ny error i loggen siste 15 mintest"
           action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
