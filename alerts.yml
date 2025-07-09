@@ -18,7 +18,7 @@ spec:
         labels:
           namespace: supstonad
           severity: critical
-      - alert: su-se-bakover-error-logg
+      - alert: su-se-bakover-error-logg-kibana
         expr: 'sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-se-bakover",level="Error"}[15m])
                 or vector(0)) -
                sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-se-bakover",level="Error"}[15m]
@@ -30,10 +30,34 @@ spec:
         labels:
           namespace: supstonad
           severity: critical
-      - alert: su-datapakke-soknad-error-logg
+      - alert: su-se-bakover-error-logg-grafana
+        expr: 'sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-se-bakover",level="ERROR"}[15m])
+                or vector(0)) -
+               sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-se-bakover",level="ERROR"}[15m]
+               offset 15m) or vector(0)) > 0'
+        for: 1s
+        annotations:
+          consequence: "su-se-bakover har fått en ny error i loggen siste 15 min"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+        labels:
+          namespace: supstonad
+          severity: critical
+      - alert: su-datapakke-soknad-error-kibana
         expr: 'sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-datapakke-soknad",level="Error"}[15m])
                 or vector(0)) -
                sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-datapakke-soknad",level="Error"}[15m]
+               offset 15m) or vector(0)) > 0'
+        for: 1s
+        annotations:
+          consequence: "su-datapakke-soknad har fått en ny error i loggen siste 15 min"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+        labels:
+          namespace: supstonad
+          severity: critical
+      - alert: su-datapakke-soknad-error-grafana
+        expr: 'sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-datapakke-soknad",level="ERROR"}[15m])
+                or vector(0)) -
+               sum(max_over_time(log_messages_errors{namespace="supstonad",app="su-datapakke-soknad",level="ERROR"}[15m]
                offset 15m) or vector(0)) > 0'
         for: 1s
         annotations:
