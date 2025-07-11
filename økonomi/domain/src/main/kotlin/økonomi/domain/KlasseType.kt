@@ -5,6 +5,7 @@ enum class KlasseType {
     SKAT,
     FEIL,
     MOTP,
+    JUST, // Justeringskonto
     ;
 
     companion object {
