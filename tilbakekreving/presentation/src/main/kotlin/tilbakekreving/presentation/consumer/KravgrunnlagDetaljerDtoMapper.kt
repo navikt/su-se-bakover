@@ -63,6 +63,10 @@ private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair
         .takeIf { it.size == 1 }
         ?: throw RuntimeException("Mismatch mellom kodeklassen i beløpet for ytelsen og selve feilen og kodeklassen til beløpet")
 
+    /*
+    Basert på case i prod hendelseid: b6aae587-a1aa-4945-8d45-f597bba4e975
+    Feil fra infotrygd men kravet kommer mot sualder. Her ligger belopNy som en justeringskonto ikke på linjene for typeKlasse>YTEL
+     */
     if (tilbakekrevingsbeløp.any { it.typeKlasse == KlasseType.JUST.name && it.kodeKlasse == KlasseKode.KL_KODE_JUST_PEN.name }) {
         val justeringskontoLinje = tilbakekrevingsbeløp.filter { it.typeKlasse == KlasseType.JUST.name && it.kodeKlasse == KlasseKode.KL_KODE_JUST_PEN.name }
             .takeIf { it.size == 1 }
