@@ -22,7 +22,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 internal class KravgrunnlagDtoTest {
-
+// TODO: test med justeringskontodata?
     @Test
     fun `mapper nyopprettet kravgrunnlag for opphør av ytelse`() {
         val inputXml = kravgrunnlagOpphørXml
