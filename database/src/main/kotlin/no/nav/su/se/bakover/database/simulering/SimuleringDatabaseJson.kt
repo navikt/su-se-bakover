@@ -212,6 +212,7 @@ private data class SimuleringDatabaseJson(
                             KlasseType.MOTP -> "MOTP"
                             // Domenemessig forventer vi ikke denne, men det er ikke databaselaget sin jobb å validere det.
                             KlasseType.SKAT -> "SKAT"
+                            KlasseType.JUST -> "JUST"
                         }
                     }
 
@@ -238,6 +239,7 @@ private data class SimuleringDatabaseJson(
 
                             // Domenemessig forventer vi ikke denne, men det er ikke databaselaget sin jobb å validere det.
                             KlasseKode.FSKTSKAT -> "FSKTSKAT"
+                            KlasseKode.KL_KODE_JUST_PEN -> "KL_KODE_JUST_PEN"
                         }
                     }
 
