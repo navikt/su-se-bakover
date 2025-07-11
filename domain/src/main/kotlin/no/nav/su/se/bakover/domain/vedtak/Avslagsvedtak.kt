@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.vedtak
 import behandling.søknadsbehandling.domain.avslag.ErAvslag
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
 
 /**

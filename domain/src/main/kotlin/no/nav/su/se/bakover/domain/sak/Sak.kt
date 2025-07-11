@@ -8,6 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.Opphørsgrunn
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.GenererDokumentCommand
@@ -40,6 +41,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -55,6 +57,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
+import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -130,12 +133,12 @@ data class Sak(
         periode: Periode,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        return vedtakListe.filterIsInstance<Stønadsvedtak>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left() }
-            .let { vedtakSomKanRevurderes ->
+            .let { stønadsvedtak ->
                 GjeldendeVedtaksdata(
                     periode = periode,
-                    vedtakListe = vedtakSomKanRevurderes.toNonEmptyList(),
+                    vedtakListe = stønadsvedtak.toNonEmptyList(),
                     clock = clock,
                 ).right()
             }
@@ -207,7 +210,7 @@ data class Sak(
     ): List<Månedsberegning> {
         return GjeldendeVedtaksdata(
             periode = periode,
-            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>() // TODO: kommer til å feile her.
                 .filter { it.beregning != null }.ifEmpty { return emptyList() }.toNonEmptyList(),
             clock = clock,
         ).let { gjeldendeVedtaksdata ->
@@ -340,6 +343,7 @@ data class Sak(
     internal fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode: Periode,
         clock: Clock,
+        revurderingsÅrsak: Revurderingsårsak.Årsak, // TODO: Fjernee denne
     ): Either<GjeldendeVedtaksdataErUgyldigForRevurdering, GjeldendeVedtaksdata> {
         return hentGjeldendeVedtaksdata(
             periode = periode,
@@ -366,8 +370,8 @@ data class Sak(
      * manglende vilkår, alternativt kan den erstattes med noe annet som f.eks at man alltid har muligheten til å
      * finne vilkårene på oppsummeringssiden (også de som ikke ble revurdert aktivt av saksbehandler) eller lignende.
      */
-    internal fun InformasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Either<OpphørtVilkårMåRevurderes, Unit> {
-        return VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat.let {
+    internal fun InformasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(vilkårsvurderinger: VilkårsvurderingerRevurdering): Either<OpphørtVilkårMåRevurderes, Unit> {
+        return VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat.let {
             when (it) {
                 is OpphørVedRevurdering.Ja -> {
                     if (!harValgtFormue() && it.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {

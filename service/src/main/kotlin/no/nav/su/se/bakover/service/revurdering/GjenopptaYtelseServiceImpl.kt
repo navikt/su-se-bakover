@@ -185,10 +185,12 @@ class GjenopptaYtelseServiceImpl(
                 if (stansperiodeVedIverksettelse != revurdering.periode) {
                     return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak.left()
                 }
+
                 if (sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
                         periode = stansperiodeVedIverksettelse,
                         eksisterendeVedtakSomRevurderesMånedsvis = revurdering.vedtakSomRevurderesMånedsvis,
                         clock = clock,
+                        revurderingsÅrsak = revurdering.revurderingsårsak.årsak,
                     ).isLeft()
                 ) {
                     return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.DetHarKommetNyeOverlappendeVedtak.left()
