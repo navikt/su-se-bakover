@@ -11,6 +11,9 @@ enum class KlasseKode {
 
     SUALDER,
     KL_KODE_FEIL, // Sakstype.ALDER
+
+    KL_KODE_JUST_PEN,
+
     ;
 
     companion object {

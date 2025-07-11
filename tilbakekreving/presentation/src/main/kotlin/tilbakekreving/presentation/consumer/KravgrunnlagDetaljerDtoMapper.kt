@@ -62,6 +62,22 @@ private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair
     val tilbakekrevingsbeløpForFeilutbetaling = feilbeløp.filter { if (tilbakekrevingsbeløpForYtelse.kodeKlasse == KlasseKode.SUUFORE.name) it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name else it.kodeKlasse == KlasseKode.KL_KODE_FEIL.name }
         .takeIf { it.size == 1 }
         ?: throw RuntimeException("Mismatch mellom kodeklassen i beløpet for ytelsen og selve feilen og kodeklassen til beløpet")
+
+    if (tilbakekrevingsbeløp.any { it.typeKlasse == KlasseType.JUST.name && it.kodeKlasse == KlasseKode.KL_KODE_JUST_PEN.name }) {
+        val justeringskontoLinje = tilbakekrevingsbeløp.filter { it.typeKlasse == KlasseType.JUST.name && it.kodeKlasse == KlasseKode.KL_KODE_JUST_PEN.name }
+            .takeIf { it.size == 1 }
+            ?: throw RuntimeException("Forventet bare en justeringskonto kodeklasse, kan ikke ha flere per krav.")
+        val tilbakekrevingForYtelseMedJusteringsbeløp = tilbakekrevingsbeløpForYtelse.copy(
+            kodeKlasse = tilbakekrevingsbeløpForYtelse.kodeKlasse,
+            typeKlasse = tilbakekrevingsbeløpForYtelse.typeKlasse,
+            belopOpprUtbet = tilbakekrevingsbeløpForYtelse.belopOpprUtbet,
+            belopNy = justeringskontoLinje.first().belopNy,
+            belopTilbakekreves = tilbakekrevingsbeløpForYtelse.belopTilbakekreves,
+            belopUinnkrevd = tilbakekrevingsbeløpForYtelse.belopUinnkrevd,
+            skattProsent = tilbakekrevingsbeløpForYtelse.skattProsent,
+        )
+        return Pair(tilbakekrevingForYtelseMedJusteringsbeløp, tilbakekrevingsbeløpForFeilutbetaling.first())
+    }
     return Pair(tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling.first())
 }
 
