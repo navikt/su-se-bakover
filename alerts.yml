@@ -32,10 +32,10 @@ spec:
           severity: critical
           #https://doc.nais.io/observability/logging/reference/loki-metrics/
       - alert: su-se-bakover-error-logg-grafana
-        expr: 'sum_over_time(loki:service:loglevel:count1m{service_name="su-se-bakover", detected_level="error"}[15m]) > 0'
+        expr: (sum(loki:service:loglevel:count1m{service_name="su-se-bakover", detected_level="error"}) / sum(loki:service:loglevel:count1m{service_name="su-se-bakover"})) > 0.05
         for: 1s
         annotations:
-          consequence: "su-se-bakover har fått en ny error i loggen siste 15 mintest"
+          consequence: "su-se-bakover har fått en ny error i loggen siste 15 min"
           action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
