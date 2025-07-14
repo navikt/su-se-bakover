@@ -31,7 +31,7 @@ fun Sak.opprettRevurdering(
     }
 
     if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
-        if (!this.klager.any { it.erÅpen() }) {
+        if (this.klager.none { it.erÅpen() }) {
             return KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage.left()
         }
     }
