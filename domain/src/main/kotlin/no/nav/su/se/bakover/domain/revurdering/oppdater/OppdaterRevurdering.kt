@@ -43,7 +43,6 @@ fun Sak.oppdaterRevurdering(
     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode = periode,
         clock = clock,
-        revurderingsÅrsak = revurderingsårsak.årsak,
     ).getOrElse {
         return KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(it).left()
     }

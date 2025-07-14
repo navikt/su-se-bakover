@@ -26,7 +26,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettInnvilgetRevurderingResponse> {
     require(this.revurderinger.contains(revurdering))
 
-    if (this.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(revurdering.periode, revurdering.vedtakSomRevurderesMånedsvis, clock, revurdering.revurderingsårsak.årsak).isLeft()) {
+    if (this.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(revurdering.periode, revurdering.vedtakSomRevurderesMånedsvis, clock).isLeft()) {
         return KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak.left()
     }
 

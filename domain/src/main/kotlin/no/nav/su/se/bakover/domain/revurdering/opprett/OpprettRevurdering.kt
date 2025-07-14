@@ -39,7 +39,6 @@ fun Sak.opprettRevurdering(
     val periode = command.periode
     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode = periode,
-        revurderingsÅrsak = revurderingsårsak.årsak,
         clock = clock,
     ).getOrElse {
         return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left()

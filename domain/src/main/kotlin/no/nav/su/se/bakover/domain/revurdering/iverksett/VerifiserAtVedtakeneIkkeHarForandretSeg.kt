@@ -8,19 +8,16 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.revurderes.vedtakSomRevurderesMånedsvis
-import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import java.time.Clock
 
 fun Sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
     periode: Periode,
     eksisterendeVedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
     clock: Clock,
-    revurderingsÅrsak: Revurderingsårsak.Årsak,
 ): Either<DetHarKommetNyeOverlappendeVedtak, Unit> {
     val current = this.vedtakSomRevurderesMånedsvis(
         periode = periode,
         clock = clock,
-        revurderingsÅrsak = revurderingsÅrsak,
     ).getOrElse { throw IllegalStateException(it.toString()) }
     return if (current != eksisterendeVedtakSomRevurderesMånedsvis) {
         DetHarKommetNyeOverlappendeVedtak.left()
