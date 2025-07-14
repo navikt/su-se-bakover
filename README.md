@@ -204,9 +204,13 @@ alerts basert på metrikker.
 Se https://doc.nais.io/observability/alerts.
 
 ### Experiment writing prometheus queries and view graphs
-
+kibana(legacy)
 preprod: https://prometheus.dev-fss.nais.io
 prod: https://prometheus.prod-fss.nais.io
+grafana/loki se https://nav-it.slack.com/archives/C05DXMSNSV8/p1750670214842229?thread_ts=1750670027.442119&cid=C05DXMSNSV8
+preprod: https://prometheus.dev-gcp.nav.cloud.nais.io/
+prod: https://prometheus.prod-gcp.nav.cloud.nais.io/
+
 
 ### View ongoing alerts and manage silences
 
