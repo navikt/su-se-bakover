@@ -142,14 +142,38 @@ internal class OppdaterOppgaveHttpClient(
                         tildeltEnhetsnr = if (tilordnetRessurs == null) null else oppgave.tildeltEnhetsnr,
                     ).right()
                 } else {
-                    log.error(
-                        "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()}. Se sikkerlogg for mer detaljer",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
-                    sikkerLogg.error(
-                        "Kunne ikke endre oppgave ${oppgave.id} for saksreferanse ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
-                        RuntimeException("Genererer en stacktrace for enklere debugging."),
-                    )
+                    when (it.statusCode()) {
+                        401, 403 -> {
+                            log.warn(
+                                "Auth er ikke gyldig for denne handlingen: ${oppgave.id} for saksreferanse: ${oppgave.saksreferanse} med status=${it.statusCode()}. Se sikkerlogg for mer detaljer",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                            sikkerLogg.warn(
+                                "Auth er ikke gyldig for denne handlingen: ${oppgave.id} for saksreferanse: ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                        }
+                        409 -> {
+                            log.warn(
+                                "Konflikt, i.e versjonen som sendes med er utdatert fordi noen andre har endret oppgaven: ${oppgave.id} for saksreferanse: ${oppgave.saksreferanse} med status=${it.statusCode()}. Se sikkerlogg for mer detaljer",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                            sikkerLogg.warn(
+                                "Konflikt, i.e versjonen som sendes med er utdatert fordi noen andre har endret oppgaven: ${oppgave.id} for saksreferanse: ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                        }
+                        else -> {
+                            log.error(
+                                "Ukjent feil: Kunne ikke endre oppgave: ${oppgave.id} for saksreferanse: ${oppgave.saksreferanse} med status=${it.statusCode()}. Se sikkerlogg for mer detaljer",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                            sikkerLogg.error(
+                                "Ukjent feil: Kunne ikke endre oppgave: ${oppgave.id} for saksreferanse: ${oppgave.saksreferanse} med status=${it.statusCode()} og body=${it.body()}",
+                                RuntimeException("Genererer en stacktrace for enklere debugging."),
+                            )
+                        }
+                    }
                     KunneIkkeOppdatereOppgave.FeilVedRequest.left()
                 }
             }
