@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
@@ -238,7 +239,7 @@ internal class OppdaterStønadsperiodeTest {
                 tilOgMed = YearMonth.of(2023, Month.SEPTEMBER).atEndOfMonth(),
             )
 
-            val (sakogklage, klage) = opprettetKlage(sakMedVedtak = saketterInnvilgelseOgAvslag)
+            val (sakogklage, _) = opprettetKlage(sakMedVedtak = saketterInnvilgelseOgAvslag)
             /*
             her må vilkåret for inntekt ha endret seg da det er satt til 1 mill i
             vedtakSøknadsbehandlingIverksattAvslagMedBeregning by default. Dette gjøres manuelt av sb
@@ -251,6 +252,7 @@ internal class OppdaterStønadsperiodeTest {
                     Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
                     Revurderingsårsak.Begrunnelse.create("LOL"),
                 ),
+                omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
             )
             // TODO: lag egen test med informasjonSomRevurderes og sjekk at de som velges finnes i det avslåtte vilkåret
             revurdering.informasjonSomRevurderes.any { it.key == Revurderingsteg.Inntekt }.shouldBeTrue()

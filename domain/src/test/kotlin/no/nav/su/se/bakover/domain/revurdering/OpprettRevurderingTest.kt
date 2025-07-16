@@ -1,18 +1,27 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.nonEmptyListOf
+import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.test.behandling.nyeKlager
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -38,6 +47,57 @@ internal class OpprettRevurderingTest {
             ),
             clock = fixedClock,
         ).shouldBeRight()
+    }
+
+    @Test
+    fun `Skal feile fordi omgjøring krever åpen klage`() {
+        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
+
+        sakUtenÅpenBehandling.opprettRevurdering(
+            command = OpprettRevurderingCommand(
+                saksbehandler = saksbehandler,
+                årsak = Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN.name,
+                informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
+                periode = stønadsperiode2021.periode,
+                sakId = sakUtenÅpenBehandling.id,
+                begrunnelse = "begrunnelsen",
+            ),
+            clock = fixedClock,
+        ).shouldBeLeft().let {
+            it shouldBe KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage
+        }
+    }
+
+    @Test
+    fun `Omgjøringårsak krever omgjøringsgrunn`() {
+        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
+        val klage = OpprettetKlage(
+            id = KlageId.generer(),
+            opprettet = fixedTidspunkt,
+            sakId = sakUtenÅpenBehandling.id,
+            saksnummer = sakUtenÅpenBehandling.saksnummer,
+            fnr = sakUtenÅpenBehandling.fnr,
+            journalpostId = JournalpostId(value = "1"),
+            oppgaveId = OppgaveId("123"),
+            saksbehandler = saksbehandler,
+            datoKlageMottatt = 1.januar(2021),
+            sakstype = sakUtenÅpenBehandling.type,
+        )
+        val sakMedKlage = sakUtenÅpenBehandling.nyeKlager(listOf(klage))
+
+        sakMedKlage.opprettRevurdering(
+            command = OpprettRevurderingCommand(
+                saksbehandler = saksbehandler,
+                årsak = Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN.name,
+                informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
+                periode = stønadsperiode2021.periode,
+                sakId = sakMedKlage.id,
+                begrunnelse = "begrunnelsen",
+            ),
+            clock = fixedClock,
+        ).shouldBeLeft().let {
+            it shouldBe KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn
+        }
     }
 
     @Test
