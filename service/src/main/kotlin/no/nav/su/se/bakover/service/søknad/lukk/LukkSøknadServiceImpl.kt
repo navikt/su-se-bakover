@@ -70,8 +70,8 @@ class LukkSøknadServiceImpl(
                         log.warn("Oppgave med id ${it.søknad.oppgaveId} er allerede ferdigstilt, for søknad id ${it.søknad.id}")
                     } else {
                         // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
-                        log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId}. Underliggende feil $feil. Se sikkerlogg for mer context.")
-                        sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId}. Underliggende feil: ${feil.toSikkerloggString()}.")
+                        log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
+                        sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
                 }
                 observers.forEach { e ->
