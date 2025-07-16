@@ -55,6 +55,7 @@ internal fun Route.opprettRevurderingRoute(
                                 fraOgMed = body.fraOgMed,
                                 tilOgMed = body.tilOgMed,
                             ),
+                            omgjøringsgrunn = body.omgjøringsgrunn,
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
