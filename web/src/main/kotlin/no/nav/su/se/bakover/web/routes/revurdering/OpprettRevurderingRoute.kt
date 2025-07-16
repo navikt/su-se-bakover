@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Omgjøring.ingenÅpenKlage
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Omgjøring.måHaomgjøringsgrunn
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -38,6 +39,7 @@ internal fun Route.opprettRevurderingRoute(
         val tilOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
+        val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
     post(REVURDERING_PATH) {
@@ -81,5 +83,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is KunneIkkeOppretteRevurdering.FantIkkeAktørId -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage -> ingenÅpenKlage
+        is KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn -> måHaomgjøringsgrunn
     }
 }

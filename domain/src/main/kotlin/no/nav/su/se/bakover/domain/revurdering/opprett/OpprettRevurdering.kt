@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -33,6 +34,9 @@ fun Sak.opprettRevurdering(
     if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
         if (this.klager.none { it.erÅpen() }) {
             return KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage.left()
+        }
+        if (!command.omgjøringsgrunnErGyldig()) {
+            return KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn.left()
         }
     }
 
@@ -63,7 +67,6 @@ fun Sak.opprettRevurdering(
                 periode = periode,
                 opprettet = tidspunkt,
                 oppdatert = tidspunkt,
-                // Tryner her siden gjeldendeVedtaksdata mangler avslåtte vedtak så tlfr lag egen service som ikke er trygda ned
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
                 vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                 saksbehandler = command.saksbehandler,
@@ -73,6 +76,7 @@ fun Sak.opprettRevurdering(
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 sakinfo = info(),
+                omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(command.omgjøringsgrunn) },
             )
         },
         sak = { nyRevurdering(it) },
