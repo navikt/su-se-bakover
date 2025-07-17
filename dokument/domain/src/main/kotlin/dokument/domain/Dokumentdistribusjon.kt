@@ -2,7 +2,6 @@ package dokument.domain
 
 import arrow.core.Either
 import dokument.domain.brev.BrevbestillingId
-import dokument.domain.brev.KunneIkkeDistribuereBrev
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.domain.backoff.Failures
 import no.nav.su.se.bakover.common.journal.JournalpostId
