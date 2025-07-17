@@ -57,8 +57,16 @@ class DokDistFordelingClient(
                 if (response.statusCode == 409) {
                     hentBrevbestillingsId(String(response.data), journalpostId).right()
                 } else {
+                    val body = String(response.data)
+                    /*
+                        Dette skjer når saksbehandler ikke vil ha distribusjon av et brev pga en feil, da går de inn i gosys og trykker feilregistrert på journalposten før brevet har blitt sendt.
+                        For å unngå evig loop på retry setter vi iden til feilregistrert.
+                     */
+                    if (body.lowercase().contains("Validering av distribusjonsforespørsel feilet med feilmelding: Journalpostfeltet journalpoststatus er ikke som forventet, fikk: FEILREGISTRERT, men forventet FERDIGSTILT".lowercase())) {
+                        BrevbestillingId("FEILREGISTRERT")
+                    }
                     log.error(
-                        "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
+                        "Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body",
                         it,
                     )
                     KunneIkkeBestilleDistribusjon.left()

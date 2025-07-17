@@ -3,7 +3,6 @@ package dokument.domain
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
-import dokument.domain.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.medJournalpost
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.common.domain.backoff.Failures
