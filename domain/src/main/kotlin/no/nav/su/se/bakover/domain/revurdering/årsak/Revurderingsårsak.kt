@@ -20,6 +20,14 @@ data class Revurderingsårsak(
         MOTTATT_KONTROLLERKLÆRING,
         IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
 
+        /*
+            Alle disse omgjøringsårsakene her gjelder kun for innvilgede vedtak
+         */
+        OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
+        OMGJØRING_EGET_TILTAK,
+        OMGJØRING_KLAGE, // i førsteinstans
+        OMGJØRING_TRYGDERETTEN,
+
         /* Reservert for migrering */
         MIGRERT,
         ;

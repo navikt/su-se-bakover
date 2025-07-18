@@ -150,6 +150,7 @@ sealed interface UnderkjentRevurdering :
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : UnderkjentRevurdering {
         override val erOpphørt = false
 
@@ -172,6 +173,7 @@ sealed interface UnderkjentRevurdering :
             attesteringer = attesteringer,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         override fun lagForhåndsvarsel(
@@ -220,6 +222,7 @@ sealed interface UnderkjentRevurdering :
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : UnderkjentRevurdering {
         override val erOpphørt = true
 
@@ -274,6 +277,7 @@ sealed interface UnderkjentRevurdering :
                     attesteringer = attesteringer,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
+                    omgjøringsgrunn = omgjøringsgrunn,
                 ).right()
             }
         }

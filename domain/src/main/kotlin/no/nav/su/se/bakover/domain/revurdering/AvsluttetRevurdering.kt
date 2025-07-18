@@ -26,6 +26,7 @@ data class AvsluttetRevurdering private constructor(
     val brevvalg: Brevvalg,
     override val avsluttetTidspunkt: Tidspunkt,
     override val avsluttetAv: NavIdentBruker?,
+    override val omgjøringsgrunn: Omgjøringsgrunn? = null,
 ) : Revurdering,
     Avbrutt {
 

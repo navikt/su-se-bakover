@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Omgjøring.måHaomgjøringsgrunn
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -37,6 +37,7 @@ internal fun Route.opprettRevurderingRoute(
         val tilOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
+        val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
     post(REVURDERING_PATH) {
@@ -52,6 +53,7 @@ internal fun Route.opprettRevurderingRoute(
                                 fraOgMed = body.fraOgMed,
                                 tilOgMed = body.tilOgMed,
                             ),
+                            omgjøringsgrunn = body.omgjøringsgrunn,
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
@@ -79,5 +81,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.FantIkkeAktørId -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+        is KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn -> måHaomgjøringsgrunn
     }
 }

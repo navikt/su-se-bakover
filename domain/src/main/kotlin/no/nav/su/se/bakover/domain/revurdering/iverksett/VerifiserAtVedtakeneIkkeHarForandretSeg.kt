@@ -6,21 +6,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.revurderes.vedtakSomRevurderesMånedsvis
 import java.time.Clock
-
-fun Sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
-    revurdering: AbstraktRevurdering,
-    clock: Clock,
-): Either<DetHarKommetNyeOverlappendeVedtak, Unit> {
-    return verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
-        periode = revurdering.periode,
-        eksisterendeVedtakSomRevurderesMånedsvis = revurdering.vedtakSomRevurderesMånedsvis,
-        clock = clock,
-    )
-}
 
 fun Sak.verifiserAtVedtaksmånedeneViRevurdererIkkeHarForandretSeg(
     periode: Periode,

@@ -69,6 +69,7 @@ sealed interface IverksattRevurdering : Revurdering {
         override val sendtTilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattRevurdering {
 
         override val erOpphørt = false
@@ -113,6 +114,7 @@ sealed interface IverksattRevurdering : Revurdering {
         override val sendtTilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattRevurdering {
 
         override val erOpphørt = true

@@ -60,6 +60,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : RevurderingTilAttestering {
 
         override val erOpphørt = false
@@ -94,6 +95,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
                 sendtTilbakekrevingsvedtak = null,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
         }
 
@@ -117,6 +119,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : RevurderingTilAttestering {
         override val erOpphørt = true
 
@@ -164,6 +167,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
                     sendtTilbakekrevingsvedtak = null,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
+                    omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
         }
@@ -201,6 +205,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             is Opphørt -> UnderkjentRevurdering.Opphørt(
@@ -220,6 +225,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
         }
     }

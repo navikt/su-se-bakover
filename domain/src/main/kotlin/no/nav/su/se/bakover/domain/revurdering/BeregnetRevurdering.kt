@@ -146,6 +146,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetRevurdering {
 
         override val erOpphørt = false
@@ -190,6 +191,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
                     attesteringer = attesteringer,
                     sakinfo = sakinfo,
                     brevvalgRevurdering = brevvalgRevurdering,
+                    omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
         }
@@ -213,6 +215,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetRevurdering {
         override val erOpphørt = true
         override val simulering: Simulering? = null
@@ -240,6 +243,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
 

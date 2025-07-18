@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -93,6 +94,7 @@ fun opprettRevurderingFraSaksopplysninger(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    omgjøringsgrunn: Omgjøringsgrunn? = null,
 ): Pair<Sak, OpprettetRevurdering> {
     vilkårOverrides.map { it::class }.let {
         require(it == it.distinct())
@@ -104,7 +106,8 @@ fun opprettRevurderingFraSaksopplysninger(
         command = OpprettRevurderingCommand(
             sakId = sakOgVedtakSomKanRevurderes.first.id,
             periode = revurderingsperiode,
-            årsak = revurderingsårsak.årsak.toString(),
+            årsak = revurderingsårsak.årsak.name,
+            omgjøringsgrunn = omgjøringsgrunn?.name,
             begrunnelse = revurderingsårsak.begrunnelse.toString(),
             saksbehandler = saksbehandler,
             informasjonSomRevurderes = informasjonSomRevurderes.informasjonSomRevurderes.keys.toList(),
@@ -188,6 +191,7 @@ fun opprettetRevurdering(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    omgjøringsgrunn: Omgjøringsgrunn? = null,
 ): Pair<Sak, OpprettetRevurdering> {
     return opprettRevurderingFraSaksopplysninger(
         revurderingsperiode = revurderingsperiode,
@@ -197,6 +201,7 @@ fun opprettetRevurdering(
         revurderingsårsak = revurderingsårsak,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
+        omgjøringsgrunn = omgjøringsgrunn,
     )
 }
 

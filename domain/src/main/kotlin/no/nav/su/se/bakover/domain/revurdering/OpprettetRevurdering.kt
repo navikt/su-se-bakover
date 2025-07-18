@@ -48,6 +48,7 @@ data class OpprettetRevurdering(
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val sakinfo: SakInfo,
     override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingKanBeregnes {
     override val erOpphørt = false
     override val beregning: Beregning? = null
