@@ -14,6 +14,9 @@ fun RevurderingsårsakDomain.toResultatBegrunnelse(): String {
         RevurderingsårsakDomain.Årsak.IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON -> RevurderingsårsakDto.IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON
         RevurderingsårsakDomain.Årsak.MIGRERT -> RevurderingsårsakDto.MIGRERT
         RevurderingsårsakDomain.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> RevurderingsårsakDto.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN
+        RevurderingsårsakDomain.Årsak.OMGJØRING_EGET_TILTAK -> RevurderingsårsakDto.OMGJØRING_EGET_TILTAK
+        RevurderingsårsakDomain.Årsak.OMGJØRING_KLAGE -> RevurderingsårsakDto.OMGJØRING_KLAGE
+        RevurderingsårsakDomain.Årsak.OMGJØRING_TRYGDERETTEN -> RevurderingsårsakDto.OMGJØRING_TRYGDERETTEN
     }.toString()
 }
 
@@ -28,4 +31,7 @@ internal enum class RevurderingsårsakDto {
     IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
     MIGRERT,
     OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
+    OMGJØRING_EGET_TILTAK,
+    OMGJØRING_KLAGE,
+    OMGJØRING_TRYGDERETTEN,
 }

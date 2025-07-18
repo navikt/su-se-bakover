@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje.Companion.tilVedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
-import vedtak.domain.Stønadsvedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.fullstendigOrThrow
 import vilkår.flyktning.domain.FlyktningVilkår
@@ -43,7 +42,7 @@ data class VedtakPåTidslinje private constructor(
      * Referanse til det originale vedtaket dette tidslinje-elementet er basert på. Må ikke endres eller benyttes
      * til uthenting av grunnlagsdata.
      */
-    val originaltVedtak: Stønadsvedtak,
+    val originaltVedtak: VedtakSomKanRevurderes,
 ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
 
     init {
@@ -126,7 +125,7 @@ data class VedtakPåTidslinje private constructor(
     }
 
     companion object {
-        fun Stønadsvedtak.tilVedtakPåTidslinje(): VedtakPåTidslinje {
+        fun VedtakSomKanRevurderes.tilVedtakPåTidslinje(): VedtakPåTidslinje {
             return VedtakPåTidslinje(
                 opprettet = opprettet,
                 periode = periode,
@@ -154,15 +153,15 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje>? 
     return mapTilVedtakPåTidslinjeTyper().lagTidslinje()
 }
 
-fun NonEmptyList<Stønadsvedtak>.lagTidslinje(): Tidslinje<VedtakPåTidslinje> {
+fun NonEmptyList<VedtakSomKanRevurderes>.lagTidslinje(): Tidslinje<VedtakPåTidslinje> {
     return mapTilVedtakPåTidslinjeTyper().lagTidslinje()
 }
 
-private fun List<Stønadsvedtak>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> {
+private fun List<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): List<VedtakPåTidslinje> {
     return map { it.tilVedtakPåTidslinje() }
 }
 
-private fun NonEmptyList<Stønadsvedtak>.mapTilVedtakPåTidslinjeTyper(): NonEmptyList<VedtakPåTidslinje> {
+private fun NonEmptyList<VedtakSomKanRevurderes>.mapTilVedtakPåTidslinjeTyper(): NonEmptyList<VedtakPåTidslinje> {
     return map { it.tilVedtakPåTidslinje() }
 }
 

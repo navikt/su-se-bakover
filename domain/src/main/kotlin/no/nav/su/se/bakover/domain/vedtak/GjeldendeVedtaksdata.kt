@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappen
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import vedtak.domain.Stønadsvedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import vilkår.familiegjenforening.domain.FamiliegjenforeningVilkår
 import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
@@ -35,7 +35,7 @@ data class GjeldendeVedtaksdata(
     // TODO Finne et bedre navn. Dette er ikke all vedtaksdata, men kun det som kan Revurderes og Reguleres
     // Perioden vi ønsker å finne gjeldende vedtaksdata for. Det er ikke gitt at man har kontinuerlig ytelse innenfor denne perioden.
     private val periode: Periode,
-    private val vedtakListe: NonEmptyList<Stønadsvedtak>,
+    private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
 ) {
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
@@ -113,18 +113,18 @@ data class GjeldendeVedtaksdata(
      * Bruk heller [gjeldendeVedtakForMåned]
      * Beholdes inntil vi har fjernet AbstractRevurdering.tilRevurdering
      */
-    fun gjeldendeVedtakPåDato(dato: LocalDate): Stønadsvedtak? =
+    fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje?.gjeldendeForDato(dato)?.originaltVedtak
 
-    fun gjeldendeVedtakForMåned(måned: Måned): Stønadsvedtak? =
+    fun gjeldendeVedtakForMåned(måned: Måned): VedtakSomKanRevurderes? =
         tidslinje?.gjeldendeForMåned(måned)?.originaltVedtak
 
     @Suppress("MemberVisibilityCanBePrivate")
-    fun gjeldendeVedtakMånedsvis(): Map<Måned, Stønadsvedtak?> {
+    fun gjeldendeVedtakMånedsvis(): Map<Måned, VedtakSomKanRevurderes?> {
         return periode.måneder().associateWith { gjeldendeVedtakForMåned(it) }
     }
 
-    fun gjeldendeVedtakMånedsvisMedPotensielleHull(): Map<Måned, Stønadsvedtak> {
+    fun gjeldendeVedtakMånedsvisMedPotensielleHull(): Map<Måned, VedtakSomKanRevurderes> {
         return gjeldendeVedtakMånedsvis().filterValues { it != null }.mapValues { it.value!! }
     }
 

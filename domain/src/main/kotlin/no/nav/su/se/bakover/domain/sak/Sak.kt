@@ -56,7 +56,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -132,12 +131,12 @@ data class Sak(
         periode: Periode,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
-        return vedtakListe.filterIsInstance<Stønadsvedtak>()
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left() }
-            .let { stønadsvedtak ->
+            .let { vedtakSomKanRevurderes ->
                 GjeldendeVedtaksdata(
                     periode = periode,
-                    vedtakListe = stønadsvedtak.toNonEmptyList(),
+                    vedtakListe = vedtakSomKanRevurderes.toNonEmptyList(),
                     clock = clock,
                 ).right()
             }

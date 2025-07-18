@@ -50,25 +50,6 @@ internal class OpprettRevurderingTest {
     }
 
     @Test
-    fun `Skal feile fordi omgjøring krever åpen klage`() {
-        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
-
-        sakUtenÅpenBehandling.opprettRevurdering(
-            command = OpprettRevurderingCommand(
-                saksbehandler = saksbehandler,
-                årsak = Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN.name,
-                informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
-                periode = stønadsperiode2021.periode,
-                sakId = sakUtenÅpenBehandling.id,
-                begrunnelse = "begrunnelsen",
-            ),
-            clock = fixedClock,
-        ).shouldBeLeft().let {
-            it shouldBe KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage
-        }
-    }
-
-    @Test
     fun `Omgjøringårsak krever omgjøringsgrunn`() {
         val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
         val klage = OpprettetKlage(

@@ -14,12 +14,16 @@ import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesM
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.nyRevurdering
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
 
 /**
  * Tar ikke inn IO-funksjoner for å prøve holde opprett revurdering som en pure function.
  */
+
+private val log = LoggerFactory.getLogger("opprettRevurdering")
+
 fun Sak.opprettRevurdering(
     command: OpprettRevurderingCommand,
     clock: Clock,
@@ -30,10 +34,10 @@ fun Sak.opprettRevurdering(
     val revurderingsårsak = command.revurderingsårsak.getOrElse {
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
     }
-
+    // TODO: sjekk om
     if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
         if (this.klager.none { it.erÅpen() }) {
-            return KunneIkkeOppretteRevurdering.MåHaEnÅpenKlage.left()
+            log.error("Fant ingen åpen klage for saksnummer ${this.saksnummer}, dette kan være fordi den er overført fra infotrygd hvis den gjelder alder. Ellers burde den finnes. Hør med fag.")
         }
         if (!command.omgjøringsgrunnErGyldig()) {
             return KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn.left()

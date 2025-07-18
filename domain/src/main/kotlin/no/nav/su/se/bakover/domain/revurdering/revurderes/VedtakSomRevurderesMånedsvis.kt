@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import vedtak.domain.Stønadsvedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import java.time.Clock
 import java.util.UUID
 
@@ -23,7 +23,7 @@ fun GjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(): VedtakSomRevurderesM
         .toVedtakSomRevurderesMånedsvis()
 }
 
-private fun Map<Måned, Stønadsvedtak>.toVedtakSomRevurderesMånedsvis(): VedtakSomRevurderesMånedsvis {
+private fun Map<Måned, VedtakSomKanRevurderes>.toVedtakSomRevurderesMånedsvis(): VedtakSomRevurderesMånedsvis {
     return VedtakSomRevurderesMånedsvis(this.mapValues { it.value.id })
 }
 

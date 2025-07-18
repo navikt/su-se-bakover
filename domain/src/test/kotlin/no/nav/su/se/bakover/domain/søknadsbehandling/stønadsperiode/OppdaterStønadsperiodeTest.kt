@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
-import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -30,9 +29,6 @@ import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
-import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
@@ -49,8 +45,6 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
-import no.nav.su.se.bakover.test.opprettetKlage
-import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -198,66 +192,6 @@ internal class OppdaterStønadsperiodeTest {
                     saksbehandlersAvgjørelse = null,
                 ).shouldBeRight()
             }
-        }
-
-        /*
-            Feks hvis man skal revurdere et avslag tilbake i tid der bruker har fått et innvilget vedtak i ettertid
-            Så her har vi en revurderingsperiode for det avslåtte vedtaket som har en TOM som er før FOM for innvilgelsesperioden
-         */
-        @Test
-        fun `stønadsperioder skal kunne legges forut for eksisterende stønadsperioder hvis periodens tom er før de andres fom`() {
-            val clock = TikkendeKlokke()
-            val avslagsperiode = Periode.create(
-                fraOgMed = YearMonth.of(2023, Month.MAY).atDay(1),
-                tilOgMed = YearMonth.of(2024, Month.APRIL).atEndOfMonth(),
-            )
-
-            /*
-            Avslått pga høy inntekt, må vurdere om vi skal sende inn liste med vilkår man vil revurdere i frontend.
-             */
-
-            val (sakEtterFørstePeriode, _) = vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
-                stønadsperiode = Stønadsperiode.create(periode = avslagsperiode),
-                clock = clock,
-            )
-
-            val innvilgelsesPeriode = Periode.create(
-                fraOgMed = YearMonth.of(2023, Month.OCTOBER).atDay(1),
-                tilOgMed = YearMonth.of(2024, Month.SEPTEMBER).atEndOfMonth(),
-            )
-            val (saketterInnvilgelseOgAvslag, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(periode = innvilgelsesPeriode),
-                clock = clock,
-                sakOgSøknad = sakEtterFørstePeriode to nySøknadJournalførtMedOppgave(
-                    sakId = sakEtterFørstePeriode.id,
-                    fnr = sakEtterFørstePeriode.fnr,
-                ),
-            )
-
-            val revurderingsPeriodeInnvilgelseEtterKA = Periode.create(
-                fraOgMed = YearMonth.of(2023, Month.AUGUST).atDay(1),
-                tilOgMed = YearMonth.of(2023, Month.SEPTEMBER).atEndOfMonth(),
-            )
-
-            val (sakogklage, _) = opprettetKlage(sakMedVedtak = saketterInnvilgelseOgAvslag)
-            /*
-            her må vilkåret for inntekt ha endret seg da det er satt til 1 mill i
-            vedtakSøknadsbehandlingIverksattAvslagMedBeregning by default. Dette gjøres manuelt av sb
-            i beregnetRevurdering avgjøres det
-             */
-            val (sak, revurdering) = opprettetRevurdering(
-                revurderingsperiode = revurderingsPeriodeInnvilgelseEtterKA,
-                sakOgVedtakSomKanRevurderes = sakogklage to vedtak,
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
-                    Revurderingsårsak.Begrunnelse.create("LOL"),
-                ),
-                omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
-            )
-            // TODO: lag egen test med informasjonSomRevurderes og sjekk at de som velges finnes i det avslåtte vilkåret
-            revurdering.informasjonSomRevurderes.any { it.key == Revurderingsteg.Inntekt }.shouldBeTrue()
-            revurdering.periode shouldBe revurderingsPeriodeInnvilgelseEtterKA
-            revurdering.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN
         }
 
         @Test
