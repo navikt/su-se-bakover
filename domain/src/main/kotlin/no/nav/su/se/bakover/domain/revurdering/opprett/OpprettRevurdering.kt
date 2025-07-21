@@ -34,10 +34,11 @@ fun Sak.opprettRevurdering(
     val revurderingsårsak = command.revurderingsårsak.getOrElse {
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
     }
-    // TODO: sjekk om
-    if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
-        if (this.klager.none { it.erÅpen() }) {
-            log.error("Fant ingen åpen klage for saksnummer ${this.saksnummer}, dette kan være fordi den er overført fra infotrygd hvis den gjelder alder. Ellers burde den finnes. Hør med fag.")
+    if (revurderingsårsak.årsak.erOmgjøring()) {
+        if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
+            if (this.klager.none { it.erÅpen() }) {
+                log.error("Fant ingen åpen klage for saksnummer ${this.saksnummer}, dette kan være fordi den er overført fra infotrygd hvis den gjelder alder. Ellers burde den finnes. Hør med fag.")
+            }
         }
         if (!command.omgjøringsgrunnErGyldig()) {
             return KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn.left()
