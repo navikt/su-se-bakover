@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -41,6 +42,7 @@ internal sealed interface RevurderingJson {
     val attesteringer: List<AttesteringJson>
     val sakstype: String
     val brevvalg: BrevvalgRevurderingJson
+    val omgjøringsgrunn: Omgjøringsgrunn?
 }
 
 data class BrevvalgRevurderingJson(
@@ -117,6 +119,7 @@ internal data class OpprettetRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val sakstype: String,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class BeregnetRevurderingJson(
@@ -135,6 +138,7 @@ internal data class BeregnetRevurderingJson(
     override val sakstype: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class SimulertRevurderingJson(
@@ -154,6 +158,7 @@ internal data class SimulertRevurderingJson(
     val simulering: SimuleringJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class TilAttesteringJson(
@@ -173,6 +178,7 @@ internal data class TilAttesteringJson(
     val beregning: BeregningJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class IverksattRevurderingJson(
@@ -193,6 +199,7 @@ internal data class IverksattRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class UnderkjentRevurderingJson(
@@ -212,6 +219,7 @@ internal data class UnderkjentRevurderingJson(
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class AvsluttetRevurderingJson(
@@ -232,6 +240,7 @@ internal data class AvsluttetRevurderingJson(
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val avsluttetTidspunkt: String,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
 internal data class StansAvUtbetalingJson(
@@ -250,6 +259,7 @@ internal data class StansAvUtbetalingJson(
     val simulering: SimuleringJson,
     val avsluttetTidspunkt: String? = null,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn? = null,
 ) : RevurderingJson
 
 internal data class GjenopptakAvYtelseJson(
@@ -268,6 +278,7 @@ internal data class GjenopptakAvYtelseJson(
     val simulering: SimuleringJson,
     val avsluttetTidspunkt: String? = null,
     override val brevvalg: BrevvalgRevurderingJson,
+    override val omgjøringsgrunn: Omgjøringsgrunn? = null,
 ) : RevurderingJson
 
 internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): RevurderingJson {
@@ -292,6 +303,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         is SimulertRevurdering -> SimulertRevurderingJson(
@@ -315,6 +327,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         is RevurderingTilAttestering -> TilAttesteringJson(
@@ -341,6 +354,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         is IverksattRevurdering -> IverksattRevurderingJson(
@@ -371,6 +385,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
                 is IverksattRevurdering.Opphørt -> sendtTilbakekrevingsvedtak.toJson()
             },
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         is UnderkjentRevurdering -> UnderkjentRevurderingJson(
@@ -397,6 +412,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         is BeregnetRevurdering -> BeregnetRevurderingJson(
@@ -419,6 +435,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             attesteringer = attesteringer.toJson(),
             sakstype = sakstype.toJson(),
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         is AvsluttetRevurdering -> AvsluttetRevurderingJson(
@@ -443,6 +460,7 @@ internal fun Revurdering.toJson(formuegrenserFactory: FormuegrenserFactory): Rev
             sakstype = sakstype.toJson(),
             avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(avsluttetTidspunkt),
             brevvalg = brevvalgRevurdering.toJson(),
+            omgjøringsgrunn = omgjøringsgrunn,
         )
     }
 }
