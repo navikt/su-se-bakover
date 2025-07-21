@@ -26,6 +26,12 @@ fun Sak.oppdaterRevurdering(
             }
         }.left()
     }
+
+    if (revurderingsårsak.årsak.erOmgjøring()) {
+        if (!command.omgjøringsgrunnErGyldig()) {
+            return KunneIkkeOppdatereRevurdering.MåhaOmgjøringsgrunn.left()
+        }
+    }
     val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
         sakstype = this.type,
         revurderingsteg = command.informasjonSomRevurderes,

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Omgjøring.måHaomgjøringsgrunn
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -39,6 +40,7 @@ internal fun Route.oppdaterRevurderingRoute(
         val tilOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
+        val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
 
@@ -55,6 +57,7 @@ internal fun Route.oppdaterRevurderingRoute(
                             ),
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
+                            omgjøringsgrunn = body.omgjøringsgrunn,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             informasjonSomRevurderes = body.informasjonSomRevurderes,
                         ),
@@ -96,6 +99,10 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
 
         is KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes -> {
             this.underliggende.tilResultat()
+        }
+
+        is KunneIkkeOppdatereRevurdering.MåhaOmgjøringsgrunn -> {
+            måHaomgjøringsgrunn
         }
     }
 }
