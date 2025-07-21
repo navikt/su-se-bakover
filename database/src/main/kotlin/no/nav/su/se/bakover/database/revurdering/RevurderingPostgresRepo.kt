@@ -94,6 +94,7 @@ private data class BaseRevurderingDb(
     val sakinfo: SakInfo,
     val type: String,
     val brevvalgRevurdering: BrevvalgRevurdering,
+    val omgjøringsgrunn: Omgjøringsgrunn?,
 )
 
 private data class RevurderingDb(
@@ -121,6 +122,7 @@ private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         sakinfo = this.sakinfo,
         type = this.toRevurderingsType(),
         brevvalgRevurdering = this.brevvalgRevurdering,
+        omgjøringsgrunn = null,
     )
 }
 
@@ -142,6 +144,7 @@ private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb 
         sakinfo = this.sakinfo,
         type = this.toRevurderingsType(),
         brevvalgRevurdering = this.brevvalgRevurdering,
+        omgjøringsgrunn = null,
     )
 }
 
@@ -163,6 +166,7 @@ private fun Revurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         sakinfo = this.sakinfo,
         type = this.toRevurderingsType(),
         brevvalgRevurdering = this.brevvalgRevurdering,
+        omgjøringsgrunn = this.omgjøringsgrunn,
     )
 }
 
@@ -658,7 +662,8 @@ internal class RevurderingPostgresRepo(
                         informasjonSomRevurderes,
                         avsluttet,
                         sakid,
-                        brevvalg
+                        brevvalg,
+                        omgjoringsgrunn
                     ) values (
                         :id,
                         :opprettet,
@@ -677,7 +682,8 @@ internal class RevurderingPostgresRepo(
                         to_json(:informasjonSomRevurderes::json),
                         to_jsonb(:avsluttet::jsonb),
                         :sakid,
-                        to_json(:brevvalg::json)
+                        to_json(:brevvalg::json),
+                        :omgjoringsgrunn
                     )
                         ON CONFLICT(id) do update set
                         oppdatert = :oppdatert,
@@ -694,7 +700,8 @@ internal class RevurderingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json),
                         avsluttet = to_jsonb(:avsluttet::jsonb),
-                        brevvalg = to_json(:brevvalg::json)
+                        brevvalg = to_json(:brevvalg::json),
+                        omgjoringsgrunn = :omgjoringsgrunn
         """.trimIndent()
             .insert(
                 mapOf(
@@ -716,6 +723,7 @@ internal class RevurderingPostgresRepo(
                     "avsluttet" to serializeNullable(revurdering.avsluttet),
                     "sakid" to revurdering.base.sakinfo.sakId,
                     "brevvalg" to serialize(revurdering.base.brevvalgRevurdering.toDb()),
+                    "omgjoringsgrunn" to revurdering.base.omgjøringsgrunn?.name,
                 ),
                 session,
             )
