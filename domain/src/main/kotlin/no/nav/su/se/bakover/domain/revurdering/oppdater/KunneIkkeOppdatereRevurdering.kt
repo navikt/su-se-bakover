@@ -18,4 +18,6 @@ sealed interface KunneIkkeOppdatereRevurdering {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeOppdatereRevurdering
+
+    data object MåhaOmgjøringsgrunn : KunneIkkeOppdatereRevurdering
 }

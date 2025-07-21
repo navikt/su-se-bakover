@@ -26,6 +26,12 @@ fun Sak.oppdaterRevurdering(
             }
         }.left()
     }
+
+    if (revurderingsårsak.årsak.erOmgjøring()) {
+        if (!command.omgjøringsgrunnErGyldig()) {
+            return KunneIkkeOppdatereRevurdering.MåhaOmgjøringsgrunn.left()
+        }
+    }
     val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(
         sakstype = this.type,
         revurderingsteg = command.informasjonSomRevurderes,
@@ -47,7 +53,7 @@ fun Sak.oppdaterRevurdering(
         return KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(it).left()
     }
 
-    informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
+    informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
         .getOrElse { return KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
     return revurdering.oppdater(

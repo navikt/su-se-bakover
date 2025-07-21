@@ -47,7 +47,7 @@ data class VedtakPåTidslinje private constructor(
 
     init {
         require(grunnlagsdata.erUtfylt && vilkårsvurderinger.erVurdert) {
-            "Grunnlagsdata og vilkårsvurderinger må være utfylt/vurdert for å kunne opprette et vedtak på tidslinje. Grunnlagsperiode: ${grunnlagsdata.periode}, vilkårsperiode: ${vilkårsvurderinger.periode}, vedtakstidsinjeperiode: $periode"
+            "Grunnlagsdata og vilkårsvurderinger må være utfylt/vurdert for å kunne opprette et vedtak på tidslinje. Grunnlagsperiode: ${grunnlagsdata.periode}, vilkårsperiode: ${vilkårsvurderinger.periode}"
         }
         require(grunnlagsdata.periode == periode && vilkårsvurderinger.periode == periode) {
             "Grunnlagsdata og vilkårsvurderinger må ha samme periode som vedtakstidslinjen. Grunnlagsperiode: ${grunnlagsdata.periode}, vilkårsperiode: ${vilkårsvurderinger.periode}, vedtakstidsinjeperiode: $periode"

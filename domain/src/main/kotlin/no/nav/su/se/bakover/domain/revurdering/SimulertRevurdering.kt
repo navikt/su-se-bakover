@@ -169,6 +169,7 @@ sealed interface SimulertRevurdering :
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : SimulertRevurdering {
         override val erOpphørt = false
 
@@ -196,6 +197,7 @@ sealed interface SimulertRevurdering :
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
 
@@ -231,6 +233,7 @@ sealed interface SimulertRevurdering :
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
         override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : SimulertRevurdering,
         LeggTilVedtaksbrevvalg {
         override val erOpphørt = true
@@ -281,6 +284,7 @@ sealed interface SimulertRevurdering :
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
 

@@ -8,6 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.Opphørsgrunn
+import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.GenererDokumentCommand
@@ -366,8 +367,8 @@ data class Sak(
      * manglende vilkår, alternativt kan den erstattes med noe annet som f.eks at man alltid har muligheten til å
      * finne vilkårene på oppsummeringssiden (også de som ikke ble revurdert aktivt av saksbehandler) eller lignende.
      */
-    internal fun InformasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Either<OpphørtVilkårMåRevurderes, Unit> {
-        return VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat.let {
+    internal fun InformasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(vilkårsvurderinger: VilkårsvurderingerRevurdering): Either<OpphørtVilkårMåRevurderes, Unit> {
+        return VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat.let {
             when (it) {
                 is OpphørVedRevurdering.Ja -> {
                     if (!harValgtFormue() && it.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {

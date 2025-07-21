@@ -3,8 +3,12 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.getOrElse
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
@@ -13,7 +17,7 @@ import org.junit.jupiter.api.Test
 internal class LagreOgHentAvsluttetRevurderingTest {
 
     @Test
-    fun `opprettet`() {
+    fun opprettet() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
@@ -33,6 +37,29 @@ internal class LagreOgHentAvsluttetRevurderingTest {
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+        }
+    }
+
+    @Test
+    fun `Kan opprette omgjøringsrevurdering med grunn`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+
+            val (_, revurdering) = testDataHelper.persisterRevurderingOpprettet(
+                sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+                    .let { it.first to it.second },
+                sakOgRevurdering = { (sak, vedtak) ->
+                    opprettetRevurdering(sakOgVedtakSomKanRevurderes = Pair(sak, vedtak), omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER)
+                },
+
+            )
+
+            repo.lagre(revurdering)
+            val hentetRevurderingomgjøring = repo.hent(revurdering.id)
+            hentetRevurderingomgjøring.shouldBeInstanceOf<OpprettetRevurdering>().let {
+                it.omgjøringsgrunn shouldBe Omgjøringsgrunn.NYE_OPPLYSNINGER
+            }
         }
     }
 

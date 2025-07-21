@@ -72,6 +72,7 @@ sealed interface Revurdering :
 
     val saksbehandler: Saksbehandler
     val revurderingsårsak: Revurderingsårsak
+    val omgjøringsgrunn: Omgjøringsgrunn?
     val informasjonSomRevurderes: InformasjonSomRevurderes
     val erOpphørt: Boolean
     abstract override val beregning: Beregning?
@@ -167,6 +168,7 @@ sealed interface Revurdering :
             attesteringer = attesteringer,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
+            omgjøringsgrunn = omgjøringsgrunn,
         ).right()
     }
 
@@ -603,6 +605,7 @@ sealed interface Revurdering :
             attesteringer = attesteringer,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
     }
 
@@ -622,6 +625,7 @@ sealed interface Revurdering :
             attesteringer = attesteringer,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalgRevurdering,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
     }
 
@@ -659,6 +663,7 @@ sealed interface Revurdering :
                 attesteringer = revurdering.attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = revurdering.omgjøringsgrunn,
             )
         }
 
@@ -682,6 +687,7 @@ sealed interface Revurdering :
                 attesteringer = revurdering.attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
         }
 

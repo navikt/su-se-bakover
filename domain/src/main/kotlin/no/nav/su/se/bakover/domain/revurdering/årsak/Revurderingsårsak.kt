@@ -20,6 +20,14 @@ data class Revurderingsårsak(
         MOTTATT_KONTROLLERKLÆRING,
         IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
 
+        /*
+            Alle disse omgjøringsårsakene her gjelder kun for innvilgede vedtak
+         */
+        OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
+        OMGJØRING_EGET_TILTAK,
+        OMGJØRING_KLAGE, // i førsteinstans
+        OMGJØRING_TRYGDERETTEN,
+
         /* Reservert for migrering */
         MIGRERT,
         ;
@@ -27,6 +35,12 @@ data class Revurderingsårsak(
         companion object {
             fun tryCreate(value: String): Either<UgyldigÅrsak, Årsak> {
                 return entries.firstOrNull { it.name == value }?.right() ?: UgyldigÅrsak.left()
+            }
+        }
+        fun erOmgjøring(): Boolean {
+            return when (this) {
+                MELDING_FRA_BRUKER, INFORMASJON_FRA_KONTROLLSAMTALE, DØDSFALL, ANDRE_KILDER, REGULER_GRUNNBELØP, MANGLENDE_KONTROLLERKLÆRING, MOTTATT_KONTROLLERKLÆRING, IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON, MIGRERT -> false
+                OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN, OMGJØRING_EGET_TILTAK, OMGJØRING_KLAGE, OMGJØRING_TRYGDERETTEN -> true
             }
         }
     }

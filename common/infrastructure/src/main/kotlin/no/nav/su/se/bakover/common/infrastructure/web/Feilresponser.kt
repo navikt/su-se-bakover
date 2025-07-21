@@ -325,6 +325,13 @@ data object Feilresponser {
         )
     }
 
+    data object Omgjøring {
+        val måHaomgjøringsgrunn = InternalServerError.errorJson(
+            "Kunne ikke opprette revurdering, mangler omgjøringsgrunn",
+            "kunne_ikke_opprette_revurdering_mangler_omgjøringsgrunn",
+        )
+    }
+
     val inneholderUfullstendigeBosituasjoner = BadRequest.errorJson(
         "Behandlingen inneholder ufullstendige bosituasjoner",
         "inneholder_ufullstendige_bosituasjoner",

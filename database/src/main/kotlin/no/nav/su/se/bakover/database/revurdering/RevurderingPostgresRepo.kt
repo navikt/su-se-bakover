@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -93,6 +94,7 @@ private data class BaseRevurderingDb(
     val sakinfo: SakInfo,
     val type: String,
     val brevvalgRevurdering: BrevvalgRevurdering,
+    val omgjøringsgrunn: Omgjøringsgrunn?,
 )
 
 private data class RevurderingDb(
@@ -120,6 +122,7 @@ private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         sakinfo = this.sakinfo,
         type = this.toRevurderingsType(),
         brevvalgRevurdering = this.brevvalgRevurdering,
+        omgjøringsgrunn = null,
     )
 }
 
@@ -141,6 +144,7 @@ private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb 
         sakinfo = this.sakinfo,
         type = this.toRevurderingsType(),
         brevvalgRevurdering = this.brevvalgRevurdering,
+        omgjøringsgrunn = null,
     )
 }
 
@@ -162,6 +166,7 @@ private fun Revurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         sakinfo = this.sakinfo,
         type = this.toRevurderingsType(),
         brevvalgRevurdering = this.brevvalgRevurdering,
+        omgjøringsgrunn = this.omgjøringsgrunn,
     )
 }
 
@@ -528,6 +533,7 @@ internal class RevurderingPostgresRepo(
 
     private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
         val id = RevurderingId(uuid("id"))
+        val omgjøringsgrunn = stringOrNull("omgjoringsgrunn")?.let { Omgjøringsgrunn.valueOf(it) }
         val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = deserialize<PeriodeDbJson>(string("periode")).toDomain()
         val opprettet = tidspunkt("opprettet")
@@ -598,6 +604,7 @@ internal class RevurderingPostgresRepo(
             tilbakekrevingsvedtak = tilbakekrevingsbehandling,
             sakinfo = sakinfo,
             brevvalgRevurdering = brevvalg,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
         if (avbrutt != null) {
             return when (revurdering) {
@@ -655,7 +662,8 @@ internal class RevurderingPostgresRepo(
                         informasjonSomRevurderes,
                         avsluttet,
                         sakid,
-                        brevvalg
+                        brevvalg,
+                        omgjoringsgrunn
                     ) values (
                         :id,
                         :opprettet,
@@ -674,7 +682,8 @@ internal class RevurderingPostgresRepo(
                         to_json(:informasjonSomRevurderes::json),
                         to_jsonb(:avsluttet::jsonb),
                         :sakid,
-                        to_json(:brevvalg::json)
+                        to_json(:brevvalg::json),
+                        :omgjoringsgrunn
                     )
                         ON CONFLICT(id) do update set
                         oppdatert = :oppdatert,
@@ -691,7 +700,8 @@ internal class RevurderingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json),
                         avsluttet = to_jsonb(:avsluttet::jsonb),
-                        brevvalg = to_json(:brevvalg::json)
+                        brevvalg = to_json(:brevvalg::json),
+                        omgjoringsgrunn = :omgjoringsgrunn
         """.trimIndent()
             .insert(
                 mapOf(
@@ -713,6 +723,7 @@ internal class RevurderingPostgresRepo(
                     "avsluttet" to serializeNullable(revurdering.avsluttet),
                     "sakid" to revurdering.base.sakinfo.sakId,
                     "brevvalg" to serialize(revurdering.base.brevvalgRevurdering.toDb()),
+                    "omgjoringsgrunn" to revurdering.base.omgjøringsgrunn?.name,
                 ),
                 session,
             )
@@ -737,6 +748,7 @@ internal class RevurderingPostgresRepo(
         tilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         sakinfo: SakInfo,
         brevvalgRevurdering: BrevvalgRevurdering,
+        omgjøringsgrunn: Omgjøringsgrunn?,
     ): AbstraktRevurdering {
         return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
@@ -756,6 +768,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
@@ -775,6 +788,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
@@ -795,6 +809,7 @@ internal class RevurderingPostgresRepo(
                 sendtTilbakekrevingsvedtak = tilbakekrevingsvedtak,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
@@ -815,6 +830,7 @@ internal class RevurderingPostgresRepo(
                 sendtTilbakekrevingsvedtak = tilbakekrevingsvedtak,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
@@ -834,6 +850,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
@@ -853,6 +870,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
@@ -872,6 +890,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.SIMULERT_OPPHØRT -> SimulertRevurdering.Opphørt(
@@ -891,6 +910,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
@@ -909,6 +929,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.BEREGNET_OPPHØRT -> BeregnetRevurdering.Opphørt(
@@ -927,6 +948,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
@@ -943,6 +965,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
 
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
