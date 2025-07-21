@@ -49,7 +49,6 @@ sealed interface JournalføringOgDistribueringsResultat {
                             "Kunne ikke distribuere ${distribusjon.id}. Feilen var $it for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}",
                             RuntimeException("Genererer en stacktrace for enklere debugging."),
                         )
-                        // TODO: innføre håndtering hvis journalpost er feilregistrert.....
                     }
                     Feil(
                         distribusjon.id,
