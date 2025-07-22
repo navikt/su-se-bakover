@@ -15,4 +15,7 @@ sealed interface KunneIkkeStarteNySøknadsbehandling {
 
     // TODO - ta inn feilmelding - må flytte ting til oppgave-modulen
     data object FeilVedOpprettelseAvOppgave : KunneIkkeStarteNySøknadsbehandling
+
+    data object MåHaGyldingOmgjøringsgrunn : KunneIkkeStarteNySøknadsbehandling
+    data object UgyldigRevurderingsÅrsak : KunneIkkeStarteNySøknadsbehandling
 }

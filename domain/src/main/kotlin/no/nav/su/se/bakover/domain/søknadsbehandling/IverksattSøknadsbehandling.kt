@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -81,6 +83,8 @@ sealed interface IverksattSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
+        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattSøknadsbehandling,
         KanGenerereInnvilgelsesbrev {
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -133,6 +137,8 @@ sealed interface IverksattSøknadsbehandling :
             nyOppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
+            årsak: Revurderingsårsak.Årsak,
+            omgjøringsgrunn: Omgjøringsgrunn,
         ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
 
         data class MedBeregning(
@@ -151,6 +157,8 @@ sealed interface IverksattSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
+            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -180,6 +188,8 @@ sealed interface IverksattSøknadsbehandling :
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
+                årsak: Revurderingsårsak.Årsak,
+                omgjøringsgrunn: Omgjøringsgrunn,
             ): Either<KunneIkkeOppretteSøknadsbehandling, BeregnetSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
@@ -208,6 +218,8 @@ sealed interface IverksattSøknadsbehandling :
                             ),
                             sakstype = sakstype,
                             saksbehandler = saksbehandler,
+                            årsak = årsak,
+                            omgjøringsgrunn = omgjøringsgrunn,
                         ).right()
                     },
                 )
@@ -229,6 +241,8 @@ sealed interface IverksattSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
+            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -251,6 +265,8 @@ sealed interface IverksattSøknadsbehandling :
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
+                årsak: Revurderingsårsak.Årsak,
+                omgjøringsgrunn: Omgjøringsgrunn,
             ): Either<KunneIkkeOppretteSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
@@ -320,6 +336,8 @@ sealed interface IverksattSøknadsbehandling :
                                 søknadsbehandlingsHistorikk = nyHistorikk,
                                 sakstype = sakstype,
                                 saksbehandler = saksbehandler,
+                                årsak = årsak,
+                                omgjøringsgrunn = omgjøringsgrunn,
                             )
 
                             Vurdering.Uavklart -> VilkårsvurdertSøknadsbehandling.Uavklart(
@@ -337,6 +355,8 @@ sealed interface IverksattSøknadsbehandling :
                                 søknadsbehandlingsHistorikk = nyHistorikk,
                                 sakstype = sakstype,
                                 saksbehandler = saksbehandler,
+                                årsak = årsak,
+                                omgjøringsgrunn = omgjøringsgrunn,
                             )
                         }.right()
                     },

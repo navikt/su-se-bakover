@@ -92,6 +92,8 @@ fun Sak.opprettNySøknadsbehandling(
         ),
         sakstype = type,
         saksbehandler = saksbehandler,
+        årsak = null,
+        omgjøringsgrunn = null,
     ).let { søknadsbehandling ->
         Triple(
             this.nySøknadsbehandling(søknadsbehandling),

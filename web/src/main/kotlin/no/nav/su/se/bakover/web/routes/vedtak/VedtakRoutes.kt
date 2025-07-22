@@ -10,8 +10,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withVedtakId
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommand
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
@@ -24,13 +26,25 @@ fun Route.vedtakRoutes(
     vedtakService: VedtakService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    data class Body(
+        val årsak: String? = null,
+        val omgjøringsgrunn: String? = null,
+    )
     post("$VEDTAK_PATH/{vedtakId}/nySoknadsbehandling") {
         call.withSakId { sakId ->
-            call.withVedtakId {
-                vedtakService.startNySøknadsbehandlingForAvslag(sakId, it, call.suUserContext.saksbehandler).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = { call.svar(HttpStatusCode.Created.jsonBody(it, formuegrenserFactory)) },
-                )
+            call.withVedtakId { vedtakId ->
+                call.withBody<Body> { body ->
+                    vedtakService.startNySøknadsbehandlingForAvslag(
+                        sakId,
+                        vedtakId,
+                        call.suUserContext.saksbehandler,
+                        NySøknadCommand(body.årsak, body.omgjøringsgrunn),
+                    )
+                        .fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = { call.svar(HttpStatusCode.Created.jsonBody(it, formuegrenserFactory)) },
+                        )
+                }
             }
         }
     }
@@ -51,4 +65,7 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Kan ikke starte ny søknadsbehandling når det allerede finnes en åpen søknadsbehandling",
         "åpen_behandling_finnes",
     )
+
+    KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn -> TODO()
+    KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak -> TODO()
 }

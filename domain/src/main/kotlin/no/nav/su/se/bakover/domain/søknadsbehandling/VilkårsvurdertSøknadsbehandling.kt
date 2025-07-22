@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -112,6 +114,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                         sakstype = forrigeTilstand.sakstype,
                         saksbehandler = saksbehandler,
+                        årsak = forrigeTilstand.årsak,
+                        omgjøringsgrunn = forrigeTilstand.omgjøringsgrunn,
                     )
                 }
 
@@ -131,6 +135,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                         sakstype = forrigeTilstand.sakstype,
                         saksbehandler = saksbehandler,
+                        årsak = forrigeTilstand.årsak,
+                        omgjøringsgrunn = forrigeTilstand.omgjøringsgrunn,
                     )
                 }
             }
@@ -171,6 +177,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling,
         KanBeregnes,
         KanOppdatereFradragsgrunnlag {
@@ -214,6 +222,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val fritekstTilBrev: String,
+        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling,
         KanSendesTilAttestering,
         KanGenerereAvslagsbrev,
@@ -243,6 +253,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
             fritekstTilBrev = fritekstTilBrev,
+            årsak = forrigeTilstand.årsak,
+            omgjøringsgrunn = forrigeTilstand.omgjøringsgrunn,
         )
 
         constructor(
@@ -272,6 +284,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 ),
             ),
             fritekstTilBrev = iverksattSøknadsbehandling.fritekstTilBrev,
+            årsak = iverksattSøknadsbehandling.årsak,
+            omgjøringsgrunn = iverksattSøknadsbehandling.omgjøringsgrunn,
         )
 
         override val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling =
@@ -325,6 +339,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = this.søknadsbehandlingsHistorikk,
                 sakstype = sakstype,
+                årsak = årsak,
+                omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
 
@@ -357,6 +373,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                     ),
                 ),
                 sakstype = sakstype,
+                årsak = årsak,
+                omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
 
@@ -379,6 +397,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling {
 
         init {

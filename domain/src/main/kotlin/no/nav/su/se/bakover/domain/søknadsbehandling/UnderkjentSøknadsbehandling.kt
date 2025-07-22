@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
@@ -74,6 +76,8 @@ sealed interface UnderkjentSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
+        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : UnderkjentSøknadsbehandling,
         KanBeregnes,
         KanSimuleres,
@@ -148,6 +152,8 @@ sealed interface UnderkjentSøknadsbehandling :
                     ),
                     sakstype = sakstype,
                     saksbehandler = saksbehandler,
+                    årsak = årsak,
+                    omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
         }
@@ -191,6 +197,8 @@ sealed interface UnderkjentSøknadsbehandling :
                     ),
                 ),
                 sakstype = sakstype,
+                årsak = årsak,
+                omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
     }
@@ -220,6 +228,8 @@ sealed interface UnderkjentSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
+            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag,
             KanBeregnes,
             KanSendesTilAttestering,
@@ -288,6 +298,8 @@ sealed interface UnderkjentSøknadsbehandling :
                         ),
                     ),
                     sakstype = sakstype,
+                    årsak = årsak,
+                    omgjøringsgrunn = omgjøringsgrunn,
                 ).right()
             }
 
@@ -310,6 +322,8 @@ sealed interface UnderkjentSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
+            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
             override val beregning = null
@@ -366,6 +380,8 @@ sealed interface UnderkjentSøknadsbehandling :
                         ),
                     ),
                     sakstype = sakstype,
+                    årsak = årsak,
+                    omgjøringsgrunn = omgjøringsgrunn,
                 ).right()
             }
 

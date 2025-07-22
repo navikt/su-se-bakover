@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
@@ -40,6 +42,8 @@ data class LukketSøknadsbehandling private constructor(
     override val sakId = underliggendeSøknadsbehandling.sakId
     override val saksnummer = underliggendeSøknadsbehandling.saksnummer
     override val fnr = underliggendeSøknadsbehandling.fnr
+    override val årsak: Revurderingsårsak.Årsak? = underliggendeSøknadsbehandling.årsak
+    override val omgjøringsgrunn: Omgjøringsgrunn? = underliggendeSøknadsbehandling.omgjøringsgrunn
 
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
     override val periode get() = underliggendeSøknadsbehandling.periode

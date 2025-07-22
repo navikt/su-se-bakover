@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
