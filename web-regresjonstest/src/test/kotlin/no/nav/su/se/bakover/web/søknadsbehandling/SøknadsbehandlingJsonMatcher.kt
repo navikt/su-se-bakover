@@ -45,7 +45,9 @@ fun assertSøknadsbehandlingJson(
         "erLukket": $expectedErLukket,
         "sakstype": $expectedSakstype,
         "aldersvurdering": $expectedAldersvurdering,
-        "eksterneGrunnlag": $expectedEksterneGrunnlag
+        "eksterneGrunnlag": $expectedEksterneGrunnlag,
+        "årsak": null,
+        "omgjøringsgrunn": null
     }
     """.trimIndent()
     JSONAssert.assertEquals(
