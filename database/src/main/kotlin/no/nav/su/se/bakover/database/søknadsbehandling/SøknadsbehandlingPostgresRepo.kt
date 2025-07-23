@@ -81,8 +81,8 @@ private data class BaseSøknadsbehandlingDb(
     val saksbehandler: String,
     val søknadsbehandlingshistorikk: String,
     val aldersvurdering: String?,
-    val omgjøringsårsak: Revurderingsårsak.Årsak? = null,
-    val omgjøringsgrunn: Omgjøringsgrunn? = null,
+    val årsak: String? = null,
+    val omgjøringsgrunn: String? = null,
 )
 
 private data class SøknadsbehandlingDb(
@@ -265,6 +265,8 @@ private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
         saksbehandler = this.saksbehandler.toString(),
         søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
         aldersvurdering = this.aldersvurdering?.toDBJson(),
+        omgjøringsgrunn = this.omgjøringsgrunn?.name,
+        årsak = this.årsak?.name,
     )
 }
 
@@ -382,7 +384,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
-                "omgjoringsaarsak" to søknadsbehandling.base.omgjøringsårsak,
+                "omgjoringsaarsak" to søknadsbehandling.base.årsak,
                 "omgjoringsgrunn" to søknadsbehandling.base.omgjøringsgrunn,
                 "sokersskatteid" to when (
                     val x =
