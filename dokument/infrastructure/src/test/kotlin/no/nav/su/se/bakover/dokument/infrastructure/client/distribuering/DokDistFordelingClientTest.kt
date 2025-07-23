@@ -61,6 +61,55 @@ internal class DokDistFordelingClientTest {
     }
 
     @Test
+    fun `Skal sette feilregistrert på feilregistrerte manuelle journalposter`() {
+        startedWireMockServerWithCorrelationId {
+            val journalpostId = JournalpostId("1")
+            val distribusjonstype = Distribusjonstype.VEDTAK
+            val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
+            val client = DokDistFordelingClient(
+                dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(baseUrl(), "clientId"),
+                azureAd = AzureClientStub,
+            )
+            stubFor(
+                wiremockBuilder
+                    .withRequestBody(
+                        WireMock.equalToJson(
+                            """
+                             {
+                                "journalpostId": "$journalpostId",
+                                "bestillendeFagsystem": "SUPSTONAD",
+                                "dokumentProdApp": "SU_SE_BAKOVER",
+                                "distribusjonstype": "VEDTAK",
+                                "distribusjonstidspunkt": "KJERNETID",
+                                "adresse": null
+                            }
+                            """.trimIndent(),
+                        ),
+                    )
+                    .willReturn(
+                        WireMock.aResponse()
+                            .withStatus(400)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(
+                                """
+                    {
+                        "timestamp":"2025-07-22T15:43:37.893+00:00",
+                        "error": "Bad Request",
+                        "message": "Validering av distribusjonsforespørsel feilet med feilmelding: Journalpostfeltet journalpoststatus er ikke som forventet, fikk: FEILREGISTRERT, men forventet FERDIGSTILT"
+                    }
+                                """.trimIndent(),
+                            ),
+                    ),
+            )
+            client.bestillDistribusjon(
+                journalpostId,
+                distribusjonstype,
+                distribusjonstidspunkt,
+            ) shouldBe BrevbestillingId("FEILREGISTRERT").right()
+        }
+    }
+
+    @Test
     fun `happycase med adresse`() {
         startedWireMockServerWithCorrelationId {
             val journalpostId = JournalpostId("1")
