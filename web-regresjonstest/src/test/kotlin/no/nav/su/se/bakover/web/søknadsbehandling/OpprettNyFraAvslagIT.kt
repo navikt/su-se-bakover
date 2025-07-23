@@ -93,6 +93,12 @@ class OpprettNyFraAvslagIT {
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
+                postbody = serialize(
+                    NySøknadCommand(
+                        Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                        Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                    ),
+                ),
             )
         }
     }
@@ -132,6 +138,12 @@ class OpprettNyFraAvslagIT {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
+                postbody = serialize(
+                    NySøknadCommand(
+                        Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                        Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                    ),
+                ),
             )
         }
     }
