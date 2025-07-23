@@ -9,10 +9,13 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.PartData
+import io.ktor.http.contentType
 import io.ktor.server.application.Application
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.runBlocking
@@ -135,6 +138,7 @@ fun defaultRequest(
     navIdent: String = "Z990Lokal",
     correlationId: String = DEFAULT_CALL_ID,
     client: HttpClient,
+    body: String? = null,
     setup: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
     return runBlocking {
@@ -142,6 +146,10 @@ fun defaultRequest(
             val auth: String? = MDC.get("Authorization")
             val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
             this.method = method
+            if (body != null) {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
             this.headers {
                 append(HttpHeaders.XCorrelationId, correlationId)
                 append(HttpHeaders.Authorization, bearerToken)

@@ -20,6 +20,7 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     verifiserResponsVilkårAvslag: Boolean = true,
     verifiserResponsBeregningAvslag: Boolean = false,
+    postbody: String? = null,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -27,6 +28,7 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
             "/saker/$sakId/vedtak/$vedtakId/nySoknadsbehandling",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
+            body = postbody,
         ).apply {
             withClue("Kunne opprette ny søknadsbehandling fra vedtak: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode

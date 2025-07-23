@@ -66,6 +66,6 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "åpen_behandling_finnes",
     )
 
-    KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn -> TODO()
-    KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak -> TODO()
+    is KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn -> Feilresponser.Omgjøring.måHaomgjøringsgrunn
+    is KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak -> Feilresponser.Omgjøring.måHaomgjøringsgrunn
 }
