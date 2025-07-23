@@ -326,8 +326,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         aldersvurdering,
                         søkersskatteid,
                         epsskatteid,
-                        omgjøringsårsak,
-                        omgjøringsgrunn
+                        omgjoringsaarsak,
+                        omgjoringsgrunn
                     ) values (
                         :id,
                         :sakId,
@@ -346,8 +346,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         to_json(:aldersvurdering::json),
                         :sokersskatteid,
                         :epsskatteid,
-                        :omgjøringsårsak,
-                        :omgjøringsgrunn
+                        :omgjoringsaarsak,
+                        :omgjoringsgrunn
                     ) on conflict(id) do update set
                         status = :status,
                         stønadsperiode = to_json(:stonadsperiode::json),
@@ -362,8 +362,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         aldersvurdering = to_json(:aldersvurdering::json),
                         søkersskatteid = :sokersskatteid,
                         epsskatteid = :epsskatteid,
-                        omgjøringsårsak = :omgjøringsårsak,
-                        omgjøringsgrunn = :omgjøringsgrunn
+                        omgjoringsaarsak = :omgjoringsaarsak,
+                        omgjoringsgrunn = :omgjoringsgrunn
             """.trimIndent()
             ).insert(
             params = mapOf(
@@ -382,8 +382,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
-                "omgjøringsårsak" to søknadsbehandling.base.omgjøringsårsak,
-                "omgjøringsgrunn" to søknadsbehandling.base.omgjøringsgrunn,
+                "omgjoringsaarsak" to søknadsbehandling.base.omgjøringsårsak,
+                "omgjoringsgrunn" to søknadsbehandling.base.omgjøringsgrunn,
                 "sokersskatteid" to when (
                     val x =
                         søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.skatt
@@ -511,8 +511,8 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
 
-        val omgjøringsårsak = stringOrNull("omgjøringsårsak")?.let { Revurderingsårsak.Årsak.valueOf(it) }
-        val omgjøringsgrunn = stringOrNull("omgjøringsgrunn")?.let { Omgjøringsgrunn.valueOf(it) }
+        val omgjøringsårsak = stringOrNull("omgjoringsaarsak")?.let { Revurderingsårsak.Årsak.valueOf(it) }
+        val omgjøringsgrunn = stringOrNull("omgjoringsgrunn")?.let { Omgjøringsgrunn.valueOf(it) }
 
         val eksterneGrunnlag = StøtterHentingAvEksternGrunnlag(
             skatt = eksterneGrunnlag.hentSkattegrunnlag(
