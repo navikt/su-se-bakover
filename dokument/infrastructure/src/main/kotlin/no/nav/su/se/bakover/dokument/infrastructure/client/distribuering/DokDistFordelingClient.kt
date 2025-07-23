@@ -11,6 +11,7 @@ import dokument.domain.brev.BrevbestillingId
 import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.distribuering.KunneIkkeBestilleDistribusjon
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
@@ -58,12 +59,17 @@ class DokDistFordelingClient(
                     hentBrevbestillingsId(String(response.data), journalpostId).right()
                 } else {
                     val body = String(response.data)
-                    /*
-                        Dette skjer når saksbehandler ikke vil ha distribusjon av et brev pga en feil, da går de inn i gosys og trykker feilregistrert på journalposten før brevet har blitt sendt.
-                        For å unngå evig loop på retry setter vi iden til feilregistrert.
-                     */
-                    if (body.lowercase().contains("Validering av distribusjonsforespørsel feilet med feilmelding: Journalpostfeltet journalpoststatus er ikke som forventet, fikk: FEILREGISTRERT, men forventet FERDIGSTILT".lowercase())) {
-                        BrevbestillingId("FEILREGISTRERT")
+                    if (response.statusCode == HttpStatusCode.BadRequest.value) {
+                        /*
+                           Dette skjer når saksbehandler ikke vil ha distribusjon av et brev pga en feil, da går de inn i gosys og trykker feilregistrert på journalposten før brevet har blitt sendt.
+                           For å unngå evig loop på retry setter vi iden til feilregistrert.
+                         */
+                        if (body.lowercase().contains("Validering av distribusjonsforespørsel feilet med feilmelding: Journalpostfeltet journalpoststatus er ikke som forventet, fikk: FEILREGISTRERT, men forventet FERDIGSTILT".lowercase())) {
+                            BrevbestillingId("FEILREGISTRERT").right()
+                        } else {
+                            log.error("Feilkode matcher ikke lenger, må sjekke dette")
+                            KunneIkkeBestilleDistribusjon.left()
+                        }
                     }
                     log.error(
                         "Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body",
