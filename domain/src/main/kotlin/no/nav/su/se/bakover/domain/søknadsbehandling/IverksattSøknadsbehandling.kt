@@ -319,6 +319,8 @@ sealed interface IverksattSøknadsbehandling :
                                 saksbehandler = saksbehandler,
                                 iverksattSøknadsbehandling = this,
                                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                                årsak = årsak,
+                                omgjøringsgrunn = omgjøringsgrunn,
                             )
 
                             Vurdering.Innvilget -> VilkårsvurdertSøknadsbehandling.Innvilget(

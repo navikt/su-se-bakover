@@ -88,6 +88,8 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             søknadsbehandlingsHistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag),
             ),
+            årsak = null,
+            omgjøringsgrunn = null,
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })

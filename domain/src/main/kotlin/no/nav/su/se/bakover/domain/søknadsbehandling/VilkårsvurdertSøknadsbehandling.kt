@@ -206,7 +206,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
     }
 
-    // internal for tester
     data class Avslag internal constructor(
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
@@ -231,6 +230,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
 
+        // TODO: Må sjekke om denne også årsak og omgjøringsgrunn.... Hvorfor ta inn bare forrige tilstand her?
         constructor(
             forrigeTilstand: KanOppdaterePeriodeGrunnlagVilkår,
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -263,6 +263,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             saksbehandler: NavIdentBruker.Saksbehandler,
             iverksattSøknadsbehandling: IverksattSøknadsbehandling.Avslag,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
+            årsak: Revurderingsårsak.Årsak?,
+            omgjøringsgrunn: Omgjøringsgrunn?,
         ) : this(
             opprettet = opprettet,
             sakId = iverksattSøknadsbehandling.sakId,
