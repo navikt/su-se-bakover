@@ -9,7 +9,7 @@ import java.sql.Array
 import kotlin.reflect.full.superclasses
 
 private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
-    require(params.keys.none { it.contains(Regex("[æÆøØåÅ]")) }) { "Parameter-mapping forstår ikke særnorske tegn" }
+    require(params.keys.none { it.any { it.code > 127 } }) { "Parameter-mapping forstår ikke andre ting enn ascii alfabetet" }
 }
 
 private fun sjekkAtOppdaterInneholderWhere(sql: String) {
