@@ -286,8 +286,8 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 ),
             ),
             fritekstTilBrev = iverksattSøknadsbehandling.fritekstTilBrev,
-            årsak = iverksattSøknadsbehandling.årsak,
-            omgjøringsgrunn = iverksattSøknadsbehandling.omgjøringsgrunn,
+            årsak = årsak,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
 
         override val vilkårsvurderinger: VilkårsvurderingerSøknadsbehandling =
