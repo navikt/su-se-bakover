@@ -40,7 +40,8 @@ sealed interface BeregnetSøknadsbehandling :
     Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
     KanBeregnes,
-    KanOppdatereFradragsgrunnlag {
+    KanOppdatereFradragsgrunnlag,
+    Omgjøringssøknadsbehandling {
     abstract override val beregning: Beregning
     abstract override val stønadsperiode: Stønadsperiode
     abstract override val aldersvurdering: Aldersvurdering

@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
@@ -146,7 +148,7 @@ class VedtakServiceImpl(
         ).map {
             søknadsbehandlingService.lagre(it)
             // TODO - her må vi finne ut hvordan vi vil håndtere statistikken. Skal den bare være en opprettet?
-            // observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(it, saksbehandler))
+            observers.notify(StatistikkEvent.Behandling.AvslåttOmgjøring.Omgjøring(it, saksbehandler))
             it
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)

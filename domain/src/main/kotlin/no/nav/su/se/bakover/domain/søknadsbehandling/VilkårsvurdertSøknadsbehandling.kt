@@ -39,7 +39,8 @@ import java.util.UUID
 
 sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
-    KanOppdaterePeriodeBosituasjonVilkår {
+    KanOppdaterePeriodeBosituasjonVilkår,
+    Omgjøringssøknadsbehandling {
 
     override fun erÅpen() = true
     override fun erAvsluttet() = false
