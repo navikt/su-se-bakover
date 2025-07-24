@@ -148,7 +148,7 @@ class VedtakServiceImpl(
         ).map {
             søknadsbehandlingService.lagre(it)
             // TODO - her må vi finne ut hvordan vi vil håndtere statistikken. Skal den bare være en opprettet?
-            observers.notify(StatistikkEvent.Behandling.AvslåttOmgjøring.Omgjøring(it, saksbehandler))
+            observers.notify(StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring(it, saksbehandler))
             it
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)

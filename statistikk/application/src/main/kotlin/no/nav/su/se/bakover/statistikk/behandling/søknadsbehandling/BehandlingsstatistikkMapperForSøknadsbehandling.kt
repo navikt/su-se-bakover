@@ -18,21 +18,18 @@ import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
 import java.time.LocalDate
 
-internal fun StatistikkEvent.Behandling.AvslåttOmgjøring.toBehandlingsstatistikkDto(
+internal fun StatistikkEvent.Behandling.Omgjøring.toBehandlingsstatistikkDto(
     gitCommit: GitCommit?,
     clock: Clock,
 ): BehandlingsstatistikkDto {
-    val søknad = this.søknadsbehandling
-
     when (this) {
-        is StatistikkEvent.Behandling.AvslåttOmgjøring.Omgjøring ->
+        is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring ->
             return BehandlingsstatistikkDto(
                 behandlingType = Behandlingstype.OMGJØRING_AVSLAG,
                 behandlingTypeBeskrivelse = Behandlingstype.SOKNAD.beskrivelse,
                 funksjonellTid = søknadsbehandling.opprettet,
                 tekniskTid = Tidspunkt.now(clock),
-                // registrertDato skal samsvare med REGISTRERT-hendelsen sin funksjonellTid (som er når søknaden ble registrert i systemet vårt)
-                registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+                registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
                 mottattDato = LocalDate.now(clock),
                 behandlingId = søknadsbehandling.id.value,
                 sakId = søknadsbehandling.sakId,
