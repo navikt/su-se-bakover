@@ -16,6 +16,43 @@ import no.nav.su.se.bakover.statistikk.behandling.toFunksjonellTid
 import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
+import java.time.LocalDate
+
+internal fun StatistikkEvent.Behandling.AvslåttOmgjøring.toBehandlingsstatistikkDto(
+    gitCommit: GitCommit?,
+    clock: Clock,
+): BehandlingsstatistikkDto {
+    val søknad = this.søknadsbehandling
+
+    when (this) {
+        is StatistikkEvent.Behandling.AvslåttOmgjøring.Omgjøring ->
+            return BehandlingsstatistikkDto(
+                behandlingType = Behandlingstype.OMGJØRING_AVSLAG,
+                behandlingTypeBeskrivelse = Behandlingstype.SOKNAD.beskrivelse,
+                funksjonellTid = søknadsbehandling.opprettet,
+                tekniskTid = Tidspunkt.now(clock),
+                // registrertDato skal samsvare med REGISTRERT-hendelsen sin funksjonellTid (som er når søknaden ble registrert i systemet vårt)
+                registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+                mottattDato = LocalDate.now(clock),
+                behandlingId = søknadsbehandling.id.value,
+                sakId = søknadsbehandling.sakId,
+                søknadId = søknadsbehandling.søknad.id,
+                saksnummer = søknadsbehandling.saksnummer.nummer,
+                versjon = gitCommit?.value,
+                avsluttet = false,
+                saksbehandler = saksbehandler.toString(),
+                beslutter = null,
+                behandlingYtelseDetaljer = søknadsbehandling.behandlingYtelseDetaljer(),
+                behandlingStatus = BehandlingStatus.Registrert.name,
+                behandlingStatusBeskrivelse = BehandlingStatus.Registrert.beskrivelse,
+                resultat = null,
+                resultatBeskrivelse = null,
+                resultatBegrunnelse = null,
+                totrinnsbehandling = true,
+                ytelseType = this.søknadsbehandling.sakstype.toYtelseType(),
+            )
+    }
+}
 
 internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
     gitCommit: GitCommit?,

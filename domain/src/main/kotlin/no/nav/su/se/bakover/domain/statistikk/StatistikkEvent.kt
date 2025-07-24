@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Omgjøringssøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
@@ -53,6 +54,14 @@ sealed interface StatistikkEvent {
     }
 
     sealed interface Behandling : StatistikkEvent {
+
+        sealed interface AvslåttOmgjøring : Behandling {
+            val søknadsbehandling: Omgjøringssøknadsbehandling
+            data class Omgjøring(
+                override val søknadsbehandling: Omgjøringssøknadsbehandling,
+                val saksbehandler: NavIdentBruker.Saksbehandler,
+            ) : AvslåttOmgjøring
+        }
 
         sealed interface Søknad : Behandling {
             val søknadsbehandling: DomeneSøknadsbehandling

@@ -139,7 +139,7 @@ sealed interface IverksattSøknadsbehandling :
             clock: Clock,
             omgjøringsårsak: Revurderingsårsak.Årsak,
             omgjøringsgrunn: Omgjøringsgrunn,
-        ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
+        ): Either<KunneIkkeOppretteSøknadsbehandling, Omgjøringssøknadsbehandling>
 
         data class MedBeregning(
             override val id: SøknadsbehandlingId,
