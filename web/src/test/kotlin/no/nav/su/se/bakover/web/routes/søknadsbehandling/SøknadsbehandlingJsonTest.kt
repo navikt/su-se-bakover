@@ -441,6 +441,8 @@ internal class SøknadsbehandlingJsonTest {
                 "harSaksbehandlerAvgjort": false,
                 "maskinellVurderingsresultat": "RETT_PÅ_UFØRE"
               },
+            "omgjøringsgrunn": null,
+            "omgjøringsårsak": null,
               "eksterneGrunnlag": {
                   "skatt":{
                      "søkers":{
