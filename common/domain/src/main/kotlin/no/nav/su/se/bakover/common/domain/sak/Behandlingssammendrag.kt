@@ -23,6 +23,7 @@ data class Behandlingssammendrag(
         SØKNADSBEHANDLING,
         REVURDERING,
         KLAGE,
+        OMGJØRING,
         TILBAKEKREVING,
         KRAVGRUNNLAG,
     }

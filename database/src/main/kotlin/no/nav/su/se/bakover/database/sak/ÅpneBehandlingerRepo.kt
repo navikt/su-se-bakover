@@ -44,7 +44,12 @@ internal class ÅpneBehandlingerRepo(
                 from sak
             ),
                  behandlinger as (
-                     select sak.sakId, sak.saksnummer, sak.sakType, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type, (stønadsperiode ->> 'periode')::jsonb as periode
+                     select sak.sakId, sak.saksnummer, sak.sakType, b.opprettet, b.status as status, 
+                     CASE 
+                            WHEN b.omgjoringsaarsak IS NOT NULL THEN 'OMGJØRING'
+                            ELSE 'SØKNADSBEHANDLING'
+                    END AS type,
+                    (stønadsperiode ->> 'periode')::jsonb as periode
                      from sak
                               join behandling b on b.sakid = sak.sakId
                      where b.status not like ('IVERKSATT%') and b.lukket = false
@@ -115,7 +120,7 @@ internal class ÅpneBehandlingerRepo(
     ): Behandlingssammendrag.Behandlingsstatus {
         return when (behandlingsTypeDB) {
             BehandlingsTypeDB.SØKNAD -> Behandlingssammendrag.Behandlingsstatus.NY_SØKNAD
-            BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
+            BehandlingsTypeDB.SØKNADSBEHANDLING, BehandlingsTypeDB.OMGJØRING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
                 .tilBehandlingsstatus()
 
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status")).tilBehandlingsstatus()
@@ -201,6 +206,7 @@ private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingssammen
 
 private enum class BehandlingsTypeDB {
     SØKNAD,
+    OMGJØRING, // På avslag
     SØKNADSBEHANDLING,
     REVURDERING,
     KLAGE,
@@ -212,6 +218,7 @@ private enum class BehandlingsTypeDB {
             SØKNADSBEHANDLING -> Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING
             REVURDERING -> Behandlingssammendrag.Behandlingstype.REVURDERING
             KLAGE -> Behandlingssammendrag.Behandlingstype.KLAGE
+            OMGJØRING -> Behandlingssammendrag.Behandlingstype.OMGJØRING
         }
     }
 }
