@@ -55,12 +55,12 @@ sealed interface StatistikkEvent {
 
     sealed interface Behandling : StatistikkEvent {
 
-        sealed interface AvslåttOmgjøring : Behandling {
+        sealed interface Omgjøring : Behandling {
             val søknadsbehandling: Omgjøringssøknadsbehandling
-            data class Omgjøring(
+            data class AvslåttOmgjøring(
                 override val søknadsbehandling: Omgjøringssøknadsbehandling,
                 val saksbehandler: NavIdentBruker.Saksbehandler,
-            ) : AvslåttOmgjøring
+            ) : Omgjøring
         }
 
         sealed interface Søknad : Behandling {

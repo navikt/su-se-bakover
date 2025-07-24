@@ -36,7 +36,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Revurdering -> this.toBehandlingsstatistikkDto(gitCommit, clock)
         is StatistikkEvent.Behandling.Stans -> this.toBehandlingsstatistikkDto(gitCommit, clock)
         is StatistikkEvent.Behandling.Gjenoppta -> this.toBehandlingsstatistikkDto(gitCommit, clock)
-        is StatistikkEvent.Behandling.AvslåttOmgjøring.Omgjøring -> this.toBehandlingsstatistikkDto(gitCommit, clock)
+        is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring -> this.toBehandlingsstatistikkDto(gitCommit, clock)
     }.let {
         serializeAndValidate(it)
     }
