@@ -51,8 +51,11 @@ internal class FerdigeBehandlingerRepo(
                      select sak.sakId,
                             sak.saksnummer,
                             sak.sakType,
-                            b.status            as status,
-                            'SØKNADSBEHANDLING' as type,
+                            b.status as status,
+                            CASE
+                                WHEN b.omgjoringsaarsak IS NOT NULL THEN 'OMGJØRING'
+                                ELSE 'SØKNADSBEHANDLING'
+                            END AS type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
                             (stønadsperiode ->> 'periode')::jsonb as periode
                      from sak
@@ -120,7 +123,7 @@ internal class FerdigeBehandlingerRepo(
         behandlingsTypeDB: BehandlingsTypeDB,
     ): Behandlingssammendrag.Behandlingsstatus {
         return when (behandlingsTypeDB) {
-            BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
+            BehandlingsTypeDB.SØKNADSBEHANDLING, BehandlingsTypeDB.OMGJØRING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
 
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status"))
@@ -202,6 +205,7 @@ internal class FerdigeBehandlingerRepo(
         SØKNADSBEHANDLING,
         REVURDERING,
         KLAGE,
+        OMGJØRING,
         ;
 
         fun toBehandlingstype(): Behandlingssammendrag.Behandlingstype {
@@ -209,6 +213,7 @@ internal class FerdigeBehandlingerRepo(
                 SØKNADSBEHANDLING -> Behandlingssammendrag.Behandlingstype.SØKNADSBEHANDLING
                 REVURDERING -> Behandlingssammendrag.Behandlingstype.REVURDERING
                 KLAGE -> Behandlingssammendrag.Behandlingstype.KLAGE
+                OMGJØRING -> Behandlingssammendrag.Behandlingstype.OMGJØRING
             }
         }
     }
