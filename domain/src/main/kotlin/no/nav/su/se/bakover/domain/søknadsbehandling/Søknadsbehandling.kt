@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
@@ -44,6 +46,8 @@ sealed interface Søknadsbehandling :
     override val beregning: Beregning?
     override val simulering: Simulering?
 
+    val omgjøringsårsak: Revurderingsårsak.Årsak?
+    val omgjøringsgrunn: Omgjøringsgrunn?
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }

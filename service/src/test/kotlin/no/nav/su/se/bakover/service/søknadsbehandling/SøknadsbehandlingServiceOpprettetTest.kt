@@ -199,6 +199,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         handling = SøknadsbehandlingsHandling.StartetBehandling,
                     ),
                 ),
+                omgjøringsårsak = null,
+                omgjøringsgrunn = null,
             ),
             // periode er null for VilkårsvurdertSøknadsbehandling.Uavklart og vil gi exception dersom man kaller get() på den.
             VilkårsvurdertSøknadsbehandling.Uavklart::periode,

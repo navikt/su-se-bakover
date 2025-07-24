@@ -8,8 +8,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 
 internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -20,6 +22,7 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     verifiserResponsVilkårAvslag: Boolean = true,
     verifiserResponsBeregningAvslag: Boolean = false,
+    postbody: NySøknadCommandOmgjøring? = null,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -27,16 +30,17 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
             "/saker/$sakId/vedtak/$vedtakId/nySoknadsbehandling",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
+            body = postbody?.let { serialize(it) },
         ).apply {
             withClue("Kunne opprette ny søknadsbehandling fra vedtak: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().let {
             if (verifiserResponsVilkårAvslag) {
-                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(sakId, expectedSøknadId, it)
+                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(sakId, expectedSøknadId, it, postbody)
             }
             if (verifiserResponsBeregningAvslag) {
-                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(sakId, expectedSøknadId, it)
+                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(sakId, expectedSøknadId, it, postbody)
             }
             it
         }
@@ -47,6 +51,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
     expectedSakId: String,
     expectedSøknadId: String,
     actual: String,
+    postbody: NySøknadCommandOmgjøring? = null,
 ) {
     //language=json
     val expected =
@@ -86,7 +91,9 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
             "erLukket":false,
             "sakstype":"uføre",
             "aldersvurdering":{"harSaksbehandlerAvgjort":false,"maskinellVurderingsresultat":"RETT_PÅ_UFØRE"},
-            "eksterneGrunnlag":{"skatt":null}
+            "eksterneGrunnlag":{"skatt":null},
+            "omgjøringsårsak": "${postbody?.omgjøringsårsak}",
+            "omgjøringsgrunn": "${postbody?.omgjøringsgrunn}"
       }
         """.trimIndent()
 
@@ -97,6 +104,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
     expectedSakId: String,
     expectedSøknadId: String,
     actual: String,
+    postbody: NySøknadCommandOmgjøring? = null,
 ) {
     //language=json
     val expected =
@@ -144,7 +152,9 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
             "sakstype":"uføre",
             "aldersvurdering":{"harSaksbehandlerAvgjort":false,
             "maskinellVurderingsresultat":"RETT_PÅ_UFØRE"},
-            "eksterneGrunnlag":{"skatt":null}
+            "eksterneGrunnlag":{"skatt":null},
+            "omgjøringsårsak": "${postbody?.omgjøringsårsak}",
+            "omgjøringsgrunn": "${postbody?.omgjøringsgrunn}"
         }
         """.trimIndent()
 

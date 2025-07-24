@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
@@ -48,6 +50,8 @@ data class SimulertSøknadsbehandling(
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+    override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
     KanBeregnes,
@@ -117,6 +121,8 @@ data class SimulertSøknadsbehandling(
                 ),
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
+                omgjøringsårsak = omgjøringsårsak,
+                omgjøringsgrunn = omgjøringsgrunn,
             )
         }
     }
@@ -161,6 +167,8 @@ data class SimulertSøknadsbehandling(
                 ),
             ),
             sakstype = sakstype,
+            omgjøringsårsak = omgjøringsårsak,
+            omgjøringsgrunn = omgjøringsgrunn,
         ).right()
     }
 

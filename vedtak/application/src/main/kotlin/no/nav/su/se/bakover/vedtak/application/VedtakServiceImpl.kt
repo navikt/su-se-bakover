@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.innvilgetFraOgMedMåned
+import org.slf4j.LoggerFactory
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -38,6 +39,7 @@ class VedtakServiceImpl(
     private val clock: Clock,
 ) : VedtakService {
 
+    private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
     fun addObserver(observer: StatistikkEventObserver) {
@@ -102,6 +104,7 @@ class VedtakServiceImpl(
         sakId: UUID,
         vedtakId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        cmd: NySøknadCommandOmgjøring,
     ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeStarteNySøknadsbehandling.FantIkkeSak.left()
@@ -116,9 +119,18 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes.left()
         }
 
+        val omgjøringsårsak = cmd.omgjøringsårsakHent.getOrElse { it ->
+            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}")
+            return KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak.left()
+        }
+        val omgjøringsgrunn = cmd.omgjøringsgrunnHent.getOrElse { it ->
+            log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}")
+            return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
+        }
+
         return vedtak.behandling.opprettNySøknadsbehandling(
             nyOppgaveId = oppgaveService.opprettOppgave(
-                OppgaveConfig.Søknad(
+                OppgaveConfig.Søknad( // TODO: ha en egen for omgjøring? altså Behandlingstype.SØKNAD -> OMGJØRING? eller kun på behandlingen?
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     journalpostId = vedtak.behandling.søknad.journalpostId,
@@ -129,6 +141,8 @@ class VedtakServiceImpl(
             ).getOrElse { return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave.left() }.oppgaveId,
             saksbehandler = saksbehandler,
             clock = clock,
+            omgjøringsårsak = omgjøringsårsak,
+            omgjøringsgrunn = omgjøringsgrunn,
         ).map {
             søknadsbehandlingService.lagre(it)
             // TODO - her må vi finne ut hvordan vi vil håndtere statistikken. Skal den bare være en opprettet?

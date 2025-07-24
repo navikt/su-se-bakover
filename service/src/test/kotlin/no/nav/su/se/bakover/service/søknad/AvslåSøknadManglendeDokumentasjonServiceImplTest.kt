@@ -173,6 +173,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ),
                 ),
+                omgjøringsårsak = null,
+                omgjøringsgrunn = null,
             )
 
             val expectedVedtak = VedtakAvslagVilkår.createFromPersistence(
@@ -314,6 +316,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ),
                 ),
+                omgjøringsårsak = null,
+                omgjøringsgrunn = null,
             )
 
             val expectedVedtak = VedtakAvslagVilkår.createFromPersistence(

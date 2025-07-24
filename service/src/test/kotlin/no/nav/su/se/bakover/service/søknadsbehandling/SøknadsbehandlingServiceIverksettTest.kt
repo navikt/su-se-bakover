@@ -244,6 +244,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 søknadsbehandlingsHistorikk = nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
                     saksbehandler = avslagTilAttestering.saksbehandler,
                 ),
+                omgjøringsgrunn = null,
+                omgjøringsårsak = null,
             )
 
             val serviceAndMocks = ServiceAndMocks(

@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.SakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -25,7 +28,17 @@ class OpprettNyFraAvslagIT {
                 VedtakJson.hentVedtakId(it)
             }
 
-            appComponents.opprettNySøknadsbehandlingFraVedtak(sakId, vedtakId, this.client, søknadId)
+            appComponents.opprettNySøknadsbehandlingFraVedtak(
+                sakId,
+                vedtakId,
+                this.client,
+                søknadId,
+                postbody =
+                NySøknadCommandOmgjøring(
+                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                ),
+            )
             appComponents.lukkSøknad(søknadId, this.client)
             appComponents.opprettNySøknadsbehandlingFraVedtak(
                 sakId,
@@ -62,6 +75,11 @@ class OpprettNyFraAvslagIT {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = true,
+                postbody =
+                NySøknadCommandOmgjøring(
+                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                ),
             )
             appComponents.lukkSøknad(søknadId, this.client)
             appComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -72,6 +90,11 @@ class OpprettNyFraAvslagIT {
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
+                postbody =
+                NySøknadCommandOmgjøring(
+                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                ),
             )
         }
     }
@@ -111,6 +134,11 @@ class OpprettNyFraAvslagIT {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
+                postbody =
+                NySøknadCommandOmgjøring(
+                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                ),
             )
         }
     }

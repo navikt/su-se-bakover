@@ -5,6 +5,8 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -45,7 +47,15 @@ class VedtakServiceImplTest {
         )
 
         val actual =
-            service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler).getOrFail()
+            service.testableService().startNySøknadsbehandlingForAvslag(
+                sak.id,
+                vedtak.id,
+                saksbehandler,
+                cmd = NySøknadCommandOmgjøring(
+                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+                ),
+            ).getOrFail()
 
         verify(sakService).hentSak(argShouldBe(sak.id))
         verify(oppgaveService).opprettOppgave(
@@ -71,7 +81,7 @@ class VedtakServiceImplTest {
 
         val sakService = mock<SakService> { on { hentSak(any<UUID>()) } doReturn sak.right() }
         val service = Services(sakService = sakService)
-        service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler).shouldBeLeft()
+        service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler, cmd = NySøknadCommandOmgjøring(null, null)).shouldBeLeft()
         verify(sakService).hentSak(argShouldBe(sak.id))
         service.verifyNoMoreInteractions()
     }
