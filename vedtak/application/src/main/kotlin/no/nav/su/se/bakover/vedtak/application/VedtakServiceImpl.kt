@@ -132,7 +132,7 @@ class VedtakServiceImpl(
 
         return vedtak.behandling.opprettNySøknadsbehandling(
             nyOppgaveId = oppgaveService.opprettOppgave(
-                OppgaveConfig.Søknad( // TODO: ha en egen for omgjøring? altså Behandlingstype.SØKNAD -> OMGJØRING? eller kun på behandlingen?
+                OppgaveConfig.Søknad(
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     journalpostId = vedtak.behandling.søknad.journalpostId,
@@ -147,7 +147,6 @@ class VedtakServiceImpl(
             omgjøringsgrunn = omgjøringsgrunn,
         ).map {
             søknadsbehandlingService.lagre(it)
-            // TODO - her må vi finne ut hvordan vi vil håndtere statistikken. Skal den bare være en opprettet?
             observers.notify(StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring(it, saksbehandler))
             it
         }.mapLeft {
