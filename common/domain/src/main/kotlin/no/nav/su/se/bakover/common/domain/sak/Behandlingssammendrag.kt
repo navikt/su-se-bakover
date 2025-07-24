@@ -26,6 +26,7 @@ data class Behandlingssammendrag(
         OMGJØRING,
         TILBAKEKREVING,
         KRAVGRUNNLAG,
+        REVURDERING_OMGJØRING,
     }
 
     enum class Behandlingsstatus {

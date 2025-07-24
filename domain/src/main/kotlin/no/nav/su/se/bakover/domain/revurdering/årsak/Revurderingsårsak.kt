@@ -36,6 +36,10 @@ data class Revurderingsårsak(
             fun tryCreate(value: String): Either<UgyldigÅrsak, Årsak> {
                 return entries.firstOrNull { it.name == value }?.right() ?: UgyldigÅrsak.left()
             }
+
+            fun hentOmgjøringsEnumer(): String {
+                return entries.filter { it.erOmgjøring() }.joinToString(", ") { it.name }
+            }
         }
         fun erOmgjøring(): Boolean {
             return when (this) {

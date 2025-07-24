@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 
 internal class ÅpneBehandlingerRepo(
@@ -35,6 +36,8 @@ internal class ÅpneBehandlingerRepo(
      * Henter åpne søknadsbehandlinger, åpne revurderinger, åpne klager, og nye søknader
      */
     private fun åpneBehandlingerUtenTilbakekreving(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
+        val omgjøringsÅrsaker = Revurderingsårsak.Årsak.hentOmgjøringsEnumer()
+
         return dbMetrics.timeQuery("hentÅpneBehandlinger") {
             sessionContext.withOptionalSession(sessionFactory) {
                 //language=postgresql
@@ -55,7 +58,12 @@ internal class ÅpneBehandlingerRepo(
                      where b.status not like ('IVERKSATT%') and b.lukket = false
                  ),
                  revurderinger as (
-                     select sak.sakId, sak.saksnummer, sak.sakType, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type, (r.periode)::jsonb as periode
+                     select sak.sakId, sak.saksnummer, sak.sakType, r.opprettet, r.revurderingstype as status, 
+                     CASE
+                        WHEN r.årsak IN ($omgjøringsÅrsaker) THEN 'REVURDERING_OMGJØRING' 
+                        ELSE  'REVURDERING'                                              
+                      END AS type,
+                      (r.periode)::jsonb as periode
                      from sak
                               join revurdering r on r.sakid = sak.sakId
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
@@ -123,7 +131,7 @@ internal class ÅpneBehandlingerRepo(
             BehandlingsTypeDB.SØKNADSBEHANDLING, BehandlingsTypeDB.OMGJØRING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
                 .tilBehandlingsstatus()
 
-            BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status")).tilBehandlingsstatus()
+            BehandlingsTypeDB.REVURDERING, BehandlingsTypeDB.REVURDERING_OMGJØRING -> RevurderingsType.valueOf(string("status")).tilBehandlingsstatus()
             BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status")).tilBehandlingsstatus()
         }
     }
@@ -210,6 +218,7 @@ private enum class BehandlingsTypeDB {
     SØKNADSBEHANDLING,
     REVURDERING,
     KLAGE,
+    REVURDERING_OMGJØRING,
     ;
 
     fun toBehandlingstype(): Behandlingssammendrag.Behandlingstype {
@@ -219,6 +228,7 @@ private enum class BehandlingsTypeDB {
             REVURDERING -> Behandlingssammendrag.Behandlingstype.REVURDERING
             KLAGE -> Behandlingssammendrag.Behandlingstype.KLAGE
             OMGJØRING -> Behandlingssammendrag.Behandlingstype.OMGJØRING
+            REVURDERING_OMGJØRING -> Behandlingssammendrag.Behandlingstype.REVURDERING_OMGJØRING
         }
     }
 }
