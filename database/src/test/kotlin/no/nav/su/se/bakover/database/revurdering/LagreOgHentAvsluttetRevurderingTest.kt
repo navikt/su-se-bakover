@@ -7,6 +7,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -50,7 +51,14 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
                     .let { it.first to it.second },
                 sakOgRevurdering = { (sak, vedtak) ->
-                    opprettetRevurdering(sakOgVedtakSomKanRevurderes = Pair(sak, vedtak), omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER)
+                    opprettetRevurdering(
+                        sakOgVedtakSomKanRevurderes = Pair(sak, vedtak),
+                        omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+                        revurderingsårsak = Revurderingsårsak(
+                            Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                            Revurderingsårsak.Begrunnelse.create("revurderingsårsakBegrunnelse"),
+                        ),
+                    )
                 },
 
             )

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -86,6 +87,37 @@ internal class SakPostgresRepoTest {
             val åpneBehandlinger = repo.hentÅpneBehandlinger()
             åpneBehandlinger.size shouldBe 1
             åpneBehandlinger.first().behandlingstype shouldBe Behandlingstype.OMGJØRING
+        }
+    }
+
+    @Test
+    fun `Mapper riktig for revurdering omgjøring `() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+
+            val (_, revurdering) = testDataHelper.persisterRevurderingOpprettet(
+                sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+                    .let { it.first to it.second },
+                sakOgRevurdering = { (sak, vedtak) ->
+                    opprettetRevurdering(
+                        sakOgVedtakSomKanRevurderes = Pair(sak, vedtak),
+                        omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+                        revurderingsårsak = Revurderingsårsak(
+                            Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                            Revurderingsårsak.Begrunnelse.create("revurderingsårsakBegrunnelse"),
+                        ),
+                    )
+                },
+
+            )
+
+            repo.lagre(revurdering)
+            val reposak = testDataHelper.sakRepo
+
+            val åpneBehandlinger = reposak.hentÅpneBehandlinger()
+            åpneBehandlinger.size shouldBe 1
+            åpneBehandlinger.first().behandlingstype shouldBe Behandlingstype.REVURDERING_OMGJØRING
         }
     }
 
