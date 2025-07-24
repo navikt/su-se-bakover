@@ -137,7 +137,7 @@ sealed interface IverksattSøknadsbehandling :
             nyOppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
-            årsak: Revurderingsårsak.Årsak,
+            omgjøringsårsak: Revurderingsårsak.Årsak,
             omgjøringsgrunn: Omgjøringsgrunn,
         ): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
 
@@ -188,7 +188,7 @@ sealed interface IverksattSøknadsbehandling :
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
-                årsak: Revurderingsårsak.Årsak,
+                omgjøringsårsak: Revurderingsårsak.Årsak,
                 omgjøringsgrunn: Omgjøringsgrunn,
             ): Either<KunneIkkeOppretteSøknadsbehandling, BeregnetSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
@@ -218,7 +218,7 @@ sealed interface IverksattSøknadsbehandling :
                             ),
                             sakstype = sakstype,
                             saksbehandler = saksbehandler,
-                            omgjøringsårsak = årsak,
+                            omgjøringsårsak = omgjøringsårsak,
                             omgjøringsgrunn = omgjøringsgrunn,
                         ).right()
                     },
@@ -265,7 +265,7 @@ sealed interface IverksattSøknadsbehandling :
                 nyOppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 clock: Clock,
-                årsak: Revurderingsårsak.Årsak,
+                omgjøringsårsak: Revurderingsårsak.Årsak,
                 omgjøringsgrunn: Omgjøringsgrunn,
             ): Either<KunneIkkeOppretteSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
@@ -319,7 +319,7 @@ sealed interface IverksattSøknadsbehandling :
                                 saksbehandler = saksbehandler,
                                 iverksattSøknadsbehandling = this,
                                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                                årsak = årsak,
+                                årsak = omgjøringsårsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
                             )
 
@@ -338,7 +338,7 @@ sealed interface IverksattSøknadsbehandling :
                                 søknadsbehandlingsHistorikk = nyHistorikk,
                                 sakstype = sakstype,
                                 saksbehandler = saksbehandler,
-                                omgjøringsårsak = årsak,
+                                omgjøringsårsak = omgjøringsårsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
                             )
 
@@ -357,7 +357,7 @@ sealed interface IverksattSøknadsbehandling :
                                 søknadsbehandlingsHistorikk = nyHistorikk,
                                 sakstype = sakstype,
                                 saksbehandler = saksbehandler,
-                                omgjøringsårsak = årsak,
+                                omgjøringsårsak = omgjøringsårsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
                             )
                         }.right()

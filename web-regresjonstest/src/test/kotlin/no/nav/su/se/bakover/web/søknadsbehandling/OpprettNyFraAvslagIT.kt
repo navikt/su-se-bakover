@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.tikkendeFixedClock
-import no.nav.su.se.bakover.vedtak.application.NySøknadCommand
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.SakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -34,7 +34,7 @@ class OpprettNyFraAvslagIT {
                 this.client,
                 søknadId,
                 postbody =
-                NySøknadCommand(
+                NySøknadCommandOmgjøring(
                     Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
                     Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
                 ),
@@ -76,7 +76,7 @@ class OpprettNyFraAvslagIT {
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = true,
                 postbody =
-                NySøknadCommand(
+                NySøknadCommandOmgjøring(
                     Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
                     Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
                 ),
@@ -91,7 +91,7 @@ class OpprettNyFraAvslagIT {
                 verifiserResponsBeregningAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
                 postbody =
-                NySøknadCommand(
+                NySøknadCommandOmgjøring(
                     Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
                     Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
                 ),
@@ -135,7 +135,7 @@ class OpprettNyFraAvslagIT {
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
                 postbody =
-                NySøknadCommand(
+                NySøknadCommandOmgjøring(
                     Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
                     Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
                 ),

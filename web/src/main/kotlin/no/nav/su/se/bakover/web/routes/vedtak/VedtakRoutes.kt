@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withVedtakId
-import no.nav.su.se.bakover.vedtak.application.NySøknadCommand
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
@@ -37,7 +37,7 @@ fun Route.vedtakRoutes(
                         sakId,
                         vedtakId,
                         call.suUserContext.saksbehandler,
-                        NySøknadCommand(body.omgjøringsårsak, body.omgjøringsgrunn),
+                        NySøknadCommandOmgjøring(body.omgjøringsårsak, body.omgjøringsgrunn),
                     )
                         .fold(
                             ifLeft = { call.svar(it.tilResultat()) },

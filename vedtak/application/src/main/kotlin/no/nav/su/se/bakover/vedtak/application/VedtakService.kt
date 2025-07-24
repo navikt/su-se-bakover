@@ -47,14 +47,14 @@ interface VedtakService {
         sakId: UUID,
         vedtakId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        cmd: NySøknadCommand,
+        cmd: NySøknadCommandOmgjøring,
     ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>
 }
-data class NySøknadCommand(
+data class NySøknadCommandOmgjøring(
     val omgjøringsårsak: String? = null,
     val omgjøringsgrunn: String? = null,
 ) {
-    val revurderingsårsak: Either<Revurderingsårsak.UgyldigÅrsak, Revurderingsårsak.Årsak> by lazy {
+    val omgjøringsårsakHent: Either<Revurderingsårsak.UgyldigÅrsak, Revurderingsårsak.Årsak> by lazy {
         if (omgjøringsårsak == null) {
             Revurderingsårsak.UgyldigÅrsak.left()
         } else {

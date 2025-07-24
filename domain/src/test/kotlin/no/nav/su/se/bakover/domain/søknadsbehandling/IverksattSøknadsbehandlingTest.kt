@@ -32,7 +32,7 @@ class IverksattSøknadsbehandlingTest {
             nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
             clock = fixedClock,
-            årsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+            omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
             omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
         ).getOrFail().let {
             it.shouldBeEqualToExceptId(
@@ -78,7 +78,7 @@ class IverksattSøknadsbehandlingTest {
             nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
             clock = fixedClock,
-            årsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+            omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
             omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
         ).getOrFail().let {
             it.shouldBeEqualToExceptId(
@@ -136,7 +136,7 @@ class IverksattSøknadsbehandlingTest {
             nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
             clock = fixedClock,
-            årsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+            omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
             omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
         ).getOrFail().let {
             it.shouldBeEqualToExceptId(

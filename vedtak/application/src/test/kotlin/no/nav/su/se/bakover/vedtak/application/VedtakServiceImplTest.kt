@@ -51,7 +51,7 @@ class VedtakServiceImplTest {
                 sak.id,
                 vedtak.id,
                 saksbehandler,
-                cmd = NySøknadCommand(
+                cmd = NySøknadCommandOmgjøring(
                     Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
                     Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
                 ),
@@ -81,7 +81,7 @@ class VedtakServiceImplTest {
 
         val sakService = mock<SakService> { on { hentSak(any<UUID>()) } doReturn sak.right() }
         val service = Services(sakService = sakService)
-        service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler, cmd = NySøknadCommand(null, null)).shouldBeLeft()
+        service.testableService().startNySøknadsbehandlingForAvslag(sak.id, vedtak.id, saksbehandler, cmd = NySøknadCommandOmgjøring(null, null)).shouldBeLeft()
         verify(sakService).hentSak(argShouldBe(sak.id))
         service.verifyNoMoreInteractions()
     }

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
-import no.nav.su.se.bakover.vedtak.application.NySøknadCommand
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 
 internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -22,7 +22,7 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
     verifiserResponsVilkårAvslag: Boolean = true,
     verifiserResponsBeregningAvslag: Boolean = false,
-    postbody: NySøknadCommand? = null,
+    postbody: NySøknadCommandOmgjøring? = null,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -51,7 +51,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
     expectedSakId: String,
     expectedSøknadId: String,
     actual: String,
-    postbody: NySøknadCommand? = null,
+    postbody: NySøknadCommandOmgjøring? = null,
 ) {
     //language=json
     val expected =
@@ -104,7 +104,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
     expectedSakId: String,
     expectedSøknadId: String,
     actual: String,
-    postbody: NySøknadCommand? = null,
+    postbody: NySøknadCommandOmgjøring? = null,
 ) {
     //language=json
     val expected =

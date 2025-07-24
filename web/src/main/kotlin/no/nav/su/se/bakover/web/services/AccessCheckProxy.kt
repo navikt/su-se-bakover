@@ -218,7 +218,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
-import no.nav.su.se.bakover.vedtak.application.NySøknadCommand
+import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import nøkkeltall.domain.Nøkkeltall
 import person.domain.KunneIkkeHentePerson
@@ -1055,7 +1055,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     vedtakId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    cmd: NySøknadCommand,
+                    cmd: NySøknadCommandOmgjøring,
                 ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
                     assertHarTilgangTilVedtak(vedtakId)
                     return services.vedtakService.startNySøknadsbehandlingForAvslag(sakId, vedtakId, saksbehandler, cmd)

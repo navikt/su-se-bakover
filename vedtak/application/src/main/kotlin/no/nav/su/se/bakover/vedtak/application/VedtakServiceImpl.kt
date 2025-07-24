@@ -104,7 +104,7 @@ class VedtakServiceImpl(
         sakId: UUID,
         vedtakId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        cmd: NySøknadCommand,
+        cmd: NySøknadCommandOmgjøring,
     ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling> {
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeStarteNySøknadsbehandling.FantIkkeSak.left()
@@ -119,7 +119,7 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes.left()
         }
 
-        val årsak = cmd.revurderingsårsak.getOrElse { it ->
+        val omgjøringsårsak = cmd.omgjøringsårsakHent.getOrElse { it ->
             log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}")
             return KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak.left()
         }
@@ -141,7 +141,7 @@ class VedtakServiceImpl(
             ).getOrElse { return KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvOppgave.left() }.oppgaveId,
             saksbehandler = saksbehandler,
             clock = clock,
-            årsak = årsak,
+            omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         ).map {
             søknadsbehandlingService.lagre(it)
