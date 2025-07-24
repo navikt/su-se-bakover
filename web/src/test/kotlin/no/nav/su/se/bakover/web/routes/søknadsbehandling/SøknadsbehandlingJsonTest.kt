@@ -742,7 +742,9 @@ internal class SøknadsbehandlingJsonTest {
               },
               "eksterneGrunnlag": {
                   "skatt": null
-                }
+                },
+            "omgjøringsgrunn": null,
+            "omgjøringsårsak": null
             }
         """.trimIndent()
 
