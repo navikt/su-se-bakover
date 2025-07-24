@@ -218,7 +218,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             grunnlagsdataOgVilkårsvurderinger = innvilgetBehandlingTilAttestering.grunnlagsdataOgVilkårsvurderinger,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
-            årsak = null,
+            omgjøringsårsak = null,
             omgjøringsgrunn = null,
         )
 
@@ -299,7 +299,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             grunnlagsdataOgVilkårsvurderinger = innvilgetBehandlingTilAttestering.grunnlagsdataOgVilkårsvurderinger,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
-            årsak = null,
+            omgjøringsårsak = null,
             omgjøringsgrunn = null,
         )
 

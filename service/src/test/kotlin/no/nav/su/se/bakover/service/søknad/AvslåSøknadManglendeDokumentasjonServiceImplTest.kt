@@ -173,7 +173,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ),
                 ),
-                årsak = null,
+                omgjøringsårsak = null,
                 omgjøringsgrunn = null,
             )
 
@@ -316,7 +316,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ),
                 ),
-                årsak = null,
+                omgjøringsårsak = null,
                 omgjøringsgrunn = null,
             )
 

@@ -91,7 +91,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
             søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             sakstype = this.sakstype,
             saksbehandler = saksbehandler,
-            årsak = årsak,
+            omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         )
     }
@@ -118,7 +118,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
             søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
             sakstype = this.sakstype,
             saksbehandler = saksbehandler,
-            årsak = årsak,
+            omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         )
     }

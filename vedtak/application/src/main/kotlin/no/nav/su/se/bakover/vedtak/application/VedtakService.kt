@@ -51,14 +51,14 @@ interface VedtakService {
     ): Either<KunneIkkeStarteNySøknadsbehandling, Søknadsbehandling>
 }
 data class NySøknadCommand(
-    val årsak: String? = null,
+    val omgjøringsårsak: String? = null,
     val omgjøringsgrunn: String? = null,
 ) {
     val revurderingsårsak: Either<Revurderingsårsak.UgyldigÅrsak, Revurderingsårsak.Årsak> by lazy {
-        if (årsak == null) {
+        if (omgjøringsårsak == null) {
             Revurderingsårsak.UgyldigÅrsak.left()
         } else {
-            Revurderingsårsak.Årsak.tryCreate(årsak)
+            Revurderingsårsak.Årsak.tryCreate(omgjøringsårsak)
         }
     }
 

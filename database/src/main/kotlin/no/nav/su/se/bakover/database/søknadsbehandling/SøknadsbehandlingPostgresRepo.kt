@@ -81,7 +81,7 @@ private data class BaseSøknadsbehandlingDb(
     val saksbehandler: String,
     val søknadsbehandlingshistorikk: String,
     val aldersvurdering: String?,
-    val årsak: String? = null,
+    val omgjøringsårsak: String? = null,
     val omgjøringsgrunn: String? = null,
 )
 
@@ -266,7 +266,7 @@ private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
         søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
         aldersvurdering = this.aldersvurdering?.toDBJson(),
         omgjøringsgrunn = this.omgjøringsgrunn?.name,
-        årsak = this.årsak?.name,
+        omgjøringsårsak = this.omgjøringsårsak?.name,
     )
 }
 
@@ -384,7 +384,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "lukket" to søknadsbehandling.lukket,
                 "saksbehandling" to søknadsbehandling.base.søknadsbehandlingshistorikk,
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
-                "omgjoringsaarsak" to søknadsbehandling.base.årsak,
+                "omgjoringsaarsak" to søknadsbehandling.base.omgjøringsårsak,
                 "omgjoringsgrunn" to søknadsbehandling.base.omgjøringsgrunn,
                 "sokersskatteid" to when (
                     val x =
@@ -546,7 +546,7 @@ internal class SøknadsbehandlingPostgresRepo(
             søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
             sakstype = sakstype,
             saksbehandler = saksbehandler,
-            årsak = omgjøringsårsak,
+            omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         )
 
@@ -568,7 +568,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
-                årsak = omgjøringsårsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -597,7 +597,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
-                årsak = omgjøringsårsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -617,7 +617,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
-                årsak = omgjøringsårsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -638,7 +638,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
-                årsak = omgjøringsårsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -659,7 +659,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
-                årsak = omgjøringsårsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -679,7 +679,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     sakstype = sakstype,
-                    årsak = omgjøringsårsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
 
@@ -699,7 +699,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     sakstype = sakstype,
-                    årsak = omgjøringsårsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
@@ -721,7 +721,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 sakstype = sakstype,
-                årsak = omgjøringsårsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -741,7 +741,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,
-                    årsak = omgjøringsårsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
 
@@ -761,7 +761,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,
-                    årsak = omgjøringsårsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
@@ -784,7 +784,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,
-                    årsak = omgjøringsårsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
@@ -806,7 +806,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         aldersvurdering = aldersvurdering!!,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         sakstype = sakstype,
-                        årsak = omgjøringsårsak,
+                        omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
                     )
 
@@ -826,7 +826,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         aldersvurdering = aldersvurdering!!,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         sakstype = sakstype,
-                        årsak = omgjøringsårsak,
+                        omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
                     )
                 }

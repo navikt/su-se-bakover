@@ -120,7 +120,7 @@ class VedtakServiceImpl(
         }
 
         val årsak = cmd.revurderingsårsak.getOrElse { it ->
-            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.årsak}")
+            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}")
             return KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak.left()
         }
         val omgjøringsgrunn = cmd.omgjøringsgrunnHent.getOrElse { it ->

@@ -50,7 +50,7 @@ data class SimulertSøknadsbehandling(
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-    override val årsak: Revurderingsårsak.Årsak?,
+    override val omgjøringsårsak: Revurderingsårsak.Årsak?,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
@@ -121,7 +121,7 @@ data class SimulertSøknadsbehandling(
                 ),
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
-                årsak = årsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
         }
@@ -167,7 +167,7 @@ data class SimulertSøknadsbehandling(
                 ),
             ),
             sakstype = sakstype,
-            årsak = årsak,
+            omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         ).right()
     }

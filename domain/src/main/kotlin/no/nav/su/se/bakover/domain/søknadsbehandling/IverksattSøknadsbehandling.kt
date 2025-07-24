@@ -83,7 +83,7 @@ sealed interface IverksattSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
-        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattSøknadsbehandling,
         KanGenerereInnvilgelsesbrev {
@@ -157,7 +157,7 @@ sealed interface IverksattSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
-            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -218,7 +218,7 @@ sealed interface IverksattSøknadsbehandling :
                             ),
                             sakstype = sakstype,
                             saksbehandler = saksbehandler,
-                            årsak = årsak,
+                            omgjøringsårsak = årsak,
                             omgjøringsgrunn = omgjøringsgrunn,
                         ).right()
                     },
@@ -241,7 +241,7 @@ sealed interface IverksattSøknadsbehandling :
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
-            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -338,7 +338,7 @@ sealed interface IverksattSøknadsbehandling :
                                 søknadsbehandlingsHistorikk = nyHistorikk,
                                 sakstype = sakstype,
                                 saksbehandler = saksbehandler,
-                                årsak = årsak,
+                                omgjøringsårsak = årsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
                             )
 
@@ -357,7 +357,7 @@ sealed interface IverksattSøknadsbehandling :
                                 søknadsbehandlingsHistorikk = nyHistorikk,
                                 sakstype = sakstype,
                                 saksbehandler = saksbehandler,
-                                årsak = årsak,
+                                omgjøringsårsak = årsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
                             )
                         }.right()

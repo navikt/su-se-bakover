@@ -58,7 +58,7 @@ class IverksattSøknadsbehandlingTest {
                     aldersvurdering = original.aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sak.type,
-                    årsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                    omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
                 ),
             )
@@ -121,7 +121,7 @@ class IverksattSøknadsbehandlingTest {
                         ),
                     ),
                     sakstype = sak.type,
-                    årsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                    omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
                 ),
             )
@@ -161,7 +161,7 @@ class IverksattSøknadsbehandlingTest {
                     aldersvurdering = original.aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sak.type,
-                    årsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                    omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
                 ),
             )

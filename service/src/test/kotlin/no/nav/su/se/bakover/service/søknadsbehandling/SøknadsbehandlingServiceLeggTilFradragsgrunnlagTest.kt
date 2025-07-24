@@ -88,7 +88,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             søknadsbehandlingsHistorikk = behandling.søknadsbehandlingsHistorikk.leggTilNyHendelse(
                 nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.OppdatertFradragsgrunnlag),
             ),
-            årsak = null,
+            omgjøringsårsak = null,
             omgjøringsgrunn = null,
         )
 

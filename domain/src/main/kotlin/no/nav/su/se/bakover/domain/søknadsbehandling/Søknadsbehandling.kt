@@ -46,7 +46,7 @@ sealed interface Søknadsbehandling :
     override val beregning: Beregning?
     override val simulering: Simulering?
 
-    val årsak: Revurderingsårsak.Årsak?
+    val omgjøringsårsak: Revurderingsårsak.Årsak?
     val omgjøringsgrunn: Omgjøringsgrunn?
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)

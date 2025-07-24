@@ -42,7 +42,7 @@ data class LukketSøknadsbehandling private constructor(
     override val sakId = underliggendeSøknadsbehandling.sakId
     override val saksnummer = underliggendeSøknadsbehandling.saksnummer
     override val fnr = underliggendeSøknadsbehandling.fnr
-    override val årsak: Revurderingsårsak.Årsak? = underliggendeSøknadsbehandling.årsak
+    override val omgjøringsårsak: Revurderingsårsak.Årsak? = underliggendeSøknadsbehandling.omgjøringsårsak
     override val omgjøringsgrunn: Omgjøringsgrunn? = underliggendeSøknadsbehandling.omgjøringsgrunn
 
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)

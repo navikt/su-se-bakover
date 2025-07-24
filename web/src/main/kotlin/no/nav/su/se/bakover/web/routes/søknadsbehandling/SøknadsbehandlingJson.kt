@@ -25,6 +25,6 @@ internal data class SøknadsbehandlingJson(
     val sakstype: String,
     val aldersvurdering: AldersvurderingJson?,
     val eksterneGrunnlag: EksterneGrunnlagJson,
-    val årsak: String?,
+    val omgjøringsårsak: String?,
     val omgjøringsgrunn: String?,
 )

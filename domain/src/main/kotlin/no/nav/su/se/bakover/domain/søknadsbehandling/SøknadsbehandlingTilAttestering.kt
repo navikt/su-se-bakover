@@ -64,7 +64,7 @@ sealed interface SøknadsbehandlingTilAttestering :
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
-        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : SøknadsbehandlingTilAttestering,
         KanGenerereInnvilgelsesbrev {
@@ -107,7 +107,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 sakstype = sakstype,
-                årsak = årsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }
@@ -131,7 +131,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
                 sakstype = sakstype,
-                årsak = årsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
         }
@@ -166,7 +166,7 @@ sealed interface SøknadsbehandlingTilAttestering :
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
-            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val beregning: Beregning? = null
@@ -212,7 +212,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
                     sakstype = sakstype,
-                    årsak = årsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 ).right()
             }
@@ -236,7 +236,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
                     sakstype = sakstype,
-                    årsak = årsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
@@ -258,7 +258,7 @@ sealed interface SøknadsbehandlingTilAttestering :
             override val attesteringer: Attesteringshistorikk,
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
-            override val årsak: Revurderingsårsak.Årsak?,
+            override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -308,7 +308,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,
-                    årsak = årsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 ).right()
             }
@@ -333,7 +333,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
                     sakstype = sakstype,
-                    årsak = årsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
             }

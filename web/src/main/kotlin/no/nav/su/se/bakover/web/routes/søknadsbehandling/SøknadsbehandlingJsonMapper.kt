@@ -50,7 +50,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
             sakstype = sakstype.toJson(),
             aldersvurdering = this.aldersvurdering?.toJson(),
             eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-            årsak = this.årsak?.name,
+            omgjøringsårsak = this.omgjøringsårsak?.name,
             omgjøringsgrunn = this.omgjøringsgrunn?.name,
         )
 
@@ -72,7 +72,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -95,7 +95,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -118,7 +118,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -141,7 +141,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -164,7 +164,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -204,7 +204,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -227,7 +227,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -250,7 +250,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -273,7 +273,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -296,7 +296,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }
@@ -319,7 +319,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 sakstype = sakstype.toJson(),
                 aldersvurdering = this.aldersvurdering.toJson(),
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
-                årsak = this.årsak?.name,
+                omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
             )
         }

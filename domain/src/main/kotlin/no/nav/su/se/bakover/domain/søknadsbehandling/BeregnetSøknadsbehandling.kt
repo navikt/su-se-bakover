@@ -68,7 +68,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         KanSimuleres {
@@ -120,7 +120,7 @@ sealed interface BeregnetSøknadsbehandling :
                     ),
                     sakstype = sakstype,
                     saksbehandler = saksbehandler,
-                    årsak = årsak,
+                    omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
                 )
             }
@@ -164,7 +164,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val årsak: Revurderingsårsak.Årsak?,
+        override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         ErAvslag,
@@ -233,7 +233,7 @@ sealed interface BeregnetSøknadsbehandling :
                     ),
                 ),
                 sakstype = sakstype,
-                årsak = årsak,
+                omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             ).right()
         }

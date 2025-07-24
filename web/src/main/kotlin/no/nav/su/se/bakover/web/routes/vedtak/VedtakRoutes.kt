@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.vedtak
 
 import behandling.søknadsbehandling.presentation.tilResultat
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -27,7 +26,7 @@ fun Route.vedtakRoutes(
     formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
-        val årsak: String? = null,
+        val omgjøringsårsak: String? = null,
         val omgjøringsgrunn: String? = null,
     )
     post("$VEDTAK_PATH/{vedtakId}/nySoknadsbehandling") {
@@ -38,7 +37,7 @@ fun Route.vedtakRoutes(
                         sakId,
                         vedtakId,
                         call.suUserContext.saksbehandler,
-                        NySøknadCommand(body.årsak, body.omgjøringsgrunn),
+                        NySøknadCommand(body.omgjøringsårsak, body.omgjøringsgrunn),
                     )
                         .fold(
                             ifLeft = { call.svar(it.tilResultat()) },

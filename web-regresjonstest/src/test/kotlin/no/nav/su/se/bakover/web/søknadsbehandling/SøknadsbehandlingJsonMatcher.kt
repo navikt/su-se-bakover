@@ -46,7 +46,7 @@ fun assertSøknadsbehandlingJson(
         "sakstype": $expectedSakstype,
         "aldersvurdering": $expectedAldersvurdering,
         "eksterneGrunnlag": $expectedEksterneGrunnlag,
-        "årsak": null,
+        "omgjøringsårsak": null,
         "omgjøringsgrunn": null
     }
     """.trimIndent()
