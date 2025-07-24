@@ -37,8 +37,9 @@ data class Revurderingsårsak(
                 return entries.firstOrNull { it.name == value }?.right() ?: UgyldigÅrsak.left()
             }
 
+            // For IN query i DB
             fun hentOmgjøringsEnumer(): String {
-                return entries.filter { it.erOmgjøring() }.joinToString(", ") { it.name }
+                return entries.filter { it.erOmgjøring() }.joinToString(", ") { "'${it.name}'" }
             }
         }
         fun erOmgjøring(): Boolean {
