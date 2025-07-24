@@ -205,7 +205,7 @@ internal class FerdigeBehandlingerRepo(
         SØKNADSBEHANDLING,
         REVURDERING,
         KLAGE,
-        OMGJØRING,
+        OMGJØRING, // På avslag
         ;
 
         fun toBehandlingstype(): Behandlingssammendrag.Behandlingstype {

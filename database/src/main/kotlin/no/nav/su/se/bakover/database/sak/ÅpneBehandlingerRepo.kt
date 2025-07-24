@@ -206,7 +206,7 @@ private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingssammen
 
 private enum class BehandlingsTypeDB {
     SØKNAD,
-    OMGJØRING,
+    OMGJØRING, // På avslag
     SØKNADSBEHANDLING,
     REVURDERING,
     KLAGE,
