@@ -1,15 +1,23 @@
 package no.nav.su.se.bakover.database.sak
 
+import arrow.core.getOrElse
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag.Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -59,6 +67,57 @@ internal class SakPostgresRepoTest {
             val repo = testDataHelper.sakRepo
             repo.hentSakInfoForIdent(Fnr.generer(), Sakstype.UFØRE) shouldBe null
             repo.hentSakInfoForIdent(Fnr.generer(), Sakstype.ALDER) shouldBe null
+        }
+    }
+
+    @Test
+    fun `Mapper riktig for omgjøring for avsluttet søknad`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
+            val (sak, original) = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
+            val omgjøring = original.opprettNySøknadsbehandling(
+                nyOppgaveId = OppgaveId(value = "ny oppgaveId"),
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "ny saksbehandler"),
+                clock = fixedClock,
+                omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+            ).getOrElse { throw RuntimeException("feil") }
+            testDataHelper.databaseRepos.søknadsbehandling.lagre(omgjøring)
+            val åpneBehandlinger = repo.hentÅpneBehandlinger()
+            åpneBehandlinger.size shouldBe 1
+            åpneBehandlinger.first().behandlingstype shouldBe Behandlingstype.OMGJØRING
+        }
+    }
+
+    @Test
+    fun `Mapper riktig for revurdering omgjøring `() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+
+            val (_, revurdering) = testDataHelper.persisterRevurderingOpprettet(
+                sakOgVedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+                    .let { it.first to it.second },
+                sakOgRevurdering = { (sak, vedtak) ->
+                    opprettetRevurdering(
+                        sakOgVedtakSomKanRevurderes = Pair(sak, vedtak),
+                        omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+                        revurderingsårsak = Revurderingsårsak(
+                            Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+                            Revurderingsårsak.Begrunnelse.create("revurderingsårsakBegrunnelse"),
+                        ),
+                    )
+                },
+
+            )
+
+            repo.lagre(revurdering)
+            val reposak = testDataHelper.sakRepo
+
+            val åpneBehandlinger = reposak.hentÅpneBehandlinger()
+            åpneBehandlinger.size shouldBe 1
+            åpneBehandlinger.first().behandlingstype shouldBe Behandlingstype.REVURDERING_OMGJØRING
         }
     }
 

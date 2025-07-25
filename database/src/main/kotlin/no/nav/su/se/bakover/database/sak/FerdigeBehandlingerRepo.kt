@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 
 internal class FerdigeBehandlingerRepo(
@@ -39,6 +40,7 @@ internal class FerdigeBehandlingerRepo(
      * Innvilget, avslått, opphørt og avsluttede/lukkede behandlinger.
      */
     private fun hentFerdigeBehandlingerUtenTilbakekreving(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
+        val omgjøringsÅrsaker = Revurderingsårsak.Årsak.hentOmgjøringsEnumer()
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
                 //language=sql
@@ -67,7 +69,10 @@ internal class FerdigeBehandlingerRepo(
                             sak.saksnummer,
                             sak.sakType,
                             r.revurderingstype                                         as status,
-                            'REVURDERING'                                              as type,
+                            CASE
+                                WHEN r.årsak IN ($omgjøringsÅrsaker) THEN 'REVURDERING_OMGJØRING' 
+                                ELSE  'REVURDERING'                                              
+                            END AS type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
                             (r.periode)::jsonb as periode
                      from sak
@@ -126,7 +131,7 @@ internal class FerdigeBehandlingerRepo(
             BehandlingsTypeDB.SØKNADSBEHANDLING, BehandlingsTypeDB.OMGJØRING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
 
-            BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status"))
+            BehandlingsTypeDB.REVURDERING, BehandlingsTypeDB.REVURDERING_OMGJØRING -> RevurderingsType.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
 
             BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status"))
@@ -206,6 +211,7 @@ internal class FerdigeBehandlingerRepo(
         REVURDERING,
         KLAGE,
         OMGJØRING, // På avslag
+        REVURDERING_OMGJØRING,
         ;
 
         fun toBehandlingstype(): Behandlingssammendrag.Behandlingstype {
@@ -214,6 +220,7 @@ internal class FerdigeBehandlingerRepo(
                 REVURDERING -> Behandlingssammendrag.Behandlingstype.REVURDERING
                 KLAGE -> Behandlingssammendrag.Behandlingstype.KLAGE
                 OMGJØRING -> Behandlingssammendrag.Behandlingstype.OMGJØRING
+                REVURDERING_OMGJØRING -> Behandlingssammendrag.Behandlingstype.REVURDERING_OMGJØRING
             }
         }
     }
