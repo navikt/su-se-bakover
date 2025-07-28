@@ -116,11 +116,12 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår :
         ).getOrElse {
             return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.KunneIkkeMappeTilDomenet(it).left()
         }
+
         // TODO jah: Er det mulig å kalle vilkårsvurder(...) direkte her?
         return VilkårsvurdertSøknadsbehandling.opprett(
             forrigeTilstand = this,
             saksbehandler = saksbehandler,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår, request.behandlingId),
             tidspunkt = request.tidspunkt,
             handling = SøknadsbehandlingsHandling.OppdatertFormue,
         ).right()
