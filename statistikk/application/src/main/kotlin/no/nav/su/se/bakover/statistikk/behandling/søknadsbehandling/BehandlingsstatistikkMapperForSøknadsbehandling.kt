@@ -26,7 +26,7 @@ internal fun StatistikkEvent.Behandling.Omgjøring.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring ->
             return BehandlingsstatistikkDto(
                 behandlingType = Behandlingstype.OMGJØRING_AVSLAG,
-                behandlingTypeBeskrivelse = Behandlingstype.SOKNAD.beskrivelse,
+                behandlingTypeBeskrivelse = Behandlingstype.OMGJØRING_AVSLAG.beskrivelse,
                 funksjonellTid = søknadsbehandling.opprettet,
                 tekniskTid = Tidspunkt.now(clock),
                 registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -42,11 +42,12 @@ internal fun StatistikkEvent.Behandling.Omgjøring.toBehandlingsstatistikkDto(
                 behandlingYtelseDetaljer = søknadsbehandling.behandlingYtelseDetaljer(),
                 behandlingStatus = BehandlingStatus.Registrert.name,
                 behandlingStatusBeskrivelse = BehandlingStatus.Registrert.beskrivelse,
-                resultat = null,
+                resultat = this.søknadsbehandling.omgjøringsårsak?.name,
                 resultatBeskrivelse = null,
                 resultatBegrunnelse = null,
                 totrinnsbehandling = true,
                 ytelseType = this.søknadsbehandling.sakstype.toYtelseType(),
+                omgjøringsgrunn = this.søknadsbehandling.omgjøringsgrunn?.name,
             )
     }
 }

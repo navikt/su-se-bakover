@@ -179,7 +179,7 @@ class HendelsePostgresRepo(
                     session,
                 ) { Pair(Saksnummer(it.long("saksnummer")), Fnr(it.string("fnr"))) }
 
-                // tar for god boknafisk at vi alltid har en saknr og fnr :)
+                // tar for god boknafisk at vi alltid har en saknr og fnr :) lol...
                 Triple(persisterteHendelser, saksnummerOgFnr!!.first, saksnummerOgFnr.second)
             }
         }

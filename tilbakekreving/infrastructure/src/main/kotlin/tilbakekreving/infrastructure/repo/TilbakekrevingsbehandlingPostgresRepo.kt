@@ -164,6 +164,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 OppdatertKravgrunnlagPåTilbakekrevingHendelse,
                 NotatTilbakekrevingsbehandlingHendelsestype,
             ).map {
+                // TODO: hva med å ikke gjøre spørringen for alle typer men bare å returnere en liste med hendelser av typen? saksnummer er unødvendig å hente for alle og det samme er fnr da det er på samme sakid som innsendt.
                 (hendelseRepo as HendelsePostgresRepo)
                     .hentHendelserMedSaksnummerOgFnrForSakIdOgType(
                         sakId = sakId,

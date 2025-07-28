@@ -53,6 +53,7 @@ internal data class BehandlingsstatistikkDto(
     val datoForUttak: String? = null,
     val datoForUtbetaling: String? = null,
     val avsluttet: Boolean,
+    val omgjøringsgrunn: String? = null,
 ) {
 
     data class BehandlingYtelseDetaljer(
