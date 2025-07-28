@@ -49,13 +49,20 @@ class KontaktOgReservasjonsregisterClient(
                 val jsonNode = jsonNode(json)
                 when {
                     jsonNode.has("personer") -> {
-                        val personFunnet = jsonNode.get("personer").get(fnr.toString()).toString()
-                        deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
+                        val personer = jsonNode.get("personer")
+                        if (personer.has(fnr.toString())) {
+                            val personFunnet = personer.get(fnr.toString()).toString()
+                            deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
+                        } else {
+                            val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=mangler fnr i objekt."
+                            sikkerLogg.error(errorMessage + "obj: $jsonNode")
+                            KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
+                        }
                     }
 
                     jsonNode.has("feil") -> {
                         val feil = jsonNode.get("feil").get(fnr.toString())?.toString()
-                        val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil. "
+                        val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil."
                         log.error(errorMessage + "Se sikkerlogg for mer kontekst.")
                         sikkerLogg.error(errorMessage + "Fnr: $fnr")
                         KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
