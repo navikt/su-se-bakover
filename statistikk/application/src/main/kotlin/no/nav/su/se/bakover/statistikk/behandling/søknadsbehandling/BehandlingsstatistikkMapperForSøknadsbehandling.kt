@@ -42,7 +42,7 @@ internal fun StatistikkEvent.Behandling.Omgjøring.toBehandlingsstatistikkDto(
                 behandlingYtelseDetaljer = søknadsbehandling.behandlingYtelseDetaljer(),
                 behandlingStatus = BehandlingStatus.Registrert.name,
                 behandlingStatusBeskrivelse = BehandlingStatus.Registrert.beskrivelse,
-                resultat = null,
+                resultat = this.søknadsbehandling.omgjøringsårsak?.name,
                 resultatBeskrivelse = null,
                 resultatBegrunnelse = null,
                 totrinnsbehandling = true,

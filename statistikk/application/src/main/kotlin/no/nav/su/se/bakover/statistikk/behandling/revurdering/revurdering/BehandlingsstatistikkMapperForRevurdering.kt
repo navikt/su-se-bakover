@@ -173,7 +173,7 @@ private fun Revurdering.toDto(
         behandlingYtelseDetaljer = behandlingYtelseDetaljer,
         behandlingStatus = behandlingStatus.toString(),
         behandlingStatusBeskrivelse = behandlingStatus.beskrivelse,
-        resultat = behandlingResultat?.toString(),
+        resultat = if (erOmgjøring) this.revurderingsårsak.årsak.name else behandlingResultat?.toString(),
         resultatBeskrivelse = behandlingResultat?.beskrivelse,
         resultatBegrunnelse = resultatBegrunnelse,
         ytelseType = sakstype.toYtelseType(),
