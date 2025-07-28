@@ -5,4 +5,5 @@ internal enum class Behandlingstype(val beskrivelse: String) {
     REVURDERING("Revurdering av søknad for SU Uføre"),
     KLAGE("Klage for SU Uføre"),
     OMGJØRING_AVSLAG("Omgjøring av avslått søknad"),
+    OMGJØRING("Omgjøring av behandling"),
 }
