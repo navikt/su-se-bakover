@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
@@ -155,16 +156,18 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
      */
     fun oppdaterFormuevilkår(
         vilkår: FormueVilkår.Vurdert,
+        behandlingId: BehandlingsId,
     ): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {
         // TODO jah: Dette er sjekker som alltid bør gjøres før man får en instans av denne typen.
         //  både for ctor og copy (kun init som kan garantere dette).
         //  Vi har aldri støttet hull, så vi vil ikke ha det i databasen.
         require(vilkår.perioderSlåttSammen.size == 1) {
-            "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering."
+            "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering. behandlingId: $behandlingId"
         }
         require(vilkår.perioderIkkeSlåttSammen.erSammenhengende()) {
-            "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering."
+            "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering. behandlingId: $behandlingId"
         }
+
         // TODO jah: Konsistenssjekken gjøres også av LeggTilFormuegrunnlagRequest.toDomain() så det bør være trygt å kaste her.
         //  felles sjekker bør gjøres i init og tryCreate, konsistenssjekkene bør gjøres i denne fila for det som går på tvers av grunnlagsdata og vilkårsvurderinger.
         //  Mens behandlingene bør sjekke mot sin periode og evt. andre ting som kun angår de.
@@ -179,7 +182,7 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                     Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
                     is Konsistensproblem.BosituasjonOgFormue.UgyldigFormue,
                     -> throw IllegalArgumentException(
-                        "Konsistenssjekk mellom bosituasjon og formue feilet: $konsistensproblem",
+                        "Konsistenssjekk mellom bosituasjon og formue feilet: $konsistensproblem behandlingId: $behandlingId",
                     )
 
                     is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> konsistensproblem.feil.forEach {
@@ -187,10 +190,10 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                             Konsistensproblem.Bosituasjon.Mangler,
                             Konsistensproblem.Bosituasjon.Overlapp,
                             -> throw IllegalArgumentException(
-                                "Konsistenssjekk mellom bosituasjon og formue feilet: $it",
+                                "Konsistenssjekk mellom bosituasjon og formue feilet: $it behandlingId: $behandlingId",
                             )
 
-                            Konsistensproblem.Bosituasjon.Ufullstendig -> throw IllegalStateException("Bosituasjon kan ikke være")
+                            Konsistensproblem.Bosituasjon.Ufullstendig -> throw IllegalStateException("Bosituasjon kan ikke være ufullstendig. behandlingId: $behandlingId")
                         }
                     }
                 }
