@@ -69,7 +69,7 @@ internal class NøkkeltallPostgresRepo(
                           AND ss.type = :sakstype
                     ),
                     personer AS (
-                        SELECT COUNT(*) AS personer FROM sak
+                        SELECT COUNT(*) AS personer FROM sak WHERE type = :sakstype
                     )
 
                     SELECT 
