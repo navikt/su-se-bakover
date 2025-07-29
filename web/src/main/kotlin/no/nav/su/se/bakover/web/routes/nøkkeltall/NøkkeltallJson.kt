@@ -31,7 +31,7 @@ internal fun NøkkeltallPerSakstype.toJson() = NøkkeltallJson(
     søknader = nøkkeltall.søknader.toJson(),
     antallUnikePersoner = nøkkeltall.antallUnikePersoner,
     løpendeSaker = nøkkeltall.løpendeSaker,
-    sakstype = sakstype.name, // TODO: eller selve konstantsen?
+    sakstype = sakstype.value,
 )
 
 internal fun Nøkkeltall.Søknader.toJson() =
