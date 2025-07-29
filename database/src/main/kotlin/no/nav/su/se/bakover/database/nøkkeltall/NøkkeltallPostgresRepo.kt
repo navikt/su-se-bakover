@@ -15,7 +15,7 @@ internal class NøkkeltallPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val clock: Clock,
 ) : NøkkeltallRepo {
-    override fun hentNøkkeltall(sakstype: Sakstype): Nøkkeltall {
+    override fun hentNøkkeltallForSakstype(sakstype: Sakstype): Nøkkeltall {
         return dbMetrics.timeQuery("hentNøkkeltall") {
             sessionFactory.withSession { session ->
                 """
