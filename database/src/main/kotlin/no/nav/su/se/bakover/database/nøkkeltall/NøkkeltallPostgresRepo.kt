@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.nøkkeltall
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -14,13 +15,13 @@ internal class NøkkeltallPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val clock: Clock,
 ) : NøkkeltallRepo {
-    override fun hentNøkkeltall(): Nøkkeltall {
+    override fun hentNøkkeltall(sakstype: Sakstype): Nøkkeltall {
         return dbMetrics.timeQuery("hentNøkkeltall") {
             sessionFactory.withSession { session ->
                 """
-                with søknadsinfo as (select s.lukket, s.søknadinnhold, b.status from søknad s left join behandling b on s.id = b.søknadid),
+                with søknadsinfo as (select s.lukket, s.søknadinnhold, b.status from søknad s left join behandling b on s.id = b.søknadid left join sak ss on ss.id = s.sakid WHERE ss.type = :sakstype),
                      behandlingsstatus as (select status, count(*) antall from søknadsinfo group by status),
-                     gjeldende_vedtak as (select * from vedtak where :dato >= vedtak.fraogmed and :dato <= vedtak.tilogmed),
+                     gjeldende_vedtak as (select * from vedtak left join sak ss on ss.id = vedtak.sakid where :dato >= vedtak.fraogmed and :dato <= vedtak.tilogmed AND ss.type = :sakstype),
                      innvilgelser as (select count(*) from gjeldende_vedtak where vedtaktype = 'SØKNAD'),
                      opphør as (select count(*) from gjeldende_vedtak where vedtaktype = 'OPPHØR')
 
@@ -35,7 +36,7 @@ internal class NøkkeltallPostgresRepo(
                 coalesce((select antall from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
                 (select count(*) from sak) as personer,
                 (select (select * from innvilgelser) - (select * from opphør)) as løpendeSaker;
-                """.trimIndent().hent(mapOf("dato" to LocalDate.now(clock)), session) { row ->
+                """.trimIndent().hent(mapOf("dato" to LocalDate.now(clock), "sakstype" to sakstype.value), session) { row ->
                     row.toNøkkeltall()
                 }
             }!!

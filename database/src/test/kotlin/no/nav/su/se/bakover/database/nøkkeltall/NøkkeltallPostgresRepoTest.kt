@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.nøkkeltall
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
@@ -18,7 +19,7 @@ internal class NøkkeltallPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -43,7 +44,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = nySak.id, fnr = nySak.fnr)
 
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 2,
                     iverksatteAvslag = 0,
@@ -67,7 +68,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 2,
                     iverksatteAvslag = 1,
@@ -94,7 +95,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
 
-            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 4,
                     iverksatteAvslag = 0,
@@ -129,7 +130,7 @@ internal class NøkkeltallPostgresRepoTest {
                 ),
             )
 
-            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 1,
                     iverksatteAvslag = 0,
@@ -153,7 +154,7 @@ internal class NøkkeltallPostgresRepoTest {
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             testDataHelper.persisterSøknadsbehandlingAvsluttet()
 
-            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 1,
                     iverksatteAvslag = 0,

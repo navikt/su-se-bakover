@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.nøkkeltall
 
-import nøkkeltall.domain.Nøkkeltall
+import nøkkeltall.domain.NøkkeltallPerSakstype
 
 interface NøkkeltallService {
-    fun hentNøkkeltall(): Nøkkeltall
+    fun hentNøkkeltall(): List<NøkkeltallPerSakstype>
 }

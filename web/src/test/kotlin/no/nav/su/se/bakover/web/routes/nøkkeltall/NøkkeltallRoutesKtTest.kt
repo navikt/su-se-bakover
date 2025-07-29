@@ -7,11 +7,14 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import nøkkeltall.domain.Nøkkeltall
+import nøkkeltall.domain.NøkkeltallPerSakstype
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -32,21 +35,27 @@ internal class NøkkeltallRoutesKtTest {
 
     @Test
     fun `saksbehandler kan hente nøkkeltall`() {
-        val nøkkelServiceMock = mock<NøkkeltallService> {
-            on { hentNøkkeltall() } doReturn Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 2,
-                    iverksatteAvslag = 1,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 1,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 0,
+        val testdata = listOf(
+            NøkkeltallPerSakstype(
+                sakstype = Sakstype.UFØRE,
+                Nøkkeltall(
+                    søknader = Nøkkeltall.Søknader(
+                        totaltAntall = 2,
+                        iverksatteAvslag = 1,
+                        iverksatteInnvilget = 0,
+                        ikkePåbegynt = 0,
+                        påbegynt = 1,
+                        lukket = 0,
+                        digitalsøknader = 0,
+                        papirsøknader = 0,
+                    ),
+                    antallUnikePersoner = 1,
+                    løpendeSaker = 0,
                 ),
-                antallUnikePersoner = 1,
-                løpendeSaker = 0,
-            )
+            ),
+        )
+        val nøkkelServiceMock = mock<NøkkeltallService> {
+            on { hentNøkkeltall() } doReturn testdata
         }
 
         testApplication {
@@ -54,22 +63,8 @@ internal class NøkkeltallRoutesKtTest {
                 testSusebakoverWithMockedDb(services = TestServicesBuilder.services(nøkkeltallService = nøkkelServiceMock))
             }
             defaultRequest(HttpMethod.Get, NØKKELTALL_PATH, listOf(Brukerrolle.Saksbehandler)).apply {
-                val expected = """
-                {
-                    "søknader": {
-                        "totaltAntall": 2,
-                        "iverksatteAvslag": 1,
-                        "iverksatteInnvilget": 0,
-                        "ikkePåbegynt": 0,
-                        "påbegynt": 1,
-                        "lukket": 0,
-                        "digitalsøknader": 0,
-                        "papirsøknader": 0
-                    },
-                    "antallUnikePersoner": 1,
-                    "løpendeSaker": 0
-                }
-                """.trimIndent()
+                val expected = serialize(testdata.toJson())
+
                 val actual = bodyAsText()
 
                 status shouldBe HttpStatusCode.OK
