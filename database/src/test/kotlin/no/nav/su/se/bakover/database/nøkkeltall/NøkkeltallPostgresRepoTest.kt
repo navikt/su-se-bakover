@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
+import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import nøkkeltall.domain.Nøkkeltall
 import org.junit.jupiter.api.Test
 
@@ -20,6 +21,22 @@ internal class NøkkeltallPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 0,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 0,
+                    påbegynt = 0,
+                    lukket = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 0,
+                løpendeSaker = 0,
+            )
+
+            // Smoketest
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -58,6 +75,22 @@ internal class NøkkeltallPostgresRepoTest {
                 antallUnikePersoner = 1,
                 løpendeSaker = 0,
             )
+
+            // Smoketest
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 0,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 0,
+                    påbegynt = 0,
+                    lukket = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 0,
+                løpendeSaker = 0,
+            )
         }
     }
 
@@ -68,6 +101,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+
             nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 2,
@@ -81,6 +115,22 @@ internal class NøkkeltallPostgresRepoTest {
                 ),
                 antallUnikePersoner = 2,
                 løpendeSaker = 1,
+            )
+
+            // Smoketest
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 0,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 0,
+                    påbegynt = 0,
+                    lukket = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 0,
+                løpendeSaker = 0,
             )
         }
     }
@@ -109,19 +159,47 @@ internal class NøkkeltallPostgresRepoTest {
                 antallUnikePersoner = 1,
                 løpendeSaker = 0,
             )
+            // Smoketest
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 0,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 0,
+                    påbegynt = 0,
+                    lukket = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 0,
+                løpendeSaker = 0,
+            )
         }
     }
 
     @Test
-    fun `en bruker som sendt in en papirsøknad`() {
+    fun `en bruker som sendt in en papirsøknad uføre og en annen med alder`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val fnr = Fnr.generer()
+            val fnrUføre = Fnr.generer()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
-                fnr = fnr,
+                fnr = fnrUføre,
                 søknadInnhold = søknadinnholdUføre(
-                    personopplysninger = FnrWrapper(fnr),
+                    personopplysninger = FnrWrapper(fnrUføre),
+                    forNav = ForNav.Papirsøknad(
+                        mottaksdatoForSøknad = fixedLocalDate,
+                        grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
+                        annenGrunn = null,
+                    ),
+                ),
+            )
+
+            val fnrAlder = Fnr.generer()
+            testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
+                fnr = fnrAlder,
+                søknadInnhold = søknadsinnholdAlder(
+                    personopplysninger = FnrWrapper(fnrAlder),
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
@@ -131,6 +209,21 @@ internal class NøkkeltallPostgresRepoTest {
             )
 
             nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 1,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 1,
+                    påbegynt = 0,
+                    lukket = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 1,
+                ),
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
+            )
+
+            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 1,
                     iverksatteAvslag = 0,
