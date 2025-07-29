@@ -1,5 +1,7 @@
 package nøkkeltall.domain
 
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+
 data class Nøkkeltall(
     val søknader: Søknader,
     val antallUnikePersoner: Int,
@@ -16,3 +18,8 @@ data class Nøkkeltall(
         val papirsøknader: Int,
     )
 }
+
+data class NøkkeltallPerSakstype(
+    val sakstype: Sakstype,
+    val nøkkeltall: Nøkkeltall,
+)

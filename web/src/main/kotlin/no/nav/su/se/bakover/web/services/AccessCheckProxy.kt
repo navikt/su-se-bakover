@@ -220,7 +220,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import nøkkeltall.domain.Nøkkeltall
+import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonRepo
@@ -1062,7 +1062,7 @@ open class AccessCheckProxy(
                 }
             },
             nøkkeltallService = object : NøkkeltallService {
-                override fun hentNøkkeltall(): Nøkkeltall {
+                override fun hentNøkkeltall(): List<NøkkeltallPerSakstype> {
                     return services.nøkkeltallService.hentNøkkeltall()
                 }
             },
