@@ -5,9 +5,9 @@ import nøkkeltall.domain.NøkkeltallPerSakstype
 import nøkkeltall.domain.NøkkeltallRepo
 
 class NøkkeltallServiceImpl(private val nøkkeltallRepo: NøkkeltallRepo) : NøkkeltallService {
-    override fun hentNøkkeltall(): List<NøkkeltallPerSakstype> {
+    override fun hentNøkkeltallSakstyper(): List<NøkkeltallPerSakstype> {
         return Sakstype.entries.map { sakstype ->
-            NøkkeltallPerSakstype(sakstype, nøkkeltallRepo.hentNøkkeltall(sakstype))
+            NøkkeltallPerSakstype(sakstype, nøkkeltallRepo.hentNøkkeltallForSakstype(sakstype))
         }
     }
 }

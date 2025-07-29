@@ -55,7 +55,7 @@ internal class NøkkeltallRoutesKtTest {
             ),
         )
         val nøkkelServiceMock = mock<NøkkeltallService> {
-            on { hentNøkkeltall() } doReturn testdata
+            on { hentNøkkeltallSakstyper() } doReturn testdata
         }
 
         testApplication {

@@ -20,7 +20,7 @@ internal class NøkkeltallPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -36,7 +36,7 @@ internal class NøkkeltallPostgresRepoTest {
             )
 
             // Smoketest
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -61,7 +61,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = nySak.id, fnr = nySak.fnr)
 
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 2,
                     iverksatteAvslag = 0,
@@ -77,7 +77,7 @@ internal class NøkkeltallPostgresRepoTest {
             )
 
             // Smoketest
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -102,7 +102,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
 
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 2,
                     iverksatteAvslag = 1,
@@ -118,7 +118,7 @@ internal class NøkkeltallPostgresRepoTest {
             )
 
             // Smoketest
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -145,7 +145,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
 
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 4,
                     iverksatteAvslag = 0,
@@ -160,7 +160,7 @@ internal class NøkkeltallPostgresRepoTest {
                 løpendeSaker = 0,
             )
             // Smoketest
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 0,
                     iverksatteAvslag = 0,
@@ -208,7 +208,7 @@ internal class NøkkeltallPostgresRepoTest {
                 ),
             )
 
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 1,
                     iverksatteAvslag = 0,
@@ -223,7 +223,7 @@ internal class NøkkeltallPostgresRepoTest {
                 løpendeSaker = 0,
             )
 
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.ALDER) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 1,
                     iverksatteAvslag = 0,
@@ -247,7 +247,7 @@ internal class NøkkeltallPostgresRepoTest {
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             testDataHelper.persisterSøknadsbehandlingAvsluttet()
 
-            nøkkeltallRepo.hentNøkkeltall(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
                     totaltAntall = 1,
                     iverksatteAvslag = 0,

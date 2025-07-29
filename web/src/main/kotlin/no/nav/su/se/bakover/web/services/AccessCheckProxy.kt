@@ -1062,8 +1062,8 @@ open class AccessCheckProxy(
                 }
             },
             nøkkeltallService = object : NøkkeltallService {
-                override fun hentNøkkeltall(): List<NøkkeltallPerSakstype> {
-                    return services.nøkkeltallService.hentNøkkeltall()
+                override fun hentNøkkeltallSakstyper(): List<NøkkeltallPerSakstype> {
+                    return services.nøkkeltallService.hentNøkkeltallSakstyper()
                 }
             },
             avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
