@@ -10,10 +10,6 @@ import nøkkeltall.domain.NøkkeltallRepo
 import java.time.Clock
 import java.time.LocalDate
 
-fun main() {
-    println(LocalDate.now())
-}
-
 internal class NøkkeltallPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
