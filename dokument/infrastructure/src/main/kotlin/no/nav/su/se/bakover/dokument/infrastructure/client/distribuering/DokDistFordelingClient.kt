@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.sikkerLogg
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
@@ -24,6 +25,11 @@ internal const val DOK_DIST_FORDELING_PATH = "/rest/v1/distribuerjournalpost"
 /**
  * https://confluence.adeo.no/pages/viewpage.action?pageId=320039012
  */
+
+enum class FEILKODER {
+    BRUKER_ER_DØD,
+    FEILREGISTRERT,
+}
 class DokDistFordelingClient(
     private val dokDistConfig: ApplicationConfig.ClientsConfig.DokDistConfig,
     private val azureAd: AzureAd,
@@ -57,6 +63,17 @@ class DokDistFordelingClient(
                 // 409 conflict. journalposten har allerede fått bestilt distribusjon -
                 if (response.statusCode == 409) {
                     return hentBrevbestillingsId(String(response.data), journalpostId).right()
+                } else if (response.statusCode == HttpStatusCode.Gone.value) {
+                    val body = String(response.data)
+                    if (body.lowercase().contains("Mottaker er død og har ukjent adresse.".lowercase())) {
+                        log.error("Mottaker er død")
+                        sikkerLogg.error("body=$body")
+                        return BrevbestillingId(FEILKODER.BRUKER_ER_DØD.name).right()
+                    } else {
+                        log.error("Mottaker er død, feil body msg.. se sikkerlogg")
+                        sikkerLogg.error("body=$body")
+                        return KunneIkkeBestilleDistribusjon.left()
+                    }
                 } else {
                     val body = String(response.data)
                     if (response.statusCode == HttpStatusCode.BadRequest.value) {
@@ -65,7 +82,7 @@ class DokDistFordelingClient(
                            For å unngå evig loop på retry setter vi iden til feilregistrert.
                          */
                         if (body.lowercase().contains("Validering av distribusjonsforespørsel feilet med feilmelding: Journalpostfeltet journalpoststatus er ikke som forventet, fikk: FEILREGISTRERT, men forventet FERDIGSTILT".lowercase())) {
-                            return BrevbestillingId("FEILREGISTRERT").right()
+                            return BrevbestillingId(FEILKODER.FEILREGISTRERT.name).right()
                         } else {
                             log.error("Feilkode matcher ikke lenger, må sjekke dette")
                         }
