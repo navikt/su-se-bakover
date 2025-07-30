@@ -105,7 +105,56 @@ internal class DokDistFordelingClientTest {
                 journalpostId,
                 distribusjonstype,
                 distribusjonstidspunkt,
-            ) shouldBe BrevbestillingId("FEILREGISTRERT").right()
+            ) shouldBe BrevbestillingId(FEILKODER.FEILREGISTRERT.name).right()
+        }
+    }
+
+    @Test
+    fun `Skal sette bruekr er død på 410 manuelle journalposter`() {
+        startedWireMockServerWithCorrelationId {
+            val journalpostId = JournalpostId("1")
+            val distribusjonstype = Distribusjonstype.VEDTAK
+            val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
+            val client = DokDistFordelingClient(
+                dokDistConfig = ApplicationConfig.ClientsConfig.DokDistConfig(baseUrl(), "clientId"),
+                azureAd = AzureClientStub,
+            )
+            stubFor(
+                wiremockBuilder
+                    .withRequestBody(
+                        WireMock.equalToJson(
+                            """
+                             {
+                                "journalpostId": "$journalpostId",
+                                "bestillendeFagsystem": "SUPSTONAD",
+                                "dokumentProdApp": "SU_SE_BAKOVER",
+                                "distribusjonstype": "VEDTAK",
+                                "distribusjonstidspunkt": "KJERNETID",
+                                "adresse": null
+                            }
+                            """.trimIndent(),
+                        ),
+                    )
+                    .willReturn(
+                        WireMock.aResponse()
+                            .withStatus(410)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(
+                                """
+                    {
+                        "timestamp":"2025-07-22T15:43:37.893+00:00",
+                        "error": "Gone",
+                        "message": "Mottaker er død og har ukjent adresse."
+                    }
+                                """.trimIndent(),
+                            ),
+                    ),
+            )
+            client.bestillDistribusjon(
+                journalpostId,
+                distribusjonstype,
+                distribusjonstidspunkt,
+            ) shouldBe BrevbestillingId(FEILKODER.BRUKER_ER_DØD.name).right()
         }
     }
 
