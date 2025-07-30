@@ -110,7 +110,7 @@ internal class DokDistFordelingClientTest {
     }
 
     @Test
-    fun `Skal sette bruekr er død på 410 manuelle journalposter`() {
+    fun `Skal sette bruker er død på 410 manuelle journalposter`() {
         startedWireMockServerWithCorrelationId {
             val journalpostId = JournalpostId("1")
             val distribusjonstype = Distribusjonstype.VEDTAK
