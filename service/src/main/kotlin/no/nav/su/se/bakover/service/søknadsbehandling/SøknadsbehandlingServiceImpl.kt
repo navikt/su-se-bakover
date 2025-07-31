@@ -161,10 +161,10 @@ class SøknadsbehandlingServiceImpl(
                 ).mapLeft {
                     when (it) {
                         is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> {
-                            log.warn("Kunne ikke oppdatere oppgave $oppgaveId med tilordnet ressurs. Feilen var $it")
+                            log.warn("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
                         }
                         else -> {
-                            log.error("Kunne ikke oppdatere oppgave $oppgaveId med tilordnet ressurs. Feilen var $it")
+                            log.error("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
                         }
                     }
                 }
