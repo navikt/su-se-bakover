@@ -263,13 +263,15 @@ internal class KlagePostgresRepo(
                 klage
             SET
                 saksbehandler=:saksbehandler,
-                avsluttet=to_jsonb(:avsluttet::jsonb)
+                avsluttet=to_jsonb(:avsluttet::jsonb),
+                begrunnelse=:begrunnelse,
             WHERE
                 id=:id
         """.trimIndent().oppdatering(
             mapOf(
                 "id" to klage.id.value,
                 "saksbehandler" to klage.saksbehandler,
+                "begrunnelse" to klage.begrunnelse,
                 "avsluttet" to klage.toAvsluttetKlageJson(),
             ),
             session,
