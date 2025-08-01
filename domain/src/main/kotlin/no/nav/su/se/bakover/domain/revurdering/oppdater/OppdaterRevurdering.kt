@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
@@ -65,5 +66,6 @@ fun Sak.oppdaterRevurdering(
         vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
         tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
         saksbehandler = command.saksbehandler,
+        omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(command.omgjøringsgrunn) },
     )
 }

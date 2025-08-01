@@ -120,6 +120,7 @@ sealed interface UnderkjentRevurdering :
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        omgjøringsgrunn: Omgjøringsgrunn?,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return oppdaterInternal(
             clock = clock,
@@ -130,6 +131,7 @@ sealed interface UnderkjentRevurdering :
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
     }
 

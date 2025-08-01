@@ -140,6 +140,7 @@ data class OpprettetRevurdering(
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        omgjøringsgrunn: Omgjøringsgrunn?,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return oppdaterInternal(
             clock = clock,
@@ -150,6 +151,7 @@ data class OpprettetRevurdering(
             vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
+            omgjøringsgrunn = omgjøringsgrunn,
         )
     }
 
