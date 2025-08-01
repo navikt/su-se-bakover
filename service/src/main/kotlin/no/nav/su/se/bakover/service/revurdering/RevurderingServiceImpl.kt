@@ -140,8 +140,6 @@ class RevurderingServiceImpl(
         return revurderingRepo.hent(revurderingId)
     }
 
-    // SJekk at revurderingsgrunnene matcher grunnen til opphør revurderings feks at opplysningsplikt må være der hvis det var opphørtsgrunnen ellers går det ikk.
-    // dette fører til opphør senere og man får ikke gå videre,. revurderingsgrunnenr
     override fun opprettRevurdering(
         command: OpprettRevurderingCommand,
     ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {

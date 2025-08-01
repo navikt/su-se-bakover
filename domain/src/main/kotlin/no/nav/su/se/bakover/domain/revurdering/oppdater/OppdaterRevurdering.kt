@@ -27,10 +27,7 @@ fun Sak.oppdaterRevurdering(
             }
         }.left()
     }
-    // TODO: omgjøringsgrunn blir ikke lagt inn her.
-    /*
-    Skulle trodd at når omgjøringrunn var null er så ble det kastet en exception?
-     */
+
     if (revurderingsårsak.årsak.erOmgjøring()) {
         if (!command.omgjøringsgrunnErGyldig()) {
             return KunneIkkeOppdatereRevurdering.MåhaOmgjøringsgrunn.left()
