@@ -87,6 +87,7 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -158,7 +159,14 @@ class SøknadsbehandlingServiceImpl(
                         tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                     ),
                 ).mapLeft {
-                    log.error("Kunne ikke oppdatere oppgave $oppgaveId med tilordnet ressurs. Feilen var $it")
+                    when (it) {
+                        is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> {
+                            log.warn("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
+                        }
+                        else -> {
+                            log.error("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
+                        }
+                    }
                 }
             },
         ).map { (sak, uavklartSøknadsbehandling, statistikk) ->
