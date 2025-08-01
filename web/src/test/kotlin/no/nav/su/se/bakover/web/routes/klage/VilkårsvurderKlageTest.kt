@@ -174,7 +174,8 @@ internal class VilkårsvurderKlageTest {
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null
+                  "avsluttetTidspunkt": null,
+                  "avsluttetBegrunnelse": null
                 }
                     """.trimIndent(),
                     bodyAsText(),

@@ -181,7 +181,8 @@ internal class AvsluttKlageTest {
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],
                   "avsluttet": "ER_AVSLUTTET",
-                  "avsluttetTidspunkt": "2021-01-01T01:02:03.456789Z"
+                  "avsluttetTidspunkt": "2021-01-01T01:02:03.456789Z",
+                  "avsluttetBegrunnelse": "Begrunnelse for avsluttet klage."
                 }
                     """.trimIndent(),
                     this.bodyAsText(),

@@ -538,6 +538,7 @@ internal class KlagePostgresRepo(
         val avsluttet = row.stringOrNull("avsluttet")?.let {
             AvsluttetKlageJson.fromJsonString(it)
         }
+
         return if (avsluttet != null) {
             AvsluttetKlage(
                 underliggendeKlage = klage,

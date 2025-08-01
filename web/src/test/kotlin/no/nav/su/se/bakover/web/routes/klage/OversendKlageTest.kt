@@ -236,7 +236,8 @@ internal class OversendKlageTest {
                   ],
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_IKKE_AVSLUTTES",
-                  "avsluttetTidspunkt": null
+                  "avsluttetTidspunkt": null,
+                  "avsluttetBegrunnelse": null
                 }
                     """.trimIndent(),
                     bodyAsText(),
