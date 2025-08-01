@@ -134,6 +134,7 @@ internal class OpprettRevurderingTest {
             vedtakSomRevurderesMånedsvis = opprettetRevurdering.vedtakSomRevurderesMånedsvis,
             tilRevurdering = opprettetRevurdering.tilRevurdering,
             saksbehandler = opprettetRevurdering.saksbehandler,
+            omgjøringsgrunn = null,
         ).getOrFail()
 
         oppdatertRevurdering.oppdatert shouldNotBe oppdatertRevurdering.opprettet

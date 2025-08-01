@@ -132,6 +132,7 @@ sealed interface Revurdering :
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
         saksbehandler: Saksbehandler,
+        omgjøringsgrunn: Omgjøringsgrunn?,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return KunneIkkeOppdatereRevurdering.UgyldigTilstand(
             fra = this::class,
@@ -152,6 +153,7 @@ sealed interface Revurdering :
         vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         tilRevurdering: UUID,
         saksbehandler: Saksbehandler,
+        omgjøringsgrunn: Omgjøringsgrunn?,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return OpprettetRevurdering(
             id = id,
