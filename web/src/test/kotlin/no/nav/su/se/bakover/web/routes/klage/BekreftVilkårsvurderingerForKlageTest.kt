@@ -150,7 +150,8 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                   "fritekstTilBrev": null,
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null
+                  "avsluttetTidspunkt": null,
+                  "avsluttetBegrunnelse": null
                 }
                     """.trimIndent(),
                     this.bodyAsText(),

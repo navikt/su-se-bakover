@@ -159,7 +159,8 @@ internal class BekreftVurderingerForKlageTest {
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null
+                  "avsluttetTidspunkt": null,
+                  "avsluttetBegrunnelse": null
                 }
                     """.trimIndent(),
                     this.bodyAsText(),

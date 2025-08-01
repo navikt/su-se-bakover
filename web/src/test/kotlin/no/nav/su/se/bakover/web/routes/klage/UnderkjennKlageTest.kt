@@ -199,7 +199,8 @@ internal class UnderkjennKlageTest {
                   ],
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null
+                  "avsluttetTidspunkt": null,
+                  "avsluttetBegrunnelse": null
                 }
                     """.trimIndent(),
                     bodyAsText(),

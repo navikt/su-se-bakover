@@ -159,6 +159,7 @@ internal class SendKlageTilAttesteringTest {
                   "klagevedtakshistorikk":[],
                   "avsluttet": "KAN_IKKE_AVSLUTTES",
                   "avsluttetTidspunkt": null,
+                  "avsluttetBegrunnelse": null
                 }
                     """.trimIndent(),
                     this.bodyAsText(),
