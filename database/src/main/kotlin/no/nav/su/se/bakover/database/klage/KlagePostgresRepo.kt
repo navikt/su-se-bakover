@@ -263,15 +263,13 @@ internal class KlagePostgresRepo(
                 klage
             SET
                 saksbehandler=:saksbehandler,
-                avsluttet=to_jsonb(:avsluttet::jsonb),
-                begrunnelse=:begrunnelse,
+                avsluttet=to_jsonb(:avsluttet::jsonb)
             WHERE
                 id=:id
         """.trimIndent().oppdatering(
             mapOf(
                 "id" to klage.id.value,
                 "saksbehandler" to klage.saksbehandler,
-                "begrunnelse" to klage.begrunnelse,
                 "avsluttet" to klage.toAvsluttetKlageJson(),
             ),
             session,
@@ -540,6 +538,7 @@ internal class KlagePostgresRepo(
         val avsluttet = row.stringOrNull("avsluttet")?.let {
             AvsluttetKlageJson.fromJsonString(it)
         }
+        // TODO: her henter den jo ut begrunnelse??????
         return if (avsluttet != null) {
             AvsluttetKlage(
                 underliggendeKlage = klage,
