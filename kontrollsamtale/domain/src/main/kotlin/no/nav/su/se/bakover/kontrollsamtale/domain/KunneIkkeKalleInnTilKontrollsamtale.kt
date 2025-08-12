@@ -10,5 +10,6 @@ sealed interface KunneIkkeKalleInnTilKontrollsamtale {
     data object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale
     data object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale
     data object PersonErDød : KunneIkkeKalleInnTilKontrollsamtale
+    data object SakErOpphørt : KunneIkkeKalleInnTilKontrollsamtale
     data object UgyldigTilstand : KunneIkkeKalleInnTilKontrollsamtale
 }
