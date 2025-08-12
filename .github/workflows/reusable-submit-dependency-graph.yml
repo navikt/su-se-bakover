@@ -12,6 +12,6 @@ jobs:
     permissions:
       contents: 'write'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Submit dependency graph
         uses: ./.github/actions/submit-dependency-graph
