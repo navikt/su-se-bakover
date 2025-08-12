@@ -7,7 +7,7 @@ jobs:
   verify-master-is-ancestor:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
@@ -32,7 +32,7 @@ jobs:
       contents: read
       id-token: write # needed for push-image
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build and test
         uses: ./.github/actions/build-and-test
       - name: Push image
@@ -48,7 +48,7 @@ jobs:
       id-token: write
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: nais/deploy/actions/deploy@v2
         env:
     #      TELEMETRY: ${{ steps.docker-build-push.outputs.telemetry }} TODO ??
