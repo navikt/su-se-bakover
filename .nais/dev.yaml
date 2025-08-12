@@ -104,7 +104,7 @@ spec:
     - name: DOKDIST_URL
       value: "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local"
     - name: DOKDIST_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.saf"
+      value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
       value: "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding"
     - name: STS_URL_SOAP
