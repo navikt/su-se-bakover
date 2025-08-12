@@ -94,7 +94,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
 
-        if (sak.harÅpenStansbehandling()) {
+        if (sak.erStanset()) {
             log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
             return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
         }
