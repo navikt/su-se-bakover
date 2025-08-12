@@ -94,6 +94,11 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
 
+        if (sak.harÅpenStansbehandling()) {
+            log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
+            return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
+        }
+
         val dokument = lagDokument(sak).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
             return it.left()
