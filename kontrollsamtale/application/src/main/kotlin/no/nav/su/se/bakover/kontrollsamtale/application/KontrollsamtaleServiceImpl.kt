@@ -67,7 +67,7 @@ class KontrollsamtaleServiceImpl(
                 log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
             }
 
-        if (kontrollsamtale.innkallingsdato > gjeldendeStønadsperiode.tilOgMed) {
+        if (kontrollsamtale.innkallingsdato >= gjeldendeStønadsperiode.tilOgMed) {
             log.info("Sak er opphørt ved innkallingsdato for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
             kontrollsamtaleRepo.lagre(
                 kontrollsamtale = kontrollsamtale.annuller().getOrElse {
@@ -96,7 +96,7 @@ class KontrollsamtaleServiceImpl(
 
         if (sak.erStanset()) {
             log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
-            return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
+            return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
         }
 
         val dokument = lagDokument(sak).getOrElse {
