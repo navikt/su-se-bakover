@@ -67,6 +67,23 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
+    fun `annuller planlagt innkalling hvis sak er opphørt`() {
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+            },
+            clock = fixedClock,
+        ).kontrollsamtaleService.kallInn(
+            kontrollsamtale = kontrollsamtale.copy(
+                innkallingsdato = sak.hentGjeldendeStønadsperiode(fixedClock)!!.tilOgMed,
+            ),
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
+    }
+
+    @Test
     fun `feiler hvis vi ikke finner person`() {
         ServiceOgMocks(
             sakService = mock {
