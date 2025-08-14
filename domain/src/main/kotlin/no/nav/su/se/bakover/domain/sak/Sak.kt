@@ -328,6 +328,8 @@ data class Sak(
     fun harÅpenStansbehandling(): Boolean = revurderinger
         .filterIsInstance<StansAvYtelseRevurdering.SimulertStansAvYtelse>().isNotEmpty()
 
+    fun erStanset(): Boolean = utbetalingstidslinje()?.last() is UtbetalingslinjePåTidslinje.Stans
+
     fun harÅpenGjenopptaksbehandling(): Boolean = revurderinger
         .filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
 
