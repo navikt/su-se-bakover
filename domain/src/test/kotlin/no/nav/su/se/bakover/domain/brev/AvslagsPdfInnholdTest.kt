@@ -56,7 +56,7 @@ class AvslagsPdfInnholdTest {
         mapOf(
             Avslagsgrunn.UFØRHET to listOf(1, 2),
             Avslagsgrunn.FLYKTNING to listOf(2, 3),
-            Avslagsgrunn.OPPHOLDSTILLATELSE to listOf(1, 2),
+            Avslagsgrunn.OPPHOLDSTILLATELSE to listOf(3),
             Avslagsgrunn.PERSONLIG_OPPMØTE to listOf(17),
             Avslagsgrunn.FORMUE to listOf(8),
             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE to listOf(1, 2, 3, 4),
