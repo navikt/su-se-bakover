@@ -23,7 +23,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-internal class StatistikkHendelseRepoPostgresTest {
+internal class StønadStatistikkRepoImplPostgresTest {
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
     fun genererBasicStønadsstatistikk(list: List<Månedsbeløp>): StønadstatistikkDto {
@@ -58,9 +58,9 @@ internal class StatistikkHendelseRepoPostgresTest {
     fun `Klarer å lagre stønadshendelse uten månedsbeløp`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.statistikkHendelseRepo
+            val repo = testDataHelper.stønadStatistikkRepo
             val stønadshendelse = genererBasicStønadsstatistikk(list = emptyList())
-            repo.lagreHendelse(stønadshendelse)
+            repo.lagreStønadStatistikk(stønadshendelse)
             val hendelser = repo.hentHendelserForFnr(stønadshendelse.personnummer)
             hendelser.size shouldBe 1
             hendelser.first() shouldBe stønadshendelse
@@ -71,7 +71,7 @@ internal class StatistikkHendelseRepoPostgresTest {
     fun `Klarer å lagre stønadshendelse med månedsbeløp & inntekter`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.statistikkHendelseRepo
+            val repo = testDataHelper.stønadStatistikkRepo
             val stønadshendelse = genererBasicStønadsstatistikk(
                 list = listOf(
                     Månedsbeløp(
@@ -87,7 +87,7 @@ internal class StatistikkHendelseRepoPostgresTest {
                     ),
                 ),
             )
-            repo.lagreHendelse(stønadshendelse)
+            repo.lagreStønadStatistikk(stønadshendelse)
             val hendelser = repo.hentHendelserForFnr(stønadshendelse.personnummer)
             hendelser.size shouldBe 1
             val hendelse = hendelser.first()
@@ -105,7 +105,7 @@ internal class StatistikkHendelseRepoPostgresTest {
     fun `Klarer å lagre gjenopptak med månedsbeløp & inntekter`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.statistikkHendelseRepo
+            val repo = testDataHelper.stønadStatistikkRepo
             // hentet fra [StønadsstatistikkTest.Gjenopptak sender med riktig månedsbeløp]
             val stønadshendelseGjenopptak = StønadstatistikkDto(
                 harUtenlandsOpphold = JaNei.NEI,
@@ -149,7 +149,7 @@ internal class StatistikkHendelseRepoPostgresTest {
                 versjon = UUID.randomUUID().toString(),
             )
 
-            repo.lagreHendelse(stønadshendelseGjenopptak)
+            repo.lagreStønadStatistikk(stønadshendelseGjenopptak)
             val hendelser = repo.hentHendelserForFnr(stønadshendelseGjenopptak.personnummer)
             hendelser.size shouldBe 1
             val hendelse = hendelser.first()

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.statistikk.StatistikkHendelseRepo
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
 import statistikk.domain.StønadstatistikkDto.Inntekt
@@ -17,11 +17,11 @@ import statistikk.domain.StønadstatistikkDto.Månedsbeløp
 import java.time.YearMonth
 import java.util.UUID
 
-class StatistikkHendelseRepoPostgres(
+class StønadStatistikkRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
-) : StatistikkHendelseRepo {
-    override fun lagreHendelse(dto: StønadstatistikkDto) {
+) : StønadStatistikkRepo {
+    override fun lagreStønadStatistikk(dto: StønadstatistikkDto) {
         return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
             sessionFactory.withSession { session ->
                 val stoenadStatistikkId = UUID.randomUUID()

@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
-import no.nav.su.se.bakover.service.statistikk.StatistikkService
+import no.nav.su.se.bakover.service.statistikk.StønadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
@@ -56,8 +56,9 @@ data object ServiceBuilder {
             personRepo = databaseRepos.person,
         )
 
-        val statistikkService = StatistikkService(
-            statistikkHendelseRepo = databaseRepos.statistikkHendelseRepo,
+        val statistikkService = StønadStatistikkService(
+            stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
+            månedStatistikkRepo = databaseRepos.stønadMånedStatistikkRepo,
         )
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
@@ -65,7 +66,7 @@ data object ServiceBuilder {
             personService = personService,
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
-            statistikkService = statistikkService,
+            stønadStatistikkService = statistikkService,
         ).statistikkService
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
