@@ -9,7 +9,7 @@ import arrow.core.nonEmptyListOf
 enum class Avslagsgrunn(val paragrafer: NonEmptyList<Int>) {
     UFØRHET(nonEmptyListOf(1, 2)),
     FLYKTNING(nonEmptyListOf(2, 3)),
-    OPPHOLDSTILLATELSE(nonEmptyListOf(1, 2)),
+    OPPHOLDSTILLATELSE(nonEmptyListOf(3)),
     PERSONLIG_OPPMØTE(nonEmptyListOf(17)),
     FORMUE(nonEmptyListOf(8)),
     BOR_OG_OPPHOLDER_SEG_I_NORGE(nonEmptyListOf(1, 2, 3, 4)),
