@@ -11,6 +11,7 @@ fun RevurderingsårsakDomain.toResultatBegrunnelse(): String {
         RevurderingsårsakDomain.Årsak.REGULER_GRUNNBELØP -> RevurderingsårsakDto.REGULER_GRUNNBELØP
         RevurderingsårsakDomain.Årsak.MANGLENDE_KONTROLLERKLÆRING -> RevurderingsårsakDto.MANGLENDE_KONTROLLERKLÆRING
         RevurderingsårsakDomain.Årsak.MOTTATT_KONTROLLERKLÆRING -> RevurderingsårsakDto.MOTTATT_KONTROLLERKLÆRING
+        RevurderingsårsakDomain.Årsak.STANSET_VED_EN_FEIL -> RevurderingsårsakDto.STANSET_VED_EN_FEIL
         RevurderingsårsakDomain.Årsak.IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON -> RevurderingsårsakDto.IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON
         RevurderingsårsakDomain.Årsak.MIGRERT -> RevurderingsårsakDto.MIGRERT
         RevurderingsårsakDomain.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> RevurderingsårsakDto.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN
@@ -28,6 +29,7 @@ internal enum class RevurderingsårsakDto {
     REGULER_GRUNNBELØP,
     MANGLENDE_KONTROLLERKLÆRING,
     MOTTATT_KONTROLLERKLÆRING,
+    STANSET_VED_EN_FEIL,
     IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
     MIGRERT,
     OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
