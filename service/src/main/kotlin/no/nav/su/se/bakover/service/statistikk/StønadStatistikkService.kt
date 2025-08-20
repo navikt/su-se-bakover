@@ -16,9 +16,9 @@ class StønadStatistikkService(
     }
 
     fun lagreMånedligStatistikk(måned: YearMonth) {
-        månedStatistikkRepo.hentHendelserForMåned(måned).let {
-            it.sisteStatistikkPerMåned(måned).also {
-                månedStatistikkRepo.lagreOppsummertMåned(it)
+        stønadStatistikkRepo.hentHendelserForMåned(måned).let {
+            it.sisteStatistikkPerMåned(måned).forEach {
+                månedStatistikkRepo.lagreMånedStatistikk(it)
             }
         }
     }

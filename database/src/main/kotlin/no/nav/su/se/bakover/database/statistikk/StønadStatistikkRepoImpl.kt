@@ -119,7 +119,7 @@ class StønadStatistikkRepoImpl(
     }
 
     override fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto> {
-        return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
+        return dbMetrics.timeQuery("hentHendelseStønadstatistikkDto") {
             sessionFactory.withSession { session ->
                 """
                 SELECT
@@ -140,6 +140,10 @@ class StønadStatistikkRepoImpl(
                     }
             }
         }
+    }
+
+    override fun hentHendelserForMåned(måned: YearMonth): List<StønadstatistikkDto> {
+        TODO("Not yet implemented")
     }
 
     private fun Row.toStønadsstatistikk(session: Session): StønadstatistikkDto {

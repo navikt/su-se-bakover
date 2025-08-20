@@ -8,9 +8,10 @@ import java.time.YearMonth
 interface StønadStatistikkRepo {
     fun lagreStønadStatistikk(dto: StønadstatistikkDto)
     fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto>
+    fun hentHendelserForMåned(måned: YearMonth): List<StønadstatistikkDto>
 }
 
 interface StønadMånedStatistikkRepo {
-    fun hentHendelserForMåned(måned: YearMonth): List<StønadstatistikkDto>
-    fun lagreOppsummertMåned(statistikk: List<StønadstatistikkMåned>)
+    fun hentMånedStatistikk(måned: YearMonth): List<StønadstatistikkMåned>
+    fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned)
 }
