@@ -58,6 +58,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
     when (this) {
         Fradragstype.Alderspensjon -> "Alderspensjon"
         is Fradragstype.Annet -> "Annet"
+        Fradragstype.Omstillingsstønad -> "Omstillingsstønad"
         Fradragstype.Arbeidsavklaringspenger -> "Arbeidsavklaringspenger"
         Fradragstype.Arbeidsinntekt -> "Arbeidsinntekt"
         // jah: Selvom avkorting er historisk, har vi 4 innvilget søknadsbehandlinger med avkortingsfradrag vi må støtte.

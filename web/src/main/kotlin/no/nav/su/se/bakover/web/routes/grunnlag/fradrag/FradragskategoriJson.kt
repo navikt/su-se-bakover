@@ -5,6 +5,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 internal enum class FradragskategoriJson {
     Alderspensjon,
     Annet,
+    Omstillingsstønad,
     Arbeidsavklaringspenger,
     Arbeidsinntekt,
     AvtalefestetPensjon,
@@ -37,6 +38,7 @@ internal enum class FradragskategoriJson {
         fun Fradragstype.Kategori.toJson(): FradragskategoriJson = when (this) {
             Fradragstype.Kategori.Alderspensjon -> Alderspensjon
             Fradragstype.Kategori.Annet -> Annet
+            Fradragstype.Kategori.Omstillingsstønad -> Omstillingsstønad
             Fradragstype.Kategori.Arbeidsavklaringspenger -> Arbeidsavklaringspenger
             Fradragstype.Kategori.Arbeidsinntekt -> Arbeidsinntekt
             Fradragstype.Kategori.AvkortingUtenlandsopphold -> AvkortingUtenlandsopphold

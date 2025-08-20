@@ -25,6 +25,7 @@ sealed class Fradragstype {
         Annet, // Kommer kun fra saksbehandler
         Arbeidsavklaringspenger,
         Arbeidsinntekt,
+        Omstillingsstønad,
 
         // AFP
         AvtalefestetPensjon,
@@ -65,6 +66,11 @@ sealed class Fradragstype {
 
     data object Alderspensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Alderspensjon
+        override val måJusteresManueltVedGEndring: Boolean = true
+    }
+
+    data object Omstillingsstønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.Omstillingsstønad
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
