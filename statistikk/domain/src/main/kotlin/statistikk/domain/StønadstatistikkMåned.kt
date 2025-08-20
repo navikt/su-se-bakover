@@ -8,6 +8,7 @@ data class StønadstatistikkMåned(
     val måned: YearMonth,
     val vedtaksdato: LocalDate,
     val personnummer: Fnr,
+    val månedsbeløp: StønadstatistikkDto.Månedsbeløp,
 )
 
 fun List<StønadstatistikkDto>.sisteStatistikkPerMåned(måned: YearMonth): List<StønadstatistikkMåned> =
@@ -17,6 +18,9 @@ fun List<StønadstatistikkDto>.sisteStatistikkPerMåned(måned: YearMonth): List
                 måned = måned,
                 vedtaksdato = it.vedtaksdato,
                 personnummer = it.personnummer,
+                månedsbeløp = it.månedsbeløp.single {
+                    it.måned == måned.toString()
+                },
             )
         }
     }
