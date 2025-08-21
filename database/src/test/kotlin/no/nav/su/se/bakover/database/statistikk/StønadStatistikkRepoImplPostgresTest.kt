@@ -212,7 +212,8 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     repo.lagreStønadStatistikk(it)
                 }
 
-                val stønadStatistikk = repo.hentStatistikkForMåned(juni)
+                repo.hentOgLagreStatistikkForMåned(juni)
+                val stønadStatistikk = repo.hentMånedStatistikk(juni)
                 stønadStatistikk.size shouldBe 2
 
                 stønadStatistikk.forEach {
@@ -237,7 +238,8 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     repo.lagreStønadStatistikk(it)
                 }
 
-                val stønadStatistikk = repo.hentStatistikkForMåned(YearMonth.of(2025, 5))
+                repo.hentOgLagreStatistikkForMåned(YearMonth.of(2025, 5))
+                val stønadStatistikk = repo.hentMånedStatistikk(YearMonth.of(2025, 5))
                 stønadStatistikk.size shouldBe 2
                 stønadStatistikk[0].vedtaksdato shouldBe LocalDate.of(2025, 5, 11)
                 stønadStatistikk[1].vedtaksdato shouldBe LocalDate.of(2025, 5, 12)
@@ -263,23 +265,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
             fradragSum = 0,
             inntekter = listOf(),
         )
-
-        fun lagStønadstatistikk(
-            vedtaksdato: LocalDate = LocalDate.now(),
-            sak: Pair<Fnr, UUID>,
-            fom: YearMonth,
-            utbetaling: Long = 0L,
-        ): StønadstatistikkDto {
-            val månedsbeløp = Månedsbeløp(
-                måned = fom.atDay(1).toString(),
-                stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
-                bruttosats = utbetaling,
-                nettosats = utbetaling,
-                fradragSum = 0,
-                inntekter = listOf(),
-            )
-            return lagStønadstatistikk(vedtaksdato, sak, listOf(månedsbeløp))
-        }
 
         fun lagStønadstatistikk(
             vedtaksdato: LocalDate = LocalDate.now(),

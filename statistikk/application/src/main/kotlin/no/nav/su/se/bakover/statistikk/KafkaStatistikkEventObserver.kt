@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.service.statistikk.StønadStatistikkService
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
@@ -24,7 +24,7 @@ internal class KafkaStatistikkEventObserver(
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(KafkaStatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,
-    private val stønadStatistikkService: StønadStatistikkService,
+    private val stønadStatistikkRepo: StønadStatistikkRepo,
 ) : StatistikkEventObserver {
 
     override fun handle(event: StatistikkEvent) {
@@ -76,7 +76,7 @@ internal class KafkaStatistikkEventObserver(
                             hentSak = event.hentSak,
                             clock = clock,
                             gitCommit = gitCommit,
-                            lagreStatstikkHendelse = { dto -> if (ApplicationConfig.isNotProd()) stønadStatistikkService.lagreHendelse(dto) },
+                            lagreStatstikkHendelse = { dto -> if (ApplicationConfig.isNotProd()) stønadStatistikkRepo.lagreStønadStatistikk(dto) },
                         ).right(),
                     )
                 }

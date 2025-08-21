@@ -45,7 +45,6 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
 import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
-import no.nav.su.se.bakover.database.statistikk.StønadMånedStatistikkRepoImpl
 import no.nav.su.se.bakover.database.statistikk.StønadStatistikkRepoImpl
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -218,10 +217,6 @@ data object DatabaseBuilder {
             sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
         )
-        val stønadMånedRepo = StønadMånedStatistikkRepoImpl(
-            sessionFactory = sessionFactory,
-            dbMetrics = dbMetrics,
-        )
         val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
             sessionFactory = sessionFactory,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
@@ -348,7 +343,6 @@ data object DatabaseBuilder {
             hendelsekonsumenterRepo = HendelsekonsumenterPostgresRepo(sessionFactory),
             dokumentHendelseRepo = dokumentHendelseRepo,
             stønadStatistikkRepo = stønadRepo,
-            stønadMånedStatistikkRepo = stønadMånedRepo,
         )
     }
 }

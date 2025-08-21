@@ -14,6 +14,7 @@ import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
 import statistikk.domain.StønadstatistikkDto.Inntekt
 import statistikk.domain.StønadstatistikkDto.Månedsbeløp
+import statistikk.domain.StønadstatistikkMåned
 import java.time.YearMonth
 import java.util.UUID
 
@@ -136,13 +137,19 @@ class StønadStatistikkRepoImpl(
                         params = mapOf("fnr" to fnr.toString()),
                         session = session,
                     ) { row ->
-                        row.toStønadsstatistikk(session)
+                        val månedsbeløp = hentMånedsbeløp(session, row.uuid("id"))
+                        row.toStønadsstatistikk(månedsbeløp)
                     }
             }
         }
     }
 
-    override fun hentStatistikkForMåned(måned: YearMonth): List<StønadstatistikkDto> {
+    /**
+     * Finner all nyligste statistikk for stønader som er løpende på gitt måned og lagrer det månedlige "resultatet".
+     * Det vil si slik tiltanden til stønaden var ved månedskifte. Det vil også gjelde hvis det ikke har skjedd
+     * endringer siden forrige jobb.
+     */
+    override fun hentOgLagreStatistikkForMåned(måned: YearMonth) {
         return dbMetrics.timeQuery("hentStatistikkForMåned") {
             sessionFactory.withSession { session ->
                 """
@@ -162,65 +169,85 @@ class StønadStatistikkRepoImpl(
                         params = mapOf("dato" to måned.atEndOfMonth()),
                         session = session,
                     ) { row ->
-                        row.toStønadsstatistikk(session)
+                        val månedsbeløp = hentMånedsbeløp(session, row.uuid("id"))
+                        row.toStønadsstatistikk(månedsbeløp)
                     }.groupBy { it.sakId }.map {
                         val nyligste = it.value.maxBy { it.vedtaksdato }
-                        nyligste
+                        val månedsstatistikk = StønadstatistikkMåned(
+                            id = UUID.randomUUID(),
+                            måned = måned,
+                            vedtaksdato = nyligste.vedtaksdato,
+                            personnummer = nyligste.personnummer,
+                            gjeldendeStonadUtbetalingsstart = nyligste.gjeldendeStonadUtbetalingsstart,
+                            gjeldendeStonadUtbetalingsstopp = nyligste.gjeldendeStonadUtbetalingsstopp,
+                            månedsbeløp = nyligste.månedsbeløp.single {
+                                it.måned == måned.toString()
+                            },
+                        )
+                        lagreMånedStatistikk(session, månedsstatistikk)
                     }
             }
         }
     }
 
-    private fun Row.toStønadsstatistikk(session: Session): StønadstatistikkDto {
-        val stoendStatistikkId = uuid("id")
-        val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
-        val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
-        val statistikkAarMaaned = YearMonth.from(localDate("aar_maaned"))
-        val personnummerDto = Fnr(string("personnummer"))
-        val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
-        val funksjonellTid = tidspunkt("funksjonell_tid")
-        val tekniskTid = tidspunkt("teknisk_tid")
-        val stonadstype = StønadstatistikkDto.Stønadstype.valueOf(string("stonadstype"))
-        val sakId = UUID.fromString(string("sak_id"))
-        val vedtaksdato = localDate("vedtaksdato")
-        val vedtakstype = StønadstatistikkDto.Vedtakstype.valueOf(string("vedtakstype"))
-        val vedtaksresultat = StønadstatistikkDto.Vedtaksresultat.valueOf(string("vedtaksresultat"))
-        val behandlendeEnhetKode = string("behandlende_enhet_kode")
-        val ytelseVirkningstidspunkt = localDate("ytelse_virkningstidspunkt")
-        val gjeldendeStonadVirkningstidspunkt = localDate("gjeldende_stonad_virkningstidspunkt")
-        val gjeldendeStonadStopptidspunkt = localDate("gjeldende_stonad_stopptidspunkt")
-        val gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart")
-        val gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp")
-        val opphorsgrunn = stringOrNull("opphorsgrunn")
-        val opphorsdato = localDateOrNull("opphorsdato")
-        val flyktningsstatus = stringOrNull("flyktningsstatus")
-        val versjon = stringOrNull("versjon")
+    private fun lagreMånedStatistikk(session: Session, månedStatistikk: StønadstatistikkMåned) {
+        """
+            INSERT INTO stoenad_maaned_statistikk (
+                id, maaned, vedtaksdato, personnummer,
+                gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp
+            ) VALUES (
+                :id, :maaned, :vedtaksdato, :personnummer,
+                :gjeldende_stonad_utbetalingsstart, :gjeldende_stonad_utbetalingsstopp
+            )
+        """.trimIndent()
+            .insert(
+                mapOf(
+                    "id" to månedStatistikk.id,
+                    "maaned" to månedStatistikk.måned.atDay(1),
+                    "vedtaksdato" to månedStatistikk.vedtaksdato,
+                    "personnummer" to månedStatistikk.personnummer.toString(),
+                    "gjeldende_stonad_utbetalingsstart" to månedStatistikk.gjeldendeStonadUtbetalingsstart,
+                    "gjeldende_stonad_utbetalingsstopp" to månedStatistikk.gjeldendeStonadUtbetalingsstopp,
+                ),
+                session = session,
+            )
+    }
 
-        return StønadstatistikkDto(
-            harUtenlandsOpphold = harUtenlandsOpphold,
-            harFamiliegjenforening = harFamiliegjenforening,
-            statistikkAarMaaned = statistikkAarMaaned,
-            personnummer = personnummerDto,
-            personNummerEktefelle = personnummerEktefelle,
-            funksjonellTid = funksjonellTid,
-            tekniskTid = tekniskTid,
-            stonadstype = stonadstype,
-            sakId = sakId,
-            vedtaksdato = vedtaksdato,
-            vedtakstype = vedtakstype,
-            vedtaksresultat = vedtaksresultat,
-            behandlendeEnhetKode = behandlendeEnhetKode,
-            ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
-            gjeldendeStonadVirkningstidspunkt = gjeldendeStonadVirkningstidspunkt,
-            gjeldendeStonadStopptidspunkt = gjeldendeStonadStopptidspunkt,
-            gjeldendeStonadUtbetalingsstart = gjeldendeStonadUtbetalingsstart,
-            gjeldendeStonadUtbetalingsstopp = gjeldendeStonadUtbetalingsstopp,
-            opphorsgrunn = opphorsgrunn,
-            opphorsdato = opphorsdato,
-            flyktningsstatus = flyktningsstatus,
-            versjon = versjon,
-            månedsbeløp = hentMånedsbeløp(session, stoendStatistikkId),
-        )
+    override fun hentMånedStatistikk(måned: YearMonth): List<StønadstatistikkMåned> {
+        return dbMetrics.timeQuery("hentStønadstatistikkMåned") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT id, maaned, vedtaksdato, personnummer,
+                       gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp
+                FROM stoenad_maaned_statistikk
+                WHERE maaned = :maaned
+                """.trimIndent()
+                    .hentListe(
+                        params = mapOf("maaned" to måned.atDay(1)),
+                        session = session,
+                    ) { row ->
+                        with(row) {
+                            StønadstatistikkMåned(
+                                id = uuid("id"),
+                                måned = måned,
+                                vedtaksdato = localDate("vedtaksdato"),
+                                personnummer = Fnr(string("personnummer")),
+                                gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart"),
+                                gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp"),
+                                // TODO skal vi egt ha denne?
+                                månedsbeløp = Månedsbeløp(
+                                    måned = måned.toString(),
+                                    stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
+                                    bruttosats = 0,
+                                    nettosats = 0,
+                                    inntekter = emptyList(),
+                                    fradragSum = 0,
+                                ),
+                            )
+                        }
+                    }
+            }
+        }
     }
 
     private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
@@ -268,5 +295,56 @@ class StønadStatistikkRepoImpl(
                     erUtenlandsk = row.boolean("er_utenlandsk"),
                 )
             }
+    }
+
+    private fun Row.toStønadsstatistikk(månedsbeløp: List<Månedsbeløp>): StønadstatistikkDto {
+        val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
+        val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
+        val statistikkAarMaaned = YearMonth.from(localDate("aar_maaned"))
+        val personnummerDto = Fnr(string("personnummer"))
+        val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
+        val funksjonellTid = tidspunkt("funksjonell_tid")
+        val tekniskTid = tidspunkt("teknisk_tid")
+        val stonadstype = StønadstatistikkDto.Stønadstype.valueOf(string("stonadstype"))
+        val sakId = UUID.fromString(string("sak_id"))
+        val vedtaksdato = localDate("vedtaksdato")
+        val vedtakstype = StønadstatistikkDto.Vedtakstype.valueOf(string("vedtakstype"))
+        val vedtaksresultat = StønadstatistikkDto.Vedtaksresultat.valueOf(string("vedtaksresultat"))
+        val behandlendeEnhetKode = string("behandlende_enhet_kode")
+        val ytelseVirkningstidspunkt = localDate("ytelse_virkningstidspunkt")
+        val gjeldendeStonadVirkningstidspunkt = localDate("gjeldende_stonad_virkningstidspunkt")
+        val gjeldendeStonadStopptidspunkt = localDate("gjeldende_stonad_stopptidspunkt")
+        val gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart")
+        val gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp")
+        val opphorsgrunn = stringOrNull("opphorsgrunn")
+        val opphorsdato = localDateOrNull("opphorsdato")
+        val flyktningsstatus = stringOrNull("flyktningsstatus")
+        val versjon = stringOrNull("versjon")
+
+        return StønadstatistikkDto(
+            harUtenlandsOpphold = harUtenlandsOpphold,
+            harFamiliegjenforening = harFamiliegjenforening,
+            statistikkAarMaaned = statistikkAarMaaned,
+            personnummer = personnummerDto,
+            personNummerEktefelle = personnummerEktefelle,
+            funksjonellTid = funksjonellTid,
+            tekniskTid = tekniskTid,
+            stonadstype = stonadstype,
+            sakId = sakId,
+            vedtaksdato = vedtaksdato,
+            vedtakstype = vedtakstype,
+            vedtaksresultat = vedtaksresultat,
+            behandlendeEnhetKode = behandlendeEnhetKode,
+            ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
+            gjeldendeStonadVirkningstidspunkt = gjeldendeStonadVirkningstidspunkt,
+            gjeldendeStonadStopptidspunkt = gjeldendeStonadStopptidspunkt,
+            gjeldendeStonadUtbetalingsstart = gjeldendeStonadUtbetalingsstart,
+            gjeldendeStonadUtbetalingsstopp = gjeldendeStonadUtbetalingsstopp,
+            opphorsgrunn = opphorsgrunn,
+            opphorsdato = opphorsdato,
+            flyktningsstatus = flyktningsstatus,
+            versjon = versjon,
+            månedsbeløp = månedsbeløp,
+        )
     }
 }
