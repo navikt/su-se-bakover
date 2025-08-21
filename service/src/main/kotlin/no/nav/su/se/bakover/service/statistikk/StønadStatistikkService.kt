@@ -16,8 +16,10 @@ class StønadStatistikkService(
     }
 
     fun lagreMånedligStatistikk(måned: YearMonth) {
-        stønadStatistikkRepo.hentHendelserForMåned(måned).let {
+        stønadStatistikkRepo.hentStatistikkForMåned(måned).let {
             it.sisteStatistikkPerMåned(måned).forEach {
+                // TODO assert at det kun er et månedsbeløp
+                // TODO skal månedsbeløp dupliseres eller refereres til
                 månedStatistikkRepo.lagreMånedStatistikk(it)
             }
         }

@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.statistikk
 
 import io.kotest.inspectors.forExactly
+import io.kotest.matchers.date.shouldBeAfter
+import io.kotest.matchers.date.shouldBeBefore
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.person.Fnr
@@ -10,6 +12,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
@@ -80,8 +83,18 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         123L,
                         123L,
                         listOf(
-                            StønadstatistikkDto.Inntekt(Fradragstype.Arbeidsinntekt.kategori.name, 123L, FradragTilhører.BRUKER.toString(), false),
-                            StønadstatistikkDto.Inntekt(Fradragstype.ForventetInntekt.kategori.name, 0L, FradragTilhører.BRUKER.toString(), false),
+                            StønadstatistikkDto.Inntekt(
+                                Fradragstype.Arbeidsinntekt.kategori.name,
+                                123L,
+                                FradragTilhører.BRUKER.toString(),
+                                false,
+                            ),
+                            StønadstatistikkDto.Inntekt(
+                                Fradragstype.ForventetInntekt.kategori.name,
+                                0L,
+                                FradragTilhører.BRUKER.toString(),
+                                false,
+                            ),
                         ),
                         123L,
                     ),
@@ -158,6 +171,148 @@ internal class StønadStatistikkRepoImplPostgresTest {
             val førsteMånedsbeløp = hendelse.månedsbeløp.first()
             førsteMånedsbeløp.stonadsklassifisering shouldBe StønadsklassifiseringDto.BOR_ALENE
             førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
+        }
+    }
+
+    @Nested
+    inner class HentGrunnlagForMånedstatistikk {
+
+        @Test
+        fun `skal kun hente etterspurt måned`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.stønadStatistikkRepo
+
+                val mai = YearMonth.of(2025, 5)
+                val juni = YearMonth.of(2025, 6)
+                val juli = YearMonth.of(2025, 7)
+
+                listOf(
+                    lagStønadstatistikk(
+                        LocalDate.of(2025, 5, 10),
+                        sakEn,
+                        listOf(lagMånedsbeløp(mai), lagMånedsbeløp(juni), lagMånedsbeløp(juli)),
+                    ),
+                    lagStønadstatistikk(
+                        LocalDate.of(2025, 5, 10),
+                        sakTo,
+                        listOf(lagMånedsbeløp(juni), lagMånedsbeløp(juli)),
+                    ),
+                    lagStønadstatistikk(
+                        LocalDate.of(2025, 5, 10),
+                        sakTre,
+                        listOf(lagMånedsbeløp(mai)),
+                    ),
+                    lagStønadstatistikk(
+                        LocalDate.of(2025, 5, 10),
+                        sakEn,
+                        listOf(lagMånedsbeløp(juli)),
+                    ),
+                ).forEach {
+                    repo.lagreStønadStatistikk(it)
+                }
+
+                val stønadStatistikk = repo.hentStatistikkForMåned(juni)
+                stønadStatistikk.size shouldBe 2
+
+                stønadStatistikk.forEach {
+                    it.gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
+                    it.gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                }
+            }
+        }
+
+        @Test
+        fun `skal kun bruke siste statistikk for hver måned`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.stønadStatistikkRepo
+
+                listOf(
+                    lagStønadstatistikk(LocalDate.of(2025, 5, 10), sakEn),
+                    lagStønadstatistikk(LocalDate.of(2025, 5, 11), sakEn),
+                    lagStønadstatistikk(LocalDate.of(2025, 5, 11), sakTo),
+                    lagStønadstatistikk(LocalDate.of(2025, 5, 12), sakTo),
+                ).forEach {
+                    repo.lagreStønadStatistikk(it)
+                }
+
+                val stønadStatistikk = repo.hentStatistikkForMåned(YearMonth.of(2025, 5))
+                stønadStatistikk.size shouldBe 2
+                stønadStatistikk[0].vedtaksdato shouldBe LocalDate.of(2025, 5, 11)
+                stønadStatistikk[1].vedtaksdato shouldBe LocalDate.of(2025, 5, 12)
+            }
+        }
+    }
+
+    companion object {
+
+        private val tikkendeKlokke = TikkendeKlokke(fixedClock)
+        val sakEn = Fnr.generer() to UUID.randomUUID()
+        val sakTo = Fnr.generer() to UUID.randomUUID()
+        val sakTre = Fnr.generer() to UUID.randomUUID()
+
+        fun lagMånedsbeløp(
+            måned: YearMonth,
+            utbetaling: Long = 100L,
+        ) = Månedsbeløp(
+            måned = måned.toString(),
+            stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
+            bruttosats = utbetaling,
+            nettosats = utbetaling,
+            fradragSum = 0,
+            inntekter = listOf(),
+        )
+
+        fun lagStønadstatistikk(
+            vedtaksdato: LocalDate = LocalDate.now(),
+            sak: Pair<Fnr, UUID>,
+            fom: YearMonth,
+            utbetaling: Long = 0L,
+        ): StønadstatistikkDto {
+            val månedsbeløp = Månedsbeløp(
+                måned = fom.atDay(1).toString(),
+                stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
+                bruttosats = utbetaling,
+                nettosats = utbetaling,
+                fradragSum = 0,
+                inntekter = listOf(),
+            )
+            return lagStønadstatistikk(vedtaksdato, sak, listOf(månedsbeløp))
+        }
+
+        fun lagStønadstatistikk(
+            vedtaksdato: LocalDate = LocalDate.now(),
+            sak: Pair<Fnr, UUID>,
+            månedsbeløper: List<Månedsbeløp> = listOf(lagMånedsbeløp(YearMonth.from(vedtaksdato))),
+        ): StønadstatistikkDto {
+            val start = YearMonth.parse(månedsbeløper.first().måned).atDay(1)
+            val slutt = YearMonth.parse(månedsbeløper.last().måned).atEndOfMonth()
+            return StønadstatistikkDto(
+                harUtenlandsOpphold = null,
+                harFamiliegjenforening = null,
+                statistikkAarMaaned = YearMonth.from(vedtaksdato),
+                personnummer = sak.first,
+                personNummerEktefelle = Fnr.generer(),
+                funksjonellTid = Tidspunkt.now(tikkendeKlokke),
+                tekniskTid = Tidspunkt.now(tikkendeKlokke),
+                stonadstype = Stønadstype.SU_ALDER,
+                sakId = sak.second,
+                vedtaksdato = vedtaksdato,
+                vedtakstype = Vedtakstype.REVURDERING,
+                vedtaksresultat = Vedtaksresultat.INNVILGET,
+                behandlendeEnhetKode = "4815",
+                ytelseVirkningstidspunkt = start,
+                gjeldendeStonadVirkningstidspunkt = start,
+                gjeldendeStonadStopptidspunkt = slutt,
+                gjeldendeStonadUtbetalingsstart = start,
+                gjeldendeStonadUtbetalingsstopp = slutt,
+                månedsbeløp = månedsbeløper,
+                opphorsgrunn = null,
+                opphorsdato = slutt,
+                flyktningsstatus = null,
+                versjon = null,
+            )
         }
     }
 }

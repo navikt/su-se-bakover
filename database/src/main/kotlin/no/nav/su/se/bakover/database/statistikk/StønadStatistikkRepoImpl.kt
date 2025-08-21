@@ -142,8 +142,33 @@ class StønadStatistikkRepoImpl(
         }
     }
 
-    override fun hentHendelserForMåned(måned: YearMonth): List<StønadstatistikkDto> {
-        TODO("Not yet implemented")
+    override fun hentStatistikkForMåned(måned: YearMonth): List<StønadstatistikkDto> {
+        return dbMetrics.timeQuery("hentStatistikkForMåned") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
+                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
+                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
+                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
+                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
+                    opphorsdato, flyktningsstatus, versjon
+                FROM stoenad_statistikk
+                WHERE gjeldende_stonad_utbetalingsstart <= :dato
+                        AND gjeldende_stonad_utbetalingsstopp >= :dato
+                        AND teknisk_tid <= :dato
+                """.trimIndent()
+                    .hentListe(
+                        params = mapOf("dato" to måned.atEndOfMonth()),
+                        session = session,
+                    ) { row ->
+                        row.toStønadsstatistikk(session)
+                    }.groupBy { it.sakId }.map {
+                        val nyligste = it.value.maxBy { it.vedtaksdato }
+                        nyligste
+                    }
+            }
+        }
     }
 
     private fun Row.toStønadsstatistikk(session: Session): StønadstatistikkDto {
