@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.service.avstemming
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.tid.endOfDay
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
@@ -44,7 +44,8 @@ internal class AvstemmingServiceImplTest {
         }
 
         val expectedLøpendeFraOgMed = 17.mars(2021)
-        val expectedOpprettetTilOgMed = 16.mars(2021)
+        // Dette er UTC. Norsk tid er UTC+1 den 17 mars.
+        val expectedOpprettetTilOgMed = Tidspunkt.parse("2021-03-16T23:00:00.000001Z")
 
         val konsistensavstemming = AvstemmingServiceImpl(
             repo = avstemmingRepoMock,
@@ -59,7 +60,7 @@ internal class AvstemmingServiceImplTest {
             id = konsistensavstemming.id,
             opprettet = fixedTidspunkt,
             løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
-            opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
+            opprettetTilOgMed = expectedOpprettetTilOgMed,
             utbetalinger = emptyList(),
             avstemmingXmlRequest = "jippi",
             fagområde = fagområde,
@@ -71,7 +72,7 @@ internal class AvstemmingServiceImplTest {
         ) {
             verify(avstemmingRepoMock).hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
-                opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
+                opprettetTilOgMed = expectedOpprettetTilOgMed,
                 fagområde = fagområde,
             )
             verify(publisherMock).publish(
@@ -96,7 +97,8 @@ internal class AvstemmingServiceImplTest {
         }
 
         val expectedLøpendeFraOgMed = 17.mars(2021)
-        val expectedOpprettetTilOgMed = 16.mars(2021)
+        // Dette er UTC. Norsk tid er UTC+1 den 17 mars.
+        val expectedOpprettetTilOgMed = Tidspunkt.parse("2021-03-16T23:00:00.000001Z")
 
         AvstemmingServiceImpl(
             repo = avstemmingRepoMock,
@@ -113,7 +115,7 @@ internal class AvstemmingServiceImplTest {
         ) {
             verify(avstemmingRepoMock).hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
-                opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
+                opprettetTilOgMed = expectedOpprettetTilOgMed,
                 fagområde = fagområde,
             )
             verify(publisherMock).publish(any<Avstemming.Konsistensavstemming.Ny>())

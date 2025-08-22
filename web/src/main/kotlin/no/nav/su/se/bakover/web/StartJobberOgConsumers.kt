@@ -373,7 +373,7 @@ private fun naisJobberOgConsumers(
                     23.mai(2025),
                     27.juni(2025),
                     30.juli(2025),
-                    1.august(2025),
+                    1.september(2025),
                     29.september(2025),
                     30.oktober(2025),
                     21.november(2025),
