@@ -180,9 +180,12 @@ class StønadStatistikkRepoImpl(
                             personnummer = nyligste.personnummer,
                             gjeldendeStonadUtbetalingsstart = nyligste.gjeldendeStonadUtbetalingsstart,
                             gjeldendeStonadUtbetalingsstopp = nyligste.gjeldendeStonadUtbetalingsstopp,
+                            /*
+                            TODO
                             månedsbeløp = nyligste.månedsbeløp.single {
                                 it.måned == måned.toString()
                             },
+                             */
                         )
                         lagreMånedStatistikk(session, månedsstatistikk)
                     }
@@ -234,15 +237,6 @@ class StønadStatistikkRepoImpl(
                                 personnummer = Fnr(string("personnummer")),
                                 gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart"),
                                 gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp"),
-                                // TODO skal vi egt ha denne?
-                                månedsbeløp = Månedsbeløp(
-                                    måned = måned.toString(),
-                                    stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
-                                    bruttosats = 0,
-                                    nettosats = 0,
-                                    inntekter = emptyList(),
-                                    fradragSum = 0,
-                                ),
                             )
                         }
                     }
