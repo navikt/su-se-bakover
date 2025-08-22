@@ -91,5 +91,6 @@ data object TestServicesBuilder {
         kontrollsamtaleSetup = kontrollsamtaleSetup,
         resendStatistikkhendelserService = resendStatistikkhendelserService,
         personhendelseService = personhendelseService,
+        stønadStatistikkJobService = mock(),
     )
 }

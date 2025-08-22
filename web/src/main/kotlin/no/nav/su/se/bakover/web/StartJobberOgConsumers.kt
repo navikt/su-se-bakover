@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.statistikk.StønadstatistikkJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
@@ -304,6 +305,17 @@ private fun naisJobberOgConsumers(
                 periode = Duration.of(5, ChronoUnit.MINUTES),
                 initialDelay = initialDelay.next(),
                 runCheckFactory = runCheckFactory,
+            )
+        } else {
+            null
+        },
+
+        if (!isProd) {
+            StønadstatistikkJob.startJob(
+                initialDelay = initialDelay.next(),
+                periode = Duration.of(1, ChronoUnit.DAYS),
+                runCheckFactory = runCheckFactory,
+                stønadStatistikkJobService = services.stønadStatistikkJobService,
             )
         } else {
             null

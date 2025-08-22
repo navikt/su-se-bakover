@@ -209,6 +209,7 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
@@ -1370,6 +1371,12 @@ open class AccessCheckProxy(
                 ): DryrunResult {
                     // Driftsendepunkt - minimal returdata
                     return services.personhendelseService.dryRunPersonhendelser(fraOgMed, personhendelser)
+                }
+            },
+
+            stønadStatistikkJobService = object : StønadStatistikkJobService {
+                override fun lagMånedligStønadstatistikk() {
+                    services.stønadStatistikkJobService.lagMånedligStønadstatistikk()
                 }
             },
         )

@@ -27,5 +27,5 @@ fun mockedDatabaseRepos() = DatabaseRepos(
     oppgaveHendelseRepo = mock(),
     hendelsekonsumenterRepo = mock(),
     dokumentHendelseRepo = mock(),
-    statistikkHendelseRepo = mock(),
+    stønadStatistikkRepo = mock(),
 )
