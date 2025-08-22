@@ -146,7 +146,7 @@ class StønadStatistikkRepoImpl(
 
     /**
      * Finner all nyligste statistikk for stønader som er løpende på gitt måned og lagrer det månedlige "resultatet".
-     * Det vil si slik tiltanden til stønaden var ved månedskifte. Det vil også gjelde hvis det ikke har skjedd
+     * Det vil si slik tilstanden til stønaden var ved månedskifte. Det vil også gjelde hvis det ikke har skjedd
      * endringer siden forrige jobb.
      */
     override fun hentOgLagreStatistikkForMåned(måned: YearMonth) {
