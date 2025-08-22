@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.avstemming
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.domain.tid.endOfDay
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import økonomi.domain.Fagområde
 import java.time.Clock
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class AvstemmingServiceImpl(
     private val repo: AvstemmingRepo,
@@ -38,9 +38,10 @@ class AvstemmingServiceImpl(
         løpendeFraOgMed: LocalDate,
         fagområde: Fagområde,
     ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
+        // TODO jah: Hvorfor konverterer vi LocalDate til Tidspunkt her? Periodene er alltid definert som LocalDate. Prøv å bruke LocalDate i stedet.
         val fraOgMed = løpendeFraOgMed.startOfDay(zoneIdOslo)
-        val tilOgMed = løpendeFraOgMed.minusDays(1).endOfDay(zoneIdOslo)
-
+        // Ble enige med OS/UR om å velge tidspunkt til første mikrosekund etter kjøreplan-datoen. Det er viktig at fraOgMed og tilOgMed er samme måned. Ref: https://nav-it.slack.com/archives/C01CD2WPP1U/p1755598874585169
+        val tilOgMed = fraOgMed.plus(1, ChronoUnit.MICROS)
         val utbetalinger = repo.hentUtbetalingerForKonsistensavstemming(
             løpendeFraOgMed = fraOgMed,
             opprettetTilOgMed = tilOgMed,
