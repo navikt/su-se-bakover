@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
-import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
@@ -318,7 +318,7 @@ data object ServiceBuilder {
                 oppgaveServiceImpl = oppgaveService,
                 clock = clock,
             ),
-            stønadStatistikkJobService = StønadStatistikkJobService(
+            stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
             ),
         )
