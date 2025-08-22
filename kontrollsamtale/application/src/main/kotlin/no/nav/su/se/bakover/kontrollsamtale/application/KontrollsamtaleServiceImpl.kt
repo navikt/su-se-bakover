@@ -62,6 +62,22 @@ class KontrollsamtaleServiceImpl(
             throw IllegalArgumentException("Fant ikke sak for sakId $sakId")
         }
 
+        val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
+            ?: return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left().also {
+                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
+            }
+
+        if (kontrollsamtale.innkallingsdato >= gjeldendeStønadsperiode.tilOgMed) {
+            log.info("Sak er opphørt ved innkallingsdato for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
+            kontrollsamtaleRepo.lagre(
+                kontrollsamtale = kontrollsamtale.annuller().getOrElse {
+                    log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
+                    return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
+                },
+            )
+            return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
+        }
+
         val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
             log.error("Fant ikke person for sakId $sakId, saksnummer ${sak.saksnummer}")
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
@@ -78,10 +94,10 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
 
-        val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
-            ?: return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left().also {
-                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
-            }
+        if (sak.erStanset()) {
+            log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
+            return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
+        }
 
         val dokument = lagDokument(sak).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
