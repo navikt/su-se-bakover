@@ -34,7 +34,6 @@ import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
-import java.time.YearMonth
 import kotlin.math.roundToInt
 
 private val log = LoggerFactory.getLogger("StønadsstatistikkMapper.kt")
@@ -100,7 +99,6 @@ private fun toDto(
         harFamiliegjenforening = harFamiliegjenforening,
         personnummer = sak.fnr,
         personNummerEktefelle = personNummerEktefelle,
-        statistikkAarMaaned = YearMonth.now(),
 
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),

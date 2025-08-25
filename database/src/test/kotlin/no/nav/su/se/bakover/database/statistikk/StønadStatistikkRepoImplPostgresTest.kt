@@ -33,7 +33,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
         return StønadstatistikkDto(
             harUtenlandsOpphold = null,
             harFamiliegjenforening = null,
-            statistikkAarMaaned = YearMonth.now(),
             personnummer = Fnr.generer(),
             personNummerEktefelle = Fnr.generer(),
             funksjonellTid = Tidspunkt.now(tikkendeKlokke),
@@ -123,7 +122,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
             val stønadshendelseGjenopptak = StønadstatistikkDto(
                 harUtenlandsOpphold = JaNei.NEI,
                 harFamiliegjenforening = null, // not in JSON, so null
-                statistikkAarMaaned = YearMonth.parse("2025-07"),
                 personnummer = Fnr("64825004709"),
                 personNummerEktefelle = null,
                 funksjonellTid = Tidspunkt.parse("2021-01-01T01:02:58.456789Z"),
@@ -316,7 +314,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
             return StønadstatistikkDto(
                 harUtenlandsOpphold = null,
                 harFamiliegjenforening = null,
-                statistikkAarMaaned = YearMonth.from(vedtaksdato),
                 personnummer = sak.first,
                 personNummerEktefelle = Fnr.generer(),
                 funksjonellTid = Tidspunkt.now(tikkendeKlokke),

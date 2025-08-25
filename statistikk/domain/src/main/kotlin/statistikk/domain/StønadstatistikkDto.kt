@@ -5,14 +5,12 @@ import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 /**
  * Data transfer object for stønadsstatistikk (support statistics).
  * @property harUtenlandsOpphold Er dvh sin AVVIK_UTL_OPPHOLD Knyttet opp mot vilkårsvurderingen
  * @property harFamiliegjenforening Angir om bruker har kommet pga familiegjenforening
- * @property statistikkAarMaaned År og måned statistikken gjelder for.
  * @property personnummer Personens fødselsnummer.
  * @property personNummerEktefelle Fødselsnummer til ektefelle, hvis aktuelt.
  * @property funksjonellTid Tidspunktet da hendelsen faktisk ble gjennomført eller registrert i kildesystemet.
@@ -41,7 +39,6 @@ import java.util.UUID
 data class StønadstatistikkDto(
     val harUtenlandsOpphold: JaNei? = null,
     val harFamiliegjenforening: JaNei? = null,
-    val statistikkAarMaaned: YearMonth,
     val personnummer: Fnr,
     val personNummerEktefelle: Fnr? = null,
     val funksjonellTid: Tidspunkt,

@@ -28,14 +28,14 @@ class StønadStatistikkRepoImpl(
                 val stoenadStatistikkId = UUID.randomUUID()
                 """
                     INSERT INTO stoenad_statistikk (
-                    id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
+                    id, har_utenlandsopphold, har_familiegjenforening, personnummer,
                     personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
                     vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
                     gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
                     gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
                     opphorsdato, flyktningsstatus, versjon
                     ) VALUES (
-                        :id, :har_utenlandsopphold, :har_familiegjenforening, :aar_maaned, :personnummer,
+                        :id, :har_utenlandsopphold, :har_familiegjenforening, :personnummer,
                         :personnummer_ektefelle, :funksjonell_tid, :teknisk_tid, :stonadstype, :sak_id, :vedtaksdato,
                         :vedtakstype, :vedtaksresultat, :behandlende_enhet_kode, :ytelse_virkningstidspunkt,
                         :gjeldende_stonad_virkningstidspunkt, :gjeldende_stonad_stopptidspunkt,
@@ -48,7 +48,6 @@ class StønadStatistikkRepoImpl(
                             "id" to stoenadStatistikkId,
                             "har_utenlandsopphold" to dto.harUtenlandsOpphold?.name,
                             "har_familiegjenforening" to dto.harFamiliegjenforening?.name,
-                            "aar_maaned" to dto.statistikkAarMaaned.atDay(1),
                             "personnummer" to dto.personnummer.toString(),
                             "personnummer_ektefelle" to dto.personNummerEktefelle?.toString(),
                             "funksjonell_tid" to dto.funksjonellTid,
@@ -84,7 +83,7 @@ class StønadStatistikkRepoImpl(
             sessionFactory.withSession { session ->
                 """
                 SELECT
-                    id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
+                    id, har_utenlandsopphold, har_familiegjenforening, personnummer,
                     personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
                     vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
                     gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
@@ -114,7 +113,7 @@ class StønadStatistikkRepoImpl(
             sessionFactory.withSession { session ->
                 """
                 SELECT
-                    id, har_utenlandsopphold, har_familiegjenforening, aar_maaned, personnummer,
+                    id, har_utenlandsopphold, har_familiegjenforening, personnummer,
                     personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
                     vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
                     gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
@@ -298,7 +297,6 @@ class StønadStatistikkRepoImpl(
     private fun Row.toStønadsstatistikk(månedsbeløp: List<Månedsbeløp>): StønadstatistikkDto {
         val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
         val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
-        val statistikkAarMaaned = YearMonth.from(localDate("aar_maaned"))
         val personnummerDto = Fnr(string("personnummer"))
         val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
         val funksjonellTid = tidspunkt("funksjonell_tid")
@@ -322,7 +320,6 @@ class StønadStatistikkRepoImpl(
         return StønadstatistikkDto(
             harUtenlandsOpphold = harUtenlandsOpphold,
             harFamiliegjenforening = harFamiliegjenforening,
-            statistikkAarMaaned = statistikkAarMaaned,
             personnummer = personnummerDto,
             personNummerEktefelle = personnummerEktefelle,
             funksjonellTid = funksjonellTid,
