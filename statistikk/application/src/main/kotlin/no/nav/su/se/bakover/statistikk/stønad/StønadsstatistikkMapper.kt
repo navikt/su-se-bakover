@@ -34,7 +34,6 @@ import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
-import java.time.YearMonth
 import kotlin.math.roundToInt
 
 private val log = LoggerFactory.getLogger("StønadsstatistikkMapper.kt")
@@ -100,7 +99,6 @@ private fun toDto(
         harFamiliegjenforening = harFamiliegjenforening,
         personnummer = sak.fnr,
         personNummerEktefelle = personNummerEktefelle,
-        statistikkAarMaaned = YearMonth.now(),
 
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
@@ -128,10 +126,7 @@ private fun toDto(
         gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
         månedsbeløp = when (vedtak) {
             is VedtakInnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-            is VedtakInnvilgetSøknadsbehandling -> mapBeregning(
-                vedtak,
-                vedtak.beregning,
-            )
+            is VedtakInnvilgetSøknadsbehandling -> mapBeregning(vedtak, vedtak.beregning)
 
             /** TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en */
             is Opphørsvedtak -> emptyList()

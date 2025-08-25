@@ -37,7 +37,6 @@ import statistikk.domain.StønadstatistikkDto
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
-import java.time.YearMonth
 
 /*
 Merk ingen av disse går igjennom den faktiske mappingen av data og har ingen typesikkerhet what so ever.
@@ -415,7 +414,6 @@ internal class StønadsstatistikkTest {
                     """
                 {
                   "harUtenlandsOpphold": "NEI",
-                  "statistikkAarMaaned": "${YearMonth.now()}",
                   "funksjonellTid": "$funksjonellTid",
                   "tekniskTid": "2021-01-01T01:02:03.456789Z",
                   "stonadstype": "$stonadstype",
