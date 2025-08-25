@@ -200,21 +200,24 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     ),
                 )
 
+                val forventetStatistikkEn = lagStønadstatistikk(
+                    LocalDate.of(2025, 5, 10),
+                    sakEn,
+                    listOf(
+                        lagMånedsbeløp(mai, 100),
+                        lagMånedsbeløp(juni, 200, inntekter),
+                        lagMånedsbeløp(juli, 300),
+                    ),
+                )
+                val forventetStatistikkTo = lagStønadstatistikk(
+                    LocalDate.of(2025, 5, 10),
+                    sakTo,
+                    listOf(lagMånedsbeløp(juni, 100, inntekter), lagMånedsbeløp(juli, 200)),
+                )
+
                 listOf(
-                    lagStønadstatistikk(
-                        LocalDate.of(2025, 5, 10),
-                        sakEn,
-                        listOf(
-                            lagMånedsbeløp(mai, 100),
-                            lagMånedsbeløp(juni, 200, inntekter),
-                            lagMånedsbeløp(juli, 300),
-                        ),
-                    ),
-                    lagStønadstatistikk(
-                        LocalDate.of(2025, 5, 10),
-                        sakTo,
-                        listOf(lagMånedsbeløp(juni, 100, inntekter), lagMånedsbeløp(juli, 200)),
-                    ),
+                    forventetStatistikkEn,
+                    forventetStatistikkTo,
                     lagStønadstatistikk(
                         LocalDate.of(2025, 5, 10),
                         sakTre,
@@ -234,8 +237,22 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 stønadStatistikk.size shouldBe 2
 
                 with(stønadStatistikk[0]) {
-                    vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
-                    vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
+                    måned shouldBe juni
+                    funksjonellTid shouldBe forventetStatistikkEn.funksjonellTid
+                    tekniskTid shouldBe forventetStatistikkEn.tekniskTid
+                    sakId shouldBe forventetStatistikkEn.sakId
+                    stonadstype shouldBe forventetStatistikkEn.stonadstype
+                    personnummer shouldBe forventetStatistikkEn.personnummer
+                    personNummerEps shouldBe forventetStatistikkEn.personNummerEktefelle
+                    vedtaksdato shouldBe forventetStatistikkEn.vedtaksdato
+                    vedtakstype shouldBe forventetStatistikkEn.vedtakstype
+                    vedtaksresultat shouldBe forventetStatistikkEn.vedtaksresultat
+                    vedtakFraOgMed shouldBe forventetStatistikkEn.gjeldendeStonadVirkningstidspunkt
+                    vedtakTilOgMed shouldBe forventetStatistikkEn.gjeldendeStonadStopptidspunkt
+                    opphorsgrunn shouldBe forventetStatistikkEn.opphorsgrunn
+                    opphorsdato shouldBe forventetStatistikkEn.opphorsdato
+                    behandlendeEnhetKode shouldBe forventetStatistikkEn.behandlendeEnhetKode
+
                     månedsbeløp.bruttosats shouldBe 200
                     månedsbeløp.inntekter.size shouldBe 2
                     månedsbeløp.inntekter[0].beløp shouldBe 100
@@ -330,7 +347,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 gjeldendeStonadUtbetalingsstart = start,
                 gjeldendeStonadUtbetalingsstopp = slutt,
                 månedsbeløp = månedsbeløper,
-                opphorsgrunn = null,
+                opphorsgrunn = "for test",
                 opphorsdato = slutt,
                 flyktningsstatus = null,
                 versjon = null,
