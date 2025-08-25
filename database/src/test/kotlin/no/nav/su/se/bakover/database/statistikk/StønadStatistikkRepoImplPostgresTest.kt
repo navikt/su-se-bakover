@@ -187,16 +187,35 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 val juni = YearMonth.of(2025, 6)
                 val juli = YearMonth.of(2025, 7)
 
+                val inntekter = listOf(
+                    StønadstatistikkDto.Inntekt(
+                        inntektstype = "Uføre",
+                        beløp = 100,
+                        tilhører = "BRUKER",
+                        erUtenlandsk = false,
+                    ),
+                    StønadstatistikkDto.Inntekt(
+                        inntektstype = "Oms",
+                        beløp = 200,
+                        tilhører = "EPS",
+                        erUtenlandsk = false,
+                    ),
+                )
+
                 listOf(
                     lagStønadstatistikk(
                         LocalDate.of(2025, 5, 10),
                         sakEn,
-                        listOf(lagMånedsbeløp(mai), lagMånedsbeløp(juni), lagMånedsbeløp(juli)),
+                        listOf(
+                            lagMånedsbeløp(mai, 100),
+                            lagMånedsbeløp(juni, 200, inntekter),
+                            lagMånedsbeløp(juli, 300),
+                        ),
                     ),
                     lagStønadstatistikk(
                         LocalDate.of(2025, 5, 10),
                         sakTo,
-                        listOf(lagMånedsbeløp(juni), lagMånedsbeløp(juli)),
+                        listOf(lagMånedsbeløp(juni, 100, inntekter), lagMånedsbeløp(juli, 200)),
                     ),
                     lagStønadstatistikk(
                         LocalDate.of(2025, 5, 10),
@@ -216,9 +235,29 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 val stønadStatistikk = repo.hentMånedStatistikk(juni)
                 stønadStatistikk.size shouldBe 2
 
-                stønadStatistikk.forEach {
-                    it.gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
-                    it.gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                with(stønadStatistikk[0]) {
+                    gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
+                    gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                    månedsbeløp.bruttosats shouldBe 200
+                    månedsbeløp.inntekter.size shouldBe 2
+                    månedsbeløp.inntekter[0].beløp shouldBe 100
+                    månedsbeløp.inntekter[0].inntektstype shouldBe "Uføre"
+                    månedsbeløp.inntekter[0].tilhører shouldBe "BRUKER"
+                    månedsbeløp.inntekter[1].beløp shouldBe 200
+                    månedsbeløp.inntekter[1].inntektstype shouldBe "Oms"
+                    månedsbeløp.inntekter[1].tilhører shouldBe "EPS"
+                }
+                with(stønadStatistikk[1]) {
+                    gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
+                    gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                    månedsbeløp.bruttosats shouldBe 100
+                    månedsbeløp.inntekter.size shouldBe 2
+                    månedsbeløp.inntekter[0].beløp shouldBe 100
+                    månedsbeløp.inntekter[0].inntektstype shouldBe "Uføre"
+                    månedsbeløp.inntekter[0].tilhører shouldBe "BRUKER"
+                    månedsbeløp.inntekter[1].beløp shouldBe 200
+                    månedsbeløp.inntekter[1].inntektstype shouldBe "Oms"
+                    månedsbeløp.inntekter[1].tilhører shouldBe "EPS"
                 }
             }
         }
@@ -257,13 +296,14 @@ internal class StønadStatistikkRepoImplPostgresTest {
         fun lagMånedsbeløp(
             måned: YearMonth,
             utbetaling: Long = 100L,
+            inntekter: List<StønadstatistikkDto.Inntekt> = listOf(),
         ) = Månedsbeløp(
             måned = måned.toString(),
             stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
             bruttosats = utbetaling,
             nettosats = utbetaling,
             fradragSum = 0,
-            inntekter = listOf(),
+            inntekter = inntekter,
         )
 
         fun lagStønadstatistikk(

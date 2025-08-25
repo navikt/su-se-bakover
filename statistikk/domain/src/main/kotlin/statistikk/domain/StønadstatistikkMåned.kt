@@ -12,5 +12,5 @@ data class StønadstatistikkMåned(
     val personnummer: Fnr,
     val gjeldendeStonadUtbetalingsstart: LocalDate,
     val gjeldendeStonadUtbetalingsstopp: LocalDate,
-    // val månedsbeløp: StønadstatistikkDto.Månedsbeløp,
+    val månedsbeløp: StønadstatistikkDto.Månedsbeløp,
 )
