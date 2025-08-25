@@ -137,8 +137,8 @@ class StønadStatistikkRepoImpl(
                             måned = måned,
                             vedtaksdato = nyligste.vedtaksdato,
                             personnummer = nyligste.personnummer,
-                            gjeldendeStonadUtbetalingsstart = nyligste.gjeldendeStonadUtbetalingsstart,
-                            gjeldendeStonadUtbetalingsstopp = nyligste.gjeldendeStonadUtbetalingsstopp,
+                            vedtakFraOgMed = nyligste.gjeldendeStonadVirkningstidspunkt,
+                            vedtakTilOgMed = nyligste.gjeldendeStonadStopptidspunkt,
                             månedsbeløp = nyligste.månedsbeløp.single {
                                 it.måned == måned.toString()
                             },
@@ -152,11 +152,9 @@ class StønadStatistikkRepoImpl(
     private fun lagreMånedStatistikk(session: Session, månedStatistikk: StønadstatistikkMåned) {
         """
             INSERT INTO stoenad_maaned_statistikk (
-                id, maaned, vedtaksdato, personnummer,
-                gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp
+                id, maaned, vedtaksdato, personnummer, vedtak_fra_og_med, vedtak_til_og_med
             ) VALUES (
-                :id, :maaned, :vedtaksdato, :personnummer,
-                :gjeldende_stonad_utbetalingsstart, :gjeldende_stonad_utbetalingsstopp
+                :id, :maaned, :vedtaksdato, :personnummer, :vedtak_fra_og_med, :vedtak_til_og_med
             )
         """.trimIndent()
             .insert(
@@ -165,8 +163,8 @@ class StønadStatistikkRepoImpl(
                     "maaned" to månedStatistikk.måned.atDay(1),
                     "vedtaksdato" to månedStatistikk.vedtaksdato,
                     "personnummer" to månedStatistikk.personnummer.toString(),
-                    "gjeldende_stonad_utbetalingsstart" to månedStatistikk.gjeldendeStonadUtbetalingsstart,
-                    "gjeldende_stonad_utbetalingsstopp" to månedStatistikk.gjeldendeStonadUtbetalingsstopp,
+                    "vedtak_fra_og_med" to månedStatistikk.vedtakFraOgMed,
+                    "vedtak_til_og_med" to månedStatistikk.vedtakTilOgMed,
                 ),
                 session = session,
             )
@@ -221,8 +219,7 @@ class StønadStatistikkRepoImpl(
         return dbMetrics.timeQuery("hentStønadstatistikkMåned") {
             sessionFactory.withSession { session ->
                 """
-                SELECT id, maaned, vedtaksdato, personnummer,
-                       gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp
+                SELECT id, maaned, vedtaksdato, personnummer, vedtak_fra_og_med, vedtak_til_og_med
                 FROM stoenad_maaned_statistikk
                 WHERE maaned = :maaned
                 """.trimIndent()
@@ -237,8 +234,8 @@ class StønadStatistikkRepoImpl(
                                 måned = måned,
                                 vedtaksdato = localDate("vedtaksdato"),
                                 personnummer = Fnr(string("personnummer")),
-                                gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart"),
-                                gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp"),
+                                vedtakFraOgMed = localDate("vedtak_fra_og_med"),
+                                vedtakTilOgMed = localDate("vedtak_til_og_med"),
                                 månedsbeløp = hentMånedsbeløp(session, id).single(),
                             )
                         }

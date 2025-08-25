@@ -234,8 +234,8 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 stønadStatistikk.size shouldBe 2
 
                 with(stønadStatistikk[0]) {
-                    gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
-                    gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                    vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
+                    vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
                     månedsbeløp.bruttosats shouldBe 200
                     månedsbeløp.inntekter.size shouldBe 2
                     månedsbeløp.inntekter[0].beløp shouldBe 100
@@ -246,8 +246,8 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     månedsbeløp.inntekter[1].tilhører shouldBe "EPS"
                 }
                 with(stønadStatistikk[1]) {
-                    gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
-                    gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                    vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
+                    vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
                     månedsbeløp.bruttosats shouldBe 100
                     månedsbeløp.inntekter.size shouldBe 2
                     månedsbeløp.inntekter[0].beløp shouldBe 100

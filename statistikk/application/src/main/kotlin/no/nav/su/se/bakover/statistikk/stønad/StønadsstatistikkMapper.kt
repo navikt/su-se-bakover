@@ -126,10 +126,7 @@ private fun toDto(
         gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
         månedsbeløp = when (vedtak) {
             is VedtakInnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-            is VedtakInnvilgetSøknadsbehandling -> mapBeregning(
-                vedtak,
-                vedtak.beregning,
-            )
+            is VedtakInnvilgetSøknadsbehandling -> mapBeregning(vedtak, vedtak.beregning)
 
             /** TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en */
             is Opphørsvedtak -> emptyList()

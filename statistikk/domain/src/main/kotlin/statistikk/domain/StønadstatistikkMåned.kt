@@ -10,7 +10,7 @@ data class StønadstatistikkMåned(
     val måned: YearMonth,
     val vedtaksdato: LocalDate,
     val personnummer: Fnr,
-    val gjeldendeStonadUtbetalingsstart: LocalDate,
-    val gjeldendeStonadUtbetalingsstopp: LocalDate,
+    val vedtakFraOgMed: LocalDate,
+    val vedtakTilOgMed: LocalDate,
     val månedsbeløp: StønadstatistikkDto.Månedsbeløp,
 )
