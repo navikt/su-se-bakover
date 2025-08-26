@@ -184,10 +184,10 @@ private fun mapBeregning(
                     erUtenlandsk = it.utenlandskInntekt != null,
                 )
             },
-            bruttosats = månedsberegning.getSatsbeløp().roundToInt().toLong(),
+            sats = månedsberegning.getSatsbeløp().roundToInt().toLong(),
             fradragSum = månedsberegning.getSumFradrag().toLong(),
             måned = månedsberegning.periode.fraOgMed.toString(),
-            nettosats = månedsberegning.getSumYtelse().toLong(),
+            utbetales = månedsberegning.getSumYtelse().toLong(),
             stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),
         )
     }

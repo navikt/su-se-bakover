@@ -199,9 +199,9 @@ class StønadStatistikkRepoImpl(
         val manedsbelopId = UUID.randomUUID()
         """
                     INSERT INTO manedsbelop (
-                        id, stoenad_statistikk_id, maaned, stonadsklassifisering, bruttosats, nettosats, fradrag_sum
+                        id, stoenad_statistikk_id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum
                     ) VALUES (
-                        :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :bruttosats, :nettosats, :fradrag_sum
+                        :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :sats, :utbetales, :fradrag_sum
                     )
         """.trimIndent()
             .insert(
@@ -210,8 +210,8 @@ class StønadStatistikkRepoImpl(
                     "stoenad_statistikk_id" to stoenadStatistikkId,
                     "maaned" to månedsbeløp.måned,
                     "stonadsklassifisering" to månedsbeløp.stonadsklassifisering.name,
-                    "bruttosats" to månedsbeløp.bruttosats,
-                    "nettosats" to månedsbeløp.nettosats,
+                    "sats" to månedsbeløp.sats,
+                    "utbetales" to månedsbeløp.utbetales,
                     "fradrag_sum" to månedsbeløp.fradragSum,
                 ),
                 session = session,
@@ -280,7 +280,7 @@ class StønadStatistikkRepoImpl(
 
     private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
         return """
-        SELECT id, maaned, stonadsklassifisering, bruttosats, nettosats, fradrag_sum
+        SELECT id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum
         FROM manedsbelop
         WHERE stoenad_statistikk_id = :stoenad_statistikk_id
         """.trimIndent()
@@ -291,15 +291,15 @@ class StønadStatistikkRepoImpl(
                 val manedsbelopId = UUID.fromString(row.string("id"))
                 val maaned = row.string("maaned")
                 val stonadsklassifisering = StønadsklassifiseringDto.valueOf(row.string("stonadsklassifisering"))
-                val bruttosats = row.long("bruttosats")
-                val nettosats = row.long("nettosats")
+                val sats = row.long("sats")
+                val utbetales = row.long("utbetales")
                 val fradragSum = row.long("fradrag_sum")
 
                 Månedsbeløp(
                     måned = maaned,
                     stonadsklassifisering = stonadsklassifisering,
-                    bruttosats = bruttosats,
-                    nettosats = nettosats,
+                    sats = sats,
+                    utbetales = utbetales,
                     inntekter = hentInntekter(session, manedsbelopId),
                     fradragSum = fradragSum,
                 )

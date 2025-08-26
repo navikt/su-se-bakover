@@ -88,8 +88,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 17946,
+                  "sats": 20946,
+                  "utbetales": 17946,
                   "fradragSum": 3000,
                   "inntekter": [
                     {
@@ -149,8 +149,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "fradragSum": 0,
                   "inntekter": [
                     {
@@ -164,8 +164,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-02-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 13446,
+                  "sats": 20946,
+                  "utbetales": 13446,
                   "fradragSum": 7500,
                   "inntekter": [
                     {
@@ -214,8 +214,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-02-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "fradragSum": 0,
                   "inntekter": [
                     {
@@ -250,8 +250,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "inntekter": [
                     {
                       "inntektstype": "ForventetInntekt",
@@ -265,8 +265,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-02-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "inntekter": [
                     {
                       "inntektstype": "ForventetInntekt",
@@ -307,8 +307,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 13446,
+                  "sats": 20946,
+                  "utbetales": 13446,
                   "inntekter": [
                     {
                       "inntektstype": "Arbeidsinntekt",
@@ -362,8 +362,8 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "inntekter": [
                     {
                       "inntektstype": "ForventetInntekt",

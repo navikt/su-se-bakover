@@ -141,8 +141,8 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     Månedsbeløp(
                         måned = "2021-01-01",
                         stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
-                        bruttosats = 20946L,
-                        nettosats = 17946L,
+                        sats = 20946L,
+                        utbetales = 17946L,
                         inntekter = listOf(
                             StønadstatistikkDto.Inntekt(
                                 inntektstype = Fradragstype.ForventetInntekt.kategori.name,
@@ -253,7 +253,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     opphorsdato shouldBe forventetStatistikkEn.opphorsdato
                     behandlendeEnhetKode shouldBe forventetStatistikkEn.behandlendeEnhetKode
 
-                    månedsbeløp.bruttosats shouldBe 200
+                    månedsbeløp.sats shouldBe 200
                     månedsbeløp.inntekter.size shouldBe 2
                     månedsbeløp.inntekter[0].beløp shouldBe 100
                     månedsbeløp.inntekter[0].inntektstype shouldBe "Uføre"
@@ -265,7 +265,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 with(stønadStatistikk[1]) {
                     vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
                     vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
-                    månedsbeløp.bruttosats shouldBe 100
+                    månedsbeløp.sats shouldBe 100
                     månedsbeløp.inntekter.size shouldBe 2
                     månedsbeløp.inntekter[0].beløp shouldBe 100
                     månedsbeløp.inntekter[0].inntektstype shouldBe "Uføre"
@@ -315,8 +315,8 @@ internal class StønadStatistikkRepoImplPostgresTest {
         ) = Månedsbeløp(
             måned = måned.toString(),
             stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
-            bruttosats = utbetaling,
-            nettosats = utbetaling,
+            sats = utbetaling,
+            utbetales = utbetaling,
             fradragSum = 0,
             inntekter = inntekter,
         )

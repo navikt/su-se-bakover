@@ -84,15 +84,15 @@ data class StønadstatistikkDto(
     /**
      * @property måned for når beløpene gjelder, f.eks. Jan 2021
      * @property stonadsklassifisering Klassifisering av hva som gjør at stønadsmottaker mottar ordinær eller høy sats.
-     * @property bruttosats Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra.
-     * @property nettosats Faktisk utbetaling per måned.
+     * @property sats Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra.
+     * @property utbetales Faktisk utbetaling per måned.
      * @property fradragSum Summen av alle fradrag/inntekter som gjelder for stønadsmottaker.
      */
     data class Månedsbeløp(
         val måned: String,
         val stonadsklassifisering: StønadsklassifiseringDto,
-        val bruttosats: Long,
-        val nettosats: Long,
+        val sats: Long,
+        val utbetales: Long,
         val inntekter: List<Inntekt>,
         val fradragSum: Long,
     )
