@@ -2,9 +2,10 @@
 ALTER TABLE manedsbelop DROP CONSTRAINT manedsbelop_stoenad_statistikk_id_fkey;
 ALTER TABLE manedsbelop RENAME COLUMN bruttosats TO sats;
 ALTER TABLE manedsbelop RENAME COLUMN nettosats TO utbetales;
+ALTER TABLE manedsbelop RENAME to manedsbelop_statistikk;
 
-ALTER TABLE inntekt RENAME TO fradrag;
-ALTER TABLE fradrag RENAME COLUMN inntektstype TO fradragstype;
+ALTER TABLE inntekt RENAME TO fradrag_statistikk;
+ALTER TABLE fradrag_statistikk RENAME COLUMN inntektstype TO fradragstype;
 
 ALTER TABLE stoenad_statistikk  DROP COLUMN aar_maaned;
 

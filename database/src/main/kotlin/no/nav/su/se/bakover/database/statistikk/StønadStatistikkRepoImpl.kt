@@ -198,7 +198,7 @@ class StønadStatistikkRepoImpl(
     private fun lagreMånedsbeløpMedFradrag(session: Session, stoenadStatistikkId: UUID, månedsbeløp: Månedsbeløp) {
         val manedsbelopId = UUID.randomUUID()
         """
-                    INSERT INTO manedsbelop (
+                    INSERT INTO manedsbelop_statistikk (
                         id, stoenad_statistikk_id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum
                     ) VALUES (
                         :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :sats, :utbetales, :fradrag_sum
@@ -219,7 +219,7 @@ class StønadStatistikkRepoImpl(
         månedsbeløp.fradrag.forEach { fradrag ->
             val fradragId = UUID.randomUUID()
             """
-                        INSERT INTO fradrag (
+                        INSERT INTO fradrag_statistikk (
                             id, manedsbelop_id, fradragstype, belop, tilhorer, er_utenlandsk
                         ) VALUES (
                             :id, :manedsbelop_id, :fradragstype, :belop, :tilhorer, :er_utenlandsk
@@ -281,7 +281,7 @@ class StønadStatistikkRepoImpl(
     private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
         return """
         SELECT id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum
-        FROM manedsbelop
+        FROM manedsbelop_statistikk
         WHERE stoenad_statistikk_id = :stoenad_statistikk_id
         """.trimIndent()
             .hentListe(
@@ -309,7 +309,7 @@ class StønadStatistikkRepoImpl(
     private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Fradrag> {
         return """
             SELECT fradragstype, belop, tilhorer, er_utenlandsk
-            FROM fradrag
+            FROM fradrag_statistikk 
             WHERE manedsbelop_id = :manedsbelop_id
         """.trimIndent()
             .hentListe(
