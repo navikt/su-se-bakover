@@ -93,17 +93,17 @@ data class StønadstatistikkDto(
         val stonadsklassifisering: StønadsklassifiseringDto,
         val sats: Long,
         val utbetales: Long,
-        val inntekter: List<Inntekt>,
+        val fradrag: List<Fradrag>,
         val fradragSum: Long,
     )
 
     /**
-     * @property inntektstype Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv. så basically [Fradragstype.Kategori]
+     * @property fradragstype Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv. så basically [Fradragstype.Kategori]
      * @property beløp Inntekten i kroner per måned.
      * @property tilhører er [FradragTilhører]
      */
-    data class Inntekt(
-        val inntektstype: String,
+    data class Fradrag(
+        val fradragstype: String,
         val beløp: Long,
         val tilhører: String,
         val erUtenlandsk: Boolean,

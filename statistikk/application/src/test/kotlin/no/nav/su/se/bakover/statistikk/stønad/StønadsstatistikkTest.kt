@@ -91,9 +91,9 @@ internal class StønadsstatistikkTest {
                   "sats": 20946,
                   "utbetales": 17946,
                   "fradragSum": 3000,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 3000,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -152,9 +152,9 @@ internal class StønadsstatistikkTest {
                   "sats": 20946,
                   "utbetales": 20946,
                   "fradragSum": 0,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -167,9 +167,9 @@ internal class StønadsstatistikkTest {
                   "sats": 20946,
                   "utbetales": 13446,
                   "fradragSum": 7500,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "Arbeidsinntekt",
+                      "fradragstype": "Arbeidsinntekt",
                       "beløp": 7500,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -217,9 +217,9 @@ internal class StønadsstatistikkTest {
                   "sats": 20946,
                   "utbetales": 20946,
                   "fradragSum": 0,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -252,9 +252,9 @@ internal class StønadsstatistikkTest {
                   "stonadsklassifisering": "BOR_ALENE",
                   "sats": 20946,
                   "utbetales": 20946,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -267,9 +267,9 @@ internal class StønadsstatistikkTest {
                   "stonadsklassifisering": "BOR_ALENE",
                   "sats": 20946,
                   "utbetales": 20946,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -309,9 +309,9 @@ internal class StønadsstatistikkTest {
                   "stonadsklassifisering": "BOR_ALENE",
                   "sats": 20946,
                   "utbetales": 13446,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "Arbeidsinntekt",
+                      "fradragstype": "Arbeidsinntekt",
                       "beløp": 7500,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
@@ -364,9 +364,9 @@ internal class StønadsstatistikkTest {
                   "stonadsklassifisering": "BOR_ALENE",
                   "sats": 20946,
                   "utbetales": 20946,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false

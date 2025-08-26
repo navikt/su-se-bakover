@@ -176,9 +176,9 @@ private fun mapBeregning(
 
         val månedsberegning = månedsberegninger[måned]!!
         StønadstatistikkDto.Månedsbeløp(
-            inntekter = fradrag.map {
-                StønadstatistikkDto.Inntekt(
-                    inntektstype = it.fradragstype.toString(),
+            fradrag = fradrag.map {
+                StønadstatistikkDto.Fradrag(
+                    fradragstype = it.fradragstype.toString(),
                     beløp = it.månedsbeløp.toLong(),
                     tilhører = it.tilhører.toString(),
                     erUtenlandsk = it.utenlandskInntekt != null,

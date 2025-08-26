@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
-import statistikk.domain.StønadstatistikkDto.Inntekt
+import statistikk.domain.StønadstatistikkDto.Fradrag
 import statistikk.domain.StønadstatistikkDto.Månedsbeløp
 import statistikk.domain.StønadstatistikkMåned
 import java.time.YearMonth
@@ -216,23 +216,23 @@ class StønadStatistikkRepoImpl(
                 ),
                 session = session,
             )
-        månedsbeløp.inntekter.forEach { inntekt ->
-            val inntektId = UUID.randomUUID()
+        månedsbeløp.fradrag.forEach { fradrag ->
+            val fradragId = UUID.randomUUID()
             """
-                        INSERT INTO inntekt (
-                            id, manedsbelop_id, inntektstype, belop, tilhorer, er_utenlandsk
+                        INSERT INTO fradrag (
+                            id, manedsbelop_id, fradragstype, belop, tilhorer, er_utenlandsk
                         ) VALUES (
-                            :id, :manedsbelop_id, :inntektstype, :belop, :tilhorer, :er_utenlandsk
+                            :id, :manedsbelop_id, :fradragstype, :belop, :tilhorer, :er_utenlandsk
                         )
             """.trimIndent()
                 .insert(
                     mapOf(
-                        "id" to inntektId,
+                        "id" to fradragId,
                         "manedsbelop_id" to manedsbelopId,
-                        "inntektstype" to inntekt.inntektstype,
-                        "belop" to inntekt.beløp,
-                        "tilhorer" to inntekt.tilhører,
-                        "er_utenlandsk" to inntekt.erUtenlandsk,
+                        "fradragstype" to fradrag.fradragstype,
+                        "belop" to fradrag.beløp,
+                        "tilhorer" to fradrag.tilhører,
+                        "er_utenlandsk" to fradrag.erUtenlandsk,
                     ),
                     session = session,
                 )
@@ -300,24 +300,24 @@ class StønadStatistikkRepoImpl(
                     stonadsklassifisering = stonadsklassifisering,
                     sats = sats,
                     utbetales = utbetales,
-                    inntekter = hentInntekter(session, manedsbelopId),
+                    fradrag = hentInntekter(session, manedsbelopId),
                     fradragSum = fradragSum,
                 )
             }
     }
 
-    private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Inntekt> {
+    private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Fradrag> {
         return """
-            SELECT inntektstype, belop, tilhorer, er_utenlandsk
-            FROM inntekt
+            SELECT fradragstype, belop, tilhorer, er_utenlandsk
+            FROM fradrag
             WHERE manedsbelop_id = :manedsbelop_id
         """.trimIndent()
             .hentListe(
                 params = mapOf("manedsbelop_id" to manedsbelop_id),
                 session = session,
             ) { row ->
-                Inntekt(
-                    inntektstype = row.string("inntektstype"),
+                Fradrag(
+                    fradragstype = row.string("fradragstype"),
                     beløp = row.long("belop"),
                     tilhører = row.string("tilhorer"),
                     erUtenlandsk = row.boolean("er_utenlandsk"),
