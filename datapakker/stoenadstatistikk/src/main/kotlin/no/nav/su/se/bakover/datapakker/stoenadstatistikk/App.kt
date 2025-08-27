@@ -70,7 +70,7 @@ fun writeToBigQuery(
     val job = bq.writer(jobId, configuration).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
-                os.write(csvData.toByteArray()) // TODO: her må vi ha dataen fra vår tabell
+                os.write(csvData.toByteArray()) // TODO: her må vi ha dataen fra vår tabell + må lage dump av vår sql inn i bigquery
             }
         }
         it.job.waitFor()
