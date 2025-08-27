@@ -45,7 +45,7 @@ fun writeToBigQuery(
     val project: String = System.getenv("GCP_PROJECT")
 
     val dataset = "statistikk"
-    val table = "stoendadstatistikk"
+    val table = "stoenadstatistikk"
 
     val credentials = GoogleCredentials.fromStream(jsonKey)
     val bq = BigQueryOptions
