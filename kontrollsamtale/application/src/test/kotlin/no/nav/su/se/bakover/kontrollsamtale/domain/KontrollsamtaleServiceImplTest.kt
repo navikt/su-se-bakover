@@ -67,14 +67,32 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
+    fun `annuller planlagt innkalling hvis sak er opphørt`() {
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+            },
+            clock = fixedClock,
+        ).kontrollsamtaleService.kallInn(
+            kontrollsamtale = kontrollsamtale.copy(
+                innkallingsdato = sak.hentGjeldendeStønadsperiode(fixedClock)!!.tilOgMed,
+            ),
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
+    }
+
+    @Test
     fun `feiler hvis vi ikke finner person`() {
         ServiceOgMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
+            clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
@@ -84,7 +102,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `feiler dersom kontrollsamtale er i ugyldig tilstand for å annulleres`() {
         ServiceOgMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn person(
@@ -92,6 +110,7 @@ internal class KontrollsamtaleServiceImplTest {
                     dødsdato = 1.januar(2021),
                 ).right()
             },
+            clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
             kontrollsamtale = kontrollsamtale.annuller().getOrNull()!!,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
@@ -101,7 +120,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `annullerer dersom person er død`() {
         ServiceOgMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn person(
@@ -109,6 +128,7 @@ internal class KontrollsamtaleServiceImplTest {
                     dødsdato = 1.januar(2021),
                 ).right()
             },
+            clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
