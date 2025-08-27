@@ -1,0 +1,29 @@
+apiVersion: nais.io/v1
+kind: Naisjob
+metadata:
+  labels:
+    team: supstonad
+  name: su-datapakke-stoenadstatistikk
+  namespace: supstonad
+spec:
+  # Run every day at 3:15
+  schedule: '20 3 * * *'
+  image: {{ image }}
+  concurrencyPolicy: Replace
+  vault:
+    enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /secret/supstonad/dev
+  webproxy: true
+  env:
+    - name: GCP_PROJECT
+      value: "supstonad-dev-0e48"
+    - name: VAULT_MOUNTPATH
+      value: "postgresql/preprod-fss/"
+    - name: DATABASE_NAME
+      value: "supstonad-db-15-dev"
+    - name: DATABASE_JDBC_URL
+      value: "jdbc:postgresql://b27dbvl030.preprod.local:5432/supstonad-db-15-dev"
+    - name: BIGQUERY_CREDENTIALS
+      value: "/var/run/secrets/nais.io/vault/bigquery"
