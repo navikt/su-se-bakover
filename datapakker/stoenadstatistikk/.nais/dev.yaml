@@ -7,7 +7,7 @@ metadata:
   namespace: supstonad
 spec:
   # Run every day at 3:20
-  schedule: '20 3 * * *'
+  schedule: '25 4 * * *'
   image: {{ image }}
   concurrencyPolicy: Replace
   vault:
