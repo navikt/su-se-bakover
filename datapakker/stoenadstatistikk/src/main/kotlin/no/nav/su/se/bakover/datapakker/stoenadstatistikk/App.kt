@@ -60,10 +60,17 @@ fun writeToBigQuery(
         TableId.of(project, dataset, table),
     ).setFormatOptions(FormatOptions.csv()).build()
 
+    val csvData = listOf(
+        "hello",
+        "world",
+        "this is a test",
+        "another row",
+    ).joinToString("\n")
+
     val job = bq.writer(jobId, configuration).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
-                os.write("".toByteArray()) // TODO: her må vi ha dataen fra vår tabell
+                os.write(csvData.toByteArray()) // TODO: her må vi ha dataen fra vår tabell
             }
         }
         it.job.waitFor()
