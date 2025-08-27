@@ -202,9 +202,10 @@ class StønadStatistikkRepoImpl(
         val manedsbelopId = UUID.randomUUID()
         """
                     INSERT INTO manedsbelop_statistikk (
-                        id, stoenad_statistikk_id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum
+                        id, stoenad_statistikk_id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum, uforegrad
                     ) VALUES (
-                        :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :sats, :utbetales, :fradrag_sum
+                        :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :sats, :utbetales, :fradrag_sum,
+                        :uforegrad
                     )
         """.trimIndent()
             .insert(
@@ -216,6 +217,7 @@ class StønadStatistikkRepoImpl(
                     "sats" to månedsbeløp.sats,
                     "utbetales" to månedsbeløp.utbetales,
                     "fradrag_sum" to månedsbeløp.fradragSum,
+                    "uforegrad" to månedsbeløp.uføregrad,
                 ),
                 session = session,
             )
@@ -286,7 +288,7 @@ class StønadStatistikkRepoImpl(
 
     private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
         return """
-        SELECT id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum
+        SELECT id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum, uforegrad 
         FROM manedsbelop_statistikk
         WHERE stoenad_statistikk_id = :stoenad_statistikk_id
         """.trimIndent()
@@ -300,6 +302,7 @@ class StønadStatistikkRepoImpl(
                 val sats = row.long("sats")
                 val utbetales = row.long("utbetales")
                 val fradragSum = row.long("fradrag_sum")
+                val uføregrad = row.intOrNull("uforegrad")
 
                 Månedsbeløp(
                     måned = maaned,
@@ -308,6 +311,7 @@ class StønadStatistikkRepoImpl(
                     utbetales = utbetales,
                     fradrag = hentInntekter(session, manedsbelopId),
                     fradragSum = fradragSum,
+                    uføregrad = uføregrad,
                 )
             }
     }

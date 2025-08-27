@@ -98,7 +98,8 @@ internal class StønadsstatistikkTest {
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 50
                 }
             ]
             """.trimIndent(),
@@ -159,7 +160,8 @@ internal class StønadsstatistikkTest {
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 100
                 },
                 {
                   "måned": "2021-02-01",
@@ -174,7 +176,8 @@ internal class StønadsstatistikkTest {
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -224,7 +227,8 @@ internal class StønadsstatistikkTest {
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -260,7 +264,8 @@ internal class StønadsstatistikkTest {
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 0
+                  "fradragSum": 0,
+                  "uføregrad": 100
                 },
                 {
                   "måned": "2021-02-01",
@@ -275,7 +280,8 @@ internal class StønadsstatistikkTest {
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 0
+                  "fradragSum": 0,
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -317,7 +323,8 @@ internal class StønadsstatistikkTest {
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 7500
+                  "fradragSum": 7500,
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -372,7 +379,8 @@ internal class StønadsstatistikkTest {
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 0
+                  "fradragSum": 0,
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),

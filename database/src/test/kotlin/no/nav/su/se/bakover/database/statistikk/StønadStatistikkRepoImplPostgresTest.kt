@@ -96,6 +96,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                             ),
                         ),
                         123L,
+                        null,
                     ),
                 ),
             )
@@ -152,6 +153,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                             ),
                         ),
                         fradragSum = 3000L,
+                        null,
                     ),
                 ),
                 opphorsgrunn = null,
@@ -319,6 +321,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
             utbetales = utbetaling,
             fradragSum = 0,
             fradrag = inntekter,
+            uføregrad = 0,
         )
 
         fun lagStønadstatistikk(

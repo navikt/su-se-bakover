@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
+import no.nav.su.se.bakover.domain.vilkår.hentUføregrunnlag
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
 import statistikk.domain.StønadsklassifiseringDto
@@ -165,11 +166,22 @@ private fun mapBeregning(
     val alleFradrag = beregning.tilFradragPerMåned()
     val månedsberegninger = beregning.getMånedsberegninger().associateBy { it.måned }
 
+    val uføregrunnlag = when (vedtak.sakinfo().type) {
+        Sakstype.ALDER -> null
+        Sakstype.UFØRE -> {
+            vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag()
+        }
+    }
+
     val månederIVedtakOgBeregning =
         vedtak.periode.måneder().toSet().intersect(beregning.periode.måneder().toSet()).toList()
 
     return månederIVedtakOgBeregning.map { måned ->
         val fradrag = alleFradrag[måned]?.let { maxAvForventetInntektOgArbeidsInntekt(it) } ?: emptyList()
+
+        val uføregrad = uføregrunnlag?.let {
+            it.single { it.periode.måneder().contains(måned) }
+        }?.uføregrad
 
         val månedsberegning = månedsberegninger[måned]!!
         StønadstatistikkDto.Månedsbeløp(
@@ -186,6 +198,7 @@ private fun mapBeregning(
             måned = månedsberegning.periode.fraOgMed.toString(),
             utbetales = månedsberegning.getSumYtelse().toLong(),
             stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),
+            uføregrad = uføregrad?.value,
         )
     }
 }

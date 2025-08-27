@@ -87,6 +87,7 @@ data class StønadstatistikkDto(
      * @property sats Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra.
      * @property utbetales Faktisk utbetaling per måned.
      * @property fradragSum Summen av alle fradrag/inntekter som gjelder for stønadsmottaker.
+     * @property uføregrad uføregrad til bruker hvis uføre sak
      */
     data class Månedsbeløp(
         val måned: String,
@@ -95,6 +96,7 @@ data class StønadstatistikkDto(
         val utbetales: Long,
         val fradrag: List<Fradrag>,
         val fradragSum: Long,
+        val uføregrad: Int?,
     )
 
     /**
