@@ -22,3 +22,7 @@ ALTER TABLE stoenad_maaned_statistikk ADD COLUMN vedtaksresultat TEXT NOT NULL;
 ALTER TABLE stoenad_maaned_statistikk ADD COLUMN opphorsgrunn TEXT;
 ALTER TABLE stoenad_maaned_statistikk ADD COLUMN opphorsdato DATE;
 ALTER TABLE stoenad_maaned_statistikk ADD COLUMN behandlende_enhet_kode TEXT NOT NULL;
+
+ALTER TABLE stoenad_maaned_statistikk ADD COLUMN har_utenlandsopphold TEXT;
+ALTER TABLE stoenad_maaned_statistikk ADD COLUMN har_familiegjenforening TEXT;
+ALTER TABLE stoenad_maaned_statistikk ADD COLUMN flyktningsstatus TEXT;

@@ -46,8 +46,6 @@ class StønadStatistikkRepoImpl(
                     .insert(
                         mapOf(
                             "id" to stoenadStatistikkId,
-                            "har_utenlandsopphold" to dto.harUtenlandsOpphold?.name,
-                            "har_familiegjenforening" to dto.harFamiliegjenforening?.name,
                             "personnummer" to dto.personnummer.toString(),
                             "personnummer_ektefelle" to dto.personNummerEktefelle?.toString(),
                             "funksjonell_tid" to dto.funksjonellTid,
@@ -65,7 +63,9 @@ class StønadStatistikkRepoImpl(
                             "gjeldende_stonad_utbetalingsstopp" to dto.gjeldendeStonadUtbetalingsstopp,
                             "opphorsgrunn" to dto.opphorsgrunn,
                             "opphorsdato" to dto.opphorsdato,
-                            "flyktningsstatus" to dto.flyktningsstatus,
+                            "har_utenlandsopphold" to dto.harUtenlandsOpphold?.name,
+                            "har_familiegjenforening" to dto.harFamiliegjenforening?.name,
+                            "flyktningsstatus" to dto.flyktningsstatus?.name,
                             "versjon" to dto.versjon,
                         ),
                         session = session,
@@ -149,6 +149,9 @@ class StønadStatistikkRepoImpl(
                             behandlendeEnhetKode = nyligste.behandlendeEnhetKode,
                             opphorsgrunn = nyligste.opphorsgrunn,
                             opphorsdato = nyligste.opphorsdato,
+                            harUtenlandsOpphold = nyligste.harUtenlandsOpphold,
+                            harFamiliegjenforening = nyligste.harFamiliegjenforening,
+                            flyktningsstatus = nyligste.flyktningsstatus,
                             månedsbeløp = nyligste.månedsbeløp.single {
                                 it.måned == måned.toString()
                             },
@@ -270,6 +273,9 @@ class StønadStatistikkRepoImpl(
                                 opphorsgrunn = stringOrNull("opphorsgrunn"),
                                 opphorsdato = localDateOrNull("opphorsdato"),
                                 behandlendeEnhetKode = string("behandlende_enhet_kode"),
+                                harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) },
+                                harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) },
+                                flyktningsstatus = stringOrNull("flyktningsstatus")?.let { JaNei.valueOf(it) },
                                 månedsbeløp = hentMånedsbeløp(session, id).single(),
                             )
                         }
@@ -326,8 +332,6 @@ class StønadStatistikkRepoImpl(
     }
 
     private fun Row.toStønadsstatistikk(månedsbeløp: List<Månedsbeløp>): StønadstatistikkDto {
-        val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
-        val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
         val personnummerDto = Fnr(string("personnummer"))
         val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
         val funksjonellTid = tidspunkt("funksjonell_tid")
@@ -345,12 +349,12 @@ class StønadStatistikkRepoImpl(
         val gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp")
         val opphorsgrunn = stringOrNull("opphorsgrunn")
         val opphorsdato = localDateOrNull("opphorsdato")
-        val flyktningsstatus = stringOrNull("flyktningsstatus")
+        val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
+        val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
+        val flyktningsstatus = stringOrNull("flyktningsstatus")?.let { JaNei.valueOf(it) }
         val versjon = stringOrNull("versjon")
 
         return StønadstatistikkDto(
-            harUtenlandsOpphold = harUtenlandsOpphold,
-            harFamiliegjenforening = harFamiliegjenforening,
             personnummer = personnummerDto,
             personNummerEktefelle = personnummerEktefelle,
             funksjonellTid = funksjonellTid,
@@ -369,6 +373,8 @@ class StønadStatistikkRepoImpl(
             opphorsgrunn = opphorsgrunn,
             opphorsdato = opphorsdato,
             flyktningsstatus = flyktningsstatus,
+            harUtenlandsOpphold = harUtenlandsOpphold,
+            harFamiliegjenforening = harFamiliegjenforening,
             versjon = versjon,
             månedsbeløp = månedsbeløp,
         )

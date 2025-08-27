@@ -37,8 +37,6 @@ import java.util.UUID
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class StønadstatistikkDto(
-    val harUtenlandsOpphold: JaNei? = null,
-    val harFamiliegjenforening: JaNei? = null,
     val personnummer: Fnr,
     val personNummerEktefelle: Fnr? = null,
     val funksjonellTid: Tidspunkt,
@@ -57,7 +55,9 @@ data class StønadstatistikkDto(
     val månedsbeløp: List<Månedsbeløp>,
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
-    val flyktningsstatus: String?,
+    val flyktningsstatus: JaNei?,
+    val harUtenlandsOpphold: JaNei?,
+    val harFamiliegjenforening: JaNei?,
     val versjon: String?,
 ) {
     enum class Stønadstype(val beskrivelse: String) {

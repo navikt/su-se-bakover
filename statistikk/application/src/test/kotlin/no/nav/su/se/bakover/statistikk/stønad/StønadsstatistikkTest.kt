@@ -413,7 +413,6 @@ internal class StønadsstatistikkTest {
                 JSONAssert.assertEquals(
                     """
                 {
-                  "harUtenlandsOpphold": "NEI",
                   "funksjonellTid": "$funksjonellTid",
                   "tekniskTid": "2021-01-01T01:02:03.456789Z",
                   "stonadstype": "$stonadstype",
@@ -432,7 +431,8 @@ internal class StønadsstatistikkTest {
                   ${if (opphørsgrunn != null) """"opphorsgrunn":"$opphørsgrunn",""" else ""}
                   ${if (opphørsdato != null) """"opphorsdato":"$opphørsdato",""" else ""}
                   "versjon": "87a3a5155bf00b4d6854efcc24e8b929549c9302",
-                  "flyktningsstatus": "FLYKTNING"
+                  "harUtenlandsOpphold": "NEI",
+                  "flyktningsstatus": "NEI"
                 }
                     """.trimIndent(),
                     it,

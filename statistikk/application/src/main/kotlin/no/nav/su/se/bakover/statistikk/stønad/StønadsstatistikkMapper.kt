@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.statistikk.stønad
 
+import arrow.core.Either
 import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
@@ -29,10 +30,12 @@ import statistikk.domain.StønadsklassifiseringDto.Companion.stønadsklassifiser
 import statistikk.domain.StønadstatistikkDto
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.common.domain.Vilkår
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.vurderinger.domain.VilkårEksistererIkke
 import java.time.Clock
 import kotlin.math.roundToInt
 
@@ -77,29 +80,15 @@ private fun toDto(
     val sak = hentSak()
     val personNummerEktefelle = vedtak.behandling.grunnlagsdata.eps.hentEktefelleHvisFinnes()
 
-    val harFamiliegjenforening = vedtak.behandling.vilkårsvurderinger.familiegjenforening().fold(
-        { null },
-        {
-            when (it.vurdering) {
-                Vurdering.Avslag -> JaNei.JA
-                Vurdering.Innvilget -> JaNei.NEI
-                Vurdering.Uavklart -> null
-            }
-        },
-    )
-
-    val harUtenlandsOpphold = when (vedtak.behandling.vilkårsvurderinger.utenlandsopphold.vurdering) {
-        Vurdering.Avslag -> JaNei.JA
-        Vurdering.Innvilget -> JaNei.NEI
-        Vurdering.Uavklart -> null
-    }
+    // TODO må inn i månedsbeløp...
+    // val uføregrad= vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag()
 
     return StønadstatistikkDto(
-        harUtenlandsOpphold = harUtenlandsOpphold,
-        harFamiliegjenforening = harFamiliegjenforening,
+        harUtenlandsOpphold = vilkarVurdert(vedtak.behandling.vilkårsvurderinger.utenlandsopphold),
+        harFamiliegjenforening = vilkarVurdertHvisEksisterer(vedtak.behandling.vilkårsvurderinger.familiegjenforening()),
+        flyktningsstatus = vilkarVurdertHvisEksisterer(vedtak.behandling.vilkårsvurderinger.flyktningVilkår()),
         personnummer = sak.fnr,
         personNummerEktefelle = personNummerEktefelle,
-
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
         stonadstype = when (vedtak.sakinfo().type) {
@@ -153,13 +142,21 @@ private fun toDto(
             is Opphørsvedtak -> vedtak.behandling.utledOpphørsdato(clock)
             else -> null
         },
-        flyktningsstatus = when (sak.type) {
-            Sakstype.ALDER -> null // Ikke relevant, vi har ikke opplysningen heller.
-            Sakstype.UFØRE -> "FLYKTNING"
-        },
-
     )
 }
+
+private fun vilkarVurdert(vilkår: Vilkår) = when (vilkår.vurdering) {
+    Vurdering.Avslag -> JaNei.JA
+    Vurdering.Innvilget -> JaNei.NEI
+    Vurdering.Uavklart -> null
+}
+
+private fun vilkarVurdertHvisEksisterer(vilkår: Either<VilkårEksistererIkke, Vilkår>) = vilkår.fold(
+    { null },
+    {
+        vilkarVurdert(it)
+    },
+)
 
 private fun mapBeregning(
     vedtak: VedtakEndringIYtelse,

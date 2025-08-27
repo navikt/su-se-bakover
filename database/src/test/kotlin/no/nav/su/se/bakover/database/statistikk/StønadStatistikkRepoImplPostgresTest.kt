@@ -156,7 +156,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 ),
                 opphorsgrunn = null,
                 opphorsdato = null,
-                flyktningsstatus = "FLYKTNING",
+                flyktningsstatus = JaNei.JA,
                 versjon = UUID.randomUUID().toString(),
             )
 
