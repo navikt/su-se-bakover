@@ -42,7 +42,7 @@ fun main() {
 fun writeToBigQuery(
     data: String = "",
 ) {
-    val jsonKey: InputStream = FileInputStream(File("/var/run/secrets/nais.io/vault/bigquery"))
+    val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
     val project: String = System.getenv("GCP_PROJECT")
 
     val dataset = "statistikk"

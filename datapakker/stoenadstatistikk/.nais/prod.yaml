@@ -25,3 +25,5 @@ spec:
       value: "supstonad-db-15-prod"
     - name: DATABASE_JDBC_URL
       value: "jdbc:postgresql://A01DBVL036.adeo.no:5432/supstonad-db-15-prod"
+    - name: BIGQUERY_CREDENTIALS
+      value: "/var/run/secrets/nais.io/vault/bigquery"
