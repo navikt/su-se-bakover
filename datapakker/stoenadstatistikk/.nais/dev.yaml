@@ -8,7 +8,7 @@ metadata:
 spec:
   timeZone: Europe/Oslo
   # Run every day at 3:20
-  schedule: '38 4 * * *'
+  schedule: '48 4 * * *'
   image: {{ image }}
   concurrencyPolicy: Replace
   vault:
