@@ -27,7 +27,8 @@ fun main() {
         vaultMountPath = System.getenv("VAULT_MOUNTPATH"),
         databaseName = System.getenv("DATABASE_NAME"),
     ).getDatasource(Postgres.Role.ReadOnly).let {
-        logger.info("Startet database med url: $it")
+        logger.info("Startet database med url: $databaseUrl")
+        it
     }
     /*
         Her kommer koden for å hente data fra databasen, transformere den og laste den opp til BigQuery
