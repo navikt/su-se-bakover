@@ -69,4 +69,9 @@ sealed interface Attestering {
         val grunn: UnderkjennAttesteringsgrunn,
         val kommentar: String,
     ) : Attestering
+
+    data class retur(
+        override val attestant: NavIdentBruker.Attestant,
+        override val opprettet: Tidspunkt,
+    ) : Attestering
 }
