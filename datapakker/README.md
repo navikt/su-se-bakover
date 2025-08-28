@@ -8,6 +8,7 @@ Våre app navn:
 ```
 su-datapakke-soknad
 su-datapakke-fritekstAvslag
+su-datapakke-stoenadstatistikk
 ```
 
 ```
@@ -16,9 +17,21 @@ kubectl delete job -l app=navn --namespace=supstonad
 kubectl delete pod -l app=navn --namespace=supstonad
 ```
 
+Slette alle jobber med navn
+```
+kubectl get jobs -n supstonad \
+  --no-headers \
+  | awk '/su-datapakke-stoenadstatistikk/ {print $1}' \
+  | xargs kubectl delete job -n supstonad
+```
+
 Start en manuell cronjob (husk å slett dersom den feiler):
 ```
-kubectl create job --namespace=supstonad --from=cronjobs/su-datapakke-soknad manuell-test-custom-name-here
+List opp alle unike job templates:
+kubectl get cronjobs -n supstonad
+Kjør jobb manuelt:
+kubectl create job --from=cronjob/su-datapakke-stoenadstatistikk su-datapakke-stoenadstatistikk-navnmanuelt -n supstonad
+Der from er lik name fra name i spørringen over etter forward slashen.
 ```
 
 ## How-to
@@ -40,6 +53,9 @@ kubectl create job --namespace=supstonad --from=cronjobs/su-datapakke-soknad man
       - `Service Account Key Admin`
       - `Service Usage Admin`
       - `naisdeveloper` (for supstonad-prod)
+dev:
+      - https://console.cloud.google.com/bigquery?ws=!1m5!1m4!4m3!1ssupstonad-dev-0e48!2sstatistikk!3sstoenadstatistikk
+
 
 #### Oppsett
 En datapakke har 3 essensielle deler - en database connection, og config for GCP/BigQuery, og en naisjob.
@@ -55,6 +71,18 @@ Hovedpoenget med en datapakke er å hente fram data, og lagre det i en BigQuery 
    - En annen i teamet kan approve PR'en
 6. Husk å oppdatere '.github/workflows/datapakker.yml'. Per nå dupliserer vi litt mye, så du kan gjerne gjøre noe smart istedenfor :)
 7. Kopier build.gradle.kts i sin helhet og endre på navn og dependencies. jar-tasken er viktig, da den bygger en jar-fil som støttes av baseimages.
+
+Sjekk vault her https://vault.adeo.no/ui/vault/secrets/secret/show/supstonad/dev
+
+Feilsøking ved opprettelse av pod:
+Hvis podden er i init/error state så kan det være fordi
+sidekick podden til vault dubbed vks-init feiler mot vault.
+Den kan introspectes med feks 
+`kubectl logs su-datapakke-stoenadstatistikk-id -c vks-init`
+evt se i jobben med 
+`kubectl get pod su-datapakke-stoenadstatistikk-id -o wide`
+eller
+`kubectl describe pod su-datapakke-stoenadstatistikk-id`
 
 #### GCP
 1. Gå til `console.cloud.google.com`
