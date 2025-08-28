@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import vilkår.common.domain.Avslagsgrunn
@@ -40,6 +41,9 @@ sealed interface SøknadsbehandlingTilAttestering :
     fun tilUnderkjent(
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling>
+    fun tilRetur(
+        attestering: Attestering.retur,
+    ): Either<KunneIkkeReturnereSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, ReturnerSøknadsbehandling>
 
     abstract override val aldersvurdering: Aldersvurdering
     abstract override val attesteringer: Attesteringshistorikk
@@ -90,6 +94,29 @@ sealed interface SøknadsbehandlingTilAttestering :
             attestering: Attestering.Underkjent,
         ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling.Innvilget> {
             if (attestering.attestant.navIdent == saksbehandler.navIdent) return KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            return UnderkjentSøknadsbehandling.Innvilget(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                søknad = søknad,
+                oppgaveId = oppgaveId,
+                fnr = fnr,
+                beregning = beregning,
+                simulering = simulering,
+                saksbehandler = saksbehandler,
+                attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                fritekstTilBrev = fritekstTilBrev,
+                aldersvurdering = aldersvurdering,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                sakstype = sakstype,
+                omgjøringsårsak = omgjøringsårsak,
+                omgjøringsgrunn = omgjøringsgrunn,
+            ).right()
+        }
+
+        override fun tilRetur(attestering: Attestering.retur): ReturnerSøknadsbehandling {
             return UnderkjentSøknadsbehandling.Innvilget(
                 id = id,
                 opprettet = opprettet,

@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBositua
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanSendesTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanSimuleres
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.ReturnerSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -64,6 +65,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTil
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
@@ -278,6 +280,24 @@ class SøknadsbehandlingServiceImpl(
             }
             return søknadsbehandlingTilAttestering.right()
         }
+    }
+
+    override fun retur(request: SøknadsbehandlingService.ReturRequest
+    ): Either<KunneIkkeReturnereSøknadsbehandling, ReturnerSøknadsbehandling> {
+        val søknadsbehandling = (
+            søknadsbehandlingRepo.hent(request.behandlingId)
+                ?: return KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling.left()
+            ).let {
+                it as? SøknadsbehandlingTilAttestering ?: return KunneIkkeReturnereSøknadsbehandling.UgyldigTilstand(
+                    it::class
+                ).left()
+            }
+            if(request.saksbehandler !== søknadsbehandling.saksbehandler) {
+               return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
+            }
+            return søknadsbehandling.tilRetur(request.saksbehandler).map { retur ->
+
+            }
     }
 
     override fun underkjenn(

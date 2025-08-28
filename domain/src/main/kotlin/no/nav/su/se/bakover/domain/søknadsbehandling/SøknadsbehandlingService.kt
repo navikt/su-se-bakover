@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForS
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
+import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
@@ -57,6 +58,7 @@ interface SøknadsbehandlingService {
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling>
+    fun retur(request: ReturRequest): Either<KunneIkkeReturnereSøknadsbehandling, ReturnerSøknadsbehandling>
 
     fun genererBrevutkast(
         command: BrevutkastForSøknadsbehandlingCommand,
@@ -189,6 +191,11 @@ interface SøknadsbehandlingService {
     data class UnderkjennRequest(
         val behandlingId: SøknadsbehandlingId,
         val attestering: Attestering.Underkjent,
+    )
+
+    data class ReturRequest(
+        val behandlingId: SøknadsbehandlingId,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 
     data class HentRequest(
