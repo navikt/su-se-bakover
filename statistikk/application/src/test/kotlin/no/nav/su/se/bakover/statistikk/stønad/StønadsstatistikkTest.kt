@@ -37,7 +37,6 @@ import statistikk.domain.StønadstatistikkDto
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.uføre.domain.Uføregrad
 import java.time.LocalDate
-import java.time.YearMonth
 
 /*
 Merk ingen av disse går igjennom den faktiske mappingen av data og har ingen typesikkerhet what so ever.
@@ -89,17 +88,18 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 17946,
+                  "sats": 20946,
+                  "utbetales": 17946,
                   "fradragSum": 3000,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 3000,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 50
                 }
             ]
             """.trimIndent(),
@@ -150,32 +150,34 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "fradragSum": 0,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 100
                 },
                 {
                   "måned": "2021-02-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 13446,
+                  "sats": 20946,
+                  "utbetales": 13446,
                   "fradragSum": 7500,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "Arbeidsinntekt",
+                      "fradragstype": "Arbeidsinntekt",
                       "beløp": 7500,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -215,17 +217,18 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-02-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
+                  "sats": 20946,
+                  "utbetales": 20946,
                   "fradragSum": 0,
-                  "inntekter": [
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
-                  ]
+                  ],
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -251,32 +254,34 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
-                  "inntekter": [
+                  "sats": 20946,
+                  "utbetales": 20946,
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 0
+                  "fradragSum": 0,
+                  "uføregrad": 100
                 },
                 {
                   "måned": "2021-02-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
-                  "inntekter": [
+                  "sats": 20946,
+                  "utbetales": 20946,
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 0
+                  "fradragSum": 0,
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -308,17 +313,18 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 13446,
-                  "inntekter": [
+                  "sats": 20946,
+                  "utbetales": 13446,
+                  "fradrag": [
                     {
-                      "inntektstype": "Arbeidsinntekt",
+                      "fradragstype": "Arbeidsinntekt",
                       "beløp": 7500,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 7500
+                  "fradragSum": 7500,
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -363,17 +369,18 @@ internal class StønadsstatistikkTest {
                 {
                   "måned": "2021-01-01",
                   "stonadsklassifisering": "BOR_ALENE",
-                  "bruttosats": 20946,
-                  "nettosats": 20946,
-                  "inntekter": [
+                  "sats": 20946,
+                  "utbetales": 20946,
+                  "fradrag": [
                     {
-                      "inntektstype": "ForventetInntekt",
+                      "fradragstype": "ForventetInntekt",
                       "beløp": 0,
                       "tilhører": "BRUKER",
                       "erUtenlandsk": false
                     }
                   ],
-                  "fradragSum": 0
+                  "fradragSum": 0,
+                  "uføregrad": 100
                 }
             ]
             """.trimIndent(),
@@ -414,8 +421,6 @@ internal class StønadsstatistikkTest {
                 JSONAssert.assertEquals(
                     """
                 {
-                  "harUtenlandsOpphold": "NEI",
-                  "statistikkAarMaaned": "${YearMonth.now()}",
                   "funksjonellTid": "$funksjonellTid",
                   "tekniskTid": "2021-01-01T01:02:03.456789Z",
                   "stonadstype": "$stonadstype",
@@ -434,7 +439,8 @@ internal class StønadsstatistikkTest {
                   ${if (opphørsgrunn != null) """"opphorsgrunn":"$opphørsgrunn",""" else ""}
                   ${if (opphørsdato != null) """"opphorsdato":"$opphørsdato",""" else ""}
                   "versjon": "87a3a5155bf00b4d6854efcc24e8b929549c9302",
-                  "flyktningsstatus": "FLYKTNING"
+                  "harUtenlandsOpphold": "NEI",
+                  "flyktningsstatus": "NEI"
                 }
                     """.trimIndent(),
                     it,

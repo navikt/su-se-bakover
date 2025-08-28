@@ -5,14 +5,12 @@ import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 /**
  * Data transfer object for stønadsstatistikk (support statistics).
  * @property harUtenlandsOpphold Er dvh sin AVVIK_UTL_OPPHOLD Knyttet opp mot vilkårsvurderingen
  * @property harFamiliegjenforening Angir om bruker har kommet pga familiegjenforening
- * @property statistikkAarMaaned År og måned statistikken gjelder for.
  * @property personnummer Personens fødselsnummer.
  * @property personNummerEktefelle Fødselsnummer til ektefelle, hvis aktuelt.
  * @property funksjonellTid Tidspunktet da hendelsen faktisk ble gjennomført eller registrert i kildesystemet.
@@ -39,9 +37,6 @@ import java.util.UUID
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class StønadstatistikkDto(
-    val harUtenlandsOpphold: JaNei? = null,
-    val harFamiliegjenforening: JaNei? = null,
-    val statistikkAarMaaned: YearMonth,
     val personnummer: Fnr,
     val personNummerEktefelle: Fnr? = null,
     val funksjonellTid: Tidspunkt,
@@ -60,7 +55,9 @@ data class StønadstatistikkDto(
     val månedsbeløp: List<Månedsbeløp>,
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
-    val flyktningsstatus: String?,
+    val flyktningsstatus: JaNei?,
+    val harUtenlandsOpphold: JaNei?,
+    val harFamiliegjenforening: JaNei?,
     val versjon: String?,
 ) {
     enum class Stønadstype(val beskrivelse: String) {
@@ -87,26 +84,28 @@ data class StønadstatistikkDto(
     /**
      * @property måned for når beløpene gjelder, f.eks. Jan 2021
      * @property stonadsklassifisering Klassifisering av hva som gjør at stønadsmottaker mottar ordinær eller høy sats.
-     * @property bruttosats Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra.
-     * @property nettosats Faktisk utbetaling per måned.
+     * @property sats Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra.
+     * @property utbetales Faktisk utbetaling per måned.
      * @property fradragSum Summen av alle fradrag/inntekter som gjelder for stønadsmottaker.
+     * @property uføregrad uføregrad til bruker hvis uføre sak
      */
     data class Månedsbeløp(
         val måned: String,
         val stonadsklassifisering: StønadsklassifiseringDto,
-        val bruttosats: Long,
-        val nettosats: Long,
-        val inntekter: List<Inntekt>,
+        val sats: Long,
+        val utbetales: Long,
+        val fradrag: List<Fradrag>,
         val fradragSum: Long,
+        val uføregrad: Int?,
     )
 
     /**
-     * @property inntektstype Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv. så basically [Fradragstype.Kategori]
+     * @property fradragstype Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv. så basically [Fradragstype.Kategori]
      * @property beløp Inntekten i kroner per måned.
      * @property tilhører er [FradragTilhører]
      */
-    data class Inntekt(
-        val inntektstype: String,
+    data class Fradrag(
+        val fradragstype: String,
         val beløp: Long,
         val tilhører: String,
         val erUtenlandsk: Boolean,
