@@ -81,9 +81,6 @@ private fun toDto(
     val sak = hentSak()
     val personNummerEktefelle = vedtak.behandling.grunnlagsdata.eps.hentEktefelleHvisFinnes()
 
-    // TODO må inn i månedsbeløp...
-    // val uføregrad= vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag()
-
     return StønadstatistikkDto(
         harUtenlandsOpphold = vilkarVurdert(vedtak.behandling.vilkårsvurderinger.utenlandsopphold),
         harFamiliegjenforening = vilkarVurdertHvisEksisterer(vedtak.behandling.vilkårsvurderinger.familiegjenforening()),
