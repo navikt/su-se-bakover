@@ -827,6 +827,98 @@ internal class KonsistensavstemmingTest {
     }
 
     @Test
+    fun `innvilgelse - regulering - stans - gjenopptak`() {
+        val førsteKlokke = Clock.fixed(1.juli(2021).startOfDay().instant, ZoneOffset.UTC)
+        val andreKlokke = førsteKlokke.plus(1, ChronoUnit.DAYS)
+        val tredjeKlokke = andreKlokke.plus(1, ChronoUnit.DAYS)
+        val fjerdeKlokke = tredjeKlokke.plus(1, ChronoUnit.DAYS)
+
+        val innvilgetSøknad = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(førsteKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 10000,
+                    // Vi får en cut-off her på grunn av spørringen filtrerer bort tidligere utbetalinger som er avsluttet.
+                    forrigeUtbetalingslinjeId = UUID30.randomUUID(),
+                ),
+            ),
+            behandler = NavIdentBruker.Attestant("a1"),
+        )
+        val reguleringslinje = createUtbetalingslinje(
+            opprettet = Tidspunkt.now(andreKlokke),
+            fraOgMed = 1.mai(2021),
+            tilOgMed = 31.desember(2021),
+            beløp = 11000,
+            forrigeUtbetalingslinjeId = innvilgetSøknad.utbetalingslinjer.single().id,
+        )
+        val regulering = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(andreKlokke),
+            utbetalingsLinjer = nonEmptyListOf(reguleringslinje),
+            behandler = NavIdentBruker.Attestant("a1"),
+        )
+        val stans = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(tredjeKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                Utbetalingslinje.Endring.Stans(
+                    utbetalingslinjeSomSkalEndres = regulering.sisteUtbetalingslinje(),
+                    virkningstidspunkt = 1.juli(2021),
+                    clock = tredjeKlokke,
+                    rekkefølge = Rekkefølge.start(),
+                ),
+            ),
+            behandler = NavIdentBruker.Attestant("a1"),
+        )
+        val gjenopprettelse = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(fjerdeKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                Utbetalingslinje.Endring.Reaktivering(
+                    utbetalingslinjeSomSkalEndres = regulering.sisteUtbetalingslinje(),
+                    virkningstidspunkt = 1.juli(2021),
+                    clock = fjerdeKlokke,
+                    rekkefølge = Rekkefølge.start(),
+                ),
+            ),
+            behandler = NavIdentBruker.Attestant("a1"),
+        )
+        val løpendeUtbetalinger = Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = 30.juli(2021).startOfDay(zoneIdOslo),
+            løpendeFraOgMed = 30.juli(2021).startOfDay(zoneIdOslo),
+            opprettetTilOgMed = 29.juli(2021).endOfDay(zoneIdOslo),
+            utbetalinger = listOf(innvilgetSøknad, regulering, stans, gjenopprettelse),
+            avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
+        ).løpendeUtbetalinger
+        løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    reguleringslinje.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant("a1"),
+                            NavIdentBruker.Attestant("a1"),
+                            NavIdentBruker.Attestant("a1"),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
     fun `inkluderer alle attestanter for linjer som er endret`() {
         val rekkefølge = Rekkefølge.generator()
         val første = createUtbetaling(
@@ -1092,13 +1184,14 @@ internal class KonsistensavstemmingTest {
         tilOgMed: LocalDate = 31.desember(2020),
         beløp: Int = 500,
         uføregrad: Uføregrad = Uføregrad.parse(50),
+        forrigeUtbetalingslinjeId: UUID30? = null,
     ) = Utbetalingslinje.Ny(
         opprettet = opprettet,
         rekkefølge = rekkefølge,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         beløp = beløp,
-        forrigeUtbetalingslinjeId = null,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         uføregrad = uføregrad,
     )
 
