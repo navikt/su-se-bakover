@@ -33,7 +33,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
         return StønadstatistikkDto(
             harUtenlandsOpphold = null,
             harFamiliegjenforening = null,
-            statistikkAarMaaned = YearMonth.now(),
             personnummer = Fnr.generer(),
             personNummerEktefelle = Fnr.generer(),
             funksjonellTid = Tidspunkt.now(tikkendeKlokke),
@@ -83,13 +82,13 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         123L,
                         123L,
                         listOf(
-                            StønadstatistikkDto.Inntekt(
+                            StønadstatistikkDto.Fradrag(
                                 Fradragstype.Arbeidsinntekt.kategori.name,
                                 123L,
                                 FradragTilhører.BRUKER.toString(),
                                 false,
                             ),
-                            StønadstatistikkDto.Inntekt(
+                            StønadstatistikkDto.Fradrag(
                                 Fradragstype.ForventetInntekt.kategori.name,
                                 0L,
                                 FradragTilhører.BRUKER.toString(),
@@ -97,6 +96,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                             ),
                         ),
                         123L,
+                        null,
                     ),
                 ),
             )
@@ -107,10 +107,10 @@ internal class StønadStatistikkRepoImplPostgresTest {
             hendelse shouldBe stønadshendelse
             val førsteMånedsbeløp = hendelse.månedsbeløp.first()
             førsteMånedsbeløp.stonadsklassifisering shouldBe StønadsklassifiseringDto.BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING
-            førsteMånedsbeløp.inntekter.size shouldBe 2
-            førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
-            førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.Arbeidsinntekt.kategori.name }
-            førsteMånedsbeløp.inntekter.forExactly(1) { it.beløp shouldBe 0L }
+            førsteMånedsbeløp.fradrag.size shouldBe 2
+            førsteMånedsbeløp.fradrag.forExactly(1) { it.fradragstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
+            førsteMånedsbeløp.fradrag.forExactly(1) { it.fradragstype shouldBe Fradragstype.Arbeidsinntekt.kategori.name }
+            førsteMånedsbeløp.fradrag.forExactly(1) { it.beløp shouldBe 0L }
         }
     }
 
@@ -123,7 +123,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
             val stønadshendelseGjenopptak = StønadstatistikkDto(
                 harUtenlandsOpphold = JaNei.NEI,
                 harFamiliegjenforening = null, // not in JSON, so null
-                statistikkAarMaaned = YearMonth.parse("2025-07"),
                 personnummer = Fnr("64825004709"),
                 personNummerEktefelle = null,
                 funksjonellTid = Tidspunkt.parse("2021-01-01T01:02:58.456789Z"),
@@ -143,22 +142,23 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     Månedsbeløp(
                         måned = "2021-01-01",
                         stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
-                        bruttosats = 20946L,
-                        nettosats = 17946L,
-                        inntekter = listOf(
-                            StønadstatistikkDto.Inntekt(
-                                inntektstype = Fradragstype.ForventetInntekt.kategori.name,
+                        sats = 20946L,
+                        utbetales = 17946L,
+                        fradrag = listOf(
+                            StønadstatistikkDto.Fradrag(
+                                fradragstype = Fradragstype.ForventetInntekt.kategori.name,
                                 beløp = 3000L,
                                 tilhører = FradragTilhører.BRUKER.toString(),
                                 erUtenlandsk = false,
                             ),
                         ),
                         fradragSum = 3000L,
+                        null,
                     ),
                 ),
                 opphorsgrunn = null,
                 opphorsdato = null,
-                flyktningsstatus = "FLYKTNING",
+                flyktningsstatus = JaNei.JA,
                 versjon = UUID.randomUUID().toString(),
             )
 
@@ -170,7 +170,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
             hendelse shouldBe stønadshendelseGjenopptak
             val førsteMånedsbeløp = hendelse.månedsbeløp.first()
             førsteMånedsbeløp.stonadsklassifisering shouldBe StønadsklassifiseringDto.BOR_ALENE
-            førsteMånedsbeløp.inntekter.forExactly(1) { it.inntektstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
+            førsteMånedsbeløp.fradrag.forExactly(1) { it.fradragstype shouldBe Fradragstype.ForventetInntekt.kategori.name }
         }
     }
 
@@ -187,17 +187,39 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 val juni = YearMonth.of(2025, 6)
                 val juli = YearMonth.of(2025, 7)
 
+                val inntekters = listOf(
+                    StønadstatistikkDto.Fradrag(
+                        fradragstype = "Uføre",
+                        beløp = 100,
+                        tilhører = "BRUKER",
+                        erUtenlandsk = false,
+                    ),
+                    StønadstatistikkDto.Fradrag(
+                        fradragstype = "Oms",
+                        beløp = 200,
+                        tilhører = "EPS",
+                        erUtenlandsk = false,
+                    ),
+                )
+
+                val forventetStatistikkEn = lagStønadstatistikk(
+                    LocalDate.of(2025, 5, 10),
+                    sakEn,
+                    listOf(
+                        lagMånedsbeløp(mai, 100),
+                        lagMånedsbeløp(juni, 200, inntekters),
+                        lagMånedsbeløp(juli, 300),
+                    ),
+                )
+                val forventetStatistikkTo = lagStønadstatistikk(
+                    LocalDate.of(2025, 5, 10),
+                    sakTo,
+                    listOf(lagMånedsbeløp(juni, 100, inntekters), lagMånedsbeløp(juli, 200)),
+                )
+
                 listOf(
-                    lagStønadstatistikk(
-                        LocalDate.of(2025, 5, 10),
-                        sakEn,
-                        listOf(lagMånedsbeløp(mai), lagMånedsbeløp(juni), lagMånedsbeløp(juli)),
-                    ),
-                    lagStønadstatistikk(
-                        LocalDate.of(2025, 5, 10),
-                        sakTo,
-                        listOf(lagMånedsbeløp(juni), lagMånedsbeløp(juli)),
-                    ),
+                    forventetStatistikkEn,
+                    forventetStatistikkTo,
                     lagStønadstatistikk(
                         LocalDate.of(2025, 5, 10),
                         sakTre,
@@ -216,9 +238,43 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 val stønadStatistikk = repo.hentMånedStatistikk(juni)
                 stønadStatistikk.size shouldBe 2
 
-                stønadStatistikk.forEach {
-                    it.gjeldendeStonadUtbetalingsstart shouldBeBefore juni.atEndOfMonth()
-                    it.gjeldendeStonadUtbetalingsstopp shouldBeAfter juni.atEndOfMonth()
+                with(stønadStatistikk[0]) {
+                    måned shouldBe juni
+                    funksjonellTid shouldBe forventetStatistikkEn.funksjonellTid
+                    tekniskTid shouldBe forventetStatistikkEn.tekniskTid
+                    sakId shouldBe forventetStatistikkEn.sakId
+                    stonadstype shouldBe forventetStatistikkEn.stonadstype
+                    personnummer shouldBe forventetStatistikkEn.personnummer
+                    personNummerEps shouldBe forventetStatistikkEn.personNummerEktefelle
+                    vedtaksdato shouldBe forventetStatistikkEn.vedtaksdato
+                    vedtakstype shouldBe forventetStatistikkEn.vedtakstype
+                    vedtaksresultat shouldBe forventetStatistikkEn.vedtaksresultat
+                    vedtakFraOgMed shouldBe forventetStatistikkEn.gjeldendeStonadVirkningstidspunkt
+                    vedtakTilOgMed shouldBe forventetStatistikkEn.gjeldendeStonadStopptidspunkt
+                    opphorsgrunn shouldBe forventetStatistikkEn.opphorsgrunn
+                    opphorsdato shouldBe forventetStatistikkEn.opphorsdato
+                    behandlendeEnhetKode shouldBe forventetStatistikkEn.behandlendeEnhetKode
+
+                    månedsbeløp.sats shouldBe 200
+                    månedsbeløp.fradrag.size shouldBe 2
+                    månedsbeløp.fradrag[0].beløp shouldBe 100
+                    månedsbeløp.fradrag[0].fradragstype shouldBe "Uføre"
+                    månedsbeløp.fradrag[0].tilhører shouldBe "BRUKER"
+                    månedsbeløp.fradrag[1].beløp shouldBe 200
+                    månedsbeløp.fradrag[1].fradragstype shouldBe "Oms"
+                    månedsbeløp.fradrag[1].tilhører shouldBe "EPS"
+                }
+                with(stønadStatistikk[1]) {
+                    vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
+                    vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
+                    månedsbeløp.sats shouldBe 100
+                    månedsbeløp.fradrag.size shouldBe 2
+                    månedsbeløp.fradrag[0].beløp shouldBe 100
+                    månedsbeløp.fradrag[0].fradragstype shouldBe "Uføre"
+                    månedsbeløp.fradrag[0].tilhører shouldBe "BRUKER"
+                    månedsbeløp.fradrag[1].beløp shouldBe 200
+                    månedsbeløp.fradrag[1].fradragstype shouldBe "Oms"
+                    månedsbeløp.fradrag[1].tilhører shouldBe "EPS"
                 }
             }
         }
@@ -257,13 +313,15 @@ internal class StønadStatistikkRepoImplPostgresTest {
         fun lagMånedsbeløp(
             måned: YearMonth,
             utbetaling: Long = 100L,
+            inntekter: List<StønadstatistikkDto.Fradrag> = listOf(),
         ) = Månedsbeløp(
             måned = måned.toString(),
             stonadsklassifisering = StønadsklassifiseringDto.BOR_ALENE,
-            bruttosats = utbetaling,
-            nettosats = utbetaling,
+            sats = utbetaling,
+            utbetales = utbetaling,
             fradragSum = 0,
-            inntekter = listOf(),
+            fradrag = inntekter,
+            uføregrad = 0,
         )
 
         fun lagStønadstatistikk(
@@ -276,7 +334,6 @@ internal class StønadStatistikkRepoImplPostgresTest {
             return StønadstatistikkDto(
                 harUtenlandsOpphold = null,
                 harFamiliegjenforening = null,
-                statistikkAarMaaned = YearMonth.from(vedtaksdato),
                 personnummer = sak.first,
                 personNummerEktefelle = Fnr.generer(),
                 funksjonellTid = Tidspunkt.now(tikkendeKlokke),
@@ -293,7 +350,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                 gjeldendeStonadUtbetalingsstart = start,
                 gjeldendeStonadUtbetalingsstopp = slutt,
                 månedsbeløp = månedsbeløper,
-                opphorsgrunn = null,
+                opphorsgrunn = "for test",
                 opphorsdato = slutt,
                 flyktningsstatus = null,
                 versjon = null,
