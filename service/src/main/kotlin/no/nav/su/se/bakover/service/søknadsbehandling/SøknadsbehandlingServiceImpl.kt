@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdatereFradragsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.KanReturneresFraAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanSendesTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanSimuleres
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -282,8 +283,9 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun retur(request: SøknadsbehandlingService.ReturRequest
-    ): Either<KunneIkkeReturnereSøknadsbehandling, ReturnerSøknadsbehandling> {
+    override fun retur(
+        request: SøknadsbehandlingService.ReturRequest
+    ): Either<KunneIkkeReturnereSøknadsbehandling, KanReturneresFraAttestering> {
         val søknadsbehandling = (
             søknadsbehandlingRepo.hent(request.behandlingId)
                 ?: return KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling.left()
@@ -292,13 +294,28 @@ class SøknadsbehandlingServiceImpl(
                     it::class
                 ).left()
             }
-            if(request.saksbehandler !== søknadsbehandling.saksbehandler) {
+            if(request.saksbehandler === søknadsbehandling.saksbehandler) {
                return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
             }
-            return søknadsbehandling.tilRetur(request.saksbehandler).map { retur ->
-
+        return søknadsbehandling.tilRetur(request.attestering).let { retur ->
+            oppgaveService.oppdaterOppgave(
+                retur.oppgaveId,
+                oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                    beskrivelse = "Behandling har blitt returnert",
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(søknadsbehandling.saksbehandler.navIdent),
+                ),
+            ).map{
+                log.info("Behandling ${retur.id} ble returnert. Oppgave ${retur.oppgaveId} ble oppdatert. Se sikkerlogg for response")
+                sikkerLogg.info("Behandling ${retur.id} ble returnert. Oppgave ${retur.oppgaveId} ble oppdatert. oppgaveResponse: ${it.response}")
+            }.mapLeft {
+                log.error("Søknadsbehandling retur: Kunne ikke oppdatere oppgave ${retur.oppgaveId} for søknadsbehandling ${retur.id}. Feilen var $it")
             }
+            søknadsbehandlingRepo.lagre(retur)
+            retur.right()
+        }
     }
+
 
     override fun underkjenn(
         request: UnderkjennRequest,

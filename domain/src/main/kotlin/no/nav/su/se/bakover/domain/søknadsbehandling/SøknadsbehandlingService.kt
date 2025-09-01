@@ -58,7 +58,7 @@ interface SøknadsbehandlingService {
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling>
-    fun retur(request: ReturRequest): Either<KunneIkkeReturnereSøknadsbehandling, ReturnerSøknadsbehandling>
+    fun retur(request: ReturRequest): Either<KunneIkkeReturnereSøknadsbehandling, KanReturneresFraAttestering>
 
     fun genererBrevutkast(
         command: BrevutkastForSøknadsbehandlingCommand,
@@ -196,6 +196,7 @@ interface SøknadsbehandlingService {
     data class ReturRequest(
         val behandlingId: SøknadsbehandlingId,
         val saksbehandler: NavIdentBruker.Saksbehandler,
+        val attestering: Attestering.retur,
     )
 
     data class HentRequest(

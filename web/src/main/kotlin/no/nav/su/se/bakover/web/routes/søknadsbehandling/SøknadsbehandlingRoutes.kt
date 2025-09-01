@@ -332,28 +332,31 @@ internal fun Route.søknadsbehandlingRoutes(
                         ReturRequest(
                             behandlingId = SøknadsbehandlingId(behandlingId),
                             saksbehandler = sakBehandler,
-                    )
-                )
-                .fold(
-                    ifLeft = {
-                        val resultat = when (it) {
-                            KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
-                            KunneIkkeReturnereSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                            KunneIkkeReturnereSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
-                            KunneIkkeReturnereSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
-                        }
-                        call.svar(resultat)
-                    },
-                    ifRight = {
-                        call.sikkerlogg("Tok søknaden i retur: $behandlingId")
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                        call.svar(OK.jsonBody(it, formuegrenserFactory))
+                            attestering = Attestering.retur(
+                                attestant = Attestant(sakBehandler.navIdent),
+                                opprettet = Tidspunkt.now(clock),
+                            )
+                        )
+                    ).fold(
+                        ifLeft = {
+                            val resultat = when (it) {
+                                KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
+                                //KunneIkkeReturnereSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                                KunneIkkeReturnereSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
+                                KunneIkkeReturnereSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
+                            }
+                            call.svar(resultat)
+                        },
+                        ifRight = {
+                            call.sikkerlogg("Tok søknaden i retur: $behandlingId")
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                            call.svar(OK.jsonBody(it, formuegrenserFactory))
 
-                    }
-                )
+                        }
+                    )
+                }
             }
         }
-    }
 
 
     data class UnderkjennBody(

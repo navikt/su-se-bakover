@@ -39,6 +39,7 @@ import java.util.UUID
 
 sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
+    KanReturneresFraAttestering,
     KanOppdaterePeriodeBosituasjonVilkår,
     Omgjøringssøknadsbehandling {
 
