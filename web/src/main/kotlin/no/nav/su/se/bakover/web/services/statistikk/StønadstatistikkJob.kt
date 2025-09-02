@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.time.Duration
 
 internal class StønadstatistikkJob(
@@ -13,6 +14,7 @@ internal class StønadstatistikkJob(
     companion object {
 
         fun startJob(
+            clock: Clock,
             initialDelay: Duration,
             periode: Duration,
             runCheckFactory: RunCheckFactory,
@@ -28,7 +30,7 @@ internal class StønadstatistikkJob(
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
                 log.info("Kjører $jobName")
-                stønadStatistikkJobService.lagMånedligStønadstatistikk()
+                stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
                 log.info("Jobb $jobName er fullført")
             }.let { StønadstatistikkJob(it) }
         }

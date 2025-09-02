@@ -255,26 +255,30 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     opphorsdato shouldBe forventetStatistikkEn.opphorsdato
                     behandlendeEnhetKode shouldBe forventetStatistikkEn.behandlendeEnhetKode
 
-                    månedsbeløp.sats shouldBe 200
-                    månedsbeløp.fradrag.size shouldBe 2
-                    månedsbeløp.fradrag[0].beløp shouldBe 100
-                    månedsbeløp.fradrag[0].fradragstype shouldBe "Uføre"
-                    månedsbeløp.fradrag[0].tilhører shouldBe "BRUKER"
-                    månedsbeløp.fradrag[1].beløp shouldBe 200
-                    månedsbeløp.fradrag[1].fradragstype shouldBe "Oms"
-                    månedsbeløp.fradrag[1].tilhører shouldBe "EPS"
+                    with(månedsbeløp!!) {
+                        sats shouldBe 200
+                        fradrag.size shouldBe 2
+                        fradrag[0].beløp shouldBe 100
+                        fradrag[0].fradragstype shouldBe "Uføre"
+                        fradrag[0].tilhører shouldBe "BRUKER"
+                        fradrag[1].beløp shouldBe 200
+                        fradrag[1].fradragstype shouldBe "Oms"
+                        fradrag[1].tilhører shouldBe "EPS"
+                    }
                 }
                 with(stønadStatistikk[1]) {
                     vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
                     vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
-                    månedsbeløp.sats shouldBe 100
-                    månedsbeløp.fradrag.size shouldBe 2
-                    månedsbeløp.fradrag[0].beløp shouldBe 100
-                    månedsbeløp.fradrag[0].fradragstype shouldBe "Uføre"
-                    månedsbeløp.fradrag[0].tilhører shouldBe "BRUKER"
-                    månedsbeløp.fradrag[1].beløp shouldBe 200
-                    månedsbeløp.fradrag[1].fradragstype shouldBe "Oms"
-                    månedsbeløp.fradrag[1].tilhører shouldBe "EPS"
+                    with(månedsbeløp!!) {
+                        sats shouldBe 100
+                        fradrag.size shouldBe 2
+                        fradrag[0].beløp shouldBe 100
+                        fradrag[0].fradragstype shouldBe "Uføre"
+                        fradrag[0].tilhører shouldBe "BRUKER"
+                        fradrag[1].beløp shouldBe 200
+                        fradrag[1].fradragstype shouldBe "Oms"
+                        fradrag[1].tilhører shouldBe "EPS"
+                    }
                 }
             }
         }

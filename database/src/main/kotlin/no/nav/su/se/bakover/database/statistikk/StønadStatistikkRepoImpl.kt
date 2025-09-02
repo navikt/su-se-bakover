@@ -162,6 +162,14 @@ class StønadStatistikkRepoImpl(
         }
     }
 
+    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned) {
+        return dbMetrics.timeQuery("hentStatistikkForMåned") {
+            sessionFactory.withSession { session ->
+                lagreMånedStatistikk(session, månedStatistikk)
+            }
+        }
+    }
+
     private fun lagreMånedStatistikk(session: Session, månedStatistikk: StønadstatistikkMåned) {
         """
             INSERT INTO stoenad_maaned_statistikk (
@@ -195,7 +203,7 @@ class StønadStatistikkRepoImpl(
                 ),
                 session = session,
             )
-        lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, månedStatistikk.månedsbeløp)
+        månedStatistikk.månedsbeløp?.let { lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, it) }
     }
 
     private fun lagreMånedsbeløpMedFradrag(session: Session, stoenadStatistikkId: UUID, månedsbeløp: Månedsbeløp) {

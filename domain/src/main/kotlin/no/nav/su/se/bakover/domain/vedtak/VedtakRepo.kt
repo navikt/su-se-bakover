@@ -15,6 +15,7 @@ import java.util.UUID
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
+    fun hentVedtakForMåned(måned: Måned): List<Vedtak>
 
     /**
      * Tilpasset for frikort.
