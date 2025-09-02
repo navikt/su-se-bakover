@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import arrow.core.Either
+import arrow.core.toNonEmptyListOrNull
 import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.domain.extensions.hasOneElement
-import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
@@ -53,10 +53,10 @@ class StønadStatistikkJobServiceImpl(
     private val vedtakRepo: VedtakRepo,
 ) : StønadStatistikkJobService {
 
-    private val log = LoggerFactory.getLogger("StønadStatistikkJobServiceImpl.kt")
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagMånedligStønadstatistikk(clock: Clock) {
-        val måned = YearMonth.now().minusMonths(1)
+        val måned = YearMonth.now(clock).minusMonths(1)
         val harKjørt = stønadStatistikkRepo.hentMånedStatistikk(måned).isNotEmpty()
         if (!harKjørt) {
             lagMånedligStønadstatistikk(clock, måned)
@@ -135,9 +135,11 @@ class StønadStatistikkJobServiceImpl(
                         val beregningSomGjenopptas = GjeldendeVedtaksdata(
                             periode = Måned.fra(måned),
                             vedtakListe = alleVedtak.filterIsInstance<VedtakSomKanRevurderes>()
-                                .filter { it.beregning != null }.toNonEmptyList(),
+                                .filter { it.beregning != null }.toNonEmptyListOrNull()
+                                ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt"),
                             clock = clock,
-                        ).gjeldendeVedtakForMåned(Måned.fra(måned))?.beregning!!
+                        ).gjeldendeVedtakForMåned(Måned.fra(måned))?.beregning
+                            ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt")
 
                         mapBeregning(siste, beregningSomGjenopptas)
                     }
@@ -197,10 +199,12 @@ class StønadStatistikkJobServiceImpl(
             val fradrag = alleFradrag[måned]?.let { maxAvForventetInntektOgArbeidsInntekt(it) } ?: emptyList()
 
             val uføregrad = uføregrunnlag?.let {
-                it.single { it.periode.måneder().contains(måned) }
+                it.singleOrNull { it.periode.måneder().contains(måned) }
+                    ?: throw IllegalStateException("Uføregrunnlag mangler eller har overlappende perioder")
             }?.uføregrad
 
-            val månedsberegning = månedsberegninger[måned]!!
+            val månedsberegning =
+                månedsberegninger[måned] ?: throw IllegalStateException("Beregning mangler måned $måned")
             StønadstatistikkDto.Månedsbeløp(
                 fradrag = fradrag.map {
                     StønadstatistikkDto.Fradrag(
@@ -239,9 +243,9 @@ class StønadStatistikkJobServiceImpl(
         behandling: Stønadsbehandling,
         månedsberegning: Månedsberegning,
     ): StønadsklassifiseringDto {
-        val bosituasjon = behandling.grunnlagsdata.bosituasjon.single {
+        val bosituasjon = behandling.grunnlagsdata.bosituasjon.singleOrNull {
             it.periode inneholder månedsberegning.periode
-        }
+        } ?: throw IllegalStateException("Bosituasjon mangler eller har overlappende perioder")
 
         return when (bosituasjon) {
             is Bosituasjon.Fullstendig -> bosituasjon.stønadsklassifisering()
