@@ -38,7 +38,9 @@ import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.vurderinger.domain.VilkårEksistererIkke
 import java.time.Clock
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -146,7 +148,7 @@ class StønadStatistikkJobServiceImpl(
 
                     else -> throw IllegalStateException("Ikke tatt høyde for ${siste::class.simpleName} ved generering av statistikk")
                 }.singleOrNull {
-                    it.måned == måned.toString()
+                    YearMonth.from(LocalDate.parse(it.måned, DateTimeFormatter.ISO_DATE)) == måned
                 },
             )
             stønadStatistikkRepo.lagreMånedStatistikk(stønadstatistikk)

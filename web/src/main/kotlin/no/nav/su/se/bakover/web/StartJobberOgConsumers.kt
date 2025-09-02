@@ -263,6 +263,14 @@ private fun localJobberOgConsumers(
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             runCheckFactory = runCheckFactory,
         ),
+
+        StønadstatistikkJob.startJob(
+            clock = clock,
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(1, ChronoUnit.MINUTES),
+            runCheckFactory = runCheckFactory,
+            stønadStatistikkJobService = services.stønadStatistikkJobService,
+        ),
     )
     return JobberOgConsumers(
         jobs = jobber,
