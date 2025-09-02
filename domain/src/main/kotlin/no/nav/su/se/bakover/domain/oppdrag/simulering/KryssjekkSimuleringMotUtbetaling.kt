@@ -82,7 +82,8 @@ internal fun sjekkUtbetalingMotSimulering(
             // Denne vil inneholden summen av alle beløpene som overlapper med linjen. En linje kan inneholde flere måneder
             val simuleringsbeløp = simuleringsperioderOgBeløp.sumOf { it.beløp.sum() }
             if (simuleringsperiode != null) {
-                if (simuleringsperiode != linje.periode) {
+                // simulering gir ikke svar for perioder der beløp er 0
+                if (linje.beløp > 0 && simuleringsperiode != linje.periode) {
                     forskjeller.add(
                         ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode(
                             utbetalingsperiode = linje.periode,
