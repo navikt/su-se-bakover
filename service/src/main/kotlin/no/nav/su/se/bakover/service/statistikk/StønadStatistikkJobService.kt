@@ -145,7 +145,7 @@ class StønadStatistikkJobServiceImpl(
                     -> emptyList()
 
                     else -> throw IllegalStateException("Ikke tatt høyde for ${siste::class.simpleName} ved generering av statistikk")
-                }.single {
+                }.singleOrNull {
                     it.måned == måned.toString()
                 },
             )

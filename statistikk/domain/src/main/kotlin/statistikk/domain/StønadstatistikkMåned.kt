@@ -36,5 +36,5 @@ data class StønadstatistikkMåned(
     val årsakStans: String? = null,
 
     val behandlendeEnhetKode: String,
-    val månedsbeløp: StønadstatistikkDto.Månedsbeløp,
+    val månedsbeløp: StønadstatistikkDto.Månedsbeløp?,
 )

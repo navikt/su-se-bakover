@@ -203,7 +203,7 @@ class StønadStatistikkRepoImpl(
                 ),
                 session = session,
             )
-        lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, månedStatistikk.månedsbeløp)
+        månedStatistikk.månedsbeløp?.let { lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, it) }
     }
 
     private fun lagreMånedsbeløpMedFradrag(session: Session, stoenadStatistikkId: UUID, månedsbeløp: Månedsbeløp) {
