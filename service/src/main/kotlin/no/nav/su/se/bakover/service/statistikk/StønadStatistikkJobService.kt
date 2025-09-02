@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
@@ -143,7 +144,10 @@ class StønadStatistikkJobServiceImpl(
 
                         mapBeregning(siste, beregningSomGjenopptas)
                     }
-                    /** TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en */
+                    is VedtakOpphørMedUtbetaling -> {
+                        throw IllegalStateException("Har opphørsvedtak hvor månedsbeløp ikke blir håndtert")
+                    }
+
                     is Opphørsvedtak,
                     is VedtakStansAvYtelse,
                     -> emptyList()
