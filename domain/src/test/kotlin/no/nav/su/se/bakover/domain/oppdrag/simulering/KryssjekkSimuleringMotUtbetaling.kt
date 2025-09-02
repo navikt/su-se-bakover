@@ -29,6 +29,7 @@ import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 internal class KryssjekkSimuleringMotUtbetaling {
@@ -94,7 +95,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
         val feilklasse = svar.shouldBeLeft()
-        assertTrue(feilklasse.size == 1)
+        assertEquals(feilklasse.size, 1)
         feilklasse.first().shouldBeInstanceOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp>()
     }
 
@@ -155,7 +156,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
         val feilklasse = svar.shouldBeLeft()
-        assertTrue(feilklasse.size == 1)
+        assertEquals(feilklasse.size, 1)
         feilklasse.first().shouldBeInstanceOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode>()
     }
 
@@ -212,13 +213,13 @@ internal class KryssjekkSimuleringMotUtbetaling {
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
         val feilklasse = svar.shouldBeLeft()
-        assertTrue(feilklasse.size == 2)
+        assertEquals(feilklasse.size, 2)
         assertTrue { feilklasse.any { it is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp } }
         assertTrue { feilklasse.any { it is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode } }
     }
 
     @Test
-    fun `Skal ikke sammenligne 0 utbetalinger(linje) mot simuleringer`() {
+    fun `Skal ikke sammenligne 0 utbetalinger(linje) mot simuleringer hvis opphør og opphøret er frem i tid`() {
         val clock = TikkendeKlokke()
         val juni = SimulertMåned(
             måned = no.nav.su.se.bakover.common.tid.periode.juni(2025),
@@ -296,7 +297,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
             ),
         )
 
-        val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
+        val svar = sjekkUtbetalingMotSimulering(simulering, test!!, erOpphør = true)
         svar.shouldBeRight()
     }
 }

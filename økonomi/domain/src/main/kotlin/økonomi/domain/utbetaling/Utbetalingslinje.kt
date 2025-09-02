@@ -11,9 +11,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import vilkår.uføre.domain.Uføregrad
-import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Opphør
-import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Reaktivering
-import økonomi.domain.utbetaling.Utbetalingslinje.Endring.Stans
 import java.time.Clock
 import java.time.LocalDate
 
