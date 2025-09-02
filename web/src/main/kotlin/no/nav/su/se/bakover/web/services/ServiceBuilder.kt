@@ -320,6 +320,7 @@ data object ServiceBuilder {
             ),
             stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
+                vedtakRepo = databaseRepos.vedtakRepo,
             ),
         )
     }

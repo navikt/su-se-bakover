@@ -9,5 +9,6 @@ interface StønadStatistikkRepo {
     fun lagreStønadStatistikk(dto: StønadstatistikkDto)
     fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto>
     fun hentOgLagreStatistikkForMåned(måned: YearMonth)
+    fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned)
     fun hentMånedStatistikk(måned: YearMonth): List<StønadstatistikkMåned>
 }

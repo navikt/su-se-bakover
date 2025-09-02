@@ -247,6 +247,7 @@ import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -367,7 +368,9 @@ open class AccessCheckProxy(
                     )
                 }
 
-                override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? = kastKanKunKallesFraAnnenService()
+                override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? =
+                    kastKanKunKallesFraAnnenService()
+
                 override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -1349,9 +1352,15 @@ open class AccessCheckProxy(
                     services.resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMedDato)
                 }
 
-                override fun resendStatistikkForVedtak(vedtakId: UUID, requiredType: KClass<*>?): Either<Unit, Unit> {
+                override fun resendStatistikkForVedtak(
+                    vedtakId: UUID,
+                    requiredType: KClass<*>?,
+                ): Either<Unit, Unit> {
                     // Driftsendepunkt - returnerer ikke data, bare status
-                    return services.resendStatistikkhendelserService.resendStatistikkForVedtak(vedtakId, requiredType)
+                    return services.resendStatistikkhendelserService.resendStatistikkForVedtak(
+                        vedtakId,
+                        requiredType,
+                    )
                 }
             },
             personhendelseService = object : PersonhendelseService {
@@ -1375,8 +1384,8 @@ open class AccessCheckProxy(
             },
 
             stønadStatistikkJobService = object : StønadStatistikkJobService {
-                override fun lagMånedligStønadstatistikk() {
-                    services.stønadStatistikkJobService.lagMånedligStønadstatistikk()
+                override fun lagMånedligStønadstatistikk(clock: Clock) {
+                    services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
                 }
             },
         )

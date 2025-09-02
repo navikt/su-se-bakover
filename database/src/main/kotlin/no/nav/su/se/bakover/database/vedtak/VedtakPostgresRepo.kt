@@ -161,6 +161,27 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun hentVedtakForMåned(måned: Måned): List<Vedtak> {
+        return sessionFactory.withSession { session ->
+            """
+            select
+              v.*,
+              d.id as dokumentid,
+              dd.brevbestillingid,
+              dd.journalpostid
+            from vedtak v
+            left join dokument d on v.id = d.vedtakid
+            left join dokument_distribusjon dd on d.id = dd.dokumentid
+            where fraogmed <= :maaned and tilogmed >= :maaned
+            and d.duplikatAv is null
+            order by v.opprettet
+            """.trimIndent()
+                .hentListe(mapOf("maaned" to måned.fraOgMed), session) {
+                    it.toVedtak(session)
+                }
+        }
+    }
+
     internal fun hentForSakId(sakId: UUID, session: Session): List<Vedtak> =
         """
             select
