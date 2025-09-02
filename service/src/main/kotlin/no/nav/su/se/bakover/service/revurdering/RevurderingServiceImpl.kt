@@ -980,8 +980,9 @@ class RevurderingServiceImpl(
             ).mapLeft {
                 if (it.feilPgaAlleredeFerdigstilt()) {
                     log.warn("Oppgave ${avsluttetRevurdering.oppgaveId} er allerede ferdigstilt for revurdering  ${avsluttetRevurdering.id}")
+                } else {
+                    log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}. Dette må gjøres manuelt.")
                 }
-                log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}. Dette må gjøres manuelt.")
             }.map {
                 log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}..")
             }
