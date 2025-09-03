@@ -163,10 +163,12 @@ fun writeToBigQuery(
         TableId.of(project, dataset, stoenadtable),
     ).setFormatOptions(FormatOptions.csv()).build()
 
+    val toCSV = data.toCSV()
+    logger.info("CSV for stønad $toCSV rader til BigQuery")
     val jobStoenadtable = bq.writer(jobIdStoenad, configuration).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
-                os.write(data.toCSV().toByteArray()) // Denne legger inn alle vedtakene isolert uten månedsbeløp eller fradagsbeløp
+                os.write(toCSV.toByteArray()) // Denne legger inn alle vedtakene isolert uten månedsbeløp eller fradagsbeløp
             }
         }
         it.job.waitFor()
@@ -185,7 +187,7 @@ fun writeToBigQuery(
         append(headerMåned)
         alleMånedsBeløp.forEach { append(it) }
     }
-
+    logger.info("CSV for maanedsbelop $csvContent rader til BigQuery")
     val jobIdMaaned = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
     val maanedJob = bq.writer(jobIdMaaned, configurationMåned).let {
         it.use { channel ->
@@ -209,7 +211,7 @@ fun writeToBigQuery(
         append(headerFradrag)
         alleFradragsBeløp.forEach { append(it) }
     }
-
+    logger.info("CSV for fradrag $csvContentFradrag rader til BigQuery")
     val jobIdFradrag = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
     val fradragjob = bq.writer(jobIdFradrag, configurationMånedFradrag).let {
         it.use { channel ->
