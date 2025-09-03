@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.datapakker.stoenadstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.JobId
@@ -166,18 +165,13 @@ fun writeToBigQuery(
 
     val toCSV = data.toCSV()
     logger.info("CSV for stønad $toCSV rader til BigQuery")
-    try {
-        val job = bq.writer(jobIdStoenad, configuration).use { channel ->
-            Channels.newOutputStream(channel).use { os ->
-                os.write(toCSV.toByteArray())
-            }
-            channel.job // return the Job object here
+    val job = bq.writer(jobIdStoenad, configuration).use { channel ->
+        Channels.newOutputStream(channel).use { os ->
+            os.write(toCSV.toByteArray())
         }
-
-        job.waitFor() // wait for the job to complete
-    } catch (e: BigQueryException) {
-        logger.info("BigQuery load failed: ${e.message}")
+        channel.job // return the Job object here
     }
+    job.waitFor() // wait for the job to complete
 
     // TODO: Split CSV generation into seperate methods to make it testable?
     val månedstabell = "manedsbelop_statistikk"
