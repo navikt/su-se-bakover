@@ -29,7 +29,7 @@ jobs:
       - name: Build and test
         uses: ./.github/actions/build-and-test
         with:
-          gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build :datapakker:stoenadstatistikk:build
+          gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build :datapakker:stoenadstatistikk:build :datapakker:saksstatistikk:build
       - name: Push image soknad
         uses: ./.github/actions/push-image
         with:
@@ -54,6 +54,12 @@ jobs:
           image_suffix: 'datapakker-stoenadstatistikk-job'
           cache_from: type=gha
           cache_to: type=gha,mode=max
+      - name: Push image saksstatistikk
+        uses: ./.github/actions/push-image
+        with:
+          tag: ${{ github.sha }}
+          dockerfile: ./datapakker/saksstatistikk/Dockerfile
+          image_suffix: 'datapakker-saksstatistikk-job'
 
   deploy_to_dev_soknad:
     name: Deploy to dev soknad
@@ -91,7 +97,19 @@ jobs:
       cluster: dev-fss
       resource: datapakker/stoenadstatistikk/.nais/dev.yaml
 
-#todo her må vi legge inn prod for stoenadstatistikk
+  deploy_to_dev_saksstatistikk:
+    name: Deploy to dev saksstatistikk
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    needs: build-test-push-image
+    with:
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-saksstatistikk-job:${{ github.sha }}
+      cluster: dev-fss
+      resource: datapakker/saksstatistikk/.nais/dev.yaml
+
+#TODO: her må vi legge inn prod for stoenadstatistikk && saksstatistikk
   deploy_to_prod_soknad:
     name: Deploy to prod
     permissions:
