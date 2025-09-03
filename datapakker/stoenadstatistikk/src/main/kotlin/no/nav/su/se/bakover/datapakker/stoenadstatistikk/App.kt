@@ -156,14 +156,14 @@ fun writeToBigQuery(
         .setProjectId(project)
         .build().service
 
-    val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
+    val jobIdStoenad = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
 
     val stoenadtable = "stoenadstatistikk"
     val configuration = WriteChannelConfiguration.newBuilder(
         TableId.of(project, dataset, stoenadtable),
     ).setFormatOptions(FormatOptions.csv()).build()
 
-    val jobStoenadtable = bq.writer(jobId, configuration).let {
+    val jobStoenadtable = bq.writer(jobIdStoenad, configuration).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
                 os.write(data.toCSV().toByteArray()) // Denne legger inn alle vedtakene isolert uten månedsbeløp eller fradagsbeløp
@@ -186,7 +186,8 @@ fun writeToBigQuery(
         alleMånedsBeløp.forEach { append(it) }
     }
 
-    val maanedJob = bq.writer(jobId, configurationMåned).let {
+    val jobIdMaaned = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
+    val maanedJob = bq.writer(jobIdMaaned, configurationMåned).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
                 os.write(csvContent.toByteArray()) // Månedsbeløp for alle stønader for å kun gjøre en skrivejobb
@@ -209,7 +210,8 @@ fun writeToBigQuery(
         alleFradragsBeløp.forEach { append(it) }
     }
 
-    val fradragjob = bq.writer(jobId, configurationMånedFradrag).let {
+    val jobIdFradrag = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
+    val fradragjob = bq.writer(jobIdFradrag, configurationMånedFradrag).let {
         it.use { channel ->
             Channels.newOutputStream(channel).use { os ->
                 os.write(csvContentFradrag.toByteArray()) // Månedsbeløp for alle stønader for å kun gjøre en skrivejobb
