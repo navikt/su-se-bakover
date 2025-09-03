@@ -228,7 +228,6 @@ fun writeToBigQuery(
         it.job.waitFor()
     }
 
-    logger.info("Stønadstatistikkjob - DTO: ${jobStoenadtable.getStatistics<JobStatistics.LoadStatistics>()}")
     logger.info("Stønadstatistikkjob - måned: ${maanedJob.getStatistics<JobStatistics.LoadStatistics>()}")
     logger.info("Stønadstatistikkjob - fradrag: ${fradragjob.getStatistics<JobStatistics.LoadStatistics>()}")
 }
