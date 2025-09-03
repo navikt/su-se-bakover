@@ -83,7 +83,7 @@ fun hentData(dataSource: DataSource, måned: YearMonth): List<StønadstatistikkM
                         harUtenlandsOpphold = stringOrNull("har_utenlandsopphold"),
                         harFamiliegjenforening = stringOrNull("har_familiegjenforening"),
                         flyktningsstatus = stringOrNull("flyktningsstatus"),
-                        månedsbeløp = hentMånedsbeløp(session, id).single(),
+                        månedsbeløp = hentMånedsbeløp(session, id).singleOrNull(),
                     )
                 }
             }
