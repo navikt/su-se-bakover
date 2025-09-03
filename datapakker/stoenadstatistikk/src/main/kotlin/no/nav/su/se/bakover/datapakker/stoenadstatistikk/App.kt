@@ -11,7 +11,6 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import org.slf4j.LoggerFactory
@@ -35,7 +34,7 @@ fun main() {
         databaseName = System.getenv("DATABASE_NAME"),
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
-        hentData(it, YearMonth.now())
+        hentData(it, YearMonth.now().minusMonths(1))
     }
 
     writeToBigQuery(data)
@@ -44,7 +43,7 @@ fun main() {
 
 private fun <T> String.hentListe(
     params: Map<String, Any> = emptyMap(),
-    session: kotliquery.Session,
+    session: Session,
     rowMapping: (Row) -> T,
 ): List<T> {
     return session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
@@ -53,7 +52,6 @@ private fun <T> String.hentListe(
 fun hentData(dataSource: DataSource, måned: YearMonth): List<StønadstatistikkMånedDto> {
     return dataSource.connection.use {
         val session = sessionOf(dataSource)
-
         """
         SELECT *
         FROM stoenad_maaned_statistikk
@@ -173,7 +171,7 @@ fun writeToBigQuery(
         }
         it.job.waitFor()
     }
-
+    // TODO: Split CSV generation into seperate methods to make it testable?
     val månedstabell = "manedsbelop_statistikk"
     val configurationMåned = WriteChannelConfiguration.newBuilder(
         TableId.of(project, dataset, månedstabell),
