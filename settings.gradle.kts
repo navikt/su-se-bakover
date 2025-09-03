@@ -99,3 +99,5 @@ include("statistikk-app")
 
 include("statistikk:application")
 include("statistikk:domain")
+
+include("datapakker:saksstatistikk")
