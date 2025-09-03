@@ -176,7 +176,7 @@ fun writeToBigQuery(
 
         job.waitFor() // wait for the job to complete
     } catch (e: BigQueryException) {
-        println("BigQuery load failed: ${e.message}")
+        logger.info("BigQuery load failed: ${e.message}")
     }
 
     // TODO: Split CSV generation into seperate methods to make it testable?
@@ -185,7 +185,7 @@ fun writeToBigQuery(
         TableId.of(project, dataset, månedstabell),
     ).setFormatOptions(FormatOptions.csv()).build()
 
-    val headerMåned = "måned,stonadsklassifisering,sats,utbetales,fradrag_sum,uføregrad,stoenad_statistikk_id\n"
+    val headerMåned = "maaned,stonadsklassifisering,sats,utbetales,fradrag_sum,uforegrad,stoenad_statistikk_id\n"
     val alleMånedsBeløp = data.mapNotNull {
         it.månedsbeløp?.toCSV(it.id)
     }
