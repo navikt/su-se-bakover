@@ -34,6 +34,9 @@ import java.util.UUID
  * @property opphorsgrunn Grunn for opphør av ytelsen, hvis aktuelt.
  * @property opphorsdato Dato for når ytelsen ble opphørt, hvis aktuelt.
  * @property flyktningsstatus Angir om personen har flyktningstatus. Alle med SU Ufør vil være flyktning.
+ * *****
+ *      ! NB: If updating anything here, please update the copy in [datapakker/stoenadstatistikk/StønadStatistikkBQ.kt] as well
+ * *****
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class StønadstatistikkDto(
