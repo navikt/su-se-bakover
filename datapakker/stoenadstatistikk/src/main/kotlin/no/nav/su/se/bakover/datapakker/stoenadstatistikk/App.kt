@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.datapakker.stoenadstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.JobId
@@ -165,21 +166,26 @@ fun writeToBigQuery(
 
     val toCSV = data.toCSV()
     logger.info("CSV for stønad $toCSV rader til BigQuery")
-    val jobStoenadtable = bq.writer(jobIdStoenad, configuration).let {
-        it.use { channel ->
+    try {
+        val job = bq.writer(jobIdStoenad, configuration).use { channel ->
             Channels.newOutputStream(channel).use { os ->
-                os.write(toCSV.toByteArray()) // Denne legger inn alle vedtakene isolert uten månedsbeløp eller fradagsbeløp
+                os.write(toCSV.toByteArray())
             }
+            channel.job // return the Job object here
         }
-        it.job.waitFor()
+
+        job.waitFor() // wait for the job to complete
+    } catch (e: BigQueryException) {
+        println("BigQuery load failed: ${e.message}")
     }
+
     // TODO: Split CSV generation into seperate methods to make it testable?
     val månedstabell = "manedsbelop_statistikk"
     val configurationMåned = WriteChannelConfiguration.newBuilder(
         TableId.of(project, dataset, månedstabell),
     ).setFormatOptions(FormatOptions.csv()).build()
 
-    val headerMåned = "måned,stonadsklassifisering,sats,utbetales,fradragSum,uføregrad,stoenad_statistikk_id\n"
+    val headerMåned = "måned,stonadsklassifisering,sats,utbetales,fradrag_sum,uføregrad,stoenad_statistikk_id\n"
     val alleMånedsBeløp = data.mapNotNull {
         it.månedsbeløp?.toCSV(it.id)
     }

@@ -66,11 +66,11 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
         // Header
         appendLine(
             listOf(
-                "id", "maaned", "funksjonellTid", "tekniskTid", "sakId", "stonadstype",
-                "personnummer", "personNummerEps", "vedtaksdato", "vedtakstype", "vedtaksresultat",
-                "vedtakFraOgMed", "vedtakTilOgMed", "opphorsgrunn", "opphorsdato",
-                "harUtenlandsOpphold", "harFamiliegjenforening", "flyktningsstatus", "arsakStans",
-                "behandlendeEnhetKode",
+                "id", "maaned", "funksjonell_tid", "teknisk_tid", "sak_id", "stonadstype",
+                "personnummer", "personnummer_eps", "vedtaksdato", "vedtakstype", "vedtaksresultat",
+                "vedtak_fra_og_med", "vedtak_til_og_med", "opphorsgrunn", "opphorsdato",
+                "har_utenlandsopphold", "har_familiegjenforening", "flyktningsstatus", "arsakStans",
+                "behandlende_enhet_kode",
             ).joinToString(","),
         )
 
@@ -163,7 +163,7 @@ fun List<Fradrag>.toCSV(manedsbelop_id: UUID): String {
                 "fradragstype",
                 "belop",
                 "tilhorer",
-                "erUtenlandsk",
+                "er_utenlandsk",
                 "manedsbelop_id",
             ).joinToString(","),
         )
