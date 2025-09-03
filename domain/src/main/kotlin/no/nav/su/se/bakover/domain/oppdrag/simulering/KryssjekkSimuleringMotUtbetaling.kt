@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
+import no.nav.su.se.bakover.common.domain.tid.erFremITidMenIkkeSammeMåned
 import no.nav.su.se.bakover.common.domain.tid.erNesteÅr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.minAndMaxOfOrNull
@@ -16,6 +17,7 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.Utbetalingslinje
 
 /**
  * En sjekk som gjøres for å gi saksbehandler tilbakemelding om simuleringen stemmer overens med utbetalingslinjene som kommer til å bli sendt.
@@ -37,7 +39,10 @@ fun kryssjekkSimuleringMotUtbetaling(
             RuntimeException("Genererer en stacktrace for enklere debugging."),
         )
     }
+
+    val erOpphør = simulertUtbetaling.utbetalingslinjer.any { it is Utbetalingslinje.Endring.Opphør }
     sjekkUtbetalingMotSimulering(
+        erOpphør = erOpphør,
         simulering = simulertUtbetaling.simulering,
         // En reaktivering inneholder kun én utbetalingslinje som sier at den tidligere stansen skal reaktiveres. Simuleringen vil vise beløpene som vil utbetales. Vi må derfor legge sammen tidligere utbetalinger + denne utbetalingen og krympe den igjen før vi kan sammenligne.
         utbetalingslinjePåTidslinjer = TidslinjeForUtbetalinger.fra(tidligereUtbetalinger + simulertUtbetaling)!!
@@ -56,6 +61,7 @@ fun kryssjekkSimuleringMotUtbetaling(
 internal fun sjekkUtbetalingMotSimulering(
     simulering: Simulering,
     utbetalingslinjePåTidslinjer: TidslinjeForUtbetalinger,
+    erOpphør: Boolean = false,
 ): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
     val forskjeller = mutableListOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode>()
     // Siden vi kan ha overlappende perioder med dagens utbetalingslinjealgoritme, så må vi lage en tidslinje.
@@ -75,13 +81,20 @@ internal fun sjekkUtbetalingMotSimulering(
     } else {
         utbetalingslinjePåTidslinjer.forEach { linje ->
             // Merk at linjene starter første dagen en måned og slutter siste dagen en måned (kan strekke seg over flere måneder).
-            // Mens simuleringsperiodene kan starte/slutte vilkårlige dager i måneden. Usikker på om den kan strekke seg på tvers av måneder.
+            // Mens simuleringsperiodene kan starte/slutte vilkårlige dager i måneden.
             val simuleringsperioderOgBeløp =
                 simulering.hentTotalUtbetaling().filter { linje.periode.overlapper(it.periode) }
             val simuleringsperiode = simuleringsperioderOgBeløp.map { it.periode }.minAndMaxOfOrNull()
             // Denne vil inneholden summen av alle beløpene som overlapper med linjen. En linje kan inneholde flere måneder
             val simuleringsbeløp = simuleringsperioderOgBeløp.sumOf { it.beløp.sum() }
+
             if (simuleringsperiode != null) {
+                /*
+                 Simulering gir ikke svar for perioder der beløp er 0, vi vil kun at det skal gjelde opphør frem i tid. Vi vet ikke om betalingen er gjort enda for inneværende månde så vi vil sjekke neste måned.
+                 */
+                if (erOpphør && linje.periode.tilOgMed.erFremITidMenIkkeSammeMåned() && linje.beløp == 0) {
+                    return@forEach
+                }
                 if (simuleringsperiode != linje.periode) {
                     forskjeller.add(
                         ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode(

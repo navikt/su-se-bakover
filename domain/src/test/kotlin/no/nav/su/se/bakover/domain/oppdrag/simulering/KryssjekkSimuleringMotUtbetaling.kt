@@ -1,15 +1,20 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.november
+import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
@@ -24,6 +29,7 @@ import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 internal class KryssjekkSimuleringMotUtbetaling {
@@ -89,7 +95,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
         val feilklasse = svar.shouldBeLeft()
-        assertTrue(feilklasse.size == 1)
+        assertEquals(feilklasse.size, 1)
         feilklasse.first().shouldBeInstanceOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp>()
     }
 
@@ -150,7 +156,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
         val feilklasse = svar.shouldBeLeft()
-        assertTrue(feilklasse.size == 1)
+        assertEquals(feilklasse.size, 1)
         feilklasse.first().shouldBeInstanceOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode>()
     }
 
@@ -207,8 +213,91 @@ internal class KryssjekkSimuleringMotUtbetaling {
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!)
         val feilklasse = svar.shouldBeLeft()
-        assertTrue(feilklasse.size == 2)
+        assertEquals(feilklasse.size, 2)
         assertTrue { feilklasse.any { it is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UliktBeløp } }
         assertTrue { feilklasse.any { it is ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode } }
+    }
+
+    @Test
+    fun `Skal ikke sammenligne 0 utbetalinger(linje) mot simuleringer hvis opphør og opphøret er frem i tid`() {
+        val clock = TikkendeKlokke()
+        val juni = SimulertMåned(
+            måned = no.nav.su.se.bakover.common.tid.periode.juni(2025),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.juni(2025),
+                        faktiskTilOgMed = 30.juni(2025),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val julisim = SimulertMåned(
+            måned = no.nav.su.se.bakover.common.tid.periode.juli(2025),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.juli(2025),
+                        faktiskTilOgMed = 30.juli(2025),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val simulering = Simulering(
+            gjelderId = Fnr.generer(),
+            gjelderNavn = "tester",
+            1.september(2025),
+            nettoBeløp = 0,
+            måneder = listOf(juni, julisim),
+            rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
+        )
+        val rekkefølge = Rekkefølge.generator()
+        val første = utbetalingslinjeNy(
+            opprettet = 1.september(2025).atStartOfDay(zoneIdOslo).toTidspunkt(),
+            periode = no.nav.su.se.bakover.common.tid.periode.juni(2025)..oktober(2025),
+            beløp = 0, // ?
+            rekkefølge = rekkefølge.neste(),
+        )
+        val test = TidslinjeForUtbetalinger.fra(
+            utbetalinger(
+                clock,
+                første,
+            ),
+        )
+
+        val svar = sjekkUtbetalingMotSimulering(simulering, test!!, erOpphør = true)
+        svar.shouldBeRight()
     }
 }
