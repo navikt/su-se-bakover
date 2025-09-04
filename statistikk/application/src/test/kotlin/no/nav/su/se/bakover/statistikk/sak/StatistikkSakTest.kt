@@ -35,6 +35,7 @@ internal class StatistikkSakTest {
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             stønadStatistikkRepo = mock(),
+            sakStatistikkRepo = mock(),
         ).handle(
             StatistikkEvent.SakOpprettet(
                 nySakMedNySøknad(sakId = UUID.fromString("5968ac62-12fb-481a-8c7f-508f129fd68b")).first,

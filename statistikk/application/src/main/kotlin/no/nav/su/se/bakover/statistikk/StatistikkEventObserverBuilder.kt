@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.statistikk
 
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import person.domain.PersonService
@@ -13,6 +14,7 @@ class StatistikkEventObserverBuilder(
     clock: Clock,
     gitCommit: GitCommit?,
     stønadStatistikkRepo: StønadStatistikkRepo,
+    sakStatistikkRepo: SakStatistikkRepo,
 ) {
     val statistikkService: StatistikkEventObserver = KafkaStatistikkEventObserver(
         publisher = kafkaPublisher,
@@ -20,5 +22,6 @@ class StatistikkEventObserverBuilder(
         clock = clock,
         gitCommit = gitCommit,
         stønadStatistikkRepo = stønadStatistikkRepo,
+        sakStatistikkRepo = sakStatistikkRepo,
     )
 }

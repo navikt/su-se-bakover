@@ -236,6 +236,7 @@ class TestDataHelper(
     val hendelseRepo = HendelsePostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics)
     val kravgrunnlagPostgresRepo = KravgrunnlagPostgresRepo(hendelseRepo, hendelsekonsumenterRepo)
     val stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo
+    val sakStatistikkRepo = databaseRepos.sakStatistikkRepo
 
     val dokumentHendelseRepo =
         DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory), sessionFactory)
