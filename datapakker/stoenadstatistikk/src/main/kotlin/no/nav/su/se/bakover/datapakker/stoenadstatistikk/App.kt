@@ -166,13 +166,13 @@ fun writeToBigQuery(
 
     val toCSV = data.toCSV()
     logger.info("CSV for stønad $toCSV rader til BigQuery")
-    val job = bq.writer(jobIdStoenad, configuration).use { channel ->
+    val jobStoenad = bq.writer(jobIdStoenad, configuration).use { channel ->
         Channels.newOutputStream(channel).use { os ->
             os.write(toCSV.toByteArray())
         }
         channel.job // return the Job object here
     }
-    job.waitFor() // wait for the job to complete
+    jobStoenad.waitFor() // wait for the job to complete
 
     // TODO: Split CSV generation into seperate methods to make it testable?
     val månedstabell = "manedsbelop_statistikk"
@@ -205,7 +205,7 @@ fun writeToBigQuery(
     ).setFormatOptions(FormatOptions.csv()).build()
 
     val headerFradrag = "manedsbelop_id, fradragstype,belop,tilhorer,erUtenlandsk\n"
-    val alleFradragsBeløp = data.map {
+    val alleFradragsBeløp = data.mapNotNull {
         it.månedsbeløp?.fradrag?.toCSV(it.månedsbeløp.manedsbelopId)
     }
     val csvContentFradrag = buildString {
@@ -223,6 +223,7 @@ fun writeToBigQuery(
         it.job.waitFor()
     }
 
+    logger.info("Stønadstatistikkjob - stønad: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
     logger.info("Stønadstatistikkjob - måned: ${maanedJob.getStatistics<JobStatistics.LoadStatistics>()}")
     logger.info("Stønadstatistikkjob - fradrag: ${fradragjob.getStatistics<JobStatistics.LoadStatistics>()}")
 }
