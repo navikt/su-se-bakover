@@ -60,17 +60,19 @@ data class StønadstatistikkMånedDto(
     val behandlendeEnhetKode: String,
     val månedsbeløp: Månedsbeløp?,
 )
+fun main() {
+    println(YearMonth.now().minusMonths(1).atDay(1))
+}
 
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
         // Header
         appendLine(
             listOf(
-                "id", "maaned", "funksjonell_tid", "teknisk_tid", "sak_id", "stonadstype",
-                "personnummer", "personnummer_eps", "vedtaksdato", "vedtakstype", "vedtaksresultat",
-                "vedtak_fra_og_med", "vedtak_til_og_med", "opphorsgrunn", "opphorsdato",
+                "id", "maaned", "vedtaksdato", "personnummer", "vedtak_fra_og_med", "vedtak_til_og_med",
+                "sak_id", "funksjonell_tid", "teknisk_tid", "stonadstype", "personnummer_eps",
+                "vedtakstype", "vedtaksresultat", "opphorsgrunn", "opphorsdato", "behandlende_enhet_kode",
                 "har_utenlandsopphold", "har_familiegjenforening", "flyktningsstatus", "arsakStans",
-                "behandlende_enhet_kode",
             ).joinToString(","),
         )
 
@@ -80,24 +82,24 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                 listOf(
                     dto.id.toString(),
                     dto.måned.toString(),
-                    dto.funksjonellTid,
-                    dto.tekniskTid,
-                    dto.sakId.toString(),
-                    dto.stonadstype,
-                    dto.personnummer,
-                    dto.personNummerEps.orEmpty(),
                     dto.vedtaksdato.toString(),
-                    dto.vedtakstype,
-                    dto.vedtaksresultat,
+                    dto.personnummer,
                     dto.vedtakFraOgMed.toString(),
                     dto.vedtakTilOgMed.toString(),
+                    dto.sakId.toString(),
+                    dto.funksjonellTid,
+                    dto.tekniskTid,
+                    dto.stonadstype,
+                    dto.personNummerEps.orEmpty(),
+                    dto.vedtakstype,
+                    dto.vedtaksresultat,
                     dto.opphorsgrunn.orEmpty(),
                     dto.opphorsdato?.toString().orEmpty(),
+                    dto.behandlendeEnhetKode,
                     dto.harUtenlandsOpphold.orEmpty(),
                     dto.harFamiliegjenforening.orEmpty(),
                     dto.flyktningsstatus.orEmpty(),
                     dto.årsakStans.orEmpty(),
-                    dto.behandlendeEnhetKode,
                 ).joinToString(",") { escapeCsv(it) },
             )
         }
