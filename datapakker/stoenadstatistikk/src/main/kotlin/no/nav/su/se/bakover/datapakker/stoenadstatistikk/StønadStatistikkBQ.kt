@@ -66,7 +66,6 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
         // Header
         appendLine(
             listOf(
-                // TODO: mangler en data her ifølge bigquery
                 "id", "maaned", "funksjonell_tid", "teknisk_tid", "sak_id", "stonadstype",
                 "personnummer", "personnummer_eps", "vedtaksdato", "vedtakstype", "vedtaksresultat",
                 "vedtak_fra_og_med", "vedtak_til_og_med", "opphorsgrunn", "opphorsdato",
