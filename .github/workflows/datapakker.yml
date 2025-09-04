@@ -36,18 +36,24 @@ jobs:
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/soknad/Dockerfile
           image_suffix: 'datapakker-soknad-job'
+          cache_from: type=gha
+          cache_to: type=gha,mode=max
       - name: Push image fritekstAvslag
         uses: ./.github/actions/push-image
         with:
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/fritekstAvslag/Dockerfile
           image_suffix: 'datapakker-fritekstavslag-job'
+          cache_from: type=gha
+          cache_to: type=gha,mode=max
       - name: Push image stoenadstatistikk
         uses: ./.github/actions/push-image
         with:
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/stoenadstatistikk/Dockerfile
           image_suffix: 'datapakker-stoenadstatistikk-job'
+          cache_from: type=gha
+          cache_to: type=gha,mode=max
 
   deploy_to_dev_soknad:
     name: Deploy to dev soknad
