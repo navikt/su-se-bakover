@@ -15,7 +15,7 @@ data class SakStatistikk(
     val sakId: UUID,
     @param:JsonSerialize(using = ToStringSerializer::class)
     val saksnummer: Long,
-    val behandlingId: UUID?,
+    val behandlingId: UUID,
     val relatertBehandlingId: UUID? = null,
     val aktorId: Fnr,
 

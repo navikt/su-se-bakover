@@ -5,6 +5,8 @@ CREATE TABLE sak_statistikk (
     sak_id UUID NOT NULL,
     saksnummer BIGINT NOT NULL,
     behandling_id UUID NOT NULL,
+    relatert_behandling_id UUID,
+    aktorid VARCHAR NOT NULL,
 
     sak_ytelse TEXT NOT NULL,
     sak_utland TEXT NOT NULL,
