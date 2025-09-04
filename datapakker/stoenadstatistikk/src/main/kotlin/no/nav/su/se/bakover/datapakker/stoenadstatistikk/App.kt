@@ -109,13 +109,14 @@ private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List
             val uføregrad = row.intOrNull("uforegrad")
 
             Månedsbeløp(
+                manedsbelopId = manedsbelopId.toString(),
                 måned = maaned,
                 stonadsklassifisering = stonadsklassifisering,
                 sats = sats,
                 utbetales = utbetales,
-                fradrag = hentInntekter(session, manedsbelopId),
                 fradragSum = fradragSum,
                 uføregrad = uføregrad,
+                fradrag = hentInntekter(session, manedsbelopId),
             )
         }
 }
@@ -203,9 +204,9 @@ fun writeToBigQuery(
         TableId.of(project, dataset, fradragstabell),
     ).setFormatOptions(FormatOptions.csv()).build()
 
-    val headerFradrag = "fradragstype,belop,tilhorer,erUtenlandsk,manedsbelop_id\n"
+    val headerFradrag = "manedsbelop_id, fradragstype,belop,tilhorer,erUtenlandsk\n"
     val alleFradragsBeløp = data.map {
-        it.månedsbeløp?.fradrag?.toCSV(it.id)
+        it.månedsbeløp?.fradrag?.toCSV(it.månedsbeløp.manedsbelopId)
     }
     val csvContentFradrag = buildString {
         append(headerFradrag)
