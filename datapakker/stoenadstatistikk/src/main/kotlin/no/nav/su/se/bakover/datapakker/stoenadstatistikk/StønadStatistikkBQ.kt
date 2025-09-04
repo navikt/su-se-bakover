@@ -61,19 +61,16 @@ data class StønadstatistikkMånedDto(
     val månedsbeløp: Månedsbeløp?,
 )
 
+/*
+Endrer du rekkefølgen her må det også gjenspeiles i bigquery
+Rekkefølge i BQ:
+        "id", "maaned", "vedtaksdato", "personnummer", "vedtak_fra_og_med", "vedtak_til_og_med",
+        "sak_id", "funksjonell_tid", "teknisk_tid", "stonadstype", "personnummer_eps",
+        "vedtakstype", "vedtaksresultat", "opphorsgrunn", "opphorsdato", "behandlende_enhet_kode",
+        "har_utenlandsopphold", "har_familiegjenforening", "flyktningsstatus", "arsakStans"
+ */
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
-        // Header
-        appendLine(
-            listOf(
-                "id", "maaned", "vedtaksdato", "personnummer", "vedtak_fra_og_med", "vedtak_til_og_med",
-                "sak_id", "funksjonell_tid", "teknisk_tid", "stonadstype", "personnummer_eps",
-                "vedtakstype", "vedtaksresultat", "opphorsgrunn", "opphorsdato", "behandlende_enhet_kode",
-                "har_utenlandsopphold", "har_familiegjenforening", "flyktningsstatus", "arsakStans",
-            ).joinToString(","),
-        )
-
-        // Rows
         for (dto in this@toCSV) {
             appendLine(
                 listOf(
@@ -128,6 +125,8 @@ data class Månedsbeløp(
     val uføregrad: Int?,
 )
 
+// Endrer du rekkefølgen her må det også gjenspeiles i bigquery
+// BQ rekkefølge: stoenad_statistikk_id,maaned,stonadsklassifisering,sats,utbetales,fradrag_sum,uforegrad
 fun Månedsbeløp.toCSV(stoenad_statistikk_id: UUID): String {
     return buildString {
         appendLine(
@@ -156,6 +155,8 @@ data class Fradrag(
     val erUtenlandsk: Boolean,
 )
 
+// Endrer du rekkefølgen her må det også gjenspeiles i bigquery
+// BQ tabell: manedsbelop_id, fradragstype,belop,tilhorer,erUtenlandsk
 fun List<Fradrag>.toCSV(manedsbelop_id: String): String {
     return buildString {
         for (dto in this@toCSV) {
