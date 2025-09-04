@@ -13,6 +13,14 @@ inputs:
     required: false
     description: 'Optional, default empty'
     default: ''
+  cache_from:
+    required: false
+    default: ''
+    description: 'Optional: Docker cache_from'
+  cache_to:
+    required: false
+    default: ''
+    description: 'Optional: Docker cache_to'
 outputs:
   image:
     description: "Docker image in GAR"
@@ -30,3 +38,5 @@ runs:
         project_id: ${{ inputs.project_id }}
         dockerfile: ${{ inputs.dockerfile }}
         image_suffix: ${{ inputs.image_suffix }}
+        cache_from: ${{ inputs.cache_from }}
+        cache_to: ${{ inputs.cache_to }}
