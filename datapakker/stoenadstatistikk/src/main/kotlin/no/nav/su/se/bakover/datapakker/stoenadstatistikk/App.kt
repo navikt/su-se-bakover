@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.datapakker.stoenadstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
+import com.google.cloud.bigquery.Job
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
@@ -140,88 +142,73 @@ private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Fradrag>
         }
 }
 
-// TODO: Må vi slette innhold før vi oppdaterer eller kun endre til å kjøre en gang i måneden?
+private fun createBigQueryClient(jsonKey: InputStream, project: String): BigQuery {
+    val credentials = GoogleCredentials.fromStream(jsonKey)
+    return BigQueryOptions.newBuilder()
+        .setCredentials(credentials)
+        .setLocation(LOCATION)
+        .setProjectId(project)
+        .build()
+        .service
+}
+
+private fun writeCsvToBigQueryTable(
+    bigQuery: BigQuery,
+    project: String,
+    tableName: String,
+    csvData: String,
+): Job {
+    val jobId = JobId.newBuilder()
+        .setLocation(LOCATION)
+        .setJob(UUID.randomUUID().toString())
+        .build()
+
+    val tableId = TableId.of(project, dataset, tableName)
+
+    val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
+        .setFormatOptions(FormatOptions.csv())
+        .build()
+
+    val writer = bigQuery.writer(jobId, writeConfig)
+
+    writer.use { channel ->
+        Channels.newOutputStream(channel).use { os ->
+            os.write(csvData.toByteArray())
+        }
+    }
+
+    val job = writer.job
+    job.waitFor()
+
+    return job
+}
+
+val dataset = "statistikk"
 fun writeToBigQuery(
     data: List<StønadstatistikkMånedDto>,
 ) {
     val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
     val project: String = System.getenv("GCP_PROJECT")
 
-    val dataset = "statistikk"
-
-    val credentials = GoogleCredentials.fromStream(jsonKey)
-    val bq = BigQueryOptions
-        .newBuilder()
-        .setCredentials(credentials)
-        .setLocation(LOCATION)
-        .setProjectId(project)
-        .build().service
-
-    val jobIdStoenad = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
+    val bq = createBigQueryClient(jsonKey = jsonKey, project = project)
 
     val stoenadtable = "stoenadstatistikk"
-    val configuration = WriteChannelConfiguration.newBuilder(
-        TableId.of(project, dataset, stoenadtable),
-    ).setFormatOptions(FormatOptions.csv()).build()
+    val stoenadCSV = data.toCSV()
+    val jobStoenad = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
 
-    val toCSV = data.toCSV()
-    logger.info("CSV for stønad $toCSV rader til BigQuery")
-    val jobStoenad = bq.writer(jobIdStoenad, configuration).use { channel ->
-        Channels.newOutputStream(channel).use { os ->
-            os.write(toCSV.toByteArray())
-        }
-        channel.job // return the Job object here
-    }
-    jobStoenad.waitFor() // wait for the job to complete
-
-    // TODO: Split CSV generation into seperate methods to make it testable?
     val månedstabell = "manedsbelop_statistikk"
-    val configurationMåned = WriteChannelConfiguration.newBuilder(
-        TableId.of(project, dataset, månedstabell),
-    ).setFormatOptions(FormatOptions.csv()).build()
-
-    val headerMåned = "stoenad_statistikk_id,maaned,stonadsklassifisering,sats,utbetales,fradrag_sum,uforegrad\n"
-    val alleMånedsBeløp = data.mapNotNull {
+    val alleMånedsBeløpCSV = data.mapNotNull {
         it.månedsbeløp?.toCSV(it.id)
-    }
-    val csvContent = buildString {
-        append(headerMåned)
-        alleMånedsBeløp.forEach { append(it) }
-    }
-    logger.info("CSV for maanedsbelop $csvContent rader til BigQuery")
-    val jobIdMaaned = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
-    val maanedJob = bq.writer(jobIdMaaned, configurationMåned).let {
-        it.use { channel ->
-            Channels.newOutputStream(channel).use { os ->
-                os.write(csvContent.toByteArray()) // Månedsbeløp for alle stønader for å kun gjøre en skrivejobb
-            }
-        }
-        it.job.waitFor()
-    }
+    }.joinToString(separator = "")
+
+    val maanedJob = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = månedstabell, csvData = alleMånedsBeløpCSV)
 
     val fradragstabell = "fradrag_statistikk"
-    val configurationMånedFradrag = WriteChannelConfiguration.newBuilder(
-        TableId.of(project, dataset, fradragstabell),
-    ).setFormatOptions(FormatOptions.csv()).build()
-
-    val headerFradrag = "manedsbelop_id, fradragstype,belop,tilhorer,erUtenlandsk\n"
-    val alleFradragsBeløp = data.mapNotNull {
+    val alleFradragsBeløpCSV = data.mapNotNull {
         it.månedsbeløp?.fradrag?.toCSV(it.månedsbeløp.manedsbelopId)
-    }
-    val csvContentFradrag = buildString {
-        append(headerFradrag)
-        alleFradragsBeløp.forEach { append(it) }
-    }
-    logger.info("CSV for fradrag $csvContentFradrag rader til BigQuery")
-    val jobIdFradrag = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
-    val fradragjob = bq.writer(jobIdFradrag, configurationMånedFradrag).let {
-        it.use { channel ->
-            Channels.newOutputStream(channel).use { os ->
-                os.write(csvContentFradrag.toByteArray()) // Månedsbeløp for alle stønader for å kun gjøre en skrivejobb
-            }
-        }
-        it.job.waitFor()
-    }
+    }.joinToString(separator = "")
+
+    val fradragjob = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = fradragstabell, csvData = alleFradragsBeløpCSV)
 
     logger.info("Stønadstatistikkjob - stønad: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
     logger.info("Stønadstatistikkjob - måned: ${maanedJob.getStatistics<JobStatistics.LoadStatistics>()}")
