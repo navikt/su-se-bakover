@@ -60,17 +60,19 @@ data class StønadstatistikkMånedDto(
     val behandlendeEnhetKode: String,
     val månedsbeløp: Månedsbeløp?,
 )
+fun main() {
+    println(YearMonth.now().minusMonths(1).atDay(1))
+}
 
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
         // Header
         appendLine(
             listOf(
-                "id", "maaned", "funksjonell_tid", "teknisk_tid", "sak_id", "stonadstype",
-                "personnummer", "personnummer_eps", "vedtaksdato", "vedtakstype", "vedtaksresultat",
-                "vedtak_fra_og_med", "vedtak_til_og_med", "opphorsgrunn", "opphorsdato",
+                "id", "maaned", "vedtaksdato", "personnummer", "vedtak_fra_og_med", "vedtak_til_og_med",
+                "sak_id", "funksjonell_tid", "teknisk_tid", "stonadstype", "personnummer_eps",
+                "vedtakstype", "vedtaksresultat", "opphorsgrunn", "opphorsdato", "behandlende_enhet_kode",
                 "har_utenlandsopphold", "har_familiegjenforening", "flyktningsstatus", "arsakStans",
-                "behandlende_enhet_kode",
             ).joinToString(","),
         )
 
@@ -80,24 +82,24 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                 listOf(
                     dto.id.toString(),
                     dto.måned.toString(),
-                    dto.funksjonellTid,
-                    dto.tekniskTid,
-                    dto.sakId.toString(),
-                    dto.stonadstype,
-                    dto.personnummer,
-                    dto.personNummerEps.orEmpty(),
                     dto.vedtaksdato.toString(),
-                    dto.vedtakstype,
-                    dto.vedtaksresultat,
+                    dto.personnummer,
                     dto.vedtakFraOgMed.toString(),
                     dto.vedtakTilOgMed.toString(),
+                    dto.sakId.toString(),
+                    dto.funksjonellTid,
+                    dto.tekniskTid,
+                    dto.stonadstype,
+                    dto.personNummerEps.orEmpty(),
+                    dto.vedtakstype,
+                    dto.vedtaksresultat,
                     dto.opphorsgrunn.orEmpty(),
                     dto.opphorsdato?.toString().orEmpty(),
+                    dto.behandlendeEnhetKode,
                     dto.harUtenlandsOpphold.orEmpty(),
                     dto.harFamiliegjenforening.orEmpty(),
                     dto.flyktningsstatus.orEmpty(),
                     dto.årsakStans.orEmpty(),
-                    dto.behandlendeEnhetKode,
                 ).joinToString(",") { escapeCsv(it) },
             )
         }
@@ -132,13 +134,13 @@ fun Månedsbeløp.toCSV(stoenad_statistikk_id: UUID): String {
     return buildString {
         appendLine(
             listOf(
+                stoenad_statistikk_id.toString(),
                 this@toCSV.måned,
                 this@toCSV.stonadsklassifisering,
                 this@toCSV.sats.toString(),
                 this@toCSV.utbetales.toString(),
                 this@toCSV.fradragSum.toString(),
                 this@toCSV.uføregrad.toString(),
-                stoenad_statistikk_id.toString(),
             ).joinToString(",") { escapeCsv(it) },
         )
     }
@@ -160,21 +162,21 @@ fun List<Fradrag>.toCSV(manedsbelop_id: UUID): String {
     return buildString {
         appendLine(
             listOf(
+                "manedsbelop_id",
                 "fradragstype",
                 "belop",
                 "tilhorer",
                 "er_utenlandsk",
-                "manedsbelop_id",
             ).joinToString(","),
         )
         for (dto in this@toCSV) {
             appendLine(
                 listOf(
+                    manedsbelop_id.toString(),
                     dto.fradragstype,
                     dto.beløp.toString(),
                     dto.tilhører,
                     dto.erUtenlandsk.toString(),
-                    manedsbelop_id.toString(),
                 ).joinToString(",") { escapeCsv(it) },
             )
         }

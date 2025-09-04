@@ -179,7 +179,7 @@ fun writeToBigQuery(
         TableId.of(project, dataset, månedstabell),
     ).setFormatOptions(FormatOptions.csv()).build()
 
-    val headerMåned = "maaned,stonadsklassifisering,sats,utbetales,fradrag_sum,uforegrad,stoenad_statistikk_id\n"
+    val headerMåned = "stoenad_statistikk_id,maaned,stonadsklassifisering,sats,utbetales,fradrag_sum,uforegrad\n"
     val alleMånedsBeløp = data.mapNotNull {
         it.månedsbeløp?.toCSV(it.id)
     }
