@@ -158,15 +158,6 @@ data class Fradrag(
 
 fun List<Fradrag>.toCSV(manedsbelop_id: String): String {
     return buildString {
-        appendLine(
-            listOf(
-                "manedsbelop_id",
-                "fradragstype",
-                "belop",
-                "tilhorer",
-                "er_utenlandsk",
-            ).joinToString(","),
-        )
         for (dto in this@toCSV) {
             appendLine(
                 listOf(
