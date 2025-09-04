@@ -134,13 +134,13 @@ fun Månedsbeløp.toCSV(stoenad_statistikk_id: UUID): String {
     return buildString {
         appendLine(
             listOf(
+                stoenad_statistikk_id.toString(),
                 this@toCSV.måned,
                 this@toCSV.stonadsklassifisering,
                 this@toCSV.sats.toString(),
                 this@toCSV.utbetales.toString(),
                 this@toCSV.fradragSum.toString(),
                 this@toCSV.uføregrad.toString(),
-                stoenad_statistikk_id.toString(),
             ).joinToString(",") { escapeCsv(it) },
         )
     }
@@ -162,21 +162,21 @@ fun List<Fradrag>.toCSV(manedsbelop_id: UUID): String {
     return buildString {
         appendLine(
             listOf(
+                "manedsbelop_id",
                 "fradragstype",
                 "belop",
                 "tilhorer",
                 "er_utenlandsk",
-                "manedsbelop_id",
             ).joinToString(","),
         )
         for (dto in this@toCSV) {
             appendLine(
                 listOf(
+                    manedsbelop_id.toString(),
                     dto.fradragstype,
                     dto.beløp.toString(),
                     dto.tilhører,
                     dto.erUtenlandsk.toString(),
-                    manedsbelop_id.toString(),
                 ).joinToString(",") { escapeCsv(it) },
             )
         }
