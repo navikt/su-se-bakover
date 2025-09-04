@@ -60,9 +60,6 @@ data class StønadstatistikkMånedDto(
     val behandlendeEnhetKode: String,
     val månedsbeløp: Månedsbeløp?,
 )
-fun main() {
-    println(YearMonth.now().minusMonths(1).atDay(1))
-}
 
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
@@ -121,6 +118,7 @@ private fun escapeCsv(field: String): String {
  * @property uføregrad uføregrad til bruker hvis uføre sak
  */
 data class Månedsbeløp(
+    val manedsbelopId: String,
     val måned: String,
     val stonadsklassifisering: String,
     val sats: Long,
@@ -158,7 +156,7 @@ data class Fradrag(
     val erUtenlandsk: Boolean,
 )
 
-fun List<Fradrag>.toCSV(manedsbelop_id: UUID): String {
+fun List<Fradrag>.toCSV(manedsbelop_id: String): String {
     return buildString {
         appendLine(
             listOf(
@@ -172,7 +170,7 @@ fun List<Fradrag>.toCSV(manedsbelop_id: UUID): String {
         for (dto in this@toCSV) {
             appendLine(
                 listOf(
-                    manedsbelop_id.toString(),
+                    manedsbelop_id,
                     dto.fradragstype,
                     dto.beløp.toString(),
                     dto.tilhører,
