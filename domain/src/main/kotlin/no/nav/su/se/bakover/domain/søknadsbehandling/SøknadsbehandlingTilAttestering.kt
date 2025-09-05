@@ -89,8 +89,9 @@ sealed interface SøknadsbehandlingTilAttestering :
         override fun tilUnderkjent(
             attestering: Attestering.Underkjent,
         ): Either<KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, UnderkjentSøknadsbehandling.Innvilget> {
-            if (attestering.attestant.navIdent == saksbehandler.navIdent)
+            if (attestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
             return UnderkjentSøknadsbehandling.Innvilget(
                 id = id,
                 opprettet = opprettet,

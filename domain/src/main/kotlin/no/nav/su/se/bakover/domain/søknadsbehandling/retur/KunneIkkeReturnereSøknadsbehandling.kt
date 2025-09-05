@@ -10,8 +10,7 @@ sealed interface KunneIkkeReturnereSøknadsbehandling {
 
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
-    ) : KunneIkkeReturnereSøknadsbehandling {
-    }
+    ) : KunneIkkeReturnereSøknadsbehandling
 
     data object FeilSaksbehandler : KunneIkkeReturnereSøknadsbehandling
 }
