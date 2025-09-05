@@ -40,7 +40,6 @@ sealed interface BeregnetSøknadsbehandling :
     Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
     KanBeregnes,
-    KanReturneresFraAttestering,
     KanOppdatereFradragsgrunnlag,
     Omgjøringssøknadsbehandling {
     abstract override val beregning: Beregning

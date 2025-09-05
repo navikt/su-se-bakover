@@ -56,7 +56,6 @@ data class SimulertSøknadsbehandling(
     KanOppdaterePeriodeBosituasjonVilkår,
     KanBeregnes,
     KanSimuleres,
-    KanReturneresFraAttestering,
     KanSendesTilAttestering,
     KanGenerereInnvilgelsesbrev,
     KanOppdatereFradragsgrunnlag {

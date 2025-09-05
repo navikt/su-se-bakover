@@ -322,7 +322,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    patch("$SØKNADSBEHANDLING_PATH/{behandlingId)/returSak"){
+    patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/returSak"){
         authorize(Brukerrolle.Saksbehandler){
             val sakBehandler = call.suUserContext.saksbehandler
 
@@ -332,18 +332,15 @@ internal fun Route.søknadsbehandlingRoutes(
                         ReturRequest(
                             behandlingId = SøknadsbehandlingId(behandlingId),
                             saksbehandler = sakBehandler,
-                            attestering = Attestering.retur(
-                                attestant = Attestant(sakBehandler.navIdent),
-                                opprettet = Tidspunkt.now(clock),
-                            )
                         )
                     ).fold(
                         ifLeft = {
                             val resultat = when (it) {
                                 KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
-                                //KunneIkkeReturnereSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 KunneIkkeReturnereSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                 KunneIkkeReturnereSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
+                                is KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler -> ugyldigTilstand
+                                is KunneIkkeReturnereSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand
                             }
                             call.svar(resultat)
                         },
