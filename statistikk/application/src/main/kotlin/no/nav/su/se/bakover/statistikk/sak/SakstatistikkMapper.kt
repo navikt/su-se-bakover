@@ -286,6 +286,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
         is StatistikkEvent.Behandling.Gjenoppta,
         is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring,
         -> {
+            // TODO Fjern nullable i signaturen når alle er implementert
             null
         }
     }
