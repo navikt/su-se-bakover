@@ -84,7 +84,7 @@ class DokDistFordelingClient(
                         if (body.lowercase().contains("Validering av distribusjonsforespørsel feilet med feilmelding: Journalpostfeltet journalpoststatus er ikke som forventet, fikk: FEILREGISTRERT, men forventet FERDIGSTILT".lowercase())) {
                             return BrevbestillingId(FEILKODER.FEILREGISTRERT.name).right()
                         } else {
-                            log.error("Feilkode matcher ikke lenger, må sjekke dette")
+                            log.error("Uhåndtert feil** Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body")
                         }
                     }
                     log.error(
