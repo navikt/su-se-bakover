@@ -50,10 +50,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.ReturRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.ReturRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
@@ -322,8 +322,8 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/returSak"){
-        authorize(Brukerrolle.Saksbehandler){
+    patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/returSak") {
+        authorize(Brukerrolle.Saksbehandler) {
             val sakBehandler = call.suUserContext.saksbehandler
 
             call.withBehandlingId { behandlingId ->
@@ -332,7 +332,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         ReturRequest(
                             behandlingId = SøknadsbehandlingId(behandlingId),
                             saksbehandler = sakBehandler,
-                        )
+                        ),
                     ).fold(
                         ifLeft = {
                             val resultat = when (it) {
@@ -348,13 +348,11 @@ internal fun Route.søknadsbehandlingRoutes(
                             call.sikkerlogg("Tok søknaden i retur: $behandlingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
                             call.svar(OK.jsonBody(it, formuegrenserFactory))
-
-                        }
+                        },
                     )
-                }
             }
         }
-
+    }
 
     data class UnderkjennBody(
         val grunn: String,
@@ -496,7 +494,7 @@ internal fun Sak.KunneIkkeOppdatereStønadsperiode.tilResultat(): Resultat {
                 is MaskinellAldersvurderingMedGrunnlagsdata.Ukjent.UtenFødselsår -> "ukjent uten fødselsår"
                 else -> throw IllegalStateException("Ukjent maskinellvurdering for alder ${this.vurdering}")
             }
-                                                                                  
+
             BadRequest.errorJson(
                 "Aldersvurdering gir ikke rett på alder. Stønadsperioden må justeres, eller overstyres. vurdering - $maskinellVurdering",
                 "aldersvurdering_gir_ikke_rett_på_alder",
