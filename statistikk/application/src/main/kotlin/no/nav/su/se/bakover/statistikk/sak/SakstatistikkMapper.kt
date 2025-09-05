@@ -308,7 +308,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
 
 ): SakStatistikk {
     return SakStatistikk(
-        funksjonellTid = behandling.opprettet,
+        hendelseTid = behandling.opprettet,
         tekniskTid = Tidspunkt.now(clock),
         sakId = behandling.sakId,
         saksnummer = behandling.saksnummer.nummer,

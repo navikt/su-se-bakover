@@ -20,24 +20,24 @@ class SakStatistikkRepoImpl(
             sessionFactory.withSession { session ->
                 """
                     INSERT INTO sak_statistikk (
-                        funksjonell_tid, teknisk_tid, sak_id, saksnummer, behandling_id, relatert_behandling_id,
+                        hendelse_tid, teknisk_tid, sak_id, saksnummer, behandling_id, relatert_behandling_id,
                         sak_ytelse, sak_utland, behandling_type, behandling_metode, mottatt_tid, registrert_tid,
                         ferdigbehandlet_tid, utbetalt_tid, behandling_status, behandling_resultat, behandling_begrunnelse,
                         behandling_aarsak, opprettet_av, saksbehandler, ansvarlig_beslutter, ansvarlig_enhet,
-                        vedtakslslosning_navn, funksjonell_periode_fom, funksjonell_periode_tom,
-                        tilbakekreving_beloep, aktorid                   
+                        vedtakslosning_navn, funksjonell_periode_fom, funksjonell_periode_tom,
+                        tilbakekrev_beloep, aktorid                   
                     ) VALUES (
-                        :funksjonell_tid, :teknisk_tid, :sak_id, :saksnummer, :behandling_id, :relatert_behandling_id,
+                        :hendelse_tid, :teknisk_tid, :sak_id, :saksnummer, :behandling_id, :relatert_behandling_id,
                         :sak_ytelse, :sak_utland, :behandling_type, :behandling_metode, :mottatt_tid, :registrert_tid,
                         :ferdigbehandlet_tid, :utbetalt_tid, :behandling_status, :behandling_resultat,
                         :behandling_begrunnelse,:behandling_aarsak, :opprettet_av, :saksbehandler, :ansvarlig_beslutter,
-                        :ansvarlig_enhet, :vedtakslslosning_navn,:funksjonell_periode_fom, :funksjonell_periode_tom,
-                        :tilbakekreving_beloep, :aktorid                   
+                        :ansvarlig_enhet, :vedtakslosning_navn,:funksjonell_periode_fom, :funksjonell_periode_tom,
+                        :tilbakekrev_beloep, :aktorid                   
                     )
                 """.trimIndent()
                     .insert(
                         mapOf(
-                            "funksjonell_tid" to behandlingstatistikk.funksjonellTid,
+                            "hendelse_tid" to behandlingstatistikk.hendelseTid,
                             "teknisk_tid" to behandlingstatistikk.tekniskTid,
                             "sak_id" to behandlingstatistikk.sakId,
                             "saksnummer" to behandlingstatistikk.saksnummer,
@@ -60,10 +60,10 @@ class SakStatistikkRepoImpl(
                             "saksbehandler" to behandlingstatistikk.saksbehandler,
                             "ansvarlig_beslutter" to behandlingstatistikk.ansvarligBeslutter,
                             "ansvarlig_enhet" to behandlingstatistikk.ansvarligEnhet,
-                            "vedtakslslosning_navn" to behandlingstatistikk.vedtakslsløsningNavn,
+                            "vedtakslosning_navn" to behandlingstatistikk.vedtaksløsningNavn,
                             "funksjonell_periode_fom" to behandlingstatistikk.funksjonellPeriodeFom,
                             "funksjonell_periode_tom" to behandlingstatistikk.funksjonellPeriodeTom,
-                            "tilbakekreving_beloep" to behandlingstatistikk.tilbakekrevingBeløp,
+                            "tilbakekrev_beloep" to behandlingstatistikk.tilbakekrevBeløp,
                         ),
                         session = session,
                     )
@@ -81,7 +81,7 @@ class SakStatistikkRepoImpl(
                 session = session,
             ) { row ->
                 SakStatistikk(
-                    funksjonellTid = row.tidspunkt("funksjonell_tid"),
+                    hendelseTid = row.tidspunkt("hendelse_tid"),
                     tekniskTid = row.tidspunkt("teknisk_tid"),
                     sakId = row.uuid("sak_id"),
                     saksnummer = row.long("saksnummer"),
@@ -104,10 +104,10 @@ class SakStatistikkRepoImpl(
                     saksbehandler = row.stringOrNull("saksbehandler"),
                     ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
                     ansvarligEnhet = row.string("ansvarlig_enhet"),
-                    vedtakslsløsningNavn = row.string("vedtakslslosning_navn"),
+                    vedtaksløsningNavn = row.string("vedtakslosning_navn"),
                     funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
                     funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
-                    tilbakekrevingBeløp = row.longOrNull("tilbakekreving_beloep"),
+                    tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),
                 )
             }
         }

@@ -37,7 +37,7 @@ internal class SakStatistikkRepoImplPostgresTest {
 
     private fun lageSakStatistikkAlleVerdier(): SakStatistikk {
         return SakStatistikk(
-            funksjonellTid = Tidspunkt.now(tikkendeKlokke),
+            hendelseTid = Tidspunkt.now(tikkendeKlokke),
             tekniskTid = Tidspunkt.now(tikkendeKlokke),
             sakId = UUID.randomUUID(),
             saksnummer = 123L,
@@ -60,15 +60,15 @@ internal class SakStatistikkRepoImplPostgresTest {
             saksbehandler = "saksbehandler",
             ansvarligBeslutter = "ansvarlig_beslutter",
             ansvarligEnhet = "ansvarlig_enhet",
-            vedtakslsløsningNavn = "vedtakslsløsningNavn ",
+            vedtaksløsningNavn = "vedtaksløsningNavn",
             funksjonellPeriodeFom = LocalDate.now(),
             funksjonellPeriodeTom = LocalDate.now(),
-            tilbakekrevingBeløp = 12L,
+            tilbakekrevBeløp = 12L,
         )
     }
     private fun lageSakStatistikkNullVerdier(): SakStatistikk {
         return SakStatistikk(
-            funksjonellTid = Tidspunkt.now(tikkendeKlokke),
+            hendelseTid = Tidspunkt.now(tikkendeKlokke),
             tekniskTid = Tidspunkt.now(tikkendeKlokke),
             sakId = UUID.randomUUID(),
             saksnummer = 123L,
@@ -83,7 +83,7 @@ internal class SakStatistikkRepoImplPostgresTest {
             behandlingStatus = "status",
             opprettetAv = "opprettet_av",
             ansvarligEnhet = "ansvarlig_enhet",
-            vedtakslsløsningNavn = "vedtakslsløsningNavn ",
+            vedtaksløsningNavn = "vedtaksløsningNavn",
         )
     }
 }

@@ -1,6 +1,6 @@
 CREATE TABLE sak_statistikk (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    funksjonell_tid TIMESTAMPTZ NOT NULL,
+    hendelse_tid TIMESTAMPTZ NOT NULL,
     teknisk_tid TIMESTAMPTZ NOT NULL,
     sak_id UUID NOT NULL,
     saksnummer BIGINT NOT NULL,
@@ -27,9 +27,9 @@ CREATE TABLE sak_statistikk (
     saksbehandler TEXT,
     ansvarlig_beslutter TEXT,
     ansvarlig_enhet TEXT,
-    vedtakslslosning_navn TEXT,
+    vedtakslosning_navn TEXT,
 
     funksjonell_periode_fom DATE,
     funksjonell_periode_tom DATE,
-    tilbakekreving_beloep BIGINT
+    tilbakekrev_beloep BIGINT
 );
