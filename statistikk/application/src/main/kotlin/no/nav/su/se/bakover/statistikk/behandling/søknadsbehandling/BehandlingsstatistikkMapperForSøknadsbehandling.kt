@@ -101,7 +101,10 @@ internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget -> toDto(
             clock = clock,
             gitCommit = gitCommit,
-            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(this.søknadsbehandling.id.value, clock),
+            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(
+                this.søknadsbehandling.id.value,
+                clock,
+            ),
             behandlingStatus = BehandlingStatus.Underkjent,
             behandlingsresultat = BehandlingResultat.Innvilget,
             resultatBegrunnelse = null,
@@ -114,7 +117,10 @@ internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Søknad.Underkjent.Avslag -> toDto(
             clock = clock,
             gitCommit = gitCommit,
-            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(this.søknadsbehandling.id.value, clock),
+            funksjonellTid = this.søknadsbehandling.attesteringer.toFunksjonellTid(
+                this.søknadsbehandling.id.value,
+                clock,
+            ),
             behandlingStatus = BehandlingStatus.Underkjent,
             behandlingsresultat = BehandlingResultat.AvslåttSøknadsbehandling,
             resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),

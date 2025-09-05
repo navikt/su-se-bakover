@@ -6,12 +6,14 @@ import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
+import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
 import no.nav.su.se.bakover.statistikk.stønad.toStønadstatistikkDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -25,6 +27,7 @@ internal class KafkaStatistikkEventObserver(
     private val log: Logger = LoggerFactory.getLogger(KafkaStatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,
     private val stønadStatistikkRepo: StønadStatistikkRepo,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) : StatistikkEventObserver {
 
     override fun handle(event: StatistikkEvent) {
@@ -45,23 +48,21 @@ internal class KafkaStatistikkEventObserver(
                         )
                     }
                 }
+
                 is StatistikkEvent.Behandling -> {
-                    if (ApplicationConfig.isProd()) {
-                        publiserEllerLoggFeil(
-                            event.toBehandlingsstatistikkDto(
-                                gitCommit,
-                                clock,
-                            ),
-                        )
-                    } else {
-                        publiserEllerLoggFeil(
-                            event.toBehandlingsstatistikkDto(
-                                gitCommit,
-                                clock,
-                            ),
-                        )
+                    publiserEllerLoggFeil(
+                        event.toBehandlingsstatistikkDto(
+                            gitCommit,
+                            clock,
+                        ),
+                    )
+                    if (!ApplicationConfig.isProd()) {
+                        val behandlingsstatistikk = event.toBehandlingsstatistikkOverordnet(clock)?.let {
+                            sakStatistikkRepo.lagreSakStatistikk(it)
+                        }
                     }
                 }
+
                 is StatistikkEvent.Søknad -> {
                     if (ApplicationConfig.isProd()) {
                         publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
@@ -76,7 +77,13 @@ internal class KafkaStatistikkEventObserver(
                             hentSak = event.hentSak,
                             clock = clock,
                             gitCommit = gitCommit,
-                            lagreStatstikkHendelse = { dto -> if (ApplicationConfig.isNotProd()) stønadStatistikkRepo.lagreStønadStatistikk(dto) },
+                            lagreStatstikkHendelse = { dto ->
+                                if (ApplicationConfig.isNotProd()) {
+                                    stønadStatistikkRepo.lagreStønadStatistikk(
+                                        dto,
+                                    )
+                                }
+                            },
                         ).right(),
                     )
                 }

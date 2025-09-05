@@ -70,7 +70,7 @@ class StønadStatistikkJobServiceImpl(
     ) {
         val alleVedtak = vedtakRepo.hentVedtakForMåned(Måned.fra(måned))
         alleVedtak.groupBy { it.behandling.sakId }.forEach {
-            val siste = it.value.maxBy { it.avsluttetTidspunkt }
+            val siste = it.value.maxBy { it.opprettet }
             val behandling = siste.behandling as Stønadsbehandling
             val sak = behandling.sakinfo()
 
