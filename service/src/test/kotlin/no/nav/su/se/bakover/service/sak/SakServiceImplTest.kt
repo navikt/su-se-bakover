@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
@@ -77,7 +76,6 @@ internal class SakServiceImplTest {
 
         verify(sakRepo).opprettSak(any())
         verify(sakRepo).hentSak(sak.id)
-        verify(observer).handle(argThat { it shouldBe StatistikkEvent.SakOpprettet(sak) })
     }
 
     @Test

@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -30,13 +29,6 @@ class LukkSøknadServiceImpl(
     private val sessionFactory: SessionFactory,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val observers = mutableListOf<StatistikkEventObserver>()
-
-    fun addObserver(observer: StatistikkEventObserver) {
-        observers.add(observer)
-    }
-
-    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun lukkSøknad(
         command: LukkSøknadCommand,
@@ -73,10 +65,6 @@ class LukkSøknadServiceImpl(
                         log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
                         sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
-                }
-                observers.forEach { e ->
-                    // TODO: Fire and forget. Det vil logges i observerne, men vil ikke kunne resende denne dersom dette feiler.
-                    e.handle(it.hendelse)
                 }
 
                 Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)

@@ -10,19 +10,15 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
-import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
-import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
 import no.nav.su.se.bakover.statistikk.stønad.toStønadstatistikkDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 
 internal class KafkaStatistikkEventObserver(
     private val publisher: KafkaPublisher,
-    private val personService: PersonService,
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(KafkaStatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,
@@ -33,22 +29,6 @@ internal class KafkaStatistikkEventObserver(
     override fun handle(event: StatistikkEvent) {
         Either.catch {
             when (event) {
-                is StatistikkEvent.SakOpprettet -> {
-                    if (ApplicationConfig.isProd()) {
-                        val sak = event.sak
-                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                        )
-                    } else {
-                        val sak = event.sak
-                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                        )
-                    }
-                }
-
                 is StatistikkEvent.Behandling -> {
                     publiserEllerLoggFeil(
                         event.toBehandlingsstatistikkDto(
@@ -57,17 +37,9 @@ internal class KafkaStatistikkEventObserver(
                         ),
                     )
                     if (!ApplicationConfig.isProd()) {
-                        val behandlingsstatistikk = event.toBehandlingsstatistikkOverordnet(clock)?.let {
+                        event.toBehandlingsstatistikkOverordnet(clock)?.let {
                             sakStatistikkRepo.lagreSakStatistikk(it)
                         }
-                    }
-                }
-
-                is StatistikkEvent.Søknad -> {
-                    if (ApplicationConfig.isProd()) {
-                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
-                    } else {
-                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
                     }
                 }
 

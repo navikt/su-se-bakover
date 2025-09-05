@@ -86,7 +86,6 @@ internal class StatistikkStansTest {
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,
-            personService = personServiceMock,
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             mock(),

@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
-import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
-import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.defaultMock
@@ -88,13 +86,11 @@ internal class ServiceBuilderTest {
         ).let {
             listOf(
                 (it.sak as SakServiceImpl).getObservers().singleOrNull(),
-                (it.søknad as SøknadServiceImpl).getObservers().singleOrNull(),
                 (it.revurdering as RevurderingServiceImpl).getObservers().singleOrNull(),
                 (it.reguleringService as ReguleringServiceImpl).getObservers().singleOrNull(),
                 (it.søknadsbehandling.søknadsbehandlingService as SøknadsbehandlingServiceImpl).getObservers()
                     .singleOrNull(),
                 (it.klageService as KlageServiceImpl).getObservers().singleOrNull(),
-                (it.lukkSøknad as LukkSøknadServiceImpl).getObservers().singleOrNull(),
             ).forEach {
                 withClue("$it should implement StatistikkEventObserver, but didn't") {
                     (it is StatistikkEventObserver).shouldBe(true)

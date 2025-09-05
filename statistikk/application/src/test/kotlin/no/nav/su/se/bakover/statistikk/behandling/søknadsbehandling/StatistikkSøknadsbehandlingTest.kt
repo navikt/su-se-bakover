@@ -228,7 +228,6 @@ internal class StatistikkSøknadsbehandlingTest {
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,
-            personService = mock(),
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             mock(),

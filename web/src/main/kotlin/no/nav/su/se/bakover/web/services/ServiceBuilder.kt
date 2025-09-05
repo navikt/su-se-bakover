@@ -58,7 +58,6 @@ data object ServiceBuilder {
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
-            personService = personService,
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
             stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
@@ -97,9 +96,7 @@ data object ServiceBuilder {
             personService = personService,
             oppgaveService = oppgaveService,
             clock = clock,
-        ).apply {
-            addObserver(statistikkEventObserver)
-        }
+        )
 
         val skattDokumentService = SkattDokumentServiceImpl(
             pdfGenerator = clients.pdfGenerator,
@@ -268,9 +265,7 @@ data object ServiceBuilder {
                 søknadsbehandlingService = søknadsbehandlingService,
                 sakService = sakService,
                 sessionFactory = databaseRepos.sessionFactory,
-            ).apply {
-                addObserver(statistikkEventObserver)
-            },
+            ),
             oppgave = oppgaveService,
             person = personService,
             søknadsbehandling = SøknadsbehandlingServices(
