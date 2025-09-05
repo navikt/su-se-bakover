@@ -28,10 +28,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import vedtak.domain.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
-// TODO jah: Statistikk er ikke per say domenet vårt, vi burde bare publisert generelle hendelser til en Hendelsestype som igjen statistikk kunne lyttet på (gjerne vha. coroutines).
 sealed interface StatistikkEvent {
-
-    data class SakOpprettet(val sak: Sak) : StatistikkEvent
 
     sealed interface Behandling : StatistikkEvent {
 
