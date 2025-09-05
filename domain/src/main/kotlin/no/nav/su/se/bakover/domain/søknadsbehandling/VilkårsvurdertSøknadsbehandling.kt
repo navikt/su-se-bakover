@@ -39,7 +39,6 @@ import java.util.UUID
 
 sealed interface VilkårsvurdertSøknadsbehandling :
     Søknadsbehandling,
-    KanReturneresFraAttestering,
     KanOppdaterePeriodeBosituasjonVilkår,
     Omgjøringssøknadsbehandling {
 
@@ -208,7 +207,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         }
     }
 
-    data class Avslag internal constructor(
+    data class Avslag constructor(
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
