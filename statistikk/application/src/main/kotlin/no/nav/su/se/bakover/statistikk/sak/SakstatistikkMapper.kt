@@ -53,7 +53,7 @@ internal fun StatistikkEvent.SakOpprettet.toBehandlingsstatistikk(
 
 internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
     clock: Clock,
-): SakStatistikk {
+): SakStatistikk? {
     // TODO har vi en systembruker vi kan angi her? Og hvordanv et man om det er opprettet "manuelt"?
     val opprettetAv = "SU-app"
 
@@ -286,8 +286,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
         is StatistikkEvent.Behandling.Gjenoppta,
         is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring,
         -> {
-            TODO()
-            // this.toBehandlingsstatistikkGenerell()
+            null
         }
     }
 }

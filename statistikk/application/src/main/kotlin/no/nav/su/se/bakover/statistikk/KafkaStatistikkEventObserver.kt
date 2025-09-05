@@ -57,8 +57,9 @@ internal class KafkaStatistikkEventObserver(
                         ),
                     )
                     if (!ApplicationConfig.isProd()) {
-                        val behandlingsstatistikk = event.toBehandlingsstatistikkOverordnet(clock)
-                        sakStatistikkRepo.lagreSakStatistikk(behandlingsstatistikk)
+                        val behandlingsstatistikk = event.toBehandlingsstatistikkOverordnet(clock)?.let {
+                            sakStatistikkRepo.lagreSakStatistikk(it)
+                        }
                     }
                 }
 
