@@ -60,6 +60,8 @@ jobs:
           tag: ${{ github.sha }}
           dockerfile: ./datapakker/saksstatistikk/Dockerfile
           image_suffix: 'datapakker-saksstatistikk-job'
+          cache_from: type=gha
+          cache_to: type=gha,mode=max
 
   deploy_to_dev_soknad:
     name: Deploy to dev soknad
