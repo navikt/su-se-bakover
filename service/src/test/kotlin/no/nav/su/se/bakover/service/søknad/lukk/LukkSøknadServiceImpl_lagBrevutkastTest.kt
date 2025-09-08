@@ -227,7 +227,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             sessionFactory = sessionFactory,
-        ).apply { addObserver(lukkSøknadServiceObserver) }
+        )
 
         val allMocks = listOf(
             søknadService,
