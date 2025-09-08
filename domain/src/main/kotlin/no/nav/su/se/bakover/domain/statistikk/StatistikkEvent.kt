@@ -32,20 +32,17 @@ sealed interface StatistikkEvent {
 
     sealed interface Behandling : StatistikkEvent {
 
-        sealed interface Omgjøring : Behandling {
-            val søknadsbehandling: Omgjøringssøknadsbehandling
-            data class AvslåttOmgjøring(
-                override val søknadsbehandling: Omgjøringssøknadsbehandling,
-                val saksbehandler: NavIdentBruker.Saksbehandler,
-            ) : Omgjøring
-        }
-
         sealed interface Søknad : Behandling {
             val søknadsbehandling: DomeneSøknadsbehandling
 
             data class Opprettet(
                 override val søknadsbehandling: VilkårsvurdertSøknadsbehandling.Uavklart,
                 // TODO jah: Erstatt med saksbehandler fra behandlinga hvis det blir implmentert.
+                val saksbehandler: NavIdentBruker.Saksbehandler,
+            ) : Søknad
+
+            data class OpprettetOmgjøring(
+                override val søknadsbehandling: Omgjøringssøknadsbehandling,
                 val saksbehandler: NavIdentBruker.Saksbehandler,
             ) : Søknad
 

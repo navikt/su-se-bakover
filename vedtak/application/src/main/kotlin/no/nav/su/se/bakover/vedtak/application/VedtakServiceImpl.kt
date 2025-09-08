@@ -147,7 +147,7 @@ class VedtakServiceImpl(
             omgjøringsgrunn = omgjøringsgrunn,
         ).map {
             søknadsbehandlingService.lagre(it)
-            observers.notify(StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring(it, saksbehandler))
+            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(it, saksbehandler))
             it
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
