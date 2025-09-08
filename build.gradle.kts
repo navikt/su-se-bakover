@@ -233,6 +233,7 @@ tasks.register("verifyUniqueJarNames") {
             if (project.path == ":datapakker:soknad") return@mapNotNull null
             if (project.path == ":datapakker:fritekstAvslag") return@mapNotNull null
             if (project.path == ":datapakker:stoenadstatistikk") return@mapNotNull null
+            if (project.path == ":datapakker:saksstatistikk") return@mapNotNull null
             project.tasks.findByName("jar")?.let {
                 (it as? org.gradle.jvm.tasks.Jar)?.archiveBaseName?.get()
             }
