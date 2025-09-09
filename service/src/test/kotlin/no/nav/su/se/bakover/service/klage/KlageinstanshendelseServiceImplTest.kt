@@ -84,6 +84,7 @@ internal class KlageinstanshendelseServiceImplTest {
                     journalpostIDer = mappedKlageinstanshendelse.journalpostIDer,
                     avsluttetTidspunkt = fixedTidspunkt,
                     hendelsestype = "KlagebehandlingAvsluttet",
+                    sakstype = klage.sakstype,
                 )
             },
         )
@@ -136,6 +137,7 @@ internal class KlageinstanshendelseServiceImplTest {
                     journalpostIDer = listOf(JournalpostId("123456")),
                     avsluttetTidspunkt = fixedTidspunkt,
                     hendelsestype = "KlagebehandlingAvsluttet",
+                    sakstype = klage.sakstype,
                 )
             },
         )

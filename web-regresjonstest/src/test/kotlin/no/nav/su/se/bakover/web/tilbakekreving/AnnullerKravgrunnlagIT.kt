@@ -93,7 +93,7 @@ internal class AnnullerKravgrunnlagIT {
                 // Må økes etter hvert som vi får flere hendelser.
                 saksversjon = 4,
                 client = this.client,
-                expectedKontrollfelt = "2021-02-01-02.03.47.456789",
+                expectedKontrollfelt = "2021-02-01-02.03.48.456789",
             )
             appComponents.annullerKravgrunnlag(
                 sakId = sakId,

@@ -13,10 +13,18 @@ import no.nav.su.se.bakover.statistikk.behandling.klage.toBehandlingsstatistikkD
 import no.nav.su.se.bakover.statistikk.behandling.revurdering.gjenopptak.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.behandling.revurdering.revurdering.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.behandling.revurdering.stans.toBehandlingsstatistikkDto
+import no.nav.su.se.bakover.statistikk.behandling.søknad.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.behandling.søknadsbehandling.toBehandlingsstatistikkDto
 import java.time.Clock
 
 private val behandlingSchema: JsonSchema = createSchema("/statistikk/behandling_schema.json")
+
+internal fun StatistikkEvent.Søknad.toBehandlingsstatistikk(
+    gitCommit: GitCommit?,
+    clock: Clock,
+): Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding> {
+    return serializeAndValidate(this.toBehandlingsstatistikkDto(gitCommit, clock))
+}
 
 internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkDto(
     gitCommit: GitCommit?,

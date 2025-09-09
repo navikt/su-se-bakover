@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -43,10 +44,17 @@ internal class OppgaveHttpClientTest {
     private val søknadId = UUID.randomUUID()
     private val saksnummer = Saksnummer(12345)
 
+    private fun Sakstype.toBehandlingstema(): Behandlingstema =
+        when (this) {
+            Sakstype.ALDER -> Behandlingstema.SU_ALDER
+            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
+        }
+
     @Test
     fun `oppretter oppgave for saksbehandler`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedSaksbehandlingRequest = createRequestBody(tilordnetRessurs = saksbehandler)
+            val expectedSaksbehandlingRequest = createRequestBody(tilordnetRessurs = saksbehandler, behandlingstema = sakstype.toBehandlingstema())
             val response = createResponse()
 
             stubFor(
@@ -67,7 +75,7 @@ internal class OppgaveHttpClientTest {
 
             val actual = client.opprettOppgave(
                 OppgaveConfig.Søknad(
-                    sakstype = Sakstype.UFØRE,
+                    sakstype = sakstype,
                     journalpostId = journalpostId,
                     søknadId = søknadId,
                     fnr = fnr,
@@ -100,8 +108,9 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `opprett oppgave med systembruker`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedSaksbehandlingRequest = createRequestBody()
+            val expectedSaksbehandlingRequest = createRequestBody(behandlingstema = sakstype.toBehandlingstema())
             val response = createResponse()
 
             stubFor(
@@ -129,7 +138,7 @@ internal class OppgaveHttpClientTest {
 
             val actual = client.opprettOppgaveMedSystembruker(
                 OppgaveConfig.Søknad(
-                    sakstype = Sakstype.UFØRE,
+                    sakstype = sakstype,
                     journalpostId = journalpostId,
                     søknadId = søknadId,
                     fnr = fnr,
@@ -151,8 +160,9 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `opprett attestering oppgave`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(jpostId = null, oppgavetype = "ATT")
+            val expectedAttesteringRequest = createRequestBody(jpostId = null, oppgavetype = "ATT", behandlingstema = sakstype.toBehandlingstema())
             val response = createResponse(oppgavetype = "ATT")
 
             stubFor(
@@ -176,6 +186,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -225,12 +236,14 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `oppretter en saksbehandling for en revurdering`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
             val expectedSaksbehandlingRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
                 beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
                 behandlingstype = "ae0028",
+                behandlingstema = sakstype.toBehandlingstema(),
             )
             val response = createResponse()
 
@@ -256,6 +269,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -283,12 +297,14 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `oppretter en saksbehandling for en revurdering med systembruker`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
             val expectedSaksbehandlingRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
                 beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
                 behandlingstype = "ae0028",
+                behandlingstema = sakstype.toBehandlingstema(),
             )
             val response = createResponse()
 
@@ -322,6 +338,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -338,6 +355,7 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `opprett attestering oppgave for revurdering`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
@@ -345,6 +363,7 @@ internal class OppgaveHttpClientTest {
                 beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
                 oppgavetype = "ATT",
                 behandlingstype = "ae0028",
+                behandlingstema = sakstype.toBehandlingstema(),
             )
 
             val response = createResponse(
@@ -374,6 +393,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -417,6 +437,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = Sakstype.UFØRE,
                 ),
             ) shouldBe KunneIkkeOppretteOppgave.left()
         }
@@ -424,6 +445,7 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `oppretter STADFESTELSE-oppgave for klageinstanshendelse`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
@@ -431,6 +453,7 @@ internal class OppgaveHttpClientTest {
                 beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.""",
                 oppgavetype = "VUR_KONS_YTE",
                 behandlingstype = "ae0058",
+                behandlingstema = sakstype.toBehandlingstema(),
             )
             val response = createResponse(oppgavetype = "ATT")
 
@@ -459,6 +482,7 @@ internal class OppgaveHttpClientTest {
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                     hendelsestype = "enHendelse",
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -480,12 +504,14 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `oppretter MEDHOLD-oppgave for klageinstanshendelse`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
                 beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
                 behandlingstype = "ae0058",
+                behandlingstema = sakstype.toBehandlingstema(),
             )
             val response = createResponse(oppgavetype = "ATT")
 
@@ -514,6 +540,7 @@ internal class OppgaveHttpClientTest {
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                     hendelsestype = "enHendelse",
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -535,12 +562,14 @@ internal class OppgaveHttpClientTest {
 
     @Test
     fun `oppretter RETUR-oppgave for klageinstanshendelse`() {
+        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
             val expectedAttesteringRequest = createRequestBody(
                 jpostId = null,
                 saksreferanse = saksnummer.toString(),
                 beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
                 behandlingstype = "ae0058",
+                behandlingstema = sakstype.toBehandlingstema(),
             )
 
             val response = createResponse(oppgavetype = "ATT")
@@ -570,6 +599,7 @@ internal class OppgaveHttpClientTest {
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                     hendelsestype = "enHendelse",
+                    sakstype = sakstype,
                 ),
             ).getOrFail()
 
@@ -596,6 +626,7 @@ internal class OppgaveHttpClientTest {
         beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId""",
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
+        behandlingstema: Behandlingstema,
     ): String {
         //language=json
         return """
@@ -606,7 +637,7 @@ internal class OppgaveHttpClientTest {
                     "tema": "SUP",
                     "beskrivelse": "$beskrivelse",
                     "oppgavetype": "$oppgavetype",
-                    "behandlingstema": "ab0431",
+                    "behandlingstema": "$behandlingstema",
                     "behandlingstype": "$behandlingstype",
                     "aktivDato": "2021-01-01",
                     "fristFerdigstillelse": "2021-01-31",

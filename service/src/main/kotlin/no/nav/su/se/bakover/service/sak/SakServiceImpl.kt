@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -193,7 +194,7 @@ class SakServiceImpl(
             hentSak(sak.id).fold(
                 ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
                 ifRight = {
-                    log.info("Sak med id ${it.id} opprettet")
+                    observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
                 },
             )
         }

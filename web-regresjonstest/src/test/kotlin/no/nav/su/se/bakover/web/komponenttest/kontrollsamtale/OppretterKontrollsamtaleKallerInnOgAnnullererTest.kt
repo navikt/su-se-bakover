@@ -68,7 +68,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
 
             tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
 
-            kontrollsamtaleService.kallInn(
+            kontrollsamtaleService.kallInnTilKontrollsamtale(
                 kontrollsamtale = førstePlanlagteKontrollsamtale,
             )
 

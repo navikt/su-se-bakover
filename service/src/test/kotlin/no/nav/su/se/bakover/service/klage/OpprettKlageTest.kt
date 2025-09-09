@@ -167,6 +167,7 @@ internal class OpprettKlageTest {
                     journalpostId = JournalpostId(value = "j2"),
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
+                    sakstype = sak.type,
                 )
             },
         )
@@ -258,6 +259,7 @@ internal class OpprettKlageTest {
                     journalpostId = JournalpostId(value = "1"),
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
+                    sakstype = sak.type,
                 )
             },
         )

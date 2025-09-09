@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -44,6 +46,11 @@ class SøknadServiceImpl(
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val observers = mutableListOf<StatistikkEventObserver>()
+
+    fun addObserver(observer: StatistikkEventObserver) = observers.add(observer)
+
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     private fun opprettSøknadPåEksisterendeSak(
         sakInfo: SakInfo,
@@ -117,6 +124,11 @@ class SøknadServiceImpl(
             )
         }
         opprettJournalpostOgOppgave(sakInfo, person, søknad)
+        observers.forEach { observer ->
+            observer.handle(
+                StatistikkEvent.Søknad.Mottatt(søknad, sakInfo.saksnummer),
+            )
+        }
         return Pair(sakInfo.saksnummer, søknad).right()
     }
 

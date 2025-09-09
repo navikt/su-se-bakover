@@ -60,7 +60,7 @@ internal class KontrollsamtaleServiceImplTest {
                 sakService = mock {
                     on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
                 },
-            ).kontrollsamtaleService.kallInn(
+            ).kontrollsamtaleService.kallInnTilKontrollsamtale(
                 kontrollsamtale = kontrollsamtale,
             )
         }.message shouldBe "Fant ikke sak for sakId ${sak.id}"
@@ -76,7 +76,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale.copy(
                 innkallingsdato = sak.hentGjeldendeStønadsperiode(fixedClock)!!.tilOgMed,
             ),
@@ -93,7 +93,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
     }
@@ -111,7 +111,7 @@ internal class KontrollsamtaleServiceImplTest {
                 ).right()
             },
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale.annuller().getOrNull()!!,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
     }
@@ -129,7 +129,7 @@ internal class KontrollsamtaleServiceImplTest {
                 ).right()
             },
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
     }
@@ -143,7 +143,7 @@ internal class KontrollsamtaleServiceImplTest {
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
     }
@@ -164,7 +164,7 @@ internal class KontrollsamtaleServiceImplTest {
             },
             brevService = brevService,
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument(
             underliggendeFeil,
@@ -190,7 +190,7 @@ internal class KontrollsamtaleServiceImplTest {
             oppgaveService = oppgaveService,
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
@@ -215,7 +215,7 @@ internal class KontrollsamtaleServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInn(
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
@@ -239,7 +239,7 @@ internal class KontrollsamtaleServiceImplTest {
             clock = fixedClock,
         )
 
-        services.kontrollsamtaleService.kallInn(
+        services.kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe Unit.right()
 
@@ -254,6 +254,7 @@ internal class KontrollsamtaleServiceImplTest {
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     clock = fixedClock,
+                    sakstype = sak.type,
                 )
             },
         )
