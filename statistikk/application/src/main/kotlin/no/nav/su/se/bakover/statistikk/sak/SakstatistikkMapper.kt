@@ -71,6 +71,18 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     )
                 }
 
+                is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = søknadsbehandling,
+                        behandlingType = Behandlingstype.SOKNAD,
+                        behandlingStatus = BehandlingStatus.Registrert.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                        behandlingAarsak = "Omgjøring etter avvist søknad",
+                    )
+                }
+
                 is StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget -> {
                     this.toBehandlingsstatistikkGenerell(
                         clock = clock,
@@ -284,7 +296,6 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
         is StatistikkEvent.Behandling.Klage,
         is StatistikkEvent.Behandling.Stans,
         is StatistikkEvent.Behandling.Gjenoppta,
-        is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring,
         -> {
             null
         }

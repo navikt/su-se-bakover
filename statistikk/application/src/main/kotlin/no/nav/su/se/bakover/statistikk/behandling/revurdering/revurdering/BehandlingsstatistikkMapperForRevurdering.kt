@@ -151,10 +151,9 @@ private fun Revurdering.toDto(
     funksjonellTid: Tidspunkt,
     saksbehandler: NavIdentBruker.Saksbehandler,
 ): BehandlingsstatistikkDto {
-    val erOmgjøring = this.revurderingsårsak.årsak.erOmgjøring()
     return BehandlingsstatistikkDto(
-        behandlingType = if (erOmgjøring) Behandlingstype.OMGJØRING else Behandlingstype.REVURDERING,
-        behandlingTypeBeskrivelse = if (erOmgjøring) Behandlingstype.OMGJØRING.beskrivelse else Behandlingstype.REVURDERING.beskrivelse,
+        behandlingType = Behandlingstype.REVURDERING,
+        behandlingTypeBeskrivelse = Behandlingstype.REVURDERING.beskrivelse,
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = this.opprettet.toLocalDate(zoneIdOslo),
@@ -173,7 +172,7 @@ private fun Revurdering.toDto(
         behandlingYtelseDetaljer = behandlingYtelseDetaljer,
         behandlingStatus = behandlingStatus.toString(),
         behandlingStatusBeskrivelse = behandlingStatus.beskrivelse,
-        resultat = if (erOmgjøring) this.revurderingsårsak.årsak.name else behandlingResultat?.toString(),
+        resultat = behandlingResultat?.toString(),
         resultatBeskrivelse = behandlingResultat?.beskrivelse,
         resultatBegrunnelse = resultatBegrunnelse,
         ytelseType = sakstype.toYtelseType(),
