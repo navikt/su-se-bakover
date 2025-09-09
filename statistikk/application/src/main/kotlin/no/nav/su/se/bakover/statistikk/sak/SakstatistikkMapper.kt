@@ -239,6 +239,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                             ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
                     )
                 }
+
                 is StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør -> {
                     this.toBehandlingsstatistikkGenerell(
                         clock = clock,
@@ -252,6 +253,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                         saksbehandler = revurdering.saksbehandler.navIdent,
                     )
                 }
+
                 is StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget -> {
                     this.toBehandlingsstatistikkGenerell(
                         clock = clock,
@@ -266,6 +268,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                             ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
                     )
                 }
+
                 is StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt -> {
                     this.toBehandlingsstatistikkGenerell(
                         clock = clock,
@@ -279,6 +282,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                         saksbehandler = revurdering.saksbehandler.navIdent,
                     )
                 }
+
                 is StatistikkEvent.Behandling.Revurdering.Avsluttet -> {
                     this.toBehandlingsstatistikkGenerell(
                         clock = clock,
@@ -293,9 +297,88 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             }
         }
 
-        is StatistikkEvent.Behandling.Klage,
         is StatistikkEvent.Behandling.Stans,
+        -> {
+            when (this) {
+                is StatistikkEvent.Behandling.Stans.Opprettet -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = revurdering,
+                        behandlingType = Behandlingstype.REVURDERING,
+                        behandlingStatus = BehandlingStatus.Registrert.name,
+                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = revurdering.saksbehandler.navIdent,
+                    )
+                }
+                is StatistikkEvent.Behandling.Stans.Avsluttet -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = revurdering,
+                        behandlingType = Behandlingstype.REVURDERING,
+                        behandlingStatus = BehandlingStatus.Avsluttet.name,
+                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                        behandlingResultat = BehandlingResultat.Avbrutt.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = revurdering.saksbehandler.navIdent,
+                    )
+                }
+                is StatistikkEvent.Behandling.Stans.Iverksatt -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = revurdering,
+                        behandlingType = Behandlingstype.REVURDERING,
+                        behandlingStatus = BehandlingStatus.Iverksatt.name,
+                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                        behandlingResultat = BehandlingResultat.Stanset.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = revurdering.saksbehandler.navIdent,
+                    )
+                }
+            }
+        }
+
         is StatistikkEvent.Behandling.Gjenoppta,
+        -> {
+            when (this) {
+                is StatistikkEvent.Behandling.Gjenoppta.Opprettet -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = revurdering,
+                        behandlingType = Behandlingstype.REVURDERING,
+                        behandlingStatus = BehandlingStatus.Registrert.name,
+                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = revurdering.saksbehandler.navIdent,
+                    )
+                }
+                is StatistikkEvent.Behandling.Gjenoppta.Avsluttet -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = revurdering,
+                        behandlingType = Behandlingstype.REVURDERING,
+                        behandlingStatus = BehandlingStatus.Avsluttet.name,
+                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                        behandlingResultat = BehandlingResultat.Avbrutt.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = revurdering.saksbehandler.navIdent,
+                    )
+                }
+                is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = revurdering,
+                        behandlingType = Behandlingstype.REVURDERING,
+                        behandlingStatus = BehandlingStatus.Iverksatt.name,
+                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                        behandlingResultat = BehandlingResultat.Gjenopptatt.name,
+                        opprettetAv = opprettetAv,
+                        saksbehandler = revurdering.saksbehandler.navIdent,
+                    )
+                }
+            }
+        }
+        is StatistikkEvent.Behandling.Klage,
         -> {
             null
         }
@@ -329,6 +412,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
         aktorId = behandling.fnr,
         sakYtelse = behandling.sakstype.toYtelseType().name,
         behandlingType = behandlingType.name,
+        // TODO kan avvike fra søknad..
         mottattTid = behandling.opprettet,
         registrertTid = behandling.opprettet,
         ferdigbehandletTid = ferdigbehandletTid,
