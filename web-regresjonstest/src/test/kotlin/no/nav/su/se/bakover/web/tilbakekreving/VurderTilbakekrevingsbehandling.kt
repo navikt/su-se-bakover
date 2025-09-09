@@ -53,7 +53,7 @@ internal fun vurderTilbakekrevingsbehandling(
         ],
         "eksternKravgrunnlagId":"123456",
         "eksternVedtakId":"654321",
-        "eksternKontrollfelt":"2021-02-01-02.03.47.456789",
+        "eksternKontrollfelt":"2021-02-01-02.03.48.456789",
         "bruttoSkalTilbakekreveSummert":2383,
         "nettoSkalTilbakekreveSummert":1191,
         "bruttoSkalIkkeTilbakekreveSummert":0,
@@ -148,7 +148,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.47.456789",
+    "kontrollfelt":"2021-02-01-02.03.48.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {

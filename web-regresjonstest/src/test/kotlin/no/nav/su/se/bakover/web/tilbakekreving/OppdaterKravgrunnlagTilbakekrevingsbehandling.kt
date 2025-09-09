@@ -88,7 +88,7 @@ fun verifiserOppdatertKravgrunnlagRespons(
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.04.50.456789",
+    "kontrollfelt":"2021-02-01-02.04.51.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {

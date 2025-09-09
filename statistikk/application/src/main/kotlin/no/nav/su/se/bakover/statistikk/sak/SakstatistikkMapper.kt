@@ -1,9 +1,18 @@
 package no.nav.su.se.bakover.statistikk.sak
 
+import arrow.core.Either
 import behandling.domain.Stønadsbehandling
 import behandling.revurdering.domain.Opphørsgrunn
+import com.networknt.schema.JsonSchema
+import com.networknt.schema.ValidationMessage
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
+import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.common.person.AktørId
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.statistikk.SchemaValidator
+import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
@@ -12,6 +21,35 @@ import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+
+private val sakSchema: JsonSchema = SchemaValidator.createSchema("/statistikk/sak_schema.json")
+
+internal fun StatistikkEvent.SakOpprettet.toBehandlingsstatistikk(
+    aktørId: AktørId,
+    gitCommit: GitCommit?,
+): Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding> {
+    return SaksstatistikkDto(
+        funksjonellTid = sak.opprettet,
+        tekniskTid = sak.opprettet,
+        opprettetDato = sak.opprettet.toLocalDate(zoneIdOslo),
+        sakId = sak.id,
+        aktorId = aktørId.toString().toLong(),
+        saksnummer = sak.saksnummer.nummer,
+        sakStatus = "OPPRETTET",
+        sakStatusBeskrivelse = "Sak er opprettet men ingen vedtak er fattet.",
+        versjon = gitCommit?.value,
+        ytelseType = sak.type.toYtelseType(),
+    ).let {
+        serialize(it).let {
+            SchemaValidator.validate(it, sakSchema).map {
+                ValidertStatistikkJsonMelding(
+                    topic = "supstonad.aapen-su-sak-statistikk-v1",
+                    validertJsonMelding = it,
+                )
+            }
+        }
+    }
+}
 
 internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
     clock: Clock,
@@ -248,7 +286,6 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
         is StatistikkEvent.Behandling.Gjenoppta,
         is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring,
         -> {
-            // TODO Fjern nullable i signaturen når alle er implementert
             null
         }
     }
