@@ -65,6 +65,7 @@ fun Sak.opprettRevurdering(
                 fnr = fnr,
                 tilordnetRessurs = command.saksbehandler,
                 clock = clock,
+                sakstype = type,
             )
         },
         opprettRevurdering = { oppgaveId ->

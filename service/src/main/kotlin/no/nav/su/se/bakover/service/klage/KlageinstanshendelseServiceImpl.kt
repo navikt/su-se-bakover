@@ -4,6 +4,7 @@ import arrow.core.Either
 import behandling.klage.domain.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
@@ -80,6 +81,7 @@ class KlageinstanshendelseServiceImpl(
                 saksnummer = klage.saksnummer,
                 fnr = klage.fnr,
                 hendelse = hendelse,
+                sakstype = klage.sakstype,
             )
         }.onLeft {
             when (it) {
@@ -123,6 +125,7 @@ class KlageinstanshendelseServiceImpl(
         saksnummer: Saksnummer,
         fnr: Fnr,
         hendelse: TolketKlageinstanshendelse,
+        sakstype: Sakstype,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return when (hendelse) {
             is TolketKlageinstanshendelse.AnkebehandlingOpprettet -> lagOppgaveForKlageinstansOpprettetHendelse(
@@ -130,6 +133,7 @@ class KlageinstanshendelseServiceImpl(
                 fnr = fnr,
                 mottattKlageinstans = hendelse.mottattKlageinstans,
                 hendelsestype = "AnkebehandlingOpprettet",
+                sakstype = sakstype,
             )
 
             is TolketKlageinstanshendelse.KlagebehandlingAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
@@ -140,6 +144,7 @@ class KlageinstanshendelseServiceImpl(
                 journalpostIDer = hendelse.journalpostIDer,
                 clock = clock,
                 hendelsestype = "KlagebehandlingAvsluttet",
+                sakstype = sakstype,
             )
 
             is TolketKlageinstanshendelse.AnkeITrygderettenAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
@@ -150,12 +155,14 @@ class KlageinstanshendelseServiceImpl(
                 journalpostIDer = hendelse.journalpostIDer,
                 clock = clock,
                 hendelsestype = "AnkeITrygderettenAvsluttet",
+                sakstype = sakstype,
             )
             is TolketKlageinstanshendelse.AnkeITrygderettenOpprettet -> lagOppgaveForKlageinstansOpprettetHendelse(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 mottattKlageinstans = hendelse.sendtTilTrygderetten,
                 hendelsestype = "AnkeITrygderettenOpprettet",
+                sakstype = sakstype,
             )
             is TolketKlageinstanshendelse.AnkebehandlingAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
                 saksnummer = saksnummer,
@@ -165,6 +172,7 @@ class KlageinstanshendelseServiceImpl(
                 journalpostIDer = hendelse.journalpostIDer,
                 clock = clock,
                 hendelsestype = "AnkebehandlingAvsluttet",
+                sakstype = sakstype,
             )
         }
     }
@@ -174,6 +182,7 @@ class KlageinstanshendelseServiceImpl(
         fnr: Fnr,
         mottattKlageinstans: Tidspunkt,
         hendelsestype: String,
+        sakstype: Sakstype,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return OppgaveConfig.Klage.Klageinstanshendelse.BehandlingOpprettet(
             saksnummer = saksnummer,
@@ -182,6 +191,7 @@ class KlageinstanshendelseServiceImpl(
             clock = clock,
             tilordnetRessurs = null,
             hendelsestype = hendelsestype,
+            sakstype = sakstype,
         ).let {
             oppgaveService.opprettOppgaveMedSystembruker(it).map {
                 it.oppgaveId
@@ -197,6 +207,7 @@ class KlageinstanshendelseServiceImpl(
         journalpostIDer: List<JournalpostId>,
         clock: Clock,
         hendelsestype: String,
+        sakstype: Sakstype,
     ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId> {
         return when (utfall) {
             is AvsluttetKlageinstansUtfall.TilInformasjon,
@@ -209,6 +220,7 @@ class KlageinstanshendelseServiceImpl(
                 avsluttetTidspunkt = avsluttetTidspunkt,
                 journalpostIDer = journalpostIDer,
                 hendelsestype = hendelsestype,
+                sakstype = sakstype,
             )
 
             is AvsluttetKlageinstansUtfall.KreverHandling, AvsluttetKlageinstansUtfall.Retur,
@@ -221,6 +233,7 @@ class KlageinstanshendelseServiceImpl(
                 avsluttetTidspunkt = avsluttetTidspunkt,
                 journalpostIDer = journalpostIDer,
                 hendelsestype = hendelsestype,
+                sakstype = sakstype,
             )
         }.let {
             oppgaveService.opprettOppgaveMedSystembruker(it).map {

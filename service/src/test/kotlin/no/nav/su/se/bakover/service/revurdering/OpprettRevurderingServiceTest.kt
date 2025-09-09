@@ -110,6 +110,7 @@ internal class OpprettRevurderingServiceTest {
                                 fnr = sak.fnr,
                                 tilordnetRessurs = saksbehandler,
                                 clock = mock.clock,
+                                sakstype = sak.type,
                             )
                         },
                     )
@@ -275,6 +276,7 @@ internal class OpprettRevurderingServiceTest {
                         fnr = sak.fnr,
                         tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
+                        sakstype = sak.type,
                     )
                 },
             )
@@ -314,6 +316,7 @@ internal class OpprettRevurderingServiceTest {
                         fnr = sak.fnr,
                         tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
+                        sakstype = sak.type,
                     )
                 },
             )

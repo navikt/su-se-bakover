@@ -54,7 +54,7 @@ class KontrollsamtaleServiceImpl(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun kallInn(
+    override fun kallInnTilKontrollsamtale(
         kontrollsamtale: Kontrollsamtale,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
         val sakId = kontrollsamtale.sakId
@@ -122,6 +122,7 @@ class KontrollsamtaleServiceImpl(
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     clock = clock,
+                    sakstype = sak.type,
                 ),
             ).getOrElse {
                 throw RuntimeException("Fikk ikke opprettet oppgave").also {

@@ -36,7 +36,7 @@ class KontrollsamtaleinnkallingJob(
                 kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtale ->
                     // Vi ønsker ikke å la en feil i en enkelt kontrollsamtale hindre resten av jobben i å kjøre.
                     Either.catch {
-                        kontrollsamtaleService.kallInn(kontrollsamtale)
+                        kontrollsamtaleService.kallInnTilKontrollsamtale(kontrollsamtale)
                     }.onLeft {
                         log.error(
                             "Job '$jobName' kunne ikke kalle inn til kontrollsamtale. Se sikkerlogg for mer kontekst.",

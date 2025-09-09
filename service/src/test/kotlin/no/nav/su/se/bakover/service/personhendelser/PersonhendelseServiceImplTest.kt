@@ -227,6 +227,7 @@ internal class PersonhendelseServiceImplTest {
                     personhendelse = nonEmptySetOf(personhendelse),
                     fnr = sak.fnr,
                     clock = fixedClock,
+                    sakstype = sak.type,
                 )
             },
         )
@@ -281,6 +282,7 @@ internal class PersonhendelseServiceImplTest {
                     personhendelse = nonEmptySetOf(personhendelse),
                     fnr = sak.fnr,
                     clock = fixedClock,
+                    sakstype = sak.type,
                 )
             },
         )
