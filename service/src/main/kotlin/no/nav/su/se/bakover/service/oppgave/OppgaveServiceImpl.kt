@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 class OppgaveServiceImpl(
     private val oppgaveClient: OppgaveClient,
 ) : OppgaveService {
-
+// type her?
     override fun opprettOppgave(
         config: OppgaveConfig,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {

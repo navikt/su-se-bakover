@@ -6,6 +6,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -110,6 +111,7 @@ internal class OpprettRevurderingServiceTest {
                                 fnr = sak.fnr,
                                 tilordnetRessurs = saksbehandler,
                                 clock = mock.clock,
+                                sakstype = Sakstype.ALDER,
                             )
                         },
                     )
@@ -275,6 +277,7 @@ internal class OpprettRevurderingServiceTest {
                         fnr = sak.fnr,
                         tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
+                        sakstype = Sakstype.ALDER,
                     )
                 },
             )
@@ -314,6 +317,7 @@ internal class OpprettRevurderingServiceTest {
                         fnr = sak.fnr,
                         tilordnetRessurs = saksbehandler,
                         clock = mocks.clock,
+                        sakstype = Sakstype.ALDER,
                     )
                 },
             )

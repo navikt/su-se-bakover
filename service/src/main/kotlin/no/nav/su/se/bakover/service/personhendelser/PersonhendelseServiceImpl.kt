@@ -190,6 +190,7 @@ class PersonhendelseServiceImpl(
                 personhendelse = personhendelser.toNonEmptySet(),
                 fnr = sak.fnr,
                 clock = clock,
+                sakstype = sak.type,
             ),
         ).map { oppgaveResponse ->
             log.info("Opprettet oppgave for personhendelser med id'er: $personhendelseIder")

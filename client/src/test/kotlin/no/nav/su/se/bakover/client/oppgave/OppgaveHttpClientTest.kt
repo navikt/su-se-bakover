@@ -176,6 +176,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
+                    sakstype = Sakstype.ALDER,
                 ),
             ).getOrFail()
 
@@ -256,6 +257,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = Sakstype.ALDER,
                 ),
             ).getOrFail()
 
@@ -322,6 +324,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = Sakstype.ALDER,
                 ),
             ).getOrFail()
 
@@ -374,6 +377,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = Sakstype.UFØRE,
                 ),
             ).getOrFail()
 
@@ -417,6 +421,7 @@ internal class OppgaveHttpClientTest {
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
+                    sakstype = Sakstype.UFØRE,
                 ),
             ) shouldBe KunneIkkeOppretteOppgave.left()
         }
@@ -459,6 +464,7 @@ internal class OppgaveHttpClientTest {
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                     hendelsestype = "enHendelse",
+                    sakstype = Sakstype.UFØRE,
                 ),
             ).getOrFail()
 
@@ -514,6 +520,7 @@ internal class OppgaveHttpClientTest {
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                     hendelsestype = "enHendelse",
+                    sakstype = Sakstype.UFØRE,
                 ),
             ).getOrFail()
 
@@ -570,6 +577,7 @@ internal class OppgaveHttpClientTest {
                     avsluttetTidspunkt = fixedTidspunkt,
                     journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
                     hendelsestype = "enHendelse",
+                    sakstype = Sakstype.UFØRE,
                 ),
             ).getOrFail()
 

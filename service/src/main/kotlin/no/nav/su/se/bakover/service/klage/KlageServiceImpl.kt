@@ -119,6 +119,7 @@ class KlageServiceImpl(
                 journalpostId = request.journalpostId,
                 tilordnetRessurs = request.saksbehandler,
                 clock = clock,
+                sakstype = sak.type,
             ),
         ).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()

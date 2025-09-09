@@ -14,7 +14,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface KontrollsamtaleService {
-    fun kallInn(
+    fun kallInnTilKontrollsamtale(
         kontrollsamtale: Kontrollsamtale,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
 

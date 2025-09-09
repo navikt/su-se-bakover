@@ -261,7 +261,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         init {
             tikkendeKlokke.spolTil(kontrollsamtaler.first().kontrollsamtale.innkallingsdato)
             kontrollsamtaler.forEach {
-                kontrollsamtaleService.kallInn(
+                kontrollsamtaleService.kallInnTilKontrollsamtale(
                     kontrollsamtale = it.kontrollsamtale,
                 )
             }
