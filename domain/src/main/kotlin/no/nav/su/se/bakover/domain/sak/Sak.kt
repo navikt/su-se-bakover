@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
+import arrow.core.Tuple4
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -413,12 +415,13 @@ data class Sak(
                 val lukketSøknad = søknad.lukk(
                     lukkSøknadCommand = lukkSøknadCommand,
                 )
-                Triple(
+                Tuple4(
                     this.copy(
                         søknader = this.søknader.filterNot { it.id == søknadId }.plus(lukketSøknad),
                     ),
                     lukketSøknad,
                     null,
+                    StatistikkEvent.Søknad.Lukket(lukketSøknad, saksnummer),
                 )
             },
             { søknadensBehandlinger ->
@@ -433,7 +436,7 @@ data class Sak(
                 ).getOrElse {
                     throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
                 }.let { lukketSøknadsbehandling ->
-                    Triple(
+                    Tuple4(
                         this.oppdaterSøknadsbehandling(lukketSøknadsbehandling)
                             .copy(
                                 søknader = this.søknader.filterNot { it.id == søknadId }
@@ -441,15 +444,17 @@ data class Sak(
                             ),
                         lukketSøknadsbehandling.søknad,
                         lukketSøknadsbehandling,
+                        StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),
                     )
                 }
             },
-        ).let { (sak, søknad, søknadsbehandling) ->
+        ).let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
             val lagBrevRequest = søknad.lagGenererDokumentKommando(sak.info())
             LukkSøknadOgSøknadsbehandlingResponse(
                 sak = sak,
                 søknad = søknad,
                 søknadsbehandling = søknadsbehandling,
+                hendelse = statistikkhendelse,
                 lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
             )
         }
@@ -463,9 +468,14 @@ data class Sak(
         val sak: Sak,
         val søknad: Søknad.Journalført.MedOppgave.Lukket,
         val søknadsbehandling: LukketSøknadsbehandling?,
+        val hendelse: StatistikkEvent,
         val lagBrevRequest: Either<IkkeLagBrevRequest, GenererDokumentCommand>,
     ) {
         init {
+            // Guards spesielt med tanke på testdatasett.
+            require(
+                hendelse is StatistikkEvent.Behandling.Søknad.Lukket || hendelse is StatistikkEvent.Søknad.Lukket,
+            )
             lagBrevRequest.onRight {
                 require(it.saksnummer == sak.saksnummer)
             }

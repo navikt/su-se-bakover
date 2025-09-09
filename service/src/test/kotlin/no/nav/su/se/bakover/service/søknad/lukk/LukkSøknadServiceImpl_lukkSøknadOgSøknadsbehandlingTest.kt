@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -400,7 +401,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             sessionFactory = sessionFactory,
-        )
+        ).apply { addObserver(lukkSøknadServiceObserver) }
 
         fun lukkSøknad(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =
             lukkSøknadService.lukkSøknad(
@@ -483,6 +484,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                     verifyLagreDokument(dokumentUtenMetadata!!)
                 }
                 verifyLukkOppgave()
+                verifyStatistikkhendelse()
             }
             verifyNoMoreInteractions()
         }
@@ -596,6 +598,28 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 oppgaveId = argThat { it shouldBe (søknad as Søknad.Journalført.MedOppgave.IkkeLukket).oppgaveId },
                 tilordnetRessurs = argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
             )
+        }
+
+        fun verifyStatistikkhendelse() {
+            if (søknadsbehandling == null) {
+                verify(lukkSøknadServiceObserver).handle(
+                    argThat {
+                        it shouldBe StatistikkEvent.Søknad.Lukket(
+                            søknad = expectedLukketSøknad(),
+                            saksnummer = sak!!.saksnummer,
+                        )
+                    },
+                )
+            } else {
+                verify(lukkSøknadServiceObserver).handle(
+                    argThat {
+                        it shouldBe StatistikkEvent.Behandling.Søknad.Lukket(
+                            søknadsbehandling = expectedLukketSøknadsbehandling(),
+                            saksbehandler = saksbehandler,
+                        )
+                    },
+                )
+            }
         }
 
         fun verifyNoMoreInteractions() {
