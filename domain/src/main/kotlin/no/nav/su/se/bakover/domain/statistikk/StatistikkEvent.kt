@@ -64,6 +64,7 @@ sealed interface StatistikkEvent {
                 val saksbehandler: NavIdentBruker.Saksbehandler,
             ) : Søknad
 
+            // Skjer kun hvis det finnes en avslått søknad
             data class OpprettetOmgjøring(
                 override val søknadsbehandling: Omgjøringssøknadsbehandling,
                 val saksbehandler: NavIdentBruker.Saksbehandler,
