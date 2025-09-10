@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.statistikk.sak
 
 import arrow.core.Either
-import behandling.domain.Stønadsbehandling
+import behandling.domain.Behandling
+import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.Opphørsgrunn
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.person.AktørId
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
+import no.nav.su.se.bakover.statistikk.behandling.klage.toResultatBegrunnelse
 import statistikk.domain.SakStatistikk
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
@@ -53,342 +56,371 @@ internal fun StatistikkEvent.SakOpprettet.toBehandlingsstatistikk(
 
 internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
     clock: Clock,
-): SakStatistikk? {
-    // TODO har vi en systembruker vi kan angi her? Og hvordanv et man om det er opprettet "manuelt"?
+): SakStatistikk {
+    // TODO har vi en systembruker vi kan angi her? Og hvordan et man om det er opprettet "manuelt"?
     val opprettetAv = "SU-app"
 
     return when (this) {
         is StatistikkEvent.Behandling.Søknad -> {
             when (this) {
-                is StatistikkEvent.Behandling.Søknad.Opprettet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Registrert.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.Opprettet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Registrert.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                )
 
-                is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Registrert.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        behandlingAarsak = "Omgjøring etter avvist søknad",
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Registrert.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    behandlingAarsak = "Omgjøring etter avvist søknad",
+                )
 
-                is StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.TilAttestering.name,
-                        behandlingResultat = BehandlingResultat.Innvilget.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.TilAttestering.name,
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                )
 
-                is StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.TilAttestering.name,
-                        behandlingResultat = BehandlingResultat.Avvist.name,
-                        behandlingAarsak = utledAvslagsgrunner(søknadsbehandling.avslagsgrunner),
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.TilAttestering.name,
+                    behandlingResultat = BehandlingResultat.Avvist.name,
+                    behandlingAarsak = utledAvslagsgrunner(søknadsbehandling.avslagsgrunner),
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                )
 
-                is StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Underkjent.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        behandlingResultat = BehandlingResultat.Innvilget.name,
-                        ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
-                            ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Underkjent.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
+                        ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
+                )
 
-                is StatistikkEvent.Behandling.Søknad.Underkjent.Avslag -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Underkjent.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.Underkjent.Avslag -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Underkjent.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
+                )
 
-                is StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        opprettetAv = opprettetAv,
-                        ferdigbehandletTid = vedtak.opprettet,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Iverksatt.name,
-                        behandlingResultat = BehandlingResultat.Innvilget.name,
-                        // TODO vanskelig å vite sikkert på dette tidspunktet...
-                        utbetaltTid = null,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
-                            ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    opprettetAv = opprettetAv,
+                    ferdigbehandletTid = vedtak.opprettet,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    // TODO vanskelig å vite sikkert på dette tidspunktet...
+                    utbetaltTid = null,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
+                        ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
+                )
 
-                is StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Iverksatt.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        ferdigbehandletTid = vedtak.opprettet,
-                        behandlingResultat = BehandlingResultat.Avvist.name,
-                        resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
-                        ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
-                            ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    ferdigbehandletTid = vedtak.opprettet,
+                    behandlingResultat = BehandlingResultat.Avvist.name,
+                    resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
+                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
+                        ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
+                )
 
-                is StatistikkEvent.Behandling.Søknad.Lukket -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = søknadsbehandling,
-                        opprettetAv = opprettetAv,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.Avsluttet.name,
-                        // TODO hvordan vite om trukket eller avbrutt??
-                        behandlingResultat = BehandlingResultat.Avbrutt.name,
-                        saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
-                            ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
-                    )
-                }
+                is StatistikkEvent.Behandling.Søknad.Lukket -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = søknadsbehandling,
+                    opprettetAv = opprettetAv,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = søknadsbehandling.sakstype,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    // TODO hvordan vite om trukket eller avbrutt??
+                    behandlingResultat = BehandlingResultat.Avbrutt.name,
+                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
+                        ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
+                )
             }
         }
 
         is StatistikkEvent.Behandling.Revurdering -> {
             when (this) {
-                is StatistikkEvent.Behandling.Revurdering.Opprettet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Registrert.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.Opprettet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Registrert.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.SOKNAD,
-                        behandlingStatus = BehandlingStatus.TilAttestering.name,
-                        behandlingResultat = BehandlingResultat.Innvilget.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.SOKNAD,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.TilAttestering.name,
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.TilAttestering.name,
-                        behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.TilAttestering.name,
+                    behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Underkjent.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                        behandlingResultat = BehandlingResultat.Innvilget.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
-                            ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Underkjent.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
+                        ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Underkjent.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
-                        resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Underkjent.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
+                    resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Iverksatt.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                        behandlingResultat = BehandlingResultat.Innvilget.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
-                            ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    saktype = revurdering.sakstype,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
+                        ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Iverksatt.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
-                        resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
+                    resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
 
-                is StatistikkEvent.Behandling.Revurdering.Avsluttet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Avsluttet.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Revurdering.Avsluttet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
             }
         }
 
-        is StatistikkEvent.Behandling.Stans,
-        -> {
+        is StatistikkEvent.Behandling.Stans -> {
             when (this) {
-                is StatistikkEvent.Behandling.Stans.Opprettet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Registrert.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
-                is StatistikkEvent.Behandling.Stans.Avsluttet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Avsluttet.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        behandlingResultat = BehandlingResultat.Avbrutt.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
-                is StatistikkEvent.Behandling.Stans.Iverksatt -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Iverksatt.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        behandlingResultat = BehandlingResultat.Stanset.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Stans.Opprettet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Registrert.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Stans.Avsluttet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingResultat = BehandlingResultat.Avbrutt.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Stans.Iverksatt -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingResultat = BehandlingResultat.Stanset.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
             }
         }
 
-        is StatistikkEvent.Behandling.Gjenoppta,
-        -> {
+        is StatistikkEvent.Behandling.Gjenoppta -> {
             when (this) {
-                is StatistikkEvent.Behandling.Gjenoppta.Opprettet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Registrert.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
-                is StatistikkEvent.Behandling.Gjenoppta.Avsluttet -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Avsluttet.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        behandlingResultat = BehandlingResultat.Avbrutt.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
-                is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> {
-                    this.toBehandlingsstatistikkGenerell(
-                        clock = clock,
-                        behandling = revurdering,
-                        behandlingType = Behandlingstype.REVURDERING,
-                        behandlingStatus = BehandlingStatus.Iverksatt.name,
-                        behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                        behandlingResultat = BehandlingResultat.Gjenopptatt.name,
-                        opprettetAv = opprettetAv,
-                        saksbehandler = revurdering.saksbehandler.navIdent,
-                    )
-                }
+                is StatistikkEvent.Behandling.Gjenoppta.Opprettet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Registrert.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Gjenoppta.Avsluttet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingResultat = BehandlingResultat.Avbrutt.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = revurdering,
+                    behandlingType = Behandlingstype.REVURDERING,
+                    saktype = revurdering.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingResultat = BehandlingResultat.Gjenopptatt.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = revurdering.saksbehandler.navIdent,
+                )
             }
         }
-        is StatistikkEvent.Behandling.Klage,
-        -> {
-            null
+
+        is StatistikkEvent.Behandling.Klage -> {
+            when (this) {
+                is StatistikkEvent.Behandling.Klage.Opprettet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = klage,
+                    behandlingType = Behandlingstype.KLAGE,
+                    saktype = klage.sakstype,
+                    behandlingStatus = BehandlingStatus.Registrert.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = klage.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Klage.Avsluttet -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = klage,
+                    behandlingType = Behandlingstype.KLAGE,
+                    saktype = klage.sakstype,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    behandlingResultat = BehandlingResultat.Avbrutt.name,
+                    opprettetAv = opprettetAv,
+                    saksbehandler = klage.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Klage.Avvist -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = klage,
+                    behandlingType = Behandlingstype.KLAGE,
+                    saktype = klage.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name,
+                    behandlingResultat = BehandlingResultat.Avvist.name,
+                    resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
+                    opprettetAv = opprettetAv,
+                    saksbehandler = klage.saksbehandler.navIdent,
+                )
+
+                is StatistikkEvent.Behandling.Klage.Oversendt -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = klage,
+                    behandlingType = Behandlingstype.KLAGE,
+                    saktype = klage.sakstype,
+                    behandlingStatus = BehandlingStatus.OversendtKlage.name,
+                    behandlingResultat = BehandlingResultat.OpprettholdtKlage.name,
+                    resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler?.toResultatBegrunnelse(),
+                    opprettetAv = opprettetAv,
+                    saksbehandler = klage.saksbehandler.navIdent,
+                )
+
+                // TODO is StatistikkEvent.Behandling.Klage.Medhold -> this.toBehandlingsstatistikkGenerell(...)
+            }
         }
+
+        // TODO Tilbakekreving ??
     }
 }
 
 private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
     clock: Clock,
-    behandling: Stønadsbehandling,
+    behandling: Behandling,
     behandlingType: Behandlingstype,
+    saktype: Sakstype,
     behandlingStatus: String,
     opprettetAv: String,
     relatertId: UUID? = null,
@@ -410,7 +442,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
         // TODO er den nødvendig?
         relatertBehandlingId = relatertId,
         aktorId = behandling.fnr,
-        sakYtelse = behandling.sakstype.toYtelseType().name,
+        sakYtelse = saktype.toYtelseType().name,
         behandlingType = behandlingType.name,
         // TODO kan avvike fra søknad..
         mottattTid = behandling.opprettet,
