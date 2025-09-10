@@ -169,7 +169,6 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Avsluttet.name,
-                    // TODO hvordan vite om trukket eller avbrutt??
                     behandlingResultat = BehandlingResultat.Avbrutt.name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
@@ -444,7 +443,6 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
         aktorId = behandling.fnr,
         sakYtelse = saktype.toYtelseType().name,
         behandlingType = behandlingType.name,
-        // TODO kan avvike fra søknad..
         mottattTid = behandling.opprettet,
         registrertTid = behandling.opprettet,
         ferdigbehandletTid = ferdigbehandletTid,
