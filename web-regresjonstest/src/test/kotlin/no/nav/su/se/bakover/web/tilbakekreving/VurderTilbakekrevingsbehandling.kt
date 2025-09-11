@@ -184,7 +184,7 @@ fun verifiserVurdertTilbakekrevingsbehandlingRespons(
   "avsluttetTidspunkt": null,
   "notat": ${expectedNotat?.let { "\"$it\"" }}
 }"""
-    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet")
+    actual.shouldBeSimilarJsonTo(expected, "vurderinger.eksternKontrollfelt", "kravgrunnlag.hendelseId", "kravgrunnlag.kontrollfelt", "opprettet")
     JSONObject(actual).has("opprettet") shouldBe true
     JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

@@ -26,7 +26,6 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     verifiserRespons: Boolean = true,
     utførSideeffekter: Boolean = true,
     saksversjon: Long,
-    expectedKontrollfelt: String = "2021-02-01-02.03.48.456789",
 ): OpprettetTilbakekrevingsbehandlingRespons {
     val appComponents = this
     val sakFørKallJson = hentSak(sakId, client)
@@ -80,7 +79,6 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
                         actual = it,
                         sakId = sakId,
                         expectedVersjon = saksversjon + 1,
-                        expectedKontrollfelt = expectedKontrollfelt,
                     )
                 }
             }
@@ -103,7 +101,6 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
     actual: String,
     sakId: String,
     expectedVersjon: Long,
-    expectedKontrollfelt: String = "2021-02-01-02.03.48.456789",
 ) {
     //language=json
     val expected = """
@@ -115,7 +112,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
-    "kontrollfelt":"$expectedKontrollfelt",
+    "kontrollfelt":"2021-02-01-02.03.48.456789",
     "status":"NY",
     "grunnlagsperiode":[
       {
@@ -151,7 +148,7 @@ fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
   "avsluttetTidspunkt": null,
   "notat": null
 }"""
-    actual.shouldBeSimilarJsonTo(expected, "id", "kravgrunnlag.hendelseId", "opprettet")
+    actual.shouldBeSimilarJsonTo(expected, "id", "kravgrunnlag.hendelseId", "kravgrunnlag.kontrollfelt", "opprettet")
     JSONObject(actual).has("id") shouldBe true
     JSONObject(actual).has("opprettet") shouldBe true
     JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true

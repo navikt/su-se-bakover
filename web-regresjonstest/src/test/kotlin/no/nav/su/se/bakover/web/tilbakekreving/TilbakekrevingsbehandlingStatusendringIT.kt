@@ -59,7 +59,6 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
                 // Må økes etter hvert som vi får flere hendelser.
                 saksversjon = 4,
                 client = this.client,
-                expectedKontrollfelt = "2021-02-01-02.03.49.456789",
             ).let {
                 JSONObject(it.responseJson).getJSONObject("kravgrunnlag").getString("eksternVedtakId")
             }

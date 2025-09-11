@@ -97,7 +97,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
       }
         """.trimIndent()
 
-    actual.shouldBeSimilarJsonTo(expected, "id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id", "søknad.søknadInnhold.personopplysninger.fnr")
+    actual.shouldBeSimilarJsonTo(expected, "id", "opprettet", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id", "søknad.søknadInnhold.personopplysninger.fnr", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].opprettet")
 }
 
 private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
@@ -158,5 +158,5 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
         }
         """.trimIndent()
 
-    actual.shouldBeSimilarJsonTo(expected, "id", "beregning.id", "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.id", "søknad.søknadInnhold.personopplysninger.fnr")
+    actual.shouldBeSimilarJsonTo(expected, "id", "opprettet", "beregning.id", "beregning.opprettet", "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id", "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].opprettet", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].opprettet", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.opprettet", "søknad.søknadInnhold.personopplysninger.fnr")
 }
