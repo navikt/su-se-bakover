@@ -12,6 +12,7 @@ enum class KlageinstansUtfallDto {
     UGUNST,
     AVVIST,
     HENVIST,
+    HENLAGT,
     ;
 
     fun toDomain(): AvsluttetKlageinstansUtfall = when (this) {
@@ -24,5 +25,6 @@ enum class KlageinstansUtfallDto {
         UGUNST -> AvsluttetKlageinstansUtfall.KreverHandling.Ugunst
         AVVIST -> AvsluttetKlageinstansUtfall.TilInformasjon.Avvist
         HENVIST -> AvsluttetKlageinstansUtfall.TilInformasjon.Henvist
+        HENLAGT -> AvsluttetKlageinstansUtfall.TilInformasjon.Henlagt
     }
 }
