@@ -36,7 +36,7 @@ data class SakStatistikk(
     val resultatBegrunnelse: String? = null,
     val behandlingAarsak: String? = null,
 
-    val opprettetAv: String,
+    val opprettetAv: String?,
     val saksbehandler: String? = null,
     // Attestant
     val ansvarligBeslutter: String? = null,
