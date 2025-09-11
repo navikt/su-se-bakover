@@ -555,6 +555,7 @@ internal fun ProsessertKlageinstanshendelse.toJson(): KlageJson.VedtattUtfallJso
             AvsluttetKlageinstansUtfall.TilInformasjon.Henvist -> "HENVIST"
             AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse -> "STADFESTELSE"
             AvsluttetKlageinstansUtfall.TilInformasjon.Trukket -> "TRUKKET"
+            AvsluttetKlageinstansUtfall.TilInformasjon.Henlagt -> "HENLAGT"
             null -> null
         },
         opprettet = this.opprettet.toString(),

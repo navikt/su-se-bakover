@@ -12,6 +12,7 @@ internal enum class UtfallJson {
     UGUNST,
     AVVIST,
     HENVIST,
+    HENLAGT,
     ;
 
     fun toDomain() = when (this) {
@@ -24,6 +25,7 @@ internal enum class UtfallJson {
         UGUNST -> AvsluttetKlageinstansUtfall.KreverHandling.Ugunst
         AVVIST -> AvsluttetKlageinstansUtfall.TilInformasjon.Avvist
         HENVIST -> AvsluttetKlageinstansUtfall.TilInformasjon.Henvist
+        HENLAGT -> AvsluttetKlageinstansUtfall.TilInformasjon.Henlagt
     }
 }
 
@@ -38,5 +40,6 @@ internal fun AvsluttetKlageinstansUtfall.toDatabaseType(): String {
         is AvsluttetKlageinstansUtfall.KreverHandling.Ugunst -> UtfallJson.UGUNST
         is AvsluttetKlageinstansUtfall.TilInformasjon.Avvist -> UtfallJson.AVVIST
         is AvsluttetKlageinstansUtfall.TilInformasjon.Henvist -> UtfallJson.HENVIST
+        AvsluttetKlageinstansUtfall.TilInformasjon.Henlagt -> UtfallJson.HENLAGT
     }.toString()
 }

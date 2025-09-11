@@ -207,6 +207,9 @@ sealed interface AvsluttetKlageinstansUtfall {
 
         /** Dette er trygderetten er en henvisning til KA om at de må behandle anken på nytt. */
         data object Henvist : TilInformasjon
+
+        /** Dette er tilfeller som ikke er dekket av trukket altså her kommer det ikke etter henvendelse fra bruker men av andre årsaker feks dødsfall */
+        data object Henlagt : TilInformasjon
     }
 }
 
