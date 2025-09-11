@@ -153,7 +153,7 @@ fun verifiserTilbakekrevingsbehandlingTilAttesteringRespons(
   "avsluttetTidspunkt": null,
   "notat": "notatet",
 }"""
-    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet")
+    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "kravgrunnlag.kontrollfelt", "opprettet")
     JSONObject(actual).has("opprettet") shouldBe true
     JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
 }

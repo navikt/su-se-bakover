@@ -171,5 +171,5 @@ private fun verifiserVedtak(vedtak: String, expectedBehandlingId: String) {
         }
     """.trimIndent()
 
-    vedtak.shouldBeSimilarJsonTo(expected, "id", "beregning.id")
+    vedtak.shouldBeSimilarJsonTo(expected, "id", "opprettet", "beregning.id", "beregning.opprettet")
 }

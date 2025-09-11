@@ -158,7 +158,7 @@ fun verifiserForhåndsvarsletTilbakekrevingsbehandlingRespons(
   "avsluttetTidspunkt": null,
   "notat": null,
 }"""
-    actual.shouldBeSimilarJsonTo(expected, "forhåndsvarselsInfo", "kravgrunnlag.hendelseId", "opprettet")
+    actual.shouldBeSimilarJsonTo(expected, "forhåndsvarselsInfo", "kravgrunnlag.hendelseId", "kravgrunnlag.kontrollfelt", "opprettet")
     JSONObject(actual).getJSONArray("forhåndsvarselsInfo").shouldHaveSize(1)
     JSONObject(actual).has("opprettet") shouldBe true
     JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
