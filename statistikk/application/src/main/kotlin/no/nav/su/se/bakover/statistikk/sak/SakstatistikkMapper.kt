@@ -387,7 +387,21 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             }
         }
 
-        // TODO Tilbakekreving ??
+        is StatistikkEvent.Behandling.Tilbakekreving -> {
+            when (this) {
+                is StatistikkEvent.Behandling.Tilbakekreving.Opprettet -> {
+                    this.toBehandlingsstatistikkGenerell(
+                        clock = clock,
+                        behandling = tilbakekreving,
+                        behandlingType = Behandlingstype.KLAGE,
+                        saktype = tilbakekreving.saktype,
+                        behandlingStatus = BehandlingStatus.Registrert.name,
+                        opprettetAv = tilbakekreving.opprettetAv.navIdent,
+                        saksbehandler = tilbakekreving.opprettetAv.navIdent,
+                    )
+                }
+            }
+        }
     }
 }
 

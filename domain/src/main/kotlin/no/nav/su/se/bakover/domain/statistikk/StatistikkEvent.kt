@@ -26,6 +26,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
+import tilbakekreving.domain.Tilbakekrevingsbehandling
 import vedtak.domain.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
@@ -212,6 +214,12 @@ sealed interface StatistikkEvent {
             }
 
             data class Avsluttet(override val klage: AvsluttetKlage) : Klage
+        }
+
+        sealed interface Tilbakekreving : Behandling {
+            val tilbakekreving: Tilbakekrevingsbehandling
+
+            data class Opprettet(override val tilbakekreving: OpprettetTilbakekrevingsbehandling) : Tilbakekreving
         }
     }
 
