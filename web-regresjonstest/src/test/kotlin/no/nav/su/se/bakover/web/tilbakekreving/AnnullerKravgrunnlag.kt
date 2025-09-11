@@ -100,5 +100,8 @@ internal fun verifiserResponse(
          "tilbakekrevingsbehandling": $expected
         }
         """.trimIndent(),
+        "tilbakekrevingsbehandling.opprettet",
+        "tilbakekrevingsbehandling.kravgrunnlag.kontrollfelt",
+        "tilbakekrevingsbehandling.avsluttetTidspunkt",
     )
 }
