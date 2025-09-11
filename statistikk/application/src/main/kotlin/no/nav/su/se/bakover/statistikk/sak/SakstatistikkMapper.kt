@@ -69,6 +69,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
+                    utbetaltTid = søknadsbehandling.periode.fraOgMed,
                     opprettetAv = opprettetAv,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                 )
@@ -424,6 +425,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
     opprettetAv: String,
     relatertId: UUID? = null,
     behandlingAarsak: String? = null,
+    omgjøringsårsak: String? = null,
     saksbehandler: String? = null,
     ferdigbehandletTid: Tidspunkt? = null,
     utbetaltTid: LocalDate? = null,
@@ -450,7 +452,9 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
         behandlingStatus = behandlingStatus,
         behandlingResultat = behandlingResultat,
         resultatBegrunnelse = resultatBegrunnelse,
-        behandlingAarsak = behandlingAarsak,
+        behandlingAarsak = omgjøringsårsak?.let {
+            "$behandlingAarsak - $omgjøringsårsak"
+        } ?: behandlingAarsak,
         opprettetAv = opprettetAv,
         saksbehandler = saksbehandler,
         ansvarligBeslutter = ansvarligBeslutter,
