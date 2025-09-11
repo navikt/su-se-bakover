@@ -34,8 +34,8 @@ internal class SøknadsbehandlingReturTest {
             },
         )
 
-        val svar = service.søknadsbehandlingService.retur(
-            SøknadsbehandlingService.ReturRequest
+        val svar = service.søknadsbehandlingService.returner(
+            SøknadsbehandlingService.ReturnerBehandlingRequest
                 (SøknadsbehandlingId(UUID.randomUUID()), NavIdentBruker.Saksbehandler("Ident")),
         )
         svar shouldBe KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling.left()
@@ -50,12 +50,11 @@ internal class SøknadsbehandlingReturTest {
             },
         )
 
-        val svar = service.søknadsbehandlingService.retur(
-            SøknadsbehandlingService.ReturRequest
+        val svar = service.søknadsbehandlingService.returner(
+            SøknadsbehandlingService.ReturnerBehandlingRequest
                 (SøknadsbehandlingId(UUID.randomUUID()), NavIdentBruker.Saksbehandler("Ident")),
         )
-        svar shouldBe KunneIkkeReturnereSøknadsbehandling.UgyldigTilstand(BeregnetSøknadsbehandling.Avslag::class)
-            .left()
+        svar shouldBe KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
     }
 
     @Test
@@ -68,8 +67,8 @@ internal class SøknadsbehandlingReturTest {
                 on { hent(any()) } doReturn søknadsmock
             },
         )
-        val svar = service.søknadsbehandlingService.retur(
-            SøknadsbehandlingService.ReturRequest
+        val svar = service.søknadsbehandlingService.returner(
+            SøknadsbehandlingService.ReturnerBehandlingRequest
                 (SøknadsbehandlingId(UUID.randomUUID()), NavIdentBruker.Saksbehandler("Feil Saksbehandler")),
         )
         svar shouldBe KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
@@ -92,8 +91,8 @@ internal class SøknadsbehandlingReturTest {
                 on { oppdaterOppgave(any(), any()) } doAnswer { mock(OppgaveHttpKallResponse::class.java).right() }
             },
         )
-        val svar = service.søknadsbehandlingService.retur(
-            SøknadsbehandlingService.ReturRequest
+        val svar = service.søknadsbehandlingService.returner(
+            SøknadsbehandlingService.ReturnerBehandlingRequest
                 (SøknadsbehandlingId(søknadsbehandlingId.value), riktigSaksbehandler),
         )
         svar.shouldBeRight()

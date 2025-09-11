@@ -281,16 +281,14 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun retur(
-        request: SøknadsbehandlingService.ReturRequest,
+    override fun returner(
+        request: SøknadsbehandlingService.ReturnerBehandlingRequest,
     ): Either<KunneIkkeReturnereSøknadsbehandling, Søknadsbehandling> {
         val søknadsbehandling = (
             søknadsbehandlingRepo.hent(request.behandlingId)
                 ?: return KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling.left()
             ).let {
-            it as? SøknadsbehandlingTilAttestering ?: return KunneIkkeReturnereSøknadsbehandling.UgyldigTilstand(
-                it::class,
-            ).left()
+            it as? SøknadsbehandlingTilAttestering ?: return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
         }
         if (request.saksbehandler.navIdent != søknadsbehandling.saksbehandler.navIdent) {
             return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()

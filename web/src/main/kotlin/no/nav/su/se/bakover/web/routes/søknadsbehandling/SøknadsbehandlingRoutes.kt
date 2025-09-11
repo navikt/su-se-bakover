@@ -50,7 +50,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.ReturRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.ReturnerBehandlingRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
@@ -328,8 +328,8 @@ internal fun Route.søknadsbehandlingRoutes(
 
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService
-                    .retur(
-                        ReturRequest(
+                    .returner(
+                        ReturnerBehandlingRequest(
                             behandlingId = SøknadsbehandlingId(behandlingId),
                             saksbehandler = sakBehandler,
                         ),
@@ -340,7 +340,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                 KunneIkkeReturnereSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                 KunneIkkeReturnereSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
                                 is KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler -> ugyldigTilstand
-                                is KunneIkkeReturnereSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand
                             }
                             call.svar(resultat)
                         },

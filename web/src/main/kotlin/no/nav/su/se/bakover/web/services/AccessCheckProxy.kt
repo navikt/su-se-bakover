@@ -623,9 +623,9 @@ open class AccessCheckProxy(
                         return service.underkjenn(request)
                     }
 
-                    override fun retur(request: SøknadsbehandlingService.ReturRequest): Either<KunneIkkeReturnereSøknadsbehandling, Søknadsbehandling> {
+                    override fun returner(request: SøknadsbehandlingService.ReturnerBehandlingRequest): Either<KunneIkkeReturnereSøknadsbehandling, Søknadsbehandling> {
                         assertHarTilgangTilSøknadsbehandling(request.behandlingId)
-                        return service.retur(request)
+                        return service.returner(request)
                     }
 
                     override fun genererBrevutkast(
