@@ -5,6 +5,9 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
@@ -21,6 +24,12 @@ class OpprettTilbakekrevingsbehandlingService(
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
+    fun addObserver(observer: StatistikkEventObserver) {
+        observers.add(observer)
+    }
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     fun opprett(
         command: OpprettTilbakekrevingsbehandlingCommand,
@@ -51,6 +60,12 @@ class OpprettTilbakekrevingsbehandlingService(
                 erKravgrunnlagUtdatert = false,
             ).let { (hendelse, behandling) ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata())
+                observers.notify(
+                    StatistikkEvent.Behandling.Tilbakekreving.Opprettet(
+                        sak = sak,
+                        tilbakekreving = behandling,
+                    ),
+                )
                 behandling.right()
             }
         }

@@ -129,6 +129,8 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -1386,6 +1388,12 @@ open class AccessCheckProxy(
             stønadStatistikkJobService = object : StønadStatistikkJobService {
                 override fun lagMånedligStønadstatistikk(clock: Clock) {
                     services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
+                }
+            },
+
+            statistikkEventObserver = object : StatistikkEventObserver {
+                override fun handle(event: StatistikkEvent) {
+                    services.statistikkEventObserver.handle(event)
                 }
             },
         )

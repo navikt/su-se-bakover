@@ -394,7 +394,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                         clock = clock,
                         behandling = tilbakekreving,
                         behandlingType = Behandlingstype.KLAGE,
-                        saktype = tilbakekreving.saktype,
+                        saktype = sak.type,
                         behandlingStatus = BehandlingStatus.Registrert.name,
                         opprettetAv = tilbakekreving.opprettetAv.navIdent,
                         saksbehandler = tilbakekreving.opprettetAv.navIdent,

@@ -143,7 +143,9 @@ fun Application.susebakover(
             dbMetrics = dbMetrics,
             samlTokenProvider = samlTokenProvider,
             tilgangstyringService = _tilgangstyringService,
-        )
+        ).also {
+            it.services.opprettTilbakekrevingsbehandlingService.addObserver(services.statistikkEventObserver)
+        }
     },
     dokumentkomponenter: Dokumentkomponenter = run {
         val dokumentRepos = DokumentRepos(

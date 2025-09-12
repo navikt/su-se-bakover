@@ -217,9 +217,13 @@ sealed interface StatistikkEvent {
         }
 
         sealed interface Tilbakekreving : Behandling {
+            val sak: Sak
             val tilbakekreving: Tilbakekrevingsbehandling
 
-            data class Opprettet(override val tilbakekreving: OpprettetTilbakekrevingsbehandling) : Tilbakekreving
+            data class Opprettet(
+                override val sak: Sak,
+                override val tilbakekreving: OpprettetTilbakekrevingsbehandling,
+            ) : Tilbakekreving
         }
     }
 

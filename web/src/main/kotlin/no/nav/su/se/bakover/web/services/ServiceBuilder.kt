@@ -323,6 +323,7 @@ data object ServiceBuilder {
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
                 vedtakRepo = databaseRepos.vedtakRepo,
             ),
+            statistikkEventObserver = statistikkEventObserver,
         )
     }
 }
