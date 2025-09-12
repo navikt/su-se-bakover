@@ -55,6 +55,7 @@ internal class AccessCheckProxyTest {
         resendStatistikkhendelserService = mock(),
         personhendelseService = mock(),
         stønadStatistikkJobService = mock(),
+        statistikkEventObserver = mock(),
     )
 
     @Nested

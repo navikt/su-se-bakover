@@ -50,12 +50,14 @@ internal class KafkaStatistikkEventObserver(
                 }
 
                 is StatistikkEvent.Behandling -> {
-                    publiserEllerLoggFeil(
-                        event.toBehandlingsstatistikkDto(
-                            gitCommit,
-                            clock,
-                        ),
-                    )
+                    if (event !is StatistikkEvent.Behandling.Tilbakekreving) {
+                        publiserEllerLoggFeil(
+                            event.toBehandlingsstatistikkDto(
+                                gitCommit,
+                                clock,
+                            ),
+                        )
+                    }
                     if (!ApplicationConfig.isProd()) {
                         event.toBehandlingsstatistikkOverordnet(clock).let {
                             sakStatistikkRepo.lagreSakStatistikk(it)
