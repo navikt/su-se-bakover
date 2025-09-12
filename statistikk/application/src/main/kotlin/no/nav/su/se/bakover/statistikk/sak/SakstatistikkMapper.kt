@@ -393,7 +393,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     this.toBehandlingsstatistikkGenerell(
                         clock = clock,
                         behandling = tilbakekreving,
-                        behandlingType = Behandlingstype.KLAGE,
+                        behandlingType = Behandlingstype.TILBAKEKREVING,
                         saktype = sak.type,
                         behandlingStatus = BehandlingStatus.Registrert.name,
                         opprettetAv = tilbakekreving.opprettetAv.navIdent,
