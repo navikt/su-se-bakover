@@ -103,15 +103,16 @@ internal class OppdaterOppgaveHttpClient(
             is OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> oppgave.tilordnetRessurs
         }
         return Either.catch {
+            val requestOppgave = EndreOppgaveRequest(
+                beskrivelse = oppgave.beskrivelse?.let {
+                    internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
+                } ?: internalBeskrivelse,
+                status = data.status ?: oppgave.status,
+                oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
+                tilordnetRessurs = tilordnetRessurs,
+            )
             val requestBody = serialize(
-                EndreOppgaveRequest(
-                    beskrivelse = oppgave.beskrivelse?.let {
-                        internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
-                    } ?: internalBeskrivelse,
-                    status = data.status ?: oppgave.status,
-                    oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
-                    tilordnetRessurs = tilordnetRessurs,
-                ),
+                requestOppgave,
             )
 
             val request = HttpRequest.newBuilder()
@@ -126,8 +127,12 @@ internal class OppdaterOppgaveHttpClient(
             client.send(request, HttpResponse.BodyHandlers.ofString()).let {
                 if (it.isSuccess()) {
                     val loggmelding =
-                        "Endret oppgave ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
-                    log.info("$loggmelding. Response-json finnes i sikkerlogg.")
+                        "Oppgave var ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til ${oppgave.status}"
+                    val loggmeldingendrettil =
+                        "Oppgave ble ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til ${requestOppgave.status} type ${requestOppgave.oppgavetype}"
+
+                    log.info("$loggmelding til $loggmeldingendrettil. Response-json finnes i sikkerlogg.")
+
                     sikkerLogg.info("$loggmelding. Response-json: $it")
 
                     OppgaveHttpKallResponse(
