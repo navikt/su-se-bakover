@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -69,7 +71,10 @@ class StønadStatistikkJobServiceImpl(
         måned: YearMonth,
     ) {
         val alleVedtak = vedtakRepo.hentVedtakForMåned(Måned.fra(måned))
-        alleVedtak.groupBy { it.behandling.sakId }.forEach {
+        val vedtakMedUtbetaling = alleVedtak.filter {
+            it !is VedtakAvslagVilkår && it !is VedtakAvslagBeregning
+        }
+        vedtakMedUtbetaling.groupBy { it.behandling.sakId }.forEach {
             val siste = it.value.maxBy { it.opprettet }
             val behandling = siste.behandling as Stønadsbehandling
             val sak = behandling.sakinfo()
@@ -144,6 +149,7 @@ class StønadStatistikkJobServiceImpl(
 
                         mapBeregning(siste, beregningSomGjenopptas)
                     }
+
                     is VedtakOpphørMedUtbetaling -> {
                         throw IllegalStateException("Har opphørsvedtak hvor månedsbeløp ikke blir håndtert")
                     }
