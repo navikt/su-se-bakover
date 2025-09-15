@@ -150,16 +150,33 @@ sealed interface VurderingerTilKlage {
             data class Oppretthold(val hjemler: Klagehjemler.Utfylt) : Utfylt
         }
 
+        // Se også Omgjøringsgrunn - må se om de skal konsolideres evt fjernes fra behandlingsløpet hvis det lagres her. Blir da kun historisk
         enum class Årsak {
             FEIL_LOVANVENDELSE,
-            ULIK_SKJØNNSVURDERING,
-            SAKSBEHANDLINGSFEIL,
-            NYTT_FAKTUM,
+            NYE_OPPLYSNINGER,
+            FEIL_REGELFORSTÅELSE,
+            FEIL_FAKTUM,
+            ;
+
+            companion object {
+                fun toDomain(dbValue: String): Årsak {
+                    return entries.find { it.name == dbValue }
+                        ?: throw IllegalStateException("Ukjent klageårsak i klage-tabellen: $dbValue")
+                }
+            }
         }
 
         enum class Utfall {
             TIL_GUNST,
             TIL_UGUNST,
+            ;
+
+            companion object {
+                fun toDomain(dbValue: String): Utfall {
+                    return entries.find { it.name == dbValue }
+                        ?: throw IllegalStateException("Ukjent klage utfall i klage-tabellen: $dbValue")
+                }
+            }
         }
     }
 }
