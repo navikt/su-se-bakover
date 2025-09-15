@@ -32,21 +32,13 @@ data class KlageVurderingerRequest(
         }
 
         private fun årsakToDomain(årsak: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak, VurderingerTilKlage.Vedtaksvurdering.Årsak> {
-            return when (årsak) {
-                "NYE_OPPLYSNINGER" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.NYE_OPPLYSNINGER
-                "FEIL_LOVANVENDELSE" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_LOVANVENDELSE
-                "FEIL_REGELFORSTÅELSE" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_REGELFORSTÅELSE
-                "FEIL_FAKTUM" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_FAKTUM
-                else -> return KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
-            }.right()
+            val årsak = VurderingerTilKlage.Vedtaksvurdering.Årsak.entries.find { it.name == årsak }
+            return årsak?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
         }
 
         private fun utfallToDomain(utfall: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall, VurderingerTilKlage.Vedtaksvurdering.Utfall> {
-            return when (utfall) {
-                "TIL_GUNST" -> VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_GUNST
-                "TIL_UGUNST" -> VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_UGUNST
-                else -> return KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
-            }.right()
+            val utfall = VurderingerTilKlage.Vedtaksvurdering.Utfall.entries.find { it.name == utfall }
+            return utfall?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
         }
     }
 
