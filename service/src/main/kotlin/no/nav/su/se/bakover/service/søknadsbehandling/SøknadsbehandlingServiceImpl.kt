@@ -64,6 +64,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTil
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
@@ -280,6 +281,102 @@ class SøknadsbehandlingServiceImpl(
             }
             return søknadsbehandlingTilAttestering.right()
         }
+    }
+
+    override fun returner(
+        request: SøknadsbehandlingService.ReturnerBehandlingRequest,
+    ): Either<KunneIkkeReturnereSøknadsbehandling, Søknadsbehandling> {
+        val søknadsbehandling = (
+            søknadsbehandlingRepo.hent(request.behandlingId)
+                ?: return KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling.left()
+            ).let {
+            it as? SøknadsbehandlingTilAttestering ?: return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
+        }
+        if (request.saksbehandler.navIdent != søknadsbehandling.saksbehandler.navIdent) {
+            return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
+        }
+
+        val retur = with(søknadsbehandling) {
+            when (this) {
+                is SøknadsbehandlingTilAttestering.Avslag.MedBeregning ->
+                    BeregnetSøknadsbehandling.Avslag(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        fritekstTilBrev = fritekstTilBrev,
+                        aldersvurdering = aldersvurdering,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                        sakstype = sakstype,
+                        saksbehandler = saksbehandler,
+                        omgjøringsårsak = omgjøringsårsak,
+                        omgjøringsgrunn = omgjøringsgrunn,
+                    )
+                is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning ->
+                    VilkårsvurdertSøknadsbehandling.Avslag(
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        sakstype = sakstype,
+                        oppgaveId = oppgaveId,
+                        søknad = søknad,
+                        id = id,
+                        attesteringer = attesteringer,
+                        saksbehandler = saksbehandler,
+                        aldersvurdering = aldersvurdering,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                        fritekstTilBrev = fritekstTilBrev,
+                        omgjøringsårsak = omgjøringsårsak,
+                        omgjøringsgrunn = omgjøringsgrunn,
+                    )
+
+                is SøknadsbehandlingTilAttestering.Innvilget ->
+                    SimulertSøknadsbehandling(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        simulering = simulering,
+                        fritekstTilBrev = fritekstTilBrev,
+                        aldersvurdering = aldersvurdering,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                        sakstype = sakstype,
+                        saksbehandler = saksbehandler,
+                        omgjøringsårsak = omgjøringsårsak,
+                        omgjøringsgrunn = omgjøringsgrunn,
+                    )
+            }
+        }
+
+        oppgaveService.oppdaterOppgave(
+            retur.oppgaveId,
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Behandling har blitt returnert",
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(søknadsbehandling.saksbehandler.navIdent),
+            ),
+        ).map {
+            log.info("Behandling ${retur.id} ble returnert. Oppgave ${retur.oppgaveId} ble oppdatert. Se sikkerlogg for response")
+            sikkerLogg.info("Behandling ${retur.id} ble returnert. Oppgave ${retur.oppgaveId} ble oppdatert. oppgaveResponse: ${it.response}")
+        }.mapLeft {
+            log.error("Søknadsbehandling retur: Kunne ikke oppdatere oppgave ${retur.oppgaveId} for søknadsbehandling ${retur.id}. Feilen var $it")
+        }
+        søknadsbehandlingRepo.lagre(retur)
+        return retur.right()
     }
 
     override fun underkjenn(
