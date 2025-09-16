@@ -41,12 +41,14 @@ fun Sak.opprettNySøknadsbehandling(
     søknadsbehandlingId: SøknadsbehandlingId? = null,
     søknadId: UUID,
     clock: Clock,
-    saksbehandler: NavIdentBruker.Saksbehandler,
+    saksbehandler: NavIdentBruker.Saksbehandler?,
     oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
 ): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+    /*
     if (harÅpenSøknadsbehandling()) {
         return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
+     */
     val søknad = hentSøknad(søknadId).fold(
         ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
         ifRight = {
@@ -62,7 +64,8 @@ fun Sak.opprettNySøknadsbehandling(
     ).also { require(type == it.type) { "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak." } }
 
     // gjør en best effort for å oppdatere oppgaven. logging av left gjøres i oppdaterTilordnetRessurs
-    oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
+    // TODO Behøves ikke lenger?
+    // oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
 
     return VilkårsvurdertSøknadsbehandling.Uavklart(
         id = søknadsbehandlingId ?: SøknadsbehandlingId.generer(),
@@ -86,7 +89,7 @@ fun Sak.opprettNySøknadsbehandling(
         søknadsbehandlingsHistorikk = Søknadsbehandlingshistorikk.nyHistorikk(
             Søknadsbehandlingshendelse(
                 tidspunkt = opprettet,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
                 handling = SøknadsbehandlingsHandling.StartetBehandling,
             ),
         ),
@@ -98,7 +101,7 @@ fun Sak.opprettNySøknadsbehandling(
         Triple(
             this.nySøknadsbehandling(søknadsbehandling),
             søknadsbehandling,
-            StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler),
+            StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, NavIdentBruker.Saksbehandler.systembruker()),
         ).right()
     }
 }

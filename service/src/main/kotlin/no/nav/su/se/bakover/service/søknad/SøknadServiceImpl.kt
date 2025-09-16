@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -43,6 +45,7 @@ class SøknadServiceImpl(
     private val journalførSøknadClient: JournalførSøknadClient,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -79,7 +82,9 @@ class SøknadServiceImpl(
             fnr = fnr,
             søknadInnhold = søknadInnhold,
             innsendtAv = saksbehandlerEllerVeileder,
-        ).also { sakService.opprettSak(it) }
+        ).also { sakService.opprettSak(it) }.also {
+            // TODO her?
+        }
         // Henter saksnummeret fra databasen (dette kunne vært returnert fra opprettSak). Dette skal ikke feile.
         return Pair(sakService.hentSakInfo(nySak.id).getOrNull()!!, nySak.søknad)
     }
@@ -124,7 +129,20 @@ class SøknadServiceImpl(
             )
         }
         opprettJournalpostOgOppgave(sakInfo, person, søknad)
+
+        sakService.hentSak(sakInfo.sakId).map { sak ->
+            sak.opprettNySøknadsbehandling(
+                søknadId = søknad.id,
+                clock = clock,
+                saksbehandler = null,
+                oppdaterOppgave = null,
+            ).map { (_, uavklartSøknadsbehandling, statistikk) ->
+                søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
+            }
+        }
+
         observers.forEach { observer ->
+            // TODO
             observer.handle(
                 StatistikkEvent.Søknad.Mottatt(søknad, sakInfo.saksnummer),
             )

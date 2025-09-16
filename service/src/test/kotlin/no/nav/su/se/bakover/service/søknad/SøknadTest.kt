@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.argThat
@@ -148,6 +149,16 @@ class SøknadTest {
                     fnr,
                     Sakstype.UFØRE,
                 ).right()
+                on { hentSak(sak.id) } doReturn mock<Sak> {
+                    onGeneric {
+                        opprettNySøknadsbehandling(
+                            søknadId = any(),
+                            clock = any(),
+                            saksbehandler = any(),
+                            oppdaterOppgave = null,
+                        )
+                    } doReturn mock()
+                }.right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()

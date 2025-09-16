@@ -147,6 +147,8 @@ class SøknadsbehandlingServiceImpl(
 
         require(sak.id == sakId) { "sak.id ${sak.id} må være lik request.sakId $sakId" }
 
+        // TODO ?? endres fra opprettelse til statusendring og oppgave?
+
         return sak.opprettNySøknadsbehandling(
             søknadId = request.søknadId,
             clock = clock,
@@ -715,9 +717,11 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(søknadsbehandlingSkatt.behandlingId)
             ?: throw IllegalStateException("Fant ikke behandling ${søknadsbehandlingSkatt.behandlingId}")
 
+        val saksbehandler = søknadsbehandling.saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet")
+
         return søknadsbehandling.leggTilSkatt(
             EksterneGrunnlagSkatt.Hentet(
-                søkers = skatteService.hentSamletSkattegrunnlagForÅr(søknadsbehandling.fnr, søknadsbehandling.saksbehandler, søknadsbehandlingSkatt.yearRange),
+                søkers = skatteService.hentSamletSkattegrunnlagForÅr(søknadsbehandling.fnr, saksbehandler, søknadsbehandlingSkatt.yearRange),
                 eps = søknadsbehandling.hentSkattegrunnlagForEps(
                     søknadsbehandlingSkatt.saksbehandler,
                 ) { fnr, saksbehandler ->
