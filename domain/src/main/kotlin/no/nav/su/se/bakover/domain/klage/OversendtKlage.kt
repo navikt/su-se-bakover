@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
+import java.util.UUID
 import kotlin.reflect.KClass
 
 data class OversendtKlage(
@@ -18,6 +19,7 @@ data class OversendtKlage(
     override val klageinstanshendelser: Klageinstanshendelser,
     override val attesteringer: Attesteringshistorikk,
     override val sakstype: Sakstype,
+    val behandlingId: UUID? = null,
 ) : Klage,
     VurdertKlage.UtfyltFelter by forrigeSteg {
 

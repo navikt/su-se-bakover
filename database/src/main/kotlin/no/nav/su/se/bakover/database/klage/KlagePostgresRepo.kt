@@ -325,6 +325,25 @@ internal class KlagePostgresRepo(
         }
     }
 
+    override fun knyttMotOmgjøring(klageId: KlageId, behandlingId: UUID) {
+        return dbMetrics.timeQuery("knyttKlageMotOmgjøring") {
+            sessionFactory.withSession { session ->
+                """
+                    update klage set
+                    behandlingId=:behandlingId
+                    where id=:id
+                """.trimIndent()
+                    .oppdatering(
+                        mapOf(
+                            "id" to klageId.value,
+                            "behandlingId" to behandlingId,
+                        ),
+                        session,
+                    )
+            }
+        }
+    }
+
     override fun defaultSessionContext(): SessionContext {
         return sessionFactory.newSessionContext()
     }
@@ -370,6 +389,7 @@ internal class KlagePostgresRepo(
         val vedtaksvurdering = row.stringOrNull("vedtaksvurdering")?.let {
             deserialize<VedtaksvurderingJson>(it).toDomain()
         }
+        val behandlingId = row.uuidOrNull("behandlingId")
         val vurderinger = if (fritekstTilBrev == null && vedtaksvurdering == null) {
             null
         } else {
@@ -526,6 +546,7 @@ internal class KlagePostgresRepo(
                 attesteringer = attesteringer,
                 klageinstanshendelser = klageinstanshendelser,
                 sakstype = sakstype,
+                behandlingId = behandlingId,
             )
             Tilstand.IVERKSATT_AVVIST -> IverksattAvvistKlage(
                 forrigeSteg = avvistKlageTilAttestering(),
