@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -130,18 +130,18 @@ internal class OpprettRevurderingServiceTest {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
             },
         ).also {
-            shouldThrow<NullPointerException> {
-                it.revurderingService.opprettRevurdering(
-                    OpprettRevurderingCommand(
-                        sakId = sakId,
-                        periode = år(2021),
-                        årsak = "MELDING_FRA_BRUKER",
-                        begrunnelse = "Ny informasjon",
-                        saksbehandler = saksbehandler,
-                        informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-                    ),
-                )
-            }.message shouldBe null
+            it.revurderingService.opprettRevurdering(
+                OpprettRevurderingCommand(
+                    sakId = sakId,
+                    periode = år(2021),
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ).shouldBeLeft().let {
+                it shouldBe KunneIkkeOppretteRevurdering.SakFinnesIkke
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOpp
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -82,5 +84,9 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is KunneIkkeOppretteRevurdering.FantIkkeAktørId -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn -> måHaomgjøringsgrunn
+        is KunneIkkeOppretteRevurdering.SakFinnesIkke -> BadRequest.errorJson(
+            "Sak finnes ikke",
+            "sak_finnes_ikke",
+        )
     }
 }

@@ -22,5 +22,7 @@ sealed interface KunneIkkeOppretteRevurdering {
 
     data class KunneIkkeOppretteOppgave(val feil: no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave) : KunneIkkeOppretteRevurdering
 
+    data object SakFinnesIkke : KunneIkkeOppretteRevurdering
+
     data object MåhaOmgjøringsgrunn : KunneIkkeOppretteRevurdering
 }
