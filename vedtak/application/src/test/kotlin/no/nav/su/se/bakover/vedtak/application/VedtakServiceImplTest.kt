@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.vedtak.application
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
@@ -92,6 +93,7 @@ class VedtakServiceImplTest {
         private val oppgaveService: OppgaveService = mock(),
         private val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         private val clock: Clock = enUkeEtterFixedClock,
+        private val klageRepo: KlageRepo = mock(),
     ) {
         fun testableService() = VedtakServiceImpl(
             vedtakRepo = vedtakRepo,
@@ -99,6 +101,7 @@ class VedtakServiceImplTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
+            klageRepo = klageRepo,
         )
 
         fun verifyNoMoreInteractions() {

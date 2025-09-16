@@ -146,6 +146,7 @@ data object ServiceBuilder {
             sakService = sakService,
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
+            klageRepo = databaseRepos.klageRepo,
             clock = clock,
         ).apply {
             addObserver(statistikkEventObserver)

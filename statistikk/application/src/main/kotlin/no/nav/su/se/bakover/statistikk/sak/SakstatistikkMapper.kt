@@ -80,6 +80,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     opprettetAv = søknadsbehandling.saksbehandler?.navIdent,
                     saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                     behandlingAarsak = "Omgjøring etter avvist søknad",
+                    relatertId = klageId?.value,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(

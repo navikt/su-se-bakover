@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.statistikk
 
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -68,6 +69,7 @@ sealed interface StatistikkEvent {
             data class OpprettetOmgjøring(
                 override val søknadsbehandling: Omgjøringssøknadsbehandling,
                 val saksbehandler: NavIdentBruker.Saksbehandler,
+                val klageId: KlageId? = null,
             ) : Søknad
 
             sealed interface TilAttestering : Søknad {

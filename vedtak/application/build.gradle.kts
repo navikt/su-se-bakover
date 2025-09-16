@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":vedtak:domain"))
     implementation(project(":behandling:common:domain"))
     implementation(project(":behandling:søknadsbehandling:domain"))
+    implementation(project(":behandling:klage:domain"))
 
     implementation(project(":person:domain"))
     implementation(project(":oppgave:domain"))
