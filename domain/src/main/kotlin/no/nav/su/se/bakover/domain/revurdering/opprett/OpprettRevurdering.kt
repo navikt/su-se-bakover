@@ -51,7 +51,7 @@ fun Sak.opprettRevurdering(
         }
     }
 
-    val knyttbarKlageBehandling = if (revurderingsårsak.årsak != Årsak.OMGJØRING_EGET_TILTAK) {
+    val knyttbarKlageBehandling = if (revurderingsårsak.årsak.erOmgjøring() && revurderingsårsak.årsak != Årsak.OMGJØRING_EGET_TILTAK) {
         val klageId = cmd.klageId?.let {
             runCatching { UUID.fromString(it) }.getOrNull()
         } ?: return KunneIkkeOppretteRevurdering.KlageUgyldigUUID.left()
