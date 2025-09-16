@@ -20,6 +20,7 @@ data class OpprettRevurderingCommand(
     val omgjøringsgrunn: String? = null,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val informasjonSomRevurderes: List<Revurderingsteg>,
+    val klageId: String? = null,
 ) {
     val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> by lazy {
         Revurderingsårsak.tryCreate(

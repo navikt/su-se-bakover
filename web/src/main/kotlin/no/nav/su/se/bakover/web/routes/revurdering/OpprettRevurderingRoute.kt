@@ -41,6 +41,7 @@ internal fun Route.opprettRevurderingRoute(
         val begrunnelse: String,
         val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
+        val klageId: String? = null,
     )
     post(REVURDERING_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
@@ -88,5 +89,12 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Sak finnes ikke",
             "sak_finnes_ikke",
         )
+
+        is KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling -> TODO()
+        is KunneIkkeOppretteRevurdering.KlageErIkkeOversendt -> TODO()
+        is KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning -> TODO()
+        is KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> TODO()
+        is KunneIkkeOppretteRevurdering.KlagenErOpprettholdt -> TODO()
+        is KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> TODO()
     }
 }

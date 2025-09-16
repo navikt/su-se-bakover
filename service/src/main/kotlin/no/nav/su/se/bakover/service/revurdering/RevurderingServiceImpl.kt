@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -114,6 +115,7 @@ import kotlin.reflect.KClass
 class RevurderingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
+    private val klageRepo: KlageRepo,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val brevService: BrevService,
@@ -147,7 +149,7 @@ class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.SakFinnesIkke.left()
         }
         return sak.opprettRevurdering(
-            command = command,
+            cmd = command,
             clock = clock,
         ).map {
             val oppgaveResponse = oppgaveService.opprettOppgave(
@@ -157,6 +159,9 @@ class RevurderingServiceImpl(
             }
             it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
         }.map {
+            it.klageId?.let { klageId ->
+                klageRepo.knyttMotOmgjøring(klageId, it.opprettetRevurdering.id.value)
+            }
             revurderingRepo.lagre(it.opprettetRevurdering)
             observers.notify(it.statistikkHendelse)
             it.opprettetRevurdering

@@ -4,18 +4,22 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak.Årsak
 import no.nav.su.se.bakover.domain.sak.nyRevurdering
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.util.UUID
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
 
 /**
@@ -25,27 +29,63 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurde
 private val log = LoggerFactory.getLogger("opprettRevurdering")
 
 fun Sak.opprettRevurdering(
-    command: OpprettRevurderingCommand,
+    cmd: OpprettRevurderingCommand,
     clock: Clock,
 ): Either<KunneIkkeOppretteRevurdering, OpprettRevurderingResultatUtenOppgaveId> {
-    val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(this.type, command.informasjonSomRevurderes)
+    val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(this.type, cmd.informasjonSomRevurderes)
         .getOrElse { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
-    val revurderingsårsak = command.revurderingsårsak.getOrElse {
+    val revurderingsårsak = cmd.revurderingsårsak.getOrElse {
         return KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(it).left()
     }
+
     if (revurderingsårsak.årsak.erOmgjøring()) {
-        if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
+        // TODO: gir denne mening fortsatt?
+        if (revurderingsårsak.årsak == Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
             if (this.klager.none { it.erÅpen() }) {
                 log.error("Fant ingen åpen klage for saksnummer ${this.saksnummer}, dette kan være fordi den er overført fra infotrygd hvis den gjelder alder. Ellers burde den finnes. Hør med fag.")
             }
         }
-        if (!command.omgjøringsgrunnErGyldig()) {
+        if (!cmd.omgjøringsgrunnErGyldig()) {
             return KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn.left()
         }
     }
 
-    val periode = command.periode
+    val knyttbarKlageBehandling = if (revurderingsårsak.årsak != Årsak.OMGJØRING_EGET_TILTAK) {
+        val klageId = cmd.klageId?.let {
+            runCatching { UUID.fromString(it) }.getOrNull()
+        } ?: return KunneIkkeOppretteRevurdering.KlageUgyldigUUID.left()
+        val klage = this.hentKlage(KlageId(klageId)) ?: return KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning.left()
+
+        when (klage) {
+            is OversendtKlage -> {
+                if (klage.behandlingId != null) {
+                    log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
+                    return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
+                }
+                when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
+                        if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
+                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${revurderingsårsak.årsak}")
+                            return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
+                        }
+                    }
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
+                        return KunneIkkeOppretteRevurdering.KlagenErOpprettholdt.left()
+                    }
+                }
+            }
+            else -> {
+                log.warn("Klage ${klage.id} er ikke oversendt men ${klage.javaClass.name}")
+                return KunneIkkeOppretteRevurdering.KlageErIkkeOversendt.left()
+            }
+        }
+        klage.id
+    } else {
+        null
+    }
+
+    val periode = cmd.periode
     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
         periode = periode,
         clock = clock,
@@ -57,13 +97,14 @@ fun Sak.opprettRevurdering(
         .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
     val tidspunkt = Tidspunkt.now(clock)
+
     return OpprettRevurderingResultatUtenOppgaveId(
         fnr = fnr,
         oppgaveConfig = {
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = saksnummer,
                 fnr = fnr,
-                tilordnetRessurs = command.saksbehandler,
+                tilordnetRessurs = cmd.saksbehandler,
                 clock = clock,
                 sakstype = type,
             )
@@ -75,17 +116,18 @@ fun Sak.opprettRevurdering(
                 oppdatert = tidspunkt,
                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
                 vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
-                saksbehandler = command.saksbehandler,
+                saksbehandler = cmd.saksbehandler,
                 oppgaveId = oppgaveId,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 sakinfo = info(),
-                omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(command.omgjøringsgrunn) },
+                omgjøringsgrunn = cmd.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(cmd.omgjøringsgrunn) },
             )
         },
         sak = { nyRevurdering(it) },
-        statistikkHendelse = { StatistikkEvent(it) },
+        statistikkHendelse = { StatistikkEvent(it, knyttbarKlageBehandling) },
+        klageId = knyttbarKlageBehandling,
     ).right()
 }

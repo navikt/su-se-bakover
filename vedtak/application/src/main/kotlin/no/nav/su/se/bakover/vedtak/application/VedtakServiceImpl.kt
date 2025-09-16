@@ -137,7 +137,7 @@ class VedtakServiceImpl(
         }
 
         // TODO: Dette kan kopieres inn i revurderingsknytningen
-        val skalKnytteKlageMotBehandling = if (omgjøringsårsak != Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
+        val knyttbarKlageBehandling = if (omgjøringsårsak != Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
             val klageId = cmd.klageId?.let {
                 runCatching { UUID.fromString(it) }.getOrNull()
             } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
@@ -153,7 +153,7 @@ class VedtakServiceImpl(
                     when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
                             if (vedtaksvurdering.årsak.name != omgjøringsgrunn.name) {
-                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} sb har valgt $omgjøringsgrunn")
+                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt $omgjøringsgrunn")
                                 return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                             }
                         }
@@ -189,10 +189,10 @@ class VedtakServiceImpl(
             omgjøringsgrunn = omgjøringsgrunn,
         ).map { søknadsbehandling ->
             søknadsbehandlingService.lagre(søknadsbehandling)
-            skalKnytteKlageMotBehandling?.let {
+            knyttbarKlageBehandling?.let {
                 klageRepo.knyttMotOmgjøring(it, søknadsbehandling.id.value)
             }
-            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, klageId = skalKnytteKlageMotBehandling))
+            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, klageId = knyttbarKlageBehandling))
             søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
