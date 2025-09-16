@@ -28,6 +28,7 @@ fun Route.vedtakRoutes(
     data class Body(
         val omgjøringsårsak: String? = null,
         val omgjøringsgrunn: String? = null,
+        val klageId: String? = null,
     )
     post("$VEDTAK_PATH/{vedtakId}/nySoknadsbehandling") {
         call.withSakId { sakId ->
@@ -37,7 +38,7 @@ fun Route.vedtakRoutes(
                         sakId,
                         vedtakId,
                         call.suUserContext.saksbehandler,
-                        NySøknadCommandOmgjøring(body.omgjøringsårsak, body.omgjøringsgrunn),
+                        NySøknadCommandOmgjøring(body.omgjøringsårsak, body.omgjøringsgrunn, body.klageId),
                     )
                         .fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -66,5 +67,28 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
     )
 
     is KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn -> Feilresponser.Omgjøring.måHaomgjøringsgrunn
-    is KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak -> Feilresponser.Omgjøring.måHaomgjøringsgrunn
+    is KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak -> HttpStatusCode.BadRequest.errorJson(
+        "Ugyldig revurderingsårsak",
+        "ugyldig_revurderingsårsak",
+    )
+    is KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling -> HttpStatusCode.BadRequest.errorJson(
+        "Klage er allerede knyttet til en behandling",
+        "klage_er_allerede_knyttet_til_behandling",
+    )
+    is KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt -> HttpStatusCode.BadRequest.errorJson(
+        "Klagen er ikke oversendt",
+        "klage_er_ikke_oversendt",
+    )
+    is KunneIkkeStarteNySøknadsbehandling.KlageMåfinnesForKnytning -> HttpStatusCode.BadRequest.errorJson(
+        "Klagen finnes ikke",
+        "klagen_finnes_Ikke",
+    )
+    is KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt -> HttpStatusCode.BadRequest.errorJson(
+        "Klagen må være en omgjøring",
+        "ikke_omgjøring",
+    )
+    is KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn -> HttpStatusCode.BadRequest.errorJson(
+        "Må ha lik omgjøringsgrunn",
+        "ulik_omgjøringsgrunn",
+    )
 }
