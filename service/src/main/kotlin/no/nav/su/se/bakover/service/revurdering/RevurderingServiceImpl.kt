@@ -143,7 +143,10 @@ class RevurderingServiceImpl(
     override fun opprettRevurdering(
         command: OpprettRevurderingCommand,
     ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
-        return sakService.hentSak(command.sakId).getOrNull()!!.opprettRevurdering(
+        val sak = sakService.hentSak(command.sakId).getOrElse {
+            return KunneIkkeOppretteRevurdering.SakFinnesIkke.left()
+        }
+        return sak.opprettRevurdering(
             command = command,
             clock = clock,
         ).map {
