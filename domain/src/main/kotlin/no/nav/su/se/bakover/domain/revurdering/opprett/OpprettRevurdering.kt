@@ -66,7 +66,7 @@ fun Sak.opprettRevurdering(
                 when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
                         if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${revurderingsårsak.årsak}")
+                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}")
                             return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
                         }
                     }

@@ -90,11 +90,29 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "sak_finnes_ikke",
         )
 
-        is KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling -> TODO()
-        is KunneIkkeOppretteRevurdering.KlageErIkkeOversendt -> TODO()
-        is KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning -> TODO()
-        is KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> TODO()
-        is KunneIkkeOppretteRevurdering.KlagenErOpprettholdt -> TODO()
-        is KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> TODO()
+        is KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling -> BadRequest.errorJson(
+            "Klagen er allerede knyttet til en behandling",
+            "klage_allerede_knyttet_til_behandling",
+        )
+        is KunneIkkeOppretteRevurdering.KlageErIkkeOversendt -> BadRequest.errorJson(
+            "Klagen er ikke oversendt",
+            "klage_ikke_oversendt",
+        )
+        is KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning -> BadRequest.errorJson(
+            "Klage må finnes for å kunne knyttes til behandling",
+            "klage_må_finnes_for_knytning",
+        )
+        is KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> BadRequest.errorJson(
+            "Klage har ugyldig UUID",
+            "klage_ugyldig_uuid",
+        )
+        is KunneIkkeOppretteRevurdering.KlagenErOpprettholdt -> BadRequest.errorJson(
+            "Klagen er opprettholdt og kan ikke knyttes til revurdering",
+            "klagen_er_opprettholdt",
+        )
+        is KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> BadRequest.errorJson(
+            "Omgjøringsgrunn er ulik mellom klage og revurdering",
+            "ulik_omgjøringsgrunn",
+        )
     }
 }
