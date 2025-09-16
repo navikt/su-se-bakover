@@ -36,8 +36,6 @@ import no.nav.su.se.bakover.database.klage.AvsluttetKlageJson.Companion.toAvslut
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Svarord.Companion.tilDatabaseType
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Tilstand.Companion.databasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Companion.toJson
-import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Omgjør.Omgjøringsutfall.Companion.toDatabasetype
-import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Omgjør.Omgjøringsårsak.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Oppretthold.Hjemmel.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
@@ -651,73 +649,9 @@ internal class KlagePostgresRepo(
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
-                    årsak = årsak?.let { Omgjøringsårsak.fromString(it).toDomain() },
-                    utfall = utfall?.let { Omgjøringsutfall.fromString(it).toDomain() },
+                    årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
+                    utfall = utfall?.let { VurderingerTilKlage.Vedtaksvurdering.Utfall.toDomain(it) },
                 )
-            }
-
-            enum class Omgjøringsårsak(val verdi: String) {
-                FEIL_LOVANVENDELSE("feil_lovanvendelse"),
-                ULIK_SKJØNNSVURDERING("ulik_skjønnsvurdering"),
-                SAKSBEHANDLINGSFEIL("saksbehandlingsfeil"),
-                NYTT_FAKTUM("nytt_faktum"),
-                ;
-
-                fun toDomain(): VurderingerTilKlage.Vedtaksvurdering.Årsak {
-                    return when (this) {
-                        FEIL_LOVANVENDELSE -> VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_LOVANVENDELSE
-                        ULIK_SKJØNNSVURDERING -> VurderingerTilKlage.Vedtaksvurdering.Årsak.ULIK_SKJØNNSVURDERING
-                        SAKSBEHANDLINGSFEIL -> VurderingerTilKlage.Vedtaksvurdering.Årsak.SAKSBEHANDLINGSFEIL
-                        NYTT_FAKTUM -> VurderingerTilKlage.Vedtaksvurdering.Årsak.NYTT_FAKTUM
-                    }
-                }
-
-                companion object {
-                    fun VurderingerTilKlage.Vedtaksvurdering.Årsak.toDatabasetype(): String {
-                        return when (this) {
-                            VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_LOVANVENDELSE -> FEIL_LOVANVENDELSE
-                            VurderingerTilKlage.Vedtaksvurdering.Årsak.ULIK_SKJØNNSVURDERING -> ULIK_SKJØNNSVURDERING
-                            VurderingerTilKlage.Vedtaksvurdering.Årsak.SAKSBEHANDLINGSFEIL -> SAKSBEHANDLINGSFEIL
-                            VurderingerTilKlage.Vedtaksvurdering.Årsak.NYTT_FAKTUM -> NYTT_FAKTUM
-                        }.toString()
-                    }
-
-                    fun fromString(value: String): Omgjøringsårsak {
-                        return entries.find { it.verdi == value }
-                            ?: throw IllegalStateException("Ukjent omgjøringsårsak i klage-tabellen: $value")
-                    }
-                }
-
-                override fun toString() = verdi
-            }
-
-            enum class Omgjøringsutfall(val verdi: String) {
-                TIL_GUNST("til_gunst"),
-                TIL_UGUNST("til_ugunst"),
-                ;
-
-                fun toDomain(): VurderingerTilKlage.Vedtaksvurdering.Utfall {
-                    return when (this) {
-                        TIL_GUNST -> VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_GUNST
-                        TIL_UGUNST -> VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_UGUNST
-                    }
-                }
-
-                companion object {
-                    fun VurderingerTilKlage.Vedtaksvurdering.Utfall.toDatabasetype(): String {
-                        return when (this) {
-                            VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_GUNST -> TIL_GUNST
-                            VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_UGUNST -> TIL_UGUNST
-                        }.toString()
-                    }
-
-                    fun fromString(value: String): Omgjøringsutfall {
-                        return entries.find { it.verdi == value }
-                            ?: throw IllegalStateException("Ukjent omgjøringsutfall i klage-tabellen: $value")
-                    }
-                }
-
-                override fun toString() = verdi
             }
         }
 
@@ -801,15 +735,15 @@ internal class KlagePostgresRepo(
             fun VurderingerTilKlage.Vedtaksvurdering.toJson(): String {
                 return when (this) {
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør -> Omgjør(
-                        årsak = årsak?.toDatabasetype(),
-                        utfall = utfall?.toDatabasetype(),
+                        årsak = årsak?.name,
+                        utfall = utfall?.name,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> Omgjør(
-                        årsak = årsak.toDatabasetype(),
-                        utfall = utfall.toDatabasetype(),
+                        årsak = årsak.name,
+                        utfall = utfall.name,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),

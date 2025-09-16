@@ -16,8 +16,6 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.Avsluttet.Companion.utledAvsluttet
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.klage.UtfallJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.klage.ÅrsakJson.Companion.toJson
 
 internal data class KlageJson(
     val id: String,
@@ -81,8 +79,8 @@ internal data class KlageJson(
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør -> VedtaksvurderingJson(
                         type = Type.OMGJØR.toString(),
                         omgjør = OmgjørJson(
-                            årsak = årsak?.toJson(),
-                            utfall = utfall?.toJson(),
+                            årsak = årsak?.name,
+                            utfall = utfall?.name,
                         ),
                         oppretthold = null,
                     )
@@ -98,8 +96,8 @@ internal data class KlageJson(
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> VedtaksvurderingJson(
                         type = Type.OMGJØR.toString(),
                         omgjør = OmgjørJson(
-                            årsak = årsak.toJson(),
-                            utfall = utfall.toJson(),
+                            årsak = årsak.name,
+                            utfall = utfall.name,
                         ),
                         oppretthold = null,
                     )
@@ -412,40 +410,6 @@ private enum class Typer(val verdi: String) {
     ;
 
     override fun toString() = verdi
-}
-
-enum class ÅrsakJson {
-    FEIL_LOVANVENDELSE,
-    ULIK_SKJØNNSVURDERING,
-    SAKSBEHANDLINGSFEIL,
-    NYTT_FAKTUM,
-    ;
-
-    companion object {
-        fun VurderingerTilKlage.Vedtaksvurdering.Årsak.toJson(): String {
-            return when (this) {
-                VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_LOVANVENDELSE -> FEIL_LOVANVENDELSE
-                VurderingerTilKlage.Vedtaksvurdering.Årsak.ULIK_SKJØNNSVURDERING -> ULIK_SKJØNNSVURDERING
-                VurderingerTilKlage.Vedtaksvurdering.Årsak.SAKSBEHANDLINGSFEIL -> SAKSBEHANDLINGSFEIL
-                VurderingerTilKlage.Vedtaksvurdering.Årsak.NYTT_FAKTUM -> NYTT_FAKTUM
-            }.toString()
-        }
-    }
-}
-
-enum class UtfallJson {
-    TIL_GUNST,
-    TIL_UGUNST,
-    ;
-
-    companion object {
-        fun VurderingerTilKlage.Vedtaksvurdering.Utfall.toJson(): String {
-            return when (this) {
-                VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_GUNST -> TIL_GUNST
-                VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_UGUNST -> TIL_UGUNST
-            }.toString()
-        }
-    }
 }
 
 private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(

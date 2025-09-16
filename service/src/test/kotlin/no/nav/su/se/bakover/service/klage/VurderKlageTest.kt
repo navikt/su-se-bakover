@@ -3,11 +3,13 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
+import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest.Oppretthold
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
@@ -90,7 +92,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = null,
-            oppretthold = KlageVurderingerRequest.Oppretthold(listOf("UGYLDIG_HJEMMEL")),
+            oppretthold = Oppretthold(listOf("UGYLDIG_HJEMMEL")),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
         mocks.verifyNoMoreInteractions()
@@ -107,7 +109,7 @@ internal class VurderKlageTest {
                 årsak = null,
                 utfall = null,
             ),
-            oppretthold = KlageVurderingerRequest.Oppretthold(
+            oppretthold = Oppretthold(
                 hjemler = listOf(),
             ),
         )
@@ -191,12 +193,13 @@ internal class VurderKlageTest {
                 on { hentKlage(any()) } doReturn klage
             },
         )
+        val hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail().toList()
         val request = KlageVurderingerRequest(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = null,
-            oppretthold = null,
+            oppretthold = Oppretthold(hjemler.map { it.name }),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigTilstand(
             klage::class,
@@ -270,7 +273,6 @@ internal class VurderKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         )
-
         val request = KlageVurderingerRequest(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
@@ -309,7 +311,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             fritekstTilBrev = "fritekstTilBrev",
             omgjør = null,
-            oppretthold = KlageVurderingerRequest.Oppretthold(listOf("SU_PARAGRAF_3")),
+            oppretthold = Oppretthold(listOf("SU_PARAGRAF_3")),
         )
         mocks.service.vurder(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")

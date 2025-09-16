@@ -24,7 +24,6 @@ data class KlageVurderingerRequest(
     private val oppretthold: Oppretthold?,
 ) {
     data class Omgjør(val årsak: String?, val utfall: String?) {
-
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                 årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
@@ -33,23 +32,13 @@ data class KlageVurderingerRequest(
         }
 
         private fun årsakToDomain(årsak: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak, VurderingerTilKlage.Vedtaksvurdering.Årsak> {
-            // TODO jah: Flytt denne kontrakten til web?
-            return when (årsak) {
-                "FEIL_LOVANVENDELSE" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.FEIL_LOVANVENDELSE
-                "ULIK_SKJØNNSVURDERING" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.ULIK_SKJØNNSVURDERING
-                "SAKSBEHANDLINGSFEIL" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.SAKSBEHANDLINGSFEIL
-                "NYTT_FAKTUM" -> VurderingerTilKlage.Vedtaksvurdering.Årsak.NYTT_FAKTUM
-                else -> return KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
-            }.right()
+            val årsak = VurderingerTilKlage.Vedtaksvurdering.Årsak.entries.find { it.name == årsak }
+            return årsak?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
         }
 
         private fun utfallToDomain(utfall: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall, VurderingerTilKlage.Vedtaksvurdering.Utfall> {
-            // TODO jah: Flytt denne kontrakten til web?
-            return when (utfall) {
-                "TIL_GUNST" -> VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_GUNST
-                "TIL_UGUNST" -> VurderingerTilKlage.Vedtaksvurdering.Utfall.TIL_UGUNST
-                else -> return KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
-            }.right()
+            val utfall = VurderingerTilKlage.Vedtaksvurdering.Utfall.entries.find { it.name == utfall }
+            return utfall?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
         }
     }
 
@@ -69,7 +58,6 @@ data class KlageVurderingerRequest(
         private fun hjemmelToDomain(hjemler: List<String>): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, Klagehjemler> {
             return hjemler.map { hjemmel ->
                 when (hjemmel) {
-                    // TODO jah: Flytt denne kontrakten til web?
                     "SU_PARAGRAF_3" -> Hjemmel.SU_PARAGRAF_3
                     "SU_PARAGRAF_4" -> Hjemmel.SU_PARAGRAF_4
                     "SU_PARAGRAF_5" -> Hjemmel.SU_PARAGRAF_5
@@ -102,7 +90,7 @@ data class KlageVurderingerRequest(
             omgjør == null && oppretthold == null -> null.right()
             omgjør != null -> omgjør.toDomain()
             oppretthold != null -> oppretthold.toDomain()
-            else -> throw IllegalStateException("Håndterer at ikke begge har lov til å være utfylt tidligere.")
+            else -> throw IllegalStateException("Håndterer at ikke begge har lov til å være utfylt.")
         }
     }
 
