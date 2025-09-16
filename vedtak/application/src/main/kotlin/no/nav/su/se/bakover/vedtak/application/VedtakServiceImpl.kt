@@ -192,7 +192,7 @@ class VedtakServiceImpl(
             skalKnytteKlageMotBehandling?.let {
                 klageRepo.knyttMotOmgjøring(it, søknadsbehandling.id.value)
             }
-            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler))
+            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, klageId = skalKnytteKlageMotBehandling))
             søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
