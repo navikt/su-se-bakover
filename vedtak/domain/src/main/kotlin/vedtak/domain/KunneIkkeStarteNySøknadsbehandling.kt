@@ -17,7 +17,7 @@ sealed interface KunneIkkeStarteNySøknadsbehandling {
     data object FeilVedOpprettelseAvOppgave : KunneIkkeStarteNySøknadsbehandling
 
     data object MåHaGyldingOmgjøringsgrunn : KunneIkkeStarteNySøknadsbehandling
-    data object KlageMåfinnesForKnytning : KunneIkkeStarteNySøknadsbehandling
+    data object KlageMåFinnesForKnytning : KunneIkkeStarteNySøknadsbehandling
     data object KlageErIkkeOversendt : KunneIkkeStarteNySøknadsbehandling
     data object KlageErAlleredeKnyttetTilBehandling : KunneIkkeStarteNySøknadsbehandling
     data object KlagenErOpprettholdt : KunneIkkeStarteNySøknadsbehandling

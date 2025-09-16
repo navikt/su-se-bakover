@@ -135,11 +135,14 @@ class VedtakServiceImpl(
             log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}")
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }
+
         // TODO: Dette kan kopieres inn i revurderingsknytningen
         val skalKnytteKlageMotBehandling = if (omgjøringsårsak != Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
-            val klageId = UUID.fromString(cmd.klageId)
+            val klageId = cmd.klageId?.let {
+                runCatching { UUID.fromString(it) }.getOrNull()
+            } ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
             val klage = klageRepo.hentKlage(KlageId(klageId))
-                ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåfinnesForKnytning.left()
+                ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
 
             when (klage) {
                 is OversendtKlage -> {

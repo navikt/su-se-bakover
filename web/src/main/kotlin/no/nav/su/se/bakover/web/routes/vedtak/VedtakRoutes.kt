@@ -79,9 +79,9 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Klagen er ikke oversendt",
         "klage_er_ikke_oversendt",
     )
-    is KunneIkkeStarteNySøknadsbehandling.KlageMåfinnesForKnytning -> HttpStatusCode.BadRequest.errorJson(
+    is KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning -> HttpStatusCode.BadRequest.errorJson(
         "Klagen finnes ikke",
-        "klagen_finnes_Ikke",
+        "klagen_finnes_ikke",
     )
     is KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt -> HttpStatusCode.BadRequest.errorJson(
         "Klagen må være en omgjøring",
