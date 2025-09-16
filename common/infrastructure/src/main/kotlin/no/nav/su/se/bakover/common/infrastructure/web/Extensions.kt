@@ -71,7 +71,7 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
 
 fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: JWTPrincipal?): String {
     return if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        "Z9999991"
+        "Z9999999"
     } else {
         principal!!.payload.getClaim("NAVident").asString()
     }

@@ -91,4 +91,9 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Må ha lik omgjøringsgrunn",
         "ulik_omgjøringsgrunn",
     )
+
+    is KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID -> HttpStatusCode.BadRequest.errorJson(
+        "Ugyldig klage id",
+        "klage_ugyldig_uuid",
+    )
 }

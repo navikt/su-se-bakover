@@ -140,7 +140,7 @@ class VedtakServiceImpl(
         val skalKnytteKlageMotBehandling = if (omgjøringsårsak != Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
             val klageId = cmd.klageId?.let {
                 runCatching { UUID.fromString(it) }.getOrNull()
-            } ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
+            } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
             val klage = klageRepo.hentKlage(KlageId(klageId))
                 ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
 
