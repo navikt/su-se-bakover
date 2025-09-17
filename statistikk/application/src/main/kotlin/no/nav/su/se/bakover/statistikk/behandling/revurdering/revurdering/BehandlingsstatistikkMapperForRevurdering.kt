@@ -167,7 +167,7 @@ private fun Revurdering.toDto(
         versjon = gitCommit?.value,
         saksbehandler = saksbehandler.toString(),
         // En revurdering kan være knyttet til flere tidligere behandlinger/vedtak, så det er bedre å sette denne til null. Behandlingene knyttes via sak og tid.
-        // men av og til knyttet til klage
+        // Knytter den til klage hvis omgjøring
         relatertBehandlingId = relatertBehandlingId,
         avsluttet = avsluttet,
         beslutter = beslutter?.toString(),
