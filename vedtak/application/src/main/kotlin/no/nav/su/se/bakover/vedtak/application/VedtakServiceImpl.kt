@@ -136,8 +136,10 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }
 
-        // TODO: Dette kan kopieres inn i revurderingsknytningen
-        val knyttbarKlageBehandling = if (omgjøringsårsak != Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
+        val relatertId = if (omgjøringsårsak == Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
+            // Finnes ingen klage å knytte mot hvis det er etter eget tiltak
+            vedtak.behandling.id
+        } else {
             val klageId = cmd.klageId?.let {
                 runCatching { UUID.fromString(it) }.getOrNull()
             } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
@@ -170,8 +172,6 @@ class VedtakServiceImpl(
             log.info("Knytter omgjøring mot klage ${klage.id} for sak $sakId")
 
             klage.id
-        } else {
-            null
         }
 
         return vedtak.behandling.opprettNySøknadsbehandling(
@@ -191,10 +191,12 @@ class VedtakServiceImpl(
             omgjøringsgrunn = omgjøringsgrunn,
         ).map { søknadsbehandling ->
             søknadsbehandlingService.lagre(søknadsbehandling)
-            knyttbarKlageBehandling?.let {
-                klageRepo.knyttMotOmgjøring(it, søknadsbehandling.id.value)
+            when (relatertId) {
+                is KlageId -> {
+                    klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value)
+                }
             }
-            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, klageId = knyttbarKlageBehandling))
+            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, relatertId = relatertId.value))
             søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)

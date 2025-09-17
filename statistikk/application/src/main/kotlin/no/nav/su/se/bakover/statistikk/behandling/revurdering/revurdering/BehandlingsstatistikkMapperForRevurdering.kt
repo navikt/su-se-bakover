@@ -35,7 +35,7 @@ internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
             behandlingYtelseDetaljer = emptyList(),
             funksjonellTid = this.revurdering.opprettet,
             saksbehandler = this.revurdering.saksbehandler,
-            relatertBehandlingId = klageId?.value,
+            relatertBehandlingId = relatertId,
         )
 
         is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.revurdering.toDto(

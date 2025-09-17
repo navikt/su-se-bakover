@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.statistikk
 
-import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import vedtak.domain.VedtakSomKanRevurderes
+import java.util.UUID
 import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
@@ -69,7 +69,7 @@ sealed interface StatistikkEvent {
             data class OpprettetOmgjøring(
                 override val søknadsbehandling: Omgjøringssøknadsbehandling,
                 val saksbehandler: NavIdentBruker.Saksbehandler,
-                val klageId: KlageId? = null,
+                val relatertId: UUID,
             ) : Søknad
 
             sealed interface TilAttestering : Søknad {
@@ -123,7 +123,7 @@ sealed interface StatistikkEvent {
 
             data class Opprettet(
                 override val revurdering: OpprettetRevurdering,
-                val klageId: KlageId? = null,
+                val relatertId: UUID? = null,
             ) : Revurdering
 
             sealed interface TilAttestering : Revurdering {

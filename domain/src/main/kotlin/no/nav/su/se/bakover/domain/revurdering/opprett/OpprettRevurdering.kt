@@ -128,7 +128,7 @@ fun Sak.opprettRevurdering(
             )
         },
         sak = { nyRevurdering(it) },
-        statistikkHendelse = { StatistikkEvent(it, knyttbarKlageBehandling) },
+        statistikkHendelse = { StatistikkEvent(it, knyttbarKlageBehandling?.value) },
         klageId = knyttbarKlageBehandling,
     ).right()
 }
