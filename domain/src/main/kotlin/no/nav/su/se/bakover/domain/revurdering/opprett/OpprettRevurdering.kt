@@ -51,7 +51,17 @@ fun Sak.opprettRevurdering(
         }
     }
 
-    val knyttbarKlageBehandling = if (revurderingsårsak.årsak.erOmgjøring() && revurderingsårsak.årsak != Årsak.OMGJØRING_EGET_TILTAK) {
+    val periode = cmd.periode
+    val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
+        periode = periode,
+        clock = clock,
+    ).getOrElse {
+        return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left()
+    }
+    val gjeldendeVedtak = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!
+    val relatertId = if (revurderingsårsak.årsak.erOmgjøring() && revurderingsårsak.årsak == Årsak.OMGJØRING_EGET_TILTAK) {
+        gjeldendeVedtak.behandling.id
+    } else if (revurderingsårsak.årsak.erOmgjøring() && revurderingsårsak.årsak != Årsak.OMGJØRING_EGET_TILTAK) {
         val klageId = cmd.klageId?.let {
             runCatching { UUID.fromString(it) }.getOrNull()
         } ?: return KunneIkkeOppretteRevurdering.KlageUgyldigUUID.left()
@@ -86,14 +96,6 @@ fun Sak.opprettRevurdering(
         null
     }
 
-    val periode = cmd.periode
-    val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
-        periode = periode,
-        clock = clock,
-    ).getOrElse {
-        return KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(it).left()
-    }
-
     informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
         .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
@@ -115,7 +117,7 @@ fun Sak.opprettRevurdering(
                 periode = periode,
                 opprettet = tidspunkt,
                 oppdatert = tidspunkt,
-                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
+                tilRevurdering = gjeldendeVedtak.id,
                 vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                 saksbehandler = cmd.saksbehandler,
                 oppgaveId = oppgaveId,
@@ -128,7 +130,7 @@ fun Sak.opprettRevurdering(
             )
         },
         sak = { nyRevurdering(it) },
-        statistikkHendelse = { StatistikkEvent(it, knyttbarKlageBehandling?.value) },
-        klageId = knyttbarKlageBehandling,
+        statistikkHendelse = { StatistikkEvent(it, relatertId?.value) },
+        klageId = relatertId as? KlageId,
     ).right()
 }
