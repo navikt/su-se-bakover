@@ -136,7 +136,8 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }
 
-        val knyttbarId = if (omgjøringsårsak == Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
+        val relatertId = if (omgjøringsårsak == Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
+            // Finnes ingen klage å knytte mot hvis det er etter eget tiltak
             vedtak.behandling.id
         } else {
             val klageId = cmd.klageId?.let {
@@ -190,12 +191,12 @@ class VedtakServiceImpl(
             omgjøringsgrunn = omgjøringsgrunn,
         ).map { søknadsbehandling ->
             søknadsbehandlingService.lagre(søknadsbehandling)
-            when (knyttbarId) {
+            when (relatertId) {
                 is KlageId -> {
-                    klageRepo.knyttMotOmgjøring(knyttbarId, søknadsbehandling.id.value)
+                    klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value)
                 }
             }
-            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, relatertId = knyttbarId.value))
+            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, relatertId = relatertId.value))
             søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
