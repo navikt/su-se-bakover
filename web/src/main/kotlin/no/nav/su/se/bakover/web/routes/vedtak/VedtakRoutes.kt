@@ -30,6 +30,7 @@ fun Route.vedtakRoutes(
         val omgjøringsårsak: String? = null,
         val omgjøringsgrunn: String? = null,
         val klageId: String? = null,
+        val vedtakId: String? = null,
     )
     post("$VEDTAK_PATH/{vedtakId}/nySoknadsbehandling") {
         call.withSakId { sakId ->
