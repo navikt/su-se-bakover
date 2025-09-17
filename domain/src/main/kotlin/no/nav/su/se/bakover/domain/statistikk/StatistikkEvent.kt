@@ -121,7 +121,10 @@ sealed interface StatistikkEvent {
         sealed interface Revurdering : Behandling {
             val revurdering: no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 
-            data class Opprettet(override val revurdering: OpprettetRevurdering) : Revurdering
+            data class Opprettet(
+                override val revurdering: OpprettetRevurdering,
+                val klageId: KlageId? = null,
+            ) : Revurdering
 
             sealed interface TilAttestering : Revurdering {
                 data class Innvilget(

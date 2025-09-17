@@ -37,7 +37,7 @@ internal class OpprettRevurderingTest {
         val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
 
         sakUtenÅpenBehandling.opprettRevurdering(
-            command = OpprettRevurderingCommand(
+            cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = "MELDING_FRA_BRUKER",
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
@@ -67,7 +67,7 @@ internal class OpprettRevurderingTest {
         val sakMedKlage = sakUtenÅpenBehandling.nyeKlager(listOf(klage))
 
         sakMedKlage.opprettRevurdering(
-            command = OpprettRevurderingCommand(
+            cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN.name,
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
@@ -86,7 +86,7 @@ internal class OpprettRevurderingTest {
         val sakMedÅpenRevurdering = opprettetRevurdering().first
 
         sakMedÅpenRevurdering.opprettRevurdering(
-            command = OpprettRevurderingCommand(
+            cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = "MELDING_FRA_BRUKER",
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
@@ -102,7 +102,7 @@ internal class OpprettRevurderingTest {
     fun `kan opprette revurdering dersom det finnes en åpen regulering`() {
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(mai(2021)).first
         sakMedÅpenRegulering.opprettRevurdering(
-            command = OpprettRevurderingCommand(
+            cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = "MELDING_FRA_BRUKER",
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
