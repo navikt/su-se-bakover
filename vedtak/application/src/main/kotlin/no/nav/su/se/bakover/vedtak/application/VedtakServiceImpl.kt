@@ -167,6 +167,8 @@ class VedtakServiceImpl(
                     return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt.left()
                 }
             }
+            log.info("Knytter omgjøring mot klage ${klage.id} for sak $sakId")
+
             klage.id
         } else {
             null

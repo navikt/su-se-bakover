@@ -80,6 +80,7 @@ fun Sak.opprettRevurdering(
                 return KunneIkkeOppretteRevurdering.KlageErIkkeOversendt.left()
             }
         }
+        log.info("Knytter omgjøring mot klage ${klage.id} for sak ${cmd.sakId}")
         klage.id
     } else {
         null
