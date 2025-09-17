@@ -143,7 +143,14 @@ fun Application.susebakover(
             dbMetrics = dbMetrics,
             samlTokenProvider = samlTokenProvider,
             tilgangstyringService = _tilgangstyringService,
-        )
+        ).also {
+            it.services.opprettTilbakekrevingsbehandlingService.addObserver(services.statistikkEventObserver)
+            // TODO legg til observer og hendelse på nedenfor
+            // it.services.tilbakekrevingsbehandlingTilAttesteringService.addObserver(services.statistikkEventObserver)
+            // it.services.underkjennTilbakekrevingsbehandlingService.addObserver(services.statistikkEventObserver)
+            // it.services.iverksettTilbakekrevingService.addObserver(services.statistikkEventObserver)
+            // it.services.annullerKravgrunnlagService.addObserver(services.statistikkEventObserver)
+        }
     },
     dokumentkomponenter: Dokumentkomponenter = run {
         val dokumentRepos = DokumentRepos(
