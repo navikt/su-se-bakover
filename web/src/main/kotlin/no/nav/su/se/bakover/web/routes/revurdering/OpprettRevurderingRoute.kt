@@ -61,6 +61,7 @@ internal fun Route.opprettRevurderingRoute(
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
                             informasjonSomRevurderes = body.informasjonSomRevurderes,
+                            klageId = body.klageId,
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
