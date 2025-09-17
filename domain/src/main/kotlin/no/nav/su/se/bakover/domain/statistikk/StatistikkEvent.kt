@@ -123,7 +123,7 @@ sealed interface StatistikkEvent {
 
             data class Opprettet(
                 override val revurdering: OpprettetRevurdering,
-                val klageId: KlageId? = null,
+                val relatertId: UUID? = null,
             ) : Revurdering
 
             sealed interface TilAttestering : Revurdering {
