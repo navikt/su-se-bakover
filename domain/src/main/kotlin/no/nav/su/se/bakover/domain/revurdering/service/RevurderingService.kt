@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingComma
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.retur.KunneIkkeReturnereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.varsel.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
@@ -105,6 +106,15 @@ interface RevurderingService {
         revurderingId: RevurderingId,
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
+
+    fun returnerRevurdering(
+        request: ReturnerRevurderingRequest,
+    ): Either<KunneIkkeReturnereRevurdering, Revurdering>
+
+    data class ReturnerRevurderingRequest(
+        val revurderingId: RevurderingId,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
+    )
 
     fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,

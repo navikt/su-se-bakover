@@ -75,4 +75,6 @@ internal fun Route.revurderingRoutes(
     personligOppmøteVilkårRoutes(revurderingService, formuegrenserFactory, clock)
 
     institusjonsoppholdRoutes(revurderingService, formuegrenserFactory, clock)
+
+    returnerRevurderingRoute(revurderingService, formuegrenserFactory)
 }

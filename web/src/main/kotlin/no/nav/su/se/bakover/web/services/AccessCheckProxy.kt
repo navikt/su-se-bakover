@@ -105,6 +105,7 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingComma
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.retur.KunneIkkeReturnereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
@@ -808,6 +809,10 @@ open class AccessCheckProxy(
                     return services.revurdering.oppdaterRevurdering(command)
                 }
 
+                override fun returnerRevurdering(request: RevurderingService.ReturnerRevurderingRequest): Either<KunneIkkeReturnereRevurdering, Revurdering> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.returnerRevurdering(request)
+                }
                 override fun beregnOgSimuler(
                     revurderingId: RevurderingId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
