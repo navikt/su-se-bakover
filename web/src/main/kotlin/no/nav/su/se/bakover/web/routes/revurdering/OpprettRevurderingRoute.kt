@@ -104,7 +104,7 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "klage_må_finnes_for_knytning",
         )
         is KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> BadRequest.errorJson(
-            "Klage har ugyldig UUID",
+            "Klageid mangler eller er ugyldig",
             "klage_ugyldig_uuid",
         )
         is KunneIkkeOppretteRevurdering.KlagenErOpprettholdt -> BadRequest.errorJson(
