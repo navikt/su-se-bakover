@@ -64,6 +64,9 @@ class KlageinstanshendelseServiceImpl(
         }
     }
 
+    /*
+        TODO: når vi får svar på en med status oversendt så skal vi endre til FERDIGBEHANDLET
+     */
     private fun prosesserTolketKlageinstanshendelse(hendelse: TolketKlageinstanshendelse) {
         // TODO jah: Vi har ikke håndtert muligheten for at det kan komme en oversendelse fra klageinstansen mens vi er i en annen tilstand enn [OversendtKlage]
         //  Vi kan løse problemet dersom det dukker opp.
