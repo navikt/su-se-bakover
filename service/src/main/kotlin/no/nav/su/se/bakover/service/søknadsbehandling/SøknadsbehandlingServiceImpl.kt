@@ -175,7 +175,6 @@ class SøknadsbehandlingServiceImpl(
             }
         }
 
-        // TODO sjekk frontend om sak egentlig må returneres..
         return Pair(sak, behandlingMedNySaksbehandler).right()
     }
 

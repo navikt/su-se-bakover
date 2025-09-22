@@ -82,9 +82,7 @@ class SøknadServiceImpl(
             fnr = fnr,
             søknadInnhold = søknadInnhold,
             innsendtAv = saksbehandlerEllerVeileder,
-        ).also { sakService.opprettSak(it) }.also {
-            // TODO her?
-        }
+        ).also { sakService.opprettSak(it) }
         // Henter saksnummeret fra databasen (dette kunne vært returnert fra opprettSak). Dette skal ikke feile.
         return Pair(sakService.hentSakInfo(nySak.id).getOrNull()!!, nySak.søknad)
     }
@@ -142,7 +140,7 @@ class SøknadServiceImpl(
         }
 
         observers.forEach { observer ->
-            // TODO
+            // TODO Kan fjernes nå som det alltid lages behandling
             observer.handle(
                 StatistikkEvent.Søknad.Mottatt(søknad, sakInfo.saksnummer),
             )

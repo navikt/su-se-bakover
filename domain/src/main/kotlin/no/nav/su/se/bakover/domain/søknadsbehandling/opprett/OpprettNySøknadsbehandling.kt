@@ -44,11 +44,6 @@ fun Sak.opprettNySøknadsbehandling(
     saksbehandler: NavIdentBruker.Saksbehandler?,
     oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
 ): Either<KunneIkkeStarteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
-    /*
-    if (harÅpenSøknadsbehandling()) {
-        return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
-    }
-     */
     val søknad = hentSøknad(søknadId).fold(
         ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
         ifRight = {
