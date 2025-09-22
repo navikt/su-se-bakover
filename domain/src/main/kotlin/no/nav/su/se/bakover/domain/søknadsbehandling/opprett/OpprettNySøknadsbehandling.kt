@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -43,7 +43,7 @@ fun Sak.opprettNySøknadsbehandling(
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler?,
     oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
-): Either<KunneIkkeOppretteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+): Either<KunneIkkeStarteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     /*
     if (harÅpenSøknadsbehandling()) {
         return KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
@@ -53,11 +53,11 @@ fun Sak.opprettNySøknadsbehandling(
         ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
         ifRight = {
             if (it is Søknad.Journalført.MedOppgave.Lukket) {
-                return KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
+                return KunneIkkeStarteSøknadsbehandling.ErLukket.left()
             }
             if (it !is Søknad.Journalført.MedOppgave) {
                 // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-                return KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
+                return KunneIkkeStarteSøknadsbehandling.ManglerOppgave.left()
             }
             it
         },

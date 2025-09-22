@@ -10,7 +10,7 @@ import behandling.klage.domain.KlageId
 import behandling.klage.domain.UprosessertKlageinstanshendelse
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
@@ -595,12 +595,12 @@ open class AccessCheckProxy(
                 },
                 søknadsbehandlingService = object : SøknadsbehandlingService {
                     val service = services.søknadsbehandling.søknadsbehandlingService
-                    override fun opprett(
-                        request: SøknadsbehandlingService.OpprettRequest,
+                    override fun startBehandling(
+                        request: SøknadsbehandlingService.OppstartRequest,
                         hentSak: (() -> Sak)?,
-                    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+                    ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
                         assertHarTilgangTilSøknad(request.søknadId)
-                        return service.opprett(request, hentSak)
+                        return service.startBehandling(request, hentSak)
                     }
 
                     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, BeregnetSøknadsbehandling> {

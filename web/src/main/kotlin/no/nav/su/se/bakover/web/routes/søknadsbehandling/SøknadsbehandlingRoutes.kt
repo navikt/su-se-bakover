@@ -49,7 +49,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppstartRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.ReturnerBehandlingRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
@@ -82,31 +82,31 @@ internal fun Route.søknadsbehandlingRoutes(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    data class OpprettBehandlingBody(val soknadId: String)
+    data class OppstartBehandlingBody(val soknadId: String)
     data class WithFritekstBody(val fritekst: String)
 
     post("$SAK_PATH/{sakId}/behandlinger") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<OpprettBehandlingBody> { body ->
+                call.withBody<OppstartBehandlingBody> { body ->
                     body.soknadId.toUUID().mapLeft {
                         return@authorize call.svar(
                             BadRequest.errorJson(
-                                "soknadId er ikke en gyldig uuid",
+                                "behandlingId er ikke en gyldig uuid",
                                 "ikke_gyldig_uuid",
                             ),
                         )
-                    }.map { søknadId ->
-                        søknadsbehandlingService.opprett(
-                            OpprettRequest(
-                                søknadId = søknadId,
+                    }.map { soknadId ->
+                        søknadsbehandlingService.startBehandling(
+                            OppstartRequest(
+                                søknadId = soknadId,
                                 sakId = sakId,
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ),
                         ).fold(
                             { call.svar(it.tilResultat()) },
                             {
-                                call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                call.sikkerlogg("Påbegynner behandling på sak: $sakId og behandlingId: ${it.second.id}")
                                 call.audit(it.second.fnr, AuditLogEvent.Action.CREATE, it.second.id.value)
                                 call.svar(Created.jsonBody(it.second, formuegrenserFactory))
                             },

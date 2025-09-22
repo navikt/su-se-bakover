@@ -1,16 +1,12 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.opprett
 
-import arrow.core.left
 import arrow.core.right
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import io.kotest.assertions.arrow.core.shouldBeRight
-import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.nySakUføre
-import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
@@ -27,18 +23,6 @@ internal class OpprettNySøknadsbehandlingTest {
             clock = fixedClock,
             saksbehandler = saksbehandler,
         ) { _, _ -> nyOppgaveHttpKallResponse().right() }.shouldBeRight()
-    }
-
-    @Test
-    fun `Kan ikke opprette søknadsbehandling dersom det finnes en åpen søknadsbehandling`() {
-        val (sak, søknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = nySøknadsbehandlingMedStønadsperiode().first,
-        )
-        sak.opprettNySøknadsbehandling(
-            søknadId = søknad.id,
-            clock = fixedClock,
-            saksbehandler = saksbehandler,
-        ) { _, _ -> nyOppgaveHttpKallResponse().right() } shouldBe KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
     }
 
     @Test
@@ -71,4 +55,6 @@ internal class OpprettNySøknadsbehandlingTest {
             saksbehandler = saksbehandler,
         ) { _, _ -> nyOppgaveHttpKallResponse().right() }.shouldBeRight()
     }
+
+    // TODO flere tester...
 }

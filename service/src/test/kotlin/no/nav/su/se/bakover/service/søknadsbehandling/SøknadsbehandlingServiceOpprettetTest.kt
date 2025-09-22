@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
@@ -11,7 +11,6 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -31,14 +30,11 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
-import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
-import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -62,8 +58,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             },
         ).also {
             shouldThrow<IllegalArgumentException> {
-                it.søknadsbehandlingService.opprett(
-                    SøknadsbehandlingService.OpprettRequest(
+                it.søknadsbehandlingService.startBehandling(
+                    SøknadsbehandlingService.OppstartRequest(
                         søknadId = UUID.randomUUID(),
                         sakId = sakId,
                         saksbehandler = saksbehandler,
@@ -80,13 +76,13 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         SøknadsbehandlingServiceAndMocks(
             sakService = mock { on { hentSak(any<UUID>()) } doReturn sak.right() },
         ).also {
-            it.søknadsbehandlingService.opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = lukketSøknad.id,
+            it.søknadsbehandlingService.startBehandling(
+                SøknadsbehandlingService.OppstartRequest(
+                    søknadId = UUID.randomUUID(),
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeOppretteSøknadsbehandling.ErLukket.left()
+            ) shouldBe KunneIkkeStarteSøknadsbehandling.ErLukket.left()
         }
     }
 
@@ -99,42 +95,13 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         ).also {
-            it.søknadsbehandlingService.opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = søknad.id,
+            it.søknadsbehandlingService.startBehandling(
+                SøknadsbehandlingService.OppstartRequest(
+                    søknadId = UUID.randomUUID(),
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeOppretteSøknadsbehandling.ManglerOppgave.left()
-        }
-    }
-
-    @Test
-    fun `svarer med feil dersom det allerede finnes en åpen søknadsbehandling`() {
-        var (sak, _) = vilkårsvurdertSøknadsbehandlingUføreDefault()
-
-        val nySøknad = nySøknadJournalførtMedOppgave(
-            clock = fixedClock,
-            sakId = sak.id,
-            søknadInnhold = søknadinnholdUføre(
-                personopplysninger = FnrWrapper(sak.fnr),
-            ),
-        )
-
-        sak = sak.copy(søknader = sak.søknader + nySøknad)
-
-        SøknadsbehandlingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-        ).also {
-            it.søknadsbehandlingService.opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = nySøknad.id,
-                    sakId = nySøknad.sakId,
-                    saksbehandler = saksbehandler,
-                ),
-            ) shouldBe KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling.left()
+            ) shouldBe KunneIkkeStarteSøknadsbehandling.ManglerOppgave.left()
         }
     }
 
@@ -165,8 +132,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             },
         )
 
-        val (_, actualBehandling) = serviceAndMocks.søknadsbehandlingService.opprett(
-            SøknadsbehandlingService.OpprettRequest(
+        val (_, actualBehandling) = serviceAndMocks.søknadsbehandlingService.startBehandling(
+            SøknadsbehandlingService.OppstartRequest(
                 søknadId = søknad.id,
                 sakId = sak.id,
                 saksbehandler = saksbehandler,

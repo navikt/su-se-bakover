@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevService
@@ -410,7 +410,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
-                KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling,
+                KunneIkkeStarteSøknadsbehandling.BehandlingErAlleredePåbegynt,
             ).left()
 
             verify(it.sakService).hentSakForSøknad(nySøknad.id)
