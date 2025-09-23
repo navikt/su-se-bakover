@@ -143,7 +143,7 @@ fun verifiserAvbrytTilbakekrevingRespons(
   "avsluttetTidspunkt": "2021-02-01T01:04:59.456789Z",
   "notat": null,
 }"""
-    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "kravgrunnlag.kontrollfelt")
+    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "opprettet", "kravgrunnlag.kontrollfelt", "avsluttetTidspunkt")
     JSONObject(actual).has("opprettet") shouldBe true
     JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
     JSONObject(actual).getJSONObject("kravgrunnlag").has("kontrollfelt") shouldBe true

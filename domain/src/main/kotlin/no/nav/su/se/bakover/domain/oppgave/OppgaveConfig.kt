@@ -16,6 +16,12 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
+private fun Sakstype.toBehandlingstema(): Behandlingstema =
+    when (this) {
+        Sakstype.ALDER -> Behandlingstema.SU_ALDER
+        Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
+    }
+
 sealed interface OppgaveConfig {
     val journalpostId: JournalpostId?
     val saksreferanse: String
@@ -24,6 +30,7 @@ sealed interface OppgaveConfig {
     val oppgavetype: Oppgavetype
     val behandlingstype: Behandlingstype
     val tilordnetRessurs: NavIdentBruker?
+    val sakstype: Sakstype
 
     /**
      * Påkrevd dersom tilordnetRessurs brukes
@@ -42,7 +49,7 @@ sealed interface OppgaveConfig {
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
-        val sakstype: Sakstype,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
 
         init {
@@ -52,21 +59,20 @@ sealed interface OppgaveConfig {
         }
 
         override val saksreferanse = søknadId.toString()
-        override val behandlingstema = when (sakstype) {
-            Sakstype.ALDER -> Behandlingstema.SU_ALDER
-            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
-        }
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
+    // TODO: Ikke i bruk?
     data class AttesterSøknadsbehandling(
         val søknadId: UUID,
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         init {
             if (tilordnetRessurs != null) {
@@ -76,7 +82,7 @@ sealed interface OppgaveConfig {
 
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.ATTESTERING
         override val behandlingstype = Behandlingstype.SØKNAD
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -88,6 +94,7 @@ sealed interface OppgaveConfig {
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         init {
             if (tilordnetRessurs != null) {
@@ -97,7 +104,7 @@ sealed interface OppgaveConfig {
 
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -109,6 +116,7 @@ sealed interface OppgaveConfig {
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         init {
             if (tilordnetRessurs != null) {
@@ -118,7 +126,7 @@ sealed interface OppgaveConfig {
 
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.TILBAKEKREVING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -130,6 +138,7 @@ sealed interface OppgaveConfig {
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         init {
             if (tilordnetRessurs != null) {
@@ -139,7 +148,7 @@ sealed interface OppgaveConfig {
 
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.ATTESTERING
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -151,11 +160,12 @@ sealed interface OppgaveConfig {
         val personhendelse: NonEmptySet<IkkeSendtTilOppgave>,
         override val fnr: Fnr,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val tilordnetRessurs: NavIdentBruker? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -173,11 +183,12 @@ sealed interface OppgaveConfig {
         val periode: DatoIntervall,
         override val fnr: Fnr,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val tilordnetRessurs: NavIdentBruker? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -194,11 +205,12 @@ sealed interface OppgaveConfig {
         val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val clock: Clock,
+        override val sakstype: Sakstype,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val tilordnetRessurs: NavIdentBruker? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.FREMLEGGING
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -213,17 +225,14 @@ sealed interface OppgaveConfig {
 
     data class Institusjonsopphold(
         val saksnummer: Saksnummer,
-        val sakstype: Sakstype,
+        override val sakstype: Sakstype,
         override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val tilordnetRessurs: NavIdentBruker? = null
-        override val behandlingstema = when (sakstype) {
-            Sakstype.ALDER -> Behandlingstema.SU_ALDER
-            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
-        }
+        override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -239,7 +248,7 @@ sealed interface OppgaveConfig {
     sealed interface Klage : OppgaveConfig {
         val saksnummer: Saksnummer
         override val saksreferanse: String get() = saksnummer.toString()
-        override val behandlingstema get() = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val sakstype: Sakstype
         override val behandlingstype get() = Behandlingstype.KLAGE
         override val aktivDato: LocalDate get() = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate get() = aktivDato.plusDays(30)
@@ -269,13 +278,14 @@ sealed interface OppgaveConfig {
                     override val avsluttetTidspunkt: Tidspunkt,
                     override val journalpostIDer: List<JournalpostId>,
                     override val hendelsestype: String,
+                    override val sakstype: Sakstype,
                 ) : AvsluttetKlageinstansUtfall {
                     init {
                         if (tilordnetRessurs != null) {
                             require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
                         }
                     }
-
+                    override val behandlingstema: Behandlingstema = sakstype.toBehandlingstema()
                     override val oppgavetype = Oppgavetype.BEHANDLE_SAK
                 }
 
@@ -288,13 +298,14 @@ sealed interface OppgaveConfig {
                     override val avsluttetTidspunkt: Tidspunkt,
                     override val journalpostIDer: List<JournalpostId>,
                     override val hendelsestype: String,
+                    override val sakstype: Sakstype,
                 ) : AvsluttetKlageinstansUtfall {
                     init {
                         if (tilordnetRessurs != null) {
                             require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
                         }
                     }
-
+                    override val behandlingstema: Behandlingstema = sakstype.toBehandlingstema()
                     override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
                 }
             }
@@ -306,6 +317,7 @@ sealed interface OppgaveConfig {
                 override val clock: Clock,
                 val mottatt: Tidspunkt,
                 override val hendelsestype: String,
+                override val sakstype: Sakstype,
             ) : Klageinstanshendelse {
                 init {
                     if (tilordnetRessurs != null) {
@@ -314,7 +326,7 @@ sealed interface OppgaveConfig {
                 }
 
                 override val journalpostId: Nothing? get() = null
-
+                override val behandlingstema: Behandlingstema = sakstype.toBehandlingstema()
                 override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
             }
         }
@@ -330,13 +342,14 @@ sealed interface OppgaveConfig {
             override val journalpostId: JournalpostId,
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,
+            override val sakstype: Sakstype,
         ) : Klage {
             init {
                 if (tilordnetRessurs != null) {
                     require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
                 }
             }
-
+            override val behandlingstema: Behandlingstema = sakstype.toBehandlingstema()
             override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         }
 
@@ -344,19 +357,21 @@ sealed interface OppgaveConfig {
          * Dette er attesteringsoppgaven som opprettes:
          * 1) Når en klage sendes til attestering (dette kan skje flere ganger, se underkjenning)
          */
+        // TODO: denne er ikke i bruk
         data class Attestering(
             override val saksnummer: Saksnummer,
             override val fnr: Fnr,
             override val journalpostId: JournalpostId,
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,
+            override val sakstype: Sakstype,
         ) : Klage {
             init {
                 if (tilordnetRessurs != null) {
                     require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
                 }
             }
-
+            override val behandlingstema: Behandlingstema = sakstype.toBehandlingstema()
             override val oppgavetype = Oppgavetype.ATTESTERING
         }
     }

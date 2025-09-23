@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.statistikk.behandling.behandlingYtelseDetaljer
 import no.nav.su.se.bakover.statistikk.behandling.toFunksjonellTid
 import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import java.time.Clock
+import java.util.UUID
 
 internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
     gitCommit: GitCommit?,
@@ -34,6 +35,7 @@ internal fun StatistikkEvent.Behandling.Revurdering.toBehandlingsstatistikkDto(
             behandlingYtelseDetaljer = emptyList(),
             funksjonellTid = this.revurdering.opprettet,
             saksbehandler = this.revurdering.saksbehandler,
+            relatertBehandlingId = relatertId,
         )
 
         is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.revurdering.toDto(
@@ -150,11 +152,11 @@ private fun Revurdering.toDto(
     behandlingYtelseDetaljer: List<BehandlingsstatistikkDto.BehandlingYtelseDetaljer>,
     funksjonellTid: Tidspunkt,
     saksbehandler: NavIdentBruker.Saksbehandler,
+    relatertBehandlingId: UUID? = null,
 ): BehandlingsstatistikkDto {
-    val erOmgjøring = this.revurderingsårsak.årsak.erOmgjøring()
     return BehandlingsstatistikkDto(
-        behandlingType = if (erOmgjøring) Behandlingstype.OMGJØRING else Behandlingstype.REVURDERING,
-        behandlingTypeBeskrivelse = if (erOmgjøring) Behandlingstype.OMGJØRING.beskrivelse else Behandlingstype.REVURDERING.beskrivelse,
+        behandlingType = Behandlingstype.REVURDERING,
+        behandlingTypeBeskrivelse = Behandlingstype.REVURDERING.beskrivelse,
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = this.opprettet.toLocalDate(zoneIdOslo),
@@ -165,7 +167,8 @@ private fun Revurdering.toDto(
         versjon = gitCommit?.value,
         saksbehandler = saksbehandler.toString(),
         // En revurdering kan være knyttet til flere tidligere behandlinger/vedtak, så det er bedre å sette denne til null. Behandlingene knyttes via sak og tid.
-        relatertBehandlingId = null,
+        // Knytter den til klage hvis omgjøring
+        relatertBehandlingId = relatertBehandlingId,
         avsluttet = avsluttet,
         beslutter = beslutter?.toString(),
         // Revurdering krever i utgangspunktet totrinnsbehandling, med unntak av lukking/avslutting.
@@ -173,7 +176,7 @@ private fun Revurdering.toDto(
         behandlingYtelseDetaljer = behandlingYtelseDetaljer,
         behandlingStatus = behandlingStatus.toString(),
         behandlingStatusBeskrivelse = behandlingStatus.beskrivelse,
-        resultat = if (erOmgjøring) this.revurderingsårsak.årsak.name else behandlingResultat?.toString(),
+        resultat = behandlingResultat?.toString(),
         resultatBeskrivelse = behandlingResultat?.beskrivelse,
         resultatBegrunnelse = resultatBegrunnelse,
         ytelseType = sakstype.toYtelseType(),

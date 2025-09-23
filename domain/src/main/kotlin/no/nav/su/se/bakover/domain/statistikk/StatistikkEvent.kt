@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import vedtak.domain.VedtakSomKanRevurderes
+import java.util.UUID
 import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
@@ -55,14 +56,6 @@ sealed interface StatistikkEvent {
 
     sealed interface Behandling : StatistikkEvent {
 
-        sealed interface Omgjøring : Behandling {
-            val søknadsbehandling: Omgjøringssøknadsbehandling
-            data class AvslåttOmgjøring(
-                override val søknadsbehandling: Omgjøringssøknadsbehandling,
-                val saksbehandler: NavIdentBruker.Saksbehandler,
-            ) : Omgjøring
-        }
-
         sealed interface Søknad : Behandling {
             val søknadsbehandling: DomeneSøknadsbehandling
 
@@ -70,6 +63,13 @@ sealed interface StatistikkEvent {
                 override val søknadsbehandling: VilkårsvurdertSøknadsbehandling.Uavklart,
                 // TODO jah: Erstatt med saksbehandler fra behandlinga hvis det blir implmentert.
                 val saksbehandler: NavIdentBruker.Saksbehandler,
+            ) : Søknad
+
+            // Skjer kun hvis det finnes en avslått søknad
+            data class OpprettetOmgjøring(
+                override val søknadsbehandling: Omgjøringssøknadsbehandling,
+                val saksbehandler: NavIdentBruker.Saksbehandler,
+                val relatertId: UUID,
             ) : Søknad
 
             sealed interface TilAttestering : Søknad {
@@ -121,7 +121,10 @@ sealed interface StatistikkEvent {
         sealed interface Revurdering : Behandling {
             val revurdering: no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 
-            data class Opprettet(override val revurdering: OpprettetRevurdering) : Revurdering
+            data class Opprettet(
+                override val revurdering: OpprettetRevurdering,
+                val relatertId: UUID? = null,
+            ) : Revurdering
 
             sealed interface TilAttestering : Revurdering {
                 data class Innvilget(

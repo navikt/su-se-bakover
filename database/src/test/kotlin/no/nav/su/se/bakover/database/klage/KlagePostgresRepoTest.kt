@@ -4,11 +4,15 @@ import arrow.core.right
 import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -279,6 +283,31 @@ internal class KlagePostgresRepoTest {
             }
             klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
             klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        }
+    }
+
+    @Test
+    fun `knytt behandling mot oversendt klage`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+
+            val klage = testDataHelper.persisterKlageOversendt()
+
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+            }
+            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+
+            val behandlingId = UUID.randomUUID()
+            klageRepo.knyttMotOmgjøring(klage.id, behandlingId = behandlingId)
+            val knyttetOverSendtKlage = klageRepo.hentKlage(klage.id)
+            knyttetOverSendtKlage.shouldNotBeNull()
+            knyttetOverSendtKlage.shouldBeInstanceOf<OversendtKlage>()
+            knyttetOverSendtKlage.behandlingId shouldBe behandlingId
         }
     }
 

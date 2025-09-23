@@ -16,41 +16,6 @@ import no.nav.su.se.bakover.statistikk.behandling.toFunksjonellTid
 import no.nav.su.se.bakover.statistikk.sak.toYtelseType
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
-import java.time.LocalDate
-
-internal fun StatistikkEvent.Behandling.Omgjøring.toBehandlingsstatistikkDto(
-    gitCommit: GitCommit?,
-    clock: Clock,
-): BehandlingsstatistikkDto {
-    when (this) {
-        is StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring ->
-            return BehandlingsstatistikkDto(
-                behandlingType = Behandlingstype.OMGJØRING_AVSLAG,
-                behandlingTypeBeskrivelse = Behandlingstype.OMGJØRING_AVSLAG.beskrivelse,
-                funksjonellTid = søknadsbehandling.opprettet,
-                tekniskTid = Tidspunkt.now(clock),
-                registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
-                mottattDato = LocalDate.now(clock),
-                behandlingId = søknadsbehandling.id.value,
-                sakId = søknadsbehandling.sakId,
-                søknadId = søknadsbehandling.søknad.id,
-                saksnummer = søknadsbehandling.saksnummer.nummer,
-                versjon = gitCommit?.value,
-                avsluttet = false,
-                saksbehandler = saksbehandler.toString(),
-                beslutter = null,
-                behandlingYtelseDetaljer = søknadsbehandling.behandlingYtelseDetaljer(),
-                behandlingStatus = BehandlingStatus.Registrert.name,
-                behandlingStatusBeskrivelse = BehandlingStatus.Registrert.beskrivelse,
-                resultat = this.søknadsbehandling.omgjøringsårsak?.name,
-                resultatBeskrivelse = null,
-                resultatBegrunnelse = null,
-                totrinnsbehandling = true,
-                ytelseType = this.søknadsbehandling.sakstype.toYtelseType(),
-                omgjøringsgrunn = this.søknadsbehandling.omgjøringsgrunn?.name,
-            )
-    }
-}
 
 internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
     gitCommit: GitCommit?,
@@ -58,6 +23,19 @@ internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
 ): BehandlingsstatistikkDto {
     return when (this) {
         is StatistikkEvent.Behandling.Søknad.Opprettet -> toDto(
+            clock = clock,
+            gitCommit = gitCommit,
+            funksjonellTid = this.søknadsbehandling.opprettet,
+            behandlingStatus = BehandlingStatus.UnderBehandling,
+            behandlingsresultat = null,
+            resultatBegrunnelse = null,
+            beslutter = null,
+            totrinnsbehandling = true,
+            avsluttet = false,
+            saksbehandler = this.saksbehandler,
+        )
+
+        is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring -> toDto(
             clock = clock,
             gitCommit = gitCommit,
             funksjonellTid = this.søknadsbehandling.opprettet,
@@ -188,9 +166,10 @@ private fun StatistikkEvent.Behandling.Søknad.toDto(
 ): BehandlingsstatistikkDto {
     val søknadsbehandling = this.søknadsbehandling
     val søknad = søknadsbehandling.søknad
+    val erOmgjøring = this is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring
     return BehandlingsstatistikkDto(
         behandlingType = Behandlingstype.SOKNAD,
-        behandlingTypeBeskrivelse = Behandlingstype.SOKNAD.beskrivelse,
+        behandlingTypeBeskrivelse = if (erOmgjøring) "Omgjøring av avvist søknad" else Behandlingstype.SOKNAD.beskrivelse,
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
         // registrertDato skal samsvare med REGISTRERT-hendelsen sin funksjonellTid (som er når søknaden ble registrert i systemet vårt)
@@ -212,6 +191,7 @@ private fun StatistikkEvent.Behandling.Søknad.toDto(
         resultatBegrunnelse = resultatBegrunnelse,
         totrinnsbehandling = totrinnsbehandling,
         ytelseType = this.søknadsbehandling.sakstype.toYtelseType(),
+        omgjøringsgrunn = this.søknadsbehandling.omgjøringsgrunn?.name,
     )
 }
 

@@ -92,6 +92,7 @@ data object OppgavebeskrivelseMapper {
         AvsluttetKlageinstansUtfall.TilInformasjon.Henvist -> "Henvist"
         AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse -> "Stadfestelse"
         AvsluttetKlageinstansUtfall.TilInformasjon.Trukket -> "Trukket"
+        AvsluttetKlageinstansUtfall.TilInformasjon.Henlagt -> "Henlagt"
     }
 
     private fun AvsluttetKlageinstansUtfall.lukkBeskrivelse() = when (this) {

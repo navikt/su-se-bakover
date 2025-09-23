@@ -13,4 +13,5 @@ interface KlageRepo {
     fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: KlageId): LocalDate?
     fun defaultSessionContext(): SessionContext
     fun defaultTransactionContext(): TransactionContext
+    fun knyttMotOmgjøring(klageId: KlageId, behandlingId: UUID)
 }

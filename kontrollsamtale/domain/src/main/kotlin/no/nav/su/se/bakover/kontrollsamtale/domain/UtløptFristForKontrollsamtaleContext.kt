@@ -325,6 +325,7 @@ data class UtløptFristForKontrollsamtaleContext(
                         periode = kontrollsamtale.forventetMottattKontrollnotatIPeriode(),
                         fnr = sakInfo.fnr,
                         clock = clock,
+                        sakstype = sakInfo.type,
                     ),
                 ).getOrElse { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
 

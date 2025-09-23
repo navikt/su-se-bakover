@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.vedtak.application
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import behandling.klage.domain.KlageId
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -10,9 +12,12 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -38,6 +43,7 @@ class VedtakServiceImpl(
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
     private val søknadsbehandlingService: SøknadsbehandlingService,
+    private val klageRepo: KlageRepo,
     private val clock: Clock,
 ) : VedtakService {
 
@@ -130,6 +136,44 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }
 
+        val relatertId = if (omgjøringsårsak == Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK) {
+            // Finnes ingen klage å knytte mot hvis det er etter eget tiltak
+            vedtak.behandling.id
+        } else {
+            val klageId = cmd.klageId?.let {
+                runCatching { UUID.fromString(it) }.getOrNull()
+            } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
+            val klage = klageRepo.hentKlage(KlageId(klageId))
+                ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
+
+            when (klage) {
+                is OversendtKlage -> {
+                    if (klage.behandlingId != null) {
+                        log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
+                        return KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
+                    }
+                    when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
+                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
+                            if (vedtaksvurdering.årsak.name != omgjøringsgrunn.name) {
+                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt $omgjøringsgrunn")
+                                return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
+                            }
+                        }
+                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
+                            return KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt.left()
+                        }
+                    }
+                }
+                else -> {
+                    log.warn("Klage ${klage.id} er ikke oversendt men ${klage.javaClass.name}")
+                    return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt.left()
+                }
+            }
+            log.info("Knytter omgjøring mot klage ${klage.id} for sak $sakId")
+
+            klage.id
+        }
+
         return vedtak.behandling.opprettNySøknadsbehandling(
             nyOppgaveId = oppgaveService.opprettOppgave(
                 OppgaveConfig.Søknad(
@@ -145,10 +189,15 @@ class VedtakServiceImpl(
             clock = clock,
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
-        ).map {
-            søknadsbehandlingService.lagre(it)
-            observers.notify(StatistikkEvent.Behandling.Omgjøring.AvslåttOmgjøring(it, saksbehandler))
-            it
+        ).map { søknadsbehandling ->
+            søknadsbehandlingService.lagre(søknadsbehandling)
+            when (relatertId) {
+                is KlageId -> {
+                    klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value)
+                }
+            }
+            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, relatertId = relatertId.value))
+            søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
         }

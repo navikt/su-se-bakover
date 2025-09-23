@@ -53,6 +53,7 @@ interface VedtakService {
 data class NySøknadCommandOmgjøring(
     val omgjøringsårsak: String? = null,
     val omgjøringsgrunn: String? = null,
+    val klageId: String? = null,
 ) {
     val omgjøringsårsakHent: Either<Revurderingsårsak.UgyldigÅrsak, Revurderingsårsak.Årsak> by lazy {
         if (omgjøringsårsak == null) {

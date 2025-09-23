@@ -92,6 +92,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
+                    sakstype = sak.type,
                 ),
             ),
         )

@@ -1335,7 +1335,7 @@ open class AccessCheckProxy(
                         return service.oppdaterStatusPåKontrollsamtale(command, sessionContext)
                     }
 
-                    override fun kallInn(
+                    override fun kallInnTilKontrollsamtale(
                         kontrollsamtale: Kontrollsamtale,
                     ) = kastKanKunKallesFraAnnenService()
 

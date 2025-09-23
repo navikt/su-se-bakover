@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOpp
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -39,6 +41,7 @@ internal fun Route.opprettRevurderingRoute(
         val begrunnelse: String,
         val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
+        val klageId: String? = null,
     )
     post(REVURDERING_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
@@ -58,6 +61,7 @@ internal fun Route.opprettRevurderingRoute(
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
                             informasjonSomRevurderes = body.informasjonSomRevurderes,
+                            klageId = body.klageId,
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -82,5 +86,34 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is KunneIkkeOppretteRevurdering.FantIkkeAktørId -> this.feil.tilResultat()
         is KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn -> måHaomgjøringsgrunn
+        is KunneIkkeOppretteRevurdering.SakFinnesIkke -> BadRequest.errorJson(
+            "Sak finnes ikke",
+            "sak_finnes_ikke",
+        )
+
+        is KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling -> BadRequest.errorJson(
+            "Klagen er allerede knyttet til en behandling",
+            "klage_allerede_knyttet_til_behandling",
+        )
+        is KunneIkkeOppretteRevurdering.KlageErIkkeOversendt -> BadRequest.errorJson(
+            "Klagen er ikke oversendt",
+            "klage_ikke_oversendt",
+        )
+        is KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning -> BadRequest.errorJson(
+            "Klage må finnes for å kunne knyttes til behandling",
+            "klage_må_finnes_for_knytning",
+        )
+        is KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> BadRequest.errorJson(
+            "Klageid mangler eller er ugyldig",
+            "klage_ugyldig_uuid",
+        )
+        is KunneIkkeOppretteRevurdering.KlagenErOpprettholdt -> BadRequest.errorJson(
+            "Klagen er opprettholdt og kan ikke knyttes til revurdering",
+            "klagen_er_opprettholdt",
+        )
+        is KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> BadRequest.errorJson(
+            "Omgjøringsgrunn er ulik mellom klage og revurdering",
+            "ulik_omgjøringsgrunn",
+        )
     }
 }

@@ -110,6 +110,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsument(
                 fnr = sakInfo.fnr,
                 tilordnetRessurs = tilordnetRessurs,
                 clock = clock,
+                sakstype = sakInfo.type,
             ),
         ).getOrElse {
             return KunneIkkeOppretteOppgave.FeilVedOpprettelseAvOppgave.left()

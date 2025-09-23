@@ -145,6 +145,7 @@ data object ServiceBuilder {
             sakService = sakService,
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
+            klageRepo = databaseRepos.klageRepo,
             clock = clock,
         ).apply {
             addObserver(statistikkEventObserver)
@@ -196,6 +197,7 @@ data object ServiceBuilder {
             sakService = sakService,
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
+            klageRepo = databaseRepos.klageRepo,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
