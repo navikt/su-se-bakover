@@ -43,7 +43,6 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
         command: AvslåManglendeDokumentasjonCommand,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
         return lagAvslag(command).map {
-            // TODO må trolig endres fra opprett ny og iverksett til kun siste..
             iverksettSøknadsbehandlingService.iverksett(it)
             it.sak
         }

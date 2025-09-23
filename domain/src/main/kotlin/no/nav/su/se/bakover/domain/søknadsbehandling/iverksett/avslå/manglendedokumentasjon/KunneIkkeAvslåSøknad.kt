@@ -15,4 +15,6 @@ sealed interface KunneIkkeAvslåSøknad {
     data class Attesteringsfeil(val feil: KunneIkkeSendeSøknadsbehandlingTilAttestering) : KunneIkkeAvslåSøknad
 
     data class Periodefeil(val underliggende: KunneIkkeLageOpplysningspliktVilkår) : KunneIkkeAvslåSøknad
+
+    data object ManglerSaksbehandler : KunneIkkeAvslåSøknad
 }

@@ -58,6 +58,9 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
             }
         },
         {
+            if (it.single().saksbehandler == null) {
+                return KunneIkkeAvslåSøknad.ManglerSaksbehandler.left()
+            }
             Pair(this, it)
         },
     ).let { (sak: Sak, behandlinger: List<Søknadsbehandling>) ->

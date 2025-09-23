@@ -180,6 +180,11 @@ data object Feilresponser {
         "fant_ikke_saksbehandler_eller_attestant",
     )
 
+    val behandlingMåHaSaksebehandler = BadRequest.errorJson(
+        "Behandling må være påbegynt før avslag",
+        "behandling_krever_en_saksbehandler",
+    )
+
     val datoMåVæreFørsteIMåned = BadRequest.errorJson(
         "Dato må være første dag i måneden.",
         "dato_må_være_første_i_mnd",
