@@ -666,12 +666,13 @@ internal class KlagePostgresRepo(
     )
     private sealed interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
-        data class Omgjør(val årsak: String?, val utfall: String?) : VedtaksvurderingJson {
+        data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?) : VedtaksvurderingJson {
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
                     utfall = utfall?.let { VurderingerTilKlage.Vedtaksvurdering.Utfall.toDomain(it) },
+                    begrunnelse = begrunnelse,
                 )
             }
         }
@@ -758,6 +759,7 @@ internal class KlagePostgresRepo(
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør -> Omgjør(
                         årsak = årsak?.name,
                         utfall = utfall?.name,
+                        begrunnelse = begrunnelse,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
@@ -765,6 +767,7 @@ internal class KlagePostgresRepo(
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> Omgjør(
                         årsak = årsak.name,
                         utfall = utfall.name,
+                        begrunnelse = begrunnelse,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),

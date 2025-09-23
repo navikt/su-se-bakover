@@ -23,11 +23,12 @@ data class KlageVurderingerRequest(
     private val omgjør: Omgjør?,
     private val oppretthold: Oppretthold?,
 ) {
-    data class Omgjør(val årsak: String?, val utfall: String?) {
+    data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?) {
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                 årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
                 utfall = utfall?.let { utfallToDomain(it) }?.getOrElse { return it.left() },
+                begrunnelse = begrunnelse?.let { begrunnelse },
             ).right()
         }
 
