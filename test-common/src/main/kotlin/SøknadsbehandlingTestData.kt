@@ -561,7 +561,6 @@ fun nySøknadsbehandlingUtenStønadsperiode(
         søknadId = søknad.id,
         clock = clock,
         saksbehandler = saksbehandler,
-        oppdaterOppgave = null,
     ).getOrFail().let { (sak, behandling) ->
         Pair(sak, behandling)
     }

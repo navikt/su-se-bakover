@@ -52,7 +52,6 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 søknadId = command.søknadId,
                 clock = clock,
                 saksbehandler = command.saksbehandler,
-                oppdaterOppgave = null,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
                 Pair(it.first, listOf(it.second))
             }

@@ -187,25 +187,6 @@ class SøknadsbehandlingServiceImpl(
             søknadId = søknadId,
             clock = clock,
             saksbehandler = saksbehandler,
-            oppdaterOppgave = { oppgaveId, saksbehandler ->
-                oppgaveService.oppdaterOppgave(
-                    oppgaveId = oppgaveId,
-                    oppdaterOppgaveInfo = OppdaterOppgaveInfo(
-                        beskrivelse = "Tilordnet oppgave til ${saksbehandler.navIdent}",
-                        tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-                    ),
-                ).mapLeft {
-                    when (it) {
-                        is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> {
-                            log.warn("Kunne ikke oppdatere oppgave $oppgaveId sakid: ${sak.id} med tilordnet ressurs. Feilen var $it")
-                        }
-
-                        else -> {
-                            log.error("Kunne ikke oppdatere oppgave $oppgaveId sakid: ${sak.id} med tilordnet ressurs. Feilen var $it")
-                        }
-                    }
-                }
-            },
         ).map { (sak, uavklartSøknadsbehandling, statistikk) ->
             søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
             observers.notify(statistikk)

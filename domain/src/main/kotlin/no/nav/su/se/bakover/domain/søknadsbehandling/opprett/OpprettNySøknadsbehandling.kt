@@ -7,7 +7,6 @@ import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerS�
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandling
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.time.Clock
@@ -35,14 +33,12 @@ import java.util.UUID
  * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.
  *
  * @param søknadsbehandlingId - Id'en til søknadsbehandlingen. Genereres automatisk dersom dette ikke sendes med.
- * @param oppdaterOppgave - Ved opprettelse av behandlingen, vil man i noen tilfeller gjøre noe med oppgaven
  */
 fun Sak.opprettNySøknadsbehandling(
     søknadsbehandlingId: SøknadsbehandlingId? = null,
     søknadId: UUID,
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler?,
-    oppdaterOppgave: ((oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) -> Either<Unit, OppgaveHttpKallResponse>)?,
 ): Either<KunneIkkeStarteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     val søknad = hentSøknad(søknadId).fold(
         ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
@@ -57,10 +53,6 @@ fun Sak.opprettNySøknadsbehandling(
             it
         },
     ).also { require(type == it.type) { "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak." } }
-
-    // gjør en best effort for å oppdatere oppgaven. logging av left gjøres i oppdaterTilordnetRessurs
-    // TODO Behøves ikke lenger?
-    // oppdaterOppgave?.invoke(søknad.oppgaveId, saksbehandler)
 
     return VilkårsvurdertSøknadsbehandling.Uavklart(
         id = søknadsbehandlingId ?: SøknadsbehandlingId.generer(),

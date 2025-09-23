@@ -133,7 +133,6 @@ class SøknadServiceImpl(
                 søknadId = søknad.id,
                 clock = clock,
                 saksbehandler = null,
-                oppdaterOppgave = null,
             ).map { (_, uavklartSøknadsbehandling, statistikk) ->
                 søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
             }
