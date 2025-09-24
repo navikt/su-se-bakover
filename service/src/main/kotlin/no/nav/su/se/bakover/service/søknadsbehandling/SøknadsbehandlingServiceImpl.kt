@@ -10,6 +10,7 @@ import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBositua
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -142,7 +143,11 @@ class SøknadsbehandlingServiceImpl(
 
         // TODO Når alle søknader i produksjon som mangler behandling er opprettet kan denne erstattes med en feilmelding
         val søknadsbehandling = søknadsbehandlingRepo.hentForSøknad(søknadId)
-            ?: return opprett(sak, søknadId, saksbehandler)
+            ?: return opprett(sak, søknadId, saksbehandler).also {
+                it.getOrNull()?.let {
+                    oppdaterOppgave(sakId, it.second.oppgaveId, saksbehandler)
+                }
+            }
 
         val behandlingMedNySaksbehandler = when (søknadsbehandling) {
             is VilkårsvurdertSøknadsbehandling.Uavklart -> {
@@ -155,10 +160,16 @@ class SøknadsbehandlingServiceImpl(
                 return KunneIkkeStarteSøknadsbehandling.BehandlingErAlleredePåbegynt.left()
             }
         }
-        søknadsbehandlingRepo.lagre(behandlingMedNySaksbehandler)
+        søknadsbehandlingRepo.lagre(behandlingMedNySaksbehandler).also {
+            oppdaterOppgave(sakId, søknadsbehandling.oppgaveId, saksbehandler)
+        }
 
+        return Pair(sak, behandlingMedNySaksbehandler).right()
+    }
+
+    private fun oppdaterOppgave(sakId: UUID, oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) {
         oppgaveService.oppdaterOppgave(
-            oppgaveId = søknadsbehandling.oppgaveId,
+            oppgaveId = oppgaveId,
             oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                 beskrivelse = "Tilordnet oppgave til ${saksbehandler.navIdent}",
                 tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
@@ -174,8 +185,6 @@ class SøknadsbehandlingServiceImpl(
                 }
             }
         }
-
-        return Pair(sak, behandlingMedNySaksbehandler).right()
     }
 
     private fun opprett(

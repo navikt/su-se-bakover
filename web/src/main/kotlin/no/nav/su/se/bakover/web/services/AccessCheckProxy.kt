@@ -348,6 +348,12 @@ open class AccessCheckProxy(
                     }
                 }
 
+                override fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak? {
+                    return services.sak.hentSakHvisFinnes(fnr, type).also { sak ->
+                        sak?.let { assertHarTilgangTilSak(sak.id) }
+                    }
+                }
+
                 override fun hentSakForUtbetalingId(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun hentGjeldendeVedtaksdata(

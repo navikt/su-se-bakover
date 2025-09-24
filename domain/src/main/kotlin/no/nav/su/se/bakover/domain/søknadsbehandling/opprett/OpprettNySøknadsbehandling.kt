@@ -24,16 +24,6 @@ import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.time.Clock
 import java.util.UUID
 
-/**
- * Begrensninger for opprettelse av ny søknadsbehandling:
- * - Kun én søknadsbehandling per søknad. På sikt kan denne begrensningen løses litt opp. Eksempelvis ved omgjøring etter klage eller eget tiltak.
- * - Søknaden må være journalført, oppgave må ha vært opprettet og søknaden kan ikke være lukket.
- * - Kun én åpen søknadsbehandling om gangen.
- *
- * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.
- *
- * @param søknadsbehandlingId - Id'en til søknadsbehandlingen. Genereres automatisk dersom dette ikke sendes med.
- */
 fun Sak.opprettNySøknadsbehandling(
     søknadsbehandlingId: SøknadsbehandlingId? = null,
     søknadId: UUID,
@@ -47,13 +37,29 @@ fun Sak.opprettNySøknadsbehandling(
                 return KunneIkkeStarteSøknadsbehandling.ErLukket.left()
             }
             if (it !is Søknad.Journalført.MedOppgave) {
-                // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
                 return KunneIkkeStarteSøknadsbehandling.ManglerOppgave.left()
             }
-            it
+            it as Søknad.Journalført.MedOppgave.IkkeLukket
         },
     ).also { require(type == it.type) { "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak." } }
+    return opprettNySøknadsbehandling(søknadsbehandlingId, søknad, clock, saksbehandler)
+}
 
+/**
+ * Begrensninger for opprettelse av ny søknadsbehandling:
+ * - Kun én søknadsbehandling per søknad. På sikt kan denne begrensningen løses litt opp. Eksempelvis ved omgjøring etter klage eller eget tiltak.
+ * - Søknaden må være journalført, oppgave må ha vært opprettet og søknaden kan ikke være lukket.
+ *
+ * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.
+ *
+ * @param søknadsbehandlingId - Id'en til søknadsbehandlingen. Genereres automatisk dersom dette ikke sendes med.
+ */
+fun Sak.opprettNySøknadsbehandling(
+    søknadsbehandlingId: SøknadsbehandlingId? = null,
+    søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
+    clock: Clock,
+    saksbehandler: NavIdentBruker.Saksbehandler?,
+): Either<KunneIkkeStarteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
     return VilkårsvurdertSøknadsbehandling.Uavklart(
         id = søknadsbehandlingId ?: SøknadsbehandlingId.generer(),
         opprettet = Tidspunkt.now(clock),

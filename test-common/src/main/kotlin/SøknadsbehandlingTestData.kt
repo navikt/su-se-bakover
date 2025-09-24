@@ -544,7 +544,7 @@ fun nySøknadsbehandlingUtenStønadsperiode(
         clock = clock,
         søknadInnhold = søknadInnhold,
     ),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    saksbehandler: NavIdentBruker.Saksbehandler? = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart> {
     require(sakOgSøknad.first.type == sakOgSøknad.first.type) {
         "Støtter ikke å ha forskjellige typer (uføre, alder) på en og samme sak."

@@ -124,6 +124,10 @@ class SakServiceImpl(
         return sakRepo.hentSakInfoForIdent(fnr, sakstype)
     }
 
+    override fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak? {
+        return sakRepo.hentSak(fnr, type)
+    }
+
     override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
         return sakRepo.hentSakInfo(sakId)?.right()
             ?: FantIkkeSak.left()
