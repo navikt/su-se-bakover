@@ -374,25 +374,6 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$KLAGE_PATH/{klageId}/tilAttestering") {
-        authorize(Brukerrolle.Saksbehandler) {
-            call.withKlageId { klageId ->
-                klageService.sendTilAttestering(KlageId(klageId), call.suUserContext.saksbehandler).map {
-                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                    call.svar(Resultat.json(OK, serialize(it.toJson())))
-                }.mapLeft {
-                    call.svar(
-                        when (it) {
-                            KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-                        },
-                    )
-                }
-            }
-        }
-    }
-
     post("$KLAGE_PATH/{klageId}/underkjenn") {
         data class Body(val grunn: String, val kommentar: String) {
             fun toRequest(
