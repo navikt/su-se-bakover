@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJso
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -73,6 +74,8 @@ internal class KlagePostgresRepo(
                     is AvvistKlage -> lagreAvvistKlage(klage, transaction)
 
                     is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
+                    is FerdigstiltOmgjortKlage -> lagreFerdigstiltKlage(klage, transaction)
+
                     is OversendtKlage -> lagreOversendtKlage(klage, transaction)
                     is IverksattAvvistKlage -> lagreIverksattAvvistKlage(klage, transaction)
                     is AvsluttetKlage -> lagreAvsluttetKlage(klage, transaction)
@@ -209,6 +212,27 @@ internal class KlagePostgresRepo(
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
                     "attestering" to klage.attesteringer.toDatabaseJson(),
+                ),
+                session,
+            )
+    }
+
+    private fun lagreFerdigstiltKlage(klage: FerdigstiltOmgjortKlage, session: Session) {
+        """
+            update
+                klage
+            set
+                oppgaveid=:oppgaveid,
+                type=:type,
+                saksbehandler=:saksbehandler,
+            where id=:id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to klage.id.value,
+                    "oppgaveid" to klage.oppgaveId,
+                    "type" to klage.databasetype(),
+                    "saksbehandler" to klage.saksbehandler,
                 ),
                 session,
             )
@@ -553,6 +577,14 @@ internal class KlagePostgresRepo(
                 attesteringer = attesteringer,
                 sakstype = sakstype,
             )
+
+            Tilstand.OMGJORT -> FerdigstiltOmgjortKlage(
+                forrigeSteg = vurdertKlageTilAttestering(),
+                sakstype = sakstype,
+                klageinstanshendelser = klageinstanshendelser,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+            )
         }
         val avsluttet = row.stringOrNull("avsluttet")?.let {
             AvsluttetKlageJson.fromJsonString(it)
@@ -606,6 +638,7 @@ internal class KlagePostgresRepo(
         TIL_ATTESTERING_AVVIST("til_attestering_avvist"),
 
         OVERSENDT("oversendt"),
+        OMGJORT("omgjort"),
         IVERKSATT_AVVIST("iverksatt_avvist"),
         ;
 
@@ -632,6 +665,7 @@ internal class KlagePostgresRepo(
                     is OversendtKlage -> OVERSENDT
                     is IverksattAvvistKlage -> IVERKSATT_AVVIST
                     is AvsluttetKlage -> this.hentUnderliggendeKlage().databasetype()
+                    is FerdigstiltOmgjortKlage -> OMGJORT
                 }.toString()
             }
 

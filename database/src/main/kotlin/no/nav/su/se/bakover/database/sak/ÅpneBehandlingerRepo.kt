@@ -209,6 +209,8 @@ private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingssammen
         KlagePostgresRepo.Tilstand.OVERSENDT,
         KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST,
         -> throw IllegalStateException("Iverksatte/Oversendte klager er ikke en åpen behandling")
+
+        KlagePostgresRepo.Tilstand.OMGJORT -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
     }
 }
 

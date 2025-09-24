@@ -6,6 +6,7 @@ import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
@@ -303,6 +304,26 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
             avsluttetTidspunkt = this.avsluttetTidspunkt.toString(),
             avsluttetBegrunnelse = this.begrunnelse, // MERK ikke vanlig begrunnelse for avsluttetklage som det i db!
+        )
+
+        is FerdigstiltOmgjortKlage -> KlageJson(
+            id = this.id.toString(),
+            sakid = this.sakId.toString(),
+            opprettet = this.opprettet.toString(),
+            journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
+            datoKlageMottatt = this.datoKlageMottatt.toString(),
+            status = Typer.IVERKSATT_AVVIST.toString(),
+            vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
+            innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
+            klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+            erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet.toString(),
+            begrunnelse = this.vilkårsvurderinger.begrunnelse,
+            fritekstTilBrev = null,
+            vedtaksvurdering = null,
+            attesteringer = this.attesteringer.toJson(),
+            klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
         )
     }
 }

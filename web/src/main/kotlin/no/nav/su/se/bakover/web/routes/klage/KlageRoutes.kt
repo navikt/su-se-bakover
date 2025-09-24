@@ -12,7 +12,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
@@ -332,6 +332,47 @@ internal fun Route.klageRoutes(
             }
         }
     }
+    /*
+    Gjelder kun klager som skal til KA. Omgjøring skal ikke sendes til KA, de må også gjennom
+    attestering i omgjøringsbehandlingen.
+     */
+    post("$KLAGE_PATH/{klageId}/tilAttestering") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withKlageId { klageId ->
+                klageService.sendTilAttestering(KlageId(klageId), call.suUserContext.saksbehandler).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }.mapLeft {
+                    call.svar(
+                        when (it) {
+                            KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    post("$KLAGE_PATH/{klageId}/ferdigstill") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withKlageId { klageId ->
+                klageService.ferdigstillOmgjøring(KlageId(klageId), call.suUserContext.saksbehandler).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }.mapLeft {
+                    call.svar(
+                        when (it) {
+                            KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            KunneIkkeFerdigstilleOmgjøringsKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                        },
+                    )
+                }
+            }
+        }
+    }
 
     post("$KLAGE_PATH/{klageId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -352,33 +393,33 @@ internal fun Route.klageRoutes(
         }
     }
 
-    data class Body(val grunn: String, val kommentar: String) {
-        fun toRequest(
-            klageId: UUID,
-            attestant: NavIdentBruker.Attestant,
-        ): Either<Resultat, UnderkjennKlageRequest> {
-            return UnderkjennKlageRequest(
-                klageId = KlageId(klageId),
-                attestant = attestant,
-                grunn = Either.catch { Grunn.valueOf(grunn) }.map {
-                    when (it) {
-                        Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> UnderkjennAttesteringsgrunnBehandling.INNGANGSVILKÅRENE_ER_FEILVURDERT
-                        Grunn.BEREGNINGEN_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL
-                        Grunn.DOKUMENTASJON_MANGLER -> UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER
-                        Grunn.VEDTAKSBREVET_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL
-                        Grunn.ANDRE_FORHOLD -> UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD
-                    }
-                }.getOrElse {
-                    return BadRequest.errorJson(
-                        "Ugyldig underkjennelsesgrunn",
-                        "ugyldig_grunn_for_underkjenning",
-                    ).left()
-                },
-                kommentar = kommentar,
-            ).right()
-        }
-    }
     post("$KLAGE_PATH/{klageId}/underkjenn") {
+        data class Body(val grunn: String, val kommentar: String) {
+            fun toRequest(
+                klageId: UUID,
+                attestant: NavIdentBruker.Attestant,
+            ): Either<Resultat, UnderkjennKlageRequest> {
+                return UnderkjennKlageRequest(
+                    klageId = KlageId(klageId),
+                    attestant = attestant,
+                    grunn = Either.catch { Grunn.valueOf(grunn) }.map {
+                        when (it) {
+                            Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> UnderkjennAttesteringsgrunnBehandling.INNGANGSVILKÅRENE_ER_FEILVURDERT
+                            Grunn.BEREGNINGEN_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL
+                            Grunn.DOKUMENTASJON_MANGLER -> UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER
+                            Grunn.VEDTAKSBREVET_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL
+                            Grunn.ANDRE_FORHOLD -> UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD
+                        }
+                    }.getOrElse {
+                        return BadRequest.errorJson(
+                            "Ugyldig underkjennelsesgrunn",
+                            "ugyldig_grunn_for_underkjenning",
+                        ).left()
+                    },
+                    kommentar = kommentar,
+                ).right()
+            }
+        }
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
@@ -447,7 +488,9 @@ internal fun Route.klageRoutes(
         }
     }
 
-    // TODO jah: Denne er i bruk, men har en litt snodig url?
+    /* TODO jah: Denne er i bruk, men har en litt snodig url?
+        Denne brukes kun ifbm med avvisning av formkrav.
+     */
     post("$KLAGE_PATH/{klageId}/iverksett(AvvistKlage)") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
