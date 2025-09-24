@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class SkattIT {
             val søknadResponseJson = nyDigitalSøknad(fnr = fnr, client = client)
             val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
-            val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
+            val nySøknadsbehandlingResponseJson = startSøknadsbehandling(
                 sakId = sakId,
                 søknadId = søknadId,
                 client = client,

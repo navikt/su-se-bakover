@@ -110,7 +110,7 @@ internal class SøknadsbehandlingServiceOppstartetTest {
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(argShouldBe(actualBehandling), sessionContext = anyOrNull())
         verify(oppgaveService).oppdaterOppgave(any(), any())
-        // serviceAndMocks.verifyNoMoreInteractions() TODO hva faen
+        serviceAndMocks.verifyNoMoreInteractions()
     }
 
     @Test
