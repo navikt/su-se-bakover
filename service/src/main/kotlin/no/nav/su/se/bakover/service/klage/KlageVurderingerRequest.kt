@@ -28,7 +28,7 @@ data class KlageVurderingerRequest(
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                 årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
                 utfall = utfall?.let { utfallToDomain(it) }?.getOrElse { return it.left() },
-                begrunnelse = begrunnelse?.let { begrunnelse },
+                begrunnelse = begrunnelse,
             ).right()
         }
 
