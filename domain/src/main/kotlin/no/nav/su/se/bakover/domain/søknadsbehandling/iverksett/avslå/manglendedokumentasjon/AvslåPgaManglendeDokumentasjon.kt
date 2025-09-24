@@ -47,7 +47,6 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
     val søknadId = command.søknadId
     return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
         {
-            // TODO Fjern da det nå skal opprettes ved mottak??
             this.opprettNySøknadsbehandling(
                 søknadId = command.søknadId,
                 clock = clock,
