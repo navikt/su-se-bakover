@@ -26,7 +26,6 @@ data class FerdigstiltOmgjortKlage(
         tidspunktAvsluttet: Tidspunkt,
     ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
 
-    /** @return [FerdigstiltOmgjortKlage] */
     override fun ferdigstillOmgjøring(
         saksbehandler: NavIdentBruker.Saksbehandler,
         klage: VurdertKlage.Bekreftet,
