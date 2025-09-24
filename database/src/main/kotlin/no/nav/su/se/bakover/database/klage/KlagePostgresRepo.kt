@@ -224,7 +224,7 @@ internal class KlagePostgresRepo(
             set
                 oppgaveid=:oppgaveid,
                 type=:type,
-                saksbehandler=:saksbehandler,
+                saksbehandler=:saksbehandler
             where id=:id
         """.trimIndent()
             .oppdatering(

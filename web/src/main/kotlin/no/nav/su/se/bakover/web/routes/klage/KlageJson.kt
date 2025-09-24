@@ -313,7 +313,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = Typer.IVERKSATT_AVVIST.toString(),
+            status = Typer.FERDIGSTILT_OMGJORT.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -431,6 +431,11 @@ private enum class Typer(val verdi: String) {
      * Man kommer ikke tilbake fra denne tilstanden
      */
     IVERKSATT_AVVIST("IVERKSATT_AVVIST"),
+
+    /**
+     * Man kommer i denne tilstanden dersom man velger omgjøring og ferdigstiller denne. Dette innebærer ikke attesteringsløypa
+     */
+    FERDIGSTILT_OMGJORT("FERDIGSTILT_OMGJORT"),
     ;
 
     override fun toString() = verdi
