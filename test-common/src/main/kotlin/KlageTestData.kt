@@ -112,7 +112,6 @@ fun påbegyntVilkårsvurdertKlage(
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = begrunnelse,
             ) as VilkårsvurderingerTilKlage.Påbegynt,
         ).getOrFail()
 
@@ -138,7 +137,6 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.TilVurdering> {
     require(sakId == sakMedVedtak.id) {
@@ -162,7 +160,6 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = "",
             ),
         ).getOrFail()
 
@@ -188,7 +185,6 @@ fun utfyltAvvistVilkårsvurdertKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.Avvist> {
     return opprettetKlage(
@@ -209,7 +205,6 @@ fun utfyltAvvistVilkårsvurdertKlage(
                 innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet,
-                begrunnelse,
             ),
         ).getOrFail()
 
@@ -235,7 +230,6 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.TilVurdering> {
     require(sakId == sakMedVedtak.id) {
@@ -253,7 +247,6 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -283,7 +276,6 @@ fun bekreftetAvvistVilkårsvurdertKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.Avvist> {
     return utfyltAvvistVilkårsvurdertKlage(
@@ -298,7 +290,6 @@ fun bekreftetAvvistVilkårsvurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -328,7 +319,6 @@ fun påbegyntVurdertKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String? = null,
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering? = null,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
@@ -346,7 +336,6 @@ fun påbegyntVurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -378,7 +367,6 @@ fun utfyltVurdertKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -400,7 +388,6 @@ fun utfyltVurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -431,7 +418,6 @@ fun bekreftetVurdertKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -453,7 +439,6 @@ fun bekreftetVurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -482,7 +467,6 @@ fun avvistKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, AvvistKlage> {
@@ -501,7 +485,6 @@ fun avvistKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -547,7 +530,6 @@ fun vurdertKlageTilAttestering(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -566,7 +548,6 @@ fun vurdertKlageTilAttestering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -596,7 +577,6 @@ fun avvistKlageTilAttestering(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Avvist> {
@@ -614,7 +594,6 @@ fun avvistKlageTilAttestering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         fritekstTilBrev = fritekstTilBrev,
         sakstype = sakstype,
@@ -642,7 +621,6 @@ fun underkjentKlageTilVurdering(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -663,7 +641,6 @@ fun underkjentKlageTilVurdering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -696,7 +673,6 @@ fun underkjentAvvistKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
@@ -716,7 +692,6 @@ fun underkjentAvvistKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -748,7 +723,6 @@ fun underkjentTilVurderingKlageTilAttestering(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -766,7 +740,6 @@ fun underkjentTilVurderingKlageTilAttestering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -795,7 +768,6 @@ fun oversendtKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -824,7 +796,6 @@ fun oversendtKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -855,7 +826,6 @@ fun iverksattAvvistKlage(
     innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
@@ -872,7 +842,6 @@ fun iverksattAvvistKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,

@@ -138,7 +138,6 @@ internal fun Route.klageRoutes(
                                     Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
                                     null -> null
                                 },
-                                begrunnelse = "",
                                 sakId = sakId,
                             ),
                         ).map {

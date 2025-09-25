@@ -190,7 +190,6 @@ internal class AvvistKlageTest {
                     innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "",
                 ),
             ).getOrFail()
 
@@ -223,7 +222,6 @@ internal class AvvistKlageTest {
                     innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = false,
                     erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "",
                 ),
             ).getOrFail()
 

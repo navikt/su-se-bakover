@@ -68,7 +68,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
@@ -93,7 +92,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
@@ -129,7 +127,6 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = null,
                 klagesDetPåKonkreteElementerIVedtaket = null,
                 erUnderskrevet = null,
-                begrunnelse = null,
                 sakId = sak.id,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
@@ -188,7 +185,6 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = false,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "b",
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -216,7 +212,6 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "",
             ),
         ).getOrFail()
 
@@ -235,7 +230,6 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "b",
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -256,7 +250,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
@@ -456,7 +449,6 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "en god og fin begrunnelse",
             ),
         ).getOrFail()
 
@@ -485,7 +477,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
 
@@ -544,7 +535,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,
             erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-            begrunnelse = "SomeBegrunnelse",
             sakId = sak.id,
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
@@ -564,7 +554,6 @@ internal class VilkårsvurderKlageTest {
                     innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "",
                 ) as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,

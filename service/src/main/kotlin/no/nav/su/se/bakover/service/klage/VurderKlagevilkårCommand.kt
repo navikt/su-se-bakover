@@ -16,13 +16,11 @@ data class VurderKlagevilkårCommand(
     val innenforFristen: VilkårsvurderingerTilKlage.Svarord?,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
     val erUnderskrevet: VilkårsvurderingerTilKlage.Svarord?,
-    val begrunnelse: String?,
 ) {
     val vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
         vedtakId = vedtakId,
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
     )
 }

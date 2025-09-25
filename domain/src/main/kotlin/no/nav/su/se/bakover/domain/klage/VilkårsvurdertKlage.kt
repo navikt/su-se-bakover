@@ -45,6 +45,7 @@ sealed interface VilkårsvurdertKlage :
             saksbehandler: NavIdentBruker.Saksbehandler,
             vilkårsvurderinger: VilkårsvurderingerTilKlage,
         ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+            // TODO: hvorfor kan ikke denne basere seg på
             return when (vilkårsvurderinger) {
                 is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
                     id = id,
