@@ -115,7 +115,6 @@ internal fun Route.klageRoutes(
                 val innenforFristen: Svarord?,
                 val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 val erUnderskrevet: Svarord?,
-                val begrunnelse: String? = null,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
