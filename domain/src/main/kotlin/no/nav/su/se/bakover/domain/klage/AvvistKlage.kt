@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -15,7 +15,7 @@ import java.time.LocalDate
 import kotlin.reflect.KClass
 
 interface AvvistKlageFelter : VilkårsvurdertKlageFelter {
-    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+    override val vilkårsvurderinger: FormkravTilKlage.Utfylt
     val fritekstTilVedtaksbrev: String
 }
 
@@ -75,10 +75,10 @@ data class AvvistKlage(
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        vilkårsvurderinger: FormkravTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
+            is FormkravTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -96,7 +96,7 @@ data class AvvistKlage(
                 sakstype = sakstype,
             )
 
-            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
+            is FormkravTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
