@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import java.util.UUID
 
@@ -13,11 +13,11 @@ data class VurderKlagevilkårCommand(
     val klageId: KlageId,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val vedtakId: UUID?,
-    val innenforFristen: VilkårsvurderingerTilKlage.Svarord?,
+    val innenforFristen: FormkravTilKlage.Svarord?,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-    val erUnderskrevet: VilkårsvurderingerTilKlage.Svarord?,
+    val erUnderskrevet: FormkravTilKlage.Svarord?,
 ) {
-    val vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+    val vilkårsvurderinger = FormkravTilKlage.create(
         vedtakId = vedtakId,
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,

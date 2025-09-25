@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -18,6 +18,9 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
 
+/*
+    Tilstanden representerer klagen der formkravene blir vurdert.
+ */
 sealed interface VilkårsvurdertKlage :
     Klage,
     VilkårsvurdertKlageFelter {
@@ -31,7 +34,7 @@ sealed interface VilkårsvurdertKlage :
         override val journalpostId: JournalpostId,
         override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
+        override val vilkårsvurderinger: FormkravTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
         override val sakstype: Sakstype,
@@ -43,11 +46,10 @@ sealed interface VilkårsvurdertKlage :
 
         override fun vilkårsvurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            vilkårsvurderinger: VilkårsvurderingerTilKlage,
+            vilkårsvurderinger: FormkravTilKlage,
         ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-            // TODO: hvorfor kan ikke denne basere seg på
             return when (vilkårsvurderinger) {
-                is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
+                is FormkravTilKlage.Utfylt -> Utfylt.create(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -65,7 +67,7 @@ sealed interface VilkårsvurdertKlage :
                     sakstype = sakstype,
                 )
 
-                is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
+                is FormkravTilKlage.Påbegynt -> Påbegynt(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -101,7 +103,7 @@ sealed interface VilkårsvurdertKlage :
      */
     sealed interface Utfylt : VilkårsvurdertKlage {
 
-        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+        override val vilkårsvurderinger: FormkravTilKlage.Utfylt
 
         /**
          * En vilkårsvurdert avvist representerer en klage der minst et av vilkårene er blitt besvart 'nei/false'
@@ -115,7 +117,7 @@ sealed interface VilkårsvurdertKlage :
             override val journalpostId: JournalpostId,
             override val oppgaveId: OppgaveId,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+            override val vilkårsvurderinger: FormkravTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             // Ønsker å ta vare på dette feltet dersom vi går tilbake til vilkårsvurderingen igjen.
@@ -129,10 +131,10 @@ sealed interface VilkårsvurdertKlage :
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+                vilkårsvurderinger: FormkravTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                 return when (vilkårsvurderinger) {
-                    is VilkårsvurderingerTilKlage.Utfylt -> create(
+                    is FormkravTilKlage.Utfylt -> create(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -150,7 +152,7 @@ sealed interface VilkårsvurdertKlage :
                         sakstype = sakstype,
                     )
 
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
+                    is FormkravTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -218,7 +220,7 @@ sealed interface VilkårsvurdertKlage :
             override val journalpostId: JournalpostId,
             override val oppgaveId: OppgaveId,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+            override val vilkårsvurderinger: FormkravTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             override val vurderinger: VurderingerTilKlage?,
@@ -242,14 +244,14 @@ sealed interface VilkårsvurdertKlage :
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+                vilkårsvurderinger: FormkravTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                 if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
                     return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
                 }
 
                 return when (vilkårsvurderinger) {
-                    is VilkårsvurderingerTilKlage.Utfylt -> create(
+                    is FormkravTilKlage.Utfylt -> create(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -267,7 +269,7 @@ sealed interface VilkårsvurdertKlage :
                         sakstype = sakstype,
                     )
 
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
+                    is FormkravTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -336,7 +338,7 @@ sealed interface VilkårsvurdertKlage :
                 journalpostId: JournalpostId,
                 oppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger: FormkravTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
@@ -382,7 +384,7 @@ sealed interface VilkårsvurdertKlage :
     }
 
     interface BekreftetFelter : VilkårsvurdertKlageFelter {
-        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+        override val vilkårsvurderinger: FormkravTilKlage.Utfylt
     }
 
     /**
@@ -402,7 +404,7 @@ sealed interface VilkårsvurdertKlage :
             override val journalpostId: JournalpostId,
             override val oppgaveId: OppgaveId,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+            override val vilkårsvurderinger: FormkravTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             // Så vi kan ta vare på fritekst hvis vi går tilbake til vilkårsvurderingen igjen.
@@ -418,10 +420,10 @@ sealed interface VilkårsvurdertKlage :
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+                vilkårsvurderinger: FormkravTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                 return when (vilkårsvurderinger) {
-                    is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
+                    is FormkravTilKlage.Utfylt -> Utfylt.create(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -439,7 +441,7 @@ sealed interface VilkårsvurdertKlage :
                         sakstype = sakstype,
                     )
 
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
+                    is FormkravTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -516,7 +518,7 @@ sealed interface VilkårsvurdertKlage :
             override val journalpostId: JournalpostId,
             override val oppgaveId: OppgaveId,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+            override val vilkårsvurderinger: FormkravTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             override val vurderinger: VurderingerTilKlage?,
@@ -540,14 +542,14 @@ sealed interface VilkårsvurdertKlage :
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+                vilkårsvurderinger: FormkravTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                 if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
                     return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
                 }
 
                 return when (vilkårsvurderinger) {
-                    is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
+                    is FormkravTilKlage.Utfylt -> Utfylt.create(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -565,7 +567,7 @@ sealed interface VilkårsvurdertKlage :
                         sakstype = sakstype,
                     )
 
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
+                    is FormkravTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,

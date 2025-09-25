@@ -7,11 +7,11 @@ import arrow.core.Tuple6
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.UprosessertKlageinstanshendelse
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
@@ -1509,11 +1509,11 @@ class TestDataHelper(
     ): VilkårsvurdertKlage.Utfylt.TilVurdering {
         return persisterKlageOpprettet(vedtak = vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtak.id,
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                innenforFristen = FormkravTilKlage.Svarord.JA,
                 klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                erUnderskrevet = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1528,11 +1528,11 @@ class TestDataHelper(
     ): VilkårsvurdertKlage.Utfylt.Avvist {
         return persisterKlageOpprettet(vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtak.id,
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                erUnderskrevet = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")

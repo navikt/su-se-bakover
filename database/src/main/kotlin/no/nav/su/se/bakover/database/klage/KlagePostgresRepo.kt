@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.klage
 
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -396,14 +396,14 @@ internal class KlagePostgresRepo(
             )
         // row.stringOrNull("begrunnelse") er up for grabs kanskje den skal brukes i formkravene??
 
-        val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
+        val vilkårsvurderingerTilKlage = FormkravTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
             innenforFristen = row.stringOrNull("innenforFristen")?.let {
-                VilkårsvurderingerTilKlage.Svarord.valueOf(it)
+                FormkravTilKlage.Svarord.valueOf(it)
             },
             klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket"),
             erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
-                VilkårsvurderingerTilKlage.Svarord.valueOf(it)
+                FormkravTilKlage.Svarord.valueOf(it)
             },
         )
 
@@ -430,7 +430,7 @@ internal class KlagePostgresRepo(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+            vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
@@ -447,7 +447,7 @@ internal class KlagePostgresRepo(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+            vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
@@ -518,7 +518,7 @@ internal class KlagePostgresRepo(
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
+                    vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Påbegynt,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
@@ -533,7 +533,7 @@ internal class KlagePostgresRepo(
                 journalpostId = journalpostId,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
@@ -549,7 +549,7 @@ internal class KlagePostgresRepo(
                 journalpostId = journalpostId,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilVedtaksbrev = fritekstTilBrev,
@@ -608,11 +608,11 @@ internal class KlagePostgresRepo(
         ;
 
         companion object {
-            fun VilkårsvurderingerTilKlage.Svarord.tilDatabaseType(): String {
+            fun FormkravTilKlage.Svarord.tilDatabaseType(): String {
                 return when (this) {
-                    VilkårsvurderingerTilKlage.Svarord.JA -> JA
-                    VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES -> NEI_MEN_SKAL_VURDERES
-                    VilkårsvurderingerTilKlage.Svarord.NEI -> NEI
+                    FormkravTilKlage.Svarord.JA -> JA
+                    FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES -> NEI_MEN_SKAL_VURDERES
+                    FormkravTilKlage.Svarord.NEI -> NEI
                 }.toString()
             }
         }
