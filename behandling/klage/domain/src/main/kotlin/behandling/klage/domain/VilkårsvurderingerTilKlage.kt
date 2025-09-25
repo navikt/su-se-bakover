@@ -12,7 +12,6 @@ sealed interface VilkårsvurderingerTilKlage {
     val innenforFristen: Svarord?
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?
     val erUnderskrevet: Svarord?
-    val begrunnelse: String?
 
     enum class Svarord {
         JA,
@@ -34,7 +33,6 @@ sealed interface VilkårsvurderingerTilKlage {
         override val innenforFristen: Svarord?,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
         override val erUnderskrevet: Svarord?,
-        override val begrunnelse: String?,
     ) : VilkårsvurderingerTilKlage {
         companion object {
 
@@ -45,11 +43,11 @@ sealed interface VilkårsvurderingerTilKlage {
                     innenforFristen = null,
                     klagesDetPåKonkreteElementerIVedtaket = null,
                     erUnderskrevet = null,
-                    begrunnelse = null,
                 ) as Påbegynt
             }
 
             /**
+             * Denne styrer hvilken klagetype vi får se [VilkårsvurdertKlage] når man går videre i klageflyten
              * @return [VilkårsvurderingerTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [VilkårsvurderingerTilKlage.Påbegynt]
              */
             internal fun create(
@@ -57,24 +55,22 @@ sealed interface VilkårsvurderingerTilKlage {
                 innenforFristen: Svarord?,
                 klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 erUnderskrevet: Svarord?,
-                begrunnelse: String?,
             ): VilkårsvurderingerTilKlage {
                 val erAlleFelterUtfylt = listOf(
                     vedtakId,
                     innenforFristen,
                     klagesDetPåKonkreteElementerIVedtaket,
                     erUnderskrevet,
-                    begrunnelse,
                 ).all {
                     it != null
                 }
+                // TODO: fjern begrunnelse herifra som aldri er bruk
                 return if (erAlleFelterUtfylt) {
                     Utfylt(
                         vedtakId = vedtakId!!,
                         innenforFristen = innenforFristen!!,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
                         erUnderskrevet = erUnderskrevet!!,
-                        begrunnelse = begrunnelse!!,
                     )
                 } else {
                     Påbegynt(
@@ -82,7 +78,6 @@ sealed interface VilkårsvurderingerTilKlage {
                         innenforFristen = innenforFristen,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                         erUnderskrevet = erUnderskrevet,
-                        begrunnelse = begrunnelse,
                     )
                 }
             }
@@ -94,7 +89,6 @@ sealed interface VilkårsvurderingerTilKlage {
         override val innenforFristen: Svarord,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
         override val erUnderskrevet: Svarord,
-        override val begrunnelse: String,
     ) : VilkårsvurderingerTilKlage
 
     companion object {
@@ -111,14 +105,12 @@ sealed interface VilkårsvurderingerTilKlage {
             innenforFristen: Svarord?,
             klagesDetPåKonkreteElementerIVedtaket: Boolean?,
             erUnderskrevet: Svarord?,
-            begrunnelse: String?,
         ): VilkårsvurderingerTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = begrunnelse,
             )
         }
     }

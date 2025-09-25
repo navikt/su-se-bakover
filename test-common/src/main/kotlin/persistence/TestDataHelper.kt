@@ -1515,7 +1515,6 @@ class TestDataHelper(
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "enBegrunnelse",
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1535,7 +1534,6 @@ class TestDataHelper(
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "en begrunnelse med person opplysninger",
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")

@@ -14,7 +14,6 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,
             erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.NEI,
-            begrunnelse = "",
         ).toResultatBegrunnelse() shouldBe "IKKE_UNDERSKREVET"
     }
 
@@ -25,7 +24,6 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
             klagesDetPåKonkreteElementerIVedtaket = false,
             erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.NEI,
-            begrunnelse = "",
         ).toResultatBegrunnelse() shouldBe
             "IKKE_INNENFOR_FRISTEN," +
             "KLAGES_IKKE_PÅ_KONKRETE_ELEMENTER_I_VEDTAKET," +
@@ -39,7 +37,6 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,
             erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-            begrunnelse = "",
         ).toResultatBegrunnelse() shouldBe null
     }
 }

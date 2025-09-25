@@ -112,8 +112,7 @@ internal class KlagePostgresRepo(
                 vedtakId=:vedtakId,
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
-                erUnderskrevet=:erUnderskrevet,
-                begrunnelse=:begrunnelse
+                erUnderskrevet=:erUnderskrevet
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -127,7 +126,6 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
-                    "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                 ),
                 session,
             )
@@ -144,7 +142,6 @@ internal class KlagePostgresRepo(
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
-                begrunnelse=:begrunnelse,
                 fritekstTilBrev=:fritekstTilBrev,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
@@ -159,7 +156,6 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.tilDatabaseType(),
-                    "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                     "fritekstTilBrev" to klage.vurderinger.fritekstTilOversendelsesbrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
@@ -372,6 +368,7 @@ internal class KlagePostgresRepo(
                     session,
                 ),
             )
+        // row.stringOrNull("begrunnelse") er up for grabs kanskje den skal brukes i formkravene??
 
         val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
@@ -382,7 +379,6 @@ internal class KlagePostgresRepo(
             erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
                 VilkårsvurderingerTilKlage.Svarord.valueOf(it)
             },
-            begrunnelse = row.stringOrNull("begrunnelse"),
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")
