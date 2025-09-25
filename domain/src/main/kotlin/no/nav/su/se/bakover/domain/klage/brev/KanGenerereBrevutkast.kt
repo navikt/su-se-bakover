@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 
 sealed interface KanGenerereBrevutkast : Klage {
-    val fritekstTilVedtaksbrev: String
+    val fritekstTilVedtaksbrev: String?
 
     /**
      * TODO jah: Splitt denne i en funksjon for attestant (denne tar eksplisitt inn en attestant) og en for saksbehandler (ingen parameter for attestant)
@@ -35,7 +35,7 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
         sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
-        fritekst = this.fritekstTilVedtaksbrev,
+        fritekst = this.fritekstTilVedtaksbrev!!,
     ).right()
 }
 
@@ -54,7 +54,7 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
         sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
-        fritekst = this.fritekstTilVedtaksbrev,
+        fritekst = this.fritekstTilVedtaksbrev!!,
         klageDato = this.datoKlageMottatt,
         vedtaksbrevDato = vedtaksbrevDato,
     ).right()

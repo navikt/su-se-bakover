@@ -68,11 +68,20 @@ sealed interface VurderingerTilKlage {
                 fritekstTilOversendelsesbrev: String?,
                 vedtaksvurdering: Vedtaksvurdering?,
             ): VurderingerTilKlage {
-                val erUtfylt =
-                    fritekstTilOversendelsesbrev != null && vedtaksvurdering != null && vedtaksvurdering is Vedtaksvurdering.Utfylt
+                val erUtfylt = when (vedtaksvurdering) {
+                    is Vedtaksvurdering.Utfylt.Omgjør -> {
+                        fritekstTilOversendelsesbrev == null && vedtaksvurdering.begrunnelse != null
+                    }
+                    is Vedtaksvurdering.Utfylt.Oppretthold -> {
+                        fritekstTilOversendelsesbrev != null && vedtaksvurdering.hjemler.isNotEmpty()
+                    }
+                    null -> false
+                    is Vedtaksvurdering.Påbegynt.Omgjør -> false
+                    is Vedtaksvurdering.Påbegynt.Oppretthold -> false
+                }
                 return if (erUtfylt) {
                     Utfylt(
-                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev!!,
+                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering!! as Vedtaksvurdering.Utfylt,
                     )
                 } else {
@@ -86,7 +95,7 @@ sealed interface VurderingerTilKlage {
     }
 
     data class Utfylt(
-        override val fritekstTilOversendelsesbrev: String,
+        override val fritekstTilOversendelsesbrev: String?,
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt,
     ) : VurderingerTilKlage
 

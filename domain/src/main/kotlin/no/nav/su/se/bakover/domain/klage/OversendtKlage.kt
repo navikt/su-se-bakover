@@ -29,7 +29,7 @@ data class OversendtKlage(
      */
     override fun erÅpen() = false
 
-    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String?> {
         return vurderinger.fritekstTilOversendelsesbrev.right()
     }
 
@@ -43,7 +43,7 @@ data class OversendtKlage(
             sakstype = this.sakstype,
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
-            fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
+            fritekst = this.vurderinger.fritekstTilOversendelsesbrev!!,
             klageDato = this.datoKlageMottatt,
             vedtaksbrevDato = hentVedtaksbrevDato(this.id)
                 ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left(),
