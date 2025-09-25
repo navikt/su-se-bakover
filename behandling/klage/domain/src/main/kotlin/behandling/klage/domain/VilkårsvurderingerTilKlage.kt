@@ -56,21 +56,17 @@ sealed interface VilkårsvurderingerTilKlage {
                 klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 erUnderskrevet: Svarord?,
             ): VilkårsvurderingerTilKlage {
-                val erAlleFelterUtfylt = listOf(
-                    vedtakId,
-                    innenforFristen,
-                    klagesDetPåKonkreteElementerIVedtaket,
-                    erUnderskrevet,
-                ).all {
-                    it != null
-                }
-                // TODO: fjern begrunnelse herifra som aldri er bruk
-                return if (erAlleFelterUtfylt) {
+                return if (
+                    vedtakId != null &&
+                    innenforFristen != null &&
+                    klagesDetPåKonkreteElementerIVedtaket != null &&
+                    erUnderskrevet != null
+                ) {
                     Utfylt(
-                        vedtakId = vedtakId!!,
-                        innenforFristen = innenforFristen!!,
-                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                        erUnderskrevet = erUnderskrevet!!,
+                        vedtakId = vedtakId,
+                        innenforFristen = innenforFristen,
+                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+                        erUnderskrevet = erUnderskrevet,
                     )
                 } else {
                     Påbegynt(
