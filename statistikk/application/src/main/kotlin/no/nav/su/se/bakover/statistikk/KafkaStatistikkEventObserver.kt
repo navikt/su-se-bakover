@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
-import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
@@ -63,14 +62,6 @@ internal class KafkaStatistikkEventObserver(
                     }
                 }
 
-                is StatistikkEvent.Søknad -> {
-                    if (ApplicationConfig.isProd()) {
-                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
-                    } else {
-                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
-                    }
-                }
-
                 is StatistikkEvent.Stønadsvedtak -> {
                     publiserEllerLoggFeil(
                         event.toStønadstatistikkDto(
@@ -87,6 +78,8 @@ internal class KafkaStatistikkEventObserver(
                         ).right(),
                     )
                 }
+
+                is StatistikkEvent.Søknad.Lukket -> TODO("Skal fjernes")
             }
         }.mapLeft {
             log.error("Feil ved publisering av statistikk", it)

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.søknad.avvistSøknadUtenBrev
 import no.nav.su.se.bakover.test.søknad.bortfaltSøknad
-import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
 import no.nav.su.se.bakover.test.søknad.trukketSøknad
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -21,18 +20,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
 
 internal class StatistikkSøknadTest {
-
-    @Test
-    fun `ny søknad`() {
-        val (sak, søknad) = nySakMedNySøknad()
-        assert(
-            statistikkEvent = StatistikkEvent.Søknad.Mottatt(søknad, sak.saksnummer),
-            behandlingStatus = "REGISTRERT",
-            behandlingStatusBeskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",
-            funksjonellTid = søknad.opprettet,
-            saksbehandler = "veileder",
-        )
-    }
 
     @Test
     fun `feilregistrert søknad`() {

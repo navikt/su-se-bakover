@@ -43,11 +43,7 @@ sealed interface StatistikkEvent {
         val søknad: DomeneSøknad
         val saksnummer: Saksnummer
 
-        data class Mottatt(
-            override val søknad: DomeneSøknad.Ny,
-            override val saksnummer: Saksnummer,
-        ) : Søknad
-
+        // TODO må erstattes - eksisterende søknader med behandling vil jo ikke få behandling????
         data class Lukket(
             override val søknad: DomeneSøknad.Journalført.MedOppgave.Lukket,
             override val saksnummer: Saksnummer,

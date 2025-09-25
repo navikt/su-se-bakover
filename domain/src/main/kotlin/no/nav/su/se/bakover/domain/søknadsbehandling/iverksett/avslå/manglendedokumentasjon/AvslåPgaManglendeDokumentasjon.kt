@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -43,6 +45,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
     genererPdf: (IverksettSøknadsbehandlingDokumentCommand.Avslag) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>,
+    observers: MutableList<StatistikkEventObserver> = mutableListOf(),
 ): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
     val søknadId = command.søknadId
     return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
@@ -52,6 +55,14 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 clock = clock,
                 saksbehandler = command.saksbehandler,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
+                observers.forEach { observer ->
+                    observer.handle(
+                        StatistikkEvent.Behandling.Søknad.Opprettet(
+                            it.second,
+                            NavIdentBruker.Saksbehandler.systembruker(),
+                        ),
+                    )
+                }
                 Pair(it.first, listOf(it.second))
             }
         },
