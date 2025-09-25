@@ -1,10 +1,6 @@
 package no.nav.su.se.bakover.web.routes.klage
 
-import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
-import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.VilkårsvurderingerTilKlage
 import io.ktor.http.ContentType
@@ -53,7 +49,6 @@ import no.nav.su.se.bakover.presentation.web.toErrorJson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
-import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
@@ -62,14 +57,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
-
-private enum class Grunn {
-    INNGANGSVILKÅRENE_ER_FEILVURDERT,
-    BEREGNINGEN_ER_FEIL,
-    DOKUMENTASJON_MANGLER,
-    VEDTAKSBREVET_ER_FEIL,
-    ANDRE_FORHOLD,
-}
 
 private enum class Svarord {
     JA,
@@ -375,35 +362,9 @@ internal fun Route.klageRoutes(
     }
 
     post("$KLAGE_PATH/{klageId}/underkjenn") {
-        data class Body(val grunn: String, val kommentar: String) {
-            fun toRequest(
-                klageId: UUID,
-                attestant: NavIdentBruker.Attestant,
-            ): Either<Resultat, UnderkjennKlageRequest> {
-                return UnderkjennKlageRequest(
-                    klageId = KlageId(klageId),
-                    attestant = attestant,
-                    grunn = Either.catch { Grunn.valueOf(grunn) }.map {
-                        when (it) {
-                            Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> UnderkjennAttesteringsgrunnBehandling.INNGANGSVILKÅRENE_ER_FEILVURDERT
-                            Grunn.BEREGNINGEN_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL
-                            Grunn.DOKUMENTASJON_MANGLER -> UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER
-                            Grunn.VEDTAKSBREVET_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL
-                            Grunn.ANDRE_FORHOLD -> UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD
-                        }
-                    }.getOrElse {
-                        return BadRequest.errorJson(
-                            "Ugyldig underkjennelsesgrunn",
-                            "ugyldig_grunn_for_underkjenning",
-                        ).left()
-                    },
-                    kommentar = kommentar,
-                ).right()
-            }
-        }
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
+                call.withBody<KlageUnderkjentBody> { body ->
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
                             call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
