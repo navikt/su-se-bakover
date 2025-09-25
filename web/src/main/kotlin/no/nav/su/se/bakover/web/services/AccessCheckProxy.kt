@@ -1098,9 +1098,9 @@ open class AccessCheckProxy(
                     return services.klageService.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-                    assertHarTilgangTilKlage(request.klageId)
-                    return services.klageService.vilkårsvurder(request)
+                override fun vilkårsvurder(command: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                    assertHarTilgangTilKlage(command.klageId)
+                    return services.klageService.vilkårsvurder(command)
                 }
 
                 override fun bekreftVilkårsvurderinger(
