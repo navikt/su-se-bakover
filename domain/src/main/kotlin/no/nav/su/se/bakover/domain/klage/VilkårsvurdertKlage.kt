@@ -44,6 +44,9 @@ sealed interface VilkårsvurdertKlage :
         override fun erAvsluttet() = false
         override fun erAvbrutt() = false
 
+        /**
+         * Denne er avhengig av sjekken på formkravene i [FormkravTilKlage].create()
+         */
         override fun vilkårsvurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vilkårsvurderinger: FormkravTilKlage,
