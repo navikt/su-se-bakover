@@ -103,7 +103,7 @@ fun opprettRevurderingFraSaksopplysninger(
         "Man kan ikke sende inn uavklarte vilkår til en revurdering. Den starter som utfylt(innvilget/avslag) også kan man overskrive de med nye vilkår som er innvilget/avslag, men ikke uavklart."
     }
     return sakOgVedtakSomKanRevurderes.first.opprettRevurdering(
-        command = OpprettRevurderingCommand(
+        cmd = OpprettRevurderingCommand(
             sakId = sakOgVedtakSomKanRevurderes.first.id,
             periode = revurderingsperiode,
             årsak = revurderingsårsak.årsak.name,

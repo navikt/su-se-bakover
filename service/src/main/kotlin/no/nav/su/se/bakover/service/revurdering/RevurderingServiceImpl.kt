@@ -23,8 +23,10 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -65,6 +67,7 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
+import no.nav.su.se.bakover.domain.revurdering.retur.KunneIkkeReturnereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
@@ -114,6 +117,7 @@ import kotlin.reflect.KClass
 class RevurderingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
+    private val klageRepo: KlageRepo,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val brevService: BrevService,
@@ -147,7 +151,7 @@ class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.SakFinnesIkke.left()
         }
         return sak.opprettRevurdering(
-            command = command,
+            cmd = command,
             clock = clock,
         ).map {
             val oppgaveResponse = oppgaveService.opprettOppgave(
@@ -157,10 +161,89 @@ class RevurderingServiceImpl(
             }
             it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
         }.map {
+            it.klageId?.let { klageId ->
+                klageRepo.knyttMotOmgjøring(klageId, it.opprettetRevurdering.id.value)
+            }
             revurderingRepo.lagre(it.opprettetRevurdering)
             observers.notify(it.statistikkHendelse)
             it.opprettetRevurdering
         }
+    }
+
+    override fun returnerRevurdering(
+        request: RevurderingService.ReturnerRevurderingRequest,
+    ): Either<KunneIkkeReturnereRevurdering, Revurdering> {
+        val revurdering = (
+            revurderingRepo.hent(request.revurderingId)
+                ?: return KunneIkkeReturnereRevurdering.FantIkkeRevurdering.left()
+            ).let {
+            it as? RevurderingTilAttestering ?: return KunneIkkeReturnereRevurdering.FeilSaksbehandler.left()
+        }
+        if (request.saksbehandler.navIdent != revurdering.saksbehandler.navIdent) {
+            return KunneIkkeReturnereRevurdering.FeilSaksbehandler.left()
+        }
+
+        val returner = with(revurdering) {
+            when (this) {
+                is RevurderingTilAttestering.Innvilget ->
+                    SimulertRevurdering.Innvilget(
+                        oppgaveId = oppgaveId,
+                        revurderingsårsak = revurderingsårsak,
+                        beregning = beregning,
+                        simulering = simulering,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                        informasjonSomRevurderes = informasjonSomRevurderes,
+                        attesteringer = attesteringer,
+                        sakinfo = sakinfo,
+                        brevvalgRevurdering = brevvalgRevurdering,
+                        omgjøringsgrunn = omgjøringsgrunn,
+                        id = id,
+                        periode = periode,
+                        opprettet = opprettet,
+                        oppdatert = oppdatert,
+                        tilRevurdering = tilRevurdering,
+                        vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
+                        saksbehandler = saksbehandler,
+                    )
+
+                is RevurderingTilAttestering.Opphørt ->
+                    SimulertRevurdering.Opphørt(
+                        oppgaveId = oppgaveId,
+                        revurderingsårsak = revurderingsårsak,
+                        beregning = beregning,
+                        simulering = simulering,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                        informasjonSomRevurderes = informasjonSomRevurderes,
+                        attesteringer = attesteringer,
+                        sakinfo = sakinfo,
+                        brevvalgRevurdering = brevvalgRevurdering,
+                        omgjøringsgrunn = omgjøringsgrunn,
+                        id = id,
+                        periode = periode,
+                        opprettet = opprettet,
+                        oppdatert = oppdatert,
+                        tilRevurdering = tilRevurdering,
+                        vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
+                        saksbehandler = saksbehandler,
+                    )
+            }
+        }
+
+        oppgaveService.oppdaterOppgave(
+            returner.oppgaveId,
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Revurdering har blitt returnert",
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(revurdering.saksbehandler.navIdent),
+            ),
+        ).map {
+            log.info("Revurdering ${returner.id} ble returnert. Oppgave ${returner.oppgaveId} ble oppdatert. Se sikkerlogg for response")
+            sikkerLogg.info("Revurdering ${returner.id} ble returnert. Oppgave ${returner.oppgaveId} ble oppdatert. oppgaveResponse: ${it.response}")
+        }.mapLeft {
+            log.error("Revurdering retur: Kunne ikke oppdatere oppgave ${returner.oppgaveId} for revurdering ${returner.id}. Feilen var $it")
+        }
+        revurderingRepo.lagre(returner)
+        return returner.right()
     }
 
     override fun leggTilUførevilkår(

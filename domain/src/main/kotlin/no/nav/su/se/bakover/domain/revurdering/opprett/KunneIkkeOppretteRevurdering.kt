@@ -25,4 +25,10 @@ sealed interface KunneIkkeOppretteRevurdering {
     data object SakFinnesIkke : KunneIkkeOppretteRevurdering
 
     data object MåhaOmgjøringsgrunn : KunneIkkeOppretteRevurdering
+    data object KlageUgyldigUUID : KunneIkkeOppretteRevurdering
+    data object KlageMåFinnesForKnytning : KunneIkkeOppretteRevurdering
+    data object KlageErAlleredeKnyttetTilBehandling : KunneIkkeOppretteRevurdering
+    data object UlikOmgjøringsgrunn : KunneIkkeOppretteRevurdering
+    data object KlagenErOpprettholdt : KunneIkkeOppretteRevurdering
+    data object KlageErIkkeOversendt : KunneIkkeOppretteRevurdering
 }

@@ -97,10 +97,11 @@ sealed interface VurderingerTilKlage {
             /**
              * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
              */
-            fun createOmgjør(årsak: Årsak?, utfall: Utfall?): Vedtaksvurdering {
+            fun createOmgjør(årsak: Årsak?, utfall: Utfall?, begrunnelse: String?): Vedtaksvurdering {
                 return Påbegynt.Omgjør.create(
                     årsak = årsak,
                     utfall = utfall,
+                    begrunnelse = begrunnelse,
                 )
             }
 
@@ -115,7 +116,7 @@ sealed interface VurderingerTilKlage {
         }
 
         sealed interface Påbegynt : Vedtaksvurdering {
-            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt {
+            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?, val begrunnelse: String?) : Påbegynt {
 
                 companion object {
                     /**
@@ -126,16 +127,19 @@ sealed interface VurderingerTilKlage {
                     internal fun create(
                         årsak: Årsak?,
                         utfall: Utfall?,
+                        begrunnelse: String? = null,
                     ): Vedtaksvurdering {
                         return if (årsak != null && utfall != null) {
                             Utfylt.Omgjør(
                                 årsak = årsak,
                                 utfall = utfall,
+                                begrunnelse = begrunnelse,
                             )
                         } else {
                             Omgjør(
                                 årsak = årsak,
                                 utfall = utfall,
+                                begrunnelse = begrunnelse,
                             )
                         }
                     }
@@ -146,7 +150,7 @@ sealed interface VurderingerTilKlage {
         }
 
         sealed interface Utfylt : Vedtaksvurdering {
-            data class Omgjør(val årsak: Årsak, val utfall: Utfall) : Utfylt
+            data class Omgjør(val årsak: Årsak, val utfall: Utfall, val begrunnelse: String?) : Utfylt
             data class Oppretthold(val hjemler: Klagehjemler.Utfylt) : Utfylt
         }
 

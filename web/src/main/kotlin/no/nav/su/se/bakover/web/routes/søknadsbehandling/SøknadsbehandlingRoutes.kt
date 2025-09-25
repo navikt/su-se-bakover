@@ -322,7 +322,7 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/returSak") {
+    patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/returnerSøknadsbehandling") {
         authorize(Brukerrolle.Saksbehandler) {
             val sakBehandler = call.suUserContext.saksbehandler
 

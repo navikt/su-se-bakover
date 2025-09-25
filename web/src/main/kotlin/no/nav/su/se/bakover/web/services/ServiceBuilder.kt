@@ -198,6 +198,7 @@ data object ServiceBuilder {
             sakService = sakService,
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
+            klageRepo = databaseRepos.klageRepo,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
