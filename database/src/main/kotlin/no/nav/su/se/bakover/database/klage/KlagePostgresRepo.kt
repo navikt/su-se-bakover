@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.klage
 
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -112,8 +112,7 @@ internal class KlagePostgresRepo(
                 vedtakId=:vedtakId,
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
-                erUnderskrevet=:erUnderskrevet,
-                begrunnelse=:begrunnelse
+                erUnderskrevet=:erUnderskrevet
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -127,7 +126,6 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
-                    "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                 ),
                 session,
             )
@@ -144,7 +142,6 @@ internal class KlagePostgresRepo(
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
-                begrunnelse=:begrunnelse,
                 fritekstTilBrev=:fritekstTilBrev,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
@@ -159,7 +156,6 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.tilDatabaseType(),
-                    "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                     "fritekstTilBrev" to klage.vurderinger.fritekstTilOversendelsesbrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
@@ -372,17 +368,17 @@ internal class KlagePostgresRepo(
                     session,
                 ),
             )
+        // row.stringOrNull("begrunnelse") er up for grabs kanskje den skal brukes i formkravene??
 
-        val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
+        val formkravTilKlage = FormkravTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
             innenforFristen = row.stringOrNull("innenforFristen")?.let {
-                VilkårsvurderingerTilKlage.Svarord.valueOf(it)
+                FormkravTilKlage.Svarord.valueOf(it)
             },
             klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket"),
             erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
-                VilkårsvurderingerTilKlage.Svarord.valueOf(it)
+                FormkravTilKlage.Svarord.valueOf(it)
             },
-            begrunnelse = row.stringOrNull("begrunnelse"),
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")
@@ -408,7 +404,7 @@ internal class KlagePostgresRepo(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+            vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
@@ -425,7 +421,7 @@ internal class KlagePostgresRepo(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+            vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
@@ -496,7 +492,7 @@ internal class KlagePostgresRepo(
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
+                    vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Påbegynt,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
@@ -511,7 +507,7 @@ internal class KlagePostgresRepo(
                 journalpostId = journalpostId,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
@@ -527,7 +523,7 @@ internal class KlagePostgresRepo(
                 journalpostId = journalpostId,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilVedtaksbrev = fritekstTilBrev,
@@ -577,11 +573,11 @@ internal class KlagePostgresRepo(
         ;
 
         companion object {
-            fun VilkårsvurderingerTilKlage.Svarord.tilDatabaseType(): String {
+            fun FormkravTilKlage.Svarord.tilDatabaseType(): String {
                 return when (this) {
-                    VilkårsvurderingerTilKlage.Svarord.JA -> JA
-                    VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES -> NEI_MEN_SKAL_VURDERES
-                    VilkårsvurderingerTilKlage.Svarord.NEI -> NEI
+                    FormkravTilKlage.Svarord.JA -> JA
+                    FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES -> NEI_MEN_SKAL_VURDERES
+                    FormkravTilKlage.Svarord.NEI -> NEI
                 }.toString()
             }
         }

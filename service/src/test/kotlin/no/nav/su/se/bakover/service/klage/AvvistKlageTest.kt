@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import arrow.core.right
-import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.FormkravTilKlage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
@@ -161,7 +160,7 @@ internal class AvvistKlageTest {
 
             val actual = klage.vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt.empty(),
+                vilkårsvurderinger = FormkravTilKlage.Påbegynt.empty(),
             )
 
             actual shouldBe VilkårsvurdertKlage.Påbegynt(
@@ -174,7 +173,7 @@ internal class AvvistKlageTest {
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = klage.saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt.empty(),
+                vilkårsvurderinger = FormkravTilKlage.Påbegynt.empty(),
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
             ).right()
@@ -186,12 +185,11 @@ internal class AvvistKlageTest {
 
             val actual = klage.vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vilkårsvurderinger = FormkravTilKlage.Utfylt(
                     vedtakId = UUID.randomUUID(),
-                    innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                    innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
-                    erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "",
+                    erUnderskrevet = FormkravTilKlage.Svarord.JA,
                 ),
             ).getOrFail()
 
@@ -205,7 +203,7 @@ internal class AvvistKlageTest {
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = klage.saksbehandler,
-                vilkårsvurderinger = actual.vilkårsvurderinger as VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger = actual.vilkårsvurderinger as FormkravTilKlage.Utfylt,
                 vurderinger = null,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
@@ -219,12 +217,11 @@ internal class AvvistKlageTest {
 
             val actual = klage.vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vilkårsvurderinger = FormkravTilKlage.Utfylt(
                     vedtakId = UUID.randomUUID(),
-                    innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                    innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = false,
-                    erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "",
+                    erUnderskrevet = FormkravTilKlage.Svarord.JA,
                 ),
             ).getOrFail()
 
@@ -238,7 +235,7 @@ internal class AvvistKlageTest {
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = klage.saksbehandler,
-                vilkårsvurderinger = actual.vilkårsvurderinger as VilkårsvurderingerTilKlage.Utfylt,
+                vilkårsvurderinger = actual.vilkårsvurderinger as FormkravTilKlage.Utfylt,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
                 fritekstTilVedtaksbrev = klage.fritekstTilVedtaksbrev,

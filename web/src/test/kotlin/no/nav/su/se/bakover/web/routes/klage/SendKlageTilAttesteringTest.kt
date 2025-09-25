@@ -143,7 +143,6 @@ internal class SendKlageTilAttesteringTest {
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

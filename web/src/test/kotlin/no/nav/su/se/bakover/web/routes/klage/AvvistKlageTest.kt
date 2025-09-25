@@ -155,7 +155,6 @@ internal class AvvistKlageTest {
                   "innenforFristen":"NEI",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "begrunnelse":"begrunnelse",
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "fritekstTilBrev": "dette er en fritekst med person opplysninger",
