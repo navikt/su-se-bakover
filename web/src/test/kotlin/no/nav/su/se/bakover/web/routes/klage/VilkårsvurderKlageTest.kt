@@ -34,8 +34,7 @@ internal class VilkårsvurderKlageTest {
              "vedtakId": null,
              "innenforFristen": null,
              "klagesDetPåKonkreteElementerIVedtaket": null,
-             "erUnderskrevet": null,
-             "begrunnelse": null
+             "erUnderskrevet": null
         }
     """.trimIndent()
 
@@ -168,7 +167,6 @@ internal class VilkårsvurderKlageTest {
                   "innenforFristen":null,
                   "klagesDetPåKonkreteElementerIVedtaket":null,
                   "erUnderskrevet":null,
-                  "begrunnelse":null,
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,
                   "attesteringer":[],
