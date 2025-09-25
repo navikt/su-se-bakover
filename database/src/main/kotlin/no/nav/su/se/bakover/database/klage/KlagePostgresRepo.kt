@@ -370,7 +370,7 @@ internal class KlagePostgresRepo(
             )
         // row.stringOrNull("begrunnelse") er up for grabs kanskje den skal brukes i formkravene??
 
-        val vilkårsvurderingerTilKlage = FormkravTilKlage.create(
+        val formkravTilKlage = FormkravTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
             innenforFristen = row.stringOrNull("innenforFristen")?.let {
                 FormkravTilKlage.Svarord.valueOf(it)
@@ -404,7 +404,7 @@ internal class KlagePostgresRepo(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
+            vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
@@ -421,7 +421,7 @@ internal class KlagePostgresRepo(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
+            vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
@@ -492,7 +492,7 @@ internal class KlagePostgresRepo(
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Påbegynt,
+                    vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Påbegynt,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
@@ -507,7 +507,7 @@ internal class KlagePostgresRepo(
                 journalpostId = journalpostId,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
+                vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
@@ -523,7 +523,7 @@ internal class KlagePostgresRepo(
                 journalpostId = journalpostId,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderingerTilKlage as FormkravTilKlage.Utfylt,
+                vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilVedtaksbrev = fritekstTilBrev,

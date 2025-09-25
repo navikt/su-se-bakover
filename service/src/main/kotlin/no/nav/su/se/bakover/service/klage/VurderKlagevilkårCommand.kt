@@ -17,7 +17,7 @@ data class VurderKlagevilkårCommand(
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
     val erUnderskrevet: FormkravTilKlage.Svarord?,
 ) {
-    val vilkårsvurderinger = FormkravTilKlage.create(
+    val formkrav = FormkravTilKlage.create(
         vedtakId = vedtakId,
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
