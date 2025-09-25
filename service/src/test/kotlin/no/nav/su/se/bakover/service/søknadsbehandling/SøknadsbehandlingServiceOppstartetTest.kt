@@ -98,6 +98,7 @@ internal class SøknadsbehandlingServiceOppstartetTest {
             VilkårsvurdertSøknadsbehandling.Uavklart::periode,
         )
         verify(serviceAndMocks.sakService).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(søknadsbehandlingRepoMock).hentForSøknad(søknad.id)
         verify(serviceAndMocks.oppgaveService).oppdaterOppgave(
             argThat { it shouldBe oppgaveIdSøknad },
             argThat {
