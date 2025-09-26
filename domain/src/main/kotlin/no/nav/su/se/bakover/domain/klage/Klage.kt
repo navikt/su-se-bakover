@@ -65,7 +65,7 @@ sealed interface Klage :
     /**
      * @return fritekst til brev uavhengig om det er en oversending eller avvisning.
      */
-    fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String?> {
+    fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
     }
 

@@ -36,8 +36,20 @@ sealed interface VurdertKlage :
             throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
         }
 
+    val fritekstTilBrev: String?
+        get() =
+            when (val vurderinger = vurderinger) {
+                is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
+                is VurderingerTilKlage.UtfyltOmgjøring -> null
+                is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+            }
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return vurderinger.fritekstTilOversendelsesbrev.orEmpty().right()
+        return when (val vurderinger = vurderinger) {
+            is VurderingerTilKlage.Påbegynt -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
+        }
     }
 
     /**

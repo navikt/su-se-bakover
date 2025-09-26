@@ -8,7 +8,6 @@ import arrow.core.Either
  */
 sealed interface VurderingerTilKlage {
 
-    val fritekstTilOversendelsesbrev: String?
     val vedtaksvurdering: Vedtaksvurdering?
 
     companion object {
@@ -23,7 +22,7 @@ sealed interface VurderingerTilKlage {
 
         /**
          * [VurderingerTilKlage.Påbegynt] dersom minst en av disse er oppfylt:
-         * 1. fritekstTilOversendelsesbrev er null
+         * 1. fritekstTilOversendelsesbrev er null hvis det ikke er omgjøring
          * 2. vedtaksvurdering er null
          * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
          *
@@ -49,14 +48,15 @@ sealed interface VurderingerTilKlage {
      * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
      */
     data class Påbegynt private constructor(
-        override val fritekstTilOversendelsesbrev: String?,
+        val fritekstTilOversendelsesbrev: String?,
         override val vedtaksvurdering: Vedtaksvurdering?,
     ) : VurderingerTilKlage {
 
         companion object {
             /**
+             *
              * [VurderingerTilKlage.Påbegynt] dersom minst en av disse er oppfylt:
-             * 1. fritekstTilOversendelsesbrev er null
+             * 1. fritekstTilOversendelsesbrev er null hvis det ikke er omgjøring
              * 2. vedtaksvurdering er null
              * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
              *
@@ -68,24 +68,39 @@ sealed interface VurderingerTilKlage {
                 fritekstTilOversendelsesbrev: String?,
                 vedtaksvurdering: Vedtaksvurdering?,
             ): VurderingerTilKlage {
-                val erUtfylt = when (vedtaksvurdering) {
+                return when (vedtaksvurdering) {
                     is Vedtaksvurdering.Utfylt.Omgjør -> {
-                        fritekstTilOversendelsesbrev == null && vedtaksvurdering.begrunnelse != null
+                        if (fritekstTilOversendelsesbrev == null && vedtaksvurdering.begrunnelse != null) {
+                            UtfyltOmgjøring(vedtaksvurdering = vedtaksvurdering)
+                        } else {
+                            Påbegynt(
+                                fritekstTilOversendelsesbrev = null,
+                                vedtaksvurdering = vedtaksvurdering,
+                            )
+                        }
                     }
                     is Vedtaksvurdering.Utfylt.Oppretthold -> {
-                        fritekstTilOversendelsesbrev != null && vedtaksvurdering.hjemler.isNotEmpty()
+                        if (fritekstTilOversendelsesbrev != null && vedtaksvurdering.hjemler.isNotEmpty()) {
+                            UtfyltOppretthold(
+                                fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
+                                vedtaksvurdering = vedtaksvurdering,
+                            )
+                        } else {
+                            Påbegynt(
+                                fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
+                                vedtaksvurdering = vedtaksvurdering,
+                            )
+                        }
                     }
-                    null -> false
-                    is Vedtaksvurdering.Påbegynt.Omgjør -> false
-                    is Vedtaksvurdering.Påbegynt.Oppretthold -> false
-                }
-                return if (erUtfylt) {
-                    Utfylt(
+                    null -> Påbegynt(
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
-                        vedtaksvurdering = vedtaksvurdering!! as Vedtaksvurdering.Utfylt,
+                        vedtaksvurdering = vedtaksvurdering,
                     )
-                } else {
-                    Påbegynt(
+                    is Vedtaksvurdering.Påbegynt.Omgjør -> Påbegynt(
+                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
+                        vedtaksvurdering = vedtaksvurdering,
+                    )
+                    is Vedtaksvurdering.Påbegynt.Oppretthold -> Påbegynt(
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
@@ -94,10 +109,17 @@ sealed interface VurderingerTilKlage {
         }
     }
 
-    data class Utfylt(
-        override val fritekstTilOversendelsesbrev: String?,
-        override val vedtaksvurdering: Vedtaksvurdering.Utfylt,
-    ) : VurderingerTilKlage
+    sealed interface Utfylt : VurderingerTilKlage {
+        override val vedtaksvurdering: Vedtaksvurdering.Utfylt
+    }
+    data class UtfyltOmgjøring(
+        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Omgjør,
+    ) : Utfylt
+
+    data class UtfyltOppretthold(
+        val fritekstTilOversendelsesbrev: String,
+        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Oppretthold,
+    ) : Utfylt
 
     sealed interface Vedtaksvurdering {
 

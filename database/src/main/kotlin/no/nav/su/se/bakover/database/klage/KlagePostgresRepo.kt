@@ -163,7 +163,7 @@ internal class KlagePostgresRepo(
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.tilDatabaseType(),
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
-                    "fritekstTilBrev" to klage.vurderinger.fritekstTilOversendelsesbrev,
+                    "fritekstTilBrev" to klage.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                 ),
