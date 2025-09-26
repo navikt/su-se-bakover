@@ -119,7 +119,7 @@ fun søknadsbehandlingJson(
                 "institusjonsopphold": null
               },
               "erLukket": false,
-              "sakstype": $sakstype,
+              "sakstype": "$sakstype",
               "aldersvurdering": null,
               "eksterneGrunnlag": {
                 "skatt": null

@@ -92,7 +92,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     body.soknadId.toUUID().mapLeft {
                         return@authorize call.svar(
                             BadRequest.errorJson(
-                                "behandlingId er ikke en gyldig uuid",
+                                "soknadId er ikke en gyldig uuid",
                                 "ikke_gyldig_uuid",
                             ),
                         )
