@@ -64,7 +64,6 @@ sealed interface VilkårsvurderingerTilKlage {
                     innenforFristen,
                     klagesDetPåKonkreteElementerIVedtaket,
                     erUnderskrevet,
-                    begrunnelse,
                 ).all {
                     it != null
                 }
@@ -74,7 +73,7 @@ sealed interface VilkårsvurderingerTilKlage {
                         innenforFristen = innenforFristen!!,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
                         erUnderskrevet = erUnderskrevet!!,
-                        begrunnelse = begrunnelse!!,
+                        begrunnelse = "", // TODO: kan fjernes
                     )
                 } else {
                     Påbegynt(
