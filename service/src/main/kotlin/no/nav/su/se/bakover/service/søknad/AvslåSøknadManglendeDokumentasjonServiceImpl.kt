@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
@@ -47,16 +46,11 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
         observers.add(observer)
     }
 
-    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
-
     override fun avslå(
         command: AvslåManglendeDokumentasjonCommand,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
         return lagAvslag(command).map {
             iverksettSøknadsbehandlingService.iverksett(it)
-            observers.forEach { observer ->
-                observer.handle(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(it.vedtak))
-            }
             it.sak
         }
     }

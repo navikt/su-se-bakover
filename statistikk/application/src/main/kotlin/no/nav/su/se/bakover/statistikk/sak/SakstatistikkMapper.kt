@@ -8,6 +8,7 @@ import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.serialize
@@ -66,8 +67,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
-                    utbetaltTid = søknadsbehandling.periode.fraOgMed,
-                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent,
+                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
                     saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                 )
 
@@ -77,7 +77,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
-                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent,
+                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
                     saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                     behandlingAarsak = "Omgjøring etter avvist søknad",
                     relatertId = relatertId,
@@ -91,6 +91,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.TilAttestering.name,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    utbetaltTid = søknadsbehandling.stønadsperiode?.periode?.fraOgMed,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag -> this.toBehandlingsstatistikkGenerell(
@@ -134,7 +135,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.name,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
-                    utbetaltTid = null,
+                    utbetaltTid = søknadsbehandling.periode.fraOgMed,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
                         ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),

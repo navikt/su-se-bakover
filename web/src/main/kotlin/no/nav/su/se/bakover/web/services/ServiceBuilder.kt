@@ -253,7 +253,9 @@ data object ServiceBuilder {
             brevService = brevService,
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
-        ).apply { addObserver(statistikkEventObserver) }
+        ).apply {
+            addObserver(statistikkEventObserver)
+        }
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,

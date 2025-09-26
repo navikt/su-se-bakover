@@ -217,7 +217,7 @@ sealed interface StatistikkEvent {
     }
 
     /**
-     * Brukes til stønadsstatistikk
+     * Brukes til stønadsstatistikk TODO fjern??
      */
     data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes, val hentSak: () -> Sak) : StatistikkEvent
 }
