@@ -1588,12 +1588,12 @@ class TestDataHelper(
         }
     }
 
-    fun persisterKlageVurdertUtfylt(
+    fun persisterKlageVurdertUtfyltOpprettholdt(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Utfylt {
         return persisterKlageVurdertPåbegynt(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
-            vurderinger = VurderingerTilKlage.Utfylt(
+            vurderinger = VurderingerTilKlage.UtfyltOppretthold(
                 fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
                     hjemler = Klagehjemler.Utfylt.create(
@@ -1612,7 +1612,7 @@ class TestDataHelper(
     fun persisterKlageVurdertBekreftet(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Bekreftet {
-        return persisterKlageVurdertUtfylt(vedtak = vedtak).bekreftVurderinger(
+        return persisterKlageVurdertUtfyltOpprettholdt(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
         ).also {
             databaseRepos.klageRepo.lagre(it)

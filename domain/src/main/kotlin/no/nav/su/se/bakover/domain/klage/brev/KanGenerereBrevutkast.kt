@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 
 sealed interface KanGenerereBrevutkast : Klage {
-    val fritekstTilVedtaksbrev: String
+    val fritekstTilVedtaksbrev: String?
 
     /**
      * TODO jah: Splitt denne i en funksjon for attestant (denne tar eksplisitt inn en attestant) og en for saksbehandler (ingen parameter for attestant)
@@ -35,7 +35,7 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
         sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
-        fritekst = this.fritekstTilVedtaksbrev,
+        fritekst = this.fritekstTilVedtaksbrev!!,
     ).right()
 }
 
@@ -48,13 +48,22 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
             ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left()
         )
 
+    val fritekst = when (this) {
+        is AvvistKlage -> this.fritekstTilVedtaksbrev
+        is KlageTilAttestering.Avvist -> this.fritekstTilVedtaksbrev
+        is KlageTilAttestering.Vurdert -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.Bekreftet -> this.fritekstTilBrev!!
+        is VurdertKlage.Påbegynt -> this.fritekstTilBrev!!
+        is VurdertKlage.Utfylt -> this.fritekstTilVedtaksbrev
+    }
+    // klage.vurderinger.friteksttiloversendelesesbrev er populert men this.fritekstTilVedtaksbrev kaster exception?
     return KlageDokumentCommand.Oppretthold(
         fødselsnummer = this.fnr,
         saksnummer = this.saksnummer,
         sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
-        fritekst = this.fritekstTilVedtaksbrev,
+        fritekst = fritekst,
         klageDato = this.datoKlageMottatt,
         vedtaksbrevDato = vedtaksbrevDato,
     ).right()

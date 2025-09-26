@@ -169,7 +169,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVurdertUtfylt()
+            val klage = testDataHelper.persisterKlageVurdertUtfyltOpprettholdt()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))

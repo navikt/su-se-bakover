@@ -32,6 +32,7 @@ fun genererBrevutkastForKlage(
             ).left()
         }
     }
+
     return klage.lagBrevRequest(
         utførtAv = ident,
         hentVedtaksbrevDato = hentVedtaksbrevDato,

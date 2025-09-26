@@ -316,10 +316,10 @@ internal class VurderKlageTest {
         )
         mocks.service.vurder(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
-            it.vurderinger shouldBe VurderingerTilKlage.Utfylt(
+            it.vurderinger shouldBe VurderingerTilKlage.UtfyltOppretthold(
                 fritekstTilOversendelsesbrev = "fritekstTilBrev",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(listOf(Hjemmel.SU_PARAGRAF_3))
-                    .getOrFail() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
+                    .getOrFail() as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold,
             )
         }
 

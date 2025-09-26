@@ -91,7 +91,7 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `fant ikke saksbehandler`() {
-        val (sak, klage) = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = "jeg er fritekst for et brev")
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -120,7 +120,7 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `fant ikke person`() {
-        val (sak, klage) = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = "jeg er fritekst for et brev")
         val vedtak = sak.vedtakListe.first()
 
         val mocks = KlageServiceMocks(
@@ -151,7 +151,8 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `generering av brev feilet`() {
-        val (sak, klage) = påbegyntVurdertKlage()
+        val fritekst = ""
+        val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = fritekst)
         val vedtak = sak.vedtakListe.first()
 
         val mocks = KlageServiceMocks(
@@ -181,7 +182,7 @@ internal class HentBrevutkastTest {
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                     attestant = null,
-                    fritekst = "",
+                    fritekst = fritekst,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -194,7 +195,8 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `Skal kunne hente brevutkast til klage`() {
-        val (sak, klage) = påbegyntVurdertKlage()
+        val fritekst = ""
+        val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = fritekst)
         val vedtak = sak.vedtakListe.first()
         person(fnr = sak.fnr)
         val pdfAsBytes = PdfA("brevbytes".toByteArray())
@@ -222,7 +224,7 @@ internal class HentBrevutkastTest {
             argThat {
                 it shouldBe KlageDokumentCommand.Oppretthold(
                     sakstype = Sakstype.UFØRE,
-                    fritekst = "",
+                    fritekst = fritekst,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -336,7 +338,7 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `kan hente brevutkast fra vurdertKlage`() {
-        val (sak, klage) = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = "")
 
         assertAndVerifyBrevutkast(
             sak = sak,

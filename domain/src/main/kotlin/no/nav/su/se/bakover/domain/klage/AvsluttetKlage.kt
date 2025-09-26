@@ -39,6 +39,7 @@ data class AvsluttetKlage(
         is OversendtKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
         is VilkårsvurdertKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
         is VurdertKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
+        is FerdigstiltOmgjortKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
     }
 
     override fun erÅpen() = false

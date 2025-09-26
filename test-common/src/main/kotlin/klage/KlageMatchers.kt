@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlageFelter
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
@@ -80,6 +81,7 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
 
         is OversendtKlage -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected)
         is IverksattAvvistKlage -> this.castAndCompare<AvvistKlageFelter>(expected)
+        is FerdigstiltOmgjortKlage -> this.castAndCompare<FerdigstiltOmgjortKlage>(expected)
     }
 }
 
