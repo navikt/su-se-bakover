@@ -39,7 +39,7 @@ import java.util.UUID
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
- * - [FerdigstiltOmgjortKlage] -> ingen
+ * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.Bekreftet])
  */
 sealed interface Klage :
     Klagefelter,

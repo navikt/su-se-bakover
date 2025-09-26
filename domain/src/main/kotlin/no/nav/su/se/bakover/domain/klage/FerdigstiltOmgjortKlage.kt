@@ -6,11 +6,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt
 import java.util.UUID
 import kotlin.reflect.KClass
 
 data class FerdigstiltOmgjortKlage(
-    private val forrigeSteg: KlageTilAttestering.Vurdert,
+    private val forrigeSteg: Utfylt,
     override val klageinstanshendelser: Klageinstanshendelser,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,

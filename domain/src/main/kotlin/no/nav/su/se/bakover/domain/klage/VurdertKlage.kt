@@ -270,6 +270,18 @@ sealed interface VurdertKlage :
         KanBekrefteKlagevurdering,
         UtfyltFelter by forrigeSteg {
 
+        override fun ferdigstillOmgjøring(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            klage: Bekreftet,
+        ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+            return FerdigstiltOmgjortKlage(
+                forrigeSteg = forrigeSteg,
+                saksbehandler = saksbehandler,
+                sakstype = sakstype,
+                klageinstanshendelser = klage.klageinstanshendelser,
+            ).right()
+        }
+
         override fun erÅpen() = true
 
         override fun vurder(

@@ -72,7 +72,7 @@ internal class ÅpneBehandlingerRepo(
                      select sak.sakId, sak.saksnummer, sak.sakType, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
                      from sak
                               join klage k on sak.sakId = k.sakid
-                     where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
+                     where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null and k.type != 'omgjort'
                  ),
                  søknader as (
                      select

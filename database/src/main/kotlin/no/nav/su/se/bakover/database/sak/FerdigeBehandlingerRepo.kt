@@ -91,6 +91,7 @@ internal class FerdigeBehandlingerRepo(
                               join klage k on sak.sakId = k.sakid
                      where k.type like ('iverksatt%')
                         or k.type like 'oversendt'
+                        or k.type = 'omgjort'
                  ),
                  slåttSammen as (
                      select *

@@ -579,7 +579,7 @@ internal class KlagePostgresRepo(
             )
 
             Tilstand.OMGJORT -> FerdigstiltOmgjortKlage(
-                forrigeSteg = vurdertKlageTilAttestering(),
+                forrigeSteg = utfyltVurdertKlage(),
                 sakstype = sakstype,
                 klageinstanshendelser = klageinstanshendelser,
                 behandlingId = behandlingId,
