@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ internal class LeggTilFastOppholdINorgeIT {
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
 
-                nySøknadsbehandling(
+                startSøknadsbehandling(
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,

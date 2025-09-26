@@ -75,3 +75,57 @@ private fun søknadJson(
     }
     """.trimIndent()
 }
+
+fun søknadsbehandlingJson(
+    søknad: String,
+    sakstype: String = "uføre",
+): String {
+    //language=JSON
+    return """
+            {
+              "id":"ignored",
+              "søknad": $søknad,
+              "beregning": null,
+              "status": "OPPRETTET",
+              "simulering": null,
+              "opprettet": "2021-01-01T01:02:03.456789Z",
+              "attesteringer": [],
+              "saksbehandler": null,
+              "fritekstTilBrev": "",
+              "sakId": "5cb0d64c-9432-4d9f-840a-341c75ade20a",
+              "stønadsperiode": null,
+              "grunnlagsdataOgVilkårsvurderinger": {
+                "uføre": null,
+                "lovligOpphold": null,
+                "fradrag": [],
+                "bosituasjon": [],
+                "formue": {
+                  "vurderinger": [],
+                  "resultat": null,
+                  "formuegrenser": [
+                    {
+                      "gyldigFra": "2020-05-01",
+                      "beløp": 50676
+                    }
+                  ]
+                },
+                "utenlandsopphold": null,
+                "opplysningsplikt": null,
+                "pensjon": null,
+                "familiegjenforening": null,
+                "flyktning": null,
+                "fastOpphold": null,
+                "personligOppmøte": null,
+                "institusjonsopphold": null
+              },
+              "erLukket": false,
+              "sakstype": "$sakstype",
+              "aldersvurdering": null,
+              "eksterneGrunnlag": {
+                "skatt": null
+              },
+              "omgjøringsårsak": null,
+              "omgjøringsgrunn": null
+            }
+    """.trimIndent()
+}

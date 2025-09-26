@@ -188,12 +188,6 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         private val sakService: SakService = mock {
             if (sak != null) {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = sak.fnr,
-                    type = Sakstype.UFØRE,
-                )
                 on { hentSakInfo(any()) } doReturn
                     SakInfo(
                         sakId = sak.id,

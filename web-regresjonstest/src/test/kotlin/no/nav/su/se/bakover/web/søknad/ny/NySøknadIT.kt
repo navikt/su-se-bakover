@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.digitalUføreSøknadJson
 import no.nav.su.se.bakover.web.søknad.papirsøknadJson
+import no.nav.su.se.bakover.web.søknad.søknadsbehandlingJson
 import org.junit.jupiter.api.Test
 
 /**
@@ -30,10 +31,12 @@ internal class NySøknadIT {
                 sakId = sakId,
                 client = this.client,
             )
+            val søknad = digitalUføreSøknadJson(fnr)
             assertSakJson(
                 actualSakJson = actualSakJson,
                 expectedSaksnummer = 2021,
-                expectedSøknader = "[${digitalUføreSøknadJson(fnr)}]",
+                expectedSøknader = "[$søknad]",
+                expectedBehandlinger = "[${søknadsbehandlingJson(søknad)}]",
             )
         }
     }
@@ -53,10 +56,12 @@ internal class NySøknadIT {
                 sakId = sakId,
                 client = this.client,
             )
+            val søknad = papirsøknadJson(fnr)
             assertSakJson(
                 actualSakJson = actualSakJson,
                 expectedSaksnummer = 2021,
-                expectedSøknader = "[${papirsøknadJson(fnr)}]",
+                expectedSøknader = "[$søknad]",
+                expectedBehandlinger = "[${søknadsbehandlingJson(søknad)}]",
             )
         }
     }

@@ -399,7 +399,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val saksbehandler: NavIdentBruker.Saksbehandler?,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling {

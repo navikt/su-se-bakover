@@ -67,8 +67,8 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
                     utbetaltTid = søknadsbehandling.periode.fraOgMed,
-                    opprettetAv = søknadsbehandling.saksbehandler.navIdent,
-                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent,
+                    saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring -> this.toBehandlingsstatistikkGenerell(
@@ -77,8 +77,8 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
-                    opprettetAv = søknadsbehandling.saksbehandler.navIdent,
-                    saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent,
+                    saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                     behandlingAarsak = "Omgjøring etter avvist søknad",
                     relatertId = relatertId,
                 )

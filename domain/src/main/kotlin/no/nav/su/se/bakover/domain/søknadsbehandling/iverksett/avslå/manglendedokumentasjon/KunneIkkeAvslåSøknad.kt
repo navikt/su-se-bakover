@@ -5,7 +5,7 @@ import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
 
 sealed interface KunneIkkeAvslåSøknad {
     data class KunneIkkeOppretteSøknadsbehandling(
-        val underliggendeFeil: behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling,
+        val underliggendeFeil: behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling,
     ) : KunneIkkeAvslåSøknad
 
     data class KunneIkkeIverksetteSøknadsbehandling(
@@ -15,4 +15,6 @@ sealed interface KunneIkkeAvslåSøknad {
     data class Attesteringsfeil(val feil: KunneIkkeSendeSøknadsbehandlingTilAttestering) : KunneIkkeAvslåSøknad
 
     data class Periodefeil(val underliggende: KunneIkkeLageOpplysningspliktVilkår) : KunneIkkeAvslåSøknad
+
+    data object ManglerSaksbehandler : KunneIkkeAvslåSøknad
 }

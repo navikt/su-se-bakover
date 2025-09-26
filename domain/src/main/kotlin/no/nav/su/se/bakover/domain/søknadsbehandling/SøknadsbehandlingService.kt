@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -49,10 +49,10 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 interface SøknadsbehandlingService {
-    fun opprett(
-        request: OpprettRequest,
+    fun startBehandling(
+        request: OppstartRequest,
         hentSak: (() -> Sak)? = null,
-    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>>
+    ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>>
 
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
@@ -150,7 +150,7 @@ interface SøknadsbehandlingService {
         søknadsbehandlingId: SøknadsbehandlingId,
     ): Either<FeilVedHentingAvGjeldendeVedtaksdataForPeriode, Pair<Periode, GrunnlagsdataOgVilkårsvurderinger>>
 
-    data class OpprettRequest(
+    data class OppstartRequest(
         val søknadId: UUID,
         val sakId: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,

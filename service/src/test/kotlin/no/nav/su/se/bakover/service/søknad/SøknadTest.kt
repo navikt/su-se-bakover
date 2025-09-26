@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -86,12 +86,7 @@ class SøknadTest {
                 on { opprettSøknad(any()) } doAnswer {}
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
-                    sak.id,
-                    sak.saksnummer,
-                    fnr,
-                    Sakstype.UFØRE,
-                )
+                on { hentSakHvisFinnes(any(), any()) } doReturn sak
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
@@ -106,7 +101,7 @@ class SøknadTest {
                 it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
+                verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(any())
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
@@ -135,18 +130,22 @@ class SøknadTest {
 
     @Test
     fun `ny sak med søknad hvor pdf-generering feilet`() {
+        val nySøknad = Søknad.Ny(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(fixedClock),
+            sakId = sak.id,
+            søknadInnhold = søknadInnhold,
+            innsendtAv = NavIdentBruker.Saksbehandler("navIdent"),
+        )
         SøknadServiceOgMocks(
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
                 on { opprettSak(any()) } doAnswer {}
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn null
-                on { hentSakInfo(any()) } doReturn SakInfo(
-                    sak.id,
-                    sak.saksnummer,
-                    fnr,
-                    Sakstype.UFØRE,
+                on { hentSakHvisFinnes(any(), any()) } doReturn null
+                on { hentSak(any<UUID>()) } doReturn sak.copy(
+                    søknader = listOf(nySøknad),
                 ).right()
             },
             pdfGenerator = mock {
@@ -162,9 +161,9 @@ class SøknadTest {
                 it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
+                verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.sakService).opprettSak(any())
-                verify(it.sakService).hentSakInfo(any())
+                verify(it.sakService).hentSak(any<UUID>())
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -180,13 +179,7 @@ class SøknadTest {
                 )
             }
             actualSaksnummer shouldBe sak.saksnummer
-            actualNySøknad shouldBe Søknad.Ny(
-                id = actualNySøknad.id,
-                opprettet = fixedTidspunkt,
-                sakId = actualNySøknad.sakId,
-                søknadInnhold = søknadInnhold,
-                innsendtAv = innsender,
-            )
+            actualNySøknad shouldBe nySøknad
         }
     }
 
@@ -197,12 +190,7 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
-                    sak.id,
-                    sak.saksnummer,
-                    fnr,
-                    Sakstype.UFØRE,
-                )
+                on { hentSakHvisFinnes(any(), any()) } doReturn sak
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -222,7 +210,7 @@ class SøknadTest {
                 it.journalførSøknadClient,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
+                verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -280,12 +268,7 @@ class SøknadTest {
 
         SøknadServiceOgMocks(
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
-                    sak.id,
-                    sak.saksnummer,
-                    fnr,
-                    Sakstype.UFØRE,
-                )
+                on { hentSakHvisFinnes(any(), any()) } doReturn sak
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -305,7 +288,7 @@ class SøknadTest {
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(sak.fnr, Sakstype.UFØRE)
+                verify(it.sakService).hentSakHvisFinnes(sak.fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -387,12 +370,7 @@ class SøknadTest {
                 on { hentPerson(any()) } doReturn person.right()
             },
             sakService = mock {
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
-                    sak.id,
-                    sak.saksnummer,
-                    fnr,
-                    Sakstype.UFØRE,
-                )
+                on { hentSakHvisFinnes(any(), any()) } doReturn sak
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -404,6 +382,7 @@ class SøknadTest {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             søknadRepo = mock(),
+            søknadsbehandlingRepo = mock(),
         ).also {
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
 
@@ -414,9 +393,10 @@ class SøknadTest {
                 it.pdfGenerator,
                 it.journalførSøknadClient,
                 it.oppgaveService,
+                it.søknadsbehandlingRepo,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
-                verify(it.sakService).hentSakidOgSaksnummer(fnr, Sakstype.UFØRE)
+                verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -491,6 +471,12 @@ class SøknadTest {
                             oppgaveId = oppgaveId,
                         )
                     },
+                )
+                verify(it.søknadsbehandlingRepo).lagre(
+                    argThat {
+                        it.søknad.id shouldBe actualNySøknad.id
+                    },
+                    anyOrNull(),
                 )
             }
             verifyNoMoreInteractions(

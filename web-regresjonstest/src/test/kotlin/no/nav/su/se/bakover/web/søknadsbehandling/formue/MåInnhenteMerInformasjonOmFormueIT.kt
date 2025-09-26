@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentFormueVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentSøknadsbehandling
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
@@ -29,7 +29,7 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
             val søknadResponseJson = nyDigitalSøknad(fnr = fnr, client = this.client)
             val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
-            val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
+            val nySøknadsbehandlingResponseJson = startSøknadsbehandling(
                 sakId = sakId,
                 søknadId = søknadId,
                 client = this.client,

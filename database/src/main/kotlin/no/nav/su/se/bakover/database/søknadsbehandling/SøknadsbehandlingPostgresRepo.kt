@@ -78,7 +78,7 @@ private data class BaseSøknadsbehandlingDb(
     val attesteringer: Attesteringshistorikk,
     val sakstype: Sakstype,
     val status: SøknadsbehandlingStatusDB,
-    val saksbehandler: String,
+    val saksbehandler: String?,
     val søknadsbehandlingshistorikk: String,
     val aldersvurdering: String?,
     val omgjøringsårsak: String? = null,
@@ -262,7 +262,7 @@ private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
         attesteringer = this.attesteringer,
         sakstype = this.sakstype,
         status = this.status(),
-        saksbehandler = this.saksbehandler.toString(),
+        saksbehandler = this.saksbehandler?.toString(),
         søknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.toDbJson(),
         aldersvurdering = this.aldersvurdering?.toDBJson(),
         omgjøringsgrunn = this.omgjøringsgrunn?.name,
@@ -503,7 +503,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val attesteringer = string("attestering").toAttesteringshistorikk()
         val søknadsbehandlingHistorikk =
             SøknadsbehandlingshistorikkJson.toSøknadsbehandlingsHistorikk(string("saksbehandling"))
-        val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
+        val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
 
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
         val stønadsperiode = deserializeNullable<StønadsperiodeDbJson>(stringOrNull("stønadsperiode"))?.toDomain()
@@ -567,7 +567,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
@@ -578,7 +578,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
             )
 
             SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> BeregnetSøknadsbehandling.Innvilget(
@@ -596,7 +596,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
@@ -616,7 +616,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
@@ -637,7 +637,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 sakstype = sakstype,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
@@ -652,7 +652,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                 fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
@@ -672,7 +672,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     fnr = fnr,
-                    saksbehandler = saksbehandler,
+                    saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
@@ -692,7 +692,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     oppgaveId = oppgaveId,
                     fnr = fnr,
                     beregning = beregning,
-                    saksbehandler = saksbehandler,
+                    saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                     fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering!!,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
@@ -714,7 +714,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                 attesteringer = attesteringer,
                 søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                 fritekstTilBrev = fritekstTilBrev,
@@ -734,7 +734,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     fnr = fnr,
-                    saksbehandler = saksbehandler,
+                    saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
@@ -754,7 +754,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     oppgaveId = oppgaveId,
                     fnr = fnr,
                     beregning = beregning,
-                    saksbehandler = saksbehandler,
+                    saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
@@ -777,7 +777,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     beregning = beregning!!,
                     simulering = simulering!!,
-                    saksbehandler = saksbehandler,
+                    saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                     attesteringer = attesteringer,
                     søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                     fritekstTilBrev = fritekstTilBrev,
@@ -799,7 +799,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         søknad = søknad,
                         oppgaveId = oppgaveId,
                         fnr = fnr,
-                        saksbehandler = saksbehandler,
+                        saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,
@@ -819,7 +819,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         oppgaveId = oppgaveId,
                         fnr = fnr,
                         beregning = beregning,
-                        saksbehandler = saksbehandler,
+                        saksbehandler = saksbehandler ?: throw IllegalStateException("Skal ikke mangle saksbehandler på dette stadiet"),
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = søknadsbehandlingHistorikk,
                         fritekstTilBrev = fritekstTilBrev,

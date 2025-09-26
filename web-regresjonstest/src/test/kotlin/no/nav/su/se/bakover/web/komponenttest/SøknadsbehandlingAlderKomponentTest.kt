@@ -75,13 +75,13 @@ internal class SøknadsbehandlingAlderKomponentTest {
             )
 
             val sak = appComponents.services.sak.hentSak(fnrOver67, Sakstype.ALDER).getOrFail()
-            val søknad = sak.søknader.single()
+            val behandling = sak.søknadsbehandlinger.single()
 
-            søknad.type shouldBe Sakstype.ALDER
+            behandling.sakstype shouldBe Sakstype.ALDER
 
-            val (_, søknadsbehandling) = appComponents.services.søknadsbehandling.søknadsbehandlingService.opprett(
-                request = SøknadsbehandlingService.OpprettRequest(
-                    søknadId = søknad.id,
+            val (_, søknadsbehandling) = appComponents.services.søknadsbehandling.søknadsbehandlingService.startBehandling(
+                request = SøknadsbehandlingService.OppstartRequest(
+                    søknadId = behandling.søknad.id,
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                 ),

@@ -10,8 +10,9 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.digitalUføreSøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
+import no.nav.su.se.bakover.web.søknad.søknadsbehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -25,20 +26,20 @@ internal class LeggTilFlyktningVilkårIT {
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
+                val søknad = digitalUføreSøknadJson(
+                    SharedRegressionTestData.fnr,
+                    SharedRegressionTestData.epsFnr,
+                )
 
                 assertSakJson(
                     actualSakJson = sakJson,
                     expectedSaksnummer = 2021,
-                    expectedSøknader = "[${
-                        digitalUføreSøknadJson(
-                            SharedRegressionTestData.fnr,
-                            SharedRegressionTestData.epsFnr,
-                        )
-                    }]",
+                    expectedSøknader = "[$søknad]",
+                    expectedBehandlinger = "[${søknadsbehandlingJson(søknad)}]",
                     expectedSakstype = "uføre",
                 )
 
-                nySøknadsbehandling(
+                startSøknadsbehandling(
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,

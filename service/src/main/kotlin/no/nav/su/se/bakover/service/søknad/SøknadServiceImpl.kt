@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
@@ -28,6 +29,8 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -43,6 +46,7 @@ class SøknadServiceImpl(
     private val journalførSøknadClient: JournalførSøknadClient,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -53,12 +57,12 @@ class SøknadServiceImpl(
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     private fun opprettSøknadPåEksisterendeSak(
-        sakInfo: SakInfo,
+        sak: Sak,
         søknadInnhold: SøknadInnhold,
         saksbehandlerEllerVeileder: NavIdentBruker,
-    ): Pair<SakInfo, Søknad.Ny> {
+    ): Pair<Sak, Søknad.Ny> {
         val søknad = Søknad.Ny(
-            sakId = sakInfo.sakId,
+            sakId = sak.id,
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             søknadInnhold = søknadInnhold,
@@ -66,14 +70,19 @@ class SøknadServiceImpl(
         )
         søknadRepo.opprettSøknad(søknad)
 
-        return Pair(sakInfo, søknad)
+        return Pair(
+            sak.copy(
+                søknader = sak.søknader + listOf(søknad),
+            ),
+            søknad,
+        )
     }
 
     private fun opprettSakOgSøknad(
         fnr: Fnr,
         søknadInnhold: SøknadInnhold,
         saksbehandlerEllerVeileder: NavIdentBruker,
-    ): Pair<SakInfo, Søknad.Ny> {
+    ): Pair<Sak, Søknad.Ny> {
         log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
         val nySak = sakFactory.nySakMedNySøknad(
             fnr = fnr,
@@ -81,7 +90,8 @@ class SøknadServiceImpl(
             innsendtAv = saksbehandlerEllerVeileder,
         ).also { sakService.opprettSak(it) }
         // Henter saksnummeret fra databasen (dette kunne vært returnert fra opprettSak). Dette skal ikke feile.
-        return Pair(sakService.hentSakInfo(nySak.id).getOrNull()!!, nySak.søknad)
+        val sak = sakService.hentSak(nySak.id).getOrNull()!!
+        return Pair(sak, sak.søknader.single() as Søknad.Ny)
     }
 
     override fun nySøknad(
@@ -108,10 +118,10 @@ class SøknadServiceImpl(
         // Det er dette brukeren har søkt på uavhengig hvor mange saker eller hva slags type saker vi har fra før.
         val sakstypeDetErSøktPå = søknadInnhold.type()
 
-        val (sakInfo, søknad) = sakService.hentSakidOgSaksnummer(fnr, sakstypeDetErSøktPå)?.let {
+        val (sak, søknad) = sakService.hentSakHvisFinnes(fnr, sakstypeDetErSøktPå)?.let {
             // Fant eksisterende sak med denne typen; oppretter ny søknad på eksisterende sak.
             opprettSøknadPåEksisterendeSak(
-                sakInfo = it,
+                sak = it,
                 søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 saksbehandlerEllerVeileder = identBruker,
             )
@@ -123,13 +133,25 @@ class SøknadServiceImpl(
                 saksbehandlerEllerVeileder = identBruker,
             )
         }
-        opprettJournalpostOgOppgave(sakInfo, person, søknad)
+        val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
+
+        søknadMedOppgave?.let {
+            sak.opprettNySøknadsbehandling(
+                søknad = it,
+                clock = clock,
+                saksbehandler = null,
+            ).map { (_, uavklartSøknadsbehandling, statistikk) ->
+                søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
+            }
+        }
+
         observers.forEach { observer ->
+            // TODO Kan fjernes nå som det alltid lages behandling
             observer.handle(
-                StatistikkEvent.Søknad.Mottatt(søknad, sakInfo.saksnummer),
+                StatistikkEvent.Søknad.Mottatt(søknad, sak.saksnummer),
             )
         }
-        return Pair(sakInfo.saksnummer, søknad).right()
+        return Pair(sak.saksnummer, søknad).right()
     }
 
     override fun persisterSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
@@ -186,11 +208,12 @@ class SøknadServiceImpl(
         sakInfo: SakInfo,
         person: Person,
         søknad: Søknad.Ny,
-    ) {
+    ): Søknad.Journalført.MedOppgave.IkkeLukket? {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
+        val søknad = opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
             opprettOppgave(journalførtSøknad, sakInfo.fnr)
         }
+        return søknad.getOrNull()?.getOrNull()
     }
 
     private fun opprettJournalpost(
@@ -240,7 +263,7 @@ class SøknadServiceImpl(
         søknad: Søknad.Journalført.UtenOppgave,
         fnr: Fnr,
         opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> = oppgaveService::opprettOppgave,
-    ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
+    ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return opprettOppgave(
             OppgaveConfig.Søknad(
                 journalpostId = søknad.journalpostId,

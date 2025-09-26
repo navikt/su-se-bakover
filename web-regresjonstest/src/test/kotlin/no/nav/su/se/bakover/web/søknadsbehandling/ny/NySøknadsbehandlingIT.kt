@@ -22,7 +22,7 @@ internal class NySøknadsbehandlingIT {
             )
             val sakId = NySøknadJson.Response.hentSakId(nySøknadsrespons)
             val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadsrespons)
-            nySøknadsbehandling(
+            startSøknadsbehandling(
                 sakId = sakId,
                 søknadId = søknadId,
                 brukerrolle = Brukerrolle.Saksbehandler,

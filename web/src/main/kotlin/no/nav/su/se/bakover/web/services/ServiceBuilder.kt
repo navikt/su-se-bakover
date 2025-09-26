@@ -96,6 +96,7 @@ data object ServiceBuilder {
             journalførSøknadClient = clients.journalførClients.søknad,
             personService = personService,
             oppgaveService = oppgaveService,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
         ).apply {
             addObserver(statistikkEventObserver)

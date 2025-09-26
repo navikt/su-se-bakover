@@ -30,6 +30,7 @@ interface SakService {
     fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak>
     fun hentSak(sakId: UUID, sessionContext: SessionContext): Either<FantIkkeSak, Sak>
     fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak>
+    fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak>
     fun hentSakForUtbetalingId(utbetalingId: UUID30): Either<FantIkkeSak, Sak>
     fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>>
@@ -52,7 +53,6 @@ interface SakService {
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker
-    fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo?
     fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo>
 
     fun hentSakForRevurdering(revurderingId: RevurderingId): Sak

@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.application.defaultRequest
 
-internal fun nySøknadsbehandling(
+internal fun startSøknadsbehandling(
     sakId: String,
     søknadId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,

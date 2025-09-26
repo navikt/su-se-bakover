@@ -120,8 +120,8 @@ class SakServiceImpl(
             ?: KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSak.left()
     }
 
-    override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? {
-        return sakRepo.hentSakInfoForIdent(fnr, sakstype)
+    override fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak? {
+        return sakRepo.hentSak(fnr, type)
     }
 
     override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {

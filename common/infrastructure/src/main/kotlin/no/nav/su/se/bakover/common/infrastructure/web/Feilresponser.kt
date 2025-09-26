@@ -83,6 +83,11 @@ data object Feilresponser {
         "kunne_ikke_opprette_oppgave",
     )
 
+    val behandlingErAlleredePåbegynt = InternalServerError.errorJson(
+        "Behandling er allerede påbegynt",
+        "behandling_er_allerede_påbegynt",
+    )
+
     val gReguleringKanIkkeFøreTilOpphør = BadRequest.errorJson(
         "G-regulering kan ikke føre til opphør",
         "g_regulering_kan_ikke_føre_til_opphør",
@@ -173,6 +178,11 @@ data object Feilresponser {
     val fantIkkeSaksbehandlerEllerAttestant = NotFound.errorJson(
         "Fant ikke saksbehandler eller attestant",
         "fant_ikke_saksbehandler_eller_attestant",
+    )
+
+    val behandlingMåHaSaksebehandler = BadRequest.errorJson(
+        "Behandling må være påbegynt før avslag",
+        "behandling_krever_en_saksbehandler",
     )
 
     val datoMåVæreFørsteIMåned = BadRequest.errorJson(
