@@ -284,6 +284,8 @@ sealed interface VurdertKlage :
 
         override fun erÅpen() = true
 
+        // Hvis det er en vurdertKlage så sjekker man på "forrigeSteg" og den vil vel alltid være påbegynt ergo langt fra utfylt.
+        // TODO: kanskje man skal se om det har kommet inn nye vurderinger i stedet for?
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vurderinger: VurderingerTilKlage,
