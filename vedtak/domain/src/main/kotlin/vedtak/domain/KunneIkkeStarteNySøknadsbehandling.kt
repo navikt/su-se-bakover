@@ -19,7 +19,7 @@ sealed interface KunneIkkeStarteNySøknadsbehandling {
     data object MåHaGyldingOmgjøringsgrunn : KunneIkkeStarteNySøknadsbehandling
     data object KlageMåFinnesForKnytning : KunneIkkeStarteNySøknadsbehandling
     data object KlageUgyldigUUID : KunneIkkeStarteNySøknadsbehandling
-    data object KlageErIkkeOversendt : KunneIkkeStarteNySøknadsbehandling
+    data object KlageErIkkeFerdigstilt : KunneIkkeStarteNySøknadsbehandling
     data object KlageErAlleredeKnyttetTilBehandling : KunneIkkeStarteNySøknadsbehandling
     data object KlagenErOpprettholdt : KunneIkkeStarteNySøknadsbehandling
     data object UlikOmgjøringsgrunn : KunneIkkeStarteNySøknadsbehandling

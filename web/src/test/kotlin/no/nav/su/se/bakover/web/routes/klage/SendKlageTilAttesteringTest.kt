@@ -141,9 +141,9 @@ internal class SendKlageTilAttesteringTest {
                   "status":"TIL_ATTESTERING_TIL_VURDERING",
                   "vedtakId":"${klageTilAttestering.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
+                  "begrunnelse":"",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

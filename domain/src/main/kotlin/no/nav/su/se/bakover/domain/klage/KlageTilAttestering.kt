@@ -7,6 +7,7 @@ import arrow.core.right
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -100,7 +101,12 @@ sealed interface KlageTilAttestering :
 
         override fun erÅpen() = true
 
-        override fun getFritekstTilBrev() = vurderinger.fritekstTilOversendelsesbrev.right()
+        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+            return when (val vurderinger = vurderinger) {
+                is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+                is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
+            }
+        }
 
         /**
          * @param utførtAv forventes at denne er NavIdentBruker.Attestant

@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -147,15 +147,15 @@ class VedtakServiceImpl(
                 ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
 
             when (klage) {
-                is OversendtKlage -> {
+                is FerdigstiltOmgjortKlage -> {
                     if (klage.behandlingId != null) {
-                        log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
+                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
                         return KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
                     }
                     when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
-                            if (vedtaksvurdering.årsak.name != omgjøringsgrunn.name) {
-                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt $omgjøringsgrunn")
+                            if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
+                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}")
                                 return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                             }
                         }
@@ -165,12 +165,11 @@ class VedtakServiceImpl(
                     }
                 }
                 else -> {
-                    log.warn("Klage ${klage.id} er ikke oversendt men ${klage.javaClass.name}")
-                    return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt.left()
+                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}")
+                    return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
                 }
             }
             log.info("Knytter omgjøring mot klage ${klage.id} for sak $sakId")
-
             klage.id
         }
 
