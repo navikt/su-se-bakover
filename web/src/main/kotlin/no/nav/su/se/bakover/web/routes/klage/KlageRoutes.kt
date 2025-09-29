@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvVedtakDato
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstandInternalServerError
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -178,7 +179,7 @@ internal fun Route.klageRoutes(
                 }.getOrElse {
                     return@getOrElse when (it) {
                         KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                     }
                 }
                 call.svar(resultat)
@@ -201,7 +202,7 @@ internal fun Route.klageRoutes(
                     }.mapLeft {
                         val error = when (it) {
                             KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                         }
                         call.svar(error)
                     }
@@ -256,7 +257,7 @@ internal fun Route.klageRoutes(
                         "ugyldig_opprettholdelseshjemler",
                     )
 
-                    is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+                    is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(this.fra, this.til)
                 }
             }
 
@@ -312,7 +313,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                         },
                     )
                 }
@@ -333,7 +334,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                             KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         },
                     )
@@ -352,7 +353,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                             KunneIkkeFerdigstilleOmgjøringsKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         },
                     )
@@ -373,7 +374,7 @@ internal fun Route.klageRoutes(
                             call.svar(
                                 when (error) {
                                     KunneIkkeUnderkjenneKlage.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstand(
+                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
                                         error.fra,
                                         error.til,
                                     )
@@ -408,7 +409,7 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                                 KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
                                     "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
@@ -449,7 +450,7 @@ internal fun Route.klageRoutes(
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.tilResultat()
-                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                         KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage -> InternalServerError.errorJson(
                             "Feil ved lagrinng av brev/klagen",
                             "feil_ved_lagring_av_brev_og_klage",
@@ -479,7 +480,7 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                             },
                         )
                     }
@@ -494,7 +495,7 @@ fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
         KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
 
-        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> BadRequest.errorJson(
+        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> InternalServerError.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )
