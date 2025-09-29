@@ -47,7 +47,7 @@ internal data class KlageJson(
 
         companion object {
             internal fun Klage.utledAvsluttet(): Avsluttet = when {
-                this is AvsluttetKlage -> ER_AVSLUTTET
+                this is AvsluttetKlage || this is FerdigstiltOmgjortKlage -> ER_AVSLUTTET
                 kanAvsluttes() -> KAN_AVSLUTTES
                 else -> KAN_IKKE_AVSLUTTES
             }
@@ -320,9 +320,9 @@ internal fun Klage.toJson(): KlageJson {
             erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet.toString(),
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = null,
-            vedtaksvurdering = null,
+            vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
-            klagevedtakshistorikk = emptyList(),
+            klagevedtakshistorikk = this.klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttet,
         )
     }
