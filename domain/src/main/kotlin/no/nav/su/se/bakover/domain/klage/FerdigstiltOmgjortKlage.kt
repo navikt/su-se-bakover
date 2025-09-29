@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -16,6 +17,7 @@ data class FerdigstiltOmgjortKlage(
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     val behandlingId: UUID? = null,
+    val datoklageferdigstilt: LocalDate? = null,
 ) : Klage,
     VurdertKlage.UtfyltFelter by forrigeSteg {
     override fun erÅpen() = false
