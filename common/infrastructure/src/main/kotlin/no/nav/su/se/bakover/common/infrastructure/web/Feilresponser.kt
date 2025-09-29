@@ -260,6 +260,17 @@ data object Feilresponser {
         )
     }
 
+    fun ugyldigTilstandInternalServerError(fra: KClass<*>, til: KClass<*>): Resultat {
+        return ugyldigTilstandInternalServerError(fra.simpleName.toString(), til.simpleName.toString())
+    }
+
+    fun ugyldigTilstandInternalServerError(fra: String, til: String): Resultat {
+        return InternalServerError.errorJson(
+            "Kan ikke gå fra tilstanden $fra til tilstanden $til",
+            "ugyldig_tilstand",
+        )
+    }
+
     data object Uføre {
         val uføregradMåVæreMellomEnOgHundre = BadRequest.errorJson(
             message = "Uføregrad må være mellom en og hundre",

@@ -98,7 +98,7 @@ internal class AvsluttKlageTest {
         verifiserFeilkode(
             path = uri,
             feilkode = KunneIkkeAvslutteKlage.UgyldigTilstand(IverksattAvvistKlage::class),
-            status = HttpStatusCode.BadRequest,
+            status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Kan ikke gå fra tilstanden IverksattAvvistKlage til tilstanden AvsluttetKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
