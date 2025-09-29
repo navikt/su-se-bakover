@@ -29,6 +29,8 @@ import java.util.UUID
 internal class StønadStatistikkRepoImplPostgresTest {
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
+    // TODO endre til å teste med Service??
+
     fun genererBasicStønadsstatistikk(list: List<Månedsbeløp>): StønadstatistikkDto {
         return StønadstatistikkDto(
             harUtenlandsOpphold = null,
@@ -255,6 +257,19 @@ internal class StønadStatistikkRepoImplPostgresTest {
                     opphorsdato shouldBe forventetStatistikkEn.opphorsdato
                     behandlendeEnhetKode shouldBe forventetStatistikkEn.behandlendeEnhetKode
 
+                    // TODO... og slett månedsbeløp metoder i repo????
+                    stonadsklassifisering shouldBe StønadsklassifiseringDto.BOR_ALENE
+                    sats shouldBe 200
+                    utbetales shouldBe 200
+                    fradragSum shouldBe 200
+                    uføregrad shouldBe 50
+
+                    uføretrygd shouldBe 100
+                    uføretrygdEps shouldBe null
+
+                    omstillingsstønad shouldBe null
+                    omstillingsstønadEps shouldBe 200
+                    /*
                     with(månedsbeløp!!) {
                         sats shouldBe 200
                         fradrag.size shouldBe 2
@@ -265,10 +280,25 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         fradrag[1].fradragstype shouldBe "Oms"
                         fradrag[1].tilhører shouldBe "EPS"
                     }
+
+                     */
                 }
                 with(stønadStatistikk[1]) {
                     vedtakFraOgMed shouldBeBefore juni.atEndOfMonth()
                     vedtakTilOgMed shouldBeAfter juni.atEndOfMonth()
+
+                    stonadsklassifisering shouldBe StønadsklassifiseringDto.BOR_ALENE
+                    sats shouldBe 200
+                    utbetales shouldBe 200
+                    fradragSum shouldBe 200
+                    uføregrad shouldBe 50
+
+                    uføretrygd shouldBe 100
+                    uføretrygdEps shouldBe null
+
+                    omstillingsstønad shouldBe null
+                    omstillingsstønadEps shouldBe 200
+                    /*
                     with(månedsbeløp!!) {
                         sats shouldBe 100
                         fradrag.size shouldBe 2
@@ -279,6 +309,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         fradrag[1].fradragstype shouldBe "Oms"
                         fradrag[1].tilhører shouldBe "EPS"
                     }
+                     */
                 }
             }
         }

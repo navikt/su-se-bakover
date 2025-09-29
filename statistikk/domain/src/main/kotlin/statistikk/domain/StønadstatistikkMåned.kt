@@ -36,5 +36,94 @@ data class StønadstatistikkMåned(
     val årsakStans: String? = null,
 
     val behandlendeEnhetKode: String,
-    val månedsbeløp: StønadstatistikkDto.Månedsbeløp?,
+
+    val stonadsklassifisering: StønadsklassifiseringDto?,
+    val sats: Long?,
+    val utbetales: Long?,
+    val fradragSum: Long?,
+    val uføregrad: Int?,
+
+    val alderspensjon: Int?,
+    val alderspensjonEps: Int?,
+
+    val arbeidsavklaringspenger: Int?,
+    val arbeidsavklaringspengerEps: Int?,
+
+    val arbeidsinntekt: Int?,
+    val arbeidsinntektEps: Int?,
+
+    val omstillingsstønad: Int?,
+    val omstillingsstønadEps: Int?,
+
+    val avtalefestetPensjon: Int?,
+    val avtalefestetPensjonEps: Int?,
+
+    val avtalefestetPensjonPrivat: Int?,
+    val avtalefestetPensjonPrivatEps: Int?,
+
+    val bidragEtterEkteskapsloven: Int?,
+    val bidragEtterEkteskapslovenEps: Int?,
+
+    val dagpenger: Int?,
+    val dagpengerEps: Int?,
+
+    val fosterhjemsgodtgjørelse: Int?,
+    val fosterhjemsgodtgjørelseEps: Int?,
+
+    val gjenlevendepensjon: Int?,
+    val gjenlevendepensjonEps: Int?,
+
+    val introduksjonsstønad: Int?,
+    val introduksjonsstønadEps: Int?,
+
+    val kapitalinntekt: Int?,
+    val kapitalinntektEps: Int?,
+
+    val kontantstøtte: Int?,
+    val kontantstøtteEps: Int?,
+
+    val kvalifiseringsstønad: Int?,
+    val kvalifiseringsstønadEps: Int?,
+
+    val navYtelserTilLivsopphold: Int?,
+    val navYtelserTilLivsoppholdEps: Int?,
+
+    val offentligPensjon: Int?,
+    val offentligPensjonEps: Int?,
+
+    val privatPensjon: Int?,
+    val privatPensjonEps: Int?,
+
+    val sosialstønad: Int?,
+    val sosialstønadEps: Int?,
+
+    val statensLånekasse: Int?,
+    val statensLånekasseEps: Int?,
+
+    val supplerendeStønad: Int?,
+    val supplerendeStønadEps: Int?,
+
+    val sykepenger: Int?,
+    val sykepengerEps: Int?,
+
+    val tiltakspenger: Int?,
+    val tiltakspengerEps: Int?,
+
+    val ventestønad: Int?,
+    val ventestønadEps: Int?,
+
+    val uføretrygd: Int?,
+    val uføretrygdEps: Int?,
+
+    val forventetInntekt: Int?,
+    val forventetInntektEps: Int?,
+
+    val avkortingUtenlandsopphold: Int?,
+    val avkortingUtenlandsoppholdEps: Int?,
+
+    val underMinstenivå: Int?,
+    val underMinstenivåEps: Int?,
+
+    val annet: Int?,
+    val annetEps: Int?,
 )
