@@ -42,11 +42,13 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
@@ -1139,6 +1141,14 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.sendTilAttestering(klageId, saksbehandler)
+                }
+
+                override fun ferdigstillOmgjøring(
+                    klageId: KlageId,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.ferdigstillOmgjøring(klageId, saksbehandler)
                 }
 
                 override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage> {

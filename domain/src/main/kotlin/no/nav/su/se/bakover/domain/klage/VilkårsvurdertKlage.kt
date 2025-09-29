@@ -226,6 +226,15 @@ sealed interface VilkårsvurdertKlage :
         ) : Utfylt,
             TilVurderingFelter {
 
+            val fritekstTilBrev: String?
+                get() =
+                    when (val vurderinger = vurderinger) {
+                        is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
+                        is VurderingerTilKlage.UtfyltOmgjøring -> null
+                        is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+                        null -> null
+                    }
+
             override fun erÅpen() = true
             override fun erAvsluttet() = false
             override fun erAvbrutt() = false
@@ -516,6 +525,14 @@ sealed interface VilkårsvurdertKlage :
             TilVurderingFelter,
             KlageSomKanVurderes {
 
+            val fritekstTilBrev: String?
+                get() =
+                    when (val vurderinger = vurderinger) {
+                        is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
+                        is VurderingerTilKlage.UtfyltOmgjøring -> null
+                        is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+                        null -> null
+                    }
             override fun erÅpen() = true
             override fun erAvsluttet() = false
             override fun erAvbrutt() = false

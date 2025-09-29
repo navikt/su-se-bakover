@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
@@ -186,7 +185,7 @@ internal class AvvistKlageTest {
 
             val actual = klage.vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                     vedtakId = UUID.randomUUID(),
                     innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
@@ -219,7 +218,7 @@ internal class AvvistKlageTest {
 
             val actual = klage.vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                     vedtakId = UUID.randomUUID(),
                     innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = false,

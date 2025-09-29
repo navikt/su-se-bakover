@@ -91,6 +91,7 @@ internal class FerdigeBehandlingerRepo(
                               join klage k on sak.sakId = k.sakid
                      where k.type like ('iverksatt%')
                         or k.type like 'oversendt'
+                        or k.type = 'omgjort'
                  ),
                  slåttSammen as (
                      select *
@@ -203,6 +204,7 @@ internal class FerdigeBehandlingerRepo(
             KlagePostgresRepo.Tilstand.OVERSENDT -> Behandlingssammendrag.Behandlingsstatus.OVERSENDT
 
             KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
+            KlagePostgresRepo.Tilstand.OMGJORT -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
         }
     }
 

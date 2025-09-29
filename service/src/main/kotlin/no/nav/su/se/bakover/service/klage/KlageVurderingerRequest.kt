@@ -99,6 +99,11 @@ data class KlageVurderingerRequest(
         if (omgjør != null && oppretthold != null) {
             return KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
         }
+        val fritekstTilBrev = if (oppretthold != null) {
+            fritekstTilBrev
+        } else {
+            null
+        }
         return Domain(
             klageId = klageId,
             vurderinger = VurderingerTilKlage.create(
