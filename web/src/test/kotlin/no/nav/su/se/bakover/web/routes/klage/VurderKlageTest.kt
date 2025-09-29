@@ -128,7 +128,7 @@ internal class VurderKlageTest {
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
             feilkode = KunneIkkeVurdereKlage.UgyldigTilstand(OpprettetKlage::class),
-            status = HttpStatusCode.BadRequest,
+            status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden VurdertKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
