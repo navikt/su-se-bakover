@@ -166,7 +166,7 @@ class VedtakServiceImpl(
                 }
                 else -> {
                     log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}")
-                    return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt.left()
+                    return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
                 }
             }
             log.info("Knytter omgjøring mot klage ${klage.id} for sak $sakId")

@@ -95,7 +95,7 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Klagen er allerede knyttet til en behandling",
             "klage_allerede_knyttet_til_behandling",
         )
-        is KunneIkkeOppretteRevurdering.KlageErIkkeOversendt -> BadRequest.errorJson(
+        is KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt -> BadRequest.errorJson(
             "Klagen er ikke oversendt",
             "klage_ikke_oversendt",
         )

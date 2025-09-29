@@ -76,7 +76,7 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Klage er allerede knyttet til en behandling",
         "klage_er_allerede_knyttet_til_behandling",
     )
-    is KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt -> HttpStatusCode.BadRequest.errorJson(
+    is KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
         "Klagen er ikke oversendt",
         "klage_er_ikke_oversendt",
     )

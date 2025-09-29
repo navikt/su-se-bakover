@@ -30,5 +30,5 @@ sealed interface KunneIkkeOppretteRevurdering {
     data object KlageErAlleredeKnyttetTilBehandling : KunneIkkeOppretteRevurdering
     data object UlikOmgjøringsgrunn : KunneIkkeOppretteRevurdering
     data object KlagenErOpprettholdt : KunneIkkeOppretteRevurdering
-    data object KlageErIkkeOversendt : KunneIkkeOppretteRevurdering
+    data object KlageErIkkeFerdigstilt : KunneIkkeOppretteRevurdering
 }
