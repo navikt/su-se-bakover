@@ -9,7 +9,7 @@ import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -68,7 +68,7 @@ fun Sak.opprettRevurdering(
         val klage = this.hentKlage(KlageId(klageId)) ?: return KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning.left()
 
         when (klage) {
-            is OversendtKlage -> {
+            is FerdigstiltOmgjortKlage -> {
                 if (klage.behandlingId != null) {
                     log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
                     return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
@@ -86,7 +86,7 @@ fun Sak.opprettRevurdering(
                 }
             }
             else -> {
-                log.warn("Klage ${klage.id} er ikke oversendt men ${klage.javaClass.name}")
+                log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}")
                 return KunneIkkeOppretteRevurdering.KlageErIkkeOversendt.left()
             }
         }
