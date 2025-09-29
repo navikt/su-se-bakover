@@ -9,7 +9,7 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
 
     @Test
     fun `en avslagsgrunn`() {
-        VilkårsvurderingerTilKlage.Utfylt(
+        VilkårsvurderingerTilKlage.create(
             vedtakId = UUID.randomUUID(),
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,
@@ -20,7 +20,7 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
 
     @Test
     fun `tre avslagsgrunner`() {
-        VilkårsvurderingerTilKlage.Utfylt(
+        VilkårsvurderingerTilKlage.create(
             vedtakId = UUID.randomUUID(),
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
             klagesDetPåKonkreteElementerIVedtaket = false,
@@ -34,7 +34,7 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
 
     @Test
     fun `alle 'ja' bør bli null`() {
-        VilkårsvurderingerTilKlage.Utfylt(
+        VilkårsvurderingerTilKlage.create(
             vedtakId = UUID.randomUUID(),
             innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,

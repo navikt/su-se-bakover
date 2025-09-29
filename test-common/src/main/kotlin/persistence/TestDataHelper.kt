@@ -1510,12 +1510,12 @@ class TestDataHelper(
     ): VilkårsvurdertKlage.Utfylt.TilVurdering {
         return persisterKlageOpprettet(vedtak = vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                 vedtakId = vedtak.id,
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "enBegrunnelse",
+                begrunnelse = "",
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1530,12 +1530,12 @@ class TestDataHelper(
     ): VilkårsvurdertKlage.Utfylt.Avvist {
         return persisterKlageOpprettet(vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                 vedtakId = vedtak.id,
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "en begrunnelse med person opplysninger",
+                begrunnelse = "",
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")

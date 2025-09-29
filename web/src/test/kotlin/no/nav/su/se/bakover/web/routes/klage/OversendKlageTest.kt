@@ -211,11 +211,11 @@ internal class OversendKlageTest {
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-01-15",
                   "status":"OVERSENDT",
+                  "begrunnelse":"",
                   "vedtakId":"${oversendtKlage.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

@@ -68,12 +68,11 @@ sealed interface VilkårsvurderingerTilKlage {
                     it != null
                 }
                 return if (erAlleFelterUtfylt) {
-                    Utfylt(
+                    createUtfyltOnly(
                         vedtakId = vedtakId!!,
                         innenforFristen = innenforFristen!!,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
                         erUnderskrevet = erUnderskrevet!!,
-                        begrunnelse = "", // TODO: kan fjernes
                     )
                 } else {
                     Påbegynt(
@@ -100,6 +99,21 @@ sealed interface VilkårsvurderingerTilKlage {
 
         fun empty(): Påbegynt {
             return Påbegynt.empty()
+        }
+
+        private fun createUtfyltOnly(
+            vedtakId: UUID,
+            innenforFristen: Svarord,
+            klagesDetPåKonkreteElementerIVedtaket: Boolean,
+            erUnderskrevet: Svarord,
+        ): VilkårsvurderingerTilKlage {
+            return Utfylt(
+                vedtakId = vedtakId,
+                innenforFristen = innenforFristen,
+                klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+                erUnderskrevet = erUnderskrevet,
+                begrunnelse = "",
+            )
         }
 
         /**
