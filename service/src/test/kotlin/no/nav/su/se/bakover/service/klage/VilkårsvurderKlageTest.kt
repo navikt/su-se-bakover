@@ -554,7 +554,7 @@ internal class VilkårsvurderKlageTest {
                     innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                ) as VilkårsvurderingerTilKlage.Utfylt,
+                ) as FormkravTilKlage.Utfylt,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 15.januar(2021),

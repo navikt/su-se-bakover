@@ -310,7 +310,6 @@ internal fun Klage.toJson(): KlageJson {
             innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
             erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet.toString(),
-            begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = null,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),

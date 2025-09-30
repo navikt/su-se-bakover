@@ -102,13 +102,12 @@ sealed interface FormkravTilKlage {
             innenforFristen: Svarord,
             klagesDetPåKonkreteElementerIVedtaket: Boolean,
             erUnderskrevet: Svarord,
-        ): VilkårsvurderingerTilKlage {
+        ): FormkravTilKlage {
             return Utfylt(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = "",
             )
         }
 
