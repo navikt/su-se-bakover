@@ -1459,7 +1459,6 @@ class TestDataHelper(
             søknadId = søknad.id,
             clock = fixedClock,
             saksbehandler = saksbehandler,
-            oppdaterOppgave = null,
 
         ).getOrFail().let { (_, nySøknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(nySøknadsbehandling)

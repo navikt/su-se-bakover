@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVil
 import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
 import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilInstitusjonsopphold
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilLovligOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilUtenlandsopphold
@@ -60,7 +60,7 @@ internal fun opprettAvslåttSøknadsbehandlingPgaVilkår(
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
     client: HttpClient,
 ): String {
-    val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
+    val nySøknadsbehandlingResponseJson = startSøknadsbehandling(
         sakId = sakId,
         søknadId = søknadId,
         client = client,
@@ -136,7 +136,7 @@ internal fun opprettAvslåttSøknadsbehandlingPgaBeregning(
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
     client: HttpClient,
 ): String {
-    val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
+    val nySøknadsbehandlingResponseJson = startSøknadsbehandling(
         sakId = sakId,
         søknadId = søknadId,
         client = client,

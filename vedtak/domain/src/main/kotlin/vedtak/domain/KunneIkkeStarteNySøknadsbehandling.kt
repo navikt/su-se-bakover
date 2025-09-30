@@ -1,13 +1,13 @@
 package vedtak.domain
 
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import person.domain.KunneIkkeHentePerson
 
 sealed interface KunneIkkeStarteNySøknadsbehandling {
     data object FantIkkeVedtak : KunneIkkeStarteNySøknadsbehandling
     data object FantIkkeSak : KunneIkkeStarteNySøknadsbehandling
     data object VedtakErIkkeAvslag : KunneIkkeStarteNySøknadsbehandling
-    data class FeilVedOpprettelseAvSøknadsbehandling(val feil: KunneIkkeOppretteSøknadsbehandling) : KunneIkkeStarteNySøknadsbehandling
+    data class FeilVedOpprettelseAvSøknadsbehandling(val feil: KunneIkkeStarteSøknadsbehandling) : KunneIkkeStarteNySøknadsbehandling
 
     data class FeilVedHentingAvPersonForOpprettelseAvOppgave(val feil: KunneIkkeHentePerson) : KunneIkkeStarteNySøknadsbehandling
 

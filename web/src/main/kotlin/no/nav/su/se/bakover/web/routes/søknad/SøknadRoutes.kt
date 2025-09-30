@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.behandlingMåHaSaksebehandler
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSøknad
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -343,4 +344,5 @@ internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
     is KunneIkkeAvslåSøknad.Attesteringsfeil -> this.feil.tilResultat()
     is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
+    KunneIkkeAvslåSøknad.ManglerSaksbehandler -> behandlingMåHaSaksebehandler
 }

@@ -9,7 +9,7 @@ import arrow.core.right
 import behandling.domain.AvslagGrunnetBeregning
 import behandling.domain.VurderAvslagGrunnetBeregning
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.avslag.ErAvslag
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.UUID30
@@ -139,7 +139,7 @@ sealed interface IverksattSøknadsbehandling :
             clock: Clock,
             omgjøringsårsak: Revurderingsårsak.Årsak,
             omgjøringsgrunn: Omgjøringsgrunn,
-        ): Either<KunneIkkeOppretteSøknadsbehandling, Omgjøringssøknadsbehandling>
+        ): Either<KunneIkkeStarteSøknadsbehandling, Omgjøringssøknadsbehandling>
 
         data class MedBeregning(
             override val id: SøknadsbehandlingId,
@@ -190,10 +190,10 @@ sealed interface IverksattSøknadsbehandling :
                 clock: Clock,
                 omgjøringsårsak: Revurderingsårsak.Årsak,
                 omgjøringsgrunn: Omgjøringsgrunn,
-            ): Either<KunneIkkeOppretteSøknadsbehandling, BeregnetSøknadsbehandling> {
+            ): Either<KunneIkkeStarteSøknadsbehandling, BeregnetSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
-                    isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
+                    isFalse = { KunneIkkeStarteSøknadsbehandling.ErLukket.left() },
                     isTrue = {
                         val opprettet = Tidspunkt.now(clock)
                         BeregnetSøknadsbehandling.Avslag(
@@ -267,10 +267,10 @@ sealed interface IverksattSøknadsbehandling :
                 clock: Clock,
                 omgjøringsårsak: Revurderingsårsak.Årsak,
                 omgjøringsgrunn: Omgjøringsgrunn,
-            ): Either<KunneIkkeOppretteSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
+            ): Either<KunneIkkeStarteSøknadsbehandling, VilkårsvurdertSøknadsbehandling> {
                 // TODO - må sjekke stønadsperioden ikke overlapper. Dette blir stoppet ved iverksetting, men dem kan få tilbakemelding mye tidligere
                 return erSøknadÅpen.whenever(
-                    isFalse = { KunneIkkeOppretteSøknadsbehandling.ErLukket.left() },
+                    isFalse = { KunneIkkeStarteSøknadsbehandling.ErLukket.left() },
                     isTrue = {
                         val opprettet = Tidspunkt.now(clock)
                         val erAvslagGrunnetOpplysningsplikt = vilkårsvurderinger.opplysningsplikt.erAvslag
