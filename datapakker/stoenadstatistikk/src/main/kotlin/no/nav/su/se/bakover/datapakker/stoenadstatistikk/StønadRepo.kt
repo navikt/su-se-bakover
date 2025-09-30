@@ -51,59 +51,69 @@ fun hentData(dataSource: DataSource, måned: YearMonth): List<StønadstatistikkM
                         harUtenlandsOpphold = stringOrNull("har_utenlandsopphold"),
                         harFamiliegjenforening = stringOrNull("har_familiegjenforening"),
                         flyktningsstatus = stringOrNull("flyktningsstatus"),
-                        månedsbeløp = hentMånedsbeløp(session, id).singleOrNull(),
+                        stonadsklassifisering = stringOrNull("stonadsklassifisering"),
+                        sats = longOrNull("sats"),
+                        utbetales = longOrNull("utbetales"),
+                        fradragSum = longOrNull("fradragSum"),
+                        uføregrad = intOrNull("uforegrad"),
+                        alderspensjon = intOrNull("alderspensjon"),
+                        alderspensjonEps = intOrNull("alderspensjonEps"),
+                        arbeidsavklaringspenger = intOrNull("arbeidsavklaringspenger"),
+                        arbeidsavklaringspengerEps = intOrNull("arbeidsavklaringspengerEps"),
+                        arbeidsinntekt = intOrNull("arbeidsinntekt"),
+                        arbeidsinntektEps = intOrNull("arbeidsinntektEps"),
+                        omstillingsstønad = intOrNull("omstillingsstonad"),
+                        omstillingsstønadEps = intOrNull("omstillingsstonadEps"),
+                        avtalefestetPensjon = intOrNull("avtalefestetPensjon"),
+                        avtalefestetPensjonEps = intOrNull("avtalefestetPensjonEps"),
+                        avtalefestetPensjonPrivat = intOrNull("avtalefestetPensjonPrivat"),
+                        avtalefestetPensjonPrivatEps = intOrNull("avtalefestetPensjonPrivatEps"),
+                        bidragEtterEkteskapsloven = intOrNull("bidragEtterEkteskapsloven"),
+                        bidragEtterEkteskapslovenEps = intOrNull("bidragEtterEkteskapslovenEps"),
+                        dagpenger = intOrNull("dagpenger"),
+                        dagpengerEps = intOrNull("dagpengerEps"),
+                        fosterhjemsgodtgjørelse = intOrNull("fosterhjemsgodtgjorelse"),
+                        fosterhjemsgodtgjørelseEps = intOrNull("fosterhjemsgodtgjorelseEps"),
+                        gjenlevendepensjon = intOrNull("gjenlevendepensjon"),
+                        gjenlevendepensjonEps = intOrNull("gjenlevendepensjonEps"),
+                        introduksjonsstønad = intOrNull("introduksjonsstonad"),
+                        introduksjonsstønadEps = intOrNull("introduksjonsstonadEps"),
+                        kapitalinntekt = intOrNull("kapitalinntekt"),
+                        kapitalinntektEps = intOrNull("kapitalinntektEps"),
+                        kontantstøtte = intOrNull("kontantstotte"),
+                        kontantstøtteEps = intOrNull("kontantstotteEps"),
+                        kvalifiseringsstønad = intOrNull("kvalifiseringsstonad"),
+                        kvalifiseringsstønadEps = intOrNull("kvalifiseringsstonadEps"),
+                        navYtelserTilLivsopphold = intOrNull("navYtelserTilLivsopphold"),
+                        navYtelserTilLivsoppholdEps = intOrNull("navYtelserTilLivsoppholdEps"),
+                        offentligPensjon = intOrNull("offentligPensjon"),
+                        offentligPensjonEps = intOrNull("offentligPensjonEps"),
+                        privatPensjon = intOrNull("privatPensjon"),
+                        privatPensjonEps = intOrNull("privatPensjonEps"),
+                        sosialstønad = intOrNull("sosialstonad"),
+                        sosialstønadEps = intOrNull("sosialstonadEps"),
+                        statensLånekasse = intOrNull("statensLaanekasse"),
+                        statensLånekasseEps = intOrNull("statensLaanekasseEps"),
+                        supplerendeStønad = intOrNull("supplerendeStonad"),
+                        supplerendeStønadEps = intOrNull("supplerendeStonadEps"),
+                        sykepenger = intOrNull("sykepenger"),
+                        sykepengerEps = intOrNull("sykepengerEps"),
+                        tiltakspenger = intOrNull("tiltakspenger"),
+                        tiltakspengerEps = intOrNull("tiltakspengerEps"),
+                        ventestønad = intOrNull("ventestonad"),
+                        ventestønadEps = intOrNull("ventestonadEps"),
+                        uføretrygd = intOrNull("uforetrygd"),
+                        uføretrygdEps = intOrNull("uforetrygdEps"),
+                        forventetInntekt = intOrNull("forventetInntekt"),
+                        forventetInntektEps = intOrNull("forventetInntektEps"),
+                        avkortingUtenlandsopphold = intOrNull("avkortingUtenlandsopphold"),
+                        avkortingUtenlandsoppholdEps = intOrNull("avkortingUtenlandsoppholdEps"),
+                        underMinstenivå = intOrNull("underMinstenivaa"),
+                        underMinstenivåEps = intOrNull("underMinstenivaaEps"),
+                        annet = intOrNull("annet"),
+                        annetEps = intOrNull("annetEps"),
                     )
                 }
             }
     }
-}
-
-private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
-    return """
-        SELECT id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum, uforegrad 
-        FROM manedsbelop_statistikk
-        WHERE stoenad_statistikk_id = :stoenad_statistikk_id
-    """.trimIndent()
-        .hentListe(
-            params = mapOf("stoenad_statistikk_id" to stoenadStatistikkId),
-            session = session,
-        ) { row ->
-            val manedsbelopId = UUID.fromString(row.string("id"))
-            val maaned = row.string("maaned")
-            val stonadsklassifisering = row.string("stonadsklassifisering")
-            val sats = row.long("sats")
-            val utbetales = row.long("utbetales")
-            val fradragSum = row.long("fradrag_sum")
-            val uføregrad = row.intOrNull("uforegrad")
-
-            Månedsbeløp(
-                manedsbelopId = manedsbelopId.toString(),
-                måned = maaned,
-                stonadsklassifisering = stonadsklassifisering,
-                sats = sats,
-                utbetales = utbetales,
-                fradragSum = fradragSum,
-                uføregrad = uføregrad,
-                fradrag = hentInntekter(session, manedsbelopId),
-            )
-        }
-}
-
-private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Fradrag> {
-    return """
-            SELECT fradragstype, belop, tilhorer, er_utenlandsk
-            FROM fradrag_statistikk 
-            WHERE manedsbelop_id = :manedsbelop_id
-    """.trimIndent()
-        .hentListe(
-            params = mapOf("manedsbelop_id" to manedsbelop_id),
-            session = session,
-        ) { row ->
-            Fradrag(
-                fradragstype = row.string("fradragstype"),
-                beløp = row.long("belop"),
-                tilhører = row.string("tilhorer"),
-                erUtenlandsk = row.boolean("er_utenlandsk"),
-            )
-        }
 }
