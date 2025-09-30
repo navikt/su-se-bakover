@@ -103,65 +103,6 @@ class StønadStatistikkRepoImpl(
         }
     }
 
-    /**
-     * Finner all nyligste statistikk for stønader som er løpende på gitt måned og lagrer det månedlige "resultatet".
-     * Det vil si slik tilstanden til stønaden var ved månedskifte. Det vil også gjelde hvis det ikke har skjedd
-     * endringer siden forrige jobb.
-     */
-    override fun hentOgLagreStatistikkForMåned(måned: YearMonth) {
-        return dbMetrics.timeQuery("hentStatistikkForMåned") {
-            sessionFactory.withSession { session ->
-                """
-                SELECT
-                    id, har_utenlandsopphold, har_familiegjenforening, personnummer,
-                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
-                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
-                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
-                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
-                    opphorsdato, flyktningsstatus, versjon
-                FROM stoenad_statistikk
-                WHERE gjeldende_stonad_utbetalingsstart <= :dato
-                        AND gjeldende_stonad_utbetalingsstopp >= :dato
-                        AND teknisk_tid <= :dato
-                """.trimIndent()
-                    .hentListe(
-                        params = mapOf("dato" to måned.atEndOfMonth()),
-                        session = session,
-                    ) { row ->
-                        val månedsbeløp = hentMånedsbeløp(session, row.uuid("id"))
-                        row.toStønadsstatistikk(månedsbeløp)
-                    }.groupBy { it.sakId }.map {
-                        val nyligste = it.value.maxBy { it.vedtaksdato }
-                        val månedsstatistikk = StønadstatistikkMåned(
-                            id = UUID.randomUUID(),
-                            måned = måned,
-                            funksjonellTid = nyligste.funksjonellTid,
-                            tekniskTid = nyligste.tekniskTid,
-                            sakId = nyligste.sakId,
-                            stonadstype = nyligste.stonadstype,
-                            personnummer = nyligste.personnummer,
-                            personNummerEps = nyligste.personNummerEktefelle,
-                            vedtaksdato = nyligste.vedtaksdato,
-                            vedtakstype = nyligste.vedtakstype,
-                            vedtaksresultat = nyligste.vedtaksresultat,
-                            vedtakFraOgMed = nyligste.gjeldendeStonadVirkningstidspunkt,
-                            vedtakTilOgMed = nyligste.gjeldendeStonadStopptidspunkt,
-                            behandlendeEnhetKode = nyligste.behandlendeEnhetKode,
-                            opphorsgrunn = nyligste.opphorsgrunn,
-                            opphorsdato = nyligste.opphorsdato,
-                            harUtenlandsOpphold = nyligste.harUtenlandsOpphold,
-                            harFamiliegjenforening = nyligste.harFamiliegjenforening,
-                            flyktningsstatus = nyligste.flyktningsstatus,
-                            månedsbeløp = nyligste.månedsbeløp.single {
-                                it.måned == måned.toString()
-                            },
-                        )
-                        lagreMånedStatistikk(session, månedsstatistikk)
-                    }
-            }
-        }
-    }
-
     override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned) {
         return dbMetrics.timeQuery("hentStatistikkForMåned") {
             sessionFactory.withSession { session ->
@@ -175,11 +116,37 @@ class StønadStatistikkRepoImpl(
             INSERT INTO stoenad_maaned_statistikk (
                 id, maaned, funksjonell_tid, teknisk_tid, sak_id, stonadstype, personnummer, personnummer_eps,
                 vedtakstype, vedtaksresultat, vedtaksdato, vedtak_fra_og_med, vedtak_til_og_med,
-                opphorsgrunn, opphorsdato, behandlende_enhet_kode
+                opphorsgrunn, opphorsdato, behandlende_enhet_kode,
+                stonadsklassifisering, sats, utbetales, fradragSum, uforegrad, alderspensjon, alderspensjonEps,
+                arbeidsavklaringspenger, arbeidsavklaringspengerEps, arbeidsinntekt, arbeidsinntektEps,
+                omstillingsstonad, omstillingsstonadEps, avtalefestetPensjon, avtalefestetPensjonEps,
+                avtalefestetPensjonPrivat, avtalefestetPensjonPrivatEps, bidragEtterEkteskapsloven,
+                bidragEtterEkteskapslovenEps, dagpenger, dagpengerEps, fosterhjemsgodtgjorelse,
+                fosterhjemsgodtgjorelseEps, gjenlevendepensjon, gjenlevendepensjonEps, introduksjonsstonad,
+                introduksjonsstonadEps, kapitalinntekt, kapitalinntektEps, kontantstotte, kontantstotteEps,
+                kvalifiseringsstonad, kvalifiseringsstonadEps, navYtelserTilLivsopphold, navYtelserTilLivsoppholdEps,
+                offentligPensjon, offentligPensjonEps, privatPensjon, privatPensjonEps, sosialstonad, sosialstonadEps,
+                statensLaanekasse, statensLaanekasseEps, supplerendeStonad, supplerendeStonadEps, sykepenger,
+                sykepengerEps, tiltakspenger, tiltakspengerEps, ventestonad, ventestonadEps, uforetrygd, uforetrygdEps,
+                forventetInntekt, forventetInntektEps, avkortingUtenlandsopphold, avkortingUtenlandsoppholdEps,
+                underMinstenivaa, underMinstenivaaEps, annet, annetEps
             ) VALUES (
                 :id, :maaned, :funksjonell_tid, :teknisk_tid, :sak_id, :stonadstype, :personnummer, :personnummer_eps,
                 :vedtakstype, :vedtaksresultat, :vedtaksdato, :vedtak_fra_og_med, :vedtak_til_og_med,
-                :opphorsgrunn, :opphorsdato, :behandlende_enhet_kode
+                :opphorsgrunn, :opphorsdato, :behandlende_enhet_kode,
+                :stonadsklassifisering, :sats, :utbetales, :fradragSum, :uforegrad, :alderspensjon, :alderspensjonEps,
+                :arbeidsavklaringspenger, :arbeidsavklaringspengerEps, :arbeidsinntekt, :arbeidsinntektEps,
+                :omstillingsstonad, :omstillingsstonadEps, :avtalefestetPensjon, :avtalefestetPensjonEps,
+                :avtalefestetPensjonPrivat, :avtalefestetPensjonPrivatEps, :bidragEtterEkteskapsloven,
+                :bidragEtterEkteskapslovenEps, :dagpenger, :dagpengerEps, :fosterhjemsgodtgjorelse,
+                :fosterhjemsgodtgjorelseEps, :gjenlevendepensjon, :gjenlevendepensjonEps, :introduksjonsstonad,
+                :introduksjonsstonadEps, :kapitalinntekt, :kapitalinntektEps, :kontantstotte, :kontantstotteEps,
+                :kvalifiseringsstonad, :kvalifiseringsstonadEps, :navYtelserTilLivsopphold, :navYtelserTilLivsoppholdEps,
+                :offentligPensjon, :offentligPensjonEps, :privatPensjon, :privatPensjonEps, :sosialstonad, :sosialstonadEps,
+                :statensLaanekasse, :statensLaanekasseEps, :supplerendeStonad, :supplerendeStonadEps, :sykepenger,
+                :sykepengerEps, :tiltakspenger, :tiltakspengerEps, :ventestonad, :ventestonadEps, :uforetrygd, :uforetrygdEps,
+                :forventetInntekt, :forventetInntektEps, :avkortingUtenlandsopphold, :avkortingUtenlandsoppholdEps,
+                :underMinstenivaa, :underMinstenivaaEps, :annet, :annetEps
             )
         """.trimIndent()
             .insert(
@@ -200,10 +167,71 @@ class StønadStatistikkRepoImpl(
                     "opphorsgrunn" to månedStatistikk.opphorsgrunn,
                     "opphorsdato" to månedStatistikk.opphorsdato,
                     "behandlende_enhet_kode" to månedStatistikk.behandlendeEnhetKode,
+                    "stonadsklassifisering" to månedStatistikk.stonadsklassifisering?.toString(),
+                    "sats" to månedStatistikk.sats,
+                    "utbetales" to månedStatistikk.utbetales,
+                    "fradragSum" to månedStatistikk.fradragSum,
+                    "uforegrad" to månedStatistikk.uføregrad,
+                    "alderspensjon" to månedStatistikk.alderspensjon,
+                    "alderspensjonEps" to månedStatistikk.alderspensjonEps,
+                    "arbeidsavklaringspenger" to månedStatistikk.arbeidsavklaringspenger,
+                    "arbeidsavklaringspengerEps" to månedStatistikk.arbeidsavklaringspengerEps,
+                    "arbeidsinntekt" to månedStatistikk.arbeidsinntekt,
+                    "arbeidsinntektEps" to månedStatistikk.arbeidsinntektEps,
+                    "omstillingsstonad" to månedStatistikk.omstillingsstønad,
+                    "omstillingsstonadEps" to månedStatistikk.omstillingsstønadEps,
+                    "avtalefestetPensjon" to månedStatistikk.avtalefestetPensjon,
+                    "avtalefestetPensjonEps" to månedStatistikk.avtalefestetPensjonEps,
+                    "avtalefestetPensjonPrivat" to månedStatistikk.avtalefestetPensjonPrivat,
+                    "avtalefestetPensjonPrivatEps" to månedStatistikk.avtalefestetPensjonPrivatEps,
+                    "bidragEtterEkteskapsloven" to månedStatistikk.bidragEtterEkteskapsloven,
+                    "bidragEtterEkteskapslovenEps" to månedStatistikk.bidragEtterEkteskapslovenEps,
+                    "dagpenger" to månedStatistikk.dagpenger,
+                    "dagpengerEps" to månedStatistikk.dagpengerEps,
+                    "fosterhjemsgodtgjorelse" to månedStatistikk.fosterhjemsgodtgjørelse,
+                    "fosterhjemsgodtgjorelseEps" to månedStatistikk.fosterhjemsgodtgjørelseEps,
+                    "gjenlevendepensjon" to månedStatistikk.gjenlevendepensjon,
+                    "gjenlevendepensjonEps" to månedStatistikk.gjenlevendepensjonEps,
+                    "introduksjonsstonad" to månedStatistikk.introduksjonsstønad,
+                    "introduksjonsstonadEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
+                    "kapitalinntekt" to månedStatistikk.kapitalinntekt,
+                    "kapitalinntektEps" to månedStatistikk.kapitalinntektEps,
+                    "kontantstotte" to månedStatistikk.kontantstøtte,
+                    "kontantstotteEps" to månedStatistikk.kontantstøtteEps,
+                    "kvalifiseringsstonad" to månedStatistikk.kvalifiseringsstønad,
+                    "kvalifiseringsstonadEps" to månedStatistikk.kapitalinntektEps,
+                    "navYtelserTilLivsopphold" to månedStatistikk.navYtelserTilLivsopphold,
+                    "navYtelserTilLivsoppholdEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
+                    "offentligPensjon" to månedStatistikk.offentligPensjon,
+                    "offentligPensjonEps" to månedStatistikk.offentligPensjonEps,
+                    "privatPensjon" to månedStatistikk.privatPensjon,
+                    "privatPensjonEps" to månedStatistikk.privatPensjonEps,
+                    "sosialstonad" to månedStatistikk.sosialstønad,
+                    "sosialstonadEps" to månedStatistikk.sosialstønadEps,
+                    "statensLaanekasse" to månedStatistikk.statensLånekasse,
+                    "statensLaanekasseEps" to månedStatistikk.statensLånekasseEps,
+                    "supplerendeStonad" to månedStatistikk.supplerendeStønad,
+                    "supplerendeStonadEps" to månedStatistikk.supplerendeStønadEps,
+                    "sykepenger" to månedStatistikk.sykepenger,
+                    "sykepengerEps" to månedStatistikk.sykepengerEps,
+                    "tiltakspenger" to månedStatistikk.tiltakspenger,
+                    "tiltakspengerEps" to månedStatistikk.tiltakspengerEps,
+                    "ventestonad" to månedStatistikk.ventestønad,
+                    "ventestonadEps" to månedStatistikk.ventestønadEps,
+                    "uforetrygd" to månedStatistikk.uføretrygd,
+                    "uforetrygdEps" to månedStatistikk.uføretrygdEps,
+                    "forventetInntekt" to månedStatistikk.forventetInntekt,
+                    "forventetInntektEps" to månedStatistikk.forventetInntektEps,
+                    "avkortingUtenlandsopphold" to månedStatistikk.avkortingUtenlandsopphold,
+                    "avkortingUtenlandsoppholdEps" to månedStatistikk.avkortingUtenlandsoppholdEps,
+                    "underMinstenivaa" to månedStatistikk.underMinstenivå,
+                    "underMinstenivaaEps" to månedStatistikk.underMinstenivåEps,
+                    "annet" to månedStatistikk.annet,
+                    "annetEps" to månedStatistikk.annetEps,
                 ),
                 session = session,
             )
-        månedStatistikk.månedsbeløp?.let { lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, it) }
+        // månedStatistikk.månedsbeløp?.let { lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, it) }
     }
 
     private fun lagreMånedsbeløpMedFradrag(session: Session, stoenadStatistikkId: UUID, månedsbeløp: Månedsbeløp) {
@@ -286,7 +314,71 @@ class StønadStatistikkRepoImpl(
                                 harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) },
                                 harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) },
                                 flyktningsstatus = stringOrNull("flyktningsstatus")?.let { JaNei.valueOf(it) },
-                                månedsbeløp = hentMånedsbeløp(session, id).single(),
+                                stonadsklassifisering = stringOrNull("stonadsklassifisering")?.let {
+                                    StønadsklassifiseringDto.valueOf(
+                                        it,
+                                    )
+                                },
+                                sats = longOrNull("sats"),
+                                utbetales = longOrNull("utbetales"),
+                                fradragSum = longOrNull("fradragSum"),
+                                uføregrad = intOrNull("uforegrad"),
+                                alderspensjon = intOrNull("alderspensjon"),
+                                alderspensjonEps = intOrNull("alderspensjonEps"),
+                                arbeidsavklaringspenger = intOrNull("arbeidsavklaringspenger"),
+                                arbeidsavklaringspengerEps = intOrNull("arbeidsavklaringspengerEps"),
+                                arbeidsinntekt = intOrNull("arbeidsinntekt"),
+                                arbeidsinntektEps = intOrNull("arbeidsinntektEps"),
+                                omstillingsstønad = intOrNull("omstillingsstonad"),
+                                omstillingsstønadEps = intOrNull("omstillingsstonadEps"),
+                                avtalefestetPensjon = intOrNull("avtalefestetPensjon"),
+                                avtalefestetPensjonEps = intOrNull("avtalefestetPensjonEps"),
+                                avtalefestetPensjonPrivat = intOrNull("avtalefestetPensjonPrivat"),
+                                avtalefestetPensjonPrivatEps = intOrNull("avtalefestetPensjonPrivatEps"),
+                                bidragEtterEkteskapsloven = intOrNull("bidragEtterEkteskapsloven"),
+                                bidragEtterEkteskapslovenEps = intOrNull("bidragEtterEkteskapslovenEps"),
+                                dagpenger = intOrNull("dagpenger"),
+                                dagpengerEps = intOrNull("dagpengerEps"),
+                                fosterhjemsgodtgjørelse = intOrNull("fosterhjemsgodtgjorelse"),
+                                fosterhjemsgodtgjørelseEps = intOrNull("fosterhjemsgodtgjorelseEps"),
+                                gjenlevendepensjon = intOrNull("gjenlevendepensjon"),
+                                gjenlevendepensjonEps = intOrNull("gjenlevendepensjonEps"),
+                                introduksjonsstønad = intOrNull("introduksjonsstonad"),
+                                introduksjonsstønadEps = intOrNull("introduksjonsstonadEps"),
+                                kapitalinntekt = intOrNull("kapitalinntekt"),
+                                kapitalinntektEps = intOrNull("kapitalinntektEps"),
+                                kontantstøtte = intOrNull("kontantstotte"),
+                                kontantstøtteEps = intOrNull("kontantstotteEps"),
+                                kvalifiseringsstønad = intOrNull("kvalifiseringsstonad"),
+                                kvalifiseringsstønadEps = intOrNull("kvalifiseringsstonadEps"),
+                                navYtelserTilLivsopphold = intOrNull("navYtelserTilLivsopphold"),
+                                navYtelserTilLivsoppholdEps = intOrNull("navYtelserTilLivsoppholdEps"),
+                                offentligPensjon = intOrNull("offentligPensjon"),
+                                offentligPensjonEps = intOrNull("offentligPensjonEps"),
+                                privatPensjon = intOrNull("privatPensjon"),
+                                privatPensjonEps = intOrNull("privatPensjonEps"),
+                                sosialstønad = intOrNull("sosialstonad"),
+                                sosialstønadEps = intOrNull("sosialstonadEps"),
+                                statensLånekasse = intOrNull("statensLaanekasse"),
+                                statensLånekasseEps = intOrNull("statensLaanekasseEps"),
+                                supplerendeStønad = intOrNull("supplerendeStonad"),
+                                supplerendeStønadEps = intOrNull("supplerendeStonadEps"),
+                                sykepenger = intOrNull("sykepenger"),
+                                sykepengerEps = intOrNull("sykepengerEps"),
+                                tiltakspenger = intOrNull("tiltakspenger"),
+                                tiltakspengerEps = intOrNull("tiltakspengerEps"),
+                                ventestønad = intOrNull("ventestonad"),
+                                ventestønadEps = intOrNull("ventestonadEps"),
+                                uføretrygd = intOrNull("uforetrygd"),
+                                uføretrygdEps = intOrNull("uforetrygdEps"),
+                                forventetInntekt = intOrNull("forventetInntekt"),
+                                forventetInntektEps = intOrNull("forventetInntektEps"),
+                                avkortingUtenlandsopphold = intOrNull("avkortingUtenlandsopphold"),
+                                avkortingUtenlandsoppholdEps = intOrNull("avkortingUtenlandsoppholdEps"),
+                                underMinstenivå = intOrNull("underMinstenivaa"),
+                                underMinstenivåEps = intOrNull("underMinstenivaaEps"),
+                                annet = intOrNull("annet"),
+                                annetEps = intOrNull("annetEps"),
                             )
                         }
                     }
