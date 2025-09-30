@@ -271,7 +271,8 @@ class KlageServiceImpl(
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage.left()
         val vurdertKlage = klage as? VurdertKlage.Bekreftet ?: return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(klage::class).left()
-        return vurdertKlage.ferdigstillOmgjøring(saksbehandler, vurdertKlage).onRight {
+        val ferdigstiltTidspunkt = Tidspunkt.now(clock)
+        return vurdertKlage.ferdigstillOmgjøring(saksbehandler, vurdertKlage, ferdigstiltTidspunkt).onRight {
             klageRepo.lagre(it)
             oppgaveService.lukkOppgave(
                 it.oppgaveId,

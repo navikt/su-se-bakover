@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
-import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -10,11 +8,16 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt
 import java.util.UUID
 import kotlin.reflect.KClass
 
+/**
+ Da denne ikke attesteres så lagrer vi ikke ned ferdigtidspunkt som de behandlingene av klage
+ men dette lagres heller i [datoklageferdigstilt] som er reservert for klagebehandlinger som ikke attesteres.
+ */
 data class FerdigstiltOmgjortKlage(
     private val forrigeSteg: Utfylt,
     override val klageinstanshendelser: Klageinstanshendelser,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
+    val datoklageferdigstilt: Tidspunkt,
     val behandlingId: UUID? = null,
 ) : Klage,
     VurdertKlage.UtfyltFelter by forrigeSteg {
@@ -26,18 +29,6 @@ data class FerdigstiltOmgjortKlage(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
     ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
-
-    override fun ferdigstillOmgjøring(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        klage: VurdertKlage.Bekreftet,
-    ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
-        return FerdigstiltOmgjortKlage(
-            forrigeSteg = forrigeSteg,
-            saksbehandler = saksbehandler,
-            sakstype = sakstype,
-            klageinstanshendelser = klage.klageinstanshendelser,
-        ).right()
-    }
 }
 
 sealed interface KunneIkkeFerdigstilleOmgjøringsKlage {
