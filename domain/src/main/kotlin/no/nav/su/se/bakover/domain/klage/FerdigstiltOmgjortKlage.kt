@@ -8,6 +8,10 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt
 import java.util.UUID
 import kotlin.reflect.KClass
 
+/**
+ Da denne ikke attesteres så lagrer vi ikke ned ferdigtidspunkt som de behandlingene av klage
+ men dette lagres heller i [datoklageferdigstilt] som er reservert for klagebehandlinger som ikke attesteres.
+ */
 data class FerdigstiltOmgjortKlage(
     private val forrigeSteg: Utfylt,
     override val klageinstanshendelser: Klageinstanshendelser,
