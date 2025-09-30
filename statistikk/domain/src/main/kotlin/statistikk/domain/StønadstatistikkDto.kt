@@ -108,6 +108,7 @@ data class StønadstatistikkDto(
      * @property tilhører er [FradragTilhører]
      */
     data class Fradrag(
+        // TODO bytt ut string med enumen...
         val fradragstype: String,
         val beløp: Long,
         val tilhører: String,
