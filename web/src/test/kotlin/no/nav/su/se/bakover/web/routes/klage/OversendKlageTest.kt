@@ -94,7 +94,7 @@ internal class OversendKlageTest {
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
             feilkode = KunneIkkeOversendeKlage.UgyldigTilstand(OpprettetKlage::class),
-            status = HttpStatusCode.BadRequest,
+            status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
@@ -211,11 +211,11 @@ internal class OversendKlageTest {
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-01-15",
                   "status":"OVERSENDT",
+                  "begrunnelse":"",
                   "vedtakId":"${oversendtKlage.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

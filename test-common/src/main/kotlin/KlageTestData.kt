@@ -157,12 +157,12 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     ).let {
         val klage = it.second.vilkårsvurder(
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = begrunnelse,
+                begrunnelse = "",
             ),
         ).getOrFail()
 

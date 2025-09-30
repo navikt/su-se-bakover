@@ -183,7 +183,7 @@ internal class VilkårsvurderKlageTest {
 
         klage.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
-            VilkårsvurderingerTilKlage.Utfylt(
+            VilkårsvurderingerTilKlage.create(
                 vedtakId = UUID.randomUUID(),
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = false,
@@ -211,12 +211,12 @@ internal class VilkårsvurderKlageTest {
 
         val klageSomHarEndretSvarMenFortsattTilVurdering = klage.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
-            VilkårsvurderingerTilKlage.Utfylt(
+            VilkårsvurderingerTilKlage.create(
                 vedtakId = UUID.randomUUID(),
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "b",
+                begrunnelse = "",
             ),
         ).getOrFail()
 
@@ -230,7 +230,7 @@ internal class VilkårsvurderKlageTest {
 
         bekreftet.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
-            VilkårsvurderingerTilKlage.Utfylt(
+            VilkårsvurderingerTilKlage.create(
                 vedtakId = UUID.randomUUID(),
                 innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
@@ -559,13 +559,13 @@ internal class VilkårsvurderKlageTest {
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                     vedtakId = it.vilkårsvurderinger.vedtakId!!,
                     innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "SomeBegrunnelse",
-                ),
+                    begrunnelse = "",
+                ) as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 15.januar(2021),

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
@@ -103,6 +104,10 @@ class KlageinstanshendelseServiceImpl(
                     is AvsluttetKlage,
                     -> {
                         log.error("Støtter kun Vurderte klager, og Oversendte klager i retur fra leggTilNyKlageinstanshendelse(). klageId: ${it.id} ")
+                        throw IllegalStateException("Kan ikke lagre klage og prosessert klageinstanshendelse fra tilstand ${it::class}")
+                    }
+                    is FerdigstiltOmgjortKlage -> {
+                        log.error("Omgjorte klager er ikke sendt til KA. klageId: ${it.id} ")
                         throw IllegalStateException("Kan ikke lagre klage og prosessert klageinstanshendelse fra tilstand ${it::class}")
                     }
 

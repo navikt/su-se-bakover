@@ -30,7 +30,7 @@ import java.util.UUID
  *
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
- * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering]
+ * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering] og [FerdigstiltOmgjortKlage]
  *
  * - [AvvistKlage] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage.Bekreftet.Avvist]
  *
@@ -39,6 +39,7 @@ import java.util.UUID
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
+ * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.Bekreftet])
  */
 sealed interface Klage :
     Klagefelter,
@@ -90,6 +91,15 @@ sealed interface Klage :
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
         return KunneIkkeSendeKlageTilAttestering.UgyldigTilstand(this::class).left()
+    }
+
+    /** @return [FerdigstiltOmgjortKlage] */
+    fun ferdigstillOmgjøring(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        klage: VurdertKlage.Bekreftet,
+        ferdigstiltTidspunkt: Tidspunkt,
+    ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+        return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(this::class).left()
     }
 
     /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */

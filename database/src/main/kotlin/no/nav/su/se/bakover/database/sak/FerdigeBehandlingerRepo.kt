@@ -79,19 +79,28 @@ internal class FerdigeBehandlingerRepo(
                               join revurdering r on r.sakid = sak.sakid
                      where r.revurderingstype like ('IVERKSATT%')
                  ),
-                 klage as (
-                     select sak.sakId,
-                            sak.saksnummer,
-                            sak.sakType,
-                            k.type                                                     as status,
-                            'KLAGE'                                                    as type,
-                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet,
-                            null::jsonb as periode
-                     from sak
-                              join klage k on sak.sakId = k.sakid
-                     where k.type like ('iverksatt%')
-                        or k.type like 'oversendt'
-                 ),
+                klage as (
+                    select 
+                        sak.sakId,
+                        sak.saksnummer,
+                        sak.sakType,
+                        k.type as status,
+                        'KLAGE' as type,
+                        case 
+                            when k.type = 'omgjort' then k.datoklageferdigstilt
+                            else (
+                                select (obj->>'opprettet')::timestamptz 
+                                from jsonb_array_elements(k.attestering) obj 
+                                where obj->>'type' = 'Iverksatt'
+                            )
+                        end as iverksattOpprettet,
+                        null::jsonb as periode
+                    from sak
+                    join klage k on sak.sakId = k.sakid
+                    where k.type like ('iverksatt%')
+                       or k.type like 'oversendt'
+                       or k.type = 'omgjort'
+                ),
                  slåttSammen as (
                      select *
                      from behandlinger
@@ -119,7 +128,7 @@ internal class FerdigeBehandlingerRepo(
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingstype = behandlingstype.toBehandlingstype(),
             status = hentStatus(behandlingstype),
-            behandlingStartet = tidspunkt("iverksattOpprettet"),
+            behandlingStartet = tidspunkt("iverksattOpprettet"), // TODO: småsketchy, burde håndteres forskjellig per behandling og nullable vt annet felt
             periode = stringOrNull("periode")?.let { deserialize<PeriodeDbJson>(it) }?.toDomain(),
         )
     }
@@ -203,6 +212,7 @@ internal class FerdigeBehandlingerRepo(
             KlagePostgresRepo.Tilstand.OVERSENDT -> Behandlingssammendrag.Behandlingsstatus.OVERSENDT
 
             KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
+            KlagePostgresRepo.Tilstand.OMGJORT -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
         }
     }
 

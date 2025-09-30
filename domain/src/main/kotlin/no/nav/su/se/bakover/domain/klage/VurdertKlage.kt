@@ -36,8 +36,20 @@ sealed interface VurdertKlage :
             throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
         }
 
+    val fritekstTilBrev: String?
+        get() =
+            when (val vurderinger = vurderinger) {
+                is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
+                is VurderingerTilKlage.UtfyltOmgjøring -> null
+                is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+            }
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return vurderinger.fritekstTilOversendelsesbrev.orEmpty().right()
+        return when (val vurderinger = vurderinger) {
+            is VurderingerTilKlage.Påbegynt -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
+        }
     }
 
     /**
@@ -258,8 +270,24 @@ sealed interface VurdertKlage :
         KanBekrefteKlagevurdering,
         UtfyltFelter by forrigeSteg {
 
+        override fun ferdigstillOmgjøring(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            klage: Bekreftet,
+            ferdigstiltTidspunkt: Tidspunkt,
+        ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+            return FerdigstiltOmgjortKlage(
+                forrigeSteg = forrigeSteg,
+                saksbehandler = saksbehandler,
+                sakstype = sakstype,
+                klageinstanshendelser = klage.klageinstanshendelser,
+                datoklageferdigstilt = ferdigstiltTidspunkt,
+            ).right()
+        }
+
         override fun erÅpen() = true
 
+        // Hvis det er en vurdertKlage så sjekker man på "forrigeSteg" og den vil vel alltid være påbegynt ergo langt fra utfylt.
+        // TODO: kanskje man skal se om det har kommet inn nye vurderinger i stedet for?
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vurderinger: VurderingerTilKlage,
