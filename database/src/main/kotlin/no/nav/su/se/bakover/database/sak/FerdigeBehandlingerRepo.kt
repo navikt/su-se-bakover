@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 
 internal class FerdigeBehandlingerRepo(
@@ -24,6 +25,7 @@ internal class FerdigeBehandlingerRepo(
     private val behandlingssammendragKravgrunnlagOgTilbakekrevingRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
     private val sessionFactory: SessionFactory,
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Innvilget, avslått, opphørt og avsluttede/lukkede behandlinger.
@@ -114,8 +116,10 @@ internal class FerdigeBehandlingerRepo(
             select *
             from slåttSammen
                 """.trimIndent().hentListe(emptyMap(), session) {
-                    it.toBehandlingsoversikt()
-                }
+                    runCatching { it.toBehandlingsoversikt() }
+                        .onFailure { feil -> log.error("Klarte ikke mappe felt for rad: ${feil.message}", feil) }
+                        .getOrNull()
+                }.filterNotNull()
             }
         }
     }
