@@ -273,12 +273,14 @@ sealed interface VurdertKlage :
         override fun ferdigstillOmgjøring(
             saksbehandler: NavIdentBruker.Saksbehandler,
             klage: Bekreftet,
+            ferdigstiltTidspunkt: Tidspunkt,
         ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
             return FerdigstiltOmgjortKlage(
                 forrigeSteg = forrigeSteg,
                 saksbehandler = saksbehandler,
                 sakstype = sakstype,
                 klageinstanshendelser = klage.klageinstanshendelser,
+                datoklageferdigstilt = ferdigstiltTidspunkt,
             ).right()
         }
 

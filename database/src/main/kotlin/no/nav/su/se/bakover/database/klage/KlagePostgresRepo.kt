@@ -234,7 +234,7 @@ internal class KlagePostgresRepo(
                     "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
-                    "datoklageferdigstilt" to LocalDate.now(),
+                    "datoklageferdigstilt" to klage.datoklageferdigstilt,
                 ),
                 session,
             )
@@ -586,7 +586,7 @@ internal class KlagePostgresRepo(
                 klageinstanshendelser = klageinstanshendelser,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
-                datoklageferdigstilt = row.localDateOrNull("datoklageferdigstilt"),
+                datoklageferdigstilt = row.tidspunkt("datoklageferdigstilt"),
             )
         }
         val avsluttet = row.stringOrNull("avsluttet")?.let {
