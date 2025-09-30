@@ -192,7 +192,6 @@ internal class VurderKlageTest {
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
                   "fritekstTilBrev":null,
-                  "begrunnelse":"",
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],

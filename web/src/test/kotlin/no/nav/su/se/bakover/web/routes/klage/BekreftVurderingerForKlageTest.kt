@@ -145,7 +145,6 @@ internal class BekreftVurderingerForKlageTest {
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
                   "fritekstTilBrev":"fritekstTilBrev",
-                  "begrunnelse":"",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",
                     "omgjør":null,
