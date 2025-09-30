@@ -323,7 +323,7 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = this.klageinstanshendelser.map { it.toJson() },
-            avsluttetTidspunkt = datoklageferdigstilt?.toString(),
+            avsluttetTidspunkt = datoklageferdigstilt.toString(),
             avsluttet = avsluttet,
         )
     }
