@@ -144,7 +144,10 @@ class SøknadServiceImpl(
                 søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
                 observers.forEach { observer ->
                     observer.handle(
-                        StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, NavIdentBruker.Saksbehandler.systembruker()),
+                        StatistikkEvent.Behandling.Søknad.Opprettet(
+                            uavklartSøknadsbehandling,
+                            uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
+                        ),
                     )
                 }
             }

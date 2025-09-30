@@ -93,7 +93,6 @@ fun Sak.opprettNySøknadsbehandling(
         Pair(
             this.nySøknadsbehandling(søknadsbehandling),
             søknadsbehandling,
-            StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker()),
         ).right()
     }
 }
