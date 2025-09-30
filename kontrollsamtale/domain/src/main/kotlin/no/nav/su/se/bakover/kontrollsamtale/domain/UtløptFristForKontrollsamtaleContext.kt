@@ -334,7 +334,7 @@ data class UtløptFristForKontrollsamtaleContext(
                     clock,
                     oppgaveId,
                 ).also {
-                    logger.info("Maks antall forsøk (${MAX_RETRIES + 1}) for kontrollsamtale:${kontrollsamtale.id} nådd. Gir opp videre prosessering. OppgaveId: $oppgaveId opprettet.")
+                    logger.info("Maks antall forsøk (${MAX_RETRIES + 1}) for kontrollsamtale:${kontrollsamtale.id} nådd. Gir opp videre prosessering. OppgaveId: $oppgaveId opprettet.", RuntimeException("Genererer stacktrace for enklere debugging."))
                     lagreContext(
                         it,
                         tx,
