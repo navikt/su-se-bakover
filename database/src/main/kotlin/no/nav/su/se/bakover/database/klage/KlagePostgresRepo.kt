@@ -394,7 +394,7 @@ internal class KlagePostgresRepo(
                     session,
                 ),
             )
-        // row.stringOrNull("begrunnelse") er up for grabs kanskje den skal brukes i formkravene??
+        // row.stringOrNull("begrunnelse") har vært i bruk og inneholder data i prod som aldri blir vist frem. Dataen kom inn på en måte som er slettet for lengst.
 
         val formkravTilKlage = FormkravTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
