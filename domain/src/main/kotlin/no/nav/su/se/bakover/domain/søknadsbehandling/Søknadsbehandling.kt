@@ -42,7 +42,7 @@ sealed interface Søknadsbehandling :
     val erIverksatt: Boolean get() = this is IverksattSøknadsbehandling.Avslag || this is IverksattSøknadsbehandling.Innvilget
     val erLukket: Boolean get() = this is LukketSøknadsbehandling
 
-    val saksbehandler: NavIdentBruker.Saksbehandler
+    val saksbehandler: NavIdentBruker.Saksbehandler?
     override val beregning: Beregning?
     override val simulering: Simulering?
 

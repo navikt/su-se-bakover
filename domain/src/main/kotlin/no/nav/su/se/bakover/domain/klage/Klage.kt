@@ -97,6 +97,7 @@ sealed interface Klage :
     fun ferdigstillOmgjøring(
         saksbehandler: NavIdentBruker.Saksbehandler,
         klage: VurdertKlage.Bekreftet,
+        ferdigstiltTidspunkt: Tidspunkt,
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(this::class).left()
     }

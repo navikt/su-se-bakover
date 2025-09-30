@@ -224,7 +224,8 @@ internal class KlagePostgresRepo(
             set
                 oppgaveid=:oppgaveid,
                 type=:type,
-                saksbehandler=:saksbehandler
+                saksbehandler=:saksbehandler,
+                datoklageferdigstilt=:datoklageferdigstilt
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -233,6 +234,7 @@ internal class KlagePostgresRepo(
                     "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
+                    "datoklageferdigstilt" to klage.datoklageferdigstilt,
                 ),
                 session,
             )
@@ -584,6 +586,7 @@ internal class KlagePostgresRepo(
                 klageinstanshendelser = klageinstanshendelser,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
+                datoklageferdigstilt = row.tidspunkt("datoklageferdigstilt"),
             )
         }
         val avsluttet = row.stringOrNull("avsluttet")?.let {

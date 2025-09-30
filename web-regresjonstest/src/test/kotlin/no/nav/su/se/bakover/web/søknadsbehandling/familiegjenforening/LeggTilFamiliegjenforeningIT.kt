@@ -16,10 +16,11 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.digitalAlderSøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalAlderssøknad
+import no.nav.su.se.bakover.web.søknad.søknadsbehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.assertSøknadsbehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.tomGrunnlagsdataOgVilkårsvurderingerResponse
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -34,20 +35,19 @@ class LeggTilFamiliegjenforeningIT {
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)
-
+                val søknad = digitalAlderSøknadJson(
+                    SharedRegressionTestData.fnr,
+                    SharedRegressionTestData.epsFnr,
+                )
                 assertSakJson(
                     actualSakJson = sakJson,
                     expectedSaksnummer = 2021,
-                    expectedSøknader = "[${
-                        digitalAlderSøknadJson(
-                            SharedRegressionTestData.fnr,
-                            SharedRegressionTestData.epsFnr,
-                        )
-                    }]",
+                    expectedSøknader = "[$søknad]",
+                    expectedBehandlinger = "[${søknadsbehandlingJson(søknad, "alder")}]",
                     expectedSakstype = Sakstype.ALDER.value,
                 )
 
-                nySøknadsbehandling(
+                startSøknadsbehandling(
                     sakId = sakId,
                     søknadId = søknadId,
                     brukerrolle = Brukerrolle.Saksbehandler,
