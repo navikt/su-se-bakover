@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -18,7 +18,7 @@ import java.time.LocalDate
 import kotlin.reflect.KClass
 
 interface KlageTilAttesteringFelter : VilkårsvurdertKlageFelter {
-    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+    override val vilkårsvurderinger: FormkravTilKlage.Utfylt
 }
 
 sealed interface KlageTilAttestering :

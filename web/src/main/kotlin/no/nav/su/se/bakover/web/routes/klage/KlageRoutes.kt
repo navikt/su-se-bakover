@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.getOrElse
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -115,7 +115,6 @@ internal fun Route.klageRoutes(
                 val innenforFristen: Svarord?,
                 val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 val erUnderskrevet: Svarord?,
-                val begrunnelse: String? = null,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
@@ -126,19 +125,18 @@ internal fun Route.klageRoutes(
                                 saksbehandler = call.suUserContext.saksbehandler,
                                 vedtakId = body.vedtakId,
                                 innenforFristen = when (body.innenforFristen) {
-                                    Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
+                                    Svarord.JA -> FormkravTilKlage.Svarord.JA
+                                    Svarord.NEI_MEN_SKAL_VURDERES -> FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                    Svarord.NEI -> FormkravTilKlage.Svarord.NEI
                                     null -> null
                                 },
                                 klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
                                 erUnderskrevet = when (body.erUnderskrevet) {
-                                    Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
+                                    Svarord.JA -> FormkravTilKlage.Svarord.JA
+                                    Svarord.NEI_MEN_SKAL_VURDERES -> FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                    Svarord.NEI -> FormkravTilKlage.Svarord.NEI
                                     null -> null
                                 },
-                                begrunnelse = "",
                                 sakId = sakId,
                             ),
                         ).map {

@@ -166,7 +166,6 @@ internal class AvsluttKlageTest {
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "begrunnelse":"",
                   "fritekstTilBrev":"fritekstTilBrev",
                     "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

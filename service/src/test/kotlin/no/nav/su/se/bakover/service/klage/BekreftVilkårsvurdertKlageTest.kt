@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -231,7 +231,7 @@ internal class BekreftVilkårsvurdertKlageTest {
     private fun verifiserGyldigStatusovergang(
         vedtak: Vedtak,
         klage: Klage,
-        vilkårsvurderingerTilKlage: VilkårsvurderingerTilKlage.Utfylt,
+        vilkårsvurderingerTilKlage: FormkravTilKlage.Utfylt,
         vurderingerTilKlage: VurderingerTilKlage? = null,
         attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {

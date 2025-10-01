@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.klage
 
 import arrow.core.right
-import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -53,7 +53,7 @@ internal class KlagePostgresRepoTest {
 
             val klage = testDataHelper.persisterKlageOpprettet().vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVilkårsvurderinger"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
+                vilkårsvurderinger = FormkravTilKlage.empty(),
             ).getOrFail().also {
                 klageRepo.lagre(it)
             }

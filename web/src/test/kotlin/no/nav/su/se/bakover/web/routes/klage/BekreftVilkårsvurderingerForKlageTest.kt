@@ -146,7 +146,6 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                   "erUnderskrevet":"JA",
                   "vedtaksvurdering":null,
                   "attesteringer":[],
-                  "begrunnelse":"",
                   "fritekstTilBrev": null,
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES",

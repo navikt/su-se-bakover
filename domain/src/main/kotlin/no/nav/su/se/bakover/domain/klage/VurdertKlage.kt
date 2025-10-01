@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
 
 interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
     // Her ønsker vi å være mer spesifikke en super
-    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+    override val vilkårsvurderinger: FormkravTilKlage.Utfylt
     val vurderinger: VurderingerTilKlage
     val klageinstanshendelser: Klageinstanshendelser
 }
@@ -67,13 +67,13 @@ sealed interface VurdertKlage :
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        vilkårsvurderinger: FormkravTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
             return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
         }
         return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
+            is FormkravTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -88,7 +88,7 @@ sealed interface VurdertKlage :
                 sakstype = sakstype,
             )
 
-            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
+            is FormkravTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
