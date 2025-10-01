@@ -2,6 +2,8 @@
 <included>
     <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>trace_id</includeMdcKeyName>
+            <includeMdcKeyName>span_id</includeMdcKeyName>
             <includeMdcKeyName>X-Correlation-ID</includeMdcKeyName>
             <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
                 <!-- Making stacktraces shorter, because see https://doc.nais.io/observability/logs/examples#issues-with-long-log-messages -->
