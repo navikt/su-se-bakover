@@ -48,7 +48,6 @@ class LukkSøknadServiceImpl(
         return sessionFactory.withTransactionContext { tx ->
             sak.lukkSøknadOgSøknadsbehandling(
                 lukkSøknadCommand = command,
-                saksbehandler = command.saksbehandler,
             ).let {
                 it.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(

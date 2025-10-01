@@ -615,7 +615,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                     argThat {
                         it shouldBe StatistikkEvent.Behandling.Søknad.Lukket(
                             søknadsbehandling = expectedLukketSøknadsbehandling(),
-                            saksbehandler = saksbehandler,
+                            lukketAv = saksbehandler,
                         )
                     },
                 )

@@ -499,7 +499,6 @@ fun søknadsbehandlingTrukket(
                 saksbehandler = saksbehandlerSomLukket,
                 lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
             ),
-            saksbehandler = saksbehandler,
         )
     }.let {
         Pair(it.sak, it.søknadsbehandling!!)
