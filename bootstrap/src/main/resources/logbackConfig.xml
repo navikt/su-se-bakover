@@ -4,7 +4,7 @@
     <include resource="logback-audit-config.xml"/>
     <include resource="logback-secure-config.xml"/>
     <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT_JSON" />
     </appender>
     <root level="INFO">
         <appender-ref ref="OTEL" />
