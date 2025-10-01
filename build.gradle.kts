@@ -20,6 +20,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     dependencies {
+        implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0:2.16.0-alpha")
         implementation(rootProject.libs.kotlin.reflect)
         implementation(rootProject.libs.kotlin.script.runtime)
         implementation(rootProject.libs.kotlin.compiler.embeddable)
