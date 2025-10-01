@@ -116,7 +116,7 @@ class StønadStatistikkRepoImpl(
             INSERT INTO stoenad_maaned_statistikk (
                 id, maaned, funksjonell_tid, teknisk_tid, sak_id, stonadstype, personnummer, personnummer_eps,
                 vedtakstype, vedtaksresultat, vedtaksdato, vedtak_fra_og_med, vedtak_til_og_med,
-                opphorsgrunn, opphorsdato, behandlende_enhet_kode,
+                opphorsgrunn, opphorsdato, behandlende_enhet_kode, aarsakStans,
                 stonadsklassifisering, sats, utbetales, fradragSum, uforegrad, alderspensjon, alderspensjonEps,
                 arbeidsavklaringspenger, arbeidsavklaringspengerEps, arbeidsinntekt, arbeidsinntektEps,
                 omstillingsstonad, omstillingsstonadEps, avtalefestetPensjon, avtalefestetPensjonEps,
@@ -133,7 +133,7 @@ class StønadStatistikkRepoImpl(
             ) VALUES (
                 :id, :maaned, :funksjonell_tid, :teknisk_tid, :sak_id, :stonadstype, :personnummer, :personnummer_eps,
                 :vedtakstype, :vedtaksresultat, :vedtaksdato, :vedtak_fra_og_med, :vedtak_til_og_med,
-                :opphorsgrunn, :opphorsdato, :behandlende_enhet_kode,
+                :opphorsgrunn, :opphorsdato, :behandlende_enhet_kode, :aarsakStans,
                 :stonadsklassifisering, :sats, :utbetales, :fradragSum, :uforegrad, :alderspensjon, :alderspensjonEps,
                 :arbeidsavklaringspenger, :arbeidsavklaringspengerEps, :arbeidsinntekt, :arbeidsinntektEps,
                 :omstillingsstonad, :omstillingsstonadEps, :avtalefestetPensjon, :avtalefestetPensjonEps,
@@ -167,6 +167,7 @@ class StønadStatistikkRepoImpl(
                     "opphorsgrunn" to månedStatistikk.opphorsgrunn,
                     "opphorsdato" to månedStatistikk.opphorsdato,
                     "behandlende_enhet_kode" to månedStatistikk.behandlendeEnhetKode,
+                    "aarsakStans" to månedStatistikk.årsakStans,
                     "stonadsklassifisering" to månedStatistikk.stonadsklassifisering?.toString(),
                     "sats" to månedStatistikk.sats,
                     "utbetales" to månedStatistikk.utbetales,
@@ -316,6 +317,7 @@ class StønadStatistikkRepoImpl(
                                         it,
                                     )
                                 },
+                                årsakStans = stringOrNull("aarsakStans"),
                                 sats = longOrNull("sats"),
                                 utbetales = longOrNull("utbetales"),
                                 fradragSum = longOrNull("fradragSum"),
