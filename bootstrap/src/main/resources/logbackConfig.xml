@@ -3,7 +3,7 @@
     <include resource="logback-json-config.xml"/>
     <include resource="logback-audit-config.xml"/>
     <include resource="logback-secure-config.xml"/>
-    <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdcKeyName>trace_id</includeMdcKeyName>
             <includeMdcKeyName>span_id</includeMdcKeyName>
