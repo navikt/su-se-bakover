@@ -267,6 +267,7 @@ data object ServiceBuilder {
             søknad = søknadService,
             brev = brevService,
             lukkSøknad = LukkSøknadServiceImpl(
+                clock = clock,
                 søknadService = søknadService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,

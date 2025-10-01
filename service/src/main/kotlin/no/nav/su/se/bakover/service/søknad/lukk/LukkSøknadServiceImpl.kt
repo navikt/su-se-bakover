@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -19,9 +20,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 class LukkSøknadServiceImpl(
+    private val clock: Clock,
     private val søknadService: SøknadService,
     private val sakService: SakService,
     private val brevService: BrevService,
@@ -49,6 +52,7 @@ class LukkSøknadServiceImpl(
             sak.lukkSøknadOgSøknadsbehandling(
                 lukkSøknadCommand = command,
                 saksbehandler = command.saksbehandler,
+                clock = clock,
             ).let {
                 it.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(
@@ -59,7 +63,7 @@ class LukkSøknadServiceImpl(
                     )
                 }
                 søknadService.persisterSøknad(it.søknad, tx)
-                it.søknadsbehandling?.also {
+                it.søknadsbehandling.also {
                     søknadsbehandlingService.persisterSøknadsbehandling(it, tx)
                 }
                 oppgaveService.lukkOppgave(
@@ -77,6 +81,7 @@ class LukkSøknadServiceImpl(
                 observers.forEach { e ->
                     // TODO: Fire and forget. Det vil logges i observerne, men vil ikke kunne resende denne dersom dette feiler.
                     e.handle(it.hendelse)
+                    e.handle(StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler))
                 }
 
                 Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)

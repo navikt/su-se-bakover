@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -404,14 +405,76 @@ data class Sak(
     fun lukkSøknadOgSøknadsbehandling(
         lukkSøknadCommand: LukkSøknadCommand,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
     ): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
+        /*
         val søknad = hentSøknad(søknadId).getOrElse {
             throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Fant ikke søknad for sak $id og søknad $søknadId. Underliggende feil: $it")
         }
+         */
+
+        val søknadensBehandlinger = hentSøknadsbehandlingForSøknad(søknadId).getOrNull() ?: this.opprettNySøknadsbehandling(
+            søknadId = søknadId,
+            clock = clock,
+            saksbehandler = saksbehandler,
+        ).getOrElse {
+            throw IllegalStateException("Midlertidig feil")
+        }.second.let { listOf(it) }
+        // det skal kun finnes 1 søknadsbehandling åpen om gangen
+        val søknadsbehandlingSomSkalLukkes =
+            søknadensBehandlinger.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
+                ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
+
+        // Finnes søknadsbehandling. Lukker søknadsbehandlingen, som i sin tur lukker søknaden.
+        return søknadsbehandlingSomSkalLukkes.lukkSøknadsbehandlingOgSøknad(
+            lukkSøknadCommand = lukkSøknadCommand,
+        ).getOrElse {
+            throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
+        }.let { lukketSøknadsbehandling ->
+
+            // TODO fjern statistikk og bytt tuple med triple?
+
+            Tuple4(
+                this.oppdaterSøknadsbehandling(lukketSøknadsbehandling)
+                    .copy(
+                        søknader = this.søknader.filterNot { it.id == søknadId }
+                            .plus(lukketSøknadsbehandling.søknad),
+                    ),
+                lukketSøknadsbehandling.søknad,
+                lukketSøknadsbehandling,
+                StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),
+            )
+        }.let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
+            val lagBrevRequest = søknad.lagGenererDokumentKommando(sak.info())
+            LukkSøknadOgSøknadsbehandlingResponse(
+                sak = sak,
+                søknad = søknad,
+                søknadsbehandling = søknadsbehandling,
+                hendelse = statistikkhendelse,
+                lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
+            )
+        }
+
+        // TODO istdenfor en fold ha et mellomsteg om null? Etter opprettelse eller etter finnes vil være likt..
+        /*
         return hentSøknadsbehandlingForSøknad(søknadId).fold(
             {
                 // Finnes ingen søknadsbehandling. Lukker kun søknaden.
+
+                // TODO opprett behandling....???
+
+                val clock = Clock()
+                val test = this.opprettNySøknadsbehandling(
+                    søknadId = søknadId,
+                    clock = clock,
+                    saksbehandler = saksbehandler,
+                ).getOrElse {
+                    throw IllegalStateException("Midlertidig feil")
+                }.second
+
+                test.lukkSøknadsbehandlingOgSøknad(lukkSøknadCommand)
+
                 val lukketSøknad = søknad.lukk(
                     lukkSøknadCommand = lukkSøknadCommand,
                 )
@@ -422,6 +485,7 @@ data class Sak(
                     lukketSøknad,
                     null,
                     StatistikkEvent.Søknad.Lukket(lukketSøknad, saksnummer),
+                    // StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),
                 )
             },
             { søknadensBehandlinger ->
@@ -458,6 +522,7 @@ data class Sak(
                 lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
             )
         }
+         */
     }
 
     /**
@@ -467,7 +532,7 @@ data class Sak(
     data class LukkSøknadOgSøknadsbehandlingResponse(
         val sak: Sak,
         val søknad: Søknad.Journalført.MedOppgave.Lukket,
-        val søknadsbehandling: LukketSøknadsbehandling?,
+        val søknadsbehandling: LukketSøknadsbehandling,
         val hendelse: StatistikkEvent,
         val lagBrevRequest: Either<IkkeLagBrevRequest, GenererDokumentCommand>,
     ) {
@@ -480,7 +545,7 @@ data class Sak(
                 require(it.saksnummer == sak.saksnummer)
             }
             require(sak.hentSøknad(søknad.id).getOrNull()!! == søknad)
-            søknadsbehandling?.also {
+            søknadsbehandling.also {
                 require(sak.søknadsbehandlinger.contains(søknadsbehandling))
                 require(søknadsbehandling.søknad == søknad)
             }

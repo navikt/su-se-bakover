@@ -54,6 +54,7 @@ internal class StatistikkSøknadTest {
     @Test
     fun `trukket søknad`() {
         val (sak, søknad) = trukketSøknad()
+        val behandling = sak.behandlinger.søknadsbehandlinger.single()
         assert(
             statistikkEvent = StatistikkEvent.Søknad.Lukket(søknad, sak.saksnummer),
             behandlingStatus = "AVSLUTTET",
