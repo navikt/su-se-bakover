@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.left
 import behandling.domain.BehandlingMedAttestering
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagefelter
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -49,7 +49,7 @@ sealed interface Klage :
      * Convenience funksjon for å slippe store when-blokker.
      * De fleste tilstandene har denne satt, men hvis ikke vil den være null.
      */
-    val vilkårsvurderinger: VilkårsvurderingerTilKlage?
+    val vilkårsvurderinger: FormkravTilKlage?
 
     val sakstype: Sakstype
 
@@ -74,7 +74,7 @@ sealed interface Klage :
      */
     fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        vilkårsvurderinger: FormkravTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(this::class).left()
     }

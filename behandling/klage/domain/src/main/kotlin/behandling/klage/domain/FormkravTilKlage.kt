@@ -3,16 +3,15 @@ package behandling.klage.domain
 import java.util.UUID
 
 /**
- * Inneholder kun selve vilkårsvurderingene som er gjort i forbindelse med en klage.
+ * Inneholder kun selve vilkårsvurderingene/formkravene som er gjort i forbindelse med en klage.
  * For selve klagen se [VilkårsvurdertKlage]
  */
-sealed interface VilkårsvurderingerTilKlage {
+sealed interface FormkravTilKlage {
 
     val vedtakId: UUID?
     val innenforFristen: Svarord?
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?
     val erUnderskrevet: Svarord?
-    val begrunnelse: String?
 
     enum class Svarord {
         JA,
@@ -27,15 +26,14 @@ sealed interface VilkårsvurderingerTilKlage {
     }
 
     /**
-     * Bruk [VilkårsvurderingerTilKlage.create] som returnerer [VilkårsvurderingerTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [VilkårsvurderingerTilKlage.Påbegynt]
+     * Bruk [FormkravTilKlage.create] som returnerer [FormkravTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [FormkravTilKlage.Påbegynt]
      */
     data class Påbegynt private constructor(
         override val vedtakId: UUID?,
         override val innenforFristen: Svarord?,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
         override val erUnderskrevet: Svarord?,
-        override val begrunnelse: String?,
-    ) : VilkårsvurderingerTilKlage {
+    ) : FormkravTilKlage {
         companion object {
 
             fun empty(): Påbegynt {
@@ -45,20 +43,19 @@ sealed interface VilkårsvurderingerTilKlage {
                     innenforFristen = null,
                     klagesDetPåKonkreteElementerIVedtaket = null,
                     erUnderskrevet = null,
-                    begrunnelse = null,
                 ) as Påbegynt
             }
 
             /**
-             * @return [VilkårsvurderingerTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [VilkårsvurderingerTilKlage.Påbegynt]
+             * Denne styrer hvilken klagetype vi får se [VilkårsvurdertKlage] når man går videre i klageflyten
+             * @return [FormkravTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [FormkravTilKlage.Påbegynt]
              */
             internal fun create(
                 vedtakId: UUID?,
                 innenforFristen: Svarord?,
                 klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 erUnderskrevet: Svarord?,
-                begrunnelse: String?,
-            ): VilkårsvurderingerTilKlage {
+            ): FormkravTilKlage {
                 val erAlleFelterUtfylt = listOf(
                     vedtakId,
                     innenforFristen,
@@ -67,6 +64,7 @@ sealed interface VilkårsvurderingerTilKlage {
                 ).all {
                     it != null
                 }
+                // TODO: fjern begrunnelse herifra som aldri er bruk
                 return if (erAlleFelterUtfylt) {
                     createUtfyltOnly(
                         vedtakId = vedtakId!!,
@@ -80,7 +78,6 @@ sealed interface VilkårsvurderingerTilKlage {
                         innenforFristen = innenforFristen,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                         erUnderskrevet = erUnderskrevet,
-                        begrunnelse = begrunnelse,
                     )
                 }
             }
@@ -92,8 +89,7 @@ sealed interface VilkårsvurderingerTilKlage {
         override val innenforFristen: Svarord,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
         override val erUnderskrevet: Svarord,
-        override val begrunnelse: String,
-    ) : VilkårsvurderingerTilKlage
+    ) : FormkravTilKlage
 
     companion object {
 
@@ -106,32 +102,29 @@ sealed interface VilkårsvurderingerTilKlage {
             innenforFristen: Svarord,
             klagesDetPåKonkreteElementerIVedtaket: Boolean,
             erUnderskrevet: Svarord,
-        ): VilkårsvurderingerTilKlage {
+        ): FormkravTilKlage {
             return Utfylt(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = "",
             )
         }
 
         /**
-         * @return [VilkårsvurderingerTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [VilkårsvurderingerTilKlage.Påbegynt]
+         * @return [FormkravTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [FormkravTilKlage.Påbegynt]
          */
         fun create(
             vedtakId: UUID?,
             innenforFristen: Svarord?,
             klagesDetPåKonkreteElementerIVedtaket: Boolean?,
             erUnderskrevet: Svarord?,
-            begrunnelse: String?,
-        ): VilkårsvurderingerTilKlage {
+        ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = begrunnelse,
             )
         }
     }

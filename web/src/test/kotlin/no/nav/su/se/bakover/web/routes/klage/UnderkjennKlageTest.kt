@@ -175,8 +175,7 @@ internal class UnderkjennKlageTest {
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
-                  "fritekstTilBrev":"fritekstTilBrev",
-                  "begrunnelse":"",
+                  "fritekstTilBrev":"fritekstTilBrev",                  
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",
                     "omgjør":null,

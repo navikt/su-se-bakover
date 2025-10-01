@@ -156,7 +156,7 @@ class KlageServiceImpl(
         val klage = sak.hentKlage(klageId = command.klageId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
         return klage.vilkårsvurder(
             saksbehandler = command.saksbehandler,
-            vilkårsvurderinger = command.vilkårsvurderinger,
+            vilkårsvurderinger = command.formkrav,
         ).onRight {
             klageRepo.lagre(it)
         }

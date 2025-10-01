@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -68,7 +68,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
@@ -93,7 +92,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
@@ -129,7 +127,6 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = null,
                 klagesDetPåKonkreteElementerIVedtaket = null,
                 erUnderskrevet = null,
-                begrunnelse = null,
                 sakId = sak.id,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
@@ -183,12 +180,11 @@ internal class VilkårsvurderKlageTest {
 
         klage.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
-            VilkårsvurderingerTilKlage.create(
+            FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = false,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "b",
+                erUnderskrevet = FormkravTilKlage.Svarord.JA,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -211,12 +207,11 @@ internal class VilkårsvurderKlageTest {
 
         val klageSomHarEndretSvarMenFortsattTilVurdering = klage.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
-            VilkårsvurderingerTilKlage.create(
+            FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
+                innenforFristen = FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
                 klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "",
+                erUnderskrevet = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail()
 
@@ -230,12 +225,11 @@ internal class VilkårsvurderKlageTest {
 
         bekreftet.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
-            VilkårsvurderingerTilKlage.create(
+            FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "b",
+                erUnderskrevet = FormkravTilKlage.Svarord.JA,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -256,7 +250,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
@@ -451,12 +444,11 @@ internal class VilkårsvurderKlageTest {
     fun `får tilbake en utfylt avvist vilkårsvurdert klage dersom minst et av feltene er besvart 'nei' eller false`() {
         val forventetAvvistVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "en god og fin begrunnelse",
+                erUnderskrevet = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail()
 
@@ -485,7 +477,6 @@ internal class VilkårsvurderKlageTest {
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
-            begrunnelse = null,
             sakId = sak.id,
         )
 
@@ -501,7 +492,7 @@ internal class VilkårsvurderKlageTest {
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
+                vilkårsvurderinger = FormkravTilKlage.empty(),
                 attesteringer = attesteringer,
                 datoKlageMottatt = 15.januar(2021),
             )
@@ -541,10 +532,9 @@ internal class VilkårsvurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             klageId = klage.id,
             vedtakId = vedtak.id,
-            innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+            innenforFristen = FormkravTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,
-            erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-            begrunnelse = "SomeBegrunnelse",
+            erUnderskrevet = FormkravTilKlage.Svarord.JA,
             sakId = sak.id,
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
@@ -559,13 +549,12 @@ internal class VilkårsvurderKlageTest {
                 journalpostId = klage.journalpostId,
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+                vilkårsvurderinger = FormkravTilKlage.create(
                     vedtakId = it.vilkårsvurderinger.vedtakId!!,
-                    innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                    innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
-                    erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                    begrunnelse = "",
-                ) as VilkårsvurderingerTilKlage.Utfylt,
+                    erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                ) as FormkravTilKlage.Utfylt,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 15.januar(2021),

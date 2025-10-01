@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.hentUføregrunnlag
 import org.slf4j.LoggerFactory
 import statistikk.domain.StønadsklassifiseringDto
@@ -276,9 +275,6 @@ class StønadStatistikkJobServiceImpl(
                 is Opphørsvedtak -> siste.behandling.utledOpphørsdato(clock)
                 else -> null
             },
-            harUtenlandsOpphold = vilkarVurdert(behandling.vilkårsvurderinger.utenlandsopphold),
-            harFamiliegjenforening = vilkarVurdertHvisEksisterer(behandling.vilkårsvurderinger.familiegjenforening()),
-            flyktningsstatus = vilkarVurdertHvisEksisterer(behandling.vilkårsvurderinger.flyktningVilkår()),
             årsakStans = when (siste) {
                 is VedtakStansAvYtelse -> siste.behandling.revurderingsårsak.årsak.name
                 else -> null

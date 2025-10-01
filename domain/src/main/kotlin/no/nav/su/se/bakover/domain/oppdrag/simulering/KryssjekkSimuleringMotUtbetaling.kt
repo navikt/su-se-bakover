@@ -18,6 +18,7 @@ import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
+import java.time.LocalDate
 
 /**
  * En sjekk som gjøres for å gi saksbehandler tilbakemelding om simuleringen stemmer overens med utbetalingslinjene som kommer til å bli sendt.
@@ -62,6 +63,7 @@ internal fun sjekkUtbetalingMotSimulering(
     simulering: Simulering,
     utbetalingslinjePåTidslinjer: TidslinjeForUtbetalinger,
     erOpphør: Boolean = false,
+    naa: LocalDate = LocalDate.now(),
 ): Either<ForskjellerMellomUtbetalingOgSimulering, Unit> {
     val forskjeller = mutableListOf<ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode>()
     // Siden vi kan ha overlappende perioder med dagens utbetalingslinjealgoritme, så må vi lage en tidslinje.
@@ -92,7 +94,7 @@ internal fun sjekkUtbetalingMotSimulering(
                 /*
                  Simulering gir ikke svar for perioder der beløp er 0, vi vil kun at det skal gjelde opphør frem i tid. Vi vet ikke om betalingen er gjort enda for inneværende månde så vi vil sjekke neste måned.
                  */
-                if (erOpphør && linje.periode.tilOgMed.erFremITidMenIkkeSammeMåned() && linje.beløp == 0) {
+                if (erOpphør && linje.periode.tilOgMed.erFremITidMenIkkeSammeMåned(naa) && linje.beløp == 0) {
                     return@forEach
                 }
                 if (simuleringsperiode != linje.periode) {

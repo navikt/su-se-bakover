@@ -1,7 +1,6 @@
 package statistikk.domain
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import statistikk.domain.StønadstatistikkDto.Stønadstype
@@ -28,10 +27,6 @@ data class StønadstatistikkMåned(
     val vedtakTilOgMed: LocalDate,
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
-
-    val harUtenlandsOpphold: JaNei?,
-    val harFamiliegjenforening: JaNei?,
-    val flyktningsstatus: JaNei?,
 
     val årsakStans: String? = null,
 
