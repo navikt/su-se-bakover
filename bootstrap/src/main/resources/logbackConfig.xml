@@ -3,12 +3,7 @@
     <include resource="logback-json-config.xml"/>
     <include resource="logback-audit-config.xml"/>
     <include resource="logback-secure-config.xml"/>
-    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdcKeyName>trace_id</includeMdcKeyName>
-            <includeMdcKeyName>span_id</includeMdcKeyName>
-        </encoder>
-    </appender>
+
     <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
         <appender-ref ref="STDOUT_JSON" />
     </appender>
@@ -19,6 +14,7 @@
     <logger name="io.ktor.auth" level="TRACE"/>
 
     <root level="INFO">
+        <appender-ref ref="OTEL"/>
         <appender-ref ref="STDOUT_JSON"/>
     </root>
 </included>
