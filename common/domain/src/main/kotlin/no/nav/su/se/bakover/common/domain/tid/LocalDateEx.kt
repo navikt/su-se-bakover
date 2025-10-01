@@ -61,7 +61,6 @@ fun LocalDate.erNesteÅr(): Boolean {
     return this.year == currentYear + 1
 }
 
-fun LocalDate.erFremITidMenIkkeSammeMåned(): Boolean {
-    val naa = LocalDate.now()
+fun LocalDate.erFremITidMenIkkeSammeMåned(naa: LocalDate): Boolean {
     return this.isAfter(naa) && this.month != naa.month
 }
