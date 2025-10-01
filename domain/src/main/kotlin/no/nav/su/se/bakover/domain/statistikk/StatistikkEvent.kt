@@ -114,7 +114,7 @@ sealed interface StatistikkEvent {
             data class Lukket(
                 override val søknadsbehandling: LukketSøknadsbehandling,
                 // TODO jah: Erstatt med saksbehandler fra behandlinga hvis det blir implmentert.
-                val saksbehandler: NavIdentBruker.Saksbehandler,
+                val lukketAv: NavIdentBruker.Saksbehandler,
             ) : Søknad
         }
 

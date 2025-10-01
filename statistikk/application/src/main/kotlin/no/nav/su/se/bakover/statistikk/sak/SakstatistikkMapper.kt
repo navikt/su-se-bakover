@@ -162,8 +162,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Avsluttet.name,
                     behandlingResultat = BehandlingResultat.Avbrutt.name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
-                        ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
+                    ansvarligBeslutter = lukketAv.navIdent,
                 )
             }
         }

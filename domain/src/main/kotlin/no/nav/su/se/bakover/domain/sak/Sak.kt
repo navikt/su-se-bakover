@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.domain.whenever
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -403,7 +402,6 @@ data class Sak(
      */
     fun lukkSøknadOgSøknadsbehandling(
         lukkSøknadCommand: LukkSøknadCommand,
-        saksbehandler: NavIdentBruker.Saksbehandler,
     ): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
         val søknad = hentSøknad(søknadId).getOrElse {
@@ -444,7 +442,7 @@ data class Sak(
                             ),
                         lukketSøknadsbehandling.søknad,
                         lukketSøknadsbehandling,
-                        StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),
+                        StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, lukketSøknadsbehandling.lukketAv),
                     )
                 }
             },

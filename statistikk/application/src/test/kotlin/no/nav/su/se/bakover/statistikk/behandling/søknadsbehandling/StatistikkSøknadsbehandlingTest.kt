@@ -192,7 +192,7 @@ internal class StatistikkSøknadsbehandlingTest {
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(
                 søknadsbehandling,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvsluttet"),
+                lukketAv = NavIdentBruker.Saksbehandler("saksbehandlerSomAvsluttet"),
             ),
             behandlingStatus = "AVSLUTTET",
             behandlingStatusBeskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",
