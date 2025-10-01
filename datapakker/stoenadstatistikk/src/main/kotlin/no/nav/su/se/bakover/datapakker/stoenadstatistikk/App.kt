@@ -67,10 +67,15 @@ private fun writeCsvToBigQueryTable(
 
     val writer = bigQuery.writer(jobId, writeConfig)
 
-    writer.use { channel ->
-        Channels.newOutputStream(channel).use { os ->
-            os.write(csvData.toByteArray())
+    try {
+        writer.use { channel ->
+            Channels.newOutputStream(channel).use { os ->
+                os.write(csvData.toByteArray())
+            }
         }
+    } catch (e: Exception) {
+        logger.error("Failed to write CSV data to BigQuery stream: ${e.message}", e)
+        throw RuntimeException("Error during CSV write to BigQuery", e)
     }
 
     val job = writer.job
