@@ -174,7 +174,6 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.vedtaksresultat,
                     dto.opphorsgrunn.orEmpty(),
                     dto.opphorsdato?.toString().orEmpty(),
-                    dto.behandlendeEnhetKode,
                     dto.årsakStans.orEmpty(),
                     dto.behandlendeEnhetKode,
                     dto.stonadsklassifisering.orEmpty(),
