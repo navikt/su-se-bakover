@@ -51,10 +51,6 @@ data class StønadstatistikkMånedDto(
     val opphorsgrunn: String? = null,
     val opphorsdato: LocalDate? = null,
 
-    val harUtenlandsOpphold: String?,
-    val harFamiliegjenforening: String?,
-    val flyktningsstatus: String?,
-
     val årsakStans: String? = null,
 
     val behandlendeEnhetKode: String,
@@ -179,9 +175,6 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.opphorsgrunn.orEmpty(),
                     dto.opphorsdato?.toString().orEmpty(),
                     dto.behandlendeEnhetKode,
-                    dto.harUtenlandsOpphold.orEmpty(),
-                    dto.harFamiliegjenforening.orEmpty(),
-                    dto.flyktningsstatus.orEmpty(),
                     dto.årsakStans.orEmpty(),
                     dto.behandlendeEnhetKode,
                     dto.stonadsklassifisering.orEmpty(),

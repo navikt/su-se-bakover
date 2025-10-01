@@ -311,9 +311,6 @@ class StønadStatistikkRepoImpl(
                                 opphorsgrunn = stringOrNull("opphorsgrunn"),
                                 opphorsdato = localDateOrNull("opphorsdato"),
                                 behandlendeEnhetKode = string("behandlende_enhet_kode"),
-                                harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) },
-                                harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) },
-                                flyktningsstatus = stringOrNull("flyktningsstatus")?.let { JaNei.valueOf(it) },
                                 stonadsklassifisering = stringOrNull("stonadsklassifisering")?.let {
                                     StønadsklassifiseringDto.valueOf(
                                         it,
