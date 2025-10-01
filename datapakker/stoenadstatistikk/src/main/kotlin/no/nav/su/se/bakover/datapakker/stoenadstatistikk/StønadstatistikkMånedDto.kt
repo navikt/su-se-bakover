@@ -6,31 +6,89 @@ import java.util.UUID
 
 /**
  * Data transfer object for stønadsstatistikk (support statistics).
- * @property harUtenlandsOpphold Er dvh sin AVVIK_UTL_OPPHOLD Knyttet opp mot vilkårsvurderingen
- * @property harFamiliegjenforening Angir om bruker har kommet pga familiegjenforening
+ * @property id unik id for måned statistikk til en person
+ * @property måned hvilket måned statistikken gjelder
  * @property personnummer Personens fødselsnummer.
- * @property personNummerEktefelle Fødselsnummer til ektefelle, hvis aktuelt.
+ * @property sakId Unik nøkkel til saken i kildesystemet. Kan også omtales som fagsak.
+ * Identifiserer samlingen av behandlinger som tilhører saken.
  * @property funksjonellTid Tidspunktet da hendelsen faktisk ble gjennomført eller registrert i kildesystemet.
  * Format: yyyy-MM-dd'T'HH:mm:ss.SSSSSS. Dette er det tidspunktet hendelsen gjelder fra.
  * Ved oppdatering av historiske data, angir dette når endringen offisielt gjelder.
  * @property tekniskTid Tidspunktet da kildesystemet ble klar over hendelsen.
  * Format: yyyy-MM-dd'T'HH:mm:ss.SSSSSS. Brukes til å holde oversikt over når endringer faktisk ble gjort.
  * @property stonadstype Type stønad. For eksempel SU Ufør eller SU Alder.
- * @property sakId Unik nøkkel til saken i kildesystemet. Kan også omtales som fagsak.
- * Identifiserer samlingen av behandlinger som tilhører saken.
- * @property vedtaksdato Dato for når vedtaket ble fattet.
+ * @property personNummerEps Fødselsnummer til ektefelle, hvis aktuelt.
+ * @property vedtakFraOgMed dato vedtak gjelder i fra
+ * @property vedtakTilOgMed dato vedtak gjelder til
  * @property vedtakstype Type vedtak, for eksempel førstegangssøknad, revurdering eller klage.
  * @property vedtaksresultat Resultatet av vedtaket, for eksempel Innvilget eller Opphørt.
- * @property behandlendeEnhetKode Kode som angir hvilken enhet som behandlet saken på vedtakstidspunktet.
- * @property ytelseVirkningstidspunkt Dato for når ytelsen tredde i kraft første gang.
- * @property gjeldendeStonadVirkningstidspunkt Dato for når gjeldende stønadsperiode startet.
- * @property gjeldendeStonadStopptidspunkt Dato for når gjeldende stønadsperiode avsluttes.
- * @property gjeldendeStonadUtbetalingsstart Dato for når utbetalinger starter i gjeldende periode.
- * @property gjeldendeStonadUtbetalingsstopp Dato for når utbetalinger stoppes i gjeldende periode.
- * @property månedsbeløp Liste over månedlige beløp og tilhørende detaljer.
+ * @property vedtaksdato Dato for når vedtaket ble fattet.
  * @property opphorsgrunn Grunn for opphør av ytelsen, hvis aktuelt.
  * @property opphorsdato Dato for når ytelsen ble opphørt, hvis aktuelt.
- * @property flyktningsstatus Angir om personen har flyktningstatus. Alle med SU Ufør vil være flyktning.
+ * @property årsakStans årsak til midlertidig stanset ytelse
+ * @property behandlendeEnhetKode Kode som angir hvilken enhet som behandlet saken på vedtakstidspunktet.
+ * @property stonadsklassifisering
+ * @property sats Bruker sin sats før fradrag
+ * @property utbetales beløpet bruker har rett på
+ * @property fradragSum totalt fradrag
+ * @property uføregrad hvilken prosentandel uføre personen er
+ * Alle felter nedenfor er inntekter / fradragstyper
+ * @property alderspensjon
+ * @property alderspensjonEps
+ * @property arbeidsavklaringspenger
+ * @property arbeidsavklaringspengerEps
+ * @property arbeidsinntekt
+ * @property arbeidsinntektEps
+ * @property omstillingsstønad
+ * @property omstillingsstønadEps
+ * @property avtalefestetPensjon
+ * @property avtalefestetPensjonEps
+ * @property avtalefestetPensjonPrivat
+ * @property avtalefestetPensjonPrivatEps
+ * @property bidragEtterEkteskapsloven
+ * @property bidragEtterEkteskapslovenEps
+ * @property dagpenger
+ * @property dagpengerEps
+ * @property fosterhjemsgodtgjørelse
+ * @property fosterhjemsgodtgjørelseEps
+ * @property gjenlevendepensjon
+ * @property gjenlevendepensjonEps
+ * @property introduksjonsstønad
+ * @property introduksjonsstønadEps
+ * @property kapitalinntekt
+ * @property kapitalinntektEps
+ * @property kontantstøtte
+ * @property kontantstøtteEps
+ * @property kvalifiseringsstønad
+ * @property kvalifiseringsstønadEps
+ * @property navYtelserTilLivsopphold
+ * @property navYtelserTilLivsoppholdEps
+ * @property offentligPensjon
+ * @property offentligPensjonEps
+ * @property privatPensjon
+ * @property privatPensjonEps
+ * @property sosialstønad
+ * @property sosialstønadEps
+ * @property statensLånekasse
+ * @property statensLånekasseEps
+ * @property supplerendeStønad
+ * @property supplerendeStønadEps
+ * @property sykepenger
+ * @property sykepengerEps
+ * @property tiltakspenger
+ * @property tiltakspengerEps
+ * @property ventestønad
+ * @property ventestønadEps
+ * @property uføretrygd
+ * @property uføretrygdEps
+ * @property forventetInntekt
+ * @property forventetInntektEps
+ * @property avkortingUtenlandsopphold
+ * @property avkortingUtenlandsoppholdEps
+ * @property underMinstenivå
+ * @property underMinstenivåEps
+ * @property annet
+ * @property annetEps
  * Everything here is a copy of [no.nav.su.se.bakover.datapakker.stoenadstatistikk.StønadstatistikkMånedDto] and
  * [no.nav.su.se.bakover.datapakker.stoenadstatistikk.StønadstatistikkDto]
  */
@@ -149,10 +207,22 @@ data class StønadstatistikkMånedDto(
 /*
 Endrer du rekkefølgen her må det også gjenspeiles i bigquery
 Rekkefølge i BQ:
-        "id", "maaned", "vedtaksdato", "personnummer", "vedtak_fra_og_med", "vedtak_til_og_med",
-        "sak_id", "funksjonell_tid", "teknisk_tid", "stonadstype", "personnummer_eps",
-        "vedtakstype", "vedtaksresultat", "opphorsgrunn", "opphorsdato", "behandlende_enhet_kode",
-        "har_utenlandsopphold", "har_familiegjenforening", "flyktningsstatus", "arsakStans"
+       "id", "måned", "vedtaksdato", "personnummer", "vedtakFraOgMed", "vedtakTilOgMed", "sakId",
+       "funksjonellTid", "tekniskTid", "stonadstype", "personnummerEps", "vedtakstype", "vedtaksresultat",
+       "opphorsgrunn", "opphorsdato", "årsakStans", "behandlendeEnhetKode", "stonadsklassifisering", "sats",
+       "utbetales", "fradragsum", "uføregrad", "alderspensjon", "alderspensjoneps", "arbeidsavklaringspenger",
+       "arbeidsavklaringspengereps", "arbeidsinntekt", "arbeidsinntekteps", "omstillingsstønad", "omstillingsstønadeps",
+       "avtalefestetpensjon", "avtalefestetpensjoneps", "avtalefestetpensjonprivat", "avtalefestetpensjonprivateps",
+       "bidragetterekteskapsloven", "bidragetterekteskapsloveneps", "dagpenger", "dagpengereps",
+       "fosterhjemsgodtgjørelse", "fosterhjemsgodtgjørelseeps", "gjenlevendepensjon", "gjenlevendepensjoneps",
+       "introduksjonsstønad", "introduksjonsstønadeps", "kapitalinntekt", "kapitalinntekteps", "kontantstøtte",
+       "kontantstøtteeps", "kvalifiseringsstønad", "kvalifiseringsstønadeps", "navytelsertillivsopphold",
+       "navytelsertillivsoppholdeps", "offentligpensjon", "offentligpensjoneps", "privatpensjon",
+       "privatpensjoneps", "sosialstønad", "sosialstønadeps", "statenslånekasse", "statenslånekasseeps",
+       "supplerendestønad", "supplerendestønadeps", "sykepenger", "sykepengereps", "tiltakspenger",
+       "tiltakspengereps", "ventestønad", "ventestønadeps", "uføretrygd", "uføretrygdeps", "forventetinntekt",
+       "forventetinntekteps", "avkortingutenlandsopphold", "avkortingutenlandsoppholdeps",
+       "underminstenivå", "underminstenivåeps", "annet", "anneteps",
  */
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
