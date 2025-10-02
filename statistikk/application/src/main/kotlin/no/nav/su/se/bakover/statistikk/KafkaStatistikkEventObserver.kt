@@ -78,8 +78,6 @@ internal class KafkaStatistikkEventObserver(
                         ).right(),
                     )
                 }
-
-                is StatistikkEvent.Søknad.Lukket -> TODO("Skal fjernes")
             }
         }.mapLeft {
             log.error("Feil ved publisering av statistikk", it)

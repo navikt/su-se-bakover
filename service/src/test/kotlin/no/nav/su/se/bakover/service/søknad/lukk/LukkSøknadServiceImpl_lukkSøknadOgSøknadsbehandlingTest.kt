@@ -607,25 +607,14 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
 
         fun verifyStatistikkhendelse() {
-            if (søknadsbehandling == null) {
-                verify(lukkSøknadServiceObserver).handle(
-                    argThat {
-                        it shouldBe StatistikkEvent.Søknad.Lukket(
-                            søknad = expectedLukketSøknad(),
-                            saksnummer = sak!!.saksnummer,
-                        )
-                    },
-                )
-            } else {
-                verify(lukkSøknadServiceObserver).handle(
-                    argThat {
-                        it shouldBe StatistikkEvent.Behandling.Søknad.Lukket(
-                            søknadsbehandling = expectedLukketSøknadsbehandling(),
-                            lukketAv = saksbehandler,
-                        )
-                    },
-                )
-            }
+            verify(lukkSøknadServiceObserver).handle(
+                argThat {
+                    it shouldBe StatistikkEvent.Behandling.Søknad.Lukket(
+                        søknadsbehandling = expectedLukketSøknadsbehandling(),
+                        lukketAv = saksbehandler,
+                    )
+                },
+            )
         }
 
         fun verifyNoMoreInteractions() {
