@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
 import no.nav.su.se.bakover.statistikk.behandling.klage.toResultatBegrunnelse
+import no.nav.su.se.bakover.statistikk.behandling.toBehandlingResultat
 import statistikk.domain.SakStatistikk
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
@@ -160,7 +161,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Avsluttet.name,
-                    behandlingResultat = BehandlingResultat.Avbrutt.name,
+                    behandlingResultat = søknadsbehandling.søknad.toBehandlingResultat().name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ansvarligBeslutter = lukketAv.navIdent,
                 )
