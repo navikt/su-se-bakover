@@ -4,6 +4,7 @@ package no.nav.su.se.bakover.test
 
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.klage.domain.FormkravTilKlage
+import behandling.klage.domain.FormkravTilKlage.Svarord
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
@@ -88,11 +89,12 @@ fun påbegyntVilkårsvurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID? = null,
-    innenforFristen: FormkravTilKlage.Svarord? = null,
+    innenforFristen: Svarord? = null,
     klagesDetPåKonkreteElementerIVedtaket: Boolean? = null,
-    erUnderskrevet: FormkravTilKlage.Svarord? = null,
+    erUnderskrevet: Svarord? = null,
     begrunnelse: String? = null,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
+    fremsattRettsligKlageinteresse: Svarord? = null,
 ): Pair<Sak, VilkårsvurdertKlage.Påbegynt> {
     return opprettetKlage(
         id = id,
@@ -112,6 +114,7 @@ fun påbegyntVilkårsvurdertKlage(
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             ) as FormkravTilKlage.Påbegynt,
         ).getOrFail()
 
@@ -134,10 +137,11 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
+    fremsattRettsligKlageinteresse: Svarord = Svarord.JA,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.TilVurdering> {
     require(sakId == sakMedVedtak.id) {
         "Saken id ${sakMedVedtak.id} var ulik sakId $sakId"
@@ -160,6 +164,7 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             ),
         ).getOrFail()
 
@@ -182,10 +187,11 @@ fun utfyltAvvistVilkårsvurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.NEI,
+    innenforFristen: Svarord = Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
+    fremsattRettsligKlageinteresse: Svarord = Svarord.NEI,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.Avvist> {
     return opprettetKlage(
         id = id,
@@ -205,6 +211,7 @@ fun utfyltAvvistVilkårsvurdertKlage(
                 innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             ),
         ).getOrFail()
 
@@ -227,9 +234,9 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.TilVurdering> {
     require(sakId == sakMedVedtak.id) {
@@ -273,9 +280,9 @@ fun bekreftetAvvistVilkårsvurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.NEI,
+    innenforFristen: Svarord = Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.Avvist> {
     return utfyltAvvistVilkårsvurdertKlage(
@@ -316,9 +323,9 @@ fun påbegyntVurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String? = null,
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering? = null,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
@@ -364,9 +371,9 @@ fun utfyltVurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -415,9 +422,9 @@ fun bekreftetVurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -464,9 +471,9 @@ fun avvistKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.NEI,
+    innenforFristen: Svarord = Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, AvvistKlage> {
@@ -527,9 +534,9 @@ fun vurdertKlageTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -574,9 +581,9 @@ fun avvistKlageTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.NEI,
+    innenforFristen: Svarord = Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Avvist> {
@@ -618,9 +625,9 @@ fun underkjentKlageTilVurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -670,9 +677,9 @@ fun underkjentAvvistKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.NEI,
+    innenforFristen: Svarord = Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
@@ -720,9 +727,9 @@ fun underkjentTilVurderingKlageTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -765,9 +772,9 @@ fun oversendtKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    innenforFristen: Svarord = Svarord.JA,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
@@ -823,9 +830,9 @@ fun iverksattAvvistKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.NEI,
+    innenforFristen: Svarord = Svarord.NEI,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: FormkravTilKlage.Svarord = FormkravTilKlage.Svarord.JA,
+    erUnderskrevet: Svarord = Svarord.JA,
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,

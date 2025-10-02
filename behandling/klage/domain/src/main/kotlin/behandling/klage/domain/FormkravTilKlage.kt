@@ -12,6 +12,7 @@ sealed interface FormkravTilKlage {
     val innenforFristen: Svarord?
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?
     val erUnderskrevet: Svarord?
+    val fremsattRettsligKlageinteresse: Svarord?
 
     enum class Svarord {
         JA,
@@ -33,6 +34,7 @@ sealed interface FormkravTilKlage {
         override val innenforFristen: Svarord?,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
         override val erUnderskrevet: Svarord?,
+        override val fremsattRettsligKlageinteresse: Svarord?,
     ) : FormkravTilKlage {
         companion object {
 
@@ -43,6 +45,7 @@ sealed interface FormkravTilKlage {
                     innenforFristen = null,
                     klagesDetPåKonkreteElementerIVedtaket = null,
                     erUnderskrevet = null,
+                    fremsattRettsligKlageinteresse = null,
                 ) as Påbegynt
             }
 
@@ -55,7 +58,9 @@ sealed interface FormkravTilKlage {
                 innenforFristen: Svarord?,
                 klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 erUnderskrevet: Svarord?,
+                fremsattRettsligKlageinteresse: Svarord?,
             ): FormkravTilKlage {
+                // TODO: endre til if sjekk så vi slipper !!
                 val erAlleFelterUtfylt = listOf(
                     vedtakId,
                     innenforFristen,
@@ -64,13 +69,14 @@ sealed interface FormkravTilKlage {
                 ).all {
                     it != null
                 }
-                // TODO: fjern begrunnelse herifra som aldri er bruk
+                // TODO: vi må ha et tidsskille her som sier at noe er utfylt etter dato x siden fremsattRettsligKlageinteresse kreves ikke null fremover fra denne kommer ut
                 return if (erAlleFelterUtfylt) {
                     createUtfyltOnly(
                         vedtakId = vedtakId!!,
                         innenforFristen = innenforFristen!!,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
                         erUnderskrevet = erUnderskrevet!!,
+                        fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                     )
                 } else {
                     Påbegynt(
@@ -78,6 +84,7 @@ sealed interface FormkravTilKlage {
                         innenforFristen = innenforFristen,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                         erUnderskrevet = erUnderskrevet,
+                        fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                     )
                 }
             }
@@ -89,6 +96,7 @@ sealed interface FormkravTilKlage {
         override val innenforFristen: Svarord,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
         override val erUnderskrevet: Svarord,
+        override val fremsattRettsligKlageinteresse: Svarord?,
     ) : FormkravTilKlage
 
     companion object {
@@ -102,12 +110,14 @@ sealed interface FormkravTilKlage {
             innenforFristen: Svarord,
             klagesDetPåKonkreteElementerIVedtaket: Boolean,
             erUnderskrevet: Svarord,
+            fremsattRettsligKlageinteresse: Svarord?,
         ): FormkravTilKlage {
             return Utfylt(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             )
         }
 
@@ -119,12 +129,14 @@ sealed interface FormkravTilKlage {
             innenforFristen: Svarord?,
             klagesDetPåKonkreteElementerIVedtaket: Boolean?,
             erUnderskrevet: Svarord?,
+            fremsattRettsligKlageinteresse: Svarord?,
         ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             )
         }
     }

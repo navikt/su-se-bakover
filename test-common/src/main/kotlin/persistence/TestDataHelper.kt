@@ -1514,6 +1514,7 @@ class TestDataHelper(
                 innenforFristen = FormkravTilKlage.Svarord.JA,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1533,6 +1534,7 @@ class TestDataHelper(
                 innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")

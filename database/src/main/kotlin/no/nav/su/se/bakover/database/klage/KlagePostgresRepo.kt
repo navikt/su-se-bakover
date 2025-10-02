@@ -405,6 +405,7 @@ internal class KlagePostgresRepo(
             erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
                 FormkravTilKlage.Svarord.valueOf(it)
             },
+            fremsattRettsligKlageinteresse = row.stringOrNull("fremsattRettsligKlageinteresse")?.let { FormkravTilKlage.Svarord.valueOf(it) },
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")

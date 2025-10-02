@@ -115,6 +115,7 @@ internal fun Route.klageRoutes(
                 val innenforFristen: Svarord?,
                 val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 val erUnderskrevet: Svarord?,
+                val fremsattRettsligKlageinteresse: Svarord?,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
@@ -138,6 +139,12 @@ internal fun Route.klageRoutes(
                                     null -> null
                                 },
                                 sakId = sakId,
+                                fremsattRettsligKlageinteresse = when (body.fremsattRettsligKlageinteresse) {
+                                    Svarord.JA -> FormkravTilKlage.Svarord.JA
+                                    Svarord.NEI_MEN_SKAL_VURDERES -> FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                    Svarord.NEI -> FormkravTilKlage.Svarord.NEI
+                                    null -> null
+                                },
                             ),
                         ).map {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
