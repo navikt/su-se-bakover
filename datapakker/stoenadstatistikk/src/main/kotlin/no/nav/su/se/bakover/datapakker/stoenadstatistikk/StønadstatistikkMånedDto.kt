@@ -31,7 +31,7 @@ import java.util.UUID
  * @property sats Bruker sin sats før fradrag
  * @property utbetales beløpet bruker har rett på
  * @property fradragSum totalt fradrag
- * @property uføregrad hvilken prosentandel uføre personen er
+ * @property uforegrad hvilken prosentandel uføre personen er
  * Alle felter nedenfor er inntekter / fradragstyper
  * @property alderspensjon
  * @property alderspensjonEps
@@ -39,8 +39,8 @@ import java.util.UUID
  * @property arbeidsavklaringspengerEps
  * @property arbeidsinntekt
  * @property arbeidsinntektEps
- * @property omstillingsstønad
- * @property omstillingsstønadEps
+ * @property omstillingsstonad
+ * @property omstillingsstonadEps
  * @property avtalefestetPensjon
  * @property avtalefestetPensjonEps
  * @property avtalefestetPensjonPrivat
@@ -49,38 +49,38 @@ import java.util.UUID
  * @property bidragEtterEkteskapslovenEps
  * @property dagpenger
  * @property dagpengerEps
- * @property fosterhjemsgodtgjørelse
- * @property fosterhjemsgodtgjørelseEps
+ * @property fosterhjemsgodtgjorelse
+ * @property fosterhjemsgodtgjorelseEps
  * @property gjenlevendepensjon
  * @property gjenlevendepensjonEps
- * @property introduksjonsstønad
- * @property introduksjonsstønadEps
+ * @property introduksjonsstonad
+ * @property introduksjonsstonadEps
  * @property kapitalinntekt
  * @property kapitalinntektEps
- * @property kontantstøtte
- * @property kontantstøtteEps
- * @property kvalifiseringsstønad
- * @property kvalifiseringsstønadEps
+ * @property kontantstotte
+ * @property kontantstotteEpu
+ * @property kvalifiseringsstonad
+ * @property kvalifiseringsstonadEps
  * @property navYtelserTilLivsopphold
  * @property navYtelserTilLivsoppholdEps
  * @property offentligPensjon
  * @property offentligPensjonEps
  * @property privatPensjon
  * @property privatPensjonEps
- * @property sosialstønad
- * @property sosialstønadEps
- * @property statensLånekasse
- * @property statensLånekasseEps
- * @property supplerendeStønad
- * @property supplerendeStønadEps
+ * @property sosialstonad
+ * @property sosialstonadEps
+ * @property statensLanekasse
+ * @property statensLanekasseEps
+ * @property supplerendeStonad
+ * @property supplerendeStonadEps
  * @property sykepenger
  * @property sykepengerEps
  * @property tiltakspenger
  * @property tiltakspengerEps
- * @property ventestønad
- * @property ventestønadEps
- * @property uføretrygd
- * @property uføretrygdEps
+ * @property ventestonad
+ * @property ventestonadEps
+ * @property uforetrygd
+ * @property uforetrygdEps
  * @property forventetInntekt
  * @property forventetInntektEps
  * @property avkortingUtenlandsopphold
@@ -117,7 +117,7 @@ data class StønadstatistikkMånedDto(
     val sats: Long?,
     val utbetales: Long?,
     val fradragSum: Long?,
-    val uføregrad: Int?,
+    val uforegrad: Int?,
 
     val alderspensjon: Int?,
     val alderspensjonEps: Int?,
@@ -128,8 +128,8 @@ data class StønadstatistikkMånedDto(
     val arbeidsinntekt: Int?,
     val arbeidsinntektEps: Int?,
 
-    val omstillingsstønad: Int?,
-    val omstillingsstønadEps: Int?,
+    val omstillingsstonad: Int?,
+    val omstillingsstonadEps: Int?,
 
     val avtalefestetPensjon: Int?,
     val avtalefestetPensjonEps: Int?,
@@ -143,23 +143,23 @@ data class StønadstatistikkMånedDto(
     val dagpenger: Int?,
     val dagpengerEps: Int?,
 
-    val fosterhjemsgodtgjørelse: Int?,
-    val fosterhjemsgodtgjørelseEps: Int?,
+    val fosterhjemsgodtgjorelse: Int?,
+    val fosterhjemsgodtgjorelseEps: Int?,
 
     val gjenlevendepensjon: Int?,
     val gjenlevendepensjonEps: Int?,
 
-    val introduksjonsstønad: Int?,
-    val introduksjonsstønadEps: Int?,
+    val introduksjonsstonad: Int?,
+    val introduksjonsstonadEps: Int?,
 
     val kapitalinntekt: Int?,
     val kapitalinntektEps: Int?,
 
-    val kontantstøtte: Int?,
-    val kontantstøtteEps: Int?,
+    val kontantstotte: Int?,
+    val kontantstotteEpu: Int?,
 
-    val kvalifiseringsstønad: Int?,
-    val kvalifiseringsstønadEps: Int?,
+    val kvalifiseringsstonad: Int?,
+    val kvalifiseringsstonadEps: Int?,
 
     val navYtelserTilLivsopphold: Int?,
     val navYtelserTilLivsoppholdEps: Int?,
@@ -170,14 +170,14 @@ data class StønadstatistikkMånedDto(
     val privatPensjon: Int?,
     val privatPensjonEps: Int?,
 
-    val sosialstønad: Int?,
-    val sosialstønadEps: Int?,
+    val sosialstonad: Int?,
+    val sosialstonadEps: Int?,
 
-    val statensLånekasse: Int?,
-    val statensLånekasseEps: Int?,
+    val statensLanekasse: Int?,
+    val statensLanekasseEps: Int?,
 
-    val supplerendeStønad: Int?,
-    val supplerendeStønadEps: Int?,
+    val supplerendeStonad: Int?,
+    val supplerendeStonadEps: Int?,
 
     val sykepenger: Int?,
     val sykepengerEps: Int?,
@@ -185,11 +185,11 @@ data class StønadstatistikkMånedDto(
     val tiltakspenger: Int?,
     val tiltakspengerEps: Int?,
 
-    val ventestønad: Int?,
-    val ventestønadEps: Int?,
+    val ventestonad: Int?,
+    val ventestonadEps: Int?,
 
-    val uføretrygd: Int?,
-    val uføretrygdEps: Int?,
+    val uforetrygd: Int?,
+    val uforetrygdEps: Int?,
 
     val forventetInntekt: Int?,
     val forventetInntektEps: Int?,
@@ -207,22 +207,22 @@ data class StønadstatistikkMånedDto(
 /*
 Endrer du rekkefølgen her må det også gjenspeiles i bigquery
 Rekkefølge i BQ:
-       "id", "måned", "vedtaksdato", "personnummer", "vedtakFraOgMed", "vedtakTilOgMed", "sakId",
+       "id", "maned", "vedtaksdato", "personnummer", "vedtakFraOgMed", "vedtakTilOgMed", "sakId",
        "funksjonellTid", "tekniskTid", "stonadstype", "personnummerEps", "vedtakstype", "vedtaksresultat",
-       "opphorsgrunn", "opphorsdato", "årsakStans", "behandlendeEnhetKode", "stonadsklassifisering", "sats",
-       "utbetales", "fradragsum", "uføregrad", "alderspensjon", "alderspensjoneps", "arbeidsavklaringspenger",
-       "arbeidsavklaringspengereps", "arbeidsinntekt", "arbeidsinntekteps", "omstillingsstønad", "omstillingsstønadeps",
+       "opphorsgrunn", "opphorsdato", "arsakStans", "behandlendeEnhetKode", "stonadsklassifisering", "sats",
+       "utbetales", "fradragsum", "uforegrad", "alderspensjon", "alderspensjoneps", "arbeidsavklaringspenger",
+       "arbeidsavklaringspengereps", "arbeidsinntekt", "arbeidsinntekteps", "omstillingsstonad", "omstillingsstonadeps",
        "avtalefestetpensjon", "avtalefestetpensjoneps", "avtalefestetpensjonprivat", "avtalefestetpensjonprivateps",
        "bidragetterekteskapsloven", "bidragetterekteskapsloveneps", "dagpenger", "dagpengereps",
-       "fosterhjemsgodtgjørelse", "fosterhjemsgodtgjørelseeps", "gjenlevendepensjon", "gjenlevendepensjoneps",
-       "introduksjonsstønad", "introduksjonsstønadeps", "kapitalinntekt", "kapitalinntekteps", "kontantstøtte",
-       "kontantstøtteeps", "kvalifiseringsstønad", "kvalifiseringsstønadeps", "navytelsertillivsopphold",
+       "fosterhjemsgodtgjorelse", "fosterhjemsgodtgjorelseeps", "gjenlevendepensjon", "gjenlevendepensjoneps",
+       "introduksjonsstonad", "introduksjonsstonadeps", "kapitalinntekt", "kapitalinntekteps", "kontantstotte",
+       "kontantstotteeps", "kvalifiseringsstonad", "kvalifiseringsstonadeps", "navytelsertillivsopphold",
        "navytelsertillivsoppholdeps", "offentligpensjon", "offentligpensjoneps", "privatpensjon",
-       "privatpensjoneps", "sosialstønad", "sosialstønadeps", "statenslånekasse", "statenslånekasseeps",
-       "supplerendestønad", "supplerendestønadeps", "sykepenger", "sykepengereps", "tiltakspenger",
-       "tiltakspengereps", "ventestønad", "ventestønadeps", "uføretrygd", "uføretrygdeps", "forventetinntekt",
+       "privatpensjoneps", "sosialstonad", "sosialstonadeps", "statenslanekasse", "statenslanekasseeps",
+       "supplerendestonad", "supplerendestonadeps", "sykepenger", "sykepengereps", "tiltakspenger",
+       "tiltakspengereps", "ventestonad", "ventestonadeps", "uforetrygd", "uforetrygdeps", "forventetinntekt",
        "forventetinntekteps", "avkortingutenlandsopphold", "avkortingutenlandsoppholdeps",
-       "underminstenivå", "underminstenivåeps", "annet", "anneteps",
+       "underminsteniva", "underminstenivaeps", "annet", "anneteps",
  */
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
@@ -250,15 +250,15 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.sats?.toString().orEmpty(),
                     dto.utbetales?.toString().orEmpty(),
                     dto.fradragSum?.toString().orEmpty(),
-                    dto.uføregrad?.toString().orEmpty(),
+                    dto.uforegrad?.toString().orEmpty(),
                     dto.alderspensjon?.toString().orEmpty(),
                     dto.alderspensjonEps?.toString().orEmpty(),
                     dto.arbeidsavklaringspenger?.toString().orEmpty(),
                     dto.arbeidsavklaringspengerEps?.toString().orEmpty(),
                     dto.arbeidsinntekt?.toString().orEmpty(),
                     dto.arbeidsinntektEps?.toString().orEmpty(),
-                    dto.omstillingsstønad?.toString().orEmpty(),
-                    dto.omstillingsstønadEps?.toString().orEmpty(),
+                    dto.omstillingsstonad?.toString().orEmpty(),
+                    dto.omstillingsstonadEps?.toString().orEmpty(),
                     dto.avtalefestetPensjon?.toString().orEmpty(),
                     dto.avtalefestetPensjonEps?.toString().orEmpty(),
                     dto.avtalefestetPensjonPrivat?.toString().orEmpty(),
@@ -267,38 +267,38 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.bidragEtterEkteskapslovenEps?.toString().orEmpty(),
                     dto.dagpenger?.toString().orEmpty(),
                     dto.dagpengerEps?.toString().orEmpty(),
-                    dto.fosterhjemsgodtgjørelse?.toString().orEmpty(),
-                    dto.fosterhjemsgodtgjørelseEps?.toString().orEmpty(),
+                    dto.fosterhjemsgodtgjorelse?.toString().orEmpty(),
+                    dto.fosterhjemsgodtgjorelseEps?.toString().orEmpty(),
                     dto.gjenlevendepensjon?.toString().orEmpty(),
                     dto.gjenlevendepensjonEps?.toString().orEmpty(),
-                    dto.introduksjonsstønad?.toString().orEmpty(),
-                    dto.introduksjonsstønadEps?.toString().orEmpty(),
+                    dto.introduksjonsstonad?.toString().orEmpty(),
+                    dto.introduksjonsstonadEps?.toString().orEmpty(),
                     dto.kapitalinntekt?.toString().orEmpty(),
                     dto.kapitalinntektEps?.toString().orEmpty(),
-                    dto.kontantstøtte?.toString().orEmpty(),
-                    dto.kontantstøtteEps?.toString().orEmpty(),
-                    dto.kvalifiseringsstønad?.toString().orEmpty(),
-                    dto.kvalifiseringsstønadEps?.toString().orEmpty(),
+                    dto.kontantstotte?.toString().orEmpty(),
+                    dto.kontantstotteEpu?.toString().orEmpty(),
+                    dto.kvalifiseringsstonad?.toString().orEmpty(),
+                    dto.kvalifiseringsstonadEps?.toString().orEmpty(),
                     dto.navYtelserTilLivsopphold?.toString().orEmpty(),
                     dto.navYtelserTilLivsoppholdEps?.toString().orEmpty(),
                     dto.offentligPensjon?.toString().orEmpty(),
                     dto.offentligPensjonEps?.toString().orEmpty(),
                     dto.privatPensjon?.toString().orEmpty(),
                     dto.privatPensjonEps?.toString().orEmpty(),
-                    dto.sosialstønad?.toString().orEmpty(),
-                    dto.sosialstønadEps?.toString().orEmpty(),
-                    dto.statensLånekasse?.toString().orEmpty(),
-                    dto.statensLånekasseEps?.toString().orEmpty(),
-                    dto.supplerendeStønad?.toString().orEmpty(),
-                    dto.supplerendeStønadEps?.toString().orEmpty(),
+                    dto.sosialstonad?.toString().orEmpty(),
+                    dto.sosialstonadEps?.toString().orEmpty(),
+                    dto.statensLanekasse?.toString().orEmpty(),
+                    dto.statensLanekasseEps?.toString().orEmpty(),
+                    dto.supplerendeStonad?.toString().orEmpty(),
+                    dto.supplerendeStonadEps?.toString().orEmpty(),
                     dto.sykepenger?.toString().orEmpty(),
                     dto.sykepengerEps?.toString().orEmpty(),
                     dto.tiltakspenger?.toString().orEmpty(),
                     dto.tiltakspengerEps?.toString().orEmpty(),
-                    dto.ventestønad?.toString().orEmpty(),
-                    dto.ventestønadEps?.toString().orEmpty(),
-                    dto.uføretrygd?.toString().orEmpty(),
-                    dto.uføretrygdEps?.toString().orEmpty(),
+                    dto.ventestonad?.toString().orEmpty(),
+                    dto.ventestonadEps?.toString().orEmpty(),
+                    dto.uforetrygd?.toString().orEmpty(),
+                    dto.uforetrygdEps?.toString().orEmpty(),
                     dto.forventetInntekt?.toString().orEmpty(),
                     dto.forventetInntektEps?.toString().orEmpty(),
                     dto.avkortingUtenlandsopphold?.toString().orEmpty(),
