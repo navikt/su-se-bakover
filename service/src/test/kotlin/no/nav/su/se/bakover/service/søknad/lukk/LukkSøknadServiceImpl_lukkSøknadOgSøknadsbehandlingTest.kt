@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -204,7 +205,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad og søknadsbehandling. Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak ${sak.id} og søknad ${søknad.id}"
+            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} for sak ${sak.id}, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: ErLukket"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
@@ -223,7 +224,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad og søknadsbehandling. Fant ingen oppgave Gosys var nok nede eller tilganger mangler.  Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak ${sak.id} og søknad ${søknad.id}"
+            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} for sak ${sak.id}, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: ManglerOppgave"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
@@ -241,8 +242,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad og søknadsbehandling. Søknaden må være i tilstanden: Søknad.Journalført.MedOppgave.IkkeLukket for sak ${sak.id} og søknad ${søknad.id}"
-
+            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} for sak ${sak.id}, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: ManglerOppgave"
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -395,6 +395,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         private val søknadsbehandlingService: SøknadsbehandlingService = mock()
 
         private val lukkSøknadService = LukkSøknadServiceImpl(
+            clock = fixedClock,
             søknadService = søknadService,
             sakService = sakService,
             brevService = brevService,
@@ -492,7 +493,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         fun expectedSak(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =
             Triple(
                 expectedLukketSøknad(),
-                if (søknadsbehandling != null) expectedLukketSøknadsbehandling() else null,
+                expectedLukketSøknadsbehandling(),
                 sak!!.fnr,
             )
 

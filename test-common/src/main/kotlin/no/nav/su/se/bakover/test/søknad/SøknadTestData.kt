@@ -87,9 +87,7 @@ fun nySøknadPåEksisterendeSak(
 }
 
 fun trukketSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker> {
-    val lok = nySakMedNySøknad()
-
-    return lok.mapSecond {
+    return nySakMedjournalførtSøknadOgOppgave().mapSecond {
         it.lukk(
             lukkSøknadCommand = trekkSøknad(
                 søknadId = it.id,

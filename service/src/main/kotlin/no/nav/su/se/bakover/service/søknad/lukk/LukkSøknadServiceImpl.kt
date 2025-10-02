@@ -51,7 +51,6 @@ class LukkSøknadServiceImpl(
         return sessionFactory.withTransactionContext { tx ->
             sak.lukkSøknadOgSøknadsbehandling(
                 lukkSøknadCommand = command,
-                saksbehandler = command.saksbehandler,
                 clock = clock,
             ).let {
                 it.lagBrevRequest.onRight { lagBrevRequest ->
@@ -79,8 +78,6 @@ class LukkSøknadServiceImpl(
                     }
                 }
                 observers.forEach { e ->
-                    // TODO: Fire and forget. Det vil logges i observerne, men vil ikke kunne resende denne dersom dette feiler.
-                    e.handle(it.hendelse)
                     e.handle(StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler))
                 }
 
