@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
@@ -38,6 +39,12 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
 ) : AvslåSøknadManglendeDokumentasjonService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
+
+    fun addObserver(observer: StatistikkEventObserver) {
+        observers.add(observer)
+    }
 
     override fun avslå(
         command: AvslåManglendeDokumentasjonCommand,
@@ -100,6 +107,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
                             it
                         }
                     },
+                    observers = observers,
                 )
             }
     }

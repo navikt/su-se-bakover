@@ -140,16 +140,17 @@ class SøknadServiceImpl(
                 søknad = it,
                 clock = clock,
                 saksbehandler = null,
-            ).map { (_, uavklartSøknadsbehandling, statistikk) ->
+            ).map { (_, uavklartSøknadsbehandling) ->
                 søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
+                observers.forEach { observer ->
+                    observer.handle(
+                        StatistikkEvent.Behandling.Søknad.Opprettet(
+                            uavklartSøknadsbehandling,
+                            uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
+                        ),
+                    )
+                }
             }
-        }
-
-        observers.forEach { observer ->
-            // TODO Kan fjernes nå som det alltid lages behandling
-            observer.handle(
-                StatistikkEvent.Søknad.Mottatt(søknad, sak.saksnummer),
-            )
         }
         return Pair(sak.saksnummer, søknad).right()
     }

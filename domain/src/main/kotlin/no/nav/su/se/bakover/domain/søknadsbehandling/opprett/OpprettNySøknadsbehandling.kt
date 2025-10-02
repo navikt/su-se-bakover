@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -29,7 +28,7 @@ fun Sak.opprettNySøknadsbehandling(
     søknadId: UUID,
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler?,
-): Either<KunneIkkeStarteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
     val søknad = hentSøknad(søknadId).fold(
         ifLeft = { throw IllegalArgumentException("Fant ikke søknad $søknadId") },
         ifRight = {
@@ -59,7 +58,7 @@ fun Sak.opprettNySøknadsbehandling(
     søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
     clock: Clock,
     saksbehandler: NavIdentBruker.Saksbehandler?,
-): Either<KunneIkkeStarteSøknadsbehandling, Triple<Sak, VilkårsvurdertSøknadsbehandling.Uavklart, StatistikkEvent.Behandling.Søknad.Opprettet>> {
+): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
     return VilkårsvurdertSøknadsbehandling.Uavklart(
         id = søknadsbehandlingId ?: SøknadsbehandlingId.generer(),
         opprettet = Tidspunkt.now(clock),
@@ -91,10 +90,9 @@ fun Sak.opprettNySøknadsbehandling(
         omgjøringsårsak = null,
         omgjøringsgrunn = null,
     ).let { søknadsbehandling ->
-        Triple(
+        Pair(
             this.nySøknadsbehandling(søknadsbehandling),
             søknadsbehandling,
-            StatistikkEvent.Behandling.Søknad.Opprettet(søknadsbehandling, saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker()),
         ).right()
     }
 }

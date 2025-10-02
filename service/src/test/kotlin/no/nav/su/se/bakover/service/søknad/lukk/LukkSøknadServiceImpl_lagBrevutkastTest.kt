@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.trekkSøknad
@@ -215,6 +216,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         )
 
         val lukkSøknadService = LukkSøknadServiceImpl(
+            clock = fixedClock,
             søknadService = søknadService,
             sakService = sakService,
             brevService = brevService,
