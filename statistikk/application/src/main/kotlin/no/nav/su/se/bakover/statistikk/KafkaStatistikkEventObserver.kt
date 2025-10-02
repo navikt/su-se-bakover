@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
-import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
@@ -60,14 +59,6 @@ internal class KafkaStatistikkEventObserver(
                         event.toBehandlingsstatistikkOverordnet(clock).let {
                             sakStatistikkRepo.lagreSakStatistikk(it)
                         }
-                    }
-                }
-
-                is StatistikkEvent.Søknad -> {
-                    if (ApplicationConfig.isProd()) {
-                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
-                    } else {
-                        publiserEllerLoggFeil(event.toBehandlingsstatistikk(gitCommit, clock))
                     }
                 }
 

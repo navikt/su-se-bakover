@@ -9,9 +9,11 @@ import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -438,7 +440,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.utbetalingKlargjortForOversendelseCallback).invoke(utbetalingsRequest)
-            verify(serviceAndMocks.observer, times(2)).handle(any())
+            verify(serviceAndMocks.observer, times(1)).handle(
+                argThat {
+                    it should beInstanceOf<StatistikkEvent.Behandling.Søknad.Iverksatt>()
+                },
+            )
             serviceAndMocks.verifyNoMoreInteractions()
         }
 

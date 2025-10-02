@@ -196,9 +196,9 @@ class SøknadsbehandlingServiceImpl(
             søknadId = søknadId,
             clock = clock,
             saksbehandler = saksbehandler,
-        ).map { (sak, uavklartSøknadsbehandling, statistikk) ->
+        ).map { (sak, uavklartSøknadsbehandling) ->
             søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
-            observers.notify(statistikk)
+            observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler))
             Pair(sak, uavklartSøknadsbehandling)
         }
     }

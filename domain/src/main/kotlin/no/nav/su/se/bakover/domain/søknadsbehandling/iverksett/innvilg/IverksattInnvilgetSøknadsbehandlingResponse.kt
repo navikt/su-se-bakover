@@ -75,6 +75,6 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
             }
         }
         log.info("Iverksatt innvilgelse for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
-        statistikkObservers.notify(statistikk)
+        statistikkObservers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
     }
 }

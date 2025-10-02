@@ -499,6 +499,7 @@ fun søknadsbehandlingTrukket(
                 saksbehandler = saksbehandlerSomLukket,
                 lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
             ),
+            clock,
         )
     }.let {
         Pair(it.sak, it.søknadsbehandling!!)
@@ -1041,6 +1042,7 @@ fun beregnetSøknadsbehandlingInnvilget(
                     sak.oppdaterSøknadsbehandling(beregnet) to beregnet
                 }
             }
+
             else -> throw NotImplementedError("Kan kun støtte innvilget")
         }
     }

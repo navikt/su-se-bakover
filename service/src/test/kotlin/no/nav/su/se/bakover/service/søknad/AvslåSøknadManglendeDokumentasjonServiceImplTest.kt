@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
@@ -198,10 +197,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
                         sak = expectedSak,
                         vedtak = expectedVedtak,
-                        statistikkhendelse =
-                        StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
-                            vedtak = expectedVedtak,
-                        ),
                         dokument = Dokument.MedMetadata.Vedtak(
                             utenMetadata = mockedDokument,
                             metadata = Dokument.Metadata(
@@ -339,10 +334,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
                         sak = expectedSak,
                         vedtak = expectedVedtak,
-                        statistikkhendelse =
-                        StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
-                            vedtak = expectedVedtak,
-                        ),
                         dokument = Dokument.MedMetadata.Vedtak(
                             utenMetadata = mockedDokument,
                             metadata = Dokument.Metadata(

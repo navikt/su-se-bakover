@@ -27,7 +27,6 @@ class OpprettNyFraAvslagIT {
             val vedtakId = SakJson.hentFørsteVedtak(sak).let {
                 VedtakJson.hentVedtakId(it)
             }
-
             appComponents.opprettNySøknadsbehandlingFraVedtak(
                 sakId,
                 vedtakId,
