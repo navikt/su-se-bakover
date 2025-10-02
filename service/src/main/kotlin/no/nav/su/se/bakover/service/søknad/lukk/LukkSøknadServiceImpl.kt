@@ -62,9 +62,7 @@ class LukkSøknadServiceImpl(
                     )
                 }
                 søknadService.persisterSøknad(it.søknad, tx)
-                it.søknadsbehandling.also {
-                    søknadsbehandlingService.persisterSøknadsbehandling(it, tx)
-                }
+                søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
                 oppgaveService.lukkOppgave(
                     oppgaveId = it.søknad.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
