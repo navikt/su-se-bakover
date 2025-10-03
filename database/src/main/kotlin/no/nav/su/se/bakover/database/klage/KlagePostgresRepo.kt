@@ -506,7 +506,7 @@ internal class KlagePostgresRepo(
             sakstype = sakstype,
         )
 
-        val klage = when (Tilstand.fromString(row.string("type"))) {
+        val klage = when (val tilstand = Tilstand.fromString(row.string("type"))) {
             Tilstand.OPPRETTET -> OpprettetKlage(
                 id = id,
                 opprettet = opprettet,
@@ -520,7 +520,7 @@ internal class KlagePostgresRepo(
                 sakstype = sakstype,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
-                val formkravPåbegynt = formkravTilKlage as? FormkravTilKlage.Påbegynt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage")
+                val formkravPåbegynt = formkravTilKlage as? FormkravTilKlage.Påbegynt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke påbegynte formkrav")
                 VilkårsvurdertKlage.Påbegynt(
                     id = id,
                     opprettet = opprettet,
@@ -537,7 +537,7 @@ internal class KlagePostgresRepo(
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING -> {
-                val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage")
+                val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke utfylt formkrav")
                 VilkårsvurdertKlage.Utfylt.TilVurdering(
                     id = id,
                     opprettet = opprettet,
@@ -556,7 +556,7 @@ internal class KlagePostgresRepo(
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> {
-                val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage")
+                val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke utfylt formkrav")
                 VilkårsvurdertKlage.Utfylt.Avvist(
                     id = id,
                     opprettet = opprettet,
