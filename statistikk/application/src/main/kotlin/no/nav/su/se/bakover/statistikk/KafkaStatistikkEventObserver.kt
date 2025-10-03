@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
-import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
 import no.nav.su.se.bakover.statistikk.stønad.toStønadstatistikkDto
 import org.slf4j.Logger
@@ -32,22 +31,6 @@ internal class KafkaStatistikkEventObserver(
     override fun handle(event: StatistikkEvent) {
         Either.catch {
             when (event) {
-                is StatistikkEvent.SakOpprettet -> {
-                    if (ApplicationConfig.isProd()) {
-                        val sak = event.sak
-                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                        )
-                    } else {
-                        val sak = event.sak
-                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                        )
-                    }
-                }
-
                 is StatistikkEvent.Behandling -> {
                     publiserEllerLoggFeil(
                         event.toBehandlingsstatistikkDto(
