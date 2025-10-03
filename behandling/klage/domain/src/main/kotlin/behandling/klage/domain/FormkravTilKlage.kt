@@ -20,10 +20,14 @@ sealed interface FormkravTilKlage {
         NEI,
     }
 
+    /**
+     * Denne styrer om vi kommer til avvisningbildet i klageflyten og baserer seg på alle formkravene
+     */
     fun erAvvist(): Boolean {
         return this.klagesDetPåKonkreteElementerIVedtaket == false ||
             this.innenforFristen == Svarord.NEI ||
-            this.erUnderskrevet == Svarord.NEI
+            this.erUnderskrevet == Svarord.NEI ||
+            this.fremsattRettsligKlageinteresse == Svarord.NEI
     }
 
     /**
