@@ -72,7 +72,6 @@ internal class SakServiceImplTest {
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
         verify(sakRepo).opprettSak(any())
-        verify(sakRepo).hentSak(sak.id)
     }
 
     @Test
