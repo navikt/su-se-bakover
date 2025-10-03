@@ -104,7 +104,7 @@ internal class ÅpneBehandlingerRepo(
                      select *
                      from klage
                  )
-            select *
+            select saksnummer, sakType, opprettet, status, type, periode
             from slåttSammen
             """.hentListe(emptyMap(), it) {
                     runCatching { it.toBehandlingsoversikt() }
