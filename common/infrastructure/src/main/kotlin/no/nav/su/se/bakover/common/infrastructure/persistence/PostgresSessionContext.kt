@@ -64,7 +64,7 @@ open class PostgresSessionContext(
                     if (disableSessionCounter) {
                         action(it)
                     } else {
-                        sessionCounter.withCountSessions {
+                        sessionCounter.validateNotNestedSession {
                             action(it)
                         }
                     }
