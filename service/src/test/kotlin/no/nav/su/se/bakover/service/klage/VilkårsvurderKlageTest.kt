@@ -69,6 +69,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             sakId = sak.id,
+            fremsattRettsligKlageinteresse = null,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
 
@@ -93,6 +94,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             sakId = sak.id,
+            fremsattRettsligKlageinteresse = null,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
 
@@ -128,6 +130,7 @@ internal class VilkårsvurderKlageTest {
                 klagesDetPåKonkreteElementerIVedtaket = null,
                 erUnderskrevet = null,
                 sakId = sak.id,
+                fremsattRettsligKlageinteresse = null,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
 
@@ -185,6 +188,7 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = false,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -212,6 +216,7 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail()
 
@@ -230,6 +235,7 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -251,6 +257,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             sakId = sak.id,
+            fremsattRettsligKlageinteresse = null,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
             klage::class,
@@ -449,6 +456,7 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = FormkravTilKlage.Svarord.NEI,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
             ),
         ).getOrFail()
 
@@ -478,6 +486,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
             sakId = sak.id,
+            fremsattRettsligKlageinteresse = null,
         )
 
         var expectedKlage: VilkårsvurdertKlage.Påbegynt?
@@ -536,6 +545,7 @@ internal class VilkårsvurderKlageTest {
             klagesDetPåKonkreteElementerIVedtaket = true,
             erUnderskrevet = FormkravTilKlage.Svarord.JA,
             sakId = sak.id,
+            fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
         mocks.service.vilkårsvurder(request).getOrFail().also {
@@ -554,6 +564,7 @@ internal class VilkårsvurderKlageTest {
                     innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                    fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
                 ) as FormkravTilKlage.Utfylt,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,

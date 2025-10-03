@@ -131,7 +131,8 @@ internal class KlagePostgresRepoTest {
             val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+                val klager = klageRepo.hentKlager(klage.sakId, sessionContext)
+                klager.shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
             }
             klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
             klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)

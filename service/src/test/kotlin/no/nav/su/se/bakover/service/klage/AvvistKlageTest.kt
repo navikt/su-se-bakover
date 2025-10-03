@@ -190,6 +190,7 @@ internal class AvvistKlageTest {
                     innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                    fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
                 ),
             ).getOrFail()
 
@@ -222,6 +223,7 @@ internal class AvvistKlageTest {
                     innenforFristen = FormkravTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = false,
                     erUnderskrevet = FormkravTilKlage.Svarord.JA,
+                    fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
                 ),
             ).getOrFail()
 

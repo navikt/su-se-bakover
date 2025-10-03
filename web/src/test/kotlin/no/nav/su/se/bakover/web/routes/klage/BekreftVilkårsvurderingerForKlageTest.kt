@@ -144,6 +144,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
+                  "fremsattRettsligKlageinteresse":"JA",
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "fritekstTilBrev": null,

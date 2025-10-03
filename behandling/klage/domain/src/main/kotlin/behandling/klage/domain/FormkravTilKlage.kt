@@ -12,6 +12,7 @@ sealed interface FormkravTilKlage {
     val innenforFristen: Svarord?
     val klagesDetPåKonkreteElementerIVedtaket: Boolean?
     val erUnderskrevet: Svarord?
+    val fremsattRettsligKlageinteresse: Svarord?
 
     enum class Svarord {
         JA,
@@ -19,10 +20,14 @@ sealed interface FormkravTilKlage {
         NEI,
     }
 
+    /**
+     * Denne styrer om vi kommer til avvisningbildet i klageflyten og baserer seg på alle formkravene
+     */
     fun erAvvist(): Boolean {
         return this.klagesDetPåKonkreteElementerIVedtaket == false ||
             this.innenforFristen == Svarord.NEI ||
-            this.erUnderskrevet == Svarord.NEI
+            this.erUnderskrevet == Svarord.NEI ||
+            this.fremsattRettsligKlageinteresse == Svarord.NEI
     }
 
     /**
@@ -33,6 +38,7 @@ sealed interface FormkravTilKlage {
         override val innenforFristen: Svarord?,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
         override val erUnderskrevet: Svarord?,
+        override val fremsattRettsligKlageinteresse: Svarord?,
     ) : FormkravTilKlage {
         companion object {
 
@@ -43,11 +49,12 @@ sealed interface FormkravTilKlage {
                     innenforFristen = null,
                     klagesDetPåKonkreteElementerIVedtaket = null,
                     erUnderskrevet = null,
+                    fremsattRettsligKlageinteresse = null,
                 ) as Påbegynt
             }
 
             /**
-             * Denne styrer hvilken klagetype vi får se [VilkårsvurdertKlage] når man går videre i klageflyten
+             * Denne styrer hvilken klagetype vi får se [VilkårsvurdertKlage] når man går videre i klageflyten.
              * @return [FormkravTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [FormkravTilKlage.Påbegynt]
              */
             internal fun create(
@@ -55,22 +62,21 @@ sealed interface FormkravTilKlage {
                 innenforFristen: Svarord?,
                 klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 erUnderskrevet: Svarord?,
+                fremsattRettsligKlageinteresse: Svarord?,
             ): FormkravTilKlage {
-                val erAlleFelterUtfylt = listOf(
-                    vedtakId,
-                    innenforFristen,
-                    klagesDetPåKonkreteElementerIVedtaket,
-                    erUnderskrevet,
-                ).all {
-                    it != null
-                }
-                // TODO: fjern begrunnelse herifra som aldri er bruk
-                return if (erAlleFelterUtfylt) {
+                // TODO: SOS: legg ikke fremsattRettsligKlageinteresse == null Når dagens klager er ferdigbehandlet. Er påkrevd i frontend for nye enn så lenge.
+                val erFerdigutfylt = vedtakId == null ||
+                    innenforFristen == null ||
+                    klagesDetPåKonkreteElementerIVedtaket == null ||
+                    erUnderskrevet == null
+
+                return if (!erFerdigutfylt) {
                     createUtfyltOnly(
-                        vedtakId = vedtakId!!,
-                        innenforFristen = innenforFristen!!,
-                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                        erUnderskrevet = erUnderskrevet!!,
+                        vedtakId = vedtakId,
+                        innenforFristen = innenforFristen,
+                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+                        erUnderskrevet = erUnderskrevet,
+                        fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                     )
                 } else {
                     Påbegynt(
@@ -78,6 +84,7 @@ sealed interface FormkravTilKlage {
                         innenforFristen = innenforFristen,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                         erUnderskrevet = erUnderskrevet,
+                        fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                     )
                 }
             }
@@ -89,6 +96,7 @@ sealed interface FormkravTilKlage {
         override val innenforFristen: Svarord,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
         override val erUnderskrevet: Svarord,
+        override val fremsattRettsligKlageinteresse: Svarord?,
     ) : FormkravTilKlage
 
     companion object {
@@ -102,12 +110,14 @@ sealed interface FormkravTilKlage {
             innenforFristen: Svarord,
             klagesDetPåKonkreteElementerIVedtaket: Boolean,
             erUnderskrevet: Svarord,
+            fremsattRettsligKlageinteresse: Svarord?,
         ): FormkravTilKlage {
             return Utfylt(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             )
         }
 
@@ -119,12 +129,14 @@ sealed interface FormkravTilKlage {
             innenforFristen: Svarord?,
             klagesDetPåKonkreteElementerIVedtaket: Boolean?,
             erUnderskrevet: Svarord?,
+            fremsattRettsligKlageinteresse: Svarord?,
         ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             )
         }
     }

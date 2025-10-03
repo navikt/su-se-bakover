@@ -168,6 +168,7 @@ internal class VilkårsvurderKlageTest {
                   "klagesDetPåKonkreteElementerIVedtaket":null,
                   "erUnderskrevet":null,
                   "fritekstTilBrev":null,
+                  "fremsattRettsligKlageinteresse":null,
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],
