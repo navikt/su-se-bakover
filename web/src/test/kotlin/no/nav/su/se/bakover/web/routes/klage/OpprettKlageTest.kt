@@ -179,6 +179,7 @@ internal class OpprettKlageTest {
                   "innenforFristen":null,
                   "klagesDetPåKonkreteElementerIVedtaket":null,
                   "erUnderskrevet":null,
+                  "fremsattRettsligKlageinteresse":null,
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,
                   "attesteringer":[],

@@ -190,6 +190,7 @@ internal class VurderKlageTest {
                   "vedtakId":"${påbegyntVurdertKlage.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
+                  "fremsattRettsligKlageinteresse":"JA",
                   "erUnderskrevet":"JA",
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,

@@ -144,6 +144,7 @@ internal class BekreftVurderingerForKlageTest {
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",
+                  "fremsattRettsligKlageinteresse":"JA",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",
