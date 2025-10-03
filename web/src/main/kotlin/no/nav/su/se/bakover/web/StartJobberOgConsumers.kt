@@ -318,17 +318,13 @@ private fun naisJobberOgConsumers(
             null
         },
 
-        if (!isProd) {
-            StønadstatistikkJob.startJob(
-                clock = clock,
-                initialDelay = initialDelay.next(),
-                periode = Duration.of(1, ChronoUnit.DAYS),
-                runCheckFactory = runCheckFactory,
-                stønadStatistikkJobService = services.stønadStatistikkJobService,
-            )
-        } else {
-            null
-        },
+        StønadstatistikkJob.startJob(
+            clock = clock,
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            stønadStatistikkJobService = services.stønadStatistikkJobService,
+        ),
 
         JournalførDokumentJob.startJob(
             initialDelay = initialDelay.next(),

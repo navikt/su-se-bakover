@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
@@ -60,7 +59,7 @@ import java.util.UUID
 internal class SakServiceImplTest {
 
     @Test
-    fun `Oppretter sak og publiserer event`() {
+    fun `Oppretter sak`() {
         val sakId = UUID.randomUUID()
         val sak: Sak = mock {
             on { id } doReturn sakId
@@ -69,15 +68,10 @@ internal class SakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
 
-        val observer: StatistikkEventObserver = mock()
-
         val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
-        sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
         verify(sakRepo).opprettSak(any())
-        verify(sakRepo).hentSak(sak.id)
-        verify(observer).handle(argThat { it shouldBe StatistikkEvent.SakOpprettet(sak) })
     }
 
     @Test
