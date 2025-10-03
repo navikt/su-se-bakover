@@ -17,7 +17,7 @@ import javax.sql.DataSource
 class PostgresTransactionContext(
     private val dataSource: DataSource,
     private val timedDbMetrics: DbMetrics,
-    private val sessionCounter: SessionCounter,
+    private val sessionValidator: SessionValidator,
     private val queryParameterMappers: List<QueryParameterMapper>,
 ) : TransactionContext {
 
@@ -62,7 +62,7 @@ class PostgresTransactionContext(
                 ) { session ->
                     session.transaction { transactionalSession ->
                         this.transactionalSession = transactionalSession
-                        sessionCounter.validateNotNestedSession {
+                        sessionValidator.validateNotNestedSession {
                             action(transactionalSession)
                         }
                     }
