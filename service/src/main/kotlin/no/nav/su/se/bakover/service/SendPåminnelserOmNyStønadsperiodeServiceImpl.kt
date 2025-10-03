@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
-import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 interface SendPåminnelserOmNyStønadsperiodeService {
@@ -20,7 +19,6 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
     private val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo,
-    private val formuegrenserFactory: FormuegrenserFactory,
     private val personService: PersonService,
 ) : SendPåminnelserOmNyStønadsperiodeService {
     private val log = LoggerFactory.getLogger(this::class.java)

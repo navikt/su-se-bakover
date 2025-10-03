@@ -448,7 +448,6 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             sessionFactory = sessionFactory,
             brevService = brevService,
             sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
-            formuegrenserFactory = formuegrenserFactory,
             personService = personService,
         )
 

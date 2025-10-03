@@ -308,7 +308,6 @@ data object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 brevService = brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
-                formuegrenserFactory = formuegrenserFactory,
                 personService = personService,
             ),
             skatteService = skatteServiceImpl,
