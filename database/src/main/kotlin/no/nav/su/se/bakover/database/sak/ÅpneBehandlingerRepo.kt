@@ -94,13 +94,13 @@ internal class ÅpneBehandlingerRepo(
                  slåttSammen as (
                      select *
                      from søknader
-                     union
+                     union all
                      select *
                      from behandlinger
-                     union
+                     union all
                      select *
                      from revurderinger
-                     union
+                     union all
                      select *
                      from klage
                  )
