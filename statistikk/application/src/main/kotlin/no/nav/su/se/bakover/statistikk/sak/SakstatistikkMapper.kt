@@ -64,7 +64,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.TilAttestering.name,
                     behandlingResultat = BehandlingResultat.Avvist.name,
-                    behandlingAarsak = utledAvslagsgrunner(søknadsbehandling.avslagsgrunner),
+                    resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                 )
 
@@ -145,7 +145,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                 is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(
                     clock = clock,
                     behandling = revurdering,
-                    behandlingType = Behandlingstype.SOKNAD,
+                    behandlingType = Behandlingstype.REVURDERING,
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.TilAttestering.name,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
@@ -159,7 +159,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.REVURDERING,
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.TilAttestering.name,
-                    behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
+                    behandlingResultat = BehandlingResultat.Opphør.name,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
@@ -174,8 +174,6 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                    ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
-                        ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør -> this.toBehandlingsstatistikkGenerell(
@@ -185,7 +183,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.Underkjent.name,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                    behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
+                    behandlingResultat = BehandlingResultat.Opphør.name,
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                 )
@@ -210,7 +208,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.name,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                    behandlingResultat = BehandlingResultat.OpphørtRevurdering.name,
+                    behandlingResultat = BehandlingResultat.Opphør.name,
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                 )
