@@ -115,7 +115,8 @@ internal class KlagePostgresRepo(
                 vedtakId=:vedtakId,
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
-                erUnderskrevet=:erUnderskrevet
+                erUnderskrevet=:erUnderskrevet,
+                fremsattRettsligKlageinteresse=:fremsattRettsligKlageinteresse
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -129,6 +130,7 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
+                    "fremsattRettsligKlageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
                 ),
                 session,
             )
@@ -146,6 +148,7 @@ internal class KlagePostgresRepo(
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
                 fritekstTilBrev=:fritekstTilBrev,
+                fremsattRettsligKlageinteresse=:fremsattRettsligKlageinteresse,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
         """.trimIndent()
@@ -159,6 +162,7 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.tilDatabaseType(),
+                    "fremsattRettsligKlageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
                     "fritekstTilBrev" to klage.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
