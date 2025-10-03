@@ -75,11 +75,13 @@ class LukkSøknadServiceImpl(
                         sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
                 }
-                observers.forEach { e ->
-                    e.handle(StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler))
-                }
 
                 Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)
+            }
+        }.also {
+            val (_, søknadsbehandling, _) = it
+            observers.forEach { e ->
+                e.handle(StatistikkEvent.Behandling.Søknad.Lukket(søknadsbehandling, command.saksbehandler))
             }
         }
     }
