@@ -116,7 +116,7 @@ internal class KlagePostgresRepo(
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
-                fremsattRettsligKlageinteresse=:fremsattRettsligKlageinteresse
+                fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -130,7 +130,7 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
-                    "fremsattRettsligKlageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
+                    "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
                 ),
                 session,
             )
@@ -148,7 +148,7 @@ internal class KlagePostgresRepo(
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
                 fritekstTilBrev=:fritekstTilBrev,
-                fremsattRettsligKlageinteresse=:fremsattRettsligKlageinteresse,
+                fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
         """.trimIndent()
@@ -162,7 +162,7 @@ internal class KlagePostgresRepo(
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.tilDatabaseType(),
-                    "fremsattRettsligKlageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
+                    "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
                     "fritekstTilBrev" to klage.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
@@ -409,7 +409,7 @@ internal class KlagePostgresRepo(
             erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
                 FormkravTilKlage.Svarord.valueOf(it)
             },
-            fremsattRettsligKlageinteresse = row.stringOrNull("fremsattRettsligKlageinteresse")?.let { FormkravTilKlage.Svarord.valueOf(it) },
+            fremsattRettsligKlageinteresse = row.stringOrNull("fremsattrettsligklageinteresse")?.let { FormkravTilKlage.Svarord.valueOf(it) },
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")
