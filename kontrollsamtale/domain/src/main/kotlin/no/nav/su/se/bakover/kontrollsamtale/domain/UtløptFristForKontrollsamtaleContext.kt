@@ -172,7 +172,7 @@ data class UtløptFristForKontrollsamtaleContext(
                             }
 
                             is ErKontrollNotatMottatt.Nei -> {
-                                håndterIkkeMøttTilKontrollsamtale(
+                                val lol = håndterIkkeMøttTilKontrollsamtale(
                                     kontrollsamtale = kontrollsamtale,
                                     lagreKontrollsamtale = lagreKontrollsamtale,
                                     tx = tx,
@@ -181,6 +181,7 @@ data class UtløptFristForKontrollsamtaleContext(
                                     clock = clock,
                                     lagreContext = lagreContext,
                                 )
+                                lol.
                             }
                         }
                     }
@@ -263,6 +264,7 @@ data class UtløptFristForKontrollsamtaleContext(
                                     .getOrElse {
                                         throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                                     }
+                                //TODO: disse skaper nested
                                 opprettCallback.sendStatistikkCallback()
                                 iverksettCallback.sendStatistikkCallback()
                                 ctx

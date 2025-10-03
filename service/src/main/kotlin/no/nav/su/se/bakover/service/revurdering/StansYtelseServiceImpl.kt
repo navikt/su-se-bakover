@@ -163,14 +163,14 @@ class StansYtelseServiceImpl(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
         return Either.catch {
-            sessionFactory.withTransactionContext { tx ->
+            val response = sessionFactory.withTransactionContext { tx ->
                 stansAvYtelseITransaksjon(
                     request = request,
                     transactionContext = tx,
-                ).also { response ->
-                    response.sendStatistikkCallback()
-                }
+                )
             }
+            response.sendStatistikkCallback()
+            response
         }.mapLeft {
             when (it) {
                 is StansAvYtelseTransactionException -> {
