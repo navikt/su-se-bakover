@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactio
 open class PostgresSessionContext(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
-    private val sessionCounter: SessionCounter,
+    private val sessionValidator: SessionValidator,
     private val queryParameterMappers: List<QueryParameterMapper>,
 ) : SessionContext {
 
@@ -64,7 +64,7 @@ open class PostgresSessionContext(
                     if (disableSessionCounter) {
                         action(it)
                     } else {
-                        sessionCounter.validateNotNestedSession {
+                        sessionValidator.validateNotNestedSession {
                             action(it)
                         }
                     }
