@@ -13,14 +13,14 @@ import javax.sql.DataSource
 class PostgresSessionFactory(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
-    private val sessionCounter: SessionCounter,
+    private val sessionValidator: SessionValidator,
     private val queryParameterMappers: List<QueryParameterMapper>,
 ) : SessionFactory {
 
     /** Lager en ny context - starter ikke sesjonen.
      * DEPRECATION: Use nullable paramters and withSessionContext(sessionContext: SessionContext?, action) instead */
     override fun newSessionContext(): PostgresSessionContext {
-        return PostgresSessionContext(dataSource, dbMetrics, sessionCounter, queryParameterMappers)
+        return PostgresSessionContext(dataSource, dbMetrics, sessionValidator, queryParameterMappers)
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
@@ -75,7 +75,7 @@ class PostgresSessionFactory(
      * DEPRECATION: Use nullable paramters and withTransactionContext(tx: TransactionContext?, action) instead
      * */
     override fun newTransactionContext(): PostgresTransactionContext {
-        return PostgresTransactionContext(dataSource, dbMetrics, sessionCounter, queryParameterMappers)
+        return PostgresTransactionContext(dataSource, dbMetrics, sessionValidator, queryParameterMappers)
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
