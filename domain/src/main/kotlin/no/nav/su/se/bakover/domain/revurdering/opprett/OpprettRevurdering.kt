@@ -86,7 +86,7 @@ fun Sak.opprettRevurdering(
                 }
             }
             else -> {
-                log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}")
+                log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen.")
                 return KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt.left()
             }
         }
