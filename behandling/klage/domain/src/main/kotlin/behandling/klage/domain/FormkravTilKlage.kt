@@ -54,7 +54,7 @@ sealed interface FormkravTilKlage {
             }
 
             /**
-             * Denne styrer hvilken klagetype vi får se [VilkårsvurdertKlage] når man går videre i klageflyten
+             * Denne styrer hvilken klagetype vi får se [VilkårsvurdertKlage] når man går videre i klageflyten.
              * @return [FormkravTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [FormkravTilKlage.Påbegynt]
              */
             internal fun create(
@@ -64,22 +64,18 @@ sealed interface FormkravTilKlage {
                 erUnderskrevet: Svarord?,
                 fremsattRettsligKlageinteresse: Svarord?,
             ): FormkravTilKlage {
-                // TODO: endre til if sjekk så vi slipper !!
-                val erAlleFelterUtfylt = listOf(
-                    vedtakId,
-                    innenforFristen,
-                    klagesDetPåKonkreteElementerIVedtaket,
-                    erUnderskrevet,
-                ).all {
-                    it != null
-                }
-                // TODO: vi må ha et tidsskille her som sier at noe er utfylt etter dato x siden fremsattRettsligKlageinteresse kreves ikke null fremover fra denne kommer ut
-                return if (erAlleFelterUtfylt) {
+                // TODO: SOS: legg ikke fremsattRettsligKlageinteresse == null Når dagens klager er ferdigbehandlet. Er påkrevd i frontend for nye enn så lenge.
+                val erFerdigutfylt = vedtakId == null ||
+                    innenforFristen == null ||
+                    klagesDetPåKonkreteElementerIVedtaket == null ||
+                    erUnderskrevet == null
+
+                return if (!erFerdigutfylt) {
                     createUtfyltOnly(
-                        vedtakId = vedtakId!!,
-                        innenforFristen = innenforFristen!!,
-                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                        erUnderskrevet = erUnderskrevet!!,
+                        vedtakId = vedtakId,
+                        innenforFristen = innenforFristen,
+                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+                        erUnderskrevet = erUnderskrevet,
                         fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                     )
                 } else {
