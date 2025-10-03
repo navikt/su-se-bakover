@@ -50,6 +50,7 @@ class PostgresTransactionContext(
             action: (TransactionalSession) -> T,
         ): T {
             this as PostgresTransactionContext
+
             return if (transactionalSession == null) {
                 // Vi ønsker kun at den ytterste blokka lukker sesjonen (using)
                 using(
@@ -61,12 +62,8 @@ class PostgresTransactionContext(
                 ) { session ->
                     session.transaction { transactionalSession ->
                         this.transactionalSession = transactionalSession
-                        if (disableSessionCounter) {
+                        sessionCounter.validateNotNestedSession {
                             action(transactionalSession)
-                        } else {
-                            sessionCounter.withCountSessions {
-                                action(transactionalSession)
-                            }
                         }
                     }
                 }
