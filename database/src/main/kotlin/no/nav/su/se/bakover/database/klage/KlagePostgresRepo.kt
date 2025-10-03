@@ -426,38 +426,44 @@ internal class KlagePostgresRepo(
             )
         }
 
-        fun bekreftetVilkårsvurdertKlageTilVurdering() = VilkårsvurdertKlage.Bekreftet.TilVurdering(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            journalpostId = journalpostId,
-            oppgaveId = oppgaveId,
-            saksbehandler = saksbehandler,
-            vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
-            vurderinger = vurderinger,
-            attesteringer = attesteringer,
-            datoKlageMottatt = datoKlageMottatt,
-            klageinstanshendelser = klageinstanshendelser,
-            sakstype = sakstype,
-        )
+        fun bekreftetVilkårsvurdertKlageTilVurdering(): VilkårsvurdertKlage.Bekreftet.TilVurdering {
+            val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage")
+            return VilkårsvurdertKlage.Bekreftet.TilVurdering(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = formkravUtfylt,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                klageinstanshendelser = klageinstanshendelser,
+                sakstype = sakstype,
+            )
+        }
 
-        fun bekreftetAvvistVilkårsvurdertKlage() = VilkårsvurdertKlage.Bekreftet.Avvist(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            journalpostId = journalpostId,
-            oppgaveId = oppgaveId,
-            saksbehandler = saksbehandler,
-            vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
-            attesteringer = attesteringer,
-            datoKlageMottatt = datoKlageMottatt,
-            fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
-            sakstype = sakstype,
-        )
+        fun bekreftetAvvistVilkårsvurdertKlage(): VilkårsvurdertKlage.Bekreftet.Avvist {
+            val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage")
+            return VilkårsvurdertKlage.Bekreftet.Avvist(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = formkravUtfylt,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
+                sakstype = sakstype,
+            )
+        }
 
         fun avvistKlage() = AvvistKlage(
             forrigeSteg = bekreftetAvvistVilkårsvurdertKlage(),
@@ -500,7 +506,7 @@ internal class KlagePostgresRepo(
             sakstype = sakstype,
         )
 
-        val klage = when (Tilstand.fromString(row.string("type"))) {
+        val klage = when (val tilstand = Tilstand.fromString(row.string("type"))) {
             Tilstand.OPPRETTET -> OpprettetKlage(
                 id = id,
                 opprettet = opprettet,
@@ -514,6 +520,7 @@ internal class KlagePostgresRepo(
                 sakstype = sakstype,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
+                val formkravPåbegynt = formkravTilKlage as? FormkravTilKlage.Påbegynt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke påbegynte formkrav")
                 VilkårsvurdertKlage.Påbegynt(
                     id = id,
                     opprettet = opprettet,
@@ -523,43 +530,49 @@ internal class KlagePostgresRepo(
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
-                    vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Påbegynt,
+                    vilkårsvurderinger = formkravPåbegynt,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
                 )
             }
-            Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING -> VilkårsvurdertKlage.Utfylt.TilVurdering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
-                vurderinger = vurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-                klageinstanshendelser = klageinstanshendelser,
-                sakstype = sakstype,
-            )
-            Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> VilkårsvurdertKlage.Utfylt.Avvist(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = formkravTilKlage as FormkravTilKlage.Utfylt,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-                fritekstTilVedtaksbrev = fritekstTilBrev,
-                sakstype = sakstype,
-            )
+            Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING -> {
+                val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke utfylt formkrav")
+                VilkårsvurdertKlage.Utfylt.TilVurdering(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = formkravUtfylt,
+                    vurderinger = vurderinger,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
+                    klageinstanshendelser = klageinstanshendelser,
+                    sakstype = sakstype,
+                )
+            }
+            Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> {
+                val formkravUtfylt = formkravTilKlage as? FormkravTilKlage.Utfylt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke utfylt formkrav")
+                VilkårsvurdertKlage.Utfylt.Avvist(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = formkravUtfylt,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
+                    fritekstTilVedtaksbrev = fritekstTilBrev,
+                    sakstype = sakstype,
+                )
+            }
             Tilstand.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING -> bekreftetVilkårsvurdertKlageTilVurdering()
             Tilstand.VILKÅRSVURDERT_BEKREFTET_AVVIST -> bekreftetAvvistVilkårsvurdertKlage()
             Tilstand.VURDERT_PÅBEGYNT -> påbegyntVurdertKlage()
