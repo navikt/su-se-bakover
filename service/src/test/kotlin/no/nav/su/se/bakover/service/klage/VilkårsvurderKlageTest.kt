@@ -216,7 +216,7 @@ internal class VilkårsvurderKlageTest {
                 innenforFristen = FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
             ),
         ).getOrFail()
 
