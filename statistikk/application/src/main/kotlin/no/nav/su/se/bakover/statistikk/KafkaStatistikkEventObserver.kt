@@ -38,10 +38,8 @@ internal class KafkaStatistikkEventObserver(
                             clock,
                         ),
                     )
-                    if (!ApplicationConfig.isProd()) {
-                        event.toBehandlingsstatistikkOverordnet(clock).let {
-                            sakStatistikkRepo.lagreSakStatistikk(it)
-                        }
+                    event.toBehandlingsstatistikkOverordnet(clock).let {
+                        sakStatistikkRepo.lagreSakStatistikk(it)
                     }
                 }
 
