@@ -54,7 +54,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.TilAttestering.name,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    utbetaltTid = søknadsbehandling.stønadsperiode?.periode?.fraOgMed,
+                    utbetaltTid = søknadsbehandling.stønadsperiode.periode.fraOgMed,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag -> this.toBehandlingsstatistikkGenerell(
@@ -76,8 +76,6 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Underkjent.name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
-                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
-                        ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
                 )
 
                 is StatistikkEvent.Behandling.Søknad.Underkjent.Avslag -> this.toBehandlingsstatistikkGenerell(
