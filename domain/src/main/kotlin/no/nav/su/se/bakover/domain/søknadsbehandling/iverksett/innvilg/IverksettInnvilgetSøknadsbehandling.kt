@@ -88,7 +88,6 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         vedtak = vedtak,
         statistikk = nonEmptyListOf(
             StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak),
-            StatistikkEvent.Stønadsvedtak(vedtak) { oppdatertSak },
         ),
         utbetaling = simulertUtbetaling,
     ).right()

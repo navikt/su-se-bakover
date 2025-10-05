@@ -1,30 +1,23 @@
 package no.nav.su.se.bakover.statistikk
 
 import arrow.core.Either
-import arrow.core.right
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
-import no.nav.su.se.bakover.statistikk.stønad.toStønadstatistikkDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import person.domain.PersonService
 import java.time.Clock
 
-internal class KafkaStatistikkEventObserver(
+internal class StatistikkEventObserver(
     private val publisher: KafkaPublisher,
-    private val personService: PersonService,
     private val clock: Clock,
-    private val log: Logger = LoggerFactory.getLogger(KafkaStatistikkEventObserver::class.java),
+    private val log: Logger = LoggerFactory.getLogger(StatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,
-    private val stønadStatistikkRepo: StønadStatistikkRepo,
     private val sakStatistikkRepo: SakStatistikkRepo,
 ) : StatistikkEventObserver {
 
@@ -41,23 +34,6 @@ internal class KafkaStatistikkEventObserver(
                     event.toBehandlingsstatistikkOverordnet(clock).let {
                         sakStatistikkRepo.lagreSakStatistikk(it)
                     }
-                }
-
-                is StatistikkEvent.Stønadsvedtak -> {
-                    publiserEllerLoggFeil(
-                        event.toStønadstatistikkDto(
-                            hentSak = event.hentSak,
-                            clock = clock,
-                            gitCommit = gitCommit,
-                            lagreStatstikkHendelse = { dto ->
-                                if (ApplicationConfig.isNotProd()) {
-                                    stønadStatistikkRepo.lagreStønadStatistikk(
-                                        dto,
-                                    )
-                                }
-                            },
-                        ).right(),
-                    )
                 }
             }
         }.mapLeft {

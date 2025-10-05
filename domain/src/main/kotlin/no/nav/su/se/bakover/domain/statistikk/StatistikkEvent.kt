@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.statistikk
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -29,7 +28,6 @@ import vedtak.domain.VedtakSomKanRevurderes
 import java.util.UUID
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
-// TODO jah: Statistikk er ikke per say domenet vårt, vi burde bare publisert generelle hendelser til en Hendelsestype som igjen statistikk kunne lyttet på (gjerne vha. coroutines).
 sealed interface StatistikkEvent {
 
     sealed interface Behandling : StatistikkEvent {
@@ -197,9 +195,4 @@ sealed interface StatistikkEvent {
             data class Avsluttet(override val klage: AvsluttetKlage) : Klage
         }
     }
-
-    /**
-     * Brukes til stønadsstatistikk TODO fjern??
-     */
-    data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes, val hentSak: () -> Sak) : StatistikkEvent
 }

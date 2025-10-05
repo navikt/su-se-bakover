@@ -72,7 +72,6 @@ class ResendStatistikkhendelserServiceImpl(
             when (vedtak) {
                 is VedtakInnvilgetSøknadsbehandling -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
-                    statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
                     log.info("Resend statistikk: Sendte statistikk for VedtakInnvilgetSøknadsbehandling $vedtakId.")
                 }
 
@@ -88,25 +87,21 @@ class ResendStatistikkhendelserServiceImpl(
 
                 is VedtakOpphørUtenUtbetaling -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
-                    statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
                     log.error("Resend statistikk: Sendte statistikk for VedtakOpphørAvkorting $vedtakId. Dette skal ikke skje, siden vi ikke lager nye vedtak av denne typen, men vi øsnker ikke feile hvis det oppstår.")
                 }
 
                 is VedtakOpphørMedUtbetaling -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
-                    statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
                     log.info("Resend statistikk: Sendte statistikk for VedtakOpphørMedUtbetaling $vedtakId.")
                 }
 
                 is VedtakInnvilgetRevurdering -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak))
-                    statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
                     log.info("Resend statistikk: Sendte statistikk for VedtakInnvilgetRevurdering $vedtakId.")
                 }
 
                 is VedtakGjenopptakAvYtelse -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
-                    statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
                     log.info("Resend statistikk: Sendte statistikk for VedtakGjenopptakAvYtelse $vedtakId.")
                 }
 
@@ -116,7 +111,6 @@ class ResendStatistikkhendelserServiceImpl(
 
                 is VedtakStansAvYtelse -> {
                     statistikkEventObserver.handle(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
-                    statistikkEventObserver.handle(StatistikkEvent.Stønadsvedtak(vedtak) { sak!! })
                     log.info("Resend statistikk: Sendte statistikk for VedtakStansAvYtelse $vedtakId.")
                 }
             }
