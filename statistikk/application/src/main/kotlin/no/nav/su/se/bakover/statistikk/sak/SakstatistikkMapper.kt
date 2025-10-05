@@ -6,12 +6,14 @@ import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
 import no.nav.su.se.bakover.statistikk.behandling.klage.toResultatBegrunnelse
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingResultat
+import statistikk.domain.BehandlingMetode
 import statistikk.domain.SakStatistikk
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
@@ -30,7 +32,8 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
-                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
+                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent
+                        ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
                     saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                 )
 
@@ -40,7 +43,8 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.Registrert.name,
-                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
+                    opprettetAv = søknadsbehandling.saksbehandler?.navIdent
+                        ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
                     saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
                     behandlingAarsak = "Omgjøring etter avvist søknad",
                     relatertId = relatertId,
@@ -121,7 +125,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandling = søknadsbehandling,
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
-                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name, // TODO hvis avvist med vedtak skal det være iverksatt.. Men bør den ha annen hendelse enn Lukket?
                     behandlingResultat = søknadsbehandling.søknad.toBehandlingResultat().name,
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ansvarligBeslutter = lukketAv.navIdent,
@@ -140,6 +144,11 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     opprettetAv = revurdering.saksbehandler.navIdent,
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                        BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
+                    } else {
+                        BehandlingMetode.Manuell
+                    },
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -151,6 +160,11 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Innvilget.name,
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                        BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
+                    } else {
+                        BehandlingMetode.Manuell
+                    },
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør -> this.toBehandlingsstatistikkGenerell(
@@ -199,6 +213,11 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
                         ?: throw IllegalStateException("Et underkjent avslag kan ikke mangle attestant"),
+                    behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                        BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
+                    } else {
+                        BehandlingMetode.Manuell
+                    },
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt -> this.toBehandlingsstatistikkGenerell(
@@ -221,6 +240,11 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Avsluttet.name,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                        BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
+                    } else {
+                        BehandlingMetode.Manuell
+                    },
                 )
             }
         }
@@ -236,6 +260,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     opprettetAv = revurdering.saksbehandler.navIdent,
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                 )
 
                 is StatistikkEvent.Behandling.Stans.Avsluttet -> this.toBehandlingsstatistikkGenerell(
@@ -247,6 +272,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Avbrutt.name,
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                 )
 
                 is StatistikkEvent.Behandling.Stans.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -258,6 +284,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Stanset.name,
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                 )
             }
         }
@@ -367,6 +394,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
     behandlingResultat: String? = null,
     resultatBegrunnelse: String? = null,
     ansvarligBeslutter: String? = null,
+    behandlingMetode: BehandlingMetode = BehandlingMetode.Manuell,
 
 ): SakStatistikk {
     return SakStatistikk(
@@ -392,6 +420,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
         opprettetAv = opprettetAv,
         saksbehandler = saksbehandler,
         ansvarligBeslutter = ansvarligBeslutter,
+        behandlingMetode = behandlingMetode,
     )
 }
 
