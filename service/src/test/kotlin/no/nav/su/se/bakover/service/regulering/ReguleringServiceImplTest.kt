@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsyn
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -573,18 +572,6 @@ internal class ReguleringServiceImplTest {
                 KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere,
             ).left()
         }
-    }
-
-    @Test
-    fun `iverksatte reguleringer sender statistikk`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-        val eventObserverMock: StatistikkEventObserver = mock()
-        lagReguleringServiceImpl(sak).apply {
-            addObserver(eventObserverMock)
-        }.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-
-        // TODO skal dette skje?
-        // verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<StatistikkEvent.Behandling.Revurdering.Iverksatt>() })
     }
 
     @Test
