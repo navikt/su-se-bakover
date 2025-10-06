@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
+import statistikk.domain.BehandlingMetode
 import statistikk.domain.SakStatistikk
 import java.util.UUID
 
@@ -47,7 +48,7 @@ class SakStatistikkRepoImpl(
                             "sak_ytelse" to behandlingstatistikk.sakYtelse,
                             "sak_utland" to behandlingstatistikk.sakUtland,
                             "behandling_type" to behandlingstatistikk.behandlingType,
-                            "behandling_metode" to behandlingstatistikk.behandlingMetode,
+                            "behandling_metode" to behandlingstatistikk.behandlingMetode.name,
                             "mottatt_tid" to behandlingstatistikk.mottattTid,
                             "registrert_tid" to behandlingstatistikk.registrertTid,
                             "ferdigbehandlet_tid" to behandlingstatistikk.ferdigbehandletTid,
@@ -91,7 +92,7 @@ class SakStatistikkRepoImpl(
                     sakYtelse = row.string("sak_ytelse"),
                     sakUtland = row.string("sak_utland"),
                     behandlingType = row.string("behandling_type"),
-                    behandlingMetode = row.string("behandling_metode"),
+                    behandlingMetode = BehandlingMetode.valueOf(row.string("behandling_metode")),
                     mottattTid = row.tidspunkt("mottatt_tid"),
                     registrertTid = row.tidspunkt("registrert_tid"),
                     ferdigbehandletTid = row.tidspunktOrNull("ferdigbehandlet_tid"),
