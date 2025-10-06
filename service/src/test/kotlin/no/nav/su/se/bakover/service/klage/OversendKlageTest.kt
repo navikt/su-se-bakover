@@ -53,6 +53,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import java.util.UUID
 
@@ -470,7 +471,7 @@ internal class OversendKlageTest {
     fun `Skal kunne oversende en klage som er til attestering`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
-        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
         val pdf = PdfA("brevbytes".toByteArray())
         val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
             pdf = pdf,
@@ -516,7 +517,11 @@ internal class OversendKlageTest {
                 sakstype = klage.sakstype,
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual })
+            verify(observerMock)
+                .handle(
+                    argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual },
+                    isNull(),
+                )
         }
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })

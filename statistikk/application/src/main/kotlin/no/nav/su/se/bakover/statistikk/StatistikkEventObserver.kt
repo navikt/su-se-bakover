@@ -4,6 +4,7 @@ import arrow.core.Either
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -21,7 +22,7 @@ internal class StatistikkEventObserver(
     private val sakStatistikkRepo: SakStatistikkRepo,
 ) : StatistikkEventObserver {
 
-    override fun handle(event: StatistikkEvent) {
+    override fun handle(event: StatistikkEvent, sessionContext: SessionContext?) {
         Either.catch {
             when (event) {
                 is StatistikkEvent.Behandling -> {
@@ -32,7 +33,7 @@ internal class StatistikkEventObserver(
                         ),
                     )
                     event.toBehandlingsstatistikkOverordnet(clock).let {
-                        sakStatistikkRepo.lagreSakStatistikk(it)
+                        sakStatistikkRepo.lagreSakStatistikk(it, sessionContext)
                     }
                 }
             }

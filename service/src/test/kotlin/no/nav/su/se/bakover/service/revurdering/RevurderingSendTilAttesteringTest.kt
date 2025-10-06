@@ -42,6 +42,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -98,6 +99,7 @@ internal class RevurderingSendTilAttesteringTest {
                             actual as RevurderingTilAttestering.Innvilget,
                         )
                     },
+                    isNull(),
                 )
             }
 

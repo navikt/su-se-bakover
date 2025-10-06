@@ -7,6 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -153,8 +154,8 @@ class StansYtelseServiceImpl(
 
         return StansAvYtelseITransaksjonResponse(
             revurdering = simulertRevurdering,
-            sendStatistikkCallback = {
-                observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering))
+            sendStatistikkCallback = { tx: SessionContext ->
+                observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering), tx)
             },
         )
     }
@@ -163,14 +164,14 @@ class StansYtelseServiceImpl(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
         return Either.catch {
-            val response = sessionFactory.withTransactionContext { tx ->
+            sessionFactory.withTransactionContext { tx ->
                 stansAvYtelseITransaksjon(
                     request = request,
                     transactionContext = tx,
-                )
+                ).also { response ->
+                    response.sendStatistikkCallback(tx)
+                }
             }
-            response.sendStatistikkCallback()
-            response
         }.mapLeft {
             when (it) {
                 is StansAvYtelseTransactionException -> {
@@ -201,7 +202,7 @@ class StansYtelseServiceImpl(
                         .getOrElse {
                             throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                         }
-                    response.sendStatistikkCallback()
+                    response.sendStatistikkCallback(tx)
                 }
             }
         }.mapLeft {
@@ -297,8 +298,8 @@ class StansYtelseServiceImpl(
                     revurdering = iverksattRevurdering,
                     vedtak = vedtak,
                     sendUtbetalingCallback = stansUtbetaling::sendUtbetaling,
-                    sendStatistikkCallback = {
-                        observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
+                    sendStatistikkCallback = { tx: SessionContext ->
+                        observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak), tx)
                     },
                 )
             }

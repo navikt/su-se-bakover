@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -172,7 +173,7 @@ data class UtløptFristForKontrollsamtaleContext(
                             }
 
                             is ErKontrollNotatMottatt.Nei -> {
-                                val lol = håndterIkkeMøttTilKontrollsamtale(
+                                håndterIkkeMøttTilKontrollsamtale(
                                     kontrollsamtale = kontrollsamtale,
                                     lagreKontrollsamtale = lagreKontrollsamtale,
                                     tx = tx,
@@ -181,7 +182,6 @@ data class UtløptFristForKontrollsamtaleContext(
                                     clock = clock,
                                     lagreContext = lagreContext,
                                 )
-                                lol.
                             }
                         }
                     }
@@ -264,9 +264,9 @@ data class UtløptFristForKontrollsamtaleContext(
                                     .getOrElse {
                                         throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                                     }
-                                //TODO: disse skaper nested
-                                opprettCallback.sendStatistikkCallback()
-                                iverksettCallback.sendStatistikkCallback()
+
+                                opprettCallback.sendStatistikkCallback(tx)
+                                iverksettCallback.sendStatistikkCallback(tx)
                                 ctx
                             }
                         }
@@ -361,14 +361,18 @@ data class UtløptFristForKontrollsamtaleContext(
 
     private data class FeilVedProsesseringAvKontrollsamtaleException(val msg: String) : RuntimeException(msg)
 
+    /*
+    TODO:
+        Disse to callbackene burde bare vært kalt in place
+     */
     data class OpprettStansTransactionCallback(
         val revurderingId: RevurderingId,
-        val sendStatistikkCallback: () -> Unit,
+        val sendStatistikkCallback: (tx: SessionContext) -> Unit,
     )
 
     data class IverksettStansTransactionCallback(
         val sendUtbetalingCallback: () -> Either<Any, Utbetalingsrequest>,
-        val sendStatistikkCallback: () -> Unit,
+        val sendStatistikkCallback: (tx: SessionContext) -> Unit,
     )
 
     companion object {

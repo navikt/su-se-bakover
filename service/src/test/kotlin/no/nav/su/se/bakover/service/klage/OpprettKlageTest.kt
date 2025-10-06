@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
@@ -62,7 +63,7 @@ internal class OpprettKlageTest {
     fun `kan opprette en klage med en brukt journalpost-id dersom klagen har blitt avsluttet`() {
         val (sak, avsluttetKlage) = avsluttetKlage()
         val observerMock: StatistikkEventObserver = mock {
-            on { handle(any()) }.then {}
+            on { handle(any(), isNull()) }.then {}
         }
         val mocks = KlageServiceMocks(
             sakServiceMock = mock {
@@ -90,8 +91,8 @@ internal class OpprettKlageTest {
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
 
-        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) })
-        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) })
+        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, isNull())
+        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, isNull())
         nyKlage.shouldBeTypeOf<OpprettetKlage>()
         nyKlage.journalpostId shouldBe avsluttetKlage.journalpostId
     }
@@ -195,7 +196,7 @@ internal class OpprettKlageTest {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
 
         val observerMock: StatistikkEventObserver = mock {
-            on { handle(any()) }.then {}
+            on { handle(any(), any()) }.then {}
         }
         val mocks = KlageServiceMocks(
             sakServiceMock = mock {
@@ -234,8 +235,8 @@ internal class OpprettKlageTest {
                 sakstype = sak.type,
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected })
-            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected })
+            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, isNull())
+            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, isNull())
         }
 
         verify(mocks.sakServiceMock).hentSak(sak.id)
