@@ -113,7 +113,6 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
-import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
@@ -994,7 +993,7 @@ open class AccessCheckProxy(
                 override fun stansAvYtelseITransaksjon(
                     request: StansYtelseRequest,
                     transactionContext: TransactionContext,
-                ): StansAvYtelseITransaksjonResponse {
+                ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
                     kastKanKunKallesFraAnnenService()
                 }
 

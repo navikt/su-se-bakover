@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.job.NameAndLocalDateId
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -17,8 +16,10 @@ import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
 import org.slf4j.LoggerFactory
-import økonomi.domain.utbetaling.Utbetalingsrequest
+import økonomi.domain.utbetaling.UtbetalingFeilet
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -143,8 +144,8 @@ data class UtløptFristForKontrollsamtaleContext(
         sak: Sak,
         hentKontrollnotatMottatt: (saksnummer: Saksnummer, periode: DatoIntervall) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, ErKontrollNotatMottatt>,
         sessionFactory: SessionFactory,
-        opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
-        iverksettStans: (id: RevurderingId, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
+        opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> StansAvYtelseRevurdering.SimulertStansAvYtelse,
+        iverksettStans: (id: RevurderingId, transactionContext: TransactionContext) -> IverksettStansAvYtelseITransaksjonResponse,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
         clock: Clock,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
@@ -228,8 +229,8 @@ data class UtløptFristForKontrollsamtaleContext(
         kontrollsamtale: Kontrollsamtale,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
         tx: TransactionContext,
-        opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
-        iverksettStans: (id: RevurderingId, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
+        opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> StansAvYtelseRevurdering.SimulertStansAvYtelse,
+        iverksettStans: (id: RevurderingId, transactionContext: TransactionContext) -> IverksettStansAvYtelseITransaksjonResponse,
         clock: Clock,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
     ): UtløptFristForKontrollsamtaleContext {
@@ -243,34 +244,22 @@ data class UtløptFristForKontrollsamtaleContext(
                         ikkeMøttKontrollsamtale,
                         tx,
                     )
-                    opprettStans(
+                    val revurdering = opprettStans(
                         ikkeMøttKontrollsamtale.sakId,
                         ikkeMøttKontrollsamtale.frist.førsteINesteMåned(),
                         tx,
-                    ).let { opprettCallback ->
-                        iverksettStans(
-                            opprettCallback.revurderingId,
-                            tx,
-                        ).let { iverksettCallback ->
-                            ikkeMøtt(
-                                ikkeMøttKontrollsamtale.id,
-                                clock,
-                            ).let { ctx ->
-                                lagreContext(
-                                    ctx,
-                                    tx,
-                                )
-                                iverksettCallback.sendUtbetalingCallback()
-                                    .getOrElse {
-                                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
-                                    }
+                    )
+                    val ctx = ikkeMøtt(ikkeMøttKontrollsamtale.id, clock)
 
-                                opprettCallback.sendStatistikkCallback(tx)
-                                iverksettCallback.sendStatistikkCallback(tx)
-                                ctx
-                            }
-                        }
+                    lagreContext(ctx, tx)
+                    try {
+                        iverksettStans(revurdering.id, tx)
+                    } catch (_: Exception) {
+                        // todo: burde heller basert seg på de ulike som gjøres i iverksettStans
+                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = UtbetalingFeilet.Protokollfeil::class.java.toString())
                     }
+
+                    ctx
                 },
             )
     }
@@ -360,20 +349,6 @@ data class UtløptFristForKontrollsamtaleContext(
     data class KunneIkkeHåndtereUtløptKontrollsamtale(val feil: String)
 
     private data class FeilVedProsesseringAvKontrollsamtaleException(val msg: String) : RuntimeException(msg)
-
-    /*
-    TODO:
-        Disse to callbackene burde bare vært kalt in place
-     */
-    data class OpprettStansTransactionCallback(
-        val revurderingId: RevurderingId,
-        val sendStatistikkCallback: (tx: SessionContext) -> Unit,
-    )
-
-    data class IverksettStansTransactionCallback(
-        val sendUtbetalingCallback: () -> Either<Any, Utbetalingsrequest>,
-        val sendStatistikkCallback: (tx: SessionContext) -> Unit,
-    )
 
     companion object {
         const val MAX_RETRIES = 2

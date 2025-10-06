@@ -7,7 +7,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTrans
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
-import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
@@ -67,7 +65,7 @@ class StansYtelseServiceImpl(
     override fun stansAvYtelseITransaksjon(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
-    ): StansAvYtelseITransaksjonResponse {
+    ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
         val sak = sakService.hentSak(
             sakId = request.sakId,
             sessionContext = transactionContext,
@@ -152,12 +150,8 @@ class StansYtelseServiceImpl(
             transactionContext = transactionContext,
         )
 
-        return StansAvYtelseITransaksjonResponse(
-            revurdering = simulertRevurdering,
-            sendStatistikkCallback = { tx: SessionContext ->
-                observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering), tx)
-            },
-        )
+        observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering), transactionContext)
+        return simulertRevurdering
     }
 
     override fun stansAvYtelse(
@@ -168,9 +162,7 @@ class StansYtelseServiceImpl(
                 stansAvYtelseITransaksjon(
                     request = request,
                     transactionContext = tx,
-                ).also { response ->
-                    response.sendStatistikkCallback(tx)
-                }
+                )
             }
         }.mapLeft {
             when (it) {
@@ -183,7 +175,7 @@ class StansYtelseServiceImpl(
                 }
             }
         }.map {
-            it.revurdering
+            it
         }
     }
 
@@ -197,13 +189,7 @@ class StansYtelseServiceImpl(
                     revurderingId = revurderingId,
                     attestant = attestant,
                     transactionContext = tx,
-                ).also { response ->
-                    response.sendUtbetalingCallback()
-                        .getOrElse {
-                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
-                        }
-                    response.sendStatistikkCallback(tx)
-                }
+                )
             }
         }.mapLeft {
             when (it) {
@@ -294,13 +280,14 @@ class StansYtelseServiceImpl(
                     tx = transactionContext,
                 )
 
+                val utbetalingsrequest = stansUtbetaling.sendUtbetaling().getOrElse {
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
+                }
+                observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak), transactionContext)
                 IverksettStansAvYtelseITransaksjonResponse(
                     revurdering = iverksattRevurdering,
                     vedtak = vedtak,
-                    sendUtbetalingCallback = stansUtbetaling::sendUtbetaling,
-                    sendStatistikkCallback = { tx: SessionContext ->
-                        observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak), tx)
-                    },
+                    utbetalingsrequest = utbetalingsrequest,
                 )
             }
 
