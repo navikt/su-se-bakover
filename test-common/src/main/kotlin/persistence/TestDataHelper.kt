@@ -207,7 +207,7 @@ class TestDataHelper(
     råttKravgrunnlagMapper: MapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag,
 ) {
     val sessionFactory: PostgresSessionFactory =
-        PostgresSessionFactory(dataSource, dbMetrics, sessionCounterStub, listOf(DomainToQueryParameterMapper))
+        PostgresSessionFactory(dataSource, dbMetrics, sessionValidatorStub, listOf(DomainToQueryParameterMapper))
 
     val databaseRepos = DatabaseBuilder.build(
         embeddedDatasource = dataSource,

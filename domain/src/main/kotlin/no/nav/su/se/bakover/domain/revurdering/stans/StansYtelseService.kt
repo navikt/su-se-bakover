@@ -24,7 +24,7 @@ interface StansYtelseService {
     fun stansAvYtelseITransaksjon(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
-    ): StansAvYtelseITransaksjonResponse
+    ): StansAvYtelseRevurdering.SimulertStansAvYtelse
 
     fun iverksettStansAvYtelse(
         revurderingId: RevurderingId,

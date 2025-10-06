@@ -22,6 +22,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
 
@@ -76,6 +77,7 @@ internal class UnderkjennRevurderingTest {
                     argThat {
                         it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
                     },
+                    isNull(),
                 )
             }
             verifyNoMoreInteractions(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService)

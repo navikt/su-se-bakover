@@ -51,6 +51,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.isNotNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -164,6 +165,7 @@ internal class StansAvYtelseServiceTest {
                 argThat { event ->
                     event shouldBe StatistikkEvent.Behandling.Stans.Opprettet(response)
                 },
+                isNotNull(),
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -293,7 +295,7 @@ internal class StansAvYtelseServiceTest {
 
         verify(callback).invoke(any())
         val eventCaptor = argumentCaptor<StatistikkEvent>()
-        verify(serviceAndMocks.observer, times(1)).handle(eventCaptor.capture())
+        verify(serviceAndMocks.observer, times(1)).handle(eventCaptor.capture(), isNotNull())
         val iverksatt = eventCaptor.allValues[0]
         iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
             it.vedtak.shouldBeType<VedtakStansAvYtelse>()

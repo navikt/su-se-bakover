@@ -52,6 +52,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -176,6 +177,7 @@ internal class GjenopptakAvYtelseServiceTest {
             argThat { event ->
                 event shouldBe StatistikkEvent.Behandling.Gjenoppta.Opprettet(response)
             },
+            isNull(),
         )
         serviceAndMocks.verifyNoMoreInteractions()
     }
@@ -399,7 +401,7 @@ internal class GjenopptakAvYtelseServiceTest {
             verify(callback).invoke(any())
 
             val eventCaptor = argumentCaptor<StatistikkEvent>()
-            verify(observerMock, times(1)).handle(eventCaptor.capture())
+            verify(observerMock, times(1)).handle(eventCaptor.capture(), isNull())
             val statistikkEvent = eventCaptor.allValues[0]
             statistikkEvent.shouldBeType<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>().also {
                 it.vedtak.shouldBeEqualToIgnoringFields(

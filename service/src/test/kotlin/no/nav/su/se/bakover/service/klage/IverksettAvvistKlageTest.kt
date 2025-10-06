@@ -47,6 +47,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -234,7 +235,7 @@ internal class IverksettAvvistKlageTest {
         val (_, klage) = avvistKlageTilAttestering(fritekstTilBrev = "dette er min fritekst")
         val attestant = NavIdentBruker.Attestant("attestant")
         val pdfA = PdfA("myDoc".toByteArray())
-        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), isNull()) }.then {} }
         val dokumentUtenMetadataVedtak = dokumentUtenMetadataVedtak(pdf = pdfA)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -330,6 +331,7 @@ internal class IverksettAvvistKlageTest {
                     ),
                 )
             },
+            isNull(),
         )
         mocks.verifyNoMoreInteractions()
     }
