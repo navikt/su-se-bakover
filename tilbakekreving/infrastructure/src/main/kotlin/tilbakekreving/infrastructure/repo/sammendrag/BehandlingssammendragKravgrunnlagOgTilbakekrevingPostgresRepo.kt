@@ -139,8 +139,9 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
     ): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentBehandlingssammendrag") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
+                // -- Henter alle kravgrunnlag som er knyttet til en sak og eksternVedtakId, og som er det siste kravgrunnlaget innenfor en sak og eksternVedtakId.
+                //language=postgresql
                 """
-                -- Henter alle kravgrunnlag som er knyttet til en sak og eksternVedtakId, og som er det siste kravgrunnlaget innenfor en sak og eksternVedtakId.    
                 WITH KravgrunnlagGruppertPåVedtakId AS (
                 SELECT
                     h.sakId,
@@ -149,10 +150,8 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     (h.data->'kravgrunnlag'->>'eksternVedtakId') AS eksternVedtakId,
                     (h.data->>'revurderingId') AS revurderingId,
                     h.hendelseId,
-                     (SELECT MIN((elements->>'fraOgMed')::date)
-                     FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elements) AS fraOgMed,
-                    (SELECT MAX((elements->>'tilOgMed')::date)
-                     FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elements) AS tilOgMed
+                    periods.fraOgMed,
+                    periods.tilOgMed
                 FROM
                     hendelse h
                 INNER JOIN (
@@ -170,8 +169,16 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
                     -- TODO jah: Dette er en svakhet. Dersom flere med samme eksternVedtakId har dette tidspunktet, vil vi hente alle.
                     AND (data->'kravgrunnlag'->>'eksternTidspunkt')::timestamptz = latest_hendelse.max_eksternTidspunkt
                     AND (data->'kravgrunnlag'->>'eksternVedtakId') = latest_hendelse.eksternVedtakId
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            MIN((elem->>'fraOgMed')::date) AS fraOgMed,
+                            MAX((elem->>'tilOgMed')::date) AS tilOgMed
+                        FROM jsonb_array_elements(h.data->'kravgrunnlag'->'grunnlagsperioder') AS elem
+                    ) AS periods ON TRUE
                     WHERE h.type = 'KNYTTET_KRAVGRUNNLAG_TIL_SAK'
                 ),
+                              
+                
                 KravgrunnlagStatusGruppertPåVedtakId AS (
                 SELECT
                     h.sakId,
