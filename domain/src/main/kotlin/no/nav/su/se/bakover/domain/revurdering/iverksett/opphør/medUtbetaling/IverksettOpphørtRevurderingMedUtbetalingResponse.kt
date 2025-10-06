@@ -30,7 +30,6 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
     override val utbetaling: Utbetaling.SimulertUtbetaling,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
     override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
-        StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak),
     )
 

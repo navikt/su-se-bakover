@@ -37,9 +37,7 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -194,7 +192,6 @@ class ReguleringServiceImpl(
                 lagreRegulering = reguleringRepo::lagre,
                 lagreVedtak = vedtakService::lagreITransaksjon,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                notifyObservers = { Unit },
             ).kjørSideffekter(regulering)
         }
 
@@ -427,7 +424,6 @@ class ReguleringServiceImpl(
                         lagreRegulering = reguleringRepo::lagre,
                         lagreVedtak = vedtakService::lagreITransaksjon,
                         klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                        notifyObservers = { Unit },
                     ).kjørSideffekter(
                         regulering.copy(
                             reguleringstype = Reguleringstype.MANUELL(
@@ -442,17 +438,6 @@ class ReguleringServiceImpl(
             .map {
                 it
             }
-    }
-
-    private fun notifyObservers(vedtak: VedtakInnvilgetRegulering) {
-        // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
-        observers.forEach { observer ->
-            observer.handle(
-                StatistikkEvent.Stønadsvedtak(
-                    vedtak,
-                ) { sakService.hentSak(vedtak.sakId).getOrNull()!! },
-            )
-        }
     }
 
     override fun avslutt(
@@ -492,7 +477,6 @@ class ReguleringServiceImpl(
                     lagreRegulering = reguleringRepo::lagre,
                     lagreVedtak = vedtakService::lagreITransaksjon,
                     klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-                    notifyObservers = { vedtakInnvilgetRegulering -> notifyObservers(vedtakInnvilgetRegulering) },
                 ).kjørSideffekter(regulering, simulertUtbetaling, clock)
             }
         }.mapLeft {

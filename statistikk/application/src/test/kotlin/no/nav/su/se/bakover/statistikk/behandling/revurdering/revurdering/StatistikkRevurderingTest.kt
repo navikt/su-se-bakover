@@ -27,7 +27,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
-import person.domain.PersonService
 import java.time.ZoneOffset
 
 internal class StatistikkRevurderingTest {
@@ -187,19 +186,16 @@ internal class StatistikkRevurderingTest {
         funksjonellTid: String = "2021-01-01T01:02:03.456789Z",
     ) {
         val kafkaPublisherMock: KafkaPublisher = mock()
-        val personServiceMock: PersonService = mock()
         val sakRepoMock: SakRepo = mock()
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,
-            personService = personServiceMock,
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             mock(),
-            mock(),
         ).statistikkService.handle(statistikkEvent)
 
-        verifyNoMoreInteractions(personServiceMock, sakRepoMock)
+        verifyNoMoreInteractions(sakRepoMock)
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe "supstonad.aapen-su-behandling-statistikk-v1" },
@@ -242,6 +238,6 @@ internal class StatistikkRevurderingTest {
                 )
             },
         )
-        verifyNoMoreInteractions(kafkaPublisherMock, personServiceMock, sakRepoMock)
+        verifyNoMoreInteractions(kafkaPublisherMock, sakRepoMock)
     }
 }

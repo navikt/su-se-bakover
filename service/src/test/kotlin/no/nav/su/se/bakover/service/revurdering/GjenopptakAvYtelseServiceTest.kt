@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.fixedClock
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -400,7 +399,7 @@ internal class GjenopptakAvYtelseServiceTest {
             verify(callback).invoke(any())
 
             val eventCaptor = argumentCaptor<StatistikkEvent>()
-            verify(observerMock, times(2)).handle(eventCaptor.capture())
+            verify(observerMock, times(1)).handle(eventCaptor.capture())
             val statistikkEvent = eventCaptor.allValues[0]
             statistikkEvent.shouldBeType<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>().also {
                 it.vedtak.shouldBeEqualToIgnoringFields(
@@ -414,7 +413,6 @@ internal class GjenopptakAvYtelseServiceTest {
                     VedtakSomKanRevurderes::avsluttetTidspunkt,
                 )
             }
-            eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }

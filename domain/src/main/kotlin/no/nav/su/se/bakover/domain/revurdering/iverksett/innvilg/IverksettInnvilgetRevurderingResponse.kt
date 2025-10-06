@@ -31,7 +31,6 @@ data class IverksettInnvilgetRevurderingResponse(
 
 ) : IverksettRevurderingResponse<VedtakInnvilgetRevurdering> {
     override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
-        StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
     )
 

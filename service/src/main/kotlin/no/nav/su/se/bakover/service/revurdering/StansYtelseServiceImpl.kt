@@ -299,12 +299,6 @@ class StansYtelseServiceImpl(
                     sendUtbetalingCallback = stansUtbetaling::sendUtbetaling,
                     sendStatistikkCallback = {
                         observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
-                        // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
-                        observers.notify(
-                            StatistikkEvent.Stønadsvedtak(
-                                vedtak,
-                            ) { sakService.hentSak(sak.id, transactionContext).getOrNull()!! },
-                        )
                     },
                 )
             }

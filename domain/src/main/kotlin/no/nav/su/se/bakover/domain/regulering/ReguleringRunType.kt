@@ -21,7 +21,6 @@ interface ReguleringRunType {
     val lagreRegulering: (Regulering, TransactionContext) -> Unit
     val lagreVedtak: (Vedtak, TransactionContext) -> Unit
     val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
-    val notifyObservers: (VedtakInnvilgetRegulering) -> Unit
 }
 
 sealed interface LiveRun : ReguleringRunType {
@@ -31,7 +30,6 @@ sealed interface LiveRun : ReguleringRunType {
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
-        override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
     ) : LiveRun {
         fun kjørSideffekter(regulering: OpprettetRegulering) {
             sessionFactory.withTransactionContext { tx ->
@@ -45,7 +43,6 @@ sealed interface LiveRun : ReguleringRunType {
         override val lagreRegulering: (Regulering, TransactionContext) -> Unit,
         override val lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         override val klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
-        override val notifyObservers: (VedtakInnvilgetRegulering) -> Unit,
     ) : LiveRun {
         fun kjørSideffekter(
             regulering: IverksattRegulering,
@@ -82,8 +79,6 @@ sealed interface LiveRun : ReguleringRunType {
 
                 vedtak
             }
-            // Vi ønsker ikke sende statistikken som en del av transaksjonen, siden vi ikke ønsker å rulle tilbake dersom den feiler (best effort).
-            notifyObservers(vedtak)
         }
     }
 }

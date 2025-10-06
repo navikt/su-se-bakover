@@ -11,7 +11,6 @@ import dokument.domain.journalføring.KontrollnotatMottattJournalpost
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.withClue
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -244,9 +243,6 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
                 )
                 testController.nesteKjøring()
             }
-            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"REGISTRERT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 3
-            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"IVERKSATT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 3
-            statistikkCaptor.allValues.filter { it.contains(""""vedtaksresultat":"STANSET"""") } shouldHaveSize 3
         }
     }
 
