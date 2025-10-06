@@ -95,6 +95,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         ),
                         123L,
                         null,
+                        0L, // Skal slettes
                     ),
                 ),
             )
@@ -152,6 +153,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         ),
                         fradragSum = 3000L,
                         null,
+                        0L, // Skal slettes
                     ),
                 ),
                 opphorsgrunn = null,
