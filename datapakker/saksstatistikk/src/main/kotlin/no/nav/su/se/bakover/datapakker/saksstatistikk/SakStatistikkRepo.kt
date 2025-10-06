@@ -3,13 +3,72 @@ package no.nav.su.se.bakover.datapakker.saksstatistikk
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import kotliquery.Row
+import kotliquery.Session
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
+import kotlin.use
 
 object SakStatistikkRepo {
-    fun hentData(dataSource: DataSource): List<SakStatistikk> {
-        return emptyList()
+
+    fun hentData(dataSource: DataSource, dag: LocalDate): List<SakStatistikk> =
+        hentData(dataSource, dag, dag.plusDays(1))
+
+    fun hentData(dataSource: DataSource, fom: LocalDate, tom: LocalDate): List<SakStatistikk> {
+        return dataSource.connection.use {
+            val session = sessionOf(dataSource)
+            """
+                SELECT * FROM sak_statistikk
+                WHERE hendelse_tid > '2025-10-02' and hendelse_tid < '2025-10-03'
+            """.trimIndent().hentListe(
+                params = mapOf(
+                    "fom" to fom,
+                    "tom" to tom,
+                ),
+                session = session,
+            ) { row ->
+                SakStatistikk(
+                    hendelseTid = row.string("hendelse_tid"),
+                    tekniskTid = row.string("teknisk_tid"),
+                    sakId = row.uuid("sak_id"),
+                    saksnummer = row.long("saksnummer"),
+                    behandlingId = row.uuid("behandling_id"),
+                    relatertBehandlingId = row.uuidOrNull("relatert_behandling_id"),
+                    aktorId = row.string("aktorid"),
+                    sakYtelse = row.string("sak_ytelse"),
+                    sakUtland = row.string("sak_utland"),
+                    behandlingType = row.string("behandling_type"),
+                    behandlingMetode = row.string("behandling_metode"),
+                    mottattTid = row.string("mottatt_tid"),
+                    registrertTid = row.string("registrert_tid"),
+                    ferdigbehandletTid = row.stringOrNull("ferdigbehandlet_tid"),
+                    utbetaltTid = row.localDateOrNull("utbetalt_tid"),
+                    behandlingStatus = row.string("behandling_status"),
+                    behandlingResultat = row.stringOrNull("behandling_resultat"),
+                    resultatBegrunnelse = row.stringOrNull("behandling_begrunnelse"),
+                    behandlingAarsak = row.stringOrNull("behandling_aarsak"),
+                    opprettetAv = row.string("opprettet_av"),
+                    saksbehandler = row.stringOrNull("saksbehandler"),
+                    ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
+                    ansvarligEnhet = row.string("ansvarlig_enhet"),
+                    vedtaksløsningNavn = row.string("vedtakslosning_navn"),
+                    funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
+                    funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
+                    tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),
+                )
+            }
+        }
+    }
+
+    private fun <T> String.hentListe(
+        params: Map<String, Any> = emptyMap(),
+        session: Session,
+        rowMapping: (Row) -> T,
+    ): List<T> {
+        return session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
     }
 }
 

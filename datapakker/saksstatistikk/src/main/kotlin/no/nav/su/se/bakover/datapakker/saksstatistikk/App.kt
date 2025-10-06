@@ -17,6 +17,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.channels.Channels
+import java.time.LocalDate
 import java.util.UUID
 
 private val logger = LoggerFactory.getLogger("Saksstatistikk")
@@ -31,7 +32,12 @@ fun main() {
         databaseName = System.getenv("DATABASE_NAME"),
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
-        hentData(it)
+
+        // Default:
+        // hentData(it, LocalDate.now())
+
+        // Endres manuelt ved uthenting tilbake i tid
+        hentData(dataSource = it, fom = LocalDate.of(2025, 10, 1), tom = LocalDate.now().plusDays(1))
     }
 
     writeToBigQuery(data)
