@@ -9,7 +9,7 @@ CREATE INDEX IF NOT EXISTS idx_hendelse_ekstern_vedtak_id
 
 CREATE INDEX IF NOT EXISTS idx_hendelse_type_kravgrunnlag
     ON hendelse (type)
-    WHERE data ?? 'kravgrunnlag';
+    WHERE data ? 'kravgrunnlag';
 
 
 CREATE INDEX IF NOT EXISTS idx_hendelse_kravgrunnlag_vedtak_tidspunkt
