@@ -192,6 +192,7 @@ private fun mapBeregning(
             },
             sats = månedsberegning.getSatsbeløp().roundToInt().toLong(),
             fradragSum = månedsberegning.getSumFradrag().toLong(),
+            fribeløpEps = månedsberegning.getFribeløpForEps().toLong(),
             måned = månedsberegning.periode.fraOgMed.toString(),
             utbetales = månedsberegning.getSumYtelse().toLong(),
             stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),

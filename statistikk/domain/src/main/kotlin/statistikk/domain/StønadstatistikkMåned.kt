@@ -37,6 +37,7 @@ data class StønadstatistikkMåned(
     val utbetales: Long?,
     val fradragSum: Long?,
     val uføregrad: Int?,
+    val fribeløpEps: Long?,
 
     val alderspensjon: Int?,
     val alderspensjonEps: Int?,
