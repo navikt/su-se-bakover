@@ -186,6 +186,7 @@ class StønadStatistikkJobServiceImpl(
                 utbetales = månedsberegning.getSumYtelse().toLong(),
                 stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),
                 uføregrad = uføregrad?.value,
+                fribeløpEps = månedsberegning.getFribeløpForEps().toLong(),
             )
         }
     }
@@ -286,6 +287,7 @@ class StønadStatistikkJobServiceImpl(
             utbetales = månedsbeløp?.utbetales,
             fradragSum = månedsbeløp?.fradragSum,
             uføregrad = månedsbeløp?.uføregrad,
+            fribeløpEps = månedsbeløp?.fribeløpEps,
 
             alderspensjon = fradragOmFinnes(
                 Fradragstype.Kategori.Alderspensjon,

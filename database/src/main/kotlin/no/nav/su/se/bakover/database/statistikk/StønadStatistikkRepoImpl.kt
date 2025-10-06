@@ -117,7 +117,7 @@ class StønadStatistikkRepoImpl(
                 id, maaned, funksjonell_tid, teknisk_tid, sak_id, stonadstype, personnummer, personnummer_eps,
                 vedtakstype, vedtaksresultat, vedtaksdato, vedtak_fra_og_med, vedtak_til_og_med,
                 opphorsgrunn, opphorsdato, behandlende_enhet_kode, aarsakStans,
-                stonadsklassifisering, sats, utbetales, fradragSum, uforegrad, alderspensjon, alderspensjonEps,
+                stonadsklassifisering, sats, utbetales, fradragSum, uforegrad, fribeloepEps, alderspensjon, alderspensjonEps,
                 arbeidsavklaringspenger, arbeidsavklaringspengerEps, arbeidsinntekt, arbeidsinntektEps,
                 omstillingsstonad, omstillingsstonadEps, avtalefestetPensjon, avtalefestetPensjonEps,
                 avtalefestetPensjonPrivat, avtalefestetPensjonPrivatEps, bidragEtterEkteskapsloven,
@@ -134,7 +134,7 @@ class StønadStatistikkRepoImpl(
                 :id, :maaned, :funksjonell_tid, :teknisk_tid, :sak_id, :stonadstype, :personnummer, :personnummer_eps,
                 :vedtakstype, :vedtaksresultat, :vedtaksdato, :vedtak_fra_og_med, :vedtak_til_og_med,
                 :opphorsgrunn, :opphorsdato, :behandlende_enhet_kode, :aarsakStans,
-                :stonadsklassifisering, :sats, :utbetales, :fradragSum, :uforegrad, :alderspensjon, :alderspensjonEps,
+                :stonadsklassifisering, :sats, :utbetales, :fradragSum, :uforegrad, :fribeloepEps, :alderspensjon, :alderspensjonEps,
                 :arbeidsavklaringspenger, :arbeidsavklaringspengerEps, :arbeidsinntekt, :arbeidsinntektEps,
                 :omstillingsstonad, :omstillingsstonadEps, :avtalefestetPensjon, :avtalefestetPensjonEps,
                 :avtalefestetPensjonPrivat, :avtalefestetPensjonPrivatEps, :bidragEtterEkteskapsloven,
@@ -173,6 +173,7 @@ class StønadStatistikkRepoImpl(
                     "utbetales" to månedStatistikk.utbetales,
                     "fradragSum" to månedStatistikk.fradragSum,
                     "uforegrad" to månedStatistikk.uføregrad,
+                    "fribeloepEps" to månedStatistikk.fribeløpEps,
                     "alderspensjon" to månedStatistikk.alderspensjon,
                     "alderspensjonEps" to månedStatistikk.alderspensjonEps,
                     "arbeidsavklaringspenger" to månedStatistikk.arbeidsavklaringspenger,
@@ -322,6 +323,7 @@ class StønadStatistikkRepoImpl(
                                 utbetales = longOrNull("utbetales"),
                                 fradragSum = longOrNull("fradragSum"),
                                 uføregrad = intOrNull("uforegrad"),
+                                fribeløpEps = longOrNull("fribeloepEps"),
                                 alderspensjon = intOrNull("alderspensjon"),
                                 alderspensjonEps = intOrNull("alderspensjonEps"),
                                 arbeidsavklaringspenger = intOrNull("arbeidsavklaringspenger"),
@@ -411,6 +413,7 @@ class StønadStatistikkRepoImpl(
                     fradrag = hentInntekter(session, manedsbelopId),
                     fradragSum = fradragSum,
                     uføregrad = uføregrad,
+                    0L, // Skal slettes
                 )
             }
     }
