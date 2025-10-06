@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.datapakker.saksstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
+import com.google.cloud.bigquery.Job
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
+import no.nav.su.se.bakover.datapakker.saksstatistikk.SakStatistikkRepo.hentData
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
@@ -22,60 +25,75 @@ private const val LOCATION = "europe-north1"
 fun main() {
     logger.info("Starter opp Saksstatistikk")
     val databaseUrl = System.getenv("DATABASE_JDBC_URL")
-    val datasource = VaultPostgres(
+    val data = VaultPostgres(
         jdbcUrl = databaseUrl,
         vaultMountPath = System.getenv("VAULT_MOUNTPATH"),
         databaseName = System.getenv("DATABASE_NAME"),
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
-        it
+        hentData(it)
     }
-    /*
-        Her kommer koden for å hente data fra databasen, transformere den og laste den opp til BigQuery
-        mangler
-        writeToBigQuery(datasource.getStatistikk())
-     */
-    writeToBigQuery()
+
+    writeToBigQuery(data)
     logger.info("Slutter jobb Saksstatistikk")
 }
 
-fun writeToBigQuery(
-    data: String = "",
-) {
+fun writeToBigQuery(data: List<SakStatistikk>) {
     val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
     val project: String = System.getenv("GCP_PROJECT")
 
-    val dataset = "statistikk"
-    val table = "saksstatistikk"
+    val bq = createBigQueryClient(jsonKey, project)
 
+    val table = "saksstatistikk"
+    val csv = data.toCsv()
+    val job = writeCsvToBigQueryTable(bq, project, table, csv)
+
+    logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
+}
+
+private fun createBigQueryClient(jsonKey: InputStream, project: String): BigQuery {
     val credentials = GoogleCredentials.fromStream(jsonKey)
-    val bq = BigQueryOptions
+    return BigQueryOptions
         .newBuilder()
         .setCredentials(credentials)
         .setLocation(LOCATION)
         .setProjectId(project)
         .build().service
+}
 
-    val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
-    val configuration = WriteChannelConfiguration.newBuilder(
-        TableId.of(project, dataset, table),
-    ).setFormatOptions(FormatOptions.csv()).build()
+private fun writeCsvToBigQueryTable(
+    bigQuery: BigQuery,
+    project: String,
+    tableName: String,
+    csvData: String,
+): Job {
+    val jobId = JobId.newBuilder()
+        .setLocation(LOCATION)
+        .setJob(UUID.randomUUID().toString())
+        .build()
 
-    val csvData = listOf(
-        "hello",
-        "world",
-        "this is a test",
-        "another row",
-    ).joinToString("\n")
+    val dataset = "statistikk"
+    val tableId = TableId.of(project, dataset, tableName)
 
-    val job = bq.writer(jobId, configuration).let {
-        it.use { channel ->
+    val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
+        .setFormatOptions(FormatOptions.csv())
+        .build()
+
+    val writer = bigQuery.writer(jobId, writeConfig)
+
+    try {
+        writer.use { channel ->
             Channels.newOutputStream(channel).use { os ->
-                os.write(csvData.toByteArray()) // TODO: her må vi ha dataen fra vår tabell + må lage dump av vår sql inn i bigquery
+                os.write(csvData.toByteArray())
             }
         }
-        it.job.waitFor()
+    } catch (e: Exception) {
+        logger.error("Failed to write CSV data to BigQuery stream: ${e.message}", e)
+        throw RuntimeException("Error during CSV write to BigQuery", e)
     }
 
-    logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
+    val job = writer.job
+    job.waitFor()
+
+    return job
 }
