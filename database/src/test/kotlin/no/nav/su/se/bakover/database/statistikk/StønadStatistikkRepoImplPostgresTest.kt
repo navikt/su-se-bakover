@@ -95,6 +95,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         ),
                         123L,
                         null,
+                        fribeløpEps = 0L,
                     ),
                 ),
             )
@@ -152,6 +153,7 @@ internal class StønadStatistikkRepoImplPostgresTest {
                         ),
                         fradragSum = 3000L,
                         null,
+                        0L,
                     ),
                 ),
                 opphorsgrunn = null,
