@@ -139,7 +139,7 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
     ): List<Behandlingssammendrag> {
         return dbMetrics.timeQuery("hentBehandlingssammendrag") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
-                // -- Henter alle kravgrunnlag som er knyttet til en sak og eksternVedtakId, og som er det siste kravgrunnlaget innenfor en sak og eksternVedtakId.
+                // ---- Henter alle kravgrunnlag som er knyttet til en sak og eksternVedtakId, og som er det siste kravgrunnlaget innenfor en sak og eksternVedtakId.
                 //language=postgresql
                 """
                 WITH KravgrunnlagGruppertPåVedtakId AS (
