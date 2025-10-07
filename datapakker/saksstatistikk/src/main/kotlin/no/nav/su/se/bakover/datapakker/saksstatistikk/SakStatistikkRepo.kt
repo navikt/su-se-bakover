@@ -31,6 +31,7 @@ object SakStatistikkRepo {
                 session = session,
             ) { row ->
                 SakStatistikk(
+                    id = row.uuid("id"),
                     hendelseTid = row.string("hendelse_tid"),
                     tekniskTid = row.string("teknisk_tid"),
                     sakId = row.uuid("sak_id"),
@@ -74,6 +75,7 @@ object SakStatistikkRepo {
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SakStatistikk(
+    val id: UUID,
     val hendelseTid: String,
     val tekniskTid: String,
     val sakId: UUID,
