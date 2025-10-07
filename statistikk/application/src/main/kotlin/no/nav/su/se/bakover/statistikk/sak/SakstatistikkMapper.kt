@@ -369,12 +369,8 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler?.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                 )
-
-                // TODO is StatistikkEvent.Behandling.Klage.Medhold -> this.toBehandlingsstatistikkGenerell(...)
             }
         }
-
-        // TODO Tilbakekreving ??
     }
 }
 
