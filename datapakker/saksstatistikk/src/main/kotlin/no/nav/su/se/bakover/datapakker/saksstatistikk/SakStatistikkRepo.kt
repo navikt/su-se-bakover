@@ -51,7 +51,7 @@ object SakStatistikkRepo {
                     behandlingResultat = row.stringOrNull("behandling_resultat"),
                     resultatBegrunnelse = row.stringOrNull("behandling_begrunnelse"),
                     behandlingAarsak = row.stringOrNull("behandling_aarsak"),
-                    opprettetAv = row.string("opprettet_av"),
+                    opprettetAv = row.stringOrNull("opprettet_av"),
                     saksbehandler = row.stringOrNull("saksbehandler"),
                     ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
                     ansvarligEnhet = row.string("ansvarlig_enhet"),
