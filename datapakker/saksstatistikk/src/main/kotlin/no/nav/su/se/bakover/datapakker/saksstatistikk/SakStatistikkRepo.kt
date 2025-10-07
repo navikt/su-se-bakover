@@ -22,7 +22,7 @@ object SakStatistikkRepo {
             val session = sessionOf(dataSource)
             """
                 SELECT * FROM sak_statistikk
-                WHERE hendelse_tid > '2025-10-02' and hendelse_tid < '2025-10-03'
+                WHERE hendelse_tid > :fom and hendelse_tid < :tom 
             """.trimIndent().hentListe(
                 params = mapOf(
                     "fom" to fom,
