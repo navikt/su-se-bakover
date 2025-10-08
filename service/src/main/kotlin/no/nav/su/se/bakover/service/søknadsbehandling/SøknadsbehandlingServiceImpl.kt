@@ -868,7 +868,7 @@ class SøknadsbehandlingServiceImpl(
     }
 
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
-        søknadsbehandlingRepo.lagre(søknadsbehandling)
+        søknadsbehandlingRepo.lagre(søknadsbehandling, sessionContext)
     }
 
     override fun hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
