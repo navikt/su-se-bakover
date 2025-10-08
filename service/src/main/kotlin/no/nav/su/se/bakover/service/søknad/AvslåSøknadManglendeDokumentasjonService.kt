@@ -5,10 +5,10 @@ import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 
 interface AvslåSøknadManglendeDokumentasjonService {
-    fun avslå(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Sak>
-    fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>>
+    fun avslå(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, Sak>
+    fun genererBrevForhåndsvisning(command: AvslagSøknadCmd): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>>
 }
