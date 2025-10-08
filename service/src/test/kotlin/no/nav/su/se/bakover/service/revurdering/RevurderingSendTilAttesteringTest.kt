@@ -176,7 +176,6 @@ internal class RevurderingSendTilAttesteringTest {
                         )
                     },
                 )
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                 mocks.verifyNoMoreInteractions()
             }

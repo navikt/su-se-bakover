@@ -114,7 +114,6 @@ internal class OpprettRevurderingServiceTest {
                             )
                         },
                     )
-                    verify(mock.revurderingRepo).defaultTransactionContext()
                     verify(mock.revurderingRepo).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
                 }
 
@@ -267,7 +266,6 @@ internal class OpprettRevurderingServiceTest {
             }
 
             verify(mocks.sakService).hentSak(sak.id)
-            verify(mocks.revurderingRepo).defaultTransactionContext()
             verify(mocks.revurderingRepo).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
             verify(mocks.oppgaveService).opprettOppgave(
                 argThat {

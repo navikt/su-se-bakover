@@ -104,7 +104,6 @@ class SøknadsbehandlingServiceAttesteringTest {
                     )
                 },
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(actual), anyOrNull())
             verify(eventObserver).handle(
                 argThat {

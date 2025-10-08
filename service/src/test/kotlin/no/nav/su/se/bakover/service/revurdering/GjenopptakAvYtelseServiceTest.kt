@@ -170,7 +170,6 @@ internal class GjenopptakAvYtelseServiceTest {
                 it.behandler shouldBe saksbehandler
             },
         )
-        verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
         verify(serviceAndMocks.revurderingRepo).lagre(eq(response), anyOrNull())
         verify(serviceAndMocks.observer).handle(
             argThat { event ->
@@ -309,7 +308,6 @@ internal class GjenopptakAvYtelseServiceTest {
                     it.behandler shouldBe NavIdentBruker.Saksbehandler("jossi")
                 },
             )
-            verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             serviceAndMocks.verifyNoMoreInteractions()
         }
