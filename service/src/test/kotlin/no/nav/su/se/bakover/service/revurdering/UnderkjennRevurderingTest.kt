@@ -22,7 +22,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
 
@@ -60,8 +59,13 @@ internal class UnderkjennRevurderingTest {
 
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(mocks.observer).handle(
+                    argThat {
+                        it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
+                    },
+                    any(),
+                )
                 verify(mocks.oppgaveService).oppdaterOppgave(
                     argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
                     argThat {
@@ -71,13 +75,6 @@ internal class UnderkjennRevurderingTest {
                             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                         )
                     },
-                )
-
-                verify(mocks.observer).handle(
-                    argThat {
-                        it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
-                    },
-                    isNull(),
                 )
             }
             verifyNoMoreInteractions(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService)

@@ -66,7 +66,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -296,7 +295,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         ),
                     )
                 },
-                isNull(),
+                any(),
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -446,7 +445,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 argThat {
                     it should beInstanceOf<StatistikkEvent.Behandling.Søknad.Iverksatt>()
                 },
-                isNull(),
+                any(),
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }

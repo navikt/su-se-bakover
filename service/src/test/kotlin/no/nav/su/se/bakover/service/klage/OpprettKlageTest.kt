@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
@@ -63,14 +62,13 @@ internal class OpprettKlageTest {
     fun `kan opprette en klage med en brukt journalpost-id dersom klagen har blitt avsluttet`() {
         val (sak, avsluttetKlage) = avsluttetKlage()
         val observerMock: StatistikkEventObserver = mock {
-            on { handle(any(), isNull()) }.then {}
+            on { handle(any(), any()) }.then {}
         }
         val mocks = KlageServiceMocks(
             sakServiceMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             klageRepoMock = mock {
-                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             queryJournalpostClient = mock {
                 on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
@@ -91,8 +89,8 @@ internal class OpprettKlageTest {
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
 
-        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, isNull())
-        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, isNull())
+        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, any())
+        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, any())
         nyKlage.shouldBeTypeOf<OpprettetKlage>()
         nyKlage.journalpostId shouldBe avsluttetKlage.journalpostId
     }
@@ -235,15 +233,14 @@ internal class OpprettKlageTest {
                 sakstype = sak.type,
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, isNull())
-            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, isNull())
+            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, any())
+            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, any())
         }
 
         verify(mocks.sakServiceMock).hentSak(sak.id)
         runBlocking {
             verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
         }
-        verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage

@@ -39,7 +39,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -242,7 +241,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     )
                 },
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(
                 søknadsbehandling = argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering },
                 sessionContext = anyOrNull(),
@@ -253,7 +251,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                         underkjentMedNyOppgaveIdOgAttestering,
                     )
                 },
-                isNull(),
+                any(),
             )
         }
 
