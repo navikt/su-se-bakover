@@ -763,8 +763,7 @@ open class AccessCheckProxy(
                         assertHarTilgangTilSøknadsbehandling(søknadsbehandlingSkatt.behandlingId)
                         return service.oppdaterSkattegrunnlag(søknadsbehandlingSkatt)
                     }
-
-                    override fun lagre(søknadsbehandling: Søknadsbehandling) = kastKanKunKallesFraAnnenService()
+                    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) = kastKanKunKallesFraAnnenService()
                     override fun hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
                         sakId: UUID,
                         søknadsbehandlingId: SøknadsbehandlingId,

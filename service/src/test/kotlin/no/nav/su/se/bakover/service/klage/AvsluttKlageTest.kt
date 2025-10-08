@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -162,7 +161,7 @@ internal class AvsluttKlageTest {
     private fun kanAvslutteKlage(
         klage: Klage,
     ) {
-        val observerMock: StatistikkEventObserver = mock { on { handle(any(), isNull()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -183,17 +182,16 @@ internal class AvsluttKlageTest {
             verify(observerMock)
                 .handle(
                     argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) },
-                    isNull(),
+                    any(),
                 )
             verify(observerMock)
                 .handle(
                     argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) },
-                    isNull(),
+                    any(),
                 )
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe AvsluttetKlage(

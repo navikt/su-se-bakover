@@ -137,7 +137,7 @@ interface SøknadsbehandlingService {
         søknadsbehandlingSkatt: SøknadsbehandlingSkatt,
     ): Either<KunneIkkeLeggeTilSkattegrunnlag, Søknadsbehandling>
 
-    fun lagre(søknadsbehandling: Søknadsbehandling)
+    fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext)
 
     /**
      * Henter gjeldende vedtaksdata for perioden som er før perioden som settes for denne søknadsbehandlingen.

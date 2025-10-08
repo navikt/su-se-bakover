@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -63,6 +64,7 @@ class LukkSøknadServiceImpl(
                 }
                 søknadService.persisterSøknad(it.søknad, tx)
                 søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
+                observers.notify(StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler), tx)
                 oppgaveService.lukkOppgave(
                     oppgaveId = it.søknad.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
@@ -77,11 +79,6 @@ class LukkSøknadServiceImpl(
                 }
 
                 Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)
-            }
-        }.also {
-            val (_, søknadsbehandling, _) = it
-            observers.forEach { e ->
-                e.handle(StatistikkEvent.Behandling.Søknad.Lukket(søknadsbehandling, command.saksbehandler))
             }
         }
     }

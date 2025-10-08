@@ -25,7 +25,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -105,13 +104,12 @@ class SøknadsbehandlingServiceAttesteringTest {
                     )
                 },
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(actual), anyOrNull())
             verify(eventObserver).handle(
                 argThat {
                     it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as SøknadsbehandlingTilAttestering.Innvilget)
                 },
-                isNull(),
+                any(),
             )
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, oppgaveServiceMock, eventObserver)

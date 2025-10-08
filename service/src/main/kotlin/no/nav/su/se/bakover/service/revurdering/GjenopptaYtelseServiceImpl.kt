@@ -140,8 +140,10 @@ class GjenopptaYtelseServiceImpl(
                 }
             }
 
-            revurderingRepo.lagre(simulertRevurdering.first)
-            observers.notify(StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering.first))
+            sessionFactory.withTransactionContext { tx ->
+                revurderingRepo.lagre(simulertRevurdering.first, tx)
+                observers.notify(StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering.first), tx)
+            }
 
             return simulertRevurdering.right()
         }
@@ -246,7 +248,7 @@ class GjenopptaYtelseServiceImpl(
                             vedtak = vedtak,
                             tx = tx,
                         )
-
+                        observers.notify(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak), tx)
                         gjenopptak.sendUtbetaling().getOrElse {
                             throw IverksettTransactionException(
                                 """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
@@ -262,8 +264,7 @@ class GjenopptaYtelseServiceImpl(
                         is IverksettTransactionException -> it.feil
                         else -> KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet
                     }
-                }.map { vedtak ->
-                    observers.notify(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
+                }.map { _ ->
                     iverksattRevurdering
                 }
             }

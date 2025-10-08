@@ -25,7 +25,6 @@ fun Route.vedtakRoutes(
     vedtakService: VedtakService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    // TODO: her skal også vedtakid inn
     data class Body(
         val omgjøringsårsak: String? = null,
         val omgjøringsgrunn: String? = null,

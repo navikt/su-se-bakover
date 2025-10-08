@@ -53,7 +53,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import java.util.UUID
 
@@ -520,7 +519,7 @@ internal class OversendKlageTest {
             verify(observerMock)
                 .handle(
                     argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual },
-                    isNull(),
+                    any(),
                 )
         }
 

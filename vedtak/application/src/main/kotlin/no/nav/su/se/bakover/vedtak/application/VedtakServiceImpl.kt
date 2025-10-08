@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -45,6 +46,7 @@ class VedtakServiceImpl(
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val klageRepo: KlageRepo,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) : VedtakService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -189,13 +191,22 @@ class VedtakServiceImpl(
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         ).map { søknadsbehandling ->
-            søknadsbehandlingService.lagre(søknadsbehandling)
-            when (relatertId) {
-                is KlageId -> {
-                    klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value)
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingService.lagre(søknadsbehandling, tx)
+                when (relatertId) {
+                    is KlageId -> {
+                        klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value, tx)
+                    }
                 }
+                observers.notify(
+                    StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(
+                        søknadsbehandling,
+                        saksbehandler,
+                        relatertId = relatertId.value,
+                    ),
+                    tx,
+                )
             }
-            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, relatertId = relatertId.value))
             søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)
