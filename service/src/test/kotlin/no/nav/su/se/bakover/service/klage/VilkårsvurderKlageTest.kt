@@ -185,10 +185,10 @@ internal class VilkårsvurderKlageTest {
             NavIdentBruker.Saksbehandler("sa"),
             FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = FormkravTilKlage.Svarord.NEI,
-                klagesDetPåKonkreteElementerIVedtaket = false,
-                erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(false, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -213,10 +213,10 @@ internal class VilkårsvurderKlageTest {
             NavIdentBruker.Saksbehandler("sa"),
             FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             ),
         ).getOrFail()
 
@@ -232,10 +232,10 @@ internal class VilkårsvurderKlageTest {
             NavIdentBruker.Saksbehandler("sa"),
             FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = FormkravTilKlage.Svarord.NEI,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
@@ -453,10 +453,10 @@ internal class VilkårsvurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
             vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = UUID.randomUUID(),
-                innenforFristen = FormkravTilKlage.Svarord.NEI,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
             ),
         ).getOrFail()
 
@@ -541,11 +541,11 @@ internal class VilkårsvurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             klageId = klage.id,
             vedtakId = vedtak.id,
-            innenforFristen = FormkravTilKlage.Svarord.JA,
-            klagesDetPåKonkreteElementerIVedtaket = true,
-            erUnderskrevet = FormkravTilKlage.Svarord.JA,
+            innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er NEI"),
+            klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+            erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+            fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er NEI"),
             sakId = sak.id,
-            fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
         mocks.service.vilkårsvurder(request).getOrFail().also {
@@ -561,10 +561,10 @@ internal class VilkårsvurderKlageTest {
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = FormkravTilKlage.create(
                     vedtakId = it.vilkårsvurderinger.vedtakId!!,
-                    innenforFristen = FormkravTilKlage.Svarord.JA,
-                    klagesDetPåKonkreteElementerIVedtaket = true,
-                    erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                    fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
+                    innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er NEI"),
+                    klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                    erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                    fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er NEI"),
                 ) as FormkravTilKlage.Utfylt,
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
