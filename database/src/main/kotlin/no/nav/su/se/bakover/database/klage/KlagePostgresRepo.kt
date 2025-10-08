@@ -133,7 +133,7 @@ internal class KlagePostgresRepo(
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.svar?.tilDatabaseType(),
                     "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen?.begrunnelse,
-                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket?.svar,
                     "klagesDetPaaKonkreteElementerIVedtaket_begrunnelse" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.svar?.tilDatabaseType(),
                     "erUnderskrevet_begrunnelse" to klage.vilkårsvurderinger.erUnderskrevet?.begrunnelse,
@@ -159,7 +159,7 @@ internal class KlagePostgresRepo(
                 erUnderskrevet=:erUnderskrevet,
                 erUnderskrevet_begrunnelse=:erUnderskrevet_begrunnelse,
                 fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse,
-                fremsattrettsligklageinteresse_begrunnelse=:fremsattrettsligklageinteresse_begrunnelse
+                fremsattrettsligklageinteresse_begrunnelse=:fremsattrettsligklageinteresse_begrunnelse,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
         """.trimIndent()
@@ -172,7 +172,7 @@ internal class KlagePostgresRepo(
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.svar.tilDatabaseType(),
                     "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen.begrunnelse,
-                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.svar,
                     "klagesDetPaaKonkreteElementerIVedtaket_begrunnelse" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.begrunnelse,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.svar.tilDatabaseType(),
                     "erUnderskrevet_begrunnelse" to klage.vilkårsvurderinger.erUnderskrevet.begrunnelse,
@@ -428,7 +428,7 @@ internal class KlagePostgresRepo(
             klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket")?.let { svar ->
                 FormkravTilKlage.BooleanMedBegrunnelse(
                     svar = svar,
-                    begrunnelse = row.stringOrNull("klagesDetPåKonkreteElementerIVedtaket_begrunnelse"),
+                    begrunnelse = row.stringOrNull("klagesDetPaaKonkreteElementerIVedtaket_begrunnelse"),
                 )
             },
             erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let { svar ->

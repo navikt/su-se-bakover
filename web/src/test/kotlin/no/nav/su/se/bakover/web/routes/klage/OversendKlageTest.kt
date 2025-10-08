@@ -212,14 +212,22 @@ internal class OversendKlageTest {
                   "datoKlageMottatt":"2021-01-15",
                   "status":"OVERSENDT",
                   "vedtakId":"${oversendtKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen": "JA",
-                  "innenforFristenBegrunnelse": "Innenfor fristen er JA",
-                  "klagesDetPåKonkreteElementerIVedtaket": true,
-                  "klagesDetPåKonkreteElementerIVedtaketBegrunnelse": "texkst",
-                  "erUnderskrevet": "JA",
-                  "erUnderskrevetBegrunnelse": "underskrevet",
-                  "fremsattRettsligKlageinteresse": "JA",
-                  "fremsattRettsligKlageinteresseBegrunnelse": "underskrevet",
+                  "innenforFristen": {
+                    "svar": "JA",
+                    "begrunnelse": "Innenfor fristen er JA"
+                  },
+                  "klagesDetPåKonkreteElementerIVedtaket": {
+                    "svar": true,
+                    "begrunnelse": "texkst"
+                  },
+                  "erUnderskrevet": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
+                  "fremsattRettsligKlageinteresse": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

@@ -1,5 +1,5 @@
 ALTER TABLE klage
-    ADD COLUMN innenforfristen_begrunnelse TEXT,
-    ADD COLUMN klagesdetpåkonkreteelementerivedtaket_begrunnelse TEXT,
-    ADD COLUMN erunderskrevet_begrunnelse TEXT,
+    ADD COLUMN innenforFristen_begrunnelse TEXT,
+    ADD COLUMN klagesDetPaaKonkreteElementerIVedtaket_begrunnelse TEXT,
+    ADD COLUMN erUnderskrevet_begrunnelse TEXT,
     ADD COLUMN fremsattrettsligklageinteresse_begrunnelse TEXT;
