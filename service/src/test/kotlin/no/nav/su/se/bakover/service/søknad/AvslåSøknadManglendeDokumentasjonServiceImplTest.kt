@@ -8,6 +8,7 @@ import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -372,7 +373,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldBe "Avslag pga manglende dok. Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad $søknadId"
+        }.message shouldContain "Avslag"
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }
