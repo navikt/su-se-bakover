@@ -4,7 +4,7 @@ import arrow.core.Nel
 import no.nav.su.se.bakover.common.persistence.SessionContext
 
 interface StatistikkEventObserver {
-    fun handle(event: StatistikkEvent, sessionContext: SessionContext? = null)
+    fun handle(event: StatistikkEvent, sessionContext: SessionContext? = null) // TODO: burde ikke kunne ha mulighet for nuller
 }
 
 fun List<StatistikkEventObserver>.notify(event: StatistikkEvent, sessionContext: SessionContext) {
