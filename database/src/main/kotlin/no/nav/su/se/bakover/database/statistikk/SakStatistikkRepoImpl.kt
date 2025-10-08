@@ -117,4 +117,8 @@ class SakStatistikkRepoImpl(
             }
         }
     }
+
+    override fun lagreTilbakekrevingStatistikk() {
+        // TODO
+    }
 }

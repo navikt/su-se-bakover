@@ -5,6 +5,7 @@ import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
@@ -78,6 +79,7 @@ class TilbakekrevingServices(
             brevService: BrevService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
             tilgangstyringService: TilgangstyringService,
+            sakStatistikkRepo: SakStatistikkRepo,
         ): TilbakekrevingServices {
             return TilbakekrevingServices(
                 brevTilbakekrevingsbehandlingService = BrevTilbakekrevingsbehandlingService(
@@ -110,6 +112,7 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     clock = clock,
                     sakService = sakService,
+                    sakStatistikk = sakStatistikkRepo,
                 ),
                 råttKravgrunnlagService = RåttKravgrunnlagService(
                     kravgrunnlagRepo = kravgrunnlagRepo,
@@ -149,6 +152,7 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     clock = clock,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    sakStatistikkRepo = sakStatistikkRepo,
                 ),
                 visUtsendtForhåndsvarselbrevForTilbakekrevingService = VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
                     dokumentHendelseRepo = dokumentHendelseRepo,
@@ -158,6 +162,7 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     clock = clock,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    sakStatistikkRepo = sakStatistikkRepo,
                 ),
 
                 iverksettTilbakekrevingService = IverksettTilbakekrevingService(
@@ -166,6 +171,7 @@ class TilbakekrevingServices(
                     clock = clock,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     tilbakekrevingsklient = tilbakekrevingsklient,
+                    sakStatistikkRepo = sakStatistikkRepo,
                 ),
                 avbrytTilbakekrevingsbehandlingService = AvbrytTilbakekrevingsbehandlingService(
                     tilgangstyring = tilgangstyringService,

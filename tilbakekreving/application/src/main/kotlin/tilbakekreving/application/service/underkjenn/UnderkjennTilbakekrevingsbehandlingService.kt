@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
@@ -20,6 +21,7 @@ class UnderkjennTilbakekrevingsbehandlingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -51,6 +53,7 @@ class UnderkjennTilbakekrevingsbehandlingService(
             kommentar = command.kommentar,
         ).let {
             tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            sakStatistikkRepo.lagreTilbakekrevingStatistikk()
             it.second.right()
         }
     }

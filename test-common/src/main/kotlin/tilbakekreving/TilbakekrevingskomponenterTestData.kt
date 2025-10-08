@@ -5,6 +5,7 @@ import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -29,6 +30,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
     oppgaveHendelseRepo: OppgaveHendelseRepo,
     mapRåttKravgrunnlagPåSakHendelse: MapRåttKravgrunnlagTilHendelse,
     hendelseRepo: HendelseRepo,
+    sakStatistikkRepo: SakStatistikkRepo,
     dokumentHendelseRepo: DokumentHendelseRepo,
     brevService: BrevService,
     tilgangstyringService: TilgangstyringService,
@@ -62,6 +64,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
             brevService = brevService,
             tilbakekrevingsklient = clients.tilbakekrevingsklient,
             tilgangstyringService = tilgangstyringService,
+            sakStatistikkRepo = sakStatistikkRepo,
         ),
         clients = clients,
     )
