@@ -1101,7 +1101,7 @@ class RevurderingServiceImpl(
             avsluttetRevurdering.right()
         } else {
             sessionFactory.withTransactionContext { tx ->
-                revurderingRepo.lagre(avsluttetRevurdering)
+                revurderingRepo.lagre(avsluttetRevurdering, tx)
                 when (avsluttetRevurdering) {
                     is AvsluttetRevurdering -> {
                         observers.notify(
