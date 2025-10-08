@@ -80,6 +80,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Avsluttet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
@@ -1078,7 +1079,7 @@ class RevurderingServiceImpl(
             }
         }
 
-        val resultat = if (avsluttetRevurdering is Revurdering && skalSendeAvslutningsbrev) {
+        val resultat = if (avsluttetRevurdering is AvsluttetRevurdering && skalSendeAvslutningsbrev) {
             brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
                 .mapLeft {
                     return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
@@ -1094,23 +1095,32 @@ class RevurderingServiceImpl(
                     sessionFactory.withTransactionContext {
                         brevService.lagreDokument(dokumentMedMetaData, it)
                         revurderingRepo.lagre(avsluttetRevurdering, it)
+                        observers.notify(StatistikkEvent.Behandling.Revurdering.Avsluttet(avsluttetRevurdering, saksbehandler), it)
                     }
                 }
             avsluttetRevurdering.right()
         } else {
-            revurderingRepo.lagre(avsluttetRevurdering)
-            avsluttetRevurdering.right()
-        }
-        val event: StatistikkEvent? = when (val result = resultat.getOrElse { null }) {
-            is AvsluttetRevurdering -> StatistikkEvent.Behandling.Revurdering.Avsluttet(result, saksbehandler)
-            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> StatistikkEvent.Behandling.Gjenoppta.Avsluttet(result)
-            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> StatistikkEvent.Behandling.Stans.Avsluttet(result)
-            else -> null
-        }
-        event?.let {
-            observers.forEach { observer ->
-                observer.handle(it)
+            sessionFactory.withTransactionContext { tx ->
+                revurderingRepo.lagre(avsluttetRevurdering)
+                when (avsluttetRevurdering) {
+                    is AvsluttetRevurdering -> {
+                        observers.notify(
+                            Avsluttet(
+                                avsluttetRevurdering,
+                                saksbehandler,
+                            ),
+                            tx,
+                        )
+                    }
+                    is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
+                        observers.notify(StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering), tx)
+                    }
+                    is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
+                        observers.notify(StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering), tx)
+                    }
+                }
             }
+            avsluttetRevurdering.right()
         }
 
         return resultat

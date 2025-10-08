@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.service.søknad
 
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import person.domain.PersonService
@@ -25,6 +27,7 @@ internal data class SøknadServiceOgMocks(
     val personService: PersonService = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
     val clock: Clock = fixedClock,
+    val sessionFactory: SessionFactory = TestSessionFactory(),
 ) {
     val service = SøknadServiceImpl(
         søknadRepo = søknadRepo,
@@ -36,7 +39,7 @@ internal data class SøknadServiceOgMocks(
         oppgaveService = oppgaveService,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         clock = fixedClock,
-
+        sessionFactory = sessionFactory,
     )
 
     fun allMocks() = listOf(
