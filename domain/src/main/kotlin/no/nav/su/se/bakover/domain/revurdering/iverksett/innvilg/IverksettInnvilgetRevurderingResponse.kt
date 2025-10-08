@@ -69,7 +69,7 @@ data class IverksettInnvilgetRevurderingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                statistikkObservers().notify(statistikkhendelser)
+                statistikkObservers().notify(statistikkhendelser, tx)
 
                 vedtak.behandling
             }
