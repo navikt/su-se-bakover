@@ -146,6 +146,7 @@ data object ServiceBuilder {
             søknadsbehandlingService = søknadsbehandlingService,
             klageRepo = databaseRepos.klageRepo,
             clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply {
             addObserver(statistikkEventObserver)
         }

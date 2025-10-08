@@ -161,11 +161,13 @@ class RevurderingServiceImpl(
             }
             it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
         }.map {
-            it.klageId?.let { klageId ->
-                klageRepo.knyttMotOmgjøring(klageId, it.opprettetRevurdering.id.value)
+            sessionFactory.withTransactionContext { tx ->
+                it.klageId?.let { klageId ->
+                    klageRepo.knyttMotOmgjøring(klageId, it.opprettetRevurdering.id.value, tx)
+                }
+                revurderingRepo.lagre(it.opprettetRevurdering, tx)
+                observers.notify(it.statistikkHendelse, tx)
             }
-            revurderingRepo.lagre(it.opprettetRevurdering)
-            observers.notify(it.statistikkHendelse)
             it.opprettetRevurdering
         }
     }
@@ -859,10 +861,9 @@ class RevurderingServiceImpl(
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${tilAttestering.oppgaveId} for revurdering ${tilAttestering.id} med informasjon om at den er sendt til attestering. Feilen var $it")
         }
-
-        revurderingRepo.lagre(tilAttestering)
-        statistikkhendelse.also {
-            observers.notify(it)
+        sessionFactory.withTransactionContext { tx ->
+            revurderingRepo.lagre(tilAttestering, tx)
+            observers.notify(statistikkhendelse, tx)
         }
         return tilAttestering.right()
     }
@@ -979,7 +980,20 @@ class RevurderingServiceImpl(
         }
 
         val underkjent = revurdering.underkjenn(attestering)
-        revurderingRepo.lagre(underkjent)
+        sessionFactory.withTransactionContext { tx ->
+            revurderingRepo.lagre(underkjent, tx)
+            when (underkjent) {
+                is UnderkjentRevurdering.Innvilget -> observers.notify(
+                    StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent),
+                    tx,
+                )
+
+                is UnderkjentRevurdering.Opphørt -> observers.notify(
+                    StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(underkjent),
+                    tx,
+                )
+            }
+        }
 
         // best effort for å oppdatere oppgave
         oppgaveService.oppdaterOppgave(
@@ -991,16 +1005,6 @@ class RevurderingServiceImpl(
             ),
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for revurdering ${underkjent.id} med informasjon om at den er underkjent. Feilen var $it")
-        }
-
-        when (underkjent) {
-            is UnderkjentRevurdering.Innvilget -> observers.notify(
-                StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent),
-            )
-
-            is UnderkjentRevurdering.Opphørt -> observers.notify(
-                StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(underkjent),
-            )
         }
 
         return underkjent.right()

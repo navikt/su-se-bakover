@@ -62,9 +62,9 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
             lagreVedtak(vedtak, tx)
             lagreDokument(dokument, tx)
             genererOgLagreSkattedokument(vedtak, tx)
+            statistikkObservers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak), tx)
         }
         log.info("Iverksatt avslag for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
-        statistikkObservers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak))
         lukkOppgave(
             søknadsbehandling,
             OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent),

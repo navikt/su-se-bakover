@@ -91,7 +91,6 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.vedtak.application.VedtakFerdigstilt.DokumentSkalIkkeLagres.SkalIkkeLukkeOppgave.oppgaveId
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
@@ -197,8 +196,10 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             saksbehandler = saksbehandler,
         ).map { (sak, uavklartSøknadsbehandling) ->
-            søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
-            observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler))
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
+                observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler), tx)
+            }
             Pair(sak, uavklartSøknadsbehandling)
         }
     }
@@ -293,15 +294,19 @@ class SøknadsbehandlingServiceImpl(
                 // gjør en best effort på å oppdatere oppgaven
                 log.error("Søknadsbehandling send til attestering: Kunne ikke oppdatere oppgave ${søknadsbehandlingTilAttestering.oppgaveId} for søknadsbehandling $behandlingId. Feilen var $it")
             }
-            søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering)
-            when (søknadsbehandlingTilAttestering) {
-                is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering),
-                )
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering, tx)
+                when (søknadsbehandlingTilAttestering) {
+                    is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering),
+                        tx,
+                    )
 
-                is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering),
-                )
+                    is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering),
+                        tx,
+                    )
+                }
             }
             return søknadsbehandlingTilAttestering.right()
         }
@@ -431,16 +436,19 @@ class SøknadsbehandlingServiceImpl(
                 // gjør en best effort på å oppdatere oppgaven
                 log.error("Søknadsbehandling underkjenn: Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for søknadsbehandling ${underkjent.id}. Feilen var $it")
             }
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(underkjent, tx)
+                when (underkjent) {
+                    is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent),
+                        tx,
+                    )
 
-            søknadsbehandlingRepo.lagre(underkjent)
-            when (underkjent) {
-                is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent),
-                )
-
-                is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent),
-                )
+                    is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent),
+                        tx,
+                    )
+                }
             }
             underkjent
         }
@@ -859,7 +867,7 @@ class SøknadsbehandlingServiceImpl(
         ).onRight { søknadsbehandlingRepo.lagre(it) }
     }
 
-    override fun lagre(søknadsbehandling: Søknadsbehandling) {
+    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
         søknadsbehandlingRepo.lagre(søknadsbehandling)
     }
 

@@ -351,9 +351,9 @@ internal class KlagePostgresRepo(
         }
     }
 
-    override fun knyttMotOmgjøring(klageId: KlageId, behandlingId: UUID) {
+    override fun knyttMotOmgjøring(klageId: KlageId, behandlingId: UUID, sessionContext: SessionContext) {
         return dbMetrics.timeQuery("knyttKlageMotOmgjøring") {
-            sessionFactory.withSession { session ->
+            sessionContext.withSession { session ->
                 """
                     update klage set
                     behandlingId=:behandlingId
@@ -398,7 +398,10 @@ internal class KlagePostgresRepo(
                     session,
                 ),
             )
-        // row.stringOrNull("begrunnelse") har vært i bruk og inneholder data i prod som aldri blir vist frem. Dataen kom inn på en måte som er slettet for lengst.
+        /*
+            Det er 5 innslag i prod som bruker denne, må avklares før den kan brukes til andre ting.
+            row.stringOrNull("begrunnelse") har vært i bruk og inneholder data i prod som aldri blir vist frem. Dataen kom inn på en måte som er slettet for lengst.
+         */
 
         val formkravTilKlage = FormkravTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
