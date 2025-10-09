@@ -129,6 +129,10 @@ class PostgresSessionFactory(
         }
     }
 
+    /*
+        TODO: datasource her burde vært en HikariDataSource men siden
+        testene bruker denne og mange av repoklassene bruker denne og ikke testklassen ble det for mye å skrive om
+     */
     override fun close() {
         if (dataSource is HikariDataSource) {
             dataSource.close()
