@@ -188,10 +188,22 @@ internal class VurderKlageTest {
                   "datoKlageMottatt":"2021-01-15",
                   "status":"VURDERT_PÅBEGYNT",
                   "vedtakId":"${påbegyntVurdertKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "fremsattRettsligKlageinteresse":"JA",
-                  "erUnderskrevet":"JA",
+                  "innenforFristen": {
+                    "svar": "JA",
+                    "begrunnelse": "Innenfor fristen er JA"
+                  },
+                  "klagesDetPåKonkreteElementerIVedtaket": {
+                    "svar": true,
+                    "begrunnelse": "texkst"
+                  },
+                  "erUnderskrevet": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
+                  "fremsattRettsligKlageinteresse": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,
                   "attesteringer":[],

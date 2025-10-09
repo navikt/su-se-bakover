@@ -152,10 +152,22 @@ internal class AvvistKlageTest {
                   "datoKlageMottatt":"2021-01-15",
                   "status":"AVVIST",
                   "vedtakId":"${klage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"NEI",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"NEI",
+                  "innenforFristen": {
+                    "svar": "NEI",
+                    "begrunnelse": "Innenfor fristen er NEI"
+                  },
+                  "klagesDetPåKonkreteElementerIVedtaket": {
+                    "svar": true,
+                    "begrunnelse": "texkst"
+                  },
+                  "erUnderskrevet": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
+                  "fremsattRettsligKlageinteresse": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "fritekstTilBrev": "dette er en fritekst med person opplysninger",

@@ -141,10 +141,22 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                   "datoKlageMottatt":"2021-01-15",
                   "status":"VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING",
                   "vedtakId":"${bekreftetVilkårsvurdertKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"JA",
+                  "innenforFristen": {
+                    "svar": "JA",
+                    "begrunnelse": "Innenfor fristen er JA"
+                  },
+                  "klagesDetPåKonkreteElementerIVedtaket": {
+                    "svar": true,
+                    "begrunnelse": "texkst"
+                  },
+                  "erUnderskrevet": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
+                  "fremsattRettsligKlageinteresse": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "fritekstTilBrev": null,

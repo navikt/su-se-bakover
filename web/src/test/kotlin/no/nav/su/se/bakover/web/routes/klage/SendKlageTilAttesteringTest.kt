@@ -140,10 +140,22 @@ internal class SendKlageTilAttesteringTest {
                   "datoKlageMottatt":"2021-01-15",
                   "status":"TIL_ATTESTERING_TIL_VURDERING",
                   "vedtakId":"${klageTilAttestering.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"JA",
+                  "innenforFristen": {
+                    "svar": "JA",
+                    "begrunnelse": "Innenfor fristen er JA"
+                  },
+                  "klagesDetPåKonkreteElementerIVedtaket": {
+                    "svar": true,
+                    "begrunnelse": "texkst"
+                  },
+                  "erUnderskrevet": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
+                  "fremsattRettsligKlageinteresse": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

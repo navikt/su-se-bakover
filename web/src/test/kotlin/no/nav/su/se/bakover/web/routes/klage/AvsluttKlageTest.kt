@@ -163,10 +163,22 @@ internal class AvsluttKlageTest {
                   "datoKlageMottatt":"2021-01-15",
                   "status":"VURDERT_BEKREFTET",
                   "vedtakId":"${(klage.hentUnderliggendeKlage() as VurdertKlage.Bekreftet).vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"JA",
+                  "innenforFristen": {
+                    "svar": "JA",
+                    "begrunnelse": "Innenfor fristen er JA"
+                  },
+                  "klagesDetPåKonkreteElementerIVedtaket": {
+                    "svar": true,
+                    "begrunnelse": "texkst"
+                  },
+                  "erUnderskrevet": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
+                  "fremsattRettsligKlageinteresse": {
+                    "svar": "JA",
+                    "begrunnelse": "underskrevet"
+                  },
                   "fritekstTilBrev":"fritekstTilBrev",
                     "vedtaksvurdering":{
                     "type":"OPPRETTHOLD",

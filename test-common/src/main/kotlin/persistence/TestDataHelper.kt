@@ -1511,10 +1511,10 @@ class TestDataHelper(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
             vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtak.id,
-                innenforFristen = FormkravTilKlage.Svarord.JA,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1531,10 +1531,10 @@ class TestDataHelper(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
             vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtak.id,
-                innenforFristen = FormkravTilKlage.Svarord.NEI,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = FormkravTilKlage.Svarord.JA,
-                fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
