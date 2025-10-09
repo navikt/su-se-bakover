@@ -133,7 +133,7 @@ class PostgresSessionFactory(
         if (dataSource is HikariDataSource) {
             dataSource.close()
         } else {
-            throw IllegalStateException("⚠️ DataSource is not a HikariDataSource: ${dataSource::class.qualifiedName}")
+            throw IllegalStateException("DataSource is not a HikariDataSource: ${dataSource::class.qualifiedName}")
         }
     }
 }
