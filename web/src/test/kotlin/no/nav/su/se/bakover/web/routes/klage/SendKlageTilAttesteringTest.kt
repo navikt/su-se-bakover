@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeKlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -114,9 +115,9 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `kan sende klage til attestering`() {
-        val klageTilAttestering = vurdertKlageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val klageServiceMock = mock<KlageService> {
-            on { sendTilAttestering(any(), any()) } doReturn klageTilAttestering.right()
+            on { sendTilAttestering(any(), any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -130,50 +131,7 @@ internal class SendKlageTilAttesteringTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${klageTilAttestering.id}",
-                  "sakid":"${klageTilAttestering.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"TIL_ATTESTERING_TIL_VURDERING",
-                  "vedtakId":"${klageTilAttestering.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen": {
-                    "svar": "JA",
-                    "begrunnelse": "Innenfor fristen er JA"
-                  },
-                  "klagesDetPåKonkreteElementerIVedtaket": {
-                    "svar": true,
-                    "begrunnelse": "texkst"
-                  },
-                  "erUnderskrevet": {
-                    "svar": "JA",
-                    "begrunnelse": "underskrevet"
-                  },
-                  "fremsattRettsligKlageinteresse": {
-                    "svar": "JA",
-                    "begrunnelse": "underskrevet"
-                  },
-                  "fritekstTilBrev":"fritekstTilBrev",
-                  "vedtaksvurdering":{
-                    "type":"OPPRETTHOLD",
-                    "omgjør":null,
-                    "oppretthold":{
-                      "hjemler":[
-                        "SU_PARAGRAF_3",
-                        "SU_PARAGRAF_4"
-                      ]
-                    }
-                  },
-                  "attesteringer":[],
-                  "klagevedtakshistorikk":[],
-                  "avsluttet": "KAN_IKKE_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()).trimIndent(),
                     this.bodyAsText(),
                     true,
                 )

@@ -139,7 +139,6 @@ internal class AvsluttKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { avslutt(any(), any(), any()) } doReturn klage.right()
         }
-        val svar = serialize(klage.toJson())
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
@@ -154,7 +153,7 @@ internal class AvsluttKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    svar.trimIndent(),
+                    serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
                 )
