@@ -122,7 +122,7 @@ jobs:
     needs: build-test-push-image
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-stoenadstatistikk-job:${{ github.sha }}
-      cluster: dev-fss
+      cluster: prod-fss
       resource: datapakker/stoenadstatistikk/.nais/prod.yaml
 
   deploy_to_prod_soknad:
