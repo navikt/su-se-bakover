@@ -236,6 +236,7 @@ fun Application.susebakover(
             )
             this.monitor.subscribe(ApplicationStopping) {
                 jobberOgConsumers.stop()
+                databaseRepos.sessionFactory.close()
             }
         }
     }
