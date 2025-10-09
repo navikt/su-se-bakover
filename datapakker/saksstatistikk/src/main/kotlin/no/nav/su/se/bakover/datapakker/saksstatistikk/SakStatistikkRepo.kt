@@ -7,6 +7,7 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import java.math.BigInteger
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -31,7 +32,7 @@ object SakStatistikkRepo {
                 session = session,
             ) { row ->
                 SakStatistikk(
-                    id = row.uuid("id"),
+                    id = row.int("id_sekvens").toBigInteger(),
                     hendelseTid = row.string("hendelse_tid"),
                     tekniskTid = row.string("teknisk_tid"),
                     sakId = row.uuid("sak_id"),
@@ -75,7 +76,7 @@ object SakStatistikkRepo {
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SakStatistikk(
-    val id: UUID,
+    val id: BigInteger,
     val hendelseTid: String,
     val tekniskTid: String,
     val sakId: UUID,
