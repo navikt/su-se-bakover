@@ -7,8 +7,8 @@ metadata:
   namespace: supstonad
 spec:
   timeZone: Europe/Oslo
-  # Run every day at 3:20
-  schedule: '00 5 * * *'
+  # Run every first day of new month at 5:00
+  schedule: '00 5 1 * *'
   image: {{ image }}
   concurrencyPolicy: Replace
   vault:
