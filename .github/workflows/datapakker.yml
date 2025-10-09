@@ -111,7 +111,20 @@ jobs:
       cluster: dev-fss
       resource: datapakker/saksstatistikk/.nais/dev.yaml
 
-#TODO: her må vi legge inn prod for stoenadstatistikk && saksstatistikk
+  #TODO: her må vi legge inn prod for saksstatistikk
+
+  deploy_to_prod_stoenadstatistikk:
+    name: Deploy to prod stoenadstatistikk
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    needs: build-test-push-image
+    with:
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-stoenadstatistikk-job:${{ github.sha }}
+      cluster: dev-fss
+      resource: datapakker/stoenadstatistikk/.nais/prod.yaml
+
   deploy_to_prod_soknad:
     name: Deploy to prod
     permissions:
