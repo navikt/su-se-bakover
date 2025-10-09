@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
-import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.correlationId
@@ -107,7 +106,6 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
         val oppgaveService: OppgaveService = mock(),
         val personService: PersonService = mock(),
         val oppgaveHendelseRepo: OppgaveHendelseRepo = mock(),
-        val sessionFactory: TestSessionFactory = TestSessionFactory(),
     ) {
         fun service(): OpprettTilbakekrevingsbehandlingService =
             OpprettTilbakekrevingsbehandlingService(
