@@ -147,7 +147,13 @@ fun List<SakStatistikk>.toCsv(): String = buildString {
                 sakStatistikk.funksjonellPeriodeFom?.toString().orEmpty(),
                 sakStatistikk.funksjonellPeriodeTom?.toString().orEmpty(),
                 sakStatistikk.tilbakekrevBeløp?.toString().orEmpty(),
-            ),
+            ).joinToString(",") { escapeCsv(it) },
         )
     }
+}
+
+private fun escapeCsv(field: String): String {
+    val needsQuotes = field.contains(",") || field.contains("\"") || field.contains("\n")
+    val escaped = field.replace("\"", "\"\"")
+    return if (needsQuotes) "\"$escaped\"" else escaped
 }
