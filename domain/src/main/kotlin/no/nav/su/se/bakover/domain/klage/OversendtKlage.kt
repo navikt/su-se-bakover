@@ -48,14 +48,14 @@ data class OversendtKlage(
         }
 
         return buildString {
-            append(formkrav.erUnderskrevet.begrunnelse)
-            formkrav.fremsattRettsligKlageinteresse?.begrunnelse?.let { append(it) }
-            append(formkrav.innenforFristen.begrunnelse)
-            append(formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse)
+            append(formkrav.erUnderskrevet.begrunnelse.orEmpty())
+            append(formkrav.fremsattRettsligKlageinteresse?.begrunnelse.orEmpty())
+            append(formkrav.innenforFristen.begrunnelse.orEmpty())
+            append(formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse.orEmpty())
 
-            klagenotat?.let {
+            if (!klagenotat.isNullOrBlank()) {
                 appendLine()
-                append(it)
+                append(klagenotat)
             }
         }
     }
