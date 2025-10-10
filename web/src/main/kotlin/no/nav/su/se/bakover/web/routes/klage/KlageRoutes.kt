@@ -252,7 +252,6 @@ internal fun Route.klageRoutes(
                 val fritekstTilBrev: String?,
                 val omgjør: Omgjør?,
                 val oppretthold: Oppretthold?,
-                val klagenotat: String?,
             )
 
             call.withKlageId { klageId ->
