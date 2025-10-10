@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test.vedtak
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -81,6 +82,7 @@ fun forenkletVedtak(
     vedtakstype: Vedtakstype,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = UUID.randomUUID(),
+    sakstype: Sakstype = Sakstype.UFØRE,
 ): VedtaksammendragForSak {
     return VedtaksammendragForSak(
         fødselsnummer = fødselsnummer,
@@ -91,6 +93,7 @@ fun forenkletVedtak(
                 opprettet = opprettet,
                 periode = periode,
                 vedtakstype = vedtakstype,
+                sakstype = sakstype,
                 epsFnr = emptyList(),
             ),
         ),
@@ -116,11 +119,13 @@ fun vedtaksammendragForSakVedtak(
     periode: Periode = år(2021),
     vedtakstype: Vedtakstype = Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE,
     epsFnr: List<Fnr> = emptyList(),
+    sakstype: Sakstype = Sakstype.UFØRE,
 ): VedtaksammendragForSak.Vedtak {
     return VedtaksammendragForSak.Vedtak(
         opprettet = opprettet,
         periode = periode,
         vedtakstype = vedtakstype,
+        sakstype = sakstype,
         epsFnr = epsFnr,
     )
 }
@@ -164,6 +169,7 @@ private fun VedtakSomKanRevurderes.toVedtaksammendrag(
                 opprettet = this.opprettet,
                 periode = this.periode,
                 vedtakstype = vedtakstype,
+                sakstype = this.sakstype,
                 epsFnr = emptyList(),
             ),
         ),
