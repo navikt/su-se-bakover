@@ -74,6 +74,7 @@ internal data class KlageJson(
 
         data class OpprettholdJson(
             val hjemler: List<String>,
+            val klagenotat: String?,
         )
 
         companion object {
@@ -94,6 +95,7 @@ internal data class KlageJson(
                         omgjør = null,
                         oppretthold = OpprettholdJson(
                             hjemler = hjemler.map { it.toString() },
+                            klagenotat = klagenotat,
                         ),
                     )
 
@@ -112,6 +114,7 @@ internal data class KlageJson(
                         omgjør = null,
                         oppretthold = OpprettholdJson(
                             hjemler = hjemler.map { it.toString() },
+                            klagenotat = klagenotat,
                         ),
                     )
                 }
