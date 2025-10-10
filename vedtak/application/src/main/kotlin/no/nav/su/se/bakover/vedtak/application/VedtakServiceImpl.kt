@@ -6,6 +6,7 @@ import arrow.core.left
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -27,8 +28,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
+import no.nav.su.se.bakover.domain.vedtak.SakMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.VedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
+import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.innvilgetFraOgMedMåned
 import org.slf4j.LoggerFactory
@@ -78,6 +83,29 @@ class VedtakServiceImpl(
 
     override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
         return vedtakRepo.hentForMåned(måned).innvilgetForMåned(måned)
+    }
+
+    override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
+        val vedtakPerSak = vedtakRepo.hentAlleInnvilgelserOgOpphør()
+        return SakerMedVedtakForFrikort(
+            saker = vedtakPerSak.map {
+                SakMedVedtakForFrikort(
+                    fnr = it.fødselsnummer.toString(),
+                    vedtak = it.vedtak.map { vedtak ->
+                        VedtakForFrikort(
+                            fraOgMed = vedtak.periode.fraOgMed,
+                            tilOgMed = vedtak.periode.tilOgMed,
+                            type = when (vedtak.vedtakstype) {
+                                Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE -> "INNVILGELSE"
+                                Vedtakstype.REVURDERING_OPPHØR -> "OPPHØR"
+                                Vedtakstype.REVURDERING_INNVILGELSE -> throw IllegalStateException("Skal ikke returnere revurderinger")
+                            },
+                            opprettet = vedtak.opprettet.toLocalDateTime(zoneIdOslo),
+                        )
+                    },
+                )
+            },
+        )
     }
 
     override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
@@ -161,11 +189,13 @@ class VedtakServiceImpl(
                                 return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                             }
                         }
+
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
                             return KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt.left()
                         }
                     }
                 }
+
                 else -> {
                     log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen.")
                     return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()

@@ -308,6 +308,31 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun hentAlleInnvilgelserOgOpphør(): List<VedtaksammendragForSak> {
+        return dbMetrics.timeQuery("hentForMåned") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        v.opprettet,
+                        v.fraogmed,
+                        v.tilogmed,
+                        v.vedtaktype,
+                        s.fnr,
+                        s.id as sakid,
+                        s.saksnummer,
+                        null as epsFnr
+                    from vedtak v
+                        left join sak s on s.id = v.sakid
+                    where
+                        vedtaktype in ('SØKNAD', 'OPPHØR')
+                """.trimIndent()
+                    .hentListe(emptyMap(), session) {
+                        it.toVedtaksammendragForSak()
+                    }.groupBySak()
+            }
+        }
+    }
+
     override fun hentForFraOgMedMånedEksEps(måned: Måned): List<VedtaksammendragForSak> {
         return dbMetrics.timeQuery("hentForFraOgMedMånedEksEps") {
             sessionFactory.withSession { session ->
@@ -509,7 +534,8 @@ internal class VedtakPostgresRepo(
                 erAvbrutt = behandling.erAvbrutt(),
             )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
-        val avslagsgrunner: List<Avslagsgrunn>? = deserializeListNullable<AvslagsgrunnDbJson>(stringOrNull("avslagsgrunner"))?.map { it.toDomain() }
+        val avslagsgrunner: List<Avslagsgrunn>? =
+            deserializeListNullable<AvslagsgrunnDbJson>(stringOrNull("avslagsgrunner"))?.map { it.toDomain() }
 
         val journalpostId: JournalpostId? = stringOrNull("journalpostid")?.let { JournalpostId(it) }
         val brevbestillingId: BrevbestillingId? = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) }

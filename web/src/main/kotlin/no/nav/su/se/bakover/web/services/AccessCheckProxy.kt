@@ -163,6 +163,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilV
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -1047,6 +1048,10 @@ open class AccessCheckProxy(
 
                 override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
                     return services.vedtakService.hentInnvilgetFnrForMåned(måned)
+                }
+
+                override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
+                    return services.vedtakService.hentAlleSakerMedInnvilgetVedtak()
                 }
 
                 override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
