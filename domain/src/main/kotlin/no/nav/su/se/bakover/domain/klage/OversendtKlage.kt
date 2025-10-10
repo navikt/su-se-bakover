@@ -46,9 +46,18 @@ data class OversendtKlage(
             is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> null
             is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> vedtaksvurdering.klagenotat
         }
-        return formkrav.erUnderskrevet.begrunnelse + formkrav.fremsattRettsligKlageinteresse?.begrunnelse +
-            formkrav.innenforFristen.begrunnelse +
-            formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse + if (klagenotat != null) "\n$klagenotat" else ""
+
+        return buildString {
+            append(formkrav.erUnderskrevet.begrunnelse)
+            formkrav.fremsattRettsligKlageinteresse?.begrunnelse?.let { append(it) }
+            append(formkrav.innenforFristen.begrunnelse)
+            append(formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse)
+
+            klagenotat?.let {
+                appendLine()
+                append(it)
+            }
+        }
     }
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
