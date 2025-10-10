@@ -11,6 +11,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
+import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson.hentSakId
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -66,18 +68,16 @@ internal class FrikortIT {
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
                         client = this.client,
-                        søkersFormue = """
-                          {
-                            "verdiIkkePrimærbolig": 0,
-                            "verdiEiendommer": 0,
-                            "verdiKjøretøy": 0,
-                            "innskudd": 0,
-                            "verdipapir": 0,
-                            "pengerSkyldt": 0,
-                            "kontanter": 200000,
-                            "depositumskonto": 0
-                          }
-                        """.trimIndent(),
+                        søkersFormue = FormuegrunnlagJson.VerdierJson(
+                            verdiIkkePrimærbolig = 0,
+                            verdiEiendommer = 0,
+                            verdiKjøretøy = 0,
+                            innskudd = 0,
+                            verdipapir = 0,
+                            pengerSkyldt = 0,
+                            kontanter = 200000,
+                            depositumskonto = 0,
+                        ).let { serialize(it) },
                     )
                 },
                 client = this.client,
@@ -153,18 +153,16 @@ internal class FrikortIT {
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
                         client = this.client,
-                        søkersFormue = """
-                          {
-                            "verdiIkkePrimærbolig": 0,
-                            "verdiEiendommer": 0,
-                            "verdiKjøretøy": 0,
-                            "innskudd": 0,
-                            "verdipapir": 0,
-                            "pengerSkyldt": 0,
-                            "kontanter": 200000,
-                            "depositumskonto": 0
-                          }
-                        """.trimIndent(),
+                        søkersFormue = FormuegrunnlagJson.VerdierJson(
+                            verdiIkkePrimærbolig = 0,
+                            verdiEiendommer = 0,
+                            verdiKjøretøy = 0,
+                            innskudd = 0,
+                            verdipapir = 0,
+                            pengerSkyldt = 0,
+                            kontanter = 200000,
+                            depositumskonto = 0,
+                        ).let { serialize(it) },
                     )
                 },
                 client = this.client,

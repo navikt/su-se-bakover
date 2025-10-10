@@ -310,6 +310,12 @@ internal class VedtakPostgresRepo(
 
     override fun hentAlleInnvilgelserOgOpphør(): List<VedtaksammendragForSak> {
         return dbMetrics.timeQuery("hentForMåned") {
+            val vedtakstyper = listOf(
+                VedtakType.SØKNAD.name,
+                VedtakType.OPPHØR.name,
+                VedtakType.ENDRING.name,
+                VedtakType.REGULERING.name,
+            ).joinToString(", ") { "'$it'" }
             sessionFactory.withSession { session ->
                 """
                     select
@@ -324,7 +330,7 @@ internal class VedtakPostgresRepo(
                     from vedtak v
                         left join sak s on s.id = v.sakid
                     where
-                        vedtaktype in ('SØKNAD', 'OPPHØR', 'ENDRING')
+                        vedtaktype in ($vedtakstyper)
                 """.trimIndent()
                     .hentListe(emptyMap(), session) {
                         it.toVedtaksammendragForSak()

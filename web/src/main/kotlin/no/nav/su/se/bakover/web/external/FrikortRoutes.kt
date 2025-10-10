@@ -51,7 +51,6 @@ internal fun Route.frikortVedtakRoutes(
             ),
         )
     }
-    // Responsen kan inneholde skjermede fødselsnumre. Dette er avklart med dagens konsument og må avklares med potensielt fremtidige konsumenter.
     get("$FRIKORT_PATH/alle") {
         val saker = vedtakService.hentAlleSakerMedInnvilgetVedtak()
         call.svar(
