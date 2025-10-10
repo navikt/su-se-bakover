@@ -22,6 +22,7 @@ import java.time.LocalDate
  * @param tilknyttedeJournalposter Relevante journalposter til klagen. Denne kan være tom. Disse vises i Kabal.
  * @param brukersHenvendelseMottattNavDato Dato for når klagen ble mottatt NAV.
  * @param innsendtTilNav Dato for når klagen ble innsendt. F.eks. posteringstidspunktet. Denne informasjonen registerer ikke SU (atm).
+ * @param kommentar Fritekstfelt til klage der vi legger inn begrunnnelsen av formkravene samt klagenotatet til saksbehandler.
  * */
 internal data class KabalRequest(
     val klager: Klager,
@@ -32,6 +33,7 @@ internal data class KabalRequest(
     val tilknyttedeJournalposter: List<TilknyttedeJournalposter>,
     val brukersHenvendelseMottattNavDato: LocalDate,
     val innsendtTilNav: LocalDate,
+    val kommentar: String,
 ) {
     /** Enum. Gyldige verdier er [KLAGE,ANKE]. */
     @JsonInclude

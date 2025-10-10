@@ -24,6 +24,10 @@ data class OversendtKlage(
     val behandlingId: UUID? = null,
 ) : Klage,
     VurdertKlage.UtfyltFelter by forrigeSteg {
+    /*
+        TODO: VurdertKlage.UtfyltFelter er egentlig ikke godt nok for denne klasse og misvisende
+        Den åpner den for omgjøring, men da sender vi ikke over noen klager. Sees på når avvisning og delvis omgjøring kommer inn.
+     */
 
     val fritekstTilVedtaksbrev
         get() = getFritekstTilBrev().getOrElse {
