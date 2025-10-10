@@ -95,6 +95,7 @@ class VedtakServiceImpl(
                         fraOgMed = it.periode.fraOgMed,
                         tilOgMed = it.periode.tilOgMed,
                         type = it.vedtakstype.name,
+                        sakstype = it.sakstype.value,
                         opprettet = it.opprettet.toLocalDateTime(zoneIdOslo),
                     )
                 }

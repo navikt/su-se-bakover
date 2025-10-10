@@ -190,11 +190,13 @@ internal class FrikortIT {
                     vedtak[0].fraOgMed shouldBe januar(2021).fraOgMed
                     vedtak[0].tilOgMed shouldBe januar(2021).tilOgMed
                     vedtak[0].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
+                    vedtak[0].sakstype shouldBe "uføre"
                     vedtak[0].opprettet.toLocalDate() shouldBe opprettet
 
                     vedtak[1].fraOgMed shouldBe januar(2021).fraOgMed
                     vedtak[1].tilOgMed shouldBe januar(2021).tilOgMed
                     vedtak[1].type shouldBe "REVURDERING_INNVILGELSE"
+                    vedtak[1].sakstype shouldBe "uføre"
                     vedtak[1].opprettet.toLocalDate() shouldBe opprettet
                 }
 
@@ -205,11 +207,13 @@ internal class FrikortIT {
                     vedtak[0].fraOgMed shouldBe januar(2021).fraOgMed
                     vedtak[0].tilOgMed shouldBe februar(2021).tilOgMed
                     vedtak[0].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
+                    vedtak[0].sakstype shouldBe "uføre"
                     vedtak[0].opprettet.toLocalDate() shouldBe opprettet
 
                     vedtak[1].fraOgMed shouldBe april(2021).fraOgMed
                     vedtak[1].tilOgMed shouldBe juni(2021).tilOgMed
                     vedtak[1].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
+                    vedtak[1].sakstype shouldBe "uføre"
                     vedtak[1].opprettet.toLocalDate() shouldBe opprettet
                 }
 
@@ -220,16 +224,19 @@ internal class FrikortIT {
                     vedtak[0].fraOgMed shouldBe februar(2021).fraOgMed
                     vedtak[0].tilOgMed shouldBe februar(2021).tilOgMed
                     vedtak[0].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
+                    vedtak[0].sakstype shouldBe "uføre"
                     vedtak[0].opprettet.toLocalDate() shouldBe opprettet
 
                     vedtak[1].fraOgMed shouldBe februar(2021).fraOgMed
                     vedtak[1].tilOgMed shouldBe februar(2021).tilOgMed
                     vedtak[1].type shouldBe "REVURDERING_OPPHØR"
+                    vedtak[1].sakstype shouldBe "uføre"
                     vedtak[1].opprettet.toLocalDate() shouldBe opprettet
 
                     vedtak[2].fraOgMed shouldBe februar(2021).fraOgMed
                     vedtak[2].tilOgMed shouldBe februar(2021).tilOgMed
                     vedtak[2].type shouldBe "REVURDERING_INNVILGELSE"
+                    vedtak[2].sakstype shouldBe "uføre"
                     vedtak[2].opprettet.toLocalDate() shouldBe opprettet
                 }
             }

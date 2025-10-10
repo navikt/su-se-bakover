@@ -16,5 +16,6 @@ data class VedtakForFrikort(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val type: String,
+    val sakstype: String,
     val opprettet: LocalDateTime,
 )
