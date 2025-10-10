@@ -763,7 +763,7 @@ internal class KlagePostgresRepo(
             }
         }
 
-        data class Oppretthold(val hjemler: List<String>) : VedtaksvurderingJson {
+        data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) : VedtaksvurderingJson {
 
             enum class Hjemmel(val verdi: String) {
                 SU_PARAGRAF_3("su_paragraf_3"),
@@ -835,6 +835,7 @@ internal class KlagePostgresRepo(
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
                     hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() },
+                    klagenotat = klagenotat,
                 ).getOrNull()!!
             }
         }
@@ -849,6 +850,7 @@ internal class KlagePostgresRepo(
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> Omgjør(
                         årsak = årsak.name,
@@ -857,6 +859,7 @@ internal class KlagePostgresRepo(
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
                     )
                 }.let {
                     serialize(it)

@@ -43,13 +43,13 @@ data class KlageVurderingerRequest(
         }
     }
 
-    data class Oppretthold(val hjemler: List<String>) {
-
+    data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) {
         fun toDomain(): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, VurderingerTilKlage.Vedtaksvurdering> {
             return hjemmelToDomain(hjemler)
                 .flatMap {
                     VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
                         hjemler = it,
+                        klagenotat = klagenotat,
                     ).mapLeft {
                         KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler
                     }

@@ -24,6 +24,7 @@ internal class KlageVurderingerRequestTest {
                 "SU_PARAGRAF_18",
                 "SU_PARAGRAF_21",
             ),
+            klagenotat = "klagenotat",
         ).toDomain().shouldBeRight()
     }
 
@@ -49,6 +50,7 @@ internal class KlageVurderingerRequestTest {
                 "SU_PARAGRAF_28",
                 "SU_PARAGRAF_29",
             ),
+            klagenotat = null,
         ).toDomain().shouldBeLeft()
     }
 }

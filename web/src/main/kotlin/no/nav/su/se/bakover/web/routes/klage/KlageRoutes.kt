@@ -246,7 +246,7 @@ internal fun Route.klageRoutes(
             }
 
             data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?)
-            data class Oppretthold(val hjemler: List<String> = emptyList())
+            data class Oppretthold(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
                 val fritekstTilBrev: String?,
@@ -267,8 +267,8 @@ internal fun Route.klageRoutes(
                                     begrunnelse = o.begrunnelse,
                                 )
                             },
-                            oppretthold = body.oppretthold?.let { o ->
-                                KlageVurderingerRequest.Oppretthold(hjemler = o.hjemler)
+                            oppretthold = body.oppretthold?.let { oppretthold ->
+                                KlageVurderingerRequest.Oppretthold(hjemler = oppretthold.hjemler, klagenotat = oppretthold.klagenotat)
                             },
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),

@@ -136,11 +136,11 @@ sealed interface VurderingerTilKlage {
                 )
             }
 
-            fun createOppretthold(hjemler: List<Hjemmel>): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
+            fun createOppretthold(hjemler: List<Hjemmel>, klagenotat: String?): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
                 return Klagehjemler.tryCreate(hjemler).map {
                     when (it) {
-                        is Klagehjemler.IkkeUtfylt -> Påbegynt.Oppretthold(hjemler = it)
-                        is Klagehjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it)
+                        is Klagehjemler.IkkeUtfylt -> Påbegynt.Oppretthold(hjemler = it, klagenotat = klagenotat)
+                        is Klagehjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it, klagenotat = klagenotat)
                     }
                 }
             }
@@ -177,12 +177,12 @@ sealed interface VurderingerTilKlage {
                 }
             }
 
-            data class Oppretthold(val hjemler: Klagehjemler.IkkeUtfylt) : Påbegynt
+            data class Oppretthold(val hjemler: Klagehjemler.IkkeUtfylt, val klagenotat: String?) : Påbegynt
         }
 
         sealed interface Utfylt : Vedtaksvurdering {
             data class Omgjør(val årsak: Årsak, val utfall: Utfall, val begrunnelse: String?) : Utfylt
-            data class Oppretthold(val hjemler: Klagehjemler.Utfylt) : Utfylt
+            data class Oppretthold(val hjemler: Klagehjemler.Utfylt, val klagenotat: String?) : Utfylt
         }
 
         // Se også Omgjøringsgrunn - må se om de skal konsolideres evt fjernes fra behandlingsløpet hvis det lagres her. Blir da kun historisk
