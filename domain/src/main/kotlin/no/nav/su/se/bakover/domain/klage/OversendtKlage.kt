@@ -40,6 +40,17 @@ data class OversendtKlage(
      */
     override fun erÅpen() = false
 
+    fun genererKommentar(): String {
+        val formkrav = this.vilkårsvurderinger
+        val klagenotat = when (val vedtaksvurdering = this.vurderinger.vedtaksvurdering) {
+            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> null
+            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> vedtaksvurdering.klagenotat
+        }
+        return formkrav.erUnderskrevet.begrunnelse + formkrav.fremsattRettsligKlageinteresse?.begrunnelse +
+            formkrav.innenforFristen.begrunnelse +
+            formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse + if (klagenotat != null) "\n$klagenotat" else ""
+    }
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return when (val vurderinger = vurderinger) {
             is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()

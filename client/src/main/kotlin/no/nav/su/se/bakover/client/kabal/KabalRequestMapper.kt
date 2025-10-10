@@ -34,18 +34,7 @@ internal data object KabalRequestMapper {
             ),
             brukersHenvendelseMottattNavDato = klage.datoKlageMottatt,
             innsendtTilNav = klage.datoKlageMottatt,
-            kommentar = genererKommentar(klage),
+            kommentar = klage.genererKommentar(),
         )
-    }
-
-    private fun genererKommentar(klage: OversendtKlage): String {
-        val formkrav = klage.vilkårsvurderinger
-        val klagenotat = when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
-            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> null
-            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> vedtaksvurdering.klagenotat
-        }
-        return formkrav.erUnderskrevet.begrunnelse + formkrav.fremsattRettsligKlageinteresse?.begrunnelse +
-            formkrav.innenforFristen.begrunnelse +
-            formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse + if (klagenotat != null) "\n$klagenotat" else ""
     }
 }
