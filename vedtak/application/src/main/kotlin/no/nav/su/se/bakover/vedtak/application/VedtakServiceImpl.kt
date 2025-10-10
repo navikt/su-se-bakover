@@ -86,20 +86,27 @@ class VedtakServiceImpl(
 
     override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
         val vedtakPerSak = vedtakRepo.hentAlleInnvilgelserOgOpphør()
+
+        val vedtakForFrikort = vedtakPerSak.groupBy { it.fødselsnummer }.mapValues {
+            // Kan være to saker for et fødselsnummer hvis bruker har hatt både uføre og alder
+            val vedtakPåTversAvYtelser = it.value.flatMap {
+                it.vedtak.map {
+                    VedtakForFrikort(
+                        fraOgMed = it.periode.fraOgMed,
+                        tilOgMed = it.periode.tilOgMed,
+                        type = it.vedtakstype.name,
+                        opprettet = it.opprettet.toLocalDateTime(zoneIdOslo),
+                    )
+                }
+            }.sortedBy { it.opprettet }
+            SakMedVedtakForFrikort(
+                fnr = it.key.toString(),
+                vedtak = vedtakPåTversAvYtelser,
+            )
+        }.values.toList()
+
         return SakerMedVedtakForFrikort(
-            saker = vedtakPerSak.map {
-                SakMedVedtakForFrikort(
-                    fnr = it.fødselsnummer.toString(),
-                    vedtak = it.vedtak.map { vedtak ->
-                        VedtakForFrikort(
-                            fraOgMed = vedtak.periode.fraOgMed,
-                            tilOgMed = vedtak.periode.tilOgMed,
-                            type = vedtak.vedtakstype.name,
-                            opprettet = vedtak.opprettet.toLocalDateTime(zoneIdOslo),
-                        )
-                    }.sortedBy { it.opprettet },
-                )
-            },
+            saker = vedtakForFrikort,
         )
     }
 
