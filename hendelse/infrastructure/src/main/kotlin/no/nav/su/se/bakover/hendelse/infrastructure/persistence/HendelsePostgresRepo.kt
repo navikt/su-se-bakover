@@ -154,22 +154,22 @@ class HendelsePostgresRepo(
         }
     }
 
-    fun hentHendelserMedSaksnummerOgFnrForSakIdOgType(
+    fun hentEldsteHendelserForSakIdOgTyper(
         sakId: UUID,
-        type: Hendelsestype,
+        typer: List<Hendelsestype>,
         sessionContext: SessionContext? = null,
-    ): Triple<List<PersistertHendelse>, Saksnummer, Fnr> {
-        return dbMetrics.timeQuery("hentHendelserMedSaksnummerOgFnrForSakIdOgType") {
+    ): Pair<List<PersistertHendelse>, Pair<Saksnummer, Fnr>> {
+        return dbMetrics.timeQuery("hentEldsteHendelserForSakIdOgTyper") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
                 val persisterteHendelser = """
-                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
-                    from hendelse
-                    where sakId = :sakId and type = :type
-                    order by versjon
+                select distinct on (type) hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                from hendelse
+                where sakId = :sakId and type = any(:typer)
+                order by type, versjon
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
-                        "type" to type.toString(),
+                        "typer" to typer.map { it.toString() }.toTypedArray(),
                     ),
                     session = session,
                 ) { toPersistertHendelse(it) }
@@ -177,10 +177,9 @@ class HendelsePostgresRepo(
                 val saksnummerOgFnr = """select saksnummer, fnr from sak where id = :sakId""".hent(
                     mapOf("sakId" to sakId),
                     session,
-                ) { Pair(Saksnummer(it.long("saksnummer")), Fnr(it.string("fnr"))) }
+                ) { Pair(Saksnummer(it.long("saksnummer")), Fnr(it.string("fnr"))) }!!
 
-                // tar for god boknafisk at vi alltid har en saknr og fnr :) lol...
-                Triple(persisterteHendelser, saksnummerOgFnr!!.first, saksnummerOgFnr.second)
+                persisterteHendelser to saksnummerOgFnr
             }
         }
     }

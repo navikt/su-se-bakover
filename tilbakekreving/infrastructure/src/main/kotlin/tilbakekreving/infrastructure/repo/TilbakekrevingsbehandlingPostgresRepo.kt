@@ -152,7 +152,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
         sessionContext: SessionContext?,
     ): TilbakekrevingsbehandlingHendelser {
         return sessionFactory.withSessionContext(sessionContext) { openSessionContext ->
-            listOf(
+            val typer = listOf(
                 OpprettetTilbakekrevingsbehandlingHendelsestype,
                 ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
                 VurdertTilbakekrevingsbehandlingHendelsestype,
@@ -163,21 +163,22 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 UnderkjentTilbakekrevingsbehandlingHendelsestype,
                 OppdatertKravgrunnlagPåTilbakekrevingHendelse,
                 NotatTilbakekrevingsbehandlingHendelsestype,
-            ).map {
-                // TODO: hva med å ikke gjøre spørringen for alle typer men bare å returnere en liste med hendelser av typen? saksnummer er unødvendig å hente for alle og det samme er fnr da det er på samme sakid som innsendt.
-                (hendelseRepo as HendelsePostgresRepo)
-                    .hentHendelserMedSaksnummerOgFnrForSakIdOgType(
-                        sakId = sakId,
-                        type = it,
-                        sessionContext = openSessionContext,
-                    ).let {
-                        Triple(
-                            it.first.map { it.toTilbakekrevingsbehandlingHendelse() },
-                            it.second,
-                            it.third,
-                        )
-                    }
-            }.let { tilbakekrevingsHendelser ->
+            )
+
+            val (hendelser, saksnummerOgFnr) = (hendelseRepo as HendelsePostgresRepo)
+                .hentEldsteHendelserForSakIdOgTyper(sakId, typer, openSessionContext)
+
+            val hendelserPerType = hendelser.groupBy { it.type }
+            val resultater = typer.map { type ->
+                val hendelse = hendelserPerType[type]?.firstOrNull()
+                Triple(
+                    hendelse?.let { listOf(it.toTilbakekrevingsbehandlingHendelse()) } ?: emptyList(),
+                    saksnummerOgFnr.first,
+                    saksnummerOgFnr.second,
+                )
+            }
+
+            resultater.let { tilbakekrevingsHendelser ->
                 val saksnummer = tilbakekrevingsHendelser[0].second
                 val fnr = tilbakekrevingsHendelser[0].third
                 val flatMappedHendelser = tilbakekrevingsHendelser.flatMap { it.first }
