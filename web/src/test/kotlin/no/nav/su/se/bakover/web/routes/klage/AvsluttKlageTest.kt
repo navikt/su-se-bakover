@@ -153,7 +153,7 @@ internal class AvsluttKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    serialize(klage.toJson()),
+                    serialize(klage.toJson()).trimIndent(),
                     this.bodyAsText(),
                     true,
                 )
