@@ -178,9 +178,9 @@ class KlageServiceImpl(
     }
 
     override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
-        return request.toDomain().flatMap { r ->
+        return request.toDomain().flatMap { requestAsDomain ->
             (
-                klageRepo.hentKlage(r.klageId)
+                klageRepo.hentKlage(requestAsDomain.klageId)
                     ?.right()
                     ?: FantIkkeKlage.left()
                 )
@@ -190,8 +190,8 @@ class KlageServiceImpl(
                         ?: KunneIkkeVurdereKlage.UgyldigTilstand(it::class).left()
                 }.map {
                     it.vurder(
-                        saksbehandler = r.saksbehandler,
-                        vurderinger = r.vurderinger,
+                        saksbehandler = requestAsDomain.saksbehandler,
+                        vurderinger = requestAsDomain.vurderinger,
                     ).also { vurdertKlage ->
                         klageRepo.lagre(vurdertKlage)
                     }

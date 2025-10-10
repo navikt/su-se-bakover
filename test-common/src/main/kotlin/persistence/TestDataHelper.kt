@@ -1598,6 +1598,7 @@ class TestDataHelper(
                     hjemler = Klagehjemler.Utfylt.create(
                         nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
                     ),
+                    klagenotat = "klagenotat",
                 ),
             ),
         ).let {
