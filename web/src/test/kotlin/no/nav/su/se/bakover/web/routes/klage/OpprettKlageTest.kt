@@ -167,7 +167,7 @@ internal class OpprettKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    serialize(klage.toJson()).trimIndent(),
+                    serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )
