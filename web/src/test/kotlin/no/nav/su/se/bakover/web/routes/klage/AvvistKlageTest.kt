@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -142,41 +143,7 @@ internal class AvvistKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${klage.id}",
-                  "sakid":"${klage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"AVVIST",
-                  "vedtakId":"${klage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen": {
-                    "svar": "NEI",
-                    "begrunnelse": "Innenfor fristen er NEI"
-                  },
-                  "klagesDetPåKonkreteElementerIVedtaket": {
-                    "svar": true,
-                    "begrunnelse": "texkst"
-                  },
-                  "erUnderskrevet": {
-                    "svar": "JA",
-                    "begrunnelse": "underskrevet"
-                  },
-                  "fremsattRettsligKlageinteresse": {
-                    "svar": "JA",
-                    "begrunnelse": "underskrevet"
-                  },
-                  "vedtaksvurdering":null,
-                  "attesteringer":[],
-                  "fritekstTilBrev": "dette er en fritekst med person opplysninger",
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
                 )
