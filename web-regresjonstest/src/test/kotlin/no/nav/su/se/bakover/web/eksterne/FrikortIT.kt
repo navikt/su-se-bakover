@@ -170,6 +170,13 @@ internal class FrikortIT {
                 client = this.client,
                 appComponents = appComponents,
             )
+            opprettIverksattRevurdering(
+                sakid = sakidC,
+                fraogmed = februar(2021).fraOgMed.toString(),
+                tilogmed = februar(2021).tilOgMed.toString(),
+                client = this.client,
+                appComponents = appComponents,
+            )
 
             val result = deserialize<SakerMedVedtakForFrikort>(hentAlle(client = this.client))
             with(result) {
@@ -180,12 +187,17 @@ internal class FrikortIT {
 
                 with(saker[0]) {
                     fnr shouldBe fnrA
-                    vedtak.size shouldBe 1
+                    vedtak.size shouldBe 2
 
                     vedtak[0].fraOgMed shouldBe januar(2021).fraOgMed
                     vedtak[0].tilOgMed shouldBe januar(2021).tilOgMed
-                    vedtak[0].type shouldBe "INNVILGELSE"
+                    vedtak[0].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
                     vedtak[0].opprettet.toLocalDate() shouldBe opprettet
+
+                    vedtak[1].fraOgMed shouldBe januar(2021).fraOgMed
+                    vedtak[1].tilOgMed shouldBe januar(2021).tilOgMed
+                    vedtak[1].type shouldBe "REVURDERING_INNVILGELSE"
+                    vedtak[1].opprettet.toLocalDate() shouldBe opprettet
                 }
 
                 with(saker[1]) {
@@ -194,28 +206,33 @@ internal class FrikortIT {
 
                     vedtak[0].fraOgMed shouldBe januar(2021).fraOgMed
                     vedtak[0].tilOgMed shouldBe februar(2021).tilOgMed
-                    vedtak[0].type shouldBe "INNVILGELSE"
+                    vedtak[0].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
                     vedtak[0].opprettet.toLocalDate() shouldBe opprettet
 
                     vedtak[1].fraOgMed shouldBe april(2021).fraOgMed
                     vedtak[1].tilOgMed shouldBe juni(2021).tilOgMed
-                    vedtak[1].type shouldBe "INNVILGELSE"
+                    vedtak[1].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
                     vedtak[1].opprettet.toLocalDate() shouldBe opprettet
                 }
 
                 with(saker[2]) {
                     fnr shouldBe fnrC
-                    vedtak.size shouldBe 2
+                    vedtak.size shouldBe 3
 
                     vedtak[0].fraOgMed shouldBe februar(2021).fraOgMed
                     vedtak[0].tilOgMed shouldBe februar(2021).tilOgMed
-                    vedtak[0].type shouldBe "INNVILGELSE"
+                    vedtak[0].type shouldBe "SØKNADSBEHANDLING_INNVILGELSE"
                     vedtak[0].opprettet.toLocalDate() shouldBe opprettet
 
                     vedtak[1].fraOgMed shouldBe februar(2021).fraOgMed
                     vedtak[1].tilOgMed shouldBe februar(2021).tilOgMed
-                    vedtak[1].type shouldBe "OPPHØR"
+                    vedtak[1].type shouldBe "REVURDERING_OPPHØR"
                     vedtak[1].opprettet.toLocalDate() shouldBe opprettet
+
+                    vedtak[2].fraOgMed shouldBe februar(2021).fraOgMed
+                    vedtak[2].tilOgMed shouldBe februar(2021).tilOgMed
+                    vedtak[2].type shouldBe "REVURDERING_INNVILGELSE"
+                    vedtak[2].opprettet.toLocalDate() shouldBe opprettet
                 }
             }
         }

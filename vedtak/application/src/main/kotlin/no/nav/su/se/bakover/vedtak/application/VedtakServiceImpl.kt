@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
-import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.innvilgetFraOgMedMåned
 import org.slf4j.LoggerFactory
@@ -95,14 +94,10 @@ class VedtakServiceImpl(
                         VedtakForFrikort(
                             fraOgMed = vedtak.periode.fraOgMed,
                             tilOgMed = vedtak.periode.tilOgMed,
-                            type = when (vedtak.vedtakstype) {
-                                Vedtakstype.SØKNADSBEHANDLING_INNVILGELSE -> "INNVILGELSE"
-                                Vedtakstype.REVURDERING_OPPHØR -> "OPPHØR"
-                                Vedtakstype.REVURDERING_INNVILGELSE -> throw IllegalStateException("Skal ikke returnere revurderinger")
-                            },
+                            type = vedtak.vedtakstype.name,
                             opprettet = vedtak.opprettet.toLocalDateTime(zoneIdOslo),
                         )
-                    },
+                    }.sortedBy { it.opprettet },
                 )
             },
         )

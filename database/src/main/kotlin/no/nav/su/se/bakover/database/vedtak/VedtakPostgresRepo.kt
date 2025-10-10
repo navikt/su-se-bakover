@@ -324,7 +324,7 @@ internal class VedtakPostgresRepo(
                     from vedtak v
                         left join sak s on s.id = v.sakid
                     where
-                        vedtaktype in ('SØKNAD', 'OPPHØR')
+                        vedtaktype in ('SØKNAD', 'OPPHØR', 'ENDRING')
                 """.trimIndent()
                     .hentListe(emptyMap(), session) {
                         it.toVedtaksammendragForSak()
