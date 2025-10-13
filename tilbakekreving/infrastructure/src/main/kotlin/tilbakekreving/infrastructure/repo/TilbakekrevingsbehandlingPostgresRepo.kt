@@ -165,23 +165,14 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 NotatTilbakekrevingsbehandlingHendelsestype,
             )
 
-            val (hendelser, saksnummerOgFnr) = (hendelseRepo as HendelsePostgresRepo)
+            val resultater = (hendelseRepo as HendelsePostgresRepo)
                 .hentEldsteHendelserForSakIdOgTyper(sakId, typer, openSessionContext)
 
-            val hendelserPerType = hendelser.groupBy { it.type }
-            val resultater = typer.map { type ->
-                val hendelse = hendelserPerType[type]?.firstOrNull()
-                Triple(
-                    hendelse?.let { listOf(it.toTilbakekrevingsbehandlingHendelse()) } ?: emptyList(),
-                    saksnummerOgFnr.first,
-                    saksnummerOgFnr.second,
-                )
-            }
-
-            resultater.let { tilbakekrevingsHendelser ->
-                val saksnummer = tilbakekrevingsHendelser[0].second
-                val fnr = tilbakekrevingsHendelser[0].third
-                val flatMappedHendelser = tilbakekrevingsHendelser.flatMap { it.first }
+            resultater.let { (tilbakekrevingsHendelser, sak) ->
+                val saksnummer = sak.first
+                val fnr = sak.second
+                val lol = tilbakekrevingsHendelser.map { it.toTilbakekrevingsbehandlingHendelse() }
+                val flatMappedHendelser = lol
 
                 TilbakekrevingsbehandlingHendelser.create(
                     sakId = sakId,

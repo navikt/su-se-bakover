@@ -162,10 +162,10 @@ class HendelsePostgresRepo(
         return dbMetrics.timeQuery("hentEldsteHendelserForSakIdOgTyper") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
                 val persisterteHendelser = """
-                select distinct on (type) hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
-                from hendelse
-                where sakId = :sakId and type = any(:typer)
-                order by type, versjon
+                    SELECT hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                    FROM hendelse
+                    WHERE sakId = :sakId AND type = ANY(:typer)
+                    ORDER BY versjon
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
