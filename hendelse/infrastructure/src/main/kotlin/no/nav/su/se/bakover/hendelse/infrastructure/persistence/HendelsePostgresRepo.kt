@@ -154,7 +154,7 @@ class HendelsePostgresRepo(
         }
     }
 
-    fun hentEldsteHendelserForSakIdOgTyper(
+    fun hentHendelserMedSaksnummerOgFnrForSakIdOgTyper(
         sakId: UUID,
         typer: List<Hendelsestype>,
         sessionContext: SessionContext? = null,

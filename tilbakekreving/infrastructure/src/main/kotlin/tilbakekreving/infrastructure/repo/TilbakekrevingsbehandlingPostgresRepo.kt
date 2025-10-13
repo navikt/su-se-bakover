@@ -166,13 +166,12 @@ class TilbakekrevingsbehandlingPostgresRepo(
             )
 
             val resultater = (hendelseRepo as HendelsePostgresRepo)
-                .hentEldsteHendelserForSakIdOgTyper(sakId, typer, openSessionContext)
+                .hentHendelserMedSaksnummerOgFnrForSakIdOgTyper(sakId, typer, openSessionContext)
 
             resultater.let { (tilbakekrevingsHendelser, sak) ->
                 val saksnummer = sak.first
                 val fnr = sak.second
-                val lol = tilbakekrevingsHendelser.map { it.toTilbakekrevingsbehandlingHendelse() }
-                val flatMappedHendelser = lol
+                val flatMappedHendelser = tilbakekrevingsHendelser.map { it.toTilbakekrevingsbehandlingHendelse() }
 
                 TilbakekrevingsbehandlingHendelser.create(
                     sakId = sakId,
