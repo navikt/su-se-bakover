@@ -165,7 +165,7 @@ class HendelsePostgresRepo(
                     SELECT hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
                     FROM hendelse
                     WHERE sakId = :sakId AND type = ANY(:typer)
-                    ORDER BY versjon
+                    ORDER BY type, versjon
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
