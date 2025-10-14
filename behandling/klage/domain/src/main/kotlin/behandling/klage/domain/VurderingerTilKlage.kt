@@ -128,10 +128,9 @@ sealed interface VurderingerTilKlage {
             /**
              * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
              */
-            fun createOmgjør(årsak: Årsak?, utfall: Utfall?, begrunnelse: String?): Vedtaksvurdering {
+            fun createOmgjør(årsak: Årsak?, begrunnelse: String?): Vedtaksvurdering {
                 return Påbegynt.Omgjør.create(
                     årsak = årsak,
-                    utfall = utfall,
                     begrunnelse = begrunnelse,
                 )
             }
@@ -147,7 +146,7 @@ sealed interface VurderingerTilKlage {
         }
 
         sealed interface Påbegynt : Vedtaksvurdering {
-            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?, val begrunnelse: String?) : Påbegynt {
+            data class Omgjør private constructor(val årsak: Årsak?, val begrunnelse: String?) : Påbegynt {
 
                 companion object {
                     /**
@@ -157,19 +156,16 @@ sealed interface VurderingerTilKlage {
                      */
                     internal fun create(
                         årsak: Årsak?,
-                        utfall: Utfall?,
                         begrunnelse: String? = null,
                     ): Vedtaksvurdering {
-                        return if (årsak != null && utfall != null) {
+                        return if (årsak != null) {
                             Utfylt.Omgjør(
                                 årsak = årsak,
-                                utfall = utfall,
                                 begrunnelse = begrunnelse,
                             )
                         } else {
                             Omgjør(
                                 årsak = årsak,
-                                utfall = utfall,
                                 begrunnelse = begrunnelse,
                             )
                         }
@@ -181,7 +177,7 @@ sealed interface VurderingerTilKlage {
         }
 
         sealed interface Utfylt : Vedtaksvurdering {
-            data class Omgjør(val årsak: Årsak, val utfall: Utfall, val begrunnelse: String?) : Utfylt
+            data class Omgjør(val årsak: Årsak, val begrunnelse: String?) : Utfylt
             data class Oppretthold(val hjemler: Klagehjemler.Utfylt, val klagenotat: String?) : Utfylt
         }
 
@@ -197,19 +193,6 @@ sealed interface VurderingerTilKlage {
                 fun toDomain(dbValue: String): Årsak {
                     return entries.find { it.name == dbValue }
                         ?: throw IllegalStateException("Ukjent klageårsak i klage-tabellen: $dbValue")
-                }
-            }
-        }
-
-        enum class Utfall {
-            TIL_GUNST,
-            TIL_UGUNST,
-            ;
-
-            companion object {
-                fun toDomain(dbValue: String): Utfall {
-                    return entries.find { it.name == dbValue }
-                        ?: throw IllegalStateException("Ukjent klage utfall i klage-tabellen: $dbValue")
                 }
             }
         }

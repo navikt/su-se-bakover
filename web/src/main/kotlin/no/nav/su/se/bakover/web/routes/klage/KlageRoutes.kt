@@ -226,11 +226,6 @@ internal fun Route.klageRoutes(
                         "kan_ikke_velge_både_omgjør_og_oppretthold",
                     )
 
-                    KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
-                        "Ugyldig omgjøringsutfall",
-                        "ugyldig_omgjøringsutfall",
-                    )
-
                     KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
                         "Ugyldig omgjøringsårsak",
                         "ugyldig_omgjøringsårsak",
@@ -245,7 +240,7 @@ internal fun Route.klageRoutes(
                 }
             }
 
-            data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?)
+            data class Omgjør(val årsak: String?, val begrunnelse: String?)
             data class Oppretthold(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
@@ -263,7 +258,6 @@ internal fun Route.klageRoutes(
                             omgjør = body.omgjør?.let { o ->
                                 KlageVurderingerRequest.Omgjør(
                                     årsak = o.årsak,
-                                    utfall = o.utfall,
                                     begrunnelse = o.begrunnelse,
                                 )
                             },

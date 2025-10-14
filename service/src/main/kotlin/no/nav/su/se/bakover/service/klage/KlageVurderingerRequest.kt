@@ -23,11 +23,10 @@ data class KlageVurderingerRequest(
     private val omgjør: Omgjør?,
     private val oppretthold: Oppretthold?,
 ) {
-    data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?) {
+    data class Omgjør(val årsak: String?, val begrunnelse: String?) {
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                 årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
-                utfall = utfall?.let { utfallToDomain(it) }?.getOrElse { return it.left() },
                 begrunnelse = begrunnelse,
             ).right()
         }
@@ -35,11 +34,6 @@ data class KlageVurderingerRequest(
         private fun årsakToDomain(årsak: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak, VurderingerTilKlage.Vedtaksvurdering.Årsak> {
             val årsak = VurderingerTilKlage.Vedtaksvurdering.Årsak.entries.find { it.name == årsak }
             return årsak?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
-        }
-
-        private fun utfallToDomain(utfall: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall, VurderingerTilKlage.Vedtaksvurdering.Utfall> {
-            val utfall = VurderingerTilKlage.Vedtaksvurdering.Utfall.entries.find { it.name == utfall }
-            return utfall?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
         }
     }
 

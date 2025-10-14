@@ -338,7 +338,6 @@ sealed interface VurdertKlage :
 sealed interface KunneIkkeVurdereKlage {
     data object FantIkkeKlage : KunneIkkeVurdereKlage
     data object UgyldigOmgjøringsårsak : KunneIkkeVurdereKlage
-    data object UgyldigOmgjøringsutfall : KunneIkkeVurdereKlage
     data object UgyldigOpprettholdelseshjemler : KunneIkkeVurdereKlage
     data object KanIkkeVelgeBådeOmgjørOgOppretthold : KunneIkkeVurdereKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVurdereKlage {
