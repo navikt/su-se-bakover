@@ -98,7 +98,8 @@ class IverksettTilbakekrevingService(
                     iverksattBehandling.toTilbakeStatistikkIverksatt(
                         generellSakStatistikk = GenerellSakStatistikk.create(
                             clock = clock,
-                            sakType = sak.type,
+                            sak = sak,
+                            relatertVedtakId = iverksattBehandling.kravgrunnlag.eksternVedtakId,
                         ),
                         ferdigbehandletTid = hendelse.hendelsestidspunkt,
                     ),

@@ -46,6 +46,7 @@ class OpprettTilbakekrevingsbehandlingService(
             log.info("Kunne ikke opprette tilbakekreving. Fant allerede en åpen tilbakekrevingsbehandling for sak $sakId")
             return KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling.left()
         }
+
         return when (val k = sak.uteståendeKravgrunnlag) {
             null -> KunneIkkeOppretteTilbakekrevingsbehandling.IngenUteståendeKravgrunnlag.left()
             else -> opprettTilbakekrevingsbehandling(
@@ -61,8 +62,9 @@ class OpprettTilbakekrevingsbehandlingService(
                     sakStatistikk.lagreSakStatistikk(
                         opprettetBehandling.toTilbakeStatistikkOpprettet(
                             GenerellSakStatistikk.create(
-                                sakType = sak.type,
                                 clock = clock,
+                                sak = sak,
+                                relatertVedtakId = k.eksternVedtakId,
                             ),
                         ),
                         sessionContext = tx,

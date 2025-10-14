@@ -153,6 +153,8 @@ data class Sak(
         data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata
     }
 
+    fun finnBehandlingTilVedtak(vedtakId: UUID) = vedtakListe.find { it.id == vedtakId }?.behandling
+
     /**
      * Lager et snapshot av gjeldende vedtaksdata slik de så ut før vedtaket angitt av [vedtakId] ble
      * iverksatt. Perioden for dataene begrenses til vedtaksperioden for [vedtakId].

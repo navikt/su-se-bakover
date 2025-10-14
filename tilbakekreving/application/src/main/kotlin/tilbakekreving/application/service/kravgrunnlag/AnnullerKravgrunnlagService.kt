@@ -121,7 +121,8 @@ class AnnullerKravgrunnlagService(
                         it.toTilbakeStatistikkAnnuller(
                             GenerellSakStatistikk.create(
                                 clock = clock,
-                                sakType = sak.type,
+                                sak = sak,
+                                relatertVedtakId = avbruttBehandling.kravgrunnlag.eksternVedtakId,
                             ),
                         ),
                         tx,

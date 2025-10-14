@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.Sak
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.Tilbakekrevingsbehandling
@@ -82,12 +83,13 @@ data class GenerellSakStatistikk(
     companion object {
         fun create(
             clock: Clock,
-            sakType: Sakstype,
-            relatertId: UUID? = null,
+            sak: Sak,
+            relatertVedtakId: String,
         ) = GenerellSakStatistikk(
-            sakType = sakType,
+            sakType = sak.type,
             tekniskTid = Tidspunkt.now(clock),
-            relatertId = relatertId,
+            // TODO er eksternVedtakId UUID hos oppdrag eller sender vi et løpenummer?????
+            relatertId = sak.finnBehandlingTilVedtak(UUID.fromString(relatertVedtakId))?.id?.value,
         )
     }
 }
