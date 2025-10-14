@@ -99,15 +99,6 @@ internal class VurderKlageTest {
     }
 
     @Test
-    fun `ugyldig omgjøringsutfall`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall,
-            status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Ugyldig omgjøringsutfall\",\"code\":\"ugyldig_omgjøringsutfall\"}",
-        )
-    }
-
-    @Test
     fun `ugyldig opprettholdelseshjemler`() {
         verifiserFeilkode(
             feilkode = KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler,

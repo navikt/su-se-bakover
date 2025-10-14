@@ -62,25 +62,11 @@ internal class VurderKlageTest {
             klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null, null),
+            omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null),
             oppretthold = null,
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
 
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `ugyldig omgjøringsutfall`() {
-        val mocks = KlageServiceMocks()
-        val request = KlageVurderingerRequest(
-            klageId = KlageId.generer(),
-            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør(null, "UGYLDIG_OMGJØRINGSUTFALL", "Skal lagre begrunnelse"),
-            oppretthold = null,
-        )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
         mocks.verifyNoMoreInteractions()
     }
 
@@ -107,7 +93,6 @@ internal class VurderKlageTest {
             fritekstTilBrev = null,
             omgjør = KlageVurderingerRequest.Omgjør(
                 årsak = null,
-                utfall = null,
                 begrunnelse = null,
             ),
             oppretthold = Oppretthold(

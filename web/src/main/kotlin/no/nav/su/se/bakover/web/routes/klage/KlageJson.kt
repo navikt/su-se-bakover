@@ -68,7 +68,6 @@ internal data class KlageJson(
 
         data class OmgjørJson(
             val årsak: String?,
-            val utfall: String?,
             val begrunnelse: String?,
         )
 
@@ -84,7 +83,6 @@ internal data class KlageJson(
                         type = Type.OMGJØR.toString(),
                         omgjør = OmgjørJson(
                             årsak = årsak?.name,
-                            utfall = utfall?.name,
                             begrunnelse = begrunnelse,
                         ),
                         oppretthold = null,
@@ -103,7 +101,6 @@ internal data class KlageJson(
                         type = Type.OMGJØR.toString(),
                         omgjør = OmgjørJson(
                             årsak = årsak.name,
-                            utfall = utfall.name,
                             begrunnelse = begrunnelse,
                         ),
                         oppretthold = null,
