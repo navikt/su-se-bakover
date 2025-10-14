@@ -4,9 +4,11 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.toTilbakeStatistikkIverksatt
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
@@ -19,6 +21,7 @@ import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class IverksettTilbakekrevingService(
+    private val sessionFactory: SessionFactory,
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val clock: Clock,
@@ -70,25 +73,35 @@ class IverksettTilbakekrevingService(
          * TODO tilbakekreving: At least once idempotency - det kan være slik at sending av vedtak til oppdrag går fint, men vi får ikke persistert hendelsen.
          *   Vi må finne ut hva slags feilmelding oppdrag sender oss når vi sender samme vedtak to ganger og persistere hendelsen når dette skjer.
          */
-        return iverksettelse.let {
+        return iverksettelse.let { (hendelse, iverksattBehandling) ->
             val tilbakekrevingsvedtakForsendelse = tilbakekrevingsklient.sendTilbakekrevingsvedtak(
-                vurderingerMedKrav = behandling.vurderingerMedKrav,
+                vurderingerMedKrav = iverksattBehandling.vurderingerMedKrav,
                 attestertAv = command.utførtAv,
             ).getOrElse {
                 return KunneIkkeIverksette.KunneIkkeSendeTilbakekrevingsvedtak.left()
             }
             // ved lagring av iverksett hendelsen, skal en jobb starte brev løpet
-            tilbakekrevingsbehandlingRepo.lagreIverksattTilbakekrevingshendelse(
-                it.first,
-                IverksattHendelseMetadata(
-                    correlationId = command.correlationId,
-                    ident = command.utførtAv,
-                    brukerroller = command.brukerroller,
-                    tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse,
-                ),
-            )
-            sakStatistikkRepo.lagreTilbakekrevingStatistikk()
-            it.second.right()
+
+            sessionFactory.withTransactionContext { tx ->
+                tilbakekrevingsbehandlingRepo.lagreIverksattTilbakekrevingshendelse(
+                    hendelse,
+                    IverksattHendelseMetadata(
+                        correlationId = command.correlationId,
+                        ident = command.utførtAv,
+                        brukerroller = command.brukerroller,
+                        tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse,
+                    ),
+                    tx,
+                )
+                sakStatistikkRepo.lagreSakStatistikk(
+                    iverksattBehandling.toTilbakeStatistikkIverksatt(
+                        clock = clock,
+                        ferdigbehandletTid = hendelse.hendelsestidspunkt,
+                    ),
+                    tx,
+                )
+                iverksattBehandling.right()
+            }
         }
     }
 }

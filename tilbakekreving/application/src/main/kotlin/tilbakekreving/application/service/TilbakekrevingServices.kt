@@ -108,6 +108,7 @@ class TilbakekrevingServices(
                     clock = clock,
                 ),
                 opprettTilbakekrevingsbehandlingService = OpprettTilbakekrevingsbehandlingService(
+                    sessionFactory = sessionFactory,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     tilgangstyring = tilgangstyringService,
                     clock = clock,
@@ -148,6 +149,7 @@ class TilbakekrevingServices(
                     clock = clock,
                 ),
                 tilbakekrevingsbehandlingTilAttesteringService = TilbakekrevingsbehandlingTilAttesteringService(
+                    sessionFactory = sessionFactory,
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     clock = clock,
@@ -158,6 +160,7 @@ class TilbakekrevingServices(
                     dokumentHendelseRepo = dokumentHendelseRepo,
                 ),
                 underkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
+                    sessionFactory = sessionFactory,
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     clock = clock,
@@ -166,6 +169,7 @@ class TilbakekrevingServices(
                 ),
 
                 iverksettTilbakekrevingService = IverksettTilbakekrevingService(
+                    sessionFactory = sessionFactory,
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     clock = clock,
@@ -174,10 +178,12 @@ class TilbakekrevingServices(
                     sakStatistikkRepo = sakStatistikkRepo,
                 ),
                 avbrytTilbakekrevingsbehandlingService = AvbrytTilbakekrevingsbehandlingService(
+                    sessionFactory = sessionFactory,
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     clock = clock,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    sakStatistikkRepo = sakStatistikkRepo,
                 ),
                 lukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
                     sakService = sakService,
@@ -225,6 +231,7 @@ class TilbakekrevingServices(
                     kravgrunnlagRepo = kravgrunnlagRepo,
                     tilbakekrevingsklient = tilbakekrevingsklient,
                     sessionFactory = sessionFactory,
+                    sakStatistikkRepo = sakStatistikkRepo,
                     clock = clock,
                 ),
             )

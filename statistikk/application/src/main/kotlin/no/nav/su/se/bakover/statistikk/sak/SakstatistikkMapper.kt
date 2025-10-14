@@ -4,6 +4,8 @@ import behandling.domain.Behandling
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -13,8 +15,6 @@ import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.statistikk.behandling.Behandlingstype
 import no.nav.su.se.bakover.statistikk.behandling.klage.toResultatBegrunnelse
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingResultat
-import statistikk.domain.BehandlingMetode
-import statistikk.domain.SakStatistikk
 import vilkår.common.domain.Avslagsgrunn
 import java.time.Clock
 import java.time.LocalDate

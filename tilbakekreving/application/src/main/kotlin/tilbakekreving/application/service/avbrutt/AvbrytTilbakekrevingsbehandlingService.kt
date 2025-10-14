@@ -4,8 +4,11 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.toTilbakeStatistikkAvbryt
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.KanEndres
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
@@ -16,10 +19,12 @@ import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class AvbrytTilbakekrevingsbehandlingService(
+    private val sessionFactory: SessionFactory,
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -47,9 +52,12 @@ class AvbrytTilbakekrevingsbehandlingService(
             clock = clock,
             utførtAv = command.utførtAv,
             begrunnelse = command.begrunnelse,
-        ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first, command.defaultHendelseMetadata())
-            it.second.right()
+        ).let { (hendelse, avbruttBehandling) ->
+            sessionFactory.withTransactionContext { tx ->
+                tilbakekrevingsbehandlingRepo.lagre(hendelse, command.defaultHendelseMetadata(), tx)
+                sakStatistikkRepo.lagreSakStatistikk(avbruttBehandling.toTilbakeStatistikkAvbryt(clock), tx)
+                avbruttBehandling.right()
+            }
         }
     }
 }

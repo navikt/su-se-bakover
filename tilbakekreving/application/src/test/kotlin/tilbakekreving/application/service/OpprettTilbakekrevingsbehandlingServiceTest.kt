@@ -118,6 +118,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 sakService = sakService,
                 clock = clock,
                 sakStatistikk = sakStatistikkRepo,
+                sessionFactory = TestSessionFactory(),
             )
 
         fun verifyNoMoreInteractions() {

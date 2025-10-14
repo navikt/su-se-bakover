@@ -4,9 +4,11 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.toTilbakeStatistikkTilAttestering
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
@@ -17,6 +19,7 @@ import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class TilbakekrevingsbehandlingTilAttesteringService(
+    private val sessionFactory: SessionFactory,
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val clock: Clock,
@@ -56,10 +59,12 @@ class TilbakekrevingsbehandlingTilAttesteringService(
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
             utførtAv = command.utførtAv,
-        ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it, command.defaultHendelseMetadata())
-            sakStatistikkRepo.lagreTilbakekrevingStatistikk()
-            it.applyToState(behandling).right()
+        ).let { hendelse ->
+            sessionFactory.withTransactionContext { tx ->
+                tilbakekrevingsbehandlingRepo.lagre(hendelse, command.defaultHendelseMetadata(), tx)
+                sakStatistikkRepo.lagreSakStatistikk(behandling.toTilbakeStatistikkTilAttestering(clock), tx)
+                hendelse.applyToState(behandling).right()
+            }
         }
     }
 }
