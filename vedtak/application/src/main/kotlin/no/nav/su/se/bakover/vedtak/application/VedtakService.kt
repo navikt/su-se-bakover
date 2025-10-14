@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
@@ -37,6 +38,13 @@ interface VedtakService {
      * Merk at skjermede personer kan inkluderes i resultatsettet, men vi inkluderer ikke annen persondata enn selve fødselsnummeret.
      */
     fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned
+
+    /**
+     * Tiltenkt frikort
+     * Henter alle saker som på et tidspunkt har hatt en innvilget periode.
+     */
+    fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort
+
     fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr>
     fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext? = null): VedtakSomKanRevurderes?
     fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>

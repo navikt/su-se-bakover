@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -136,9 +137,9 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `kan vilkårsvurdere klage`() {
-        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage().second
+        val klage = påbegyntVilkårsvurdertKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { vilkårsvurder(any()) } doReturn påbegyntVilkårsvurdertKlage.right()
+            on { vilkårsvurder(any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -154,29 +155,7 @@ internal class VilkårsvurderKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${påbegyntVilkårsvurdertKlage.id}",
-                  "sakid":"${påbegyntVilkårsvurdertKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"VILKÅRSVURDERT_PÅBEGYNT",
-                  "vedtakId":null,
-                  "innenforFristen":null,
-                  "klagesDetPåKonkreteElementerIVedtaket":null,
-                  "erUnderskrevet":null,
-                  "fritekstTilBrev":null,
-                  "fremsattRettsligKlageinteresse":null,
-                  "vedtaksvurdering":null,
-                  "attesteringer":[],
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )

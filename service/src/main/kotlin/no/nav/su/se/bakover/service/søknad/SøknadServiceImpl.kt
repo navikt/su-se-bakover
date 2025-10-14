@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -48,6 +50,7 @@ class SøknadServiceImpl(
     private val oppgaveService: OppgaveService,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -141,13 +144,14 @@ class SøknadServiceImpl(
                 clock = clock,
                 saksbehandler = null,
             ).map { (_, uavklartSøknadsbehandling) ->
-                søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
-                observers.forEach { observer ->
-                    observer.handle(
+                sessionFactory.withTransactionContext { tx ->
+                    søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
+                    observers.notify(
                         StatistikkEvent.Behandling.Søknad.Opprettet(
                             uavklartSøknadsbehandling,
                             uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
                         ),
+                        tx,
                     )
                 }
             }

@@ -96,6 +96,7 @@ data object ServiceBuilder {
             oppgaveService = oppgaveService,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply {
             addObserver(statistikkEventObserver)
         }

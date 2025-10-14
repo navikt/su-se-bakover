@@ -51,6 +51,15 @@ internal fun Route.frikortVedtakRoutes(
             ),
         )
     }
+    get("$FRIKORT_PATH/alle") {
+        val saker = vedtakService.hentAlleSakerMedInnvilgetVedtak()
+        call.svar(
+            Resultat.json(
+                HttpStatusCode.OK,
+                serialize(saker),
+            ),
+        )
+    }
 }
 
 private data class JsonResponse(

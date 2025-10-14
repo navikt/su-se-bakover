@@ -62,25 +62,11 @@ internal class VurderKlageTest {
             klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null, null),
+            omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null),
             oppretthold = null,
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
 
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `ugyldig omgjøringsutfall`() {
-        val mocks = KlageServiceMocks()
-        val request = KlageVurderingerRequest(
-            klageId = KlageId.generer(),
-            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør(null, "UGYLDIG_OMGJØRINGSUTFALL", "Skal lagre begrunnelse"),
-            oppretthold = null,
-        )
-        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
         mocks.verifyNoMoreInteractions()
     }
 
@@ -92,7 +78,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = null,
-            oppretthold = Oppretthold(listOf("UGYLDIG_HJEMMEL")),
+            oppretthold = Oppretthold(listOf("UGYLDIG_HJEMMEL"), klagenotat = null),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
         mocks.verifyNoMoreInteractions()
@@ -107,11 +93,11 @@ internal class VurderKlageTest {
             fritekstTilBrev = null,
             omgjør = KlageVurderingerRequest.Omgjør(
                 årsak = null,
-                utfall = null,
                 begrunnelse = null,
             ),
             oppretthold = Oppretthold(
                 hjemler = listOf(),
+                klagenotat = null,
             ),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
@@ -200,7 +186,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = null,
-            oppretthold = Oppretthold(hjemler.map { it.name }),
+            oppretthold = Oppretthold(hjemler.map { it.name }, klagenotat = "klagenotat"),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigTilstand(
             klage::class,
@@ -312,13 +298,13 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             fritekstTilBrev = "fritekstTilBrev",
             omgjør = null,
-            oppretthold = Oppretthold(listOf("SU_PARAGRAF_3")),
+            oppretthold = Oppretthold(listOf("SU_PARAGRAF_3"), klagenotat = "klagenotat"),
         )
         mocks.service.vurder(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
             it.vurderinger shouldBe VurderingerTilKlage.UtfyltOppretthold(
                 fritekstTilOversendelsesbrev = "fritekstTilBrev",
-                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(listOf(Hjemmel.SU_PARAGRAF_3))
+                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(listOf(Hjemmel.SU_PARAGRAF_3), klagenotat = "klagenotat")
                     .getOrFail() as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold,
             )
         }

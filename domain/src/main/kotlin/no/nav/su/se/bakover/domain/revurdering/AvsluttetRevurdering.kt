@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.Opphørsgrunn
+import beregning.domain.Beregning
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.Avbrutt
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -16,8 +18,47 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
+
+sealed interface AvsluttetRevurderingI :
+    Revurdering,
+    Avbrutt {
+    override val saksbehandler: NavIdentBruker.Saksbehandler
+    override val revurderingsårsak: Revurderingsårsak
+    override val omgjøringsgrunn: Omgjøringsgrunn?
+    override val informasjonSomRevurderes: InformasjonSomRevurderes
+    override val erOpphørt: Boolean
+    override val beregning: Beregning?
+    override val simulering: Simulering?
+    override val oppgaveId: OppgaveId
+    override val attesteringer: Attesteringshistorikk
+    override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis
+    override val sakinfo: SakInfo
+    override val oppdatert: Tidspunkt
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
+
+    override fun skalSendeVedtaksbrev(): Boolean
+
+    override fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn>
+
+    override val id: RevurderingId
+    override val tilRevurdering: UUID
+
+    override fun erÅpen(): Boolean
+
+    override val brevvalgRevurdering: BrevvalgRevurdering
+    override val opprettet: Tidspunkt
+    override val periode: Periode
+
+    override fun erAvsluttet(): Boolean
+
+    override fun erAvbrutt(): Boolean
+
+    override val avsluttetTidspunkt: Tidspunkt
+    override val avsluttetAv: NavIdentBruker?
+}
 
 data class AvsluttetRevurdering private constructor(
     val underliggendeRevurdering: Revurdering,
@@ -27,8 +68,7 @@ data class AvsluttetRevurdering private constructor(
     override val avsluttetTidspunkt: Tidspunkt,
     override val avsluttetAv: NavIdentBruker?,
     override val omgjøringsgrunn: Omgjøringsgrunn? = null,
-) : Revurdering,
-    Avbrutt {
+) : AvsluttetRevurderingI {
 
     override val id: RevurderingId = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet

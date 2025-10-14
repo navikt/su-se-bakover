@@ -9,10 +9,10 @@ import java.util.UUID
 sealed interface FormkravTilKlage {
 
     val vedtakId: UUID?
-    val innenforFristen: Svarord?
-    val klagesDetPåKonkreteElementerIVedtaket: Boolean?
-    val erUnderskrevet: Svarord?
-    val fremsattRettsligKlageinteresse: Svarord?
+    val innenforFristen: SvarMedBegrunnelse?
+    val klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?
+    val erUnderskrevet: SvarMedBegrunnelse?
+    val fremsattRettsligKlageinteresse: SvarMedBegrunnelse?
 
     enum class Svarord {
         JA,
@@ -20,14 +20,28 @@ sealed interface FormkravTilKlage {
         NEI,
     }
 
+    data class SvarMedBegrunnelse(
+        val svar: Svarord,
+        val begrunnelse: String? = null,
+    ) {
+        override fun toString() = this.svar.toString()
+    }
+
+    data class BooleanMedBegrunnelse(
+        val svar: Boolean,
+        val begrunnelse: String? = null,
+    ) {
+        override fun toString() = this.svar.toString()
+    }
+
     /**
      * Denne styrer om vi kommer til avvisningbildet i klageflyten og baserer seg på alle formkravene
      */
     fun erAvvist(): Boolean {
-        return this.klagesDetPåKonkreteElementerIVedtaket == false ||
-            this.innenforFristen == Svarord.NEI ||
-            this.erUnderskrevet == Svarord.NEI ||
-            this.fremsattRettsligKlageinteresse == Svarord.NEI
+        return this.klagesDetPåKonkreteElementerIVedtaket?.svar == false ||
+            this.innenforFristen?.svar == Svarord.NEI ||
+            this.erUnderskrevet?.svar == Svarord.NEI ||
+            this.fremsattRettsligKlageinteresse?.svar == Svarord.NEI
     }
 
     /**
@@ -35,10 +49,10 @@ sealed interface FormkravTilKlage {
      */
     data class Påbegynt private constructor(
         override val vedtakId: UUID?,
-        override val innenforFristen: Svarord?,
-        override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-        override val erUnderskrevet: Svarord?,
-        override val fremsattRettsligKlageinteresse: Svarord?,
+        override val innenforFristen: SvarMedBegrunnelse?,
+        override val klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
+        override val erUnderskrevet: SvarMedBegrunnelse?,
+        override val fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
     ) : FormkravTilKlage {
         companion object {
 
@@ -59,10 +73,10 @@ sealed interface FormkravTilKlage {
              */
             internal fun create(
                 vedtakId: UUID?,
-                innenforFristen: Svarord?,
-                klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-                erUnderskrevet: Svarord?,
-                fremsattRettsligKlageinteresse: Svarord?,
+                innenforFristen: SvarMedBegrunnelse?,
+                klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
+                erUnderskrevet: SvarMedBegrunnelse?,
+                fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
             ): FormkravTilKlage {
                 // TODO: SOS: legg ikke fremsattRettsligKlageinteresse == null Når dagens klager er ferdigbehandlet. Er påkrevd i frontend for nye enn så lenge.
                 val erFerdigutfylt = vedtakId == null ||
@@ -93,10 +107,10 @@ sealed interface FormkravTilKlage {
 
     data class Utfylt(
         override val vedtakId: UUID,
-        override val innenforFristen: Svarord,
-        override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
-        override val erUnderskrevet: Svarord,
-        override val fremsattRettsligKlageinteresse: Svarord?,
+        override val innenforFristen: SvarMedBegrunnelse,
+        override val klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse,
+        override val erUnderskrevet: SvarMedBegrunnelse,
+        override val fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
     ) : FormkravTilKlage
 
     companion object {
@@ -107,10 +121,10 @@ sealed interface FormkravTilKlage {
 
         private fun createUtfyltOnly(
             vedtakId: UUID,
-            innenforFristen: Svarord,
-            klagesDetPåKonkreteElementerIVedtaket: Boolean,
-            erUnderskrevet: Svarord,
-            fremsattRettsligKlageinteresse: Svarord?,
+            innenforFristen: SvarMedBegrunnelse,
+            klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse,
+            erUnderskrevet: SvarMedBegrunnelse,
+            fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
         ): FormkravTilKlage {
             return Utfylt(
                 vedtakId = vedtakId,
@@ -126,10 +140,10 @@ sealed interface FormkravTilKlage {
          */
         fun create(
             vedtakId: UUID?,
-            innenforFristen: Svarord?,
-            klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-            erUnderskrevet: Svarord?,
-            fremsattRettsligKlageinteresse: Svarord?,
+            innenforFristen: SvarMedBegrunnelse?,
+            klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
+            erUnderskrevet: SvarMedBegrunnelse?,
+            fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
         ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,

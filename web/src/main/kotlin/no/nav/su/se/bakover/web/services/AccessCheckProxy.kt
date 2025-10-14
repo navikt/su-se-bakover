@@ -153,8 +153,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
@@ -163,6 +163,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilV
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -1049,6 +1050,10 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentInnvilgetFnrForMåned(måned)
                 }
 
+                override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
+                    return services.vedtakService.hentAlleSakerMedInnvilgetVedtak()
+                }
+
                 override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
                     return services.vedtakService.hentInnvilgetFnrFraOgMedMåned(måned, inkluderEps)
                 }
@@ -1085,12 +1090,12 @@ open class AccessCheckProxy(
                 }
             },
             avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
-                override fun avslå(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Sak> {
+                override fun avslå(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, Sak> {
                     assertHarTilgangTilSøknad(command.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(command)
                 }
 
-                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
+                override fun genererBrevForhåndsvisning(command: AvslagSøknadCmd): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
                     assertHarTilgangTilSøknad(command.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(command)
                 }

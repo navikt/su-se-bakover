@@ -36,4 +36,6 @@ interface SessionFactory {
 
     /** Lager en ny context - starter ikke sesjonen. */
     fun newTransactionContext(): TransactionContext
+
+    fun close()
 }

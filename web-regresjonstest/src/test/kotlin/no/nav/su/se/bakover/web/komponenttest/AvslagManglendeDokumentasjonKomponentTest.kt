@@ -14,13 +14,12 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppstartRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -58,7 +57,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             )
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekstTilBrev = "Du må svare i telefonen",
@@ -143,7 +142,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             )
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekstTilBrev = "Du må svare i telefonen",

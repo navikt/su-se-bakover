@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common.infrastructure.persistence
 
+import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -125,6 +126,18 @@ class PostgresSessionFactory(
             it.withTransaction {
                 action(it)
             }
+        }
+    }
+
+    /*
+        TODO: datasource her burde vært en HikariDataSource men siden
+        testene bruker denne og mange av repoklassene bruker denne og ikke testklassen ble det for mye å skrive om
+     */
+    override fun close() {
+        if (dataSource is HikariDataSource) {
+            dataSource.close()
+        } else {
+            throw IllegalStateException("DataSource is not a HikariDataSource: ${dataSource::class.qualifiedName}")
         }
     }
 }

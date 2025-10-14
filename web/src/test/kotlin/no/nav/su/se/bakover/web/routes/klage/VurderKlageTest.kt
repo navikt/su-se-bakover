@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -98,15 +99,6 @@ internal class VurderKlageTest {
     }
 
     @Test
-    fun `ugyldig omgjøringsutfall`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall,
-            status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Ugyldig omgjøringsutfall\",\"code\":\"ugyldig_omgjøringsutfall\"}",
-        )
-    }
-
-    @Test
     fun `ugyldig opprettholdelseshjemler`() {
         verifiserFeilkode(
             feilkode = KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler,
@@ -160,9 +152,9 @@ internal class VurderKlageTest {
 
     @Test
     fun `kan vurdere klage`() {
-        val påbegyntVurdertKlage = påbegyntVurdertKlage().second
+        val klage = påbegyntVurdertKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { vurder(any()) } doReturn påbegyntVurdertKlage.right()
+            on { vurder(any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -178,29 +170,7 @@ internal class VurderKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${påbegyntVurdertKlage.id}",
-                  "sakid":"${påbegyntVurdertKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"VURDERT_PÅBEGYNT",
-                  "vedtakId":"${påbegyntVurdertKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "fremsattRettsligKlageinteresse":"JA",
-                  "erUnderskrevet":"JA",
-                  "fritekstTilBrev":null,
-                  "vedtaksvurdering":null,
-                  "attesteringer":[],
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )

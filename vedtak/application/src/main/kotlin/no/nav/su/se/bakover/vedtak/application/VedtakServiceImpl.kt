@@ -6,6 +6,7 @@ import arrow.core.left
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -27,6 +28,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
+import no.nav.su.se.bakover.domain.vedtak.SakMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.VedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
@@ -78,6 +82,33 @@ class VedtakServiceImpl(
 
     override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
         return vedtakRepo.hentForMåned(måned).innvilgetForMåned(måned)
+    }
+
+    override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
+        val vedtakPerSak = vedtakRepo.hentAlleInnvilgelserOgOpphør()
+
+        val vedtakForFrikort = vedtakPerSak.groupBy { it.fødselsnummer }.mapValues {
+            // Kan være to saker for et fødselsnummer hvis bruker har hatt både uføre og alder
+            val vedtakPåTversAvYtelser = it.value.flatMap {
+                it.vedtak.map {
+                    VedtakForFrikort(
+                        fraOgMed = it.periode.fraOgMed,
+                        tilOgMed = it.periode.tilOgMed,
+                        type = it.vedtakstype.name,
+                        sakstype = it.sakstype.value,
+                        opprettet = it.opprettet.toLocalDateTime(zoneIdOslo),
+                    )
+                }
+            }.sortedBy { it.opprettet }
+            SakMedVedtakForFrikort(
+                fnr = it.key.toString(),
+                vedtak = vedtakPåTversAvYtelser,
+            )
+        }.values.toList()
+
+        return SakerMedVedtakForFrikort(
+            saker = vedtakForFrikort,
+        )
     }
 
     override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
@@ -161,11 +192,13 @@ class VedtakServiceImpl(
                                 return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                             }
                         }
+
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
                             return KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt.left()
                         }
                     }
                 }
+
                 else -> {
                     log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen.")
                     return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()

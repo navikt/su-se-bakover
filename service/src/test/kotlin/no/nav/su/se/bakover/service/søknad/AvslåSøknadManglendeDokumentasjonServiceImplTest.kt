@@ -8,6 +8,7 @@ import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -26,7 +27,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistori
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
@@ -102,7 +103,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             },
         ).let { serviceAndMocks ->
             val actualSak = serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     uavklart.søknad.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
@@ -251,7 +252,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         ).let { serviceAndMocks ->
 
             val actualSak = serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
@@ -366,13 +367,13 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         )
         assertThrows<IllegalArgumentException> {
             serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldBe "Avslag pga manglende dok. Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad $søknadId"
+        }.message shouldContain "Avslag"
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }

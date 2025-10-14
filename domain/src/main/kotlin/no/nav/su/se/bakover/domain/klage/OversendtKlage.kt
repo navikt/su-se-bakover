@@ -24,6 +24,10 @@ data class OversendtKlage(
     val behandlingId: UUID? = null,
 ) : Klage,
     VurdertKlage.UtfyltFelter by forrigeSteg {
+    /*
+        TODO: VurdertKlage.UtfyltFelter er egentlig ikke godt nok for denne klasse og misvisende
+        Den åpner den for omgjøring, men da sender vi ikke over noen klager. Sees på når avvisning og delvis omgjøring kommer inn.
+     */
 
     val fritekstTilVedtaksbrev
         get() = getFritekstTilBrev().getOrElse {
@@ -35,6 +39,26 @@ data class OversendtKlage(
      * Men for saksbehandlerene i førsteinstansen vil den bli ansett som ferdigbehandlet inntil den eventuelt kommer i retur av forskjellige årsaker.
      */
     override fun erÅpen() = false
+
+    fun genererKommentar(): String {
+        val formkrav = this.vilkårsvurderinger
+        val klagenotat = when (val vedtaksvurdering = this.vurderinger.vedtaksvurdering) {
+            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> null
+            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> vedtaksvurdering.klagenotat
+        }
+
+        return buildString {
+            append(formkrav.erUnderskrevet.begrunnelse.orEmpty())
+            append(formkrav.fremsattRettsligKlageinteresse?.begrunnelse.orEmpty())
+            append(formkrav.innenforFristen.begrunnelse.orEmpty())
+            append(formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse.orEmpty())
+
+            if (!klagenotat.isNullOrBlank()) {
+                appendLine()
+                append(klagenotat)
+            }
+        }
+    }
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return when (val vurderinger = vurderinger) {

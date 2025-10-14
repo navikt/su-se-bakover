@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -186,9 +187,9 @@ internal class OversendKlageTest {
 
     @Test
     fun `kan iverksette klage`() {
-        val oversendtKlage = oversendtKlage().second
+        val klage = oversendtKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { oversend(any(), any(), any()) } doReturn oversendtKlage.right()
+            on { oversend(any(), any(), any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -202,44 +203,7 @@ internal class OversendKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${oversendtKlage.id}",
-                  "sakid":"${oversendtKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:04.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"OVERSENDT",
-                  "vedtakId":"${oversendtKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"JA",
-                  "fritekstTilBrev":"fritekstTilBrev",
-                  "vedtaksvurdering":{
-                    "type":"OPPRETTHOLD",
-                    "omgjør":null,
-                    "oppretthold":{
-                      "hjemler":[
-                        "SU_PARAGRAF_3",
-                        "SU_PARAGRAF_4"
-                      ]
-                    }
-                  },
-                  "attesteringer":[
-                    {
-                      "attestant":"attestant",
-                      "underkjennelse":null,
-                      "opprettet":"2021-02-01T01:02:04.456789Z"
-                    }
-                  ],
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_IKKE_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )

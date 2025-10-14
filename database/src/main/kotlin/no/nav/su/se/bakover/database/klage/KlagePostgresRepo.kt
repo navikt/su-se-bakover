@@ -114,9 +114,13 @@ internal class KlagePostgresRepo(
                 attestering = to_jsonb(:attestering::jsonb),
                 vedtakId=:vedtakId,
                 innenforFristen=:innenforFristen,
+                innenforFristen_begrunnelse=:innenforFristen_begrunnelse,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
+                klagesDetPaaKonkreteElementerIVedtaket_begrunnelse=:klagesDetPaaKonkreteElementerIVedtaket_begrunnelse,
                 erUnderskrevet=:erUnderskrevet,
-                fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse
+                erUnderskrevet_begrunnelse=:erUnderskrevet_begrunnelse,
+                fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse,
+                fremsattrettsligklageinteresse_begrunnelse=:fremsattrettsligklageinteresse_begrunnelse
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -127,10 +131,14 @@ internal class KlagePostgresRepo(
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
-                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
-                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
-                    "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
+                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.svar?.tilDatabaseType(),
+                    "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen?.begrunnelse,
+                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket?.svar,
+                    "klagesDetPaaKonkreteElementerIVedtaket_begrunnelse" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
+                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.svar?.tilDatabaseType(),
+                    "erUnderskrevet_begrunnelse" to klage.vilkårsvurderinger.erUnderskrevet?.begrunnelse,
+                    "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.svar?.tilDatabaseType(),
+                    "fremsattrettsligklageinteresse_begrunnelse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.begrunnelse,
                 ),
                 session,
             )
@@ -145,10 +153,14 @@ internal class KlagePostgresRepo(
                 attestering=to_jsonb(:attestering::jsonb),
                 vedtakId=:vedtakId,
                 innenforFristen=:innenforFristen,
+                innenforFristen_begrunnelse=:innenforFristen_begrunnelse,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
+                klagesDetPaaKonkreteElementerIVedtaket_begrunnelse=:klagesDetPaaKonkreteElementerIVedtaket_begrunnelse,
                 erUnderskrevet=:erUnderskrevet,
                 fritekstTilBrev=:fritekstTilBrev,
+                erUnderskrevet_begrunnelse=:erUnderskrevet_begrunnelse,
                 fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse,
+                fremsattrettsligklageinteresse_begrunnelse=:fremsattrettsligklageinteresse_begrunnelse,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
         """.trimIndent()
@@ -159,11 +171,15 @@ internal class KlagePostgresRepo(
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.tilDatabaseType(),
-                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
-                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.tilDatabaseType(),
-                    "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.tilDatabaseType(),
                     "fritekstTilBrev" to klage.fritekstTilBrev,
+                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.svar.tilDatabaseType(),
+                    "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen.begrunnelse,
+                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.svar,
+                    "klagesDetPaaKonkreteElementerIVedtaket_begrunnelse" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.begrunnelse,
+                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet.svar.tilDatabaseType(),
+                    "erUnderskrevet_begrunnelse" to klage.vilkårsvurderinger.erUnderskrevet.begrunnelse,
+                    "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.svar?.tilDatabaseType(),
+                    "fremsattrettsligklageinteresse_begrunnelse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.begrunnelse,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                 ),
@@ -405,14 +421,30 @@ internal class KlagePostgresRepo(
 
         val formkravTilKlage = FormkravTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
-            innenforFristen = row.stringOrNull("innenforFristen")?.let {
-                FormkravTilKlage.Svarord.valueOf(it)
+            innenforFristen = row.stringOrNull("innenforFristen")?.let { svar ->
+                FormkravTilKlage.SvarMedBegrunnelse(
+                    svar = FormkravTilKlage.Svarord.valueOf(svar),
+                    begrunnelse = row.stringOrNull("innenforFristen_begrunnelse"),
+                )
             },
-            klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket"),
-            erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
-                FormkravTilKlage.Svarord.valueOf(it)
+            klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket")?.let { svar ->
+                FormkravTilKlage.BooleanMedBegrunnelse(
+                    svar = svar,
+                    begrunnelse = row.stringOrNull("klagesDetPaaKonkreteElementerIVedtaket_begrunnelse"),
+                )
             },
-            fremsattRettsligKlageinteresse = row.stringOrNull("fremsattrettsligklageinteresse")?.let { FormkravTilKlage.Svarord.valueOf(it) },
+            erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let { svar ->
+                FormkravTilKlage.SvarMedBegrunnelse(
+                    svar = FormkravTilKlage.Svarord.valueOf(svar),
+                    begrunnelse = row.stringOrNull("erUnderskrevet_begrunnelse"),
+                )
+            },
+            fremsattRettsligKlageinteresse = row.stringOrNull("fremsattrettsligklageinteresse")?.let { svar ->
+                FormkravTilKlage.SvarMedBegrunnelse(
+                    svar = FormkravTilKlage.Svarord.valueOf(svar),
+                    begrunnelse = row.stringOrNull("fremsattrettsligklageinteresse_begrunnelse"),
+                )
+            },
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")
@@ -720,18 +752,17 @@ internal class KlagePostgresRepo(
     )
     private sealed interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
-        data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?) : VedtaksvurderingJson {
+        data class Omgjør(val årsak: String?, val begrunnelse: String?) : VedtaksvurderingJson {
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
-                    utfall = utfall?.let { VurderingerTilKlage.Vedtaksvurdering.Utfall.toDomain(it) },
                     begrunnelse = begrunnelse,
                 )
             }
         }
 
-        data class Oppretthold(val hjemler: List<String>) : VedtaksvurderingJson {
+        data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) : VedtaksvurderingJson {
 
             enum class Hjemmel(val verdi: String) {
                 SU_PARAGRAF_3("su_paragraf_3"),
@@ -803,6 +834,7 @@ internal class KlagePostgresRepo(
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
                     hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() },
+                    klagenotat = klagenotat,
                 ).getOrNull()!!
             }
         }
@@ -812,19 +844,19 @@ internal class KlagePostgresRepo(
                 return when (this) {
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør -> Omgjør(
                         årsak = årsak?.name,
-                        utfall = utfall?.name,
                         begrunnelse = begrunnelse,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> Omgjør(
                         årsak = årsak.name,
-                        utfall = utfall.name,
                         begrunnelse = begrunnelse,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
                     )
                 }.let {
                     serialize(it)
