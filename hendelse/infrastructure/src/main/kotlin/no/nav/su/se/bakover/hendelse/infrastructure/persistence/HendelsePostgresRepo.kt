@@ -159,13 +159,13 @@ class HendelsePostgresRepo(
         typer: List<Hendelsestype>,
         sessionContext: SessionContext? = null,
     ): Pair<List<PersistertHendelse>, Pair<Saksnummer, Fnr>> {
-        return dbMetrics.timeQuery("hentEldsteHendelserForSakIdOgTyper") {
+        return dbMetrics.timeQuery("hentHendelserMedSaksnummerOgFnrForSakIdOgType") {
             sessionContext.withOptionalSession(sessionFactory) { session ->
                 val persisterteHendelser = """
                     SELECT hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
                     FROM hendelse
                     WHERE sakId = :sakId AND type = ANY(:typer)
-                    ORDER BY type, versjon
+                    ORDER BY type, versjon desc
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
