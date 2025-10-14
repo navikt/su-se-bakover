@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.GenerellSakStatistikk
 import tilbakekreving.application.service.statistikk.toTilbakeStatistikkUnderkjent
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
@@ -57,7 +58,15 @@ class UnderkjennTilbakekrevingsbehandlingService(
         ).let { (hendelse, underkjentBehandling) ->
             sessionFactory.withTransactionContext { tx ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata(), tx)
-                sakStatistikkRepo.lagreSakStatistikk(underkjentBehandling.toTilbakeStatistikkUnderkjent(clock), tx)
+                sakStatistikkRepo.lagreSakStatistikk(
+                    underkjentBehandling.toTilbakeStatistikkUnderkjent(
+                        GenerellSakStatistikk.create(
+                            clock = clock,
+                            sakType = sak.type,
+                        ),
+                    ),
+                    tx,
+                )
                 underkjentBehandling.right()
             }
         }

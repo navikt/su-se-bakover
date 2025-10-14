@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.GenerellSakStatistikk
 import tilbakekreving.application.service.statistikk.toTilbakeStatistikkAnnuller
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.KanAnnullere
@@ -116,7 +117,15 @@ class AnnullerKravgrunnlagService(
                     )
                 }
                 avbruttBehandling?.let {
-                    sakStatistikkRepo.lagreSakStatistikk(it.toTilbakeStatistikkAnnuller(clock), tx)
+                    sakStatistikkRepo.lagreSakStatistikk(
+                        it.toTilbakeStatistikkAnnuller(
+                            GenerellSakStatistikk.create(
+                                clock = clock,
+                                sakType = sak.type,
+                            ),
+                        ),
+                        tx,
+                    )
                 }
             }
             avbruttBehandling

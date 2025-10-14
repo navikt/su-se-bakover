@@ -1,5 +1,6 @@
 package tilbakekreving.application.service.statistikk
 
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -9,51 +10,52 @@ import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.time.Clock
+import java.util.UUID
 
 fun Tilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
-    clock = clock,
+    generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "REGISTRERT",
 )
 
 fun UnderBehandling.Utfylt.toTilbakeStatistikkTilAttestering(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
-    clock = clock,
+    generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "TIL_ATTESTERING",
     behandlingResultat = utledResultat(vurderingerMedKrav),
 )
 
 fun UnderBehandling.Utfylt.toTilbakeStatistikkUnderkjent(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
-    clock = clock,
+    generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "UNDERKJENT",
     behandlingResultat = utledResultat(vurderingerMedKrav),
 )
 
 fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAvbryt(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
-    clock = clock,
+    generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "AVBRUTT",
     ansvarligBeslutter = this.avsluttetAv.navIdent,
 )
 
 fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAnnuller(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
-    clock = clock,
+    generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "AVBRUTT",
     ansvarligBeslutter = this.avsluttetAv.navIdent,
 )
 
 fun IverksattTilbakekrevingsbehandling.toTilbakeStatistikkIverksatt(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
     ferdigbehandletTid: Tidspunkt? = null,
 ) = toTilbakeStatistikk(
-    clock = clock,
+    generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "IVERKSATT",
     ferdigbehandletTid = ferdigbehandletTid,
     behandlingResultat = utledResultat(vurderingerMedKrav),
@@ -61,15 +63,37 @@ fun IverksattTilbakekrevingsbehandling.toTilbakeStatistikkIverksatt(
     tilbakekrevBeløp = this.vurderingerMedKrav.bruttoSkalTilbakekreveSummert.toLong(),
 )
 
-private fun utledResultat(vurderingerMedKrav: VurderingerMedKrav) = if (vurderingerMedKrav.minstEnPeriodeSkalTilbakekreves()) {
-    // TODO bjg hva skal riktig verdi være her?
-    "SKAL_TILBAKEKREVE"
-} else {
-    "SKAL_IKKE_TILBAKEKREVE"
+private fun utledResultat(vurderingerMedKrav: VurderingerMedKrav) =
+    if (vurderingerMedKrav.minstEnPeriodeSkalTilbakekreves()) {
+        // TODO bjg hva skal riktig verdi være her?
+        "SKAL_TILBAKEKREVE"
+    } else {
+        "SKAL_IKKE_TILBAKEKREVE"
+    }
+
+/*
+* Nødvendig for statistikk men ligger ikke på tilbakekrevingbehandling
+*/
+data class GenerellSakStatistikk(
+    val sakType: Sakstype,
+    val tekniskTid: Tidspunkt,
+    val relatertId: UUID?,
+) {
+    companion object {
+        fun create(
+            clock: Clock,
+            sakType: Sakstype,
+            relatertId: UUID? = null,
+        ) = GenerellSakStatistikk(
+            sakType = sakType,
+            tekniskTid = Tidspunkt.now(clock),
+            relatertId = relatertId,
+        )
+    }
 }
 
 fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
-    clock: Clock,
+    generellSakStatistikk: GenerellSakStatistikk,
     behandlingStatus: String,
     ferdigbehandletTid: Tidspunkt? = null,
     behandlingResultat: String? = null,
@@ -80,13 +104,16 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
     val behandling = this
     return SakStatistikk(
         hendelseTid = behandling.opprettet,
-        tekniskTid = Tidspunkt.now(clock),
+        tekniskTid = generellSakStatistikk.tekniskTid,
         sakId = behandling.sakId,
         saksnummer = behandling.saksnummer.nummer,
         behandlingId = behandling.id.value,
         relatertBehandlingId = null, // TODO trello - 252-statistikk-relatert-id
         aktorId = behandling.fnr,
-        sakYtelse = "alder", // TODO bjg Tilbakekreving har ikke saktype.. men kan trolig utledes sammen med relatertid..
+        sakYtelse = when (generellSakStatistikk.sakType) {
+            Sakstype.ALDER -> "SUALDER"
+            Sakstype.UFØRE -> "SUUFORE"
+        },
         behandlingType = "TILBAKEKREVING",
         mottattTid = behandling.opprettet,
         registrertTid = behandling.opprettet,

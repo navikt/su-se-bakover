@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.GenerellSakStatistikk
 import tilbakekreving.application.service.statistikk.toTilbakeStatistikkIverksatt
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
@@ -95,7 +96,10 @@ class IverksettTilbakekrevingService(
                 )
                 sakStatistikkRepo.lagreSakStatistikk(
                     iverksattBehandling.toTilbakeStatistikkIverksatt(
-                        clock = clock,
+                        generellSakStatistikk = GenerellSakStatistikk.create(
+                            clock = clock,
+                            sakType = sak.type,
+                        ),
                         ferdigbehandletTid = hendelse.hendelsestidspunkt,
                     ),
                     tx,
