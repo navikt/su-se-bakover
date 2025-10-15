@@ -275,12 +275,15 @@ class KlageServiceImpl(
         val vurdertKlage = klage as? VurdertKlage.Bekreftet ?: return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(klage::class).left()
         val ferdigstiltTidspunkt = Tidspunkt.now(clock)
         return vurdertKlage.ferdigstillOmgjøring(saksbehandler, vurdertKlage, ferdigstiltTidspunkt).onRight {
-            klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(
-                it.oppgaveId,
-                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-            ).mapLeft {
-                log.error("Ferdigstill omgjøring klagebehandling. Feil ved oppdatering av oppgave ${vurdertKlage.oppgaveId}, for klage ${vurdertKlage.id}. Feilen var $it")
+            sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(it, tx)
+                observers.notify(StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring(it), tx)
+                oppgaveService.lukkOppgave(
+                    it.oppgaveId,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+                ).mapLeft {
+                    log.error("Ferdigstill omgjøring klagebehandling. Feil ved oppdatering av oppgave ${vurdertKlage.oppgaveId}, for klage ${vurdertKlage.id}. Feilen var $it")
+                }
             }
         }
     }

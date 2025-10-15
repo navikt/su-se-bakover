@@ -188,6 +188,7 @@ sealed interface VurdertKlage :
             vurderinger.vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold
     }
 
+    // TODO: vurder å ha egen for omgjøringferdigstill for vedtaksvurdering omgjøring garanti på typer
     data class Utfylt(
         private val forrigeSteg: Påbegynt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,

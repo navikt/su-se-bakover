@@ -370,7 +370,16 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = klage.saksbehandler.navIdent,
                 )
 
-                // TODO is StatistikkEvent.Behandling.Klage.Medhold -> this.toBehandlingsstatistikkGenerell(...)
+                is StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = klage,
+                    behandlingType = Behandlingstype.KLAGE,
+                    saktype = klage.sakstype,
+                    behandlingStatus = BehandlingStatus.Iverksatt.name, // TODO: iverksatt er kun klagebehandlingen men ikke omgjøringen før den er effektuert
+                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør).årsak.name.uppercase(),
+                    saksbehandler = klage.saksbehandler.navIdent,
+                )
             }
         }
 
