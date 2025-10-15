@@ -54,7 +54,7 @@ data class UnderkjentHendelse(
         )
     }
 
-    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Utfylt {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
             is UnderBehandling,
@@ -91,7 +91,7 @@ fun TilbakekrevingsbehandlingTilAttestering.underkjenn(
     utførtAv: NavIdentBruker.Attestant,
     grunn: UnderkjennAttesteringsgrunnTilbakekreving,
     kommentar: String,
-): Pair<UnderkjentHendelse, UnderBehandling> {
+): Pair<UnderkjentHendelse, UnderBehandling.Utfylt> {
     return UnderkjentHendelse.create(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,

@@ -1,4 +1,4 @@
-package statistikk.domain
+package no.nav.su.se.bakover.common.domain.statistikk
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize

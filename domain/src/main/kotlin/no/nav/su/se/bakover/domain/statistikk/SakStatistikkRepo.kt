@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.statistikk
 
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import statistikk.domain.SakStatistikk
 import java.util.UUID
 
 interface SakStatistikkRepo {
