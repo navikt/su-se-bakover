@@ -7,13 +7,14 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.UnderBehandling
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.time.Clock
 import java.util.UUID
 
-fun Tilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
+fun OpprettetTilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
     generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
@@ -22,19 +23,35 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
 
 fun UnderBehandling.Utfylt.toTilbakeStatistikkTilAttestering(
     generellSakStatistikk: GenerellSakStatistikk,
-) = toTilbakeStatistikk(
-    generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "TIL_ATTESTERING",
-    behandlingResultat = utledResultat(vurderingerMedKrav),
-)
+): SakStatistikk {
+    val behandlingResultat = utledResultat(vurderingerMedKrav)
+    return toTilbakeStatistikk(
+        generellSakStatistikk = generellSakStatistikk,
+        behandlingStatus = "TIL_ATTESTERING",
+        behandlingResultat = behandlingResultat.name,
+        tilbakekrevBeløp = if (behandlingResultat == Resultat.SKAL_TILBAKEKREVE) {
+            this.vurderingerMedKrav.bruttoSkalTilbakekreveSummert.toLong()
+        } else {
+            null
+        },
+    )
+}
 
 fun UnderBehandling.Utfylt.toTilbakeStatistikkUnderkjent(
     generellSakStatistikk: GenerellSakStatistikk,
-) = toTilbakeStatistikk(
-    generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "UNDERKJENT",
-    behandlingResultat = utledResultat(vurderingerMedKrav),
-)
+): SakStatistikk {
+    val behandlingResultat = utledResultat(vurderingerMedKrav)
+    return toTilbakeStatistikk(
+        generellSakStatistikk = generellSakStatistikk,
+        behandlingStatus = "UNDERKJENT",
+        behandlingResultat = behandlingResultat.name,
+        tilbakekrevBeløp = if (behandlingResultat == Resultat.SKAL_TILBAKEKREVE) {
+            this.vurderingerMedKrav.bruttoSkalTilbakekreveSummert.toLong()
+        } else {
+            null
+        },
+    )
+}
 
 fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAvbryt(
     generellSakStatistikk: GenerellSakStatistikk,
@@ -59,17 +76,16 @@ fun IverksattTilbakekrevingsbehandling.toTilbakeStatistikkIverksatt(
     generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "IVERKSATT",
     ferdigbehandletTid = ferdigbehandletTid,
-    behandlingResultat = utledResultat(vurderingerMedKrav),
+    behandlingResultat = utledResultat(vurderingerMedKrav).name,
     ansvarligBeslutter = this.attesteringer.hentSisteAttestering().attestant.navIdent,
     tilbakekrevBeløp = this.vurderingerMedKrav.bruttoSkalTilbakekreveSummert.toLong(),
 )
 
 private fun utledResultat(vurderingerMedKrav: VurderingerMedKrav) =
     if (vurderingerMedKrav.minstEnPeriodeSkalTilbakekreves()) {
-        // TODO bjg hva skal riktig verdi være her?
-        "SKAL_TILBAKEKREVE"
+        Resultat.SKAL_TILBAKEKREVE
     } else {
-        "SKAL_IKKE_TILBAKEKREVE"
+        Resultat.SKAL_IKKE_TILBAKEKREVE
     }
 
 /*
@@ -130,4 +146,10 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
         funksjonellPeriodeFom = null,
         funksjonellPeriodeTom = null,
     )
+}
+
+private enum class Resultat {
+    // TODO bjg hva skal riktig verdi være her?
+    SKAL_TILBAKEKREVE,
+    SKAL_IKKE_TILBAKEKREVE,
 }
