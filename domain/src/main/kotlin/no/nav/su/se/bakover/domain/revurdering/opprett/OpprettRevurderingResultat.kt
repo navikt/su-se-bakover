@@ -16,6 +16,7 @@ data class OpprettRevurderingResultatUtenOppgaveId(
     private val statistikkHendelse: (r: OpprettetRevurdering) -> StatistikkEvent,
     val klageId: KlageId? = null,
 ) {
+    // TODO: burde få skrevet om denne bruken så vi kan fjerne hele denne wrapperen for lesbarhet
     fun leggTilOppgaveId(oppgaveId: OppgaveId): OpprettRevurderingResultat {
         val r = opprettRevurdering(oppgaveId)
         return OpprettRevurderingResultat(
