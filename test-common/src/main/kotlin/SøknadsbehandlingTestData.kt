@@ -752,7 +752,7 @@ fun iverksattSøknadsbehandling(
             command = IverksettSøknadsbehandlingCommand(
                 behandlingId = tilAttestering.id,
                 attestering = attestering,
-                fritekstTilBrev = fritekstTilBrev,
+                fritekstEndringAttestering = fritekstTilBrev,
             ),
             genererPdf = {
                 Dokument.UtenMetadata.Vedtak(

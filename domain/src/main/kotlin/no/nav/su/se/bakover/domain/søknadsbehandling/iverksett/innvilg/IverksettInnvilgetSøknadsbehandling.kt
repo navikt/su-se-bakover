@@ -48,7 +48,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     attestering: Attestering.Iverksatt,
     clock: Clock,
     satsFactory: SatsFactory,
-    fritekst: String,
+    fritekst: String?,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     genererPdf: (command: IverksettSøknadsbehandlingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattInnvilgetSøknadsbehandlingResponse> {

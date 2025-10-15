@@ -96,7 +96,6 @@ sealed interface RevurderingTilAttestering : Revurdering {
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering,
                 omgjøringsgrunn = omgjøringsgrunn,
-                fritekstTilBrev = "",
             )
         }
 

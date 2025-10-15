@@ -56,7 +56,7 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
                                     NavIdentBruker.Attestant(navIdent),
                                     Tidspunkt.now(clock),
                                 ),
-                                fritekstTilBrev = body.fritekst,
+                                fritekstEndringAttestering = body.fritekst,
                             ),
                         ).fold(
                             {

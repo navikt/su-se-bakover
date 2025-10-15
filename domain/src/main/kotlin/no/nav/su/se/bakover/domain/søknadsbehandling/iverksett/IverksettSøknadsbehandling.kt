@@ -49,19 +49,19 @@ fun Sak.iverksettSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
             attestering = command.attestering,
             clock = clock,
-            genererPdf = genererPdf,
-            simulerUtbetaling = simulerUtbetaling,
             satsFactory = satsFactory,
-            fritekst = command.fritekstTilBrev,
+            fritekst = command.fritekstEndringAttestering,
+            simulerUtbetaling = simulerUtbetaling,
+            genererPdf = genererPdf,
         )
 
         is SøknadsbehandlingTilAttestering.Avslag -> iverksettAvslagSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
             attestering = command.attestering,
             clock = clock,
-            genererPdf = genererPdf,
             satsFactory = satsFactory,
-            fritekst = command.fritekstTilBrev,
+            fritekst = command.fritekstEndringAttestering,
+            genererPdf = genererPdf,
         )
     }
 }
