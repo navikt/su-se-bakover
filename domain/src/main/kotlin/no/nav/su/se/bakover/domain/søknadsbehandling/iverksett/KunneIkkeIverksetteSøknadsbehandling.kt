@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import dokument.domain.KunneIkkeLageDokument
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
+import kotlin.reflect.KClass
 
 sealed interface KunneIkkeIverksetteSøknadsbehandling {
+    data object FantIkkeBehandling : KunneIkkeIverksetteSøknadsbehandling
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling
     data class KunneIkkeGenerereVedtaksbrev(
         val underliggendeFeil: KunneIkkeLageDokument,
@@ -21,5 +25,10 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
         val underliggendeFeil: StøtterIkkeOverlappendeStønadsperioder,
     ) : KunneIkkeIverksetteSøknadsbehandling
 
+    data class UgyldigTilstand(
+        val fra: KClass<out Søknadsbehandling>,
+    ) : KunneIkkeIverksetteSøknadsbehandling {
+        val til: KClass<out IverksattSøknadsbehandling> = IverksattSøknadsbehandling::class
+    }
     data class KontrollsimuleringFeilet(val underliggende: no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet) : KunneIkkeIverksetteSøknadsbehandling
 }

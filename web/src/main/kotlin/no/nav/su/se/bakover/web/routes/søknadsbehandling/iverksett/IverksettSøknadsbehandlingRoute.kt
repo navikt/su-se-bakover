@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
@@ -35,32 +37,44 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
     clock: Clock,
     applicationConfig: ApplicationConfig,
 ) {
-    patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/iverksett") {
+    data class WithFritekstBody(val fritekst: String)
+
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-
-                val navIdent = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-                    "attestant"
-                } else {
-                    call.suUserContext.navIdent
+                call.withSakId {
+                    call.withBody<WithFritekstBody> { body ->
+                        val navIdent = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+                            "attestant"
+                        } else {
+                            call.suUserContext.navIdent
+                        }
+                        service.iverksett(
+                            IverksettSøknadsbehandlingCommand(
+                                behandlingId = SøknadsbehandlingId(behandlingId),
+                                attestering = Attestering.Iverksatt(
+                                    NavIdentBruker.Attestant(navIdent),
+                                    Tidspunkt.now(clock),
+                                ),
+                                fritekstTilBrev = body.fritekst,
+                            ),
+                        ).fold(
+                            {
+                                call.svar(it.tilResultat())
+                            },
+                            {
+                                val søknadsbehandling = it.second
+                                call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
+                                call.audit(
+                                    søknadsbehandling.fnr,
+                                    AuditLogEvent.Action.UPDATE,
+                                    søknadsbehandling.id.value,
+                                )
+                                call.svar(OK.jsonBody(søknadsbehandling, formuegrenserFactory))
+                            },
+                        )
+                    }
                 }
-
-                service.iverksett(
-                    IverksettSøknadsbehandlingCommand(
-                        behandlingId = SøknadsbehandlingId(behandlingId),
-                        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent), Tidspunkt.now(clock)),
-                    ),
-                ).fold(
-                    {
-                        call.svar(it.tilResultat())
-                    },
-                    {
-                        val søknadsbehandling = it.second
-                        call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                        call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
-                        call.svar(HttpStatusCode.OK.jsonBody(søknadsbehandling, formuegrenserFactory))
-                    },
-                )
             }
         }
     }
@@ -82,5 +96,6 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
 
         is KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode -> this.underliggendeFeil.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
-    }
+        else -> {}
+    } as Resultat
 }

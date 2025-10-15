@@ -252,6 +252,7 @@ data object ServiceBuilder {
             brevService = brevService,
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
+            oppgaveService = oppgaveService,
         ).apply { addObserver(statistikkEventObserver) }
         return Services(
             avstemming = AvstemmingServiceImpl(

@@ -30,6 +30,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
     override val vedtak: VedtakInnvilgetSøknadsbehandling,
     val statistikk: Nel<StatistikkEvent>,
     val utbetaling: Utbetaling.SimulertUtbetaling,
+    val dokument: Dokument.MedMetadata,
 ) : IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Innvilget> {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -65,6 +66,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
                 }
             lagreVedtak(vedtak, tx)
             genererOgLagreSkattedokument(vedtak, tx)
+            lagreDokument(dokument, tx)
 
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)

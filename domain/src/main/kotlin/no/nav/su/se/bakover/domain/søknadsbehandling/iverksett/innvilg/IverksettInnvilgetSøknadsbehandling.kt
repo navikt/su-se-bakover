@@ -6,9 +6,12 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.raise.either
 import arrow.core.right
+import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
@@ -20,6 +23,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattInnvilg
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.validerOverlappendeStønadsperioder
 import org.slf4j.LoggerFactory
+import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
@@ -43,7 +47,10 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     søknadsbehandling: SøknadsbehandlingTilAttestering.Innvilget,
     attestering: Attestering.Iverksatt,
     clock: Clock,
+    satsFactory: SatsFactory,
+    fritekst: String,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    genererPdf: (command: IverksettSøknadsbehandlingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattInnvilgetSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
@@ -56,7 +63,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         return it.left()
     }
 
-    val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering)
+    val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering, fritekst)
     val simulertUtbetaling = this.lagNyUtbetaling(
         saksbehandler = attestering.attestant,
         beregning = iverksattBehandling.beregning,
@@ -79,6 +86,19 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         clock = clock,
     )
 
+    val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory))
+        .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
+        .leggTilMetadata(
+            Dokument.Metadata(
+                sakId = vedtak.behandling.sakId,
+                søknadId = null,
+                vedtakId = vedtak.id,
+                revurderingId = null,
+            ),
+            // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+            distribueringsadresse = null,
+        )
+
     val oppdatertSak = this.oppdaterSøknadsbehandling(iverksattBehandling).copy(
         vedtakListe = this.vedtakListe + vedtak,
         utbetalinger = this.utbetalinger + simulertUtbetaling,
@@ -86,6 +106,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     return IverksattInnvilgetSøknadsbehandlingResponse(
         sak = oppdatertSak,
         vedtak = vedtak,
+        dokument = dokument,
         statistikk = nonEmptyListOf(
             StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak),
             StatistikkEvent.Stønadsvedtak(vedtak) { oppdatertSak },

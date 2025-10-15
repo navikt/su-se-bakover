@@ -467,6 +467,7 @@ fun nyIverksattTilbakekrevingsbehandlingHendelse(
     utførtAv = utførtAv,
     tidligereHendelseId = forrigeHendelse.hendelseId,
     vedtakId = vedtakId,
+    fritekstTilBrev = "fritekstTilBrev",
 )
 
 fun nyAvbruttTilbakekrevingsbehandlingHendelse(

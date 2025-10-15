@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 data class IverksettSøknadsbehandlingCommand(
     val behandlingId: SøknadsbehandlingId,
     val attestering: Attestering.Iverksatt,
+    val fritekstTilBrev: String,
+
     // TODO jah: Fjern etter vi flytter avslagManglendeDokumentasjon inn i den normale saksbehandlingsflyten.
     val saksbehandlerOgAttestantKanIkkeVæreDenSamme: Boolean = true,
 )

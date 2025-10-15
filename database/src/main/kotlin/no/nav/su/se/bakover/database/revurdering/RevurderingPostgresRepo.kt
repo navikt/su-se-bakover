@@ -810,6 +810,7 @@ internal class RevurderingPostgresRepo(
                 sakinfo = sakinfo,
                 brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
+                fritekstTilBrev = "",
             )
 
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(

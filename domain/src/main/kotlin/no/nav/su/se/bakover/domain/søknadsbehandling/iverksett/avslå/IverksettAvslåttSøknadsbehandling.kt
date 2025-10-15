@@ -31,11 +31,12 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     attestering: Attestering.Iverksatt,
     clock: Clock,
     satsFactory: SatsFactory,
+    fritekst: String,
     genererPdf: (command: IverksettSøknadsbehandlingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattAvslåttSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
-    val iverksattBehandling = søknadsbehandling.iverksett(attestering)
+    val iverksattBehandling = søknadsbehandling.iverksett(attestering, fritekst)
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
     val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory))
