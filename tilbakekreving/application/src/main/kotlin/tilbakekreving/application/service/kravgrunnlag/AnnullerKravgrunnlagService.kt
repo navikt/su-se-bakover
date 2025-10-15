@@ -89,9 +89,7 @@ class AnnullerKravgrunnlagService(
                         versjon = if (avbruttHendelse == null) {
                             command.klientensSisteSaksversjon.inc()
                         } else {
-                            command.klientensSisteSaksversjon.inc(
-                                2,
-                            )
+                            command.klientensSisteSaksversjon.inc(2)
                         },
                         sakId = sak.id,
                         hendelsestidspunkt = Tidspunkt.now(clock),
