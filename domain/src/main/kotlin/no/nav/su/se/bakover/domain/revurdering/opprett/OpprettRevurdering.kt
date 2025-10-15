@@ -70,13 +70,13 @@ fun Sak.opprettRevurdering(
         when (klage) {
             is FerdigstiltOmgjortKlage -> {
                 if (klage.behandlingId != null) {
-                    log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
+                    log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av. Sakid: $saksnummer")
                     return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
                 }
                 when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
                         if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}")
+                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn} Sakid: $saksnummer")
                             return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
                         }
                     }
@@ -86,11 +86,11 @@ fun Sak.opprettRevurdering(
                 }
             }
             else -> {
-                log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen.")
+                log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $saksnummer")
                 return KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt.left()
             }
         }
-        log.info("Knytter omgjøring mot klage ${klage.id} for sak ${cmd.sakId}")
+        log.info("Knytter omgjøring mot klage ${klage.id} for saksnummer $saksnummer")
         klage.id
     } else {
         null

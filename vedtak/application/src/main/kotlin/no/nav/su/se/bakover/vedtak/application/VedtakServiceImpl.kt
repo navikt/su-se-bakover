@@ -161,11 +161,11 @@ class VedtakServiceImpl(
         }
 
         val omgjøringsårsak = cmd.omgjøringsårsakHent.getOrElse { it ->
-            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}")
+            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}. Saksnummer: ${sak.saksnummer}")
             return KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak.left()
         }
         val omgjøringsgrunn = cmd.omgjøringsgrunnHent.getOrElse { it ->
-            log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}")
+            log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }
 
@@ -182,13 +182,13 @@ class VedtakServiceImpl(
             when (klage) {
                 is FerdigstiltOmgjortKlage -> {
                     if (klage.behandlingId != null) {
-                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
+                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av Saksnummer: ${sak.saksnummer}")
                         return KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
                     }
                     when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
                             if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}")
+                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
                                 return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                             }
                         }
@@ -200,7 +200,7 @@ class VedtakServiceImpl(
                 }
 
                 else -> {
-                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen.")
+                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Saksnummer: ${sak.saksnummer}")
                     return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
                 }
             }
