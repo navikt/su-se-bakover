@@ -84,12 +84,10 @@ data class GenerellSakStatistikk(
         fun create(
             clock: Clock,
             sak: Sak,
-            relatertVedtakId: String,
         ) = GenerellSakStatistikk(
             sakType = sak.type,
             tekniskTid = Tidspunkt.now(clock),
-            // TODO er eksternVedtakId UUID hos oppdrag eller sender vi et løpenummer?????
-            relatertId = sak.finnBehandlingTilVedtak(UUID.fromString(relatertVedtakId))?.id?.value,
+            relatertId = null, // TODO trello - 252-statistikk-relatert-id
         )
     }
 }
@@ -103,29 +101,28 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
     ansvarligBeslutter: String? = null,
     tilbakekrevBeløp: Long? = null,
 ): SakStatistikk {
-    val behandling = this
     return SakStatistikk(
-        hendelseTid = behandling.opprettet,
+        hendelseTid = opprettet,
         tekniskTid = generellSakStatistikk.tekniskTid,
-        sakId = behandling.sakId,
-        saksnummer = behandling.saksnummer.nummer,
-        behandlingId = behandling.id.value,
-        relatertBehandlingId = null, // TODO trello - 252-statistikk-relatert-id
-        aktorId = behandling.fnr,
+        sakId = sakId,
+        saksnummer = saksnummer.nummer,
+        behandlingId = id.value,
+        relatertBehandlingId = generellSakStatistikk.relatertId,
+        aktorId = fnr,
         sakYtelse = when (generellSakStatistikk.sakType) {
             Sakstype.ALDER -> "SUALDER"
             Sakstype.UFØRE -> "SUUFORE"
         },
         behandlingType = "TILBAKEKREVING",
-        mottattTid = behandling.opprettet,
-        registrertTid = behandling.opprettet,
+        mottattTid = opprettet,
+        registrertTid = opprettet,
         ferdigbehandletTid = ferdigbehandletTid,
         utbetaltTid = null,
         behandlingStatus = behandlingStatus,
         behandlingResultat = behandlingResultat,
         resultatBegrunnelse = resultatBegrunnelse,
-        opprettetAv = behandling.opprettetAv.navIdent,
-        saksbehandler = behandling.opprettetAv.navIdent, // TODO bjg Må verifiseres
+        opprettetAv = opprettetAv.navIdent,
+        saksbehandler = opprettetAv.navIdent, // TODO bjg Må verifiseres
         ansvarligBeslutter = ansvarligBeslutter,
         behandlingMetode = BehandlingMetode.Manuell,
         tilbakekrevBeløp = tilbakekrevBeløp,

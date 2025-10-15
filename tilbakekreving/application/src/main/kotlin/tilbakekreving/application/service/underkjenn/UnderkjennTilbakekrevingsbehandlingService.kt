@@ -63,7 +63,6 @@ class UnderkjennTilbakekrevingsbehandlingService(
                         GenerellSakStatistikk.create(
                             clock = clock,
                             sak = sak,
-                            relatertVedtakId = underkjentBehandling.kravgrunnlag.eksternVedtakId,
                         ),
                     ),
                     tx,

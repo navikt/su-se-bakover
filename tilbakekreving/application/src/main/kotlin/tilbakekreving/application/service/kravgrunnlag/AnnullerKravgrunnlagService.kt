@@ -122,7 +122,6 @@ class AnnullerKravgrunnlagService(
                             GenerellSakStatistikk.create(
                                 clock = clock,
                                 sak = sak,
-                                relatertVedtakId = avbruttBehandling.kravgrunnlag.eksternVedtakId,
                             ),
                         ),
                         tx,

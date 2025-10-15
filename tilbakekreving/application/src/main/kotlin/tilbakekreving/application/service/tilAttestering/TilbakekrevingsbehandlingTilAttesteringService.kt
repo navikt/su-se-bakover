@@ -68,7 +68,6 @@ class TilbakekrevingsbehandlingTilAttesteringService(
                         GenerellSakStatistikk.create(
                             clock = clock,
                             sak = sak,
-                            relatertVedtakId = behandling.kravgrunnlag.eksternVedtakId,
                         ),
                     ),
                     tx,
