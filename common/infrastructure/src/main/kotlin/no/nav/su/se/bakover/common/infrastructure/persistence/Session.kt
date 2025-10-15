@@ -236,6 +236,7 @@ open class Session(
         } catch (e: Exception) {
             connection.rollback()
             if (e is SQLException) {
+                // 57014= query_canceled
                 if (e.sqlState == "57014") {
                     logger.error("Spørring tok mer enn 30 sekunder", e)
                 }
