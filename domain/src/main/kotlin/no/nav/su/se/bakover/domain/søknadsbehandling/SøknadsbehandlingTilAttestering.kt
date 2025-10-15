@@ -148,8 +148,8 @@ sealed interface SøknadsbehandlingTilAttestering :
 
         fun iverksett(attestering: Attestering.Iverksatt, fritekst: String?): IverksattSøknadsbehandling.Avslag {
             return when (this) {
-                is MedBeregning -> this.tilIverksatt(attestering, fritekstTilBrev)
-                is UtenBeregning -> this.tilIverksatt(attestering, fritekstTilBrev)
+                is MedBeregning -> this.tilIverksatt(attestering, fritekst ?: fritekstTilBrev)
+                is UtenBeregning -> this.tilIverksatt(attestering, fritekst ?: fritekstTilBrev)
             }
         }
 
@@ -221,7 +221,7 @@ sealed interface SøknadsbehandlingTilAttestering :
 
             fun tilIverksatt(
                 attestering: Attestering,
-                fritekst: String,
+                fritekstEndringAttestering: String?,
             ): IverksattSøknadsbehandling.Avslag.UtenBeregning {
                 return IverksattSøknadsbehandling.Avslag.UtenBeregning(
                     id = id,
@@ -234,7 +234,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                    fritekstTilBrev = fritekst,
+                    fritekstTilBrev = fritekstEndringAttestering ?: fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
