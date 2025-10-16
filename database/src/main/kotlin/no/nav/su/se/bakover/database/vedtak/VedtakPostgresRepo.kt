@@ -316,7 +316,6 @@ internal class VedtakPostgresRepo(
                 VedtakType.SØKNAD.name,
                 VedtakType.OPPHØR.name,
                 VedtakType.ENDRING.name,
-                VedtakType.REGULERING.name,
             ).joinToString(", ") { "'$it'" }
             sessionFactory.withSession { session ->
                 """
