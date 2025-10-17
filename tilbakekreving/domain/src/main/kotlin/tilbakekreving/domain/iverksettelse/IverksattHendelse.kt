@@ -22,7 +22,6 @@ data class IverksattHendelse(
     override val id: TilbakekrevingsbehandlingId,
     override val tidligereHendelseId: HendelseId,
     override val utførtAv: NavIdentBruker.Attestant,
-    val fritekstTilBrev: String,
     val vedtakId: UUID,
 ) : TilbakekrevingsbehandlingHendelse {
 
@@ -63,7 +62,6 @@ data class IverksattHendelse(
             tidligereHendelseId = tidligereHendelseId,
             utførtAv = utførtAv,
             vedtakId = UUID.randomUUID(),
-            fritekstTilBrev = "",
         )
     }
 

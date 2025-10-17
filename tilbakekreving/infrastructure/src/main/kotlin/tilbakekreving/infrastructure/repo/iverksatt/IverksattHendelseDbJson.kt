@@ -27,7 +27,6 @@ internal fun PersistertHendelse.mapToTilIverksattHendelse(): IverksattHendelse {
         utførtAv = NavIdentBruker.Attestant(deserialized.utførtAv),
         tidligereHendelseId = tidligereHendelseId!!,
         vedtakId = deserialized.vedtakId,
-        fritekstTilBrev = "",
     )
 }
 

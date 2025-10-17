@@ -4,7 +4,6 @@ import arrow.core.Either
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -30,7 +29,6 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val vedtakService: VedtakService,
-    private val oppgaveService: OppgaveService,
     private val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,

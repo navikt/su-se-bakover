@@ -92,6 +92,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         SøknadsbehandlingId.generer(),
                         Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "Kan ikke hente sak for søknadsbehandling id. Eksisterer IDen? Denne feilmeldingen er generert vha. en mock."
@@ -111,6 +112,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = sakOgSøknadsbehandling.second.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldContain "Prøvde iverksette søknadsbehandling som ikke var til attestering"
@@ -130,6 +132,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     innvilgetTilAttestering.id,
                     Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
                 ),
             )
 
@@ -162,6 +165,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = innvilgetTilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
                 ),
             )
 
@@ -186,6 +190,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent),
                         fixedTidspunkt,
                     ),
+                    fritekstEndringAttestering = "",
                 ),
             )
 
@@ -215,6 +220,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = avslagTilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
                 ),
             )
             response shouldBe KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(
@@ -256,6 +262,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = avslagTilAttestering.id,
                     attestering = attestering,
+                    fritekstEndringAttestering = "",
                 ),
             ).getOrFail().second shouldBe expectedAvslag
 
@@ -313,6 +320,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "kastet fra testen."
@@ -336,6 +344,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "kastet fra testen."
@@ -360,6 +369,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "kastet fra testen."
@@ -386,6 +396,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldContain "Protokollfeil"
@@ -405,6 +416,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = attestering,
+                        fritekstEndringAttestering = "",
                     ),
                 ).getOrFail().let {
                     @Suppress("UNCHECKED_CAST")
@@ -414,6 +426,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             actualSøknadsbehandling.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(innvilgetTilAttestering.id)
+            verify(serviceAndMocks.brevService).lagDokument(
+                argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
+                anyOrNull(),
+            )
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 any(),
             )
@@ -439,6 +455,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
             verify(serviceAndMocks.utbetalingKlargjortForOversendelseCallback).invoke(utbetalingsRequest)
             verify(serviceAndMocks.observer, times(2)).handle(any())
+            verify(serviceAndMocks.brevService).lagreDokument(
+                argThat {
+                    it.metadata.sakId shouldBe sak.id
+                    it.metadata.vedtakId shouldNotBe null
+                },
+                anyOrNull(),
+            )
             serviceAndMocks.verifyNoMoreInteractions()
         }
 
@@ -454,6 +477,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = innvilgetTilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
                 ),
             )
 
@@ -492,6 +516,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = innvilgetTilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
                 ),
             ).shouldBeRight()
 
@@ -510,6 +535,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = innvilgetTilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
                 ),
             ).shouldBeRight()
 
@@ -531,6 +557,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "Mocking: Kan ikke lagre søkndsbehandling"
@@ -574,6 +601,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "Mock: Kan ikke klargjøre utbetaling (som også persisterer)"
@@ -606,6 +634,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     IverksettSøknadsbehandlingCommand(
                         behandlingId = innvilgetTilAttestering.id,
                         attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                        fritekstEndringAttestering = "",
                     ),
                 )
             }.message shouldBe "Mock: utbetaler ikke dersom vi ikke kan lagre vedtaket"
