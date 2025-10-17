@@ -516,7 +516,7 @@ fun avvistKlage(
 }
 
 /**
- * Underliggende klage som ble avsluttet er [VurdertKlage.Bekreftet]
+ * Underliggende klage som ble avsluttet er [VurdertKlage.BekreftetOmgjøring]
  */
 fun avsluttetKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,

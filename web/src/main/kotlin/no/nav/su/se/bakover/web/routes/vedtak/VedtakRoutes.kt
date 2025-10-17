@@ -83,10 +83,6 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Klagen finnes ikke",
         "klagen_finnes_ikke",
     )
-    is KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt -> HttpStatusCode.BadRequest.errorJson(
-        "Klagen må være en omgjøring",
-        "ikke_omgjøring",
-    )
     is KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn -> HttpStatusCode.BadRequest.errorJson(
         "Må ha lik omgjøringsgrunn",
         "ulik_omgjøringsgrunn",

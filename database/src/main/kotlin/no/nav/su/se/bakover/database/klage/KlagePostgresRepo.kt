@@ -171,7 +171,7 @@ internal class KlagePostgresRepo(
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "fritekstTilBrev" to klage.fritekstTilBrev,
+                    "fritekstTilBrev" to klage.getFritekstTilBrev(),
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.svar.tilDatabaseType(),
                     "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen.begrunnelse,
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.svar,
@@ -516,14 +516,14 @@ internal class KlagePostgresRepo(
             sakstype = sakstype,
         )
 
-        fun utfyltVurdertKlage() = VurdertKlage.Utfylt(
+        fun utfyltVurdertKlage() = VurdertKlage.Utfylt.createUtfylt(
             forrigeSteg = påbegyntVurdertKlage(),
             saksbehandler = saksbehandler,
             vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
             sakstype = sakstype,
         )
 
-        fun bekreftetVurdertKlage() = VurdertKlage.Bekreftet(
+        fun bekreftetVurdertKlage() = VurdertKlage.Bekreftet.createBekreftet(
             forrigeSteg = utfyltVurdertKlage(),
             saksbehandler = saksbehandler,
             sakstype = sakstype,
@@ -536,7 +536,7 @@ internal class KlagePostgresRepo(
         )
 
         fun vurdertKlageTilAttestering() = KlageTilAttestering.Vurdert(
-            forrigeSteg = bekreftetVurdertKlage(),
+            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOpprettholdt,
             saksbehandler = saksbehandler,
             sakstype = sakstype,
         )
@@ -630,7 +630,7 @@ internal class KlagePostgresRepo(
             )
 
             Tilstand.OMGJORT -> FerdigstiltOmgjortKlage(
-                forrigeSteg = utfyltVurdertKlage(),
+                forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOmgjøring,
                 sakstype = sakstype,
                 klageinstanshendelser = klageinstanshendelser,
                 behandlingId = behandlingId,
@@ -706,8 +706,10 @@ internal class KlagePostgresRepo(
                     is VilkårsvurdertKlage.Bekreftet.Avvist -> VILKÅRSVURDERT_BEKREFTET_AVVIST
 
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
-                    is VurdertKlage.Utfylt -> VURDERT_UTFYLT
-                    is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
+                    is VurdertKlage.UtfyltOppretthold -> VURDERT_UTFYLT
+                    is VurdertKlage.UtfyltOmgjør -> VURDERT_UTFYLT
+                    is VurdertKlage.BekreftetOmgjøring -> VURDERT_BEKREFTET
+                    is VurdertKlage.BekreftetOpprettholdt -> VURDERT_BEKREFTET
 
                     is AvvistKlage -> AVVIST
 

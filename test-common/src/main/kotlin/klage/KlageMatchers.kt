@@ -64,10 +64,10 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
             ignoreProperty,
         )
 
-        is VurdertKlage.Utfylt -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
-        is VurdertKlage.Bekreftet -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected, ignoreProperty)
+        is VurdertKlage.UtfyltOppretthold, is VurdertKlage.UtfyltOmgjør -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
+        is VurdertKlage.Bekreftet -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is KlageTilAttestering.Avvist -> this.castAndCompare<AvvistKlageFelter>(expected, ignoreProperty)
-        is KlageTilAttestering.Vurdert -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected, ignoreProperty)
+        is KlageTilAttestering.Vurdert -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is AvsluttetKlage -> {
             this.castAndCompare<Klage>(expected, ignoreProperty)
             // Gjør en spesialsjekk på den underliggende typen som kan variere.
@@ -79,7 +79,7 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
                 )
         }
 
-        is OversendtKlage -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected)
+        is OversendtKlage -> this.castAndCompare<VurdertKlage.Utfylt>(expected)
         is IverksattAvvistKlage -> this.castAndCompare<AvvistKlageFelter>(expected)
         is FerdigstiltOmgjortKlage -> this.castAndCompare<FerdigstiltOmgjortKlage>(expected)
     }

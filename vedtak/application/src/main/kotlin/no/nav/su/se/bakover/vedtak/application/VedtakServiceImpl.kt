@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -185,17 +184,11 @@ class VedtakServiceImpl(
                         log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av Saksnummer: ${sak.saksnummer}")
                         return KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
                     }
-                    when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
-                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
-                            if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
-                                return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
-                            }
-                        }
+                    val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
 
-                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
-                            return KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt.left()
-                        }
+                    if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
+                        log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
+                        return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                     }
                 }
 
