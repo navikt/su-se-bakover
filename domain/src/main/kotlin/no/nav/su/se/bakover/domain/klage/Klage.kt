@@ -26,21 +26,21 @@ import java.util.UUID
  * - [VilkårsvurdertKlage.Påbegynt] -> [VilkårsvurdertKlage.Påbegynt] og [VilkårsvurdertKlage.Utfylt]
  * - [VilkårsvurdertKlage.Utfylt] -> [VilkårsvurdertKlage.Bekreftet]
  *
- * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
+ * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.UtfyltOppretthold]
  * - [VilkårsvurdertKlage.Bekreftet.Avvist] -> [VilkårsvurdertKlage] og [AvvistKlage]
  *
- * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
- * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
- * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering] og [FerdigstiltOmgjortKlage]
+ * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.UtfyltOppretthold]
+ * - [VurdertKlage.UtfyltOppretthold] -> [VilkårsvurdertKlage] og [VurdertKlage]
+ * - [VurdertKlage.BekreftetOmgjøring] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering] og [FerdigstiltOmgjortKlage]
  *
  * - [AvvistKlage] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage.Bekreftet.Avvist]
  *
- * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.Bekreftet]
+ * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.BekreftetOmgjøring]
  * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage] og [AvvistKlage]
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
- * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.Bekreftet])
+ * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.BekreftetOmgjøring])
  */
 sealed interface Klage :
     Klagefelter,
@@ -97,18 +97,17 @@ sealed interface Klage :
     /** @return [FerdigstiltOmgjortKlage] */
     fun ferdigstillOmgjøring(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        klage: VurdertKlage.Bekreftet,
         ferdigstiltTidspunkt: Tidspunkt,
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(this::class).left()
     }
 
-    /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */
+    /** @return [VurdertKlage.BekreftetOmgjøring] eller [AvvistKlage] */
     fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneKlage, Klage> {
         // TODO jah: Man kan også underkjenne til Avvist, så til vil variere basert på nåværende tilstand.
-        return KunneIkkeUnderkjenneKlage.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
+        return KunneIkkeUnderkjenneKlage.UgyldigTilstand(this::class, VurdertKlage.BekreftetOmgjøring::class).left()
     }
 
     /**

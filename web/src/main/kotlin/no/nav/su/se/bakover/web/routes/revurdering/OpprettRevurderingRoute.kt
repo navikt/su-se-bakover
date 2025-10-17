@@ -107,10 +107,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Klageid mangler eller er ugyldig",
             "klage_ugyldig_uuid",
         )
-        is KunneIkkeOppretteRevurdering.KlagenErOpprettholdt -> BadRequest.errorJson(
-            "Klagen er opprettholdt og kan ikke knyttes til revurdering",
-            "klagen_er_opprettholdt",
-        )
         is KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> BadRequest.errorJson(
             "Omgjøringsgrunn er ulik mellom klage og revurdering",
             "ulik_omgjøringsgrunn",

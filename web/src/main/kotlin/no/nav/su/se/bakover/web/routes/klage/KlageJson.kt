@@ -215,8 +215,8 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttet,
         )
 
-        is VurdertKlage.Utfylt -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttet)
-        is VurdertKlage.Bekreftet -> this.mapUtfyltOgBekreftetTilKlageJson(
+        is VurdertKlage.UtfyltOppretthold, is VurdertKlage.UtfyltOmgjør -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttet)
+        is VurdertKlage.BekreftetOmgjøring, is VurdertKlage.BekreftetOpprettholdt -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VURDERT_BEKREFTET.toString(),
             avsluttet = avsluttet,
         )
@@ -505,8 +505,8 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
         klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
         fremsattRettsligKlageinteresse = this.vilkårsvurderinger.fremsattRettsligKlageinteresse,
-        fritekstTilBrev = this.fritekstTilBrev,
-        vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+        fritekstTilBrev = this.getFritekstTilBrev().toString(),
+        vedtaksvurdering = this.vurderinger.vedtaksvurdering?.toJson(),
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
         avsluttet = avsluttet,

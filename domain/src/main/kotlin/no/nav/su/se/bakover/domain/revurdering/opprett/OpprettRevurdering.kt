@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
@@ -73,16 +72,10 @@ fun Sak.opprettRevurdering(
                     log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av. Sakid: $saksnummer")
                     return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
                 }
-                when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
-                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
-                        if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn} Sakid: $saksnummer")
-                            return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
-                        }
-                    }
-                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
-                        return KunneIkkeOppretteRevurdering.KlagenErOpprettholdt.left()
-                    }
+                val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
+                if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
+                    log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn} Sakid: $saksnummer")
+                    return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
                 }
             }
             else -> {

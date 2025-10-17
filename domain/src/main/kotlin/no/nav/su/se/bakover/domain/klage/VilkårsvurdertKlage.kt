@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt.Companion.createUtfylt
 import java.time.LocalDate
 import java.util.UUID
 
@@ -613,7 +614,7 @@ sealed interface VilkårsvurdertKlage :
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vurderinger: VurderingerTilKlage.Utfylt,
             ): VurdertKlage.Utfylt {
-                return VurdertKlage.Utfylt(
+                return createUtfylt(
                     forrigeSteg = this.vurder(
                         saksbehandler = saksbehandler,
                         // Her hopper vi over [VurdertKlage.Påbegynt] steget

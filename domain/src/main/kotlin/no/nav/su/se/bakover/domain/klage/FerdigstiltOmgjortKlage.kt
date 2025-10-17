@@ -4,7 +4,6 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -13,14 +12,15 @@ import kotlin.reflect.KClass
  men dette lagres heller i [datoklageferdigstilt] som er reservert for klagebehandlinger som ikke attesteres.
  */
 data class FerdigstiltOmgjortKlage(
-    private val forrigeSteg: Utfylt,
+    private val forrigeSteg: VurdertKlage.BekreftetOmgjøring,
     override val klageinstanshendelser: Klageinstanshendelser,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     val datoklageferdigstilt: Tidspunkt,
     val behandlingId: UUID? = null,
 ) : Klage,
-    VurdertKlage.UtfyltFelter by forrigeSteg {
+    VurdertKlage.OmgjøringKlageFelter by forrigeSteg {
+
     override fun erÅpen() = false
     override fun kanAvsluttes() = false
 

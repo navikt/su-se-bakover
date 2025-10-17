@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.statistikk
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
@@ -185,6 +186,7 @@ sealed interface StatistikkEvent {
 
             data class Opprettet(override val klage: OpprettetKlage) : Klage
             data class Oversendt(override val klage: OversendtKlage) : Klage
+            data class FerdigstiltOmgjøring(override val klage: FerdigstiltOmgjortKlage) : Klage
             data class Avvist(
                 val vedtak: Klagevedtak.Avvist,
             ) : Klage {

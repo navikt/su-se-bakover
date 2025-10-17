@@ -8,11 +8,11 @@ import behandling.klage.domain.KlageId
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenneKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -223,7 +223,7 @@ internal class UnderkjennKlageTest {
         )
         mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.UgyldigTilstand(
             klage::class,
-            VurdertKlage.Bekreftet::class,
+            VurdertKlage.BekreftetOmgjøring::class, // TODO: må endre testen til å lage oppretthold da omgjøring ikke gir mening her
         ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -245,33 +245,33 @@ internal class UnderkjennKlageTest {
 
         val attestant = NavIdentBruker.Attestant("s2")
 
-        var expectedKlage: VurdertKlage.Bekreftet?
+        var expectedKlage: VurdertKlage.BekreftetOpprettholdt?
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
             grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
         )
-        mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
-            expectedKlage = VurdertKlage.Bekreftet(
-                forrigeSteg = utfyltVurdertKlage(
-                    fnr = klage.fnr,
-                    id = klage.id,
-                    vedtakId = klage.vilkårsvurderinger.vedtakId,
-                ).second,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                sakstype = klage.sakstype,
-                attesteringer = Attesteringshistorikk.create(
-                    listOf(
-                        Attestering.Underkjent(
-                            attestant = attestant,
-                            opprettet = fixedTidspunkt,
-                            grunn = request.grunn,
-                            kommentar = request.kommentar,
-                        ),
-                    ),
-                ),
+        val bekreftetKlage = VurdertKlage.Bekreftet.createBekreftet(
+            forrigeSteg = utfyltVurdertKlage(
+                fnr = klage.fnr,
+                id = klage.id,
+                vedtakId = klage.vilkårsvurderinger.vedtakId,
+            ).second,
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            sakstype = klage.sakstype,
+        ) as VurdertKlage.BekreftetOpprettholdt
+        val attesteringer =
+            Attestering.Underkjent(
+                attestant = attestant,
+                opprettet = fixedTidspunkt,
+                grunn = request.grunn,
+                kommentar = request.kommentar,
             )
+        val underkjent = KlageTilAttestering.Vurdert(bekreftetKlage, klage.saksbehandler, klage.sakstype).underkjenn(attesteringer).getOrElse { throw RuntimeException("feil") }
+
+        mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
+            expectedKlage = underkjent
             it shouldBe expectedKlage
         }
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
