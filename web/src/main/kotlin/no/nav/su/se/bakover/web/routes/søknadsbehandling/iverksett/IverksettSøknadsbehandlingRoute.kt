@@ -96,6 +96,5 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
 
         is KunneIkkeIverksetteSøknadsbehandling.OverlappendeStønadsperiode -> this.underliggendeFeil.tilResultat()
         is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
-        else -> {}
-    } as Resultat
+    }
 }
