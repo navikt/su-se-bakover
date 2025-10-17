@@ -7,11 +7,11 @@ import arrow.core.Tuple6
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.UprosessertKlageinstanshendelse
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
@@ -207,7 +207,7 @@ class TestDataHelper(
     råttKravgrunnlagMapper: MapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag,
 ) {
     val sessionFactory: PostgresSessionFactory =
-        PostgresSessionFactory(dataSource, dbMetrics, sessionCounterStub, listOf(DomainToQueryParameterMapper))
+        PostgresSessionFactory(dataSource, dbMetrics, sessionValidatorStub, listOf(DomainToQueryParameterMapper))
 
     val databaseRepos = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
@@ -1459,7 +1459,6 @@ class TestDataHelper(
             søknadId = søknad.id,
             clock = fixedClock,
             saksbehandler = saksbehandler,
-            oppdaterOppgave = null,
 
         ).getOrFail().let { (_, nySøknadsbehandling) ->
             databaseRepos.søknadsbehandling.lagre(nySøknadsbehandling)
@@ -1510,12 +1509,12 @@ class TestDataHelper(
     ): VilkårsvurdertKlage.Utfylt.TilVurdering {
         return persisterKlageOpprettet(vedtak = vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtak.id,
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "enBegrunnelse",
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1530,12 +1529,12 @@ class TestDataHelper(
     ): VilkårsvurdertKlage.Utfylt.Avvist {
         return persisterKlageOpprettet(vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtak.id,
-                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
-                klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
-                begrunnelse = "en begrunnelse med person opplysninger",
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             ),
         ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
@@ -1588,17 +1587,18 @@ class TestDataHelper(
         }
     }
 
-    fun persisterKlageVurdertUtfylt(
+    fun persisterKlageVurdertUtfyltOpprettholdt(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Utfylt {
         return persisterKlageVurdertPåbegynt(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
-            vurderinger = VurderingerTilKlage.Utfylt(
+            vurderinger = VurderingerTilKlage.UtfyltOppretthold(
                 fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
                     hjemler = Klagehjemler.Utfylt.create(
                         nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
                     ),
+                    klagenotat = "klagenotat",
                 ),
             ),
         ).let {
@@ -1612,7 +1612,7 @@ class TestDataHelper(
     fun persisterKlageVurdertBekreftet(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
     ): VurdertKlage.Bekreftet {
-        return persisterKlageVurdertUtfylt(vedtak = vedtak).bekreftVurderinger(
+        return persisterKlageVurdertUtfyltOpprettholdt(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
         ).also {
             databaseRepos.klageRepo.lagre(it)

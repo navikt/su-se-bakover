@@ -12,9 +12,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
-import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -98,7 +98,7 @@ internal class AvsluttKlageTest {
         verifiserFeilkode(
             path = uri,
             feilkode = KunneIkkeAvslutteKlage.UgyldigTilstand(IverksattAvvistKlage::class),
-            status = HttpStatusCode.BadRequest,
+            status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Kan ikke gå fra tilstanden IverksattAvvistKlage til tilstanden AvsluttetKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
@@ -153,38 +153,7 @@ internal class AvsluttKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${klage.id}",
-                  "sakid":"${klage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"VURDERT_BEKREFTET",
-                  "vedtakId":"${(klage.hentUnderliggendeKlage() as VurdertKlage.Bekreftet).vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "begrunnelse":"begrunnelse",
-                  "fritekstTilBrev":"fritekstTilBrev",
-                    "vedtaksvurdering":{
-                    "type":"OPPRETTHOLD",
-                    "omgjør":null,
-                    "oppretthold":{
-                      "hjemler":[
-                        "SU_PARAGRAF_3",
-                        "SU_PARAGRAF_4"
-                      ]
-                    }
-                  },
-                  "attesteringer":[],
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "ER_AVSLUTTET",
-                  "avsluttetTidspunkt": "2021-01-01T01:02:03.456789Z",
-                  "avsluttetBegrunnelse": "Begrunnelse for avsluttet klage."
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
                 )

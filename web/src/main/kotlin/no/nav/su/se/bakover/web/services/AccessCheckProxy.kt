@@ -10,7 +10,7 @@ import behandling.klage.domain.KlageId
 import behandling.klage.domain.UprosessertKlageinstanshendelse
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
@@ -42,11 +42,13 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
@@ -111,7 +113,6 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
-import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
@@ -152,8 +153,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.retur.KunneIkkeReturnereSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
@@ -162,6 +163,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilV
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
@@ -349,6 +351,12 @@ open class AccessCheckProxy(
                     }
                 }
 
+                override fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak? {
+                    return services.sak.hentSakHvisFinnes(fnr, type).also { sak ->
+                        sak?.let { assertHarTilgangTilSak(sak.id) }
+                    }
+                }
+
                 override fun hentSakForUtbetalingId(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun hentGjeldendeVedtaksdata(
@@ -369,9 +377,6 @@ open class AccessCheckProxy(
                         vedtakId = vedtakId,
                     )
                 }
-
-                override fun hentSakidOgSaksnummer(fnr: Fnr, sakstype: Sakstype): SakInfo? =
-                    kastKanKunKallesFraAnnenService()
 
                 override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
                     kastKanKunKallesFraAnnenService()
@@ -596,12 +601,12 @@ open class AccessCheckProxy(
                 },
                 søknadsbehandlingService = object : SøknadsbehandlingService {
                     val service = services.søknadsbehandling.søknadsbehandlingService
-                    override fun opprett(
-                        request: SøknadsbehandlingService.OpprettRequest,
+                    override fun startBehandling(
+                        request: SøknadsbehandlingService.OppstartRequest,
                         hentSak: (() -> Sak)?,
-                    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+                    ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
                         assertHarTilgangTilSøknad(request.søknadId)
-                        return service.opprett(request, hentSak)
+                        return service.startBehandling(request, hentSak)
                     }
 
                     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, BeregnetSøknadsbehandling> {
@@ -759,8 +764,7 @@ open class AccessCheckProxy(
                         assertHarTilgangTilSøknadsbehandling(søknadsbehandlingSkatt.behandlingId)
                         return service.oppdaterSkattegrunnlag(søknadsbehandlingSkatt)
                     }
-
-                    override fun lagre(søknadsbehandling: Søknadsbehandling) = kastKanKunKallesFraAnnenService()
+                    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) = kastKanKunKallesFraAnnenService()
                     override fun hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
                         sakId: UUID,
                         søknadsbehandlingId: SøknadsbehandlingId,
@@ -989,7 +993,7 @@ open class AccessCheckProxy(
                 override fun stansAvYtelseITransaksjon(
                     request: StansYtelseRequest,
                     transactionContext: TransactionContext,
-                ): StansAvYtelseITransaksjonResponse {
+                ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -1046,6 +1050,10 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentInnvilgetFnrForMåned(måned)
                 }
 
+                override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
+                    return services.vedtakService.hentAlleSakerMedInnvilgetVedtak()
+                }
+
                 override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
                     return services.vedtakService.hentInnvilgetFnrFraOgMedMåned(måned, inkluderEps)
                 }
@@ -1082,12 +1090,12 @@ open class AccessCheckProxy(
                 }
             },
             avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
-                override fun avslå(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, Sak> {
+                override fun avslå(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, Sak> {
                     assertHarTilgangTilSøknad(command.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(command)
                 }
 
-                override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
+                override fun genererBrevForhåndsvisning(command: AvslagSøknadCmd): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
                     assertHarTilgangTilSøknad(command.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(command)
                 }
@@ -1098,9 +1106,9 @@ open class AccessCheckProxy(
                     return services.klageService.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-                    assertHarTilgangTilKlage(request.klageId)
-                    return services.klageService.vilkårsvurder(request)
+                override fun vilkårsvurder(command: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                    assertHarTilgangTilKlage(command.klageId)
+                    return services.klageService.vilkårsvurder(command)
                 }
 
                 override fun bekreftVilkårsvurderinger(
@@ -1139,6 +1147,14 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.sendTilAttestering(klageId, saksbehandler)
+                }
+
+                override fun ferdigstillOmgjøring(
+                    klageId: KlageId,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.ferdigstillOmgjøring(klageId, saksbehandler)
                 }
 
                 override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenneKlage, Klage> {

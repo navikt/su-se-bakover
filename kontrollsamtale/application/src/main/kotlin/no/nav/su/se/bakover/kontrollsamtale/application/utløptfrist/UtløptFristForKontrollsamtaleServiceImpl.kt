@@ -83,24 +83,14 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                                 ),
                             ),
                             transactionContext = transactionContext,
-                        ).let {
-                            UtløptFristForKontrollsamtaleContext.OpprettStansTransactionCallback(
-                                revurderingId = it.revurdering.id,
-                                sendStatistikkCallback = it.sendStatistikkCallback,
-                            )
-                        }
+                        )
                     },
                     iverksettStans = { revurderingId: RevurderingId, transactionContext: TransactionContext ->
                         stansAvYtelseService.iverksettStansAvYtelseITransaksjon(
                             revurderingId = revurderingId,
                             attestant = NavIdentBruker.Attestant(serviceUser),
                             transactionContext = transactionContext,
-                        ).let {
-                            UtløptFristForKontrollsamtaleContext.IverksettStansTransactionCallback(
-                                sendUtbetalingCallback = it.sendUtbetalingCallback,
-                                sendStatistikkCallback = it.sendStatistikkCallback,
-                            )
-                        }
+                        )
                     },
                     lagreContext = { utløptFristForKontrollsamtaleContext: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext ->
                         kontrollsamtaleJobRepo.lagre(utløptFristForKontrollsamtaleContext, transactionContext)

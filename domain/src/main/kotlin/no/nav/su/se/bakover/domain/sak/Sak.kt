@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
-import arrow.core.Tuple4
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
@@ -22,7 +21,6 @@ import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.common.domain.whenever
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -41,13 +39,14 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -403,62 +402,45 @@ data class Sak(
      */
     fun lukkSøknadOgSøknadsbehandling(
         lukkSøknadCommand: LukkSøknadCommand,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
     ): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
-        val søknad = hentSøknad(søknadId).getOrElse {
-            throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Fant ikke søknad for sak $id og søknad $søknadId. Underliggende feil: $it")
-        }
-        return hentSøknadsbehandlingForSøknad(søknadId).fold(
-            {
-                // Finnes ingen søknadsbehandling. Lukker kun søknaden.
-                val lukketSøknad = søknad.lukk(
-                    lukkSøknadCommand = lukkSøknadCommand,
-                )
-                Tuple4(
-                    this.copy(
-                        søknader = this.søknader.filterNot { it.id == søknadId }.plus(lukketSøknad),
-                    ),
-                    lukketSøknad,
-                    null,
-                    StatistikkEvent.Søknad.Lukket(lukketSøknad, saksnummer),
-                )
-            },
-            { søknadensBehandlinger ->
-                // det skal kun finnes 1 søknadsbehandling åpen om gangen
-                val søknadsbehandlingSomSkalLukkes =
-                    søknadensBehandlinger.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
-                        ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
+        val saksbehandler = lukkSøknadCommand.saksbehandler
 
-                // Finnes søknadsbehandling. Lukker søknadsbehandlingen, som i sin tur lukker søknaden.
-                søknadsbehandlingSomSkalLukkes.lukkSøknadsbehandlingOgSøknad(
-                    lukkSøknadCommand = lukkSøknadCommand,
-                ).getOrElse {
-                    throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
-                }.let { lukketSøknadsbehandling ->
-                    Tuple4(
-                        this.oppdaterSøknadsbehandling(lukketSøknadsbehandling)
-                            .copy(
-                                søknader = this.søknader.filterNot { it.id == søknadId }
-                                    .plus(lukketSøknadsbehandling.søknad),
-                            ),
-                        lukketSøknadsbehandling.søknad,
-                        lukketSøknadsbehandling,
-                        StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),
-                    )
-                }
-            },
-        ).let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
-            val lagBrevRequest = søknad.lagGenererDokumentKommando(sak.info())
-            LukkSøknadOgSøknadsbehandlingResponse(
-                sak = sak,
-                søknad = søknad,
-                søknadsbehandling = søknadsbehandling,
-                hendelse = statistikkhendelse,
-                lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
-            )
+        val søknadensBehandlinger = hentSøknadsbehandlingForSøknad(søknadId).getOrNull()
+        val (oppdatertSak, lukketBehandling) = if (søknadensBehandlinger == null) {
+            val nyOgLukket = this.opprettNySøknadsbehandling(
+                søknadId = søknadId,
+                clock = clock,
+                saksbehandler = saksbehandler,
+            ).getOrElse {
+                throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} for sak $id, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: $it")
+            }.second.lukkSøknadsbehandlingOgSøknad(lukkSøknadCommand).getOrElse {
+                throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
+            }
+            Pair(this.nySøknadsbehandling(nyOgLukket).leggTilSøknad(nyOgLukket.søknad), nyOgLukket)
+        } else {
+            val søknadsbehandling = søknadensBehandlinger.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
+                ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
+
+            val lukket = søknadsbehandling.lukkSøknadsbehandlingOgSøknad(lukkSøknadCommand).getOrElse {
+                throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
+            }
+            Pair(this.oppdaterSøknadsbehandling(lukket).leggTilSøknad(lukket.søknad), lukket)
         }
+
+        val lagBrevRequest = lukketBehandling.søknad.lagGenererDokumentKommando(oppdatertSak.info())
+        return LukkSøknadOgSøknadsbehandlingResponse(
+            sak = oppdatertSak,
+            søknad = lukketBehandling.søknad,
+            søknadsbehandling = lukketBehandling,
+            lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
+        )
     }
+
+    private fun leggTilSøknad(søknad: Søknad) = this.copy(
+        søknader = this.søknader.filterNot { it.id == søknad.id }.plus(søknad),
+    )
 
     /**
      * @param søknadsbehandling null dersom det ikke eksisterer en søknadsbehandling
@@ -467,20 +449,15 @@ data class Sak(
     data class LukkSøknadOgSøknadsbehandlingResponse(
         val sak: Sak,
         val søknad: Søknad.Journalført.MedOppgave.Lukket,
-        val søknadsbehandling: LukketSøknadsbehandling?,
-        val hendelse: StatistikkEvent,
+        val søknadsbehandling: LukketSøknadsbehandling,
         val lagBrevRequest: Either<IkkeLagBrevRequest, GenererDokumentCommand>,
     ) {
         init {
-            // Guards spesielt med tanke på testdatasett.
-            require(
-                hendelse is StatistikkEvent.Behandling.Søknad.Lukket || hendelse is StatistikkEvent.Søknad.Lukket,
-            )
             lagBrevRequest.onRight {
                 require(it.saksnummer == sak.saksnummer)
             }
             require(sak.hentSøknad(søknad.id).getOrNull()!! == søknad)
-            søknadsbehandling?.also {
+            søknadsbehandling.also {
                 require(sak.søknadsbehandlinger.contains(søknadsbehandling))
                 require(søknadsbehandling.søknad == søknad)
             }

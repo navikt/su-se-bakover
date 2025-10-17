@@ -234,7 +234,7 @@ internal class IverksettAvvistKlageTest {
         val (_, klage) = avvistKlageTilAttestering(fritekstTilBrev = "dette er min fritekst")
         val attestant = NavIdentBruker.Attestant("attestant")
         val pdfA = PdfA("myDoc".toByteArray())
-        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
         val dokumentUtenMetadataVedtak = dokumentUtenMetadataVedtak(pdf = pdfA)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -330,6 +330,7 @@ internal class IverksettAvvistKlageTest {
                     ),
                 )
             },
+            any(),
         )
         mocks.verifyNoMoreInteractions()
     }

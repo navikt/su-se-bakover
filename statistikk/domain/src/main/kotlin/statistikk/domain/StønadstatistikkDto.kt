@@ -91,6 +91,7 @@ data class StønadstatistikkDto(
      * @property utbetales Faktisk utbetaling per måned.
      * @property fradragSum Summen av alle fradrag/inntekter som gjelder for stønadsmottaker.
      * @property uføregrad uføregrad til bruker hvis uføre sak
+     * @property fribeløpEps grensa fradrag for eps sin inntekt skal gjelde fra
      */
     data class Månedsbeløp(
         val måned: String,
@@ -100,6 +101,7 @@ data class StønadstatistikkDto(
         val fradrag: List<Fradrag>,
         val fradragSum: Long,
         val uføregrad: Int?,
+        val fribeløpEps: Long?,
     )
 
     /**
@@ -108,6 +110,7 @@ data class StønadstatistikkDto(
      * @property tilhører er [FradragTilhører]
      */
     data class Fradrag(
+        // TODO bytt ut string med enumen...
         val fradragstype: String,
         val beløp: Long,
         val tilhører: String,

@@ -29,6 +29,8 @@ import økonomi.domain.simulering.SimulertDetaljer
 import økonomi.domain.simulering.SimulertMåned
 import økonomi.domain.simulering.SimulertUtbetaling
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
+import java.time.LocalDate
+import java.time.Month
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -221,8 +223,11 @@ internal class KryssjekkSimuleringMotUtbetaling {
     @Test
     fun `Skal ikke sammenligne 0 utbetalinger(linje) mot simuleringer hvis opphør og opphøret er frem i tid`() {
         val clock = TikkendeKlokke()
+
+        val simuleringsÅr = 2025
+        val naa = LocalDate.of(simuleringsÅr, Month.SEPTEMBER, 1)
         val juni = SimulertMåned(
-            måned = no.nav.su.se.bakover.common.tid.periode.juni(2025),
+            måned = no.nav.su.se.bakover.common.tid.periode.juni(simuleringsÅr),
             utbetaling = SimulertUtbetaling(
                 fagSystemId = fagsystemId,
                 utbetalesTilId = fnr,
@@ -231,8 +236,8 @@ internal class KryssjekkSimuleringMotUtbetaling {
                 feilkonto = false,
                 detaljer = listOf(
                     SimulertDetaljer(
-                        faktiskFraOgMed = 1.juni(2025),
-                        faktiskTilOgMed = 30.juni(2025),
+                        faktiskFraOgMed = 1.juni(simuleringsÅr),
+                        faktiskTilOgMed = 30.juni(simuleringsÅr),
                         konto = konto,
                         belop = 0,
                         tilbakeforing = false,
@@ -249,7 +254,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
         )
 
         val julisim = SimulertMåned(
-            måned = no.nav.su.se.bakover.common.tid.periode.juli(2025),
+            måned = no.nav.su.se.bakover.common.tid.periode.juli(simuleringsÅr),
             utbetaling = SimulertUtbetaling(
                 fagSystemId = fagsystemId,
                 utbetalesTilId = fnr,
@@ -258,8 +263,8 @@ internal class KryssjekkSimuleringMotUtbetaling {
                 feilkonto = false,
                 detaljer = listOf(
                     SimulertDetaljer(
-                        faktiskFraOgMed = 1.juli(2025),
-                        faktiskTilOgMed = 30.juli(2025),
+                        faktiskFraOgMed = 1.juli(simuleringsÅr),
+                        faktiskTilOgMed = 30.juli(simuleringsÅr),
                         konto = konto,
                         belop = 0,
                         tilbakeforing = false,
@@ -278,15 +283,15 @@ internal class KryssjekkSimuleringMotUtbetaling {
         val simulering = Simulering(
             gjelderId = Fnr.generer(),
             gjelderNavn = "tester",
-            1.september(2025),
+            1.september(simuleringsÅr),
             nettoBeløp = 0,
             måneder = listOf(juni, julisim),
             rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
         )
         val rekkefølge = Rekkefølge.generator()
         val første = utbetalingslinjeNy(
-            opprettet = 1.september(2025).atStartOfDay(zoneIdOslo).toTidspunkt(),
-            periode = no.nav.su.se.bakover.common.tid.periode.juni(2025)..oktober(2025),
+            opprettet = 1.september(simuleringsÅr).atStartOfDay(zoneIdOslo).toTidspunkt(),
+            periode = no.nav.su.se.bakover.common.tid.periode.juni(simuleringsÅr)..oktober(simuleringsÅr),
             beløp = 0, // ?
             rekkefølge = rekkefølge.neste(),
         )
@@ -297,7 +302,7 @@ internal class KryssjekkSimuleringMotUtbetaling {
             ),
         )
 
-        val svar = sjekkUtbetalingMotSimulering(simulering, test!!, erOpphør = true)
+        val svar = sjekkUtbetalingMotSimulering(simulering, test!!, erOpphør = true, naa = naa)
         svar.shouldBeRight()
     }
 }

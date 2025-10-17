@@ -34,6 +34,7 @@ internal data object KabalRequestMapper {
             ),
             brukersHenvendelseMottattNavDato = klage.datoKlageMottatt,
             innsendtTilNav = klage.datoKlageMottatt,
+            kommentar = klage.genererKommentar(),
         )
     }
 }

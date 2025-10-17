@@ -3,10 +3,12 @@
 package no.nav.su.se.bakover.test
 
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.FormkravTilKlage
+import behandling.klage.domain.FormkravTilKlage.SvarMedBegrunnelse
+import behandling.klage.domain.FormkravTilKlage.Svarord
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -88,9 +90,10 @@ fun påbegyntVilkårsvurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID? = null,
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord? = null,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean? = null,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord? = null,
+    innenforFristen: SvarMedBegrunnelse? = null,
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse? = null,
+    erUnderskrevet: SvarMedBegrunnelse? = null,
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse? = null,
     begrunnelse: String? = null,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Påbegynt> {
@@ -107,13 +110,13 @@ fun påbegyntVilkårsvurdertKlage(
     ).let { (sak, klage) ->
         val vilkårsvurdertKlage = klage.vilkårsvurder(
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = begrunnelse,
-            ) as VilkårsvurderingerTilKlage.Påbegynt,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
+            ) as FormkravTilKlage.Påbegynt,
         ).getOrFail()
 
         if (vilkårsvurdertKlage !is VilkårsvurdertKlage.Påbegynt) throw IllegalStateException("Forventet en Vilkårsvurdert.Påbegynt, men fikk ${vilkårsvurdertKlage::class} ved oppretting av test data")
@@ -135,10 +138,10 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er ja"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.TilVurdering> {
     require(sakId == sakMedVedtak.id) {
@@ -157,12 +160,12 @@ fun utfyltVilkårsvurdertKlageTilVurdering(
     ).let {
         val klage = it.second.vilkårsvurder(
             saksbehandler = saksbehandler,
-            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+            vilkårsvurderinger = FormkravTilKlage.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
-                begrunnelse = begrunnelse,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             ),
         ).getOrFail()
 
@@ -185,10 +188,10 @@ fun utfyltAvvistVilkårsvurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.NEI, "Innenfor fristen er NEI"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Utfylt.Avvist> {
     return opprettetKlage(
@@ -204,12 +207,12 @@ fun utfyltAvvistVilkårsvurdertKlage(
     ).let {
         val klage = it.second.vilkårsvurder(
             saksbehandler,
-            VilkårsvurderingerTilKlage.create(
+            FormkravTilKlage.create(
                 vedtakId,
                 innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet,
-                begrunnelse,
+                fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
             ),
         ).getOrFail()
 
@@ -232,10 +235,9 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.TilVurdering> {
     require(sakId == sakMedVedtak.id) {
@@ -253,7 +255,6 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -280,10 +281,10 @@ fun bekreftetAvvistVilkårsvurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.NEI, "Innenfor fristen er NEI"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VilkårsvurdertKlage.Bekreftet.Avvist> {
     return utfyltAvvistVilkårsvurdertKlage(
@@ -298,7 +299,6 @@ fun bekreftetAvvistVilkårsvurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -325,10 +325,10 @@ fun påbegyntVurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String? = null,
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering? = null,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
@@ -346,7 +346,6 @@ fun påbegyntVurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -375,13 +374,14 @@ fun utfyltVurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        klagenotat = "klagenotat",
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId, fnr = fnr).first,
 ): Pair<Sak, VurdertKlage.Utfylt> {
@@ -400,7 +400,6 @@ fun utfyltVurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -428,13 +427,14 @@ fun bekreftetVurdertKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        klagenotat = "klagenotat",
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
@@ -453,7 +453,6 @@ fun bekreftetVurdertKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -479,10 +478,10 @@ fun avvistKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.NEI, "Innenfor fristen er NEI"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, AvvistKlage> {
@@ -501,7 +500,6 @@ fun avvistKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -544,13 +542,14 @@ fun vurdertKlageTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        klagenotat = "klagenotat",
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Vurdert> {
@@ -566,7 +565,6 @@ fun vurdertKlageTilAttestering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -593,10 +591,10 @@ fun avvistKlageTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.NEI, "Innenfor fristen er NEI"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Avvist> {
@@ -614,7 +612,6 @@ fun avvistKlageTilAttestering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         fritekstTilBrev = fritekstTilBrev,
         sakstype = sakstype,
@@ -639,13 +636,14 @@ fun underkjentKlageTilVurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        klagenotat = "klagenotat",
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
@@ -663,7 +661,6 @@ fun underkjentKlageTilVurdering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -693,10 +690,10 @@ fun underkjentAvvistKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.NEI, "Innenfor fristen er NEI"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
@@ -716,7 +713,6 @@ fun underkjentAvvistKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
     ).let {
@@ -745,13 +741,14 @@ fun underkjentTilVurderingKlageTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        klagenotat = "klagenotat",
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering> {
@@ -766,7 +763,6 @@ fun underkjentTilVurderingKlageTilAttestering(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -792,13 +788,14 @@ fun oversendtKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "Innenfor fristen er JA"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+        klagenotat = "klagenotat",
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -824,7 +821,6 @@ fun oversendtKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
@@ -852,10 +848,10 @@ fun iverksattAvvistKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
     vedtakId: UUID = UUID.randomUUID(),
-    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.NEI,
-    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
-    begrunnelse: String = "begrunnelse",
+    innenforFristen: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.NEI, "Innenfor fristen er NEI"),
+    klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse = FormkravTilKlage.BooleanMedBegrunnelse(true, "texkst"),
+    erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
+    fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
@@ -872,7 +868,6 @@ fun iverksattAvvistKlage(
         innenforFristen = innenforFristen,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
-        begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         sakMedVedtak = sakMedVedtak,
         sakstype = sakstype,
@@ -904,7 +899,7 @@ fun createBekreftetVilkårsvurdertKlage(
     journalpostId: JournalpostId,
     oppgaveId: OppgaveId,
     saksbehandler: NavIdentBruker.Saksbehandler,
-    vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+    vilkårsvurderinger: FormkravTilKlage.Utfylt,
     attesteringer: Attesteringshistorikk,
     datoKlageMottatt: LocalDate,
     vurderinger: VurderingerTilKlage? = null,

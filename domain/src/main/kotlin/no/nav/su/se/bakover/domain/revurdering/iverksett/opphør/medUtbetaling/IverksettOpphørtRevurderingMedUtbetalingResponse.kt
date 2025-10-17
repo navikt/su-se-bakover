@@ -30,7 +30,6 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
     override val utbetaling: Utbetaling.SimulertUtbetaling,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
     override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
-        StatistikkEvent.Stønadsvedtak(vedtak) { sak },
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak),
     )
 
@@ -71,9 +70,8 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
+                statistikkObservers().notify(statistikkhendelser, tx)
                 vedtak.behandling
-            }.also {
-                statistikkObservers().notify(statistikkhendelser)
             }
         }.mapLeft {
             when (it) {

@@ -38,6 +38,9 @@ class TestSessionFactory : SessionFactory {
 
     override fun newSessionContext() = sessionContext
     override fun newTransactionContext() = transactionContext
+    override fun close() {
+        // Do nothing. Kan ikke lukke en raw datasource
+    }
 
     // TODO jah: Denne er duplikat med den som ligger i database siden test-common ikke har en referanse til database-modulen.
     private class SessionCounter {

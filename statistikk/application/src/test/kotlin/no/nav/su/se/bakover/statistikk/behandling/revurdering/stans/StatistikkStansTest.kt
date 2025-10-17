@@ -17,7 +17,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
-import person.domain.PersonService
 
 internal class StatistikkStansTest {
 
@@ -81,19 +80,16 @@ internal class StatistikkStansTest {
         funksjonellTid: Tidspunkt,
     ) {
         val kafkaPublisherMock: KafkaPublisher = mock()
-        val personServiceMock: PersonService = mock()
         val sakRepoMock: SakRepo = mock()
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,
-            personService = personServiceMock,
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             mock(),
-            mock(),
         ).statistikkService.handle(statistikkEvent)
 
-        verifyNoMoreInteractions(personServiceMock, sakRepoMock)
+        verifyNoMoreInteractions(sakRepoMock)
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe "supstonad.aapen-su-behandling-statistikk-v1" },
@@ -135,6 +131,6 @@ internal class StatistikkStansTest {
                 )
             },
         )
-        verifyNoMoreInteractions(kafkaPublisherMock, personServiceMock, sakRepoMock)
+        verifyNoMoreInteractions(kafkaPublisherMock, sakRepoMock)
     }
 }

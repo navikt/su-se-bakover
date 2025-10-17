@@ -41,7 +41,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
             simulering = null,
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             attesteringer = attesteringer.toJson(),
-            saksbehandler = saksbehandler.toString(),
+            saksbehandler = saksbehandler?.toString(),
             fritekstTilBrev = fritekstTilBrev,
             sakId = sakId,
             stønadsperiode = stønadsperiode?.toJson(),

@@ -75,8 +75,8 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
                     "Kunne ikke innvilge søknadsbehandling ${søknadsbehandling.id}. Underliggende feil: $feil.",
                 )
             }
+            statistikkObservers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak), tx)
         }
         log.info("Iverksatt innvilgelse for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
-        statistikkObservers.notify(statistikk)
     }
 }

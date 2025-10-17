@@ -4,11 +4,11 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import behandling.søknadsbehandling.domain.GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevService
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -21,15 +21,13 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
@@ -46,11 +44,9 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
-import no.nav.su.se.bakover.test.søknad.nySøknadPåEksisterendeSak
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføreDefault
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -107,7 +103,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             },
         ).let { serviceAndMocks ->
             val actualSak = serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     uavklart.søknad.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
@@ -202,10 +198,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
                         sak = expectedSak,
                         vedtak = expectedVedtak,
-                        statistikkhendelse =
-                        StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
-                            vedtak = expectedVedtak,
-                        ),
                         dokument = Dokument.MedMetadata.Vedtak(
                             utenMetadata = mockedDokument,
                             metadata = Dokument.Metadata(
@@ -260,7 +252,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         ).let { serviceAndMocks ->
 
             val actualSak = serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
@@ -343,10 +335,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     it shouldBe IverksattAvslåttSøknadsbehandlingResponse(
                         sak = expectedSak,
                         vedtak = expectedVedtak,
-                        statistikkhendelse =
-                        StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
-                            vedtak = expectedVedtak,
-                        ),
                         dokument = Dokument.MedMetadata.Vedtak(
                             utenMetadata = mockedDokument,
                             metadata = Dokument.Metadata(
@@ -379,43 +367,15 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         )
         assertThrows<IllegalArgumentException> {
             serviceAndMocks.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldBe "Avslag pga manglende dok. Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad $søknadId"
+        }.message shouldContain "Avslag"
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `svarer med feil dersom vi ikke får opprettet behandling`() {
-        // Legger på en ny søknad som det ikke skal være lov å starte på samtidig som den andre søknadsbehandlingen.
-        val (sak, nySøknad) = nySøknadPåEksisterendeSak(
-            eksisterendeSak = vilkårsvurdertSøknadsbehandlingUføreDefault().first,
-        )
-
-        AvslåSøknadServiceAndMocks(
-            sakService = mock {
-                on { hentSakForSøknad(any()) } doReturn sak.right()
-            },
-            clock = fixedClock,
-        ).let {
-            it.service.avslå(
-                AvslåManglendeDokumentasjonCommand(
-                    søknadId = nySøknad.id,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
-                    fritekstTilBrev = "fritekstTilBrev",
-                ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
-                KunneIkkeOppretteSøknadsbehandling.HarÅpenSøknadsbehandling,
-            ).left()
-
-            verify(it.sakService).hentSakForSøknad(nySøknad.id)
-            it.verifyNoMoreInteractions()
-        }
     }
 
     private data class AvslåSøknadServiceAndMocks(

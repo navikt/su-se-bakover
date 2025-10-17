@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import behandling.klage.domain.VilkårsvurdertKlageFelter
 import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
 
 interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
     // Her ønsker vi å være mer spesifikke en super
-    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+    override val vilkårsvurderinger: FormkravTilKlage.Utfylt
     val vurderinger: VurderingerTilKlage
     val klageinstanshendelser: Klageinstanshendelser
 }
@@ -36,8 +36,20 @@ sealed interface VurdertKlage :
             throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
         }
 
+    val fritekstTilBrev: String?
+        get() =
+            when (val vurderinger = vurderinger) {
+                is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
+                is VurderingerTilKlage.UtfyltOmgjøring -> null
+                is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+            }
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return vurderinger.fritekstTilOversendelsesbrev.orEmpty().right()
+        return when (val vurderinger = vurderinger) {
+            is VurderingerTilKlage.Påbegynt -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
+        }
     }
 
     /**
@@ -55,13 +67,13 @@ sealed interface VurdertKlage :
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        vilkårsvurderinger: FormkravTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
             return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
         }
         return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
+            is FormkravTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -76,7 +88,7 @@ sealed interface VurdertKlage :
                 sakstype = sakstype,
             )
 
-            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
+            is FormkravTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -258,8 +270,24 @@ sealed interface VurdertKlage :
         KanBekrefteKlagevurdering,
         UtfyltFelter by forrigeSteg {
 
+        override fun ferdigstillOmgjøring(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            klage: Bekreftet,
+            ferdigstiltTidspunkt: Tidspunkt,
+        ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+            return FerdigstiltOmgjortKlage(
+                forrigeSteg = forrigeSteg,
+                saksbehandler = saksbehandler,
+                sakstype = sakstype,
+                klageinstanshendelser = klage.klageinstanshendelser,
+                datoklageferdigstilt = ferdigstiltTidspunkt,
+            ).right()
+        }
+
         override fun erÅpen() = true
 
+        // Hvis det er en vurdertKlage så sjekker man på "forrigeSteg" og den vil vel alltid være påbegynt ergo langt fra utfylt.
+        // TODO: kanskje man skal se om det har kommet inn nye vurderinger i stedet for?
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vurderinger: VurderingerTilKlage,
@@ -310,7 +338,6 @@ sealed interface VurdertKlage :
 sealed interface KunneIkkeVurdereKlage {
     data object FantIkkeKlage : KunneIkkeVurdereKlage
     data object UgyldigOmgjøringsårsak : KunneIkkeVurdereKlage
-    data object UgyldigOmgjøringsutfall : KunneIkkeVurdereKlage
     data object UgyldigOpprettholdelseshjemler : KunneIkkeVurdereKlage
     data object KanIkkeVelgeBådeOmgjørOgOppretthold : KunneIkkeVurdereKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVurdereKlage {

@@ -146,7 +146,7 @@ internal fun StatistikkEvent.Behandling.Søknad.toBehandlingsstatistikkDto(
                 beslutter = null,
                 totrinnsbehandling = false,
                 avsluttet = true,
-                saksbehandler = this.saksbehandler,
+                saksbehandler = this.lukketAv,
             )
         }
     }

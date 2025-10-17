@@ -192,7 +192,7 @@ internal class StatistikkSøknadsbehandlingTest {
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(
                 søknadsbehandling,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvsluttet"),
+                lukketAv = NavIdentBruker.Saksbehandler("saksbehandlerSomAvsluttet"),
             ),
             behandlingStatus = "AVSLUTTET",
             behandlingStatusBeskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",
@@ -228,10 +228,8 @@ internal class StatistikkSøknadsbehandlingTest {
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,
-            personService = mock(),
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
-            mock(),
             mock(),
         ).statistikkService.handle(statistikkEvent)
         verify(kafkaPublisherMock).publiser(

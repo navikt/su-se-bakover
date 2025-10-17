@@ -89,7 +89,6 @@ internal class RevurderingSendTilAttesteringTest {
                         )
                     },
                 )
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
 
                 verify(mocks.observer).handle(
@@ -98,6 +97,7 @@ internal class RevurderingSendTilAttesteringTest {
                             actual as RevurderingTilAttestering.Innvilget,
                         )
                     },
+                    any(),
                 )
             }
 
@@ -176,7 +176,6 @@ internal class RevurderingSendTilAttesteringTest {
                         )
                     },
                 )
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                 mocks.verifyNoMoreInteractions()
             }

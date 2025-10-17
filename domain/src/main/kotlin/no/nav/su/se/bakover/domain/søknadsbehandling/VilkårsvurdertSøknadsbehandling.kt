@@ -319,7 +319,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         /**
          * Til bruk der systemet har behov for å gjøre handling
-         * Se eksempel: [no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon]
+         * Se eksempel: [no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.avslåSøknad]
          */
         fun tilAttesteringForSystembruker(
             fritekstTilBrev: String,
@@ -399,7 +399,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val attesteringer: Attesteringshistorikk,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val saksbehandler: NavIdentBruker.Saksbehandler?,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling {

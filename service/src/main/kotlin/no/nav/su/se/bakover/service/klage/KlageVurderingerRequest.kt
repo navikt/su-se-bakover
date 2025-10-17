@@ -23,11 +23,11 @@ data class KlageVurderingerRequest(
     private val omgjør: Omgjør?,
     private val oppretthold: Oppretthold?,
 ) {
-    data class Omgjør(val årsak: String?, val utfall: String?) {
+    data class Omgjør(val årsak: String?, val begrunnelse: String?) {
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                 årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
-                utfall = utfall?.let { utfallToDomain(it) }?.getOrElse { return it.left() },
+                begrunnelse = begrunnelse,
             ).right()
         }
 
@@ -35,20 +35,15 @@ data class KlageVurderingerRequest(
             val årsak = VurderingerTilKlage.Vedtaksvurdering.Årsak.entries.find { it.name == årsak }
             return årsak?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
         }
-
-        private fun utfallToDomain(utfall: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall, VurderingerTilKlage.Vedtaksvurdering.Utfall> {
-            val utfall = VurderingerTilKlage.Vedtaksvurdering.Utfall.entries.find { it.name == utfall }
-            return utfall?.right() ?: KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall.left()
-        }
     }
 
-    data class Oppretthold(val hjemler: List<String>) {
-
+    data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) {
         fun toDomain(): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, VurderingerTilKlage.Vedtaksvurdering> {
             return hjemmelToDomain(hjemler)
                 .flatMap {
                     VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
                         hjemler = it,
+                        klagenotat = klagenotat,
                     ).mapLeft {
                         KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler
                     }
@@ -97,6 +92,11 @@ data class KlageVurderingerRequest(
     fun toDomain(): Either<KunneIkkeVurdereKlage, Domain> {
         if (omgjør != null && oppretthold != null) {
             return KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
+        }
+        val fritekstTilBrev = if (oppretthold != null) {
+            fritekstTilBrev
+        } else {
+            null
         }
         return Domain(
             klageId = klageId,

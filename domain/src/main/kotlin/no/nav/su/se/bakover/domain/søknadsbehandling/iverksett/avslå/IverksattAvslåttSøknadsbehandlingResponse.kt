@@ -29,7 +29,6 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
     override val sak: Sak,
     val dokument: Dokument.MedMetadata,
     override val vedtak: Avslagsvedtak,
-    val statistikkhendelse: StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag,
     val oppgaveSomSkalLukkes: OppgaveId,
 ) : IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Avslag> {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -63,9 +62,9 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
             lagreVedtak(vedtak, tx)
             lagreDokument(dokument, tx)
             genererOgLagreSkattedokument(vedtak, tx)
+            statistikkObservers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak), tx)
         }
         log.info("Iverksatt avslag for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
-        statistikkObservers.notify(statistikkhendelse)
         lukkOppgave(
             søknadsbehandling,
             OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent),

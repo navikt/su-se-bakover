@@ -104,12 +104,12 @@ class SøknadsbehandlingServiceAttesteringTest {
                     )
                 },
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(actual), anyOrNull())
             verify(eventObserver).handle(
                 argThat {
                     it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as SøknadsbehandlingTilAttestering.Innvilget)
                 },
+                any(),
             )
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, oppgaveServiceMock, eventObserver)

@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.behandlingMåHaSaksebehandler
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSøknad
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -36,8 +36,8 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOp
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -173,7 +173,7 @@ internal fun Route.søknadRoutes(
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
                     avslåSøknadManglendeDokumentasjonService.avslå(
-                        AvslåManglendeDokumentasjonCommand(
+                        AvslagSøknadCmd(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekstTilBrev = body.fritekst,
@@ -194,7 +194,7 @@ internal fun Route.søknadRoutes(
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
                     avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
-                        AvslåManglendeDokumentasjonCommand(
+                        AvslagSøknadCmd(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekstTilBrev = body.fritekst,
@@ -343,4 +343,5 @@ internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling -> this.underliggendeFeil.tilResultat()
     is KunneIkkeAvslåSøknad.Attesteringsfeil -> this.feil.tilResultat()
     is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
+    KunneIkkeAvslåSøknad.ManglerSaksbehandler -> behandlingMåHaSaksebehandler
 }

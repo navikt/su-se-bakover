@@ -17,7 +17,7 @@ import javax.sql.DataSource
 class PostgresTransactionContext(
     private val dataSource: DataSource,
     private val timedDbMetrics: DbMetrics,
-    private val sessionCounter: SessionCounter,
+    private val sessionValidator: SessionValidator,
     private val queryParameterMappers: List<QueryParameterMapper>,
 ) : TransactionContext {
 
@@ -50,6 +50,7 @@ class PostgresTransactionContext(
             action: (TransactionalSession) -> T,
         ): T {
             this as PostgresTransactionContext
+
             return if (transactionalSession == null) {
                 // Vi ønsker kun at den ytterste blokka lukker sesjonen (using)
                 using(
@@ -61,12 +62,8 @@ class PostgresTransactionContext(
                 ) { session ->
                     session.transaction { transactionalSession ->
                         this.transactionalSession = transactionalSession
-                        if (disableSessionCounter) {
+                        sessionValidator.validateNotNestedSession {
                             action(transactionalSession)
-                        } else {
-                            sessionCounter.withCountSessions {
-                                action(transactionalSession)
-                            }
                         }
                     }
                 }

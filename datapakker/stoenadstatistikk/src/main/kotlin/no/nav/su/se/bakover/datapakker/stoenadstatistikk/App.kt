@@ -67,10 +67,15 @@ private fun writeCsvToBigQueryTable(
 
     val writer = bigQuery.writer(jobId, writeConfig)
 
-    writer.use { channel ->
-        Channels.newOutputStream(channel).use { os ->
-            os.write(csvData.toByteArray())
+    try {
+        writer.use { channel ->
+            Channels.newOutputStream(channel).use { os ->
+                os.write(csvData.toByteArray())
+            }
         }
+    } catch (e: Exception) {
+        logger.error("Failed to write CSV data to BigQuery stream: ${e.message}", e)
+        throw RuntimeException("Error during CSV write to BigQuery", e)
     }
 
     val job = writer.job
@@ -92,21 +97,5 @@ fun writeToBigQuery(
     val stoenadCSV = data.toCSV()
     val jobStoenad = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
 
-    val månedstabell = "manedsbelop_statistikk"
-    val alleMånedsBeløpCSV = data.mapNotNull {
-        it.månedsbeløp?.toCSV(it.id)
-    }.joinToString(separator = "")
-
-    val maanedJob = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = månedstabell, csvData = alleMånedsBeløpCSV)
-
-    val fradragstabell = "fradrag_statistikk"
-    val alleFradragsBeløpCSV = data.mapNotNull {
-        it.månedsbeløp?.fradrag?.toCSV(it.månedsbeløp.manedsbelopId)
-    }.joinToString(separator = "")
-
-    val fradragjob = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = fradragstabell, csvData = alleFradragsBeløpCSV)
-
     logger.info("Stønadstatistikkjob - stønad: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
-    logger.info("Stønadstatistikkjob - måned: ${maanedJob.getStatistics<JobStatistics.LoadStatistics>()}")
-    logger.info("Stønadstatistikkjob - fradrag: ${fradragjob.getStatistics<JobStatistics.LoadStatistics>()}")
 }

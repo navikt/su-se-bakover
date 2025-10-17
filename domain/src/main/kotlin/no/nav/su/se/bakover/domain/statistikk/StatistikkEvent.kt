@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.statistikk
 
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -28,31 +26,9 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import vedtak.domain.VedtakSomKanRevurderes
 import java.util.UUID
-import no.nav.su.se.bakover.domain.søknad.Søknad as DomeneSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
-// TODO jah: Statistikk er ikke per say domenet vårt, vi burde bare publisert generelle hendelser til en Hendelsestype som igjen statistikk kunne lyttet på (gjerne vha. coroutines).
 sealed interface StatistikkEvent {
-
-    data class SakOpprettet(val sak: Sak) : StatistikkEvent
-
-    /**
-     * Søknadshendelse før det er startet en søknadsbehandling
-     */
-    sealed interface Søknad : StatistikkEvent {
-        val søknad: DomeneSøknad
-        val saksnummer: Saksnummer
-
-        data class Mottatt(
-            override val søknad: DomeneSøknad.Ny,
-            override val saksnummer: Saksnummer,
-        ) : Søknad
-
-        data class Lukket(
-            override val søknad: DomeneSøknad.Journalført.MedOppgave.Lukket,
-            override val saksnummer: Saksnummer,
-        ) : Søknad
-    }
 
     sealed interface Behandling : StatistikkEvent {
 
@@ -114,7 +90,7 @@ sealed interface StatistikkEvent {
             data class Lukket(
                 override val søknadsbehandling: LukketSøknadsbehandling,
                 // TODO jah: Erstatt med saksbehandler fra behandlinga hvis det blir implmentert.
-                val saksbehandler: NavIdentBruker.Saksbehandler,
+                val lukketAv: NavIdentBruker.Saksbehandler,
             ) : Søknad
         }
 
@@ -219,9 +195,4 @@ sealed interface StatistikkEvent {
             data class Avsluttet(override val klage: AvsluttetKlage) : Klage
         }
     }
-
-    /**
-     * Brukes til stønadsstatistikk
-     */
-    data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes, val hentSak: () -> Sak) : StatistikkEvent
 }

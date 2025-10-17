@@ -13,11 +13,12 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.avslåSøknadPgaManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.avslåSøknad
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -39,16 +40,23 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
+
+    fun addObserver(observer: StatistikkEventObserver) {
+        observers.add(observer)
+    }
+
     override fun avslå(
-        command: AvslåManglendeDokumentasjonCommand,
+        command: AvslagSøknadCmd,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
+        // TODO: Burde sende avsluttet event her til stat
         return lagAvslag(command).map {
             iverksettSøknadsbehandlingService.iverksett(it)
             it.sak
         }
     }
 
-    override fun genererBrevForhåndsvisning(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
+    override fun genererBrevForhåndsvisning(command: AvslagSøknadCmd): Either<KunneIkkeLageDokument, Pair<Fnr, PdfA>> {
         val sak = sakService.hentSakForSøknad(command.søknadId).getOrElse {
             throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pga. manglende dokumentasjon.")
         }
@@ -76,31 +84,30 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
         return brevService.lagDokument(dok).map { Pair(sak.fnr, it.generertDokument) }
     }
 
-    private fun lagAvslag(command: AvslåManglendeDokumentasjonCommand): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
-        return sakService.hentSakForSøknad(command.søknadId)
+    private fun lagAvslag(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
+        val sak = sakService.hentSakForSøknad(command.søknadId)
             .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pga. manglende dokumentasjon.") }
-            .let { sak ->
-                sak.avslåSøknadPgaManglendeDokumentasjon(
-                    command = command,
-                    clock = clock,
-                    satsFactory = satsFactory,
-                    formuegrenserFactory = formuegrenserFactory,
-                    genererPdf = brevService::lagDokument,
-                    simulerUtbetaling = utbetalingService::simulerUtbetaling,
-                    lukkOppgave = {
-                        oppgaveService.lukkOppgave(
-                            oppgaveId = it,
-                            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
-                        ).mapLeft {
-                            if (it.feilPgaAlleredeFerdigstilt()) {
-                                log.warn("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon fordi den allerede er lukket for søknad ${command.søknadId}, for sak ${sak.id}")
-                            } else {
-                                log.error("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon for søknad ${command.søknadId}, for sak ${sak.id}. Feil var $it")
-                            }
-                            it
-                        }
-                    },
-                )
-            }
+        return sak.avslåSøknad(
+            command = command,
+            clock = clock,
+            satsFactory = satsFactory,
+            formuegrenserFactory = formuegrenserFactory,
+            genererPdf = brevService::lagDokument,
+            simulerUtbetaling = utbetalingService::simulerUtbetaling,
+            lukkOppgave = {
+                oppgaveService.lukkOppgave(
+                    oppgaveId = it,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
+                ).mapLeft {
+                    if (it.feilPgaAlleredeFerdigstilt()) {
+                        log.warn("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon fordi den allerede er lukket for søknad ${command.søknadId}, for sak ${sak.id}")
+                    } else {
+                        log.error("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon for søknad ${command.søknadId}, for sak ${sak.id}. Feil var $it")
+                    }
+                    it
+                }
+            },
+            observers = observers,
+        )
     }
 }

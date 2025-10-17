@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.klage
 
 import arrow.core.right
-import behandling.klage.domain.VilkårsvurderingerTilKlage
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -53,7 +53,7 @@ internal class KlagePostgresRepoTest {
 
             val klage = testDataHelper.persisterKlageOpprettet().vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVilkårsvurderinger"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
+                vilkårsvurderinger = FormkravTilKlage.empty(),
             ).getOrFail().also {
                 klageRepo.lagre(it)
             }
@@ -131,7 +131,8 @@ internal class KlagePostgresRepoTest {
             val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+                val klager = klageRepo.hentKlager(klage.sakId, sessionContext)
+                klager.shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
             }
             klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
             klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
@@ -169,7 +170,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVurdertUtfylt()
+            val klage = testDataHelper.persisterKlageVurdertUtfyltOpprettholdt()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
@@ -165,6 +164,7 @@ internal class StansAvYtelseServiceTest {
                 argThat { event ->
                     event shouldBe StatistikkEvent.Behandling.Stans.Opprettet(response)
                 },
+                any(),
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -294,13 +294,12 @@ internal class StansAvYtelseServiceTest {
 
         verify(callback).invoke(any())
         val eventCaptor = argumentCaptor<StatistikkEvent>()
-        verify(serviceAndMocks.observer, times(2)).handle(eventCaptor.capture())
+        verify(serviceAndMocks.observer, times(1)).handle(eventCaptor.capture(), any())
         val iverksatt = eventCaptor.allValues[0]
         iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
             it.vedtak.shouldBeType<VedtakStansAvYtelse>()
             it.revurdering shouldBe response
         }
-        eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()
         serviceAndMocks.verifyNoMoreInteractions()
     }
 

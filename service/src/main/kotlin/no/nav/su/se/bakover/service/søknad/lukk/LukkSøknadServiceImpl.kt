@@ -12,16 +12,20 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 class LukkSøknadServiceImpl(
+    private val clock: Clock,
     private val søknadService: SøknadService,
     private val sakService: SakService,
     private val brevService: BrevService,
@@ -48,7 +52,7 @@ class LukkSøknadServiceImpl(
         return sessionFactory.withTransactionContext { tx ->
             sak.lukkSøknadOgSøknadsbehandling(
                 lukkSøknadCommand = command,
-                saksbehandler = command.saksbehandler,
+                clock = clock,
             ).let {
                 it.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(
@@ -59,9 +63,8 @@ class LukkSøknadServiceImpl(
                     )
                 }
                 søknadService.persisterSøknad(it.søknad, tx)
-                it.søknadsbehandling?.also {
-                    søknadsbehandlingService.persisterSøknadsbehandling(it, tx)
-                }
+                søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
+                observers.notify(StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler), tx)
                 oppgaveService.lukkOppgave(
                     oppgaveId = it.søknad.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
@@ -73,10 +76,6 @@ class LukkSøknadServiceImpl(
                         log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
                         sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
-                }
-                observers.forEach { e ->
-                    // TODO: Fire and forget. Det vil logges i observerne, men vil ikke kunne resende denne dersom dette feiler.
-                    e.handle(it.hendelse)
                 }
 
                 Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)

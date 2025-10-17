@@ -54,7 +54,14 @@ internal class OppdaterOppgaveHttpClient(
             KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
             if (it.oppgaveResponse.erFerdigstilt()) {
+                val oppgave = it.oppgaveResponse
+                val oppgaveRequest = data
+                val loggmelding =
+                    "Oppgave var ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til ${oppgave.status}"
+                val loggmeldingendrettil =
+                    "Oppgave ble ${oppgave.id} for sak ${oppgave.saksreferanse} med versjon ${oppgave.versjon} sin status til ${oppgaveRequest.status} type ${oppgaveRequest.oppgavetype}"
                 log.info("Oppgave $oppgaveId kunne ikke oppdateres fordi den allerede er ferdigstilt")
+                log.info("Fra: $loggmelding til $loggmeldingendrettil")
                 KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt(
                     ferdigstiltTidspunkt = it.oppgaveResponse.ferdigstiltTidspunkt!!.toTidspunkt(),
                     ferdigstiltAv = NavIdentBruker.Saksbehandler(it.oppgaveResponse.endretAv!!),

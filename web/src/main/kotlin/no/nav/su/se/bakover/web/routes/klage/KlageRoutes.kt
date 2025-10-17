@@ -1,18 +1,13 @@
 package no.nav.su.se.bakover.web.routes.klage
 
-import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
-import behandling.domain.UnderkjennAttesteringsgrunnBehandling
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -26,6 +21,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvVedtakDato
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstandInternalServerError
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -39,6 +35,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
@@ -53,7 +50,6 @@ import no.nav.su.se.bakover.presentation.web.toErrorJson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
-import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
@@ -62,20 +58,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
-
-private enum class Grunn {
-    INNGANGSVILKÅRENE_ER_FEILVURDERT,
-    BEREGNINGEN_ER_FEIL,
-    DOKUMENTASJON_MANGLER,
-    VEDTAKSBREVET_ER_FEIL,
-    ANDRE_FORHOLD,
-}
-
-private enum class Svarord {
-    JA,
-    NEI_MEN_SKAL_VURDERES,
-    NEI,
-}
 
 internal fun Route.klageRoutes(
     klageService: KlageService,
@@ -124,9 +106,10 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val vedtakId: UUID?,
-                val innenforFristen: Svarord?,
-                val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-                val erUnderskrevet: Svarord?,
+                val innenforFristen: FormkravTilKlage.SvarMedBegrunnelse?,
+                val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
+                val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
+                val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
@@ -136,26 +119,11 @@ internal fun Route.klageRoutes(
                                 klageId = KlageId(klageId),
                                 saksbehandler = call.suUserContext.saksbehandler,
                                 vedtakId = body.vedtakId,
-                                innenforFristen = when (body.innenforFristen) {
-                                    Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
-                                    null -> null
-                                },
+                                innenforFristen = body.innenforFristen,
                                 klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
-                                erUnderskrevet = when (body.erUnderskrevet) {
-                                    Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
-                                    null -> null
-                                },
-                                /*
-                                 * https://trello.com/c/XPMsIuNe/1168-klages-formkrav-fjerne-begrunnelsesfeltet
-                                 * Usikre om det blir behov for begrunnelse videre, eller om det endres til andre ting.
-                                 * Per nå er begrunnelse fjernet helt fra frontend
-                                 */
-                                begrunnelse = "",
+                                erUnderskrevet = body.erUnderskrevet,
                                 sakId = sakId,
+                                fremsattRettsligKlageinteresse = body.fremsattRettsligKlageinteresse,
                             ),
                         ).map {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
@@ -195,7 +163,7 @@ internal fun Route.klageRoutes(
                 }.getOrElse {
                     return@getOrElse when (it) {
                         KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                     }
                 }
                 call.svar(resultat)
@@ -218,7 +186,7 @@ internal fun Route.klageRoutes(
                     }.mapLeft {
                         val error = when (it) {
                             KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                         }
                         call.svar(error)
                     }
@@ -258,11 +226,6 @@ internal fun Route.klageRoutes(
                         "kan_ikke_velge_både_omgjør_og_oppretthold",
                     )
 
-                    KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
-                        "Ugyldig omgjøringsutfall",
-                        "ugyldig_omgjøringsutfall",
-                    )
-
                     KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
                         "Ugyldig omgjøringsårsak",
                         "ugyldig_omgjøringsårsak",
@@ -273,12 +236,12 @@ internal fun Route.klageRoutes(
                         "ugyldig_opprettholdelseshjemler",
                     )
 
-                    is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+                    is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(this.fra, this.til)
                 }
             }
 
-            data class Omgjør(val årsak: String?, val utfall: String?)
-            data class Oppretthold(val hjemler: List<String> = emptyList())
+            data class Omgjør(val årsak: String?, val begrunnelse: String?)
+            data class Oppretthold(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
                 val fritekstTilBrev: String?,
@@ -295,11 +258,11 @@ internal fun Route.klageRoutes(
                             omgjør = body.omgjør?.let { o ->
                                 KlageVurderingerRequest.Omgjør(
                                     årsak = o.årsak,
-                                    utfall = o.utfall,
+                                    begrunnelse = o.begrunnelse,
                                 )
                             },
-                            oppretthold = body.oppretthold?.let { o ->
-                                KlageVurderingerRequest.Oppretthold(hjemler = o.hjemler)
+                            oppretthold = body.oppretthold?.let { oppretthold ->
+                                KlageVurderingerRequest.Oppretthold(hjemler = oppretthold.hjemler, klagenotat = oppretthold.klagenotat)
                             },
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),
@@ -328,14 +291,17 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                         },
                     )
                 }
             }
         }
     }
-
+    /*
+    Gjelder kun klager som skal til KA. Omgjøring skal ikke sendes til KA, de må også gjennom
+    attestering i omgjøringsbehandlingen.
+     */
     post("$KLAGE_PATH/{klageId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
@@ -346,7 +312,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                             KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         },
                     )
@@ -355,36 +321,29 @@ internal fun Route.klageRoutes(
         }
     }
 
-    data class Body(val grunn: String, val kommentar: String) {
-        fun toRequest(
-            klageId: UUID,
-            attestant: NavIdentBruker.Attestant,
-        ): Either<Resultat, UnderkjennKlageRequest> {
-            return UnderkjennKlageRequest(
-                klageId = KlageId(klageId),
-                attestant = attestant,
-                grunn = Either.catch { Grunn.valueOf(grunn) }.map {
-                    when (it) {
-                        Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> UnderkjennAttesteringsgrunnBehandling.INNGANGSVILKÅRENE_ER_FEILVURDERT
-                        Grunn.BEREGNINGEN_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL
-                        Grunn.DOKUMENTASJON_MANGLER -> UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER
-                        Grunn.VEDTAKSBREVET_ER_FEIL -> UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL
-                        Grunn.ANDRE_FORHOLD -> UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD
-                    }
-                }.getOrElse {
-                    return BadRequest.errorJson(
-                        "Ugyldig underkjennelsesgrunn",
-                        "ugyldig_grunn_for_underkjenning",
-                    ).left()
-                },
-                kommentar = kommentar,
-            ).right()
+    post("$KLAGE_PATH/{klageId}/ferdigstill") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withKlageId { klageId ->
+                klageService.ferdigstillOmgjøring(KlageId(klageId), call.suUserContext.saksbehandler).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }.mapLeft {
+                    call.svar(
+                        when (it) {
+                            KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                            KunneIkkeFerdigstilleOmgjøringsKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                        },
+                    )
+                }
+            }
         }
     }
+
     post("$KLAGE_PATH/{klageId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
+                call.withBody<KlageUnderkjentBody> { body ->
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
                             call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
@@ -393,7 +352,7 @@ internal fun Route.klageRoutes(
                             call.svar(
                                 when (error) {
                                     KunneIkkeUnderkjenneKlage.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstand(
+                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
                                         error.fra,
                                         error.til,
                                     )
@@ -428,7 +387,7 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                                 KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
                                     "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
@@ -450,7 +409,9 @@ internal fun Route.klageRoutes(
         }
     }
 
-    // TODO jah: Denne er i bruk, men har en litt snodig url?
+    /* TODO jah: Denne er i bruk, men har en litt snodig url?
+        Denne brukes kun ifbm med avvisning av formkrav.
+     */
     post("$KLAGE_PATH/{klageId}/iverksett(AvvistKlage)") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
@@ -467,7 +428,7 @@ internal fun Route.klageRoutes(
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.tilResultat()
-                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                         KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage -> InternalServerError.errorJson(
                             "Feil ved lagrinng av brev/klagen",
                             "feil_ved_lagring_av_brev_og_klage",
@@ -497,7 +458,7 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
                             },
                         )
                     }
@@ -512,7 +473,7 @@ fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
         KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
 
-        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> BadRequest.errorJson(
+        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> InternalServerError.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )

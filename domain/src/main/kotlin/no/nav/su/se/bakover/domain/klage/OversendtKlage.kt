@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -22,6 +24,15 @@ data class OversendtKlage(
     val behandlingId: UUID? = null,
 ) : Klage,
     VurdertKlage.UtfyltFelter by forrigeSteg {
+    /*
+        TODO: VurdertKlage.UtfyltFelter er egentlig ikke godt nok for denne klasse og misvisende
+        Den åpner den for omgjøring, men da sender vi ikke over noen klager. Sees på når avvisning og delvis omgjøring kommer inn.
+     */
+
+    val fritekstTilVedtaksbrev
+        get() = getFritekstTilBrev().getOrElse {
+            throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
+        }
 
     /**
      * Merk at i et større perspektiv, f.eks. fra klageinstansen (KA) eller statistikk, vil denne anses som åpen/ikke ferdigbehandlet.
@@ -29,21 +40,48 @@ data class OversendtKlage(
      */
     override fun erÅpen() = false
 
+    fun genererKommentar(): String {
+        val formkrav = this.vilkårsvurderinger
+        val klagenotat = when (val vedtaksvurdering = this.vurderinger.vedtaksvurdering) {
+            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> null
+            is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> vedtaksvurdering.klagenotat
+        }
+
+        return buildString {
+            append(formkrav.erUnderskrevet.begrunnelse.orEmpty())
+            append(formkrav.fremsattRettsligKlageinteresse?.begrunnelse.orEmpty())
+            append(formkrav.innenforFristen.begrunnelse.orEmpty())
+            append(formkrav.klagesDetPåKonkreteElementerIVedtaket.begrunnelse.orEmpty())
+
+            if (!klagenotat.isNullOrBlank()) {
+                appendLine()
+                append(klagenotat)
+            }
+        }
+    }
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return vurderinger.fritekstTilOversendelsesbrev.right()
+        return when (val vurderinger = vurderinger) {
+            is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
+        }
     }
 
     fun genererOversendelsesbrev(
         // TODO jah: Hadde vært fint å sluppet IO i det laget her. Kan vi flytte til en funksjonell service-funksjon?
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+        val fritekstTilOversendelsesbrev = when (val vurderinger = this.vurderinger) {
+            is VurderingerTilKlage.UtfyltOmgjøring -> return KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(this::class).left()
+            is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+        }
         return KlageDokumentCommand.Oppretthold(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
             sakstype = this.sakstype,
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
-            fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
+            fritekst = fritekstTilOversendelsesbrev,
             klageDato = this.datoKlageMottatt,
             vedtaksbrevDato = hentVedtaksbrevDato(this.id)
                 ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left(),

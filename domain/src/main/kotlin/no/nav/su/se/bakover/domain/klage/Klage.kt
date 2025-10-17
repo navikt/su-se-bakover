@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.left
 import behandling.domain.BehandlingMedAttestering
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagefelter
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -25,12 +25,13 @@ import java.util.UUID
  *
  * - [VilkårsvurdertKlage.Påbegynt] -> [VilkårsvurdertKlage.Påbegynt] og [VilkårsvurdertKlage.Utfylt]
  * - [VilkårsvurdertKlage.Utfylt] -> [VilkårsvurdertKlage.Bekreftet]
+ *
  * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
  * - [VilkårsvurdertKlage.Bekreftet.Avvist] -> [VilkårsvurdertKlage] og [AvvistKlage]
  *
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
- * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering]
+ * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering] og [FerdigstiltOmgjortKlage]
  *
  * - [AvvistKlage] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage.Bekreftet.Avvist]
  *
@@ -39,6 +40,7 @@ import java.util.UUID
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
+ * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.Bekreftet])
  */
 sealed interface Klage :
     Klagefelter,
@@ -48,7 +50,7 @@ sealed interface Klage :
      * Convenience funksjon for å slippe store when-blokker.
      * De fleste tilstandene har denne satt, men hvis ikke vil den være null.
      */
-    val vilkårsvurderinger: VilkårsvurderingerTilKlage?
+    val vilkårsvurderinger: FormkravTilKlage?
 
     val sakstype: Sakstype
 
@@ -73,7 +75,7 @@ sealed interface Klage :
      */
     fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        vilkårsvurderinger: FormkravTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(this::class).left()
     }
@@ -90,6 +92,15 @@ sealed interface Klage :
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
         return KunneIkkeSendeKlageTilAttestering.UgyldigTilstand(this::class).left()
+    }
+
+    /** @return [FerdigstiltOmgjortKlage] */
+    fun ferdigstillOmgjøring(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        klage: VurdertKlage.Bekreftet,
+        ferdigstiltTidspunkt: Tidspunkt,
+    ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+        return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(this::class).left()
     }
 
     /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */

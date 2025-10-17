@@ -161,7 +161,7 @@ internal class AvsluttKlageTest {
     private fun kanAvslutteKlage(
         klage: Klage,
     ) {
-        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -179,12 +179,19 @@ internal class AvsluttKlageTest {
             begrunnelse = begrunnelse,
         ).let {
             it shouldBe AvsluttetKlage(klage, saksbehandler, begrunnelse, fixedTidspunkt).right()
-            verify(observerMock).handle(argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) })
-            verify(observerMock).handle(argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) })
+            verify(observerMock)
+                .handle(
+                    argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) },
+                    any(),
+                )
+            verify(observerMock)
+                .handle(
+                    argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) },
+                    any(),
+                )
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe AvsluttetKlage(

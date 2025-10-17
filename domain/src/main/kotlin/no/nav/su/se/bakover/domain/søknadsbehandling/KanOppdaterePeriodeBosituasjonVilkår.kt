@@ -120,7 +120,7 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår :
         // TODO jah: Er det mulig å kalle vilkårsvurder(...) direkte her?
         return VilkårsvurdertSøknadsbehandling.opprett(
             forrigeTilstand = this,
-            saksbehandler = saksbehandler,
+            saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår, request.behandlingId),
             tidspunkt = request.tidspunkt,
             handling = SøknadsbehandlingsHandling.OppdatertFormue,
@@ -144,7 +144,7 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår :
         }.let {
             VilkårsvurdertSøknadsbehandling.opprett(
                 forrigeTilstand = this,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
                 grunnlagsdataOgVilkårsvurderinger = it,
                 tidspunkt = Tidspunkt.now(clock),
                 aldersvurdering = aldersvurdering,

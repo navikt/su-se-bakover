@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 
 internal class ÅpneBehandlingerRepo(
@@ -24,6 +25,8 @@ internal class ÅpneBehandlingerRepo(
     private val behandlingssammendragKravgrunnlagOgTilbakekrevingRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
     private val sessionFactory: SessionFactory,
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     fun hentÅpneBehandlinger(sessionContext: SessionContext? = null): List<Behandlingssammendrag> {
         return sessionContext.withOptionalSession(sessionFactory) {
             åpneBehandlingerUtenTilbakekreving(sessionContext).plus(
@@ -72,7 +75,7 @@ internal class ÅpneBehandlingerRepo(
                      select sak.sakId, sak.saksnummer, sak.sakType, k.opprettet, k.type as status, 'KLAGE' as type, null::jsonb as periode
                      from sak
                               join klage k on sak.sakId = k.sakid
-                     where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
+                     where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null and k.type != 'omgjort'
                  ),
                  søknader as (
                      select
@@ -91,21 +94,23 @@ internal class ÅpneBehandlingerRepo(
                  slåttSammen as (
                      select *
                      from søknader
-                     union
+                     union all
                      select *
                      from behandlinger
-                     union
+                     union all
                      select *
                      from revurderinger
-                     union
+                     union all
                      select *
                      from klage
                  )
-            select *
+            select saksnummer, sakType, opprettet, status, type, periode
             from slåttSammen
             """.hentListe(emptyMap(), it) {
-                    it.toBehandlingsoversikt()
-                }
+                    runCatching { it.toBehandlingsoversikt() }
+                        .onFailure { feil -> log.error("Klarte ikke mappe felt for rad: ${feil.message}", feil) }
+                        .getOrNull()
+                }.filterNotNull()
             }
         }
     }
@@ -209,6 +214,8 @@ private fun KlagePostgresRepo.Tilstand.tilBehandlingsstatus(): Behandlingssammen
         KlagePostgresRepo.Tilstand.OVERSENDT,
         KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST,
         -> throw IllegalStateException("Iverksatte/Oversendte klager er ikke en åpen behandling")
+
+        KlagePostgresRepo.Tilstand.OMGJORT -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
     }
 }
 

@@ -58,10 +58,8 @@ data object ServiceBuilder {
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
-            personService = personService,
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
-            stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
         ).statistikkService
         val utbetalingService = UtbetalingServiceImpl(
@@ -96,7 +94,9 @@ data object ServiceBuilder {
             journalførSøknadClient = clients.journalførClients.søknad,
             personService = personService,
             oppgaveService = oppgaveService,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -147,6 +147,7 @@ data object ServiceBuilder {
             søknadsbehandlingService = søknadsbehandlingService,
             klageRepo = databaseRepos.klageRepo,
             clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -252,7 +253,9 @@ data object ServiceBuilder {
             brevService = brevService,
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
-        ).apply { addObserver(statistikkEventObserver) }
+        ).apply {
+            addObserver(statistikkEventObserver)
+        }
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -264,6 +267,7 @@ data object ServiceBuilder {
             søknad = søknadService,
             brev = brevService,
             lukkSøknad = LukkSøknadServiceImpl(
+                clock = clock,
                 søknadService = søknadService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
@@ -292,7 +296,9 @@ data object ServiceBuilder {
                 utbetalingService = utbetalingService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
-            ),
+            ).apply {
+                addObserver(statistikkEventObserver)
+            },
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
@@ -302,7 +308,6 @@ data object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 brevService = brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
-                formuegrenserFactory = formuegrenserFactory,
                 personService = personService,
             ),
             skatteService = skatteServiceImpl,

@@ -83,6 +83,11 @@ data object Feilresponser {
         "kunne_ikke_opprette_oppgave",
     )
 
+    val behandlingErAlleredePåbegynt = InternalServerError.errorJson(
+        "Behandling er allerede påbegynt",
+        "behandling_er_allerede_påbegynt",
+    )
+
     val gReguleringKanIkkeFøreTilOpphør = BadRequest.errorJson(
         "G-regulering kan ikke føre til opphør",
         "g_regulering_kan_ikke_føre_til_opphør",
@@ -175,6 +180,11 @@ data object Feilresponser {
         "fant_ikke_saksbehandler_eller_attestant",
     )
 
+    val behandlingMåHaSaksebehandler = BadRequest.errorJson(
+        "Behandling må være påbegynt før avslag",
+        "behandling_krever_en_saksbehandler",
+    )
+
     val datoMåVæreFørsteIMåned = BadRequest.errorJson(
         "Dato må være første dag i måneden.",
         "dato_må_være_første_i_mnd",
@@ -255,6 +265,17 @@ data object Feilresponser {
 
     fun ugyldigTilstand(fra: String, til: String): Resultat {
         return BadRequest.errorJson(
+            "Kan ikke gå fra tilstanden $fra til tilstanden $til",
+            "ugyldig_tilstand",
+        )
+    }
+
+    fun ugyldigTilstandInternalServerError(fra: KClass<*>, til: KClass<*>): Resultat {
+        return ugyldigTilstandInternalServerError(fra.simpleName.toString(), til.simpleName.toString())
+    }
+
+    fun ugyldigTilstandInternalServerError(fra: String, til: String): Resultat {
+        return InternalServerError.errorJson(
             "Kan ikke gå fra tilstanden $fra til tilstanden $til",
             "ugyldig_tilstand",
         )

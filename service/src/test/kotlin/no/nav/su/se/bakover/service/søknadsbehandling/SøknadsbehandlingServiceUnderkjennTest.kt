@@ -241,7 +241,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     )
                 },
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(
                 søknadsbehandling = argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering },
                 sessionContext = anyOrNull(),
@@ -252,6 +251,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                         underkjentMedNyOppgaveIdOgAttestering,
                     )
                 },
+                any(),
             )
         }
 
@@ -321,7 +321,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     )
                 },
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(underkjentMedNyOppgaveIdOgAttestering), anyOrNull())
         }
 

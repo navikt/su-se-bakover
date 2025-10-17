@@ -25,7 +25,6 @@ fun Route.vedtakRoutes(
     vedtakService: VedtakService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    // TODO: her skal også vedtakid inn
     data class Body(
         val omgjøringsårsak: String? = null,
         val omgjøringsgrunn: String? = null,
@@ -76,9 +75,9 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
         "Klage er allerede knyttet til en behandling",
         "klage_er_allerede_knyttet_til_behandling",
     )
-    is KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt -> HttpStatusCode.BadRequest.errorJson(
-        "Klagen er ikke oversendt",
-        "klage_er_ikke_oversendt",
+    is KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
+        "Klagen er ikke ferdigstilt",
+        "klage_er_ikke_ferdigstilt",
     )
     is KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning -> HttpStatusCode.BadRequest.errorJson(
         "Klagen finnes ikke",

@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.trekkSøknad
@@ -188,12 +189,6 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         private val sakService: SakService = mock {
             if (sak != null) {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
-                on { hentSakidOgSaksnummer(any(), any()) } doReturn SakInfo(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = sak.fnr,
-                    type = Sakstype.UFØRE,
-                )
                 on { hentSakInfo(any()) } doReturn
                     SakInfo(
                         sakId = sak.id,
@@ -221,6 +216,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         )
 
         val lukkSøknadService = LukkSøknadServiceImpl(
+            clock = fixedClock,
             søknadService = søknadService,
             sakService = sakService,
             brevService = brevService,

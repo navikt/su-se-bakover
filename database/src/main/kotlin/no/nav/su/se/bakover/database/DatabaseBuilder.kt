@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapper
-import no.nav.su.se.bakover.common.infrastructure.persistence.SessionCounter
+import no.nav.su.se.bakover.common.infrastructure.persistence.SessionValidator
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -157,11 +157,11 @@ data object DatabaseBuilder {
         queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
         råttKravgrunnlagMapper: MapRåttKravgrunnlag,
     ): DatabaseRepos {
-        val sessionCounter = SessionCounter()
+        val sessionValidator = SessionValidator()
         val sessionFactory = PostgresSessionFactory(
             dataSource = dataSource,
             dbMetrics = dbMetrics,
-            sessionCounter = sessionCounter,
+            sessionValidator = sessionValidator,
             queryParameterMappers = queryParameterMappers,
         )
 

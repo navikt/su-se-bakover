@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
@@ -59,7 +58,6 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
             ),
         dokument = dokument,
         vedtak = vedtak,
-        statistikkhendelse = StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak),
         oppgaveSomSkalLukkes = søknadsbehandling.oppgaveId,
     ).right()
 }

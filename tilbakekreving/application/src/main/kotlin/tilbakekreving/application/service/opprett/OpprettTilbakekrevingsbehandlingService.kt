@@ -4,8 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.GenerellSakStatistikk
+import tilbakekreving.application.service.statistikk.toTilbakeStatistikkOpprettet
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.opprettelse.KunneIkkeOppretteTilbakekrevingsbehandling
@@ -15,9 +19,11 @@ import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
 class OpprettTilbakekrevingsbehandlingService(
+    private val sessionFactory: SessionFactory,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
+    private val sakStatistikk: SakStatistikkRepo,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -40,6 +46,7 @@ class OpprettTilbakekrevingsbehandlingService(
             log.info("Kunne ikke opprette tilbakekreving. Fant allerede en åpen tilbakekrevingsbehandling for sak $sakId")
             return KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling.left()
         }
+
         return when (val k = sak.uteståendeKravgrunnlag) {
             null -> KunneIkkeOppretteTilbakekrevingsbehandling.IngenUteståendeKravgrunnlag.left()
             else -> opprettTilbakekrevingsbehandling(
@@ -49,9 +56,20 @@ class OpprettTilbakekrevingsbehandlingService(
                 fnr = sak.fnr,
                 kravgrunnlag = k,
                 erKravgrunnlagUtdatert = false,
-            ).let { (hendelse, behandling) ->
-                tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata())
-                behandling.right()
+            ).let { (hendelse, opprettetBehandling) ->
+                sessionFactory.withTransactionContext { tx ->
+                    tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata(), tx)
+                    sakStatistikk.lagreSakStatistikk(
+                        opprettetBehandling.toTilbakeStatistikkOpprettet(
+                            GenerellSakStatistikk.create(
+                                clock = clock,
+                                sak = sak,
+                            ),
+                        ),
+                        sessionContext = tx,
+                    )
+                    opprettetBehandling.right()
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common.infrastructure.persistence
 
+import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -13,14 +14,14 @@ import javax.sql.DataSource
 class PostgresSessionFactory(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
-    private val sessionCounter: SessionCounter,
+    private val sessionValidator: SessionValidator,
     private val queryParameterMappers: List<QueryParameterMapper>,
 ) : SessionFactory {
 
     /** Lager en ny context - starter ikke sesjonen.
      * DEPRECATION: Use nullable paramters and withSessionContext(sessionContext: SessionContext?, action) instead */
     override fun newSessionContext(): PostgresSessionContext {
-        return PostgresSessionContext(dataSource, dbMetrics, sessionCounter, queryParameterMappers)
+        return PostgresSessionContext(dataSource, dbMetrics, sessionValidator, queryParameterMappers)
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
@@ -75,7 +76,7 @@ class PostgresSessionFactory(
      * DEPRECATION: Use nullable paramters and withTransactionContext(tx: TransactionContext?, action) instead
      * */
     override fun newTransactionContext(): PostgresTransactionContext {
-        return PostgresTransactionContext(dataSource, dbMetrics, sessionCounter, queryParameterMappers)
+        return PostgresTransactionContext(dataSource, dbMetrics, sessionValidator, queryParameterMappers)
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
@@ -125,6 +126,18 @@ class PostgresSessionFactory(
             it.withTransaction {
                 action(it)
             }
+        }
+    }
+
+    /*
+        TODO: datasource her burde vært en HikariDataSource men siden
+        testene bruker denne og mange av repoklassene bruker denne og ikke testklassen ble det for mye å skrive om
+     */
+    override fun close() {
+        if (dataSource is HikariDataSource) {
+            dataSource.close()
+        } else {
+            throw IllegalStateException("DataSource is not a HikariDataSource: ${dataSource::class.qualifiedName}")
         }
     }
 }

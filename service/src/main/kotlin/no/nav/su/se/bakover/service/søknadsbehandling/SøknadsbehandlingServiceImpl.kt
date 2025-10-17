@@ -5,11 +5,12 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
-import behandling.søknadsbehandling.domain.KunneIkkeOppretteSøknadsbehandling
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -48,7 +49,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppdaterStønadsperiodeRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppstartRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
@@ -131,48 +132,74 @@ class SøknadsbehandlingServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
-    /**
-     * Sideeffekter:
-     * - søknadsbehandlingen persisteres.
-     * - det sendes statistikk
-     * - oppgave oppdateres med tildordnet ressurs (best effort)
-     * @param hentSak Mulighet for å sende med en funksjon som henter en sak, default er null, som gjør at saken hentes på nytt fra persisteringslaget basert på request.sakId.
-     */
-    override fun opprett(
-        request: OpprettRequest,
+    override fun startBehandling(
+        request: OppstartRequest,
         hentSak: (() -> Sak)?,
-    ): Either<KunneIkkeOppretteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
-        val sakId = request.sakId
+    ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+        val (søknadId, sakId, saksbehandler) = request
         val sak = hentSak?.let { it() } ?: sakService.hentSak(sakId)
             .getOrElse { throw IllegalArgumentException("Fant ikke sak $sakId") }
 
-        require(sak.id == sakId) { "sak.id ${sak.id} må være lik request.sakId $sakId" }
-
-        return sak.opprettNySøknadsbehandling(
-            søknadId = request.søknadId,
-            clock = clock,
-            saksbehandler = request.saksbehandler,
-            oppdaterOppgave = { oppgaveId, saksbehandler ->
-                oppgaveService.oppdaterOppgave(
-                    oppgaveId = oppgaveId,
-                    oppdaterOppgaveInfo = OppdaterOppgaveInfo(
-                        beskrivelse = "Tilordnet oppgave til ${saksbehandler.navIdent}",
-                        tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-                    ),
-                ).mapLeft {
-                    when (it) {
-                        is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> {
-                            log.warn("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
-                        }
-                        else -> {
-                            log.error("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
-                        }
-                    }
+        // TODO Når alle søknader i produksjon som mangler behandling er opprettet kan denne erstattes med en feilmelding
+        val søknadsbehandling = søknadsbehandlingRepo.hentForSøknad(søknadId)
+            ?: return opprett(sak, søknadId, saksbehandler).also {
+                it.getOrNull()?.let {
+                    oppdaterOppgave(sakId, it.second.oppgaveId, saksbehandler)
                 }
-            },
-        ).map { (sak, uavklartSøknadsbehandling, statistikk) ->
-            søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
-            observers.notify(statistikk)
+            }
+
+        val behandlingMedNySaksbehandler = when (søknadsbehandling) {
+            is VilkårsvurdertSøknadsbehandling.Uavklart -> {
+                søknadsbehandling.copy(
+                    saksbehandler = saksbehandler,
+                )
+            }
+
+            else -> {
+                return KunneIkkeStarteSøknadsbehandling.BehandlingErAlleredePåbegynt.left()
+            }
+        }
+        søknadsbehandlingRepo.lagre(behandlingMedNySaksbehandler).also {
+            oppdaterOppgave(sakId, søknadsbehandling.oppgaveId, saksbehandler)
+        }
+
+        return Pair(sak, behandlingMedNySaksbehandler).right()
+    }
+
+    private fun oppdaterOppgave(sakId: UUID, oppgaveId: OppgaveId, saksbehandler: NavIdentBruker.Saksbehandler) {
+        oppgaveService.oppdaterOppgave(
+            oppgaveId = oppgaveId,
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Tilordnet oppgave til ${saksbehandler.navIdent}",
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+            ),
+        ).mapLeft {
+            when (it) {
+                is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> {
+                    log.warn("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
+                }
+
+                else -> {
+                    log.error("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
+                }
+            }
+        }
+    }
+
+    private fun opprett(
+        sak: Sak,
+        søknadId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeStarteSøknadsbehandling, Pair<Sak, VilkårsvurdertSøknadsbehandling.Uavklart>> {
+        return sak.opprettNySøknadsbehandling(
+            søknadId = søknadId,
+            clock = clock,
+            saksbehandler = saksbehandler,
+        ).map { (sak, uavklartSøknadsbehandling) ->
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
+                observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler), tx)
+            }
             Pair(sak, uavklartSøknadsbehandling)
         }
     }
@@ -267,15 +294,19 @@ class SøknadsbehandlingServiceImpl(
                 // gjør en best effort på å oppdatere oppgaven
                 log.error("Søknadsbehandling send til attestering: Kunne ikke oppdatere oppgave ${søknadsbehandlingTilAttestering.oppgaveId} for søknadsbehandling $behandlingId. Feilen var $it")
             }
-            søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering)
-            when (søknadsbehandlingTilAttestering) {
-                is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering),
-                )
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering, tx)
+                when (søknadsbehandlingTilAttestering) {
+                    is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering),
+                        tx,
+                    )
 
-                is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering),
-                )
+                    is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering),
+                        tx,
+                    )
+                }
             }
             return søknadsbehandlingTilAttestering.right()
         }
@@ -288,7 +319,8 @@ class SøknadsbehandlingServiceImpl(
             søknadsbehandlingRepo.hent(request.behandlingId)
                 ?: return KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling.left()
             ).let {
-            it as? SøknadsbehandlingTilAttestering ?: return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
+            it as? SøknadsbehandlingTilAttestering
+                ?: return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
         }
         if (request.saksbehandler.navIdent != søknadsbehandling.saksbehandler.navIdent) {
             return KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler.left()
@@ -316,6 +348,7 @@ class SøknadsbehandlingServiceImpl(
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
                     )
+
                 is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning ->
                     VilkårsvurdertSøknadsbehandling.Avslag(
                         opprettet = opprettet,
@@ -403,16 +436,19 @@ class SøknadsbehandlingServiceImpl(
                 // gjør en best effort på å oppdatere oppgaven
                 log.error("Søknadsbehandling underkjenn: Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for søknadsbehandling ${underkjent.id}. Feilen var $it")
             }
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(underkjent, tx)
+                when (underkjent) {
+                    is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent),
+                        tx,
+                    )
 
-            søknadsbehandlingRepo.lagre(underkjent)
-            when (underkjent) {
-                is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent),
-                )
-
-                is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
-                    StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent),
-                )
+                    is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
+                        StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent),
+                        tx,
+                    )
+                }
             }
             underkjent
         }
@@ -812,9 +848,16 @@ class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(søknadsbehandlingSkatt.behandlingId)
             ?: throw IllegalStateException("Fant ikke behandling ${søknadsbehandlingSkatt.behandlingId}")
 
+        val saksbehandler = søknadsbehandling.saksbehandler
+            ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet")
+
         return søknadsbehandling.leggTilSkatt(
             EksterneGrunnlagSkatt.Hentet(
-                søkers = skatteService.hentSamletSkattegrunnlagForÅr(søknadsbehandling.fnr, søknadsbehandling.saksbehandler, søknadsbehandlingSkatt.yearRange),
+                søkers = skatteService.hentSamletSkattegrunnlagForÅr(
+                    søknadsbehandling.fnr,
+                    saksbehandler,
+                    søknadsbehandlingSkatt.yearRange,
+                ),
                 eps = søknadsbehandling.hentSkattegrunnlagForEps(
                     søknadsbehandlingSkatt.saksbehandler,
                 ) { fnr, saksbehandler ->
@@ -824,8 +867,8 @@ class SøknadsbehandlingServiceImpl(
         ).onRight { søknadsbehandlingRepo.lagre(it) }
     }
 
-    override fun lagre(søknadsbehandling: Søknadsbehandling) {
-        søknadsbehandlingRepo.lagre(søknadsbehandling)
+    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
+        søknadsbehandlingRepo.lagre(søknadsbehandling, sessionContext)
     }
 
     override fun hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(

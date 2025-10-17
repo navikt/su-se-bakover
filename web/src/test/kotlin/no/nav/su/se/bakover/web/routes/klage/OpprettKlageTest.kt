@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.opprettetKlage
@@ -148,9 +149,9 @@ internal class OpprettKlageTest {
 
     @Test
     fun `kan opprette klage`() {
-        val opprettetKlage = opprettetKlage().second
+        val klage = opprettetKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { opprett(any()) } doReturn opprettetKlage.right()
+            on { opprett(any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -166,29 +167,7 @@ internal class OpprettKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${opprettetKlage.id}",
-                  "sakid":"${opprettetKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"OPPRETTET",
-                  "vedtakId":null,
-                  "innenforFristen":null,
-                  "klagesDetPåKonkreteElementerIVedtaket":null,
-                  "erUnderskrevet":null,
-                  "begrunnelse":null,
-                  "fritekstTilBrev":null,
-                  "vedtaksvurdering":null,
-                  "attesteringer":[],
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )

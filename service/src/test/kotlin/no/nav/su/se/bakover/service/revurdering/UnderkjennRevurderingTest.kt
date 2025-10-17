@@ -59,8 +59,13 @@ internal class UnderkjennRevurderingTest {
 
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(mocks.observer).handle(
+                    argThat {
+                        it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
+                    },
+                    any(),
+                )
                 verify(mocks.oppgaveService).oppdaterOppgave(
                     argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
                     argThat {
@@ -69,12 +74,6 @@ internal class UnderkjennRevurderingTest {
                             oppgavetype = Oppgavetype.BEHANDLE_SAK,
                             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                         )
-                    },
-                )
-
-                verify(mocks.observer).handle(
-                    argThat {
-                        it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
                     },
                 )
             }

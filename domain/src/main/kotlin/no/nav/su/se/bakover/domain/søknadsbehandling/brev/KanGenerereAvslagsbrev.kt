@@ -38,7 +38,7 @@ sealed interface KanGenerereAvslagsbrev :
     ) = lagDokumentCommand(
         satsFactory = satsFactory,
         fritekst = fritekstTilBrev,
-        saksbehandler = saksbehandler,
+        saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
         attestant = utførtAv,
     )
 
@@ -47,7 +47,7 @@ sealed interface KanGenerereAvslagsbrev :
     ) = lagDokumentCommand(
         satsFactory = satsFactory,
         fritekst = fritekstTilBrev,
-        saksbehandler = saksbehandler,
+        saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
         attestant = attesteringer.hentSisteIverksatteAttesteringOrNull()!!.attestant,
     )
 

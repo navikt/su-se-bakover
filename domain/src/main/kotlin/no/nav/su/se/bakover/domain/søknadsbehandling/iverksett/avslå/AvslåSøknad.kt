@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon
+package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -16,6 +16,9 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notifyUtenTransaction
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -35,14 +38,15 @@ import java.time.Clock
 /**
  * Tar søknadsbehandlingen kun fram til attestert for å kunne gjenbruke IverksettSøknadsbehandlingService
  */
-fun Sak.avslåSøknadPgaManglendeDokumentasjon(
-    command: AvslåManglendeDokumentasjonCommand,
+fun Sak.avslåSøknad(
+    command: AvslagSøknadCmd,
     clock: Clock,
     satsFactory: SatsFactory,
     formuegrenserFactory: FormuegrenserFactory,
     genererPdf: (IverksettSøknadsbehandlingDokumentCommand.Avslag) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>,
+    observers: MutableList<StatistikkEventObserver> = mutableListOf(),
 ): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
     val søknadId = command.søknadId
     return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
@@ -51,17 +55,21 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 søknadId = command.søknadId,
                 clock = clock,
                 saksbehandler = command.saksbehandler,
-                oppdaterOppgave = null,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
+                // TODO: rart å ha side-effekter her inne
+                observers.notifyUtenTransaction(StatistikkEvent.Behandling.Søknad.Opprettet(it.second, NavIdentBruker.Saksbehandler.systembruker()))
                 Pair(it.first, listOf(it.second))
             }
         },
         {
+            if (it.single().saksbehandler == null) {
+                return KunneIkkeAvslåSøknad.ManglerSaksbehandler.left()
+            }
             Pair(this, it)
         },
     ).let { (sak: Sak, behandlinger: List<Søknadsbehandling>) ->
         behandlinger.filterIsInstance<KanOppdaterePeriodeBosituasjonVilkår>().whenever(
-            { throw IllegalArgumentException("Avslag pga manglende dok. Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad ${command.søknadId}") },
+            { throw IllegalArgumentException("Avslag: Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad ${command.søknadId}") },
             {
                 avslå(
                     sak = sak,
@@ -92,7 +100,6 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
                 clock = clock,
                 satsFactory = satsFactory,
             ).map {
-                // best effort for å lukke oppgaven
                 lukkOppgave(it.søknadsbehandling.oppgaveId)
                 it as IverksattAvslåttSøknadsbehandlingResponse
             }.mapLeft { KunneIkkeAvslåSøknad.KunneIkkeIverksetteSøknadsbehandling(it) }
@@ -103,7 +110,7 @@ fun Sak.avslåSøknadPgaManglendeDokumentasjon(
 private fun avslå(
     sak: Sak,
     søknadsbehandling: KanOppdaterePeriodeBosituasjonVilkår,
-    request: AvslåManglendeDokumentasjonCommand,
+    request: AvslagSøknadCmd,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ): Either<KunneIkkeAvslåSøknad, Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>> {

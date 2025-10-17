@@ -13,7 +13,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppstartRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -23,7 +24,7 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
@@ -44,9 +45,19 @@ class AvslagManglendeDokumentasjonKomponentTest {
         withKomptestApplication { appComponents ->
             val søknadJson = nyDigitalSøknad(Fnr.generer().toString(), this.client)
             val søknadId = UUID.fromString(NySøknadJson.Response.hentSøknadId(søknadJson))
+            val sakId = UUID.fromString(NySøknadJson.Response.hentSakId(søknadJson))
+
+            // TODO midlertidig workaround som også må gjøres av saksbehandlere i prod frem til vi får en bedre løsning for avvis manglende dokumentasjon
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.startBehandling(
+                OppstartRequest(
+                    søknadId = søknadId,
+                    sakId = sakId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
+                ),
+            )
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekstTilBrev = "Du må svare i telefonen",
@@ -106,7 +117,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             val sakId = NySøknadJson.Response.hentSakId(søknadJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadJson)
 
-            val søknadsbehandlingJson = nySøknadsbehandling(
+            val søknadsbehandlingJson = startSøknadsbehandling(
                 sakId = sakId,
                 søknadId = søknadId,
                 client = this.client,
@@ -131,7 +142,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
             )
 
             appComponents.services.avslåSøknadManglendeDokumentasjonService.avslå(
-                AvslåManglendeDokumentasjonCommand(
+                AvslagSøknadCmd(
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekstTilBrev = "Du må svare i telefonen",

@@ -14,7 +14,7 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
         value = "AVSLÅTT",
         beskrivelse = "Gjelder kun søknadsbehandling: I henhold til lov om supplerende stønad blir en søknad avslått. Tilsvarende resultat for revurdering er opphørt.",
     ),
-    OpphørtRevurdering(
+    Opphør(
         value = "OPPHØRT",
         beskrivelse = "En revurdering blir opphørt, mens en søknadsbehandling blir avslått.",
     ),
@@ -34,8 +34,8 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
         value = "AVBRUTT",
         beskrivelse = "En paraplybetegnelse for å avbryte/avslutte/lukke en behandling der vi ikke har mer spesifikke data. Spesifiseringer av Avbrutt: [FEILREGISTRERT, TRUKKET, AVVIST].",
     ),
-    Feilregistrert(
-        value = "FEILREGISTRERT",
+    Bortfalt(
+        value = "BORTFALT",
         beskrivelse = "Feilaktig registrert behandling. En spesifisering av [AVBRUTT]",
     ),
     Trukket(

@@ -1,8 +1,9 @@
-package statistikk.domain
+package no.nav.su.se.bakover.common.domain.statistikk
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
@@ -23,8 +24,7 @@ data class SakStatistikk(
     val sakUtland: String = "NASJONAL",
     val behandlingType: String,
 
-    // TODO kun regulering som kan være automatisk? egen håndtering
-    val behandlingMetode: String = "Manuell",
+    val behandlingMetode: BehandlingMetode,
 
     val mottattTid: Tidspunkt,
     val registrertTid: Tidspunkt,
@@ -49,3 +49,18 @@ data class SakStatistikk(
     val funksjonellPeriodeTom: LocalDate? = null,
     val tilbakekrevBeløp: Long? = null,
 )
+
+enum class BehandlingMetode {
+    Manuell,
+    Automatisk,
+    ;
+
+    companion object {
+        fun erAutomatiskHvisSystembruker(saksbehandler: NavIdentBruker.Saksbehandler) =
+            if (saksbehandler.navIdent == NavIdentBruker.Saksbehandler.systembruker().navIdent) {
+                Automatisk
+            } else {
+                Manuell
+            }
+    }
+}

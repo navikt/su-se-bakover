@@ -168,7 +168,7 @@ internal class OversendKlageTest {
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
                     attestant = attestant,
-                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
+                    fritekst = klage.fritekstTilVedtaksbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -222,7 +222,7 @@ internal class OversendKlageTest {
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
                     attestant = attestant,
-                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
+                    fritekst = klage.fritekstTilVedtaksbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -277,7 +277,7 @@ internal class OversendKlageTest {
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
                     attestant = attestant,
-                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
+                    fritekst = klage.fritekstTilVedtaksbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = sak.saksnummer,
@@ -470,7 +470,7 @@ internal class OversendKlageTest {
     fun `Skal kunne oversende en klage som er til attestering`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
-        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
         val pdf = PdfA("brevbytes".toByteArray())
         val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
             pdf = pdf,
@@ -516,7 +516,11 @@ internal class OversendKlageTest {
                 sakstype = klage.sakstype,
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual })
+            verify(observerMock)
+                .handle(
+                    argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual },
+                    any(),
+                )
         }
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
@@ -528,7 +532,7 @@ internal class OversendKlageTest {
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
                     attestant = attestant,
-                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
+                    fritekst = klage.fritekstTilVedtaksbrev,
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,

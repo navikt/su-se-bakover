@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.right
+import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VilkårsvurderingerTilKlage
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -29,7 +29,7 @@ data class OpprettetKlage(
     override val sakstype: Sakstype,
 ) : Klage {
 
-    override val vilkårsvurderinger: VilkårsvurderingerTilKlage? = null
+    override val vilkårsvurderinger: FormkravTilKlage? = null
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
@@ -52,17 +52,17 @@ data class OpprettetKlage(
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        vilkårsvurderinger: FormkravTilKlage,
     ): Either<Nothing, VilkårsvurdertKlage> {
         return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Utfylt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
-            is VilkårsvurderingerTilKlage.Påbegynt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
+            is FormkravTilKlage.Utfylt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
+            is FormkravTilKlage.Påbegynt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
         }.right()
     }
 
     private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
+        vilkårsvurderinger: FormkravTilKlage.Påbegynt,
     ): VilkårsvurdertKlage.Påbegynt {
         return VilkårsvurdertKlage.Påbegynt(
             id = id,
@@ -82,7 +82,7 @@ data class OpprettetKlage(
 
     private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+        vilkårsvurderinger: FormkravTilKlage.Utfylt,
     ): VilkårsvurdertKlage.Utfylt {
         return VilkårsvurdertKlage.Utfylt.create(
             id = id,
