@@ -4,7 +4,8 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.header
-import io.ktor.client.request.patch
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -31,6 +32,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
 
     private val navIdentSaksbehandler = "random-saksbehandler-id"
     private val navIdentAttestant = "random-attestant-id"
+    private val fritekst = "fritekst"
 
     @Test
     fun `Forbidden når den som behandlet saken prøver å attestere seg selv`() {
@@ -47,7 +49,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                     ),
                 )
             }
-            client.patch("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
+            client.post("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(
@@ -56,6 +58,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         navIdent = navIdentSaksbehandler,
                     ).asBearerToken(),
                 )
+                setBody("""{"fritekst":"$fritekst"}""")
             }.apply {
                 status shouldBe HttpStatusCode.Forbidden
             }
@@ -77,7 +80,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                     ),
                 )
             }
-            client.patch("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
+            client.post("$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett") {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(
@@ -86,6 +89,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         navIdent = navIdentAttestant,
                     ).asBearerToken(),
                 )
+                setBody("""{"fritekst":"$fritekst"}""")
             }.apply {
                 status shouldBe HttpStatusCode.OK
             }
@@ -108,7 +112,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                 )
             }
             defaultRequest(
-                HttpMethod.Patch,
+                HttpMethod.Post,
                 "$SAK_PATH/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
                 listOf(Brukerrolle.Saksbehandler),
                 navIdentSaksbehandler,
@@ -117,7 +121,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
             }
 
             defaultRequest(
-                HttpMethod.Patch,
+                HttpMethod.Post,
                 "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {

@@ -64,7 +64,6 @@ sealed interface KanGenerereAvslagsbrev :
         } else {
             null
         }
-
         return IverksettSøknadsbehandlingDokumentCommand.Avslag(
             avslag = Avslag(
                 avslagsgrunner = avslagsgrunner,
