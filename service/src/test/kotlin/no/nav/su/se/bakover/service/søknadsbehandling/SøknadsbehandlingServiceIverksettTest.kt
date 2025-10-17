@@ -463,7 +463,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 any(),
             )
-            verify(serviceAndMocks.observer, times(2)).handle(any())
+            verify(serviceAndMocks.observer).handle(any(), any())
             verify(serviceAndMocks.brevService).lagreDokument(
                 argThat {
                     it.metadata.sakId shouldBe sak.id
