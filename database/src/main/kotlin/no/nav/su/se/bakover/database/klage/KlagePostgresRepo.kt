@@ -296,6 +296,7 @@ internal class KlagePostgresRepo(
         )
     }
 
+    // TODO: må lagre ned en ny type her ellers vil dataen ikke være konsistent potensielt.
     private fun lagreAvsluttetKlage(klage: AvsluttetKlage, session: Session) {
         // Dette vil overskrive saksbehandler for klagens forrigeSteg, siden vi kun har en enkelt `text` i databasetabellen som representerer en saksbehandler.
         """
@@ -671,6 +672,7 @@ internal class KlagePostgresRepo(
         }
     }
 
+    // TODO: vi har ingen tilstand AVSLUTTET så om en klage blir behandlet og deretter avsluttet vil alt kræsje......
     internal enum class Tilstand(val verdi: String) {
         OPPRETTET("opprettet"),
 
@@ -752,7 +754,7 @@ internal class KlagePostgresRepo(
             name = "Oppretthold",
         ),
     )
-    private sealed interface VedtaksvurderingJson {
+    interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
         data class Omgjør(val årsak: String?, val begrunnelse: String?) : VedtaksvurderingJson {
 

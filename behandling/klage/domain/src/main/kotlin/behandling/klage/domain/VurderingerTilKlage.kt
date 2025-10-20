@@ -70,7 +70,7 @@ sealed interface VurderingerTilKlage {
             ): VurderingerTilKlage {
                 return when (vedtaksvurdering) {
                     is Vedtaksvurdering.Utfylt.Omgjør -> {
-                        if (fritekstTilOversendelsesbrev == null && vedtaksvurdering.begrunnelse != null) {
+                        if (vedtaksvurdering.begrunnelse != null) {
                             UtfyltOmgjøring(vedtaksvurdering = vedtaksvurdering)
                         } else {
                             Påbegynt(
