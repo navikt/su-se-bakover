@@ -85,7 +85,7 @@ sealed interface KlageTilAttestering :
     }
 
     data class Vurdert(
-        private val forrigeSteg: VurdertKlage.BekreftetOpprettholdt, // TODO: hvordan få denne spesific med delegation uten interface?
+        private val forrigeSteg: VurdertKlage.BekreftetOpprettholdt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val sakstype: Sakstype,
     ) : KlageTilAttestering,

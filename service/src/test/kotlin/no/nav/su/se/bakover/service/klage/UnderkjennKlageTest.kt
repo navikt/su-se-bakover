@@ -223,7 +223,7 @@ internal class UnderkjennKlageTest {
         )
         mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.UgyldigTilstand(
             klage::class,
-            VurdertKlage.BekreftetOmgjøring::class, // TODO: må endre testen til å lage oppretthold da omgjøring ikke gir mening her
+            VurdertKlage.BekreftetOpprettholdt::class,
         ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })

@@ -81,7 +81,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             clock = clock,
             behandlingStatus = BehandlingStatus.Iverksatt,
             behandlingResultat = BehandlingResultat.Innvilget,
-            resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør).årsak.name.uppercase(),
+            resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
             avsluttet = true,
             totrinnsbehandling = false,
             funksjonellTid = this.klage.datoklageferdigstilt,
