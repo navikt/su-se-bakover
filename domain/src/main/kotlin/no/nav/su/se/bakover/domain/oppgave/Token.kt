@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppgave
 
-interface Token {
+sealed interface Token {
     val value: String
 }
 

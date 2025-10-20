@@ -34,9 +34,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Clock
 
-enum class Enhet(val enhet: String) {
-    ÅLESUND("4815"),
-}
+private const val ENHET_ÅLESUND = "4815"
 
 /**
  * abstaherer vekk en del funksjonalitet fra [OppgaveHttpClient]
@@ -119,8 +117,7 @@ internal class OppdaterOppgaveHttpClient(
         return Either.catch {
             val endretAvEnhetsnr = when (token) {
                 is SystembrukerToken -> null
-                is OboToken -> Enhet.ÅLESUND.enhet
-                else -> null
+                is OboToken -> ENHET_ÅLESUND
             }
             val requestOppgave = EndreOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse?.let {
