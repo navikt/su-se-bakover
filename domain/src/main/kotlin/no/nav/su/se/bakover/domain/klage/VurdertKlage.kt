@@ -28,7 +28,7 @@ interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
 sealed interface VurdertKlage :
     Klage,
     VurdertKlageFelter {
-    val fritekstTilBrev: String?
+    val fritekstTilBrev: String? // Spesifikt for å slippe å ha flere lagre metoder i db
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
