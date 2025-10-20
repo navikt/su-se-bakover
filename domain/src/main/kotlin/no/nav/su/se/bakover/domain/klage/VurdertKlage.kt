@@ -182,10 +182,6 @@ sealed interface VurdertKlage :
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 sakstype: Sakstype,
             ): Utfylt {
-                val fritekstTilVedtaksbrev = when (val vurderinger = vurderinger) {
-                    is VurderingerTilKlage.UtfyltOmgjøring -> null
-                    is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
-                }
                 return when (vurderinger) {
                     is VurderingerTilKlage.UtfyltOmgjøring -> UtfyltOmgjør.create(forrigeSteg, saksbehandler, vurderinger, sakstype)
                     is VurderingerTilKlage.UtfyltOppretthold -> UtfyltOppretthold.create(
@@ -193,7 +189,7 @@ sealed interface VurdertKlage :
                         saksbehandler,
                         vurderinger,
                         sakstype,
-                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev ?: throw IllegalStateException("FritekstTilVedtaksbrev mangler fritekst"),
+                        fritekstTilVedtaksbrev = vurderinger.fritekstTilOversendelsesbrev,
                     )
                 }
             }

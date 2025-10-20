@@ -505,7 +505,7 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
         klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
         fremsattRettsligKlageinteresse = this.vilkårsvurderinger.fremsattRettsligKlageinteresse,
-        fritekstTilBrev = this.getFritekstTilBrev().toString(),
+        fritekstTilBrev = this.fritekstTilBrev,
         vedtaksvurdering = this.vurderinger.vedtaksvurdering?.toJson(),
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },

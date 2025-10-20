@@ -374,7 +374,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandling = klage,
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
-                    behandlingStatus = BehandlingStatus.Iverksatt.name, // TODO: iverksatt er kun klagebehandlingen men ikke omgjøringen før den er effektuert
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
                     behandlingResultat = BehandlingResultat.Innvilget.name,
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
                     saksbehandler = klage.saksbehandler.navIdent,
