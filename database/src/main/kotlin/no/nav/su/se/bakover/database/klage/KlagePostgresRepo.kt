@@ -452,7 +452,7 @@ internal class KlagePostgresRepo(
             deserialize<VedtaksvurderingJson>(it).toDomain()
         }
         val behandlingId = row.uuidOrNull("behandlingId")
-        val vurderinger = if (fritekstTilBrev == null && vedtaksvurdering == null) {
+        val vurderinger = if (vedtaksvurdering == null) {
             null
         } else {
             VurderingerTilKlage.create(
