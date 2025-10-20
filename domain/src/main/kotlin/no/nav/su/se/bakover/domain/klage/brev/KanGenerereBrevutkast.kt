@@ -52,11 +52,10 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
         is AvvistKlage -> this.fritekstTilVedtaksbrev
         is KlageTilAttestering.Avvist -> this.fritekstTilVedtaksbrev
         is KlageTilAttestering.Vurdert -> this.fritekstTilVedtaksbrev
-        is VurdertKlage.Bekreftet -> this.fritekstTilBrev!!
-        is VurdertKlage.Påbegynt -> this.fritekstTilBrev!!
-        is VurdertKlage.Utfylt -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.UtfyltOppretthold -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.Påbegynt -> this.fritekstTilVedtaksbrev!!
     }
-    // klage.vurderinger.friteksttiloversendelesesbrev er populert men this.fritekstTilVedtaksbrev kaster exception?
+
     return KlageDokumentCommand.Oppretthold(
         fødselsnummer = this.fnr,
         saksnummer = this.saksnummer,

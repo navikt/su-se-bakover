@@ -74,6 +74,19 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             funksjonellTid = this.klage.avsluttetTidspunkt,
             beslutter = null,
         )
+
+        is StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring -> toDto(
+            klage = this.klage,
+            gitCommit = gitCommit,
+            clock = clock,
+            behandlingStatus = BehandlingStatus.Iverksatt,
+            behandlingResultat = BehandlingResultat.Innvilget,
+            resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
+            avsluttet = true,
+            totrinnsbehandling = false,
+            funksjonellTid = this.klage.datoklageferdigstilt,
+            beslutter = null,
+        )
     }
 }
 

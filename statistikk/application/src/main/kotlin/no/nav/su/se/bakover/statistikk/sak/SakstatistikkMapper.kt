@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.statistikk.sak
 
 import behandling.domain.Behandling
-import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
@@ -366,11 +365,20 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = klage.sakstype,
                     behandlingStatus = BehandlingStatus.OversendtKlage.name,
                     behandlingResultat = BehandlingResultat.OpprettholdtKlage.name,
-                    resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler?.toResultatBegrunnelse(),
+                    resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                 )
 
-                // TODO is StatistikkEvent.Behandling.Klage.Medhold -> this.toBehandlingsstatistikkGenerell(...)
+                is StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring -> this.toBehandlingsstatistikkGenerell(
+                    clock = clock,
+                    behandling = klage,
+                    behandlingType = Behandlingstype.KLAGE,
+                    saktype = klage.sakstype,
+                    behandlingStatus = BehandlingStatus.Avsluttet.name,
+                    behandlingResultat = BehandlingResultat.OmgjortKlage.name,
+                    resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
+                    saksbehandler = klage.saksbehandler.navIdent,
+                )
             }
         }
 

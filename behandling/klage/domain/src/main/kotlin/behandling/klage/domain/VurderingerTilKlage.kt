@@ -112,6 +112,7 @@ sealed interface VurderingerTilKlage {
     sealed interface Utfylt : VurderingerTilKlage {
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt
     }
+
     data class UtfyltOmgjøring(
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Omgjør,
     ) : Utfylt

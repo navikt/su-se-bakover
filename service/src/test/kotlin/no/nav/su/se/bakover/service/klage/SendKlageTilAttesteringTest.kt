@@ -263,12 +263,12 @@ internal class SendKlageTilAttesteringTest {
                 )
             } else {
                 KlageTilAttestering.Vurdert(
-                    forrigeSteg = klage as VurdertKlage.Bekreftet,
+                    forrigeSteg = klage as VurdertKlage.BekreftetOpprettholdt,
                     saksbehandler = saksbehandlerSomSendteTilAttestering,
                     sakstype = klage.sakstype,
                 )
             }
-            it shouldBe expectedKlage!!
+            it shouldBe expectedKlage
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.FormkravTilKlage
@@ -14,6 +13,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
+import no.nav.su.se.bakover.domain.klage.VurdertKlage.Bekreftet.Companion.createBekreftet
+import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt.Companion.createUtfylt
 import java.time.LocalDate
 import kotlin.reflect.KClass
 
@@ -26,44 +27,8 @@ interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
 
 sealed interface VurdertKlage :
     Klage,
-    VurdertKlageFelter,
-    KanGenerereBrevutkast {
-    /**
-     * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
-     */
-    override val fritekstTilVedtaksbrev
-        get() = getFritekstTilBrev().getOrElse {
-            throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
-        }
-
-    val fritekstTilBrev: String?
-        get() =
-            when (val vurderinger = vurderinger) {
-                is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
-                is VurderingerTilKlage.UtfyltOmgjøring -> null
-                is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
-            }
-
-    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return when (val vurderinger = vurderinger) {
-            is VurderingerTilKlage.Påbegynt -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
-            is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
-            is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
-        }
-    }
-
-    /**
-     * @param utførtAv brukes kun i attesteringsstegene
-     */
-    override fun lagBrevRequest(
-        utførtAv: NavIdentBruker,
-        hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
-    ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
-        return genererOversendelsesBrev(
-            attestant = null,
-            hentVedtaksbrevDato = hentVedtaksbrevDato,
-        )
-    }
+    VurdertKlageFelter {
+    val fritekstTilBrev: String? // Spesifikt for å slippe å ha flere lagre metoder i db
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -135,8 +100,28 @@ sealed interface VurdertKlage :
         override val vurderinger: VurderingerTilKlage.Påbegynt,
         override val sakstype: Sakstype,
     ) : VurdertKlage,
+        KanGenerereBrevutkast,
         KlageSomKanVurderes,
         VilkårsvurdertKlage.Bekreftet.TilVurderingFelter by forrigeSteg {
+
+        override val fritekstTilBrev: String?
+            get() = vurderinger.fritekstTilOversendelsesbrev
+
+        override val fritekstTilVedtaksbrev: String?
+            get() = vurderinger.fritekstTilOversendelsesbrev
+
+        /**
+         * @param utførtAv brukes kun i attesteringsstegene
+         */
+        override fun lagBrevRequest(
+            utførtAv: NavIdentBruker,
+            hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+            return genererOversendelsesBrev(
+                attestant = null,
+                hentVedtaksbrevDato = hentVedtaksbrevDato,
+            )
+        }
 
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -149,8 +134,7 @@ sealed interface VurdertKlage :
                     vurderinger = vurderinger,
                     sakstype = sakstype,
                 )
-
-                is VurderingerTilKlage.Utfylt -> Utfylt(
+                is VurderingerTilKlage.Utfylt -> createUtfylt(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
@@ -181,32 +165,45 @@ sealed interface VurdertKlage :
         }
     }
 
-    interface UtfyltFelter : VurdertKlageFelter {
-        override val vurderinger: VurderingerTilKlage.Utfylt
-
-        fun erOpprettholdelse(): Boolean =
-            vurderinger.vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold
-    }
-
-    data class Utfylt(
-        private val forrigeSteg: Påbegynt,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val vurderinger: VurderingerTilKlage.Utfylt,
-        override val sakstype: Sakstype,
-    ) : VurdertKlage,
-        UtfyltFelter,
+    sealed interface Utfylt :
+        VurdertKlageFelter,
+        VurdertKlage,
         KlageSomKanVurderes,
-        KanBekrefteKlagevurdering,
-        VurdertKlageFelter by forrigeSteg {
+        KanBekrefteKlagevurdering {
+        override val vurderinger: VurderingerTilKlage.Utfylt
+        override val saksbehandler: NavIdentBruker.Saksbehandler
+        override val sakstype: Sakstype
+        fun internalForrigeStegUtfylt(): Påbegynt
+
+        companion object {
+            fun createUtfylt(
+                vurderinger: VurderingerTilKlage.Utfylt,
+                forrigeSteg: Påbegynt,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                sakstype: Sakstype,
+            ): Utfylt {
+                return when (vurderinger) {
+                    is VurderingerTilKlage.UtfyltOmgjøring -> UtfyltOmgjør.create(forrigeSteg, saksbehandler, vurderinger, sakstype)
+                    is VurderingerTilKlage.UtfyltOppretthold -> UtfyltOppretthold.create(
+                        forrigeSteg,
+                        saksbehandler,
+                        vurderinger,
+                        sakstype,
+                        fritekstTilVedtaksbrev = vurderinger.fritekstTilOversendelsesbrev,
+                    )
+                }
+            }
+        }
 
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vurderinger: VurderingerTilKlage,
         ): VurdertKlage {
+            val forrigeSteg = internalForrigeStegUtfylt()
             return when (vurderinger) {
-                is VurderingerTilKlage.Påbegynt -> this.forrigeSteg.vurder(saksbehandler, vurderinger)
-                is VurderingerTilKlage.Utfylt -> Utfylt(
-                    forrigeSteg = this.forrigeSteg,
+                is VurderingerTilKlage.Påbegynt -> forrigeSteg.vurder(saksbehandler, vurderinger)
+                is VurderingerTilKlage.Utfylt -> createUtfylt(
+                    forrigeSteg = forrigeSteg,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
                     sakstype = sakstype,
@@ -219,7 +216,7 @@ sealed interface VurdertKlage :
         override fun bekreftVurderinger(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Bekreftet {
-            return Bekreftet(
+            return createBekreftet(
                 forrigeSteg = this,
                 saksbehandler = saksbehandler,
                 sakstype = sakstype,
@@ -244,6 +241,80 @@ sealed interface VurdertKlage :
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
             }
         }
+    }
+
+    data class UtfyltOmgjør private constructor(
+        private val forrigeSteg: Påbegynt,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val vurderinger: VurderingerTilKlage.UtfyltOmgjøring,
+        override val sakstype: Sakstype,
+    ) : Utfylt,
+        VurdertKlageFelter by forrigeSteg {
+        override fun internalForrigeStegUtfylt(): Påbegynt = forrigeSteg
+        override val fritekstTilBrev: String?
+            get() = null
+
+        companion object {
+            fun create(
+                forrigeSteg: Påbegynt,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vurderinger: VurderingerTilKlage.UtfyltOmgjøring,
+                sakstype: Sakstype,
+            ): UtfyltOmgjør {
+                return UtfyltOmgjør(
+                    forrigeSteg = forrigeSteg,
+                    saksbehandler = saksbehandler,
+                    vurderinger = vurderinger,
+                    sakstype = sakstype,
+                )
+            }
+        }
+    }
+
+    data class UtfyltOppretthold internal constructor(
+        private val forrigeSteg: Påbegynt,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val vurderinger: VurderingerTilKlage.UtfyltOppretthold,
+        override val sakstype: Sakstype,
+        override val fritekstTilVedtaksbrev: String,
+    ) : KanGenerereBrevutkast,
+        Utfylt,
+        VurdertKlageFelter by forrigeSteg {
+        override fun internalForrigeStegUtfylt(): Påbegynt = forrigeSteg
+
+        companion object {
+            fun create(
+                forrigeSteg: Påbegynt,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vurderinger: VurderingerTilKlage.UtfyltOppretthold,
+                sakstype: Sakstype,
+                fritekstTilVedtaksbrev: String,
+            ): UtfyltOppretthold {
+                return UtfyltOppretthold(
+                    forrigeSteg = forrigeSteg,
+                    saksbehandler = saksbehandler,
+                    vurderinger = vurderinger,
+                    sakstype = sakstype,
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                )
+            }
+        }
+
+        /**
+         * @param utførtAv brukes kun i attesteringsstegene
+         */
+        override fun lagBrevRequest(
+            utførtAv: NavIdentBruker,
+            hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+            return genererOversendelsesBrev(
+                attestant = null,
+                hentVedtaksbrevDato = hentVedtaksbrevDato,
+            )
+        }
+
+        override val fritekstTilBrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
     }
 
     /**
@@ -258,60 +329,43 @@ sealed interface VurdertKlage :
      * @param attesteringer Denne oppdateres ved underkjennelse
      * @param klageinstanshendelser Denne oppdateres ved retur fra klageinstans
      */
-    data class Bekreftet(
-        private val forrigeSteg: Utfylt,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
-        override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
-        override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
-        override val sakstype: Sakstype,
-    ) : VurdertKlage,
+    sealed interface Bekreftet :
+        VurdertKlage,
         KlageSomKanVurderes,
-        KanBekrefteKlagevurdering,
-        UtfyltFelter by forrigeSteg {
-
-        override fun ferdigstillOmgjøring(
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            klage: Bekreftet,
-            ferdigstiltTidspunkt: Tidspunkt,
-        ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
-            return FerdigstiltOmgjortKlage(
-                forrigeSteg = forrigeSteg,
-                saksbehandler = saksbehandler,
-                sakstype = sakstype,
-                klageinstanshendelser = klage.klageinstanshendelser,
-                datoklageferdigstilt = ferdigstiltTidspunkt,
-            ).right()
+        KanBekrefteKlagevurdering {
+        fun internalForrigeStegBekreftet(): Utfylt
+        fun internalInstance(): Bekreftet
+        companion object {
+            fun createBekreftet(
+                forrigeSteg: Utfylt,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                sakstype: Sakstype,
+            ): Bekreftet {
+                return when (forrigeSteg) {
+                    is UtfyltOmgjør -> BekreftetOmgjøring.create(
+                        forrigeSteg = forrigeSteg,
+                        saksbehandler = saksbehandler,
+                        sakstype = sakstype,
+                    )
+                    is UtfyltOppretthold -> BekreftetOpprettholdt.create(
+                        forrigeSteg = forrigeSteg,
+                        saksbehandler = saksbehandler,
+                        sakstype = sakstype,
+                    )
+                }
+            }
         }
 
         override fun erÅpen() = true
 
-        // Hvis det er en vurdertKlage så sjekker man på "forrigeSteg" og den vil vel alltid være påbegynt ergo langt fra utfylt.
-        // TODO: kanskje man skal se om det har kommet inn nye vurderinger i stedet for?
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vurderinger: VurderingerTilKlage,
         ): VurdertKlage {
-            return forrigeSteg.vurder(
+            return internalForrigeStegBekreftet().vurder(
                 saksbehandler = saksbehandler,
                 vurderinger = vurderinger,
             )
-        }
-
-        override fun bekreftVurderinger(
-            saksbehandler: NavIdentBruker.Saksbehandler,
-        ): Bekreftet {
-            return this.copy(saksbehandler = saksbehandler)
-        }
-
-        override fun sendTilAttestering(
-            saksbehandler: NavIdentBruker.Saksbehandler,
-        ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
-            return KlageTilAttestering.Vurdert(
-                forrigeSteg = this,
-                saksbehandler = saksbehandler,
-                sakstype = sakstype,
-            ).right()
         }
 
         override fun kanAvsluttes() = klageinstanshendelser.isEmpty()
@@ -332,6 +386,116 @@ sealed interface VurdertKlage :
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
             }
         }
+    }
+
+    interface OpprettholdKlageFelter : VurdertKlageFelter {
+        override val vurderinger: VurderingerTilKlage.UtfyltOppretthold
+    }
+
+    data class BekreftetOpprettholdt internal constructor(
+        private val forrigeSteg: UtfyltOppretthold,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
+        override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
+        override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
+        override val sakstype: Sakstype,
+    ) : Bekreftet,
+        OpprettholdKlageFelter,
+        VurdertKlageFelter by forrigeSteg {
+        override val vurderinger: VurderingerTilKlage.UtfyltOppretthold = forrigeSteg.vurderinger
+
+        override fun sendTilAttestering(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
+            return KlageTilAttestering.Vurdert(
+                forrigeSteg = this,
+                saksbehandler = saksbehandler,
+                sakstype = sakstype,
+            ).right()
+        }
+
+        override fun bekreftVurderinger(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Bekreftet {
+            return this.copy(saksbehandler = saksbehandler)
+        }
+        override fun internalInstance(): Bekreftet {
+            return this
+        }
+        override fun internalForrigeStegBekreftet() = forrigeSteg
+        override val fritekstTilBrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
+
+        companion object {
+            fun create(
+                forrigeSteg: UtfyltOppretthold,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                sakstype: Sakstype,
+            ): BekreftetOpprettholdt {
+                return BekreftetOpprettholdt(
+                    forrigeSteg = forrigeSteg,
+                    saksbehandler = saksbehandler,
+                    sakstype = sakstype,
+                )
+            }
+        }
+    }
+
+    interface OmgjøringKlageFelter : VurdertKlageFelter {
+        override val vurderinger: VurderingerTilKlage.UtfyltOmgjøring
+    }
+
+    data class BekreftetOmgjøring internal constructor(
+        private val forrigeSteg: UtfyltOmgjør,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
+        override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
+        override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
+        override val sakstype: Sakstype,
+    ) : Bekreftet,
+        OmgjøringKlageFelter,
+        VurdertKlageFelter by forrigeSteg {
+        override val vurderinger: VurderingerTilKlage.UtfyltOmgjøring = forrigeSteg.vurderinger
+
+        companion object {
+            fun create(
+                forrigeSteg: UtfyltOmgjør,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                sakstype: Sakstype,
+            ): BekreftetOmgjøring {
+                return BekreftetOmgjøring(
+                    forrigeSteg = forrigeSteg,
+                    saksbehandler = saksbehandler,
+                    sakstype = sakstype,
+                )
+            }
+        }
+
+        override fun bekreftVurderinger(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Bekreftet {
+            return this.copy(saksbehandler = saksbehandler)
+        }
+
+        override fun ferdigstillOmgjøring(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            ferdigstiltTidspunkt: Tidspunkt,
+        ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
+            return FerdigstiltOmgjortKlage(
+                forrigeSteg = this,
+                saksbehandler = saksbehandler,
+                sakstype = sakstype,
+                klageinstanshendelser = this.klageinstanshendelser,
+                datoklageferdigstilt = ferdigstiltTidspunkt,
+            ).right()
+        }
+
+        override fun internalInstance(): Bekreftet {
+            return this
+        }
+        override fun internalForrigeStegBekreftet() = forrigeSteg
+        override val fritekstTilBrev: String?
+            get() = null
     }
 }
 
