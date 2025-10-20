@@ -18,7 +18,10 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
+import no.nav.su.se.bakover.domain.oppgave.OboToken
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
+import no.nav.su.se.bakover.domain.oppgave.SystembrukerToken
+import no.nav.su.se.bakover.domain.oppgave.Token
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -30,6 +33,10 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Clock
+
+enum class Enhet(val enhet: String) {
+    ÅLESUND("4815"),
+}
 
 /**
  * abstaherer vekk en del funksjonalitet fra [OppgaveHttpClient]
@@ -47,10 +54,10 @@ internal class OppdaterOppgaveHttpClient(
 
     fun oppdaterOppgave(
         oppgaveId: OppgaveId,
-        token: String,
+        token: Token,
         data: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
-        return hentOppgave(oppgaveId, token).mapLeft {
+        return hentOppgave(oppgaveId, token.value).mapLeft {
             KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave
         }.flatMap {
             if (it.oppgaveResponse.erFerdigstilt()) {
@@ -76,10 +83,10 @@ internal class OppdaterOppgaveHttpClient(
 
     fun lukkOppgave(
         oppgaveId: OppgaveId,
-        token: String,
+        token: Token,
         tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
-        return hentOppgave(oppgaveId, token).mapLeft {
+        return hentOppgave(oppgaveId, token.value).mapLeft {
             KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId)
         }.flatMap {
             oppdaterOppgave(
@@ -96,7 +103,7 @@ internal class OppdaterOppgaveHttpClient(
 
     private fun endreOppgave(
         oppgave: OppgaveResponse,
-        token: String,
+        token: Token,
         data: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         val internalBeskrivelse =
@@ -110,6 +117,11 @@ internal class OppdaterOppgaveHttpClient(
             is OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> oppgave.tilordnetRessurs
         }
         return Either.catch {
+            val endretAvEnhetsnr = when (token) {
+                is SystembrukerToken -> null
+                is OboToken -> Enhet.ÅLESUND.enhet
+                else -> null
+            }
             val requestOppgave = EndreOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse?.let {
                     internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
@@ -117,6 +129,7 @@ internal class OppdaterOppgaveHttpClient(
                 status = data.status ?: oppgave.status,
                 oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
                 tilordnetRessurs = tilordnetRessurs,
+                endretAvEnhetsnr = endretAvEnhetsnr,
             )
             val requestBody = serialize(
                 requestOppgave,
@@ -201,4 +214,5 @@ private data class EndreOppgaveRequest(
     val oppgavetype: String,
     val status: String,
     val tilordnetRessurs: String?,
+    val endretAvEnhetsnr: String?,
 )
