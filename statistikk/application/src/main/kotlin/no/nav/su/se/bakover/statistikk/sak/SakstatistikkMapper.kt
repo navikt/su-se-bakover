@@ -375,7 +375,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
                     behandlingStatus = BehandlingStatus.Avsluttet.name,
-                    behandlingResultat = BehandlingResultat.Innvilget.name,
+                    behandlingResultat = BehandlingResultat.OmgjortKlage.name,
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
                     saksbehandler = klage.saksbehandler.navIdent,
                 )
