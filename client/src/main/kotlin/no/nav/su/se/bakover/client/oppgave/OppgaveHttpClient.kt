@@ -18,9 +18,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
+import no.nav.su.se.bakover.domain.oppgave.OboToken
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.SystembrukerToken
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
@@ -86,7 +88,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return oppdaterOppgaveHttpClient.lukkOppgave(
             oppgaveId = oppgaveId,
-            token = exchange.getSystemToken(oppgaveClientId),
+            token = SystembrukerToken(exchange.getSystemToken(oppgaveClientId)),
             tilordnetRessurs = tilordnetRessurs,
         )
     }
@@ -100,7 +102,7 @@ internal class OppgaveHttpClient(
             .flatMap {
                 oppdaterOppgaveHttpClient.lukkOppgave(
                     oppgaveId = oppgaveId,
-                    token = it,
+                    token = OboToken(it),
                     tilordnetRessurs = tilordnetRessurs,
                 )
             }
@@ -112,7 +114,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
-            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo) }
+            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, OboToken(it), oppdatertOppgaveInfo) }
     }
 
     override fun oppdaterOppgaveMedSystembruker(
@@ -121,7 +123,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return oppdaterOppgaveHttpClient.oppdaterOppgave(
             oppgaveId = oppgaveId,
-            token = exchange.getSystemToken(oppgaveClientId),
+            token = SystembrukerToken(exchange.getSystemToken(oppgaveClientId)),
             data = oppdatertOppgaveInfo,
         )
     }
