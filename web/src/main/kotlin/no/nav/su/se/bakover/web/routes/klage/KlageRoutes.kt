@@ -477,6 +477,11 @@ fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )
+
+        KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt -> BadRequest.errorJson(
+            "Fritekst er ikke fylt ut",
+            "fritekst_er_ikke_fylt_ut",
+        )
     }
 }
 
