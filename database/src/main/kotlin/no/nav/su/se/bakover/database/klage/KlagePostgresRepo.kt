@@ -171,7 +171,7 @@ internal class KlagePostgresRepo(
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "fritekstTilBrev" to klage.getFritekstTilBrev(),
+                    "fritekstTilBrev" to klage.fritekstTilBrev,
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.svar.tilDatabaseType(),
                     "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen.begrunnelse,
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.svar,

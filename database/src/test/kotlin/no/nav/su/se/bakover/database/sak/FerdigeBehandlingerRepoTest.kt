@@ -266,7 +266,7 @@ internal class FerdigeBehandlingerRepoTest {
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave() // 2021
             testDataHelper.persisterSøknadsbehandlingAvsluttet() // 2022
             val (revurderingSak, _) = testDataHelper.persisterRevurderingAvsluttet() // 2023
-            val klage = testDataHelper.persisterKlageAvsluttet().hentUnderliggendeKlage() as VurdertKlage.BekreftetOmgjøring // 2024
+            val klage = testDataHelper.persisterKlageAvsluttet().hentUnderliggendeKlage() as VurdertKlage.BekreftetOpprettholdt // 2024
 
             val klageSak = testDataHelper.sakRepo.hentSak(klage.sakId)!!
             repo.hentFerdigeBehandlinger().sortedBy { it.saksnummer.nummer } shouldBe listOf(

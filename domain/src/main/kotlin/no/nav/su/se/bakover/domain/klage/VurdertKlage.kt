@@ -28,6 +28,7 @@ interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
 sealed interface VurdertKlage :
     Klage,
     VurdertKlageFelter {
+    val fritekstTilBrev: String?
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -102,6 +103,10 @@ sealed interface VurdertKlage :
         KanGenerereBrevutkast,
         KlageSomKanVurderes,
         VilkårsvurdertKlage.Bekreftet.TilVurderingFelter by forrigeSteg {
+
+        override val fritekstTilBrev: String?
+            get() = vurderinger.fritekstTilOversendelsesbrev
+
         override val fritekstTilVedtaksbrev: String?
             get() = vurderinger.fritekstTilOversendelsesbrev
 
@@ -250,6 +255,8 @@ sealed interface VurdertKlage :
     ) : Utfylt,
         VurdertKlageFelter by forrigeSteg {
         override fun internalForrigeStegUtfylt(): Påbegynt = forrigeSteg
+        override val fritekstTilBrev: String?
+            get() = null
 
         companion object {
             fun create(
@@ -309,6 +316,9 @@ sealed interface VurdertKlage :
                 hentVedtaksbrevDato = hentVedtaksbrevDato,
             )
         }
+
+        override val fritekstTilBrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
     }
 
     /**
@@ -417,6 +427,8 @@ sealed interface VurdertKlage :
             return this
         }
         override fun internalForrigeStegBekreftet() = forrigeSteg
+        override val fritekstTilBrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
 
         companion object {
             fun create(
@@ -486,6 +498,8 @@ sealed interface VurdertKlage :
             return this
         }
         override fun internalForrigeStegBekreftet() = forrigeSteg
+        override val fritekstTilBrev: String?
+            get() = null
     }
 }
 

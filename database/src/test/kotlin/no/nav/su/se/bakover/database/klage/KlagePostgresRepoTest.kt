@@ -408,7 +408,7 @@ internal class KlagePostgresRepoTest {
             }
 
             val hentet = klageRepo.hentKlage(klage.id)!!
-            hentet.shouldBeTypeOf<VurdertKlage.BekreftetOmgjøring>()
+            hentet.shouldBeTypeOf<VurdertKlage.BekreftetOpprettholdt>()
             hentet.klageinstanshendelser.shouldBeEmpty()
         }
     }
