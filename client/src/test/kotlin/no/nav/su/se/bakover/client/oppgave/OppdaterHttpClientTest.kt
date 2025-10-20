@@ -85,6 +85,7 @@ internal class OppdaterHttpClientTest {
             actual.beskrivelse shouldBe expected.beskrivelse
             actual.response shouldBe expected.response
             actual.tilordnetRessurs shouldBe expected.tilordnetRessurs
+
             JSONAssert.assertEquals(actual.request, expected.request, true)
 
             WireMock.configureFor(port())
@@ -114,7 +115,7 @@ internal class OppdaterHttpClientTest {
                 OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
             ).getOrFail()
 
-            val expectedBody = createJsonPatchRequestedBody()
+            val expectedBody = createJsonPatchRequestedBody(erObo = false)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
@@ -255,14 +256,17 @@ internal class OppdaterHttpClientTest {
     private fun createJsonPatchRequestedBody(
         beskrivelse: String = "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---",
         status: String = "FERDIGSTILT",
+        erObo: Boolean = true,
     ): String {
+        val endretAvEnhetsnr = if (erObo) "\"4815\"" else "null"
         //language=json
         return """
             {
               "oppgavetype": "BEH_SAK",
               "beskrivelse": "$beskrivelse",
               "status": "$status",
-              "tilordnetRessurs": "Z123456"
+              "tilordnetRessurs": "Z123456",
+              "endretAvEnhetsnr": $endretAvEnhetsnr
             }
         """.trimIndent()
     }
