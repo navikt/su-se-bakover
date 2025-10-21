@@ -763,7 +763,7 @@ internal class KlagePostgresRepo(
             name = "Oppretthold",
         ),
     )
-    interface VedtaksvurderingJson {
+    private sealed interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
         data class Omgjør(val årsak: String?, val begrunnelse: String?) : VedtaksvurderingJson {
 
