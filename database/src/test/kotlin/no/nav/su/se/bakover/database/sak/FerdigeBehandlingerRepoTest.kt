@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -266,7 +265,8 @@ internal class FerdigeBehandlingerRepoTest {
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave() // 2021
             testDataHelper.persisterSøknadsbehandlingAvsluttet() // 2022
             val (revurderingSak, _) = testDataHelper.persisterRevurderingAvsluttet() // 2023
-            val klage = testDataHelper.persisterKlageAvsluttet().hentUnderliggendeKlage() as VurdertKlage.BekreftetOpprettholdt // 2024
+
+            val klage = testDataHelper.persisterKlageAvsluttet()
 
             val klageSak = testDataHelper.sakRepo.hentSak(klage.sakId)!!
             repo.hentFerdigeBehandlinger().sortedBy { it.saksnummer.nummer } shouldBe listOf(

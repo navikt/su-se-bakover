@@ -1,9 +1,18 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.left
+import behandling.klage.domain.FormkravTilKlage
+import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.Avbrutt
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -14,33 +23,30 @@ import java.util.UUID
  * - Klagen ble håndtert på annet vis. F.eks. manuelt via Gosys.
  */
 data class AvsluttetKlage(
-    // Ønsker å skille oss fra konseptet forrigeSteg her, siden vi støtter veldig mange forskjellige steg og ikke bare ett som i de andre tilfellene for klage.
-    private val underliggendeKlage: Klage,
+    override val id: KlageId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-    val begrunnelse: String,
     override val avsluttetTidspunkt: Tidspunkt,
-) : Klage by underliggendeKlage,
+    override val opprettet: Tidspunkt,
+    override val sakstype: Sakstype,
+    override val sakId: UUID,
+    override val saksnummer: Saksnummer,
+    override val fnr: Fnr,
+    override val journalpostId: JournalpostId,
+    override val oppgaveId: OppgaveId,
+    override val datoKlageMottatt: LocalDate,
+    val begrunnelse: String,
+) : Klage,
     Avbrutt {
     override val avsluttetAv: NavIdentBruker = saksbehandler
 
-    /**
-     * Skal kun kalles av intergrasjonslagene for å avgjøre typen (og tester for å forenkle).
-     * Egentlig ønsker vi ikke eksponere selve feltet, men vi trenger å avgjøre den underliggende typen for å instansiere/serialisere den.
-     * */
-    fun hentUnderliggendeKlage() = underliggendeKlage
-
-    /** Ikke alle tilstander vil ha en vedtakId, og da vil denne være null. */
-    fun hentUnderliggendeVedtakId(): UUID? = when (underliggendeKlage) {
-        is AvsluttetKlage -> throw IllegalStateException("AvsluttetKlage kan ikke være rekursiv.")
-        is AvvistKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
-        is IverksattAvvistKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
-        is KlageTilAttestering -> underliggendeKlage.vilkårsvurderinger.vedtakId
-        is OpprettetKlage -> null
-        is OversendtKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
-        is VilkårsvurdertKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
-        is VurdertKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
-        is FerdigstiltOmgjortKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
-    }
+    /*
+        Det kan hende at disse feltene ligger i basen om saksbehandler har behandlet klagen og deretter avsluttet den.
+        Vil ikke åpne for at de skal brukes etter avklaring med John Are. Men vi kan titte i de hvis behov.
+     */
+    override val vilkårsvurderinger: FormkravTilKlage?
+        get() = null
+    override val attesteringer: Attesteringshistorikk
+        get() = Attesteringshistorikk.empty()
 
     override fun erÅpen() = false
     override fun erAvsluttet() = true

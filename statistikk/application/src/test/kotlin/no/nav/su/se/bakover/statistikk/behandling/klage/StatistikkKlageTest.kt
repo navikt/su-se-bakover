@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
+import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
@@ -42,9 +44,9 @@ internal class StatistikkKlageTest {
         val klage = avsluttetKlage().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Avsluttet(klage),
-            behandlingStatus = "AVSLUTTET",
+            behandlingStatus = BehandlingStatus.Avsluttet.value,
             behandlingStatusBeskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",
-            resultat = "AVBRUTT",
+            resultat = BehandlingResultat.Avbrutt.value,
             resultatBeskrivelse = "En paraplybetegnelse for å avbryte/avslutte/lukke en behandling der vi ikke har mer spesifikke data. Spesifiseringer av Avbrutt: [FEILREGISTRERT, TRUKKET, AVVIST].",
             avsluttet = true,
             totrinnsbehandling = false,

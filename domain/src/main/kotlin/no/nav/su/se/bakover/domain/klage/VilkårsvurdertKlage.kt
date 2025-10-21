@@ -95,10 +95,18 @@ sealed interface VilkårsvurdertKlage :
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ) = AvsluttetKlage(
-            underliggendeKlage = this,
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             avsluttetTidspunkt = tidspunktAvsluttet,
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            datoKlageMottatt = datoKlageMottatt,
+            sakstype = sakstype,
         ).right()
     }
 
@@ -200,10 +208,18 @@ sealed interface VilkårsvurdertKlage :
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ) = AvsluttetKlage(
-                underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 avsluttetTidspunkt = tidspunktAvsluttet,
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             ).right()
         }
 
@@ -320,10 +336,18 @@ sealed interface VilkårsvurdertKlage :
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
                 return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
-                        underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
                         avsluttetTidspunkt = tidspunktAvsluttet,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -501,10 +525,18 @@ sealed interface VilkårsvurdertKlage :
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ) = AvsluttetKlage(
-                underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 avsluttetTidspunkt = tidspunktAvsluttet,
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             ).right()
         }
 
@@ -656,10 +688,18 @@ sealed interface VilkårsvurdertKlage :
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
                 return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
-                        underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
                         avsluttetTidspunkt = tidspunktAvsluttet,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()

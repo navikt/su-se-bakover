@@ -178,7 +178,20 @@ internal class AvsluttKlageTest {
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
         ).let {
-            it shouldBe AvsluttetKlage(klage, saksbehandler, begrunnelse, fixedTidspunkt).right()
+            it shouldBe AvsluttetKlage(
+                id = klage.id,
+                saksbehandler = saksbehandler,
+                begrunnelse = begrunnelse,
+                avsluttetTidspunkt = fixedTidspunkt,
+                opprettet = klage.opprettet,
+                sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
+                journalpostId = klage.journalpostId,
+                oppgaveId = klage.oppgaveId,
+                datoKlageMottatt = klage.datoKlageMottatt,
+                sakstype = klage.sakstype,
+            ).right()
             verify(observerMock)
                 .handle(
                     argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) },
@@ -195,10 +208,18 @@ internal class AvsluttKlageTest {
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe AvsluttetKlage(
-                    underliggendeKlage = klage,
                     saksbehandler = saksbehandler,
                     begrunnelse = begrunnelse,
                     avsluttetTidspunkt = fixedTidspunkt,
+                    opprettet = klage.opprettet,
+                    sakId = klage.sakId,
+                    saksnummer = klage.saksnummer,
+                    fnr = klage.fnr,
+                    journalpostId = klage.journalpostId,
+                    oppgaveId = klage.oppgaveId,
+                    datoKlageMottatt = klage.datoKlageMottatt,
+                    sakstype = klage.sakstype,
+                    id = klage.id,
                 )
             },
             anyOrNull(),
