@@ -303,6 +303,7 @@ internal class KlagePostgresRepo(
                 klage
             SET
                 saksbehandler=:saksbehandler,
+                type=:type,
                 avsluttet=to_jsonb(:avsluttet::jsonb)
             WHERE
                 id=:id
@@ -311,6 +312,7 @@ internal class KlagePostgresRepo(
                 "id" to klage.id.value,
                 "saksbehandler" to klage.saksbehandler,
                 "avsluttet" to klage.toAvsluttetKlageJson(),
+                "type" to klage.databasetype(),
             ),
             session,
         )
@@ -637,21 +639,29 @@ internal class KlagePostgresRepo(
                 saksbehandler = saksbehandler,
                 datoklageferdigstilt = row.tidspunkt("datoklageferdigstilt"),
             )
-        }
-        val avsluttet = row.stringOrNull("avsluttet")?.let {
-            AvsluttetKlageJson.fromJsonString(it)
+
+            Tilstand.AVSLUTTET -> {
+                val avsluttet = row.stringOrNull("avsluttet")?.let {
+                    AvsluttetKlageJson.fromJsonString(it)
+                } ?: throw IllegalStateException("Klage med id $id er avsluttet og har ikke noen avsluttet-json")
+                return AvsluttetKlage(
+                    id = id,
+                    saksbehandler = saksbehandler,
+                    opprettet = opprettet,
+                    sakstype = sakstype,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    datoKlageMottatt = datoKlageMottatt,
+                    begrunnelse = avsluttet.begrunnelse,
+                    avsluttetTidspunkt = avsluttet.tidspunktAvsluttet,
+                )
+            }
         }
 
-        return if (avsluttet != null) {
-            AvsluttetKlage(
-                underliggendeKlage = klage,
-                saksbehandler = saksbehandler,
-                begrunnelse = avsluttet.begrunnelse,
-                avsluttetTidspunkt = avsluttet.tidspunktAvsluttet,
-            )
-        } else {
-            klage
-        }
+        return klage
     }
 
     private enum class Svarord {
@@ -692,6 +702,7 @@ internal class KlagePostgresRepo(
         OVERSENDT("oversendt"),
         OMGJORT("omgjort"),
         IVERKSATT_AVVIST("iverksatt_avvist"),
+        AVSLUTTET("avsluttet"),
         ;
 
         companion object {
@@ -718,7 +729,7 @@ internal class KlagePostgresRepo(
 
                     is OversendtKlage -> OVERSENDT
                     is IverksattAvvistKlage -> IVERKSATT_AVVIST
-                    is AvsluttetKlage -> this.hentUnderliggendeKlage().databasetype()
+                    is AvsluttetKlage -> AVSLUTTET
                     is FerdigstiltOmgjortKlage -> OMGJORT
                 }.toString()
             }
