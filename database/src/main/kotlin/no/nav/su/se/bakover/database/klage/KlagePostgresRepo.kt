@@ -296,7 +296,6 @@ internal class KlagePostgresRepo(
         )
     }
 
-    // TODO: må lagre ned en ny type her ellers vil dataen ikke være konsistent potensielt.
     private fun lagreAvsluttetKlage(klage: AvsluttetKlage, session: Session) {
         // Dette vil overskrive saksbehandler for klagens forrigeSteg, siden vi kun har en enkelt `text` i databasetabellen som representerer en saksbehandler.
         """
