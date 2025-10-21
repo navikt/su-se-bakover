@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
-import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
@@ -52,7 +51,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             clock = clock,
             behandlingStatus = BehandlingStatus.OversendtKlage,
             behandlingResultat = BehandlingResultat.OpprettholdtKlage,
-            resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler?.toResultatBegrunnelse(),
+            resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
             // Spesialtilfelle der vi sender en innstilling (ikke vedtak) til klageinstansen som vil si at behandlingen ikke er avsluttet for brukeren.
             avsluttet = false,
             totrinnsbehandling = true,
@@ -68,7 +67,6 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             behandlingStatus = BehandlingStatus.Avsluttet,
             behandlingResultat = BehandlingResultat.Avbrutt,
             resultatBegrunnelse = null,
-            // Klagebehandlingene krever i utgangspunktet totrinnsbehandling, bortsett fra hvis den avsluttes.
             avsluttet = true,
             totrinnsbehandling = false,
             funksjonellTid = this.klage.avsluttetTidspunkt,

@@ -43,10 +43,10 @@ data class AvsluttetKlage(
         Det kan hende at disse feltene ligger i basen om saksbehandler har behandlet klagen og deretter avsluttet den.
         Vil ikke åpne for at de skal brukes etter avklaring med John Are. Men vi kan titte i de hvis behov.
      */
-    override val vilkårsvurderinger: FormkravTilKlage
-        get() = throw IllegalStateException("Avsluttet klage har ikke attesteringer")
+    override val vilkårsvurderinger: FormkravTilKlage?
+        get() = null
     override val attesteringer: Attesteringshistorikk
-        get() = throw IllegalStateException("Avsluttet klage har ikke attesteringer")
+        get() = Attesteringshistorikk.empty()
 
     override fun erÅpen() = false
     override fun erAvsluttet() = true
