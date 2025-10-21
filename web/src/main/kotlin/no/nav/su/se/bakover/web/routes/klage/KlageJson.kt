@@ -127,7 +127,7 @@ internal data class KlageJson(
 }
 
 internal fun Klage.toJson(): KlageJson {
-    val avsluttet = utledAvsluttet()
+    val avsluttet = utledAvsluttet() // TODO: denne kan fjernes fra de andre vel, må migrere først
     return when (this) {
         is OpprettetKlage -> KlageJson(
             id = this.id.toString(),
@@ -302,10 +302,10 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttet,
         )
 
-        is AvsluttetKlage -> this.hentUnderliggendeKlage().toJson().copy(
+        is AvsluttetKlage -> this.toJson().copy(
             avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
             avsluttetTidspunkt = this.avsluttetTidspunkt.toString(),
-            avsluttetBegrunnelse = this.begrunnelse, // MERK ikke vanlig begrunnelse for avsluttetklage som det i db!
+            avsluttetBegrunnelse = this.begrunnelse, // kommer fra avsluttetJsonb
         )
 
         is FerdigstiltOmgjortKlage -> KlageJson(

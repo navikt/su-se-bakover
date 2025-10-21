@@ -70,13 +70,6 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
         is KlageTilAttestering.Vurdert -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is AvsluttetKlage -> {
             this.castAndCompare<Klage>(expected, ignoreProperty)
-            // Gjør en spesialsjekk på den underliggende typen som kan variere.
-            // Den brukes både ved instansiering fra databasen og serialisering til json.
-            this.hentUnderliggendeKlage()
-                .shouldBeEqualComparingPublicFieldsAndInterface(
-                    (expected as AvsluttetKlage).hentUnderliggendeKlage(),
-                    Klage::saksbehandler,
-                )
         }
 
         is OversendtKlage -> this.castAndCompare<VurdertKlage.Utfylt>(expected)
