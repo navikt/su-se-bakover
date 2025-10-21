@@ -34,10 +34,10 @@ fun main() {
         logger.info("Startet database med url: $databaseUrl")
 
         // Default:
-        // hentData(it, LocalDate.now())
+        hentData(it, LocalDate.now())
 
         // Endres manuelt ved uthenting tilbake i tid
-        hentData(dataSource = it, fom = LocalDate.of(2025, 10, 1), tom = LocalDate.now().plusDays(1))
+        //hentData(dataSource = it, fom = LocalDate.of(2025, 10, 1), tom = LocalDate.now().plusDays(1))
     }
 
     writeToBigQuery(data)
