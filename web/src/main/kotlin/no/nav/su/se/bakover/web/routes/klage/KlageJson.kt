@@ -302,10 +302,26 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttetStatus,
         )
 
-        is AvsluttetKlage -> this.toJson().copy(
+        is AvsluttetKlage -> KlageJson(
+            id = this.id.toString(),
+            sakid = this.sakId.toString(),
+            opprettet = this.opprettet.toString(),
+            journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
+            datoKlageMottatt = this.datoKlageMottatt.toString(),
+            status = Typer.AVSLUTTET.toString(),
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            fremsattRettsligKlageinteresse = null,
+            vedtaksvurdering = null,
             avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
             avsluttetTidspunkt = this.avsluttetTidspunkt.toString(),
-            avsluttetBegrunnelse = this.begrunnelse, // kommer fra avsluttetJsonb
+            avsluttetBegrunnelse = this.begrunnelse,
+            fritekstTilBrev = null,
+            attesteringer = this.attesteringer.toJson(),
+            klagevedtakshistorikk = emptyList(),
         )
 
         is FerdigstiltOmgjortKlage -> KlageJson(
@@ -332,7 +348,6 @@ internal fun Klage.toJson(): KlageJson {
 }
 
 private enum class Typer(val verdi: String) {
-
     /**
      * Dette er den første tilstanden som man kommer i når man har opprettet en ny klage.
      * Man kan ikke gå tilbake fra denne tilstanden.
@@ -439,6 +454,8 @@ private enum class Typer(val verdi: String) {
      * Man kommer i denne tilstanden dersom man velger omgjøring og ferdigstiller denne. Dette innebærer ikke attesteringsløypa
      */
     FERDIGSTILT_OMGJORT("FERDIGSTILT_OMGJORT"),
+
+    AVSLUTTET("AVSLUTTET"),
     ;
 
     override fun toString() = verdi
