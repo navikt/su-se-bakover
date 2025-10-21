@@ -68,20 +68,23 @@ Import
 ### Troubleshooting lokal/embedded postgres
 
 Dersom man får feilene
-- `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory`
-- `java.lang.IllegalStateException: Process [/var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/embedded-pg/PG-8eddc1e460ca1c5597350c162933683c/bin/initdb, -A, trust, -U, postgres, -D, /var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/epg3835758492450081687, -E, UTF-8] failed`
+
+-
+`running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory`
+-
+`java.lang.IllegalStateException: Process [/var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/embedded-pg/PG-8eddc1e460ca1c5597350c162933683c/bin/initdb, -A, trust, -U, postgres, -D, /var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/epg3835758492450081687, -E, UTF-8] failed`
 
 kan du prøve disse 2 mulighetene:
 
 1. Hvis du ikke har; legg inn
-   * `export LC_CTYPE="en_US.UTF-8"`
-   * `export LC_ALL="en_US.UTF-8"`
+    * `export LC_CTYPE="en_US.UTF-8"`
+    * `export LC_ALL="en_US.UTF-8"`
 
    i din terminal profil (f.eks .zshrc). Dersom det ikke fikser problemet, kan du også prøve punktet over.
 
 2. øke shared memory:
-   * `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi, for eksempel `524288000`
-   * `sudo sysctl kern.sysv.shmall=2560` eller en annen ønsket verdi, for eksempel `65536`
+    * `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi, for eksempel `524288000`
+    * `sudo sysctl kern.sysv.shmall=2560` eller en annen ønsket verdi, for eksempel `65536`
 
 #### Autentisering
 
@@ -204,13 +207,14 @@ alerts basert på metrikker.
 Se https://doc.nais.io/observability/alerts.
 
 ### Experiment writing prometheus queries and view graphs
+
 kibana(legacy)
 preprod: https://prometheus.dev-fss.nais.io
 prod: https://prometheus.prod-fss.nais.io
-grafana/loki se https://nav-it.slack.com/archives/C05DXMSNSV8/p1750670214842229?thread_ts=1750670027.442119&cid=C05DXMSNSV8
+grafana/loki
+se https://nav-it.slack.com/archives/C05DXMSNSV8/p1750670214842229?thread_ts=1750670027.442119&cid=C05DXMSNSV8
 preprod: https://prometheus.dev-gcp.nav.cloud.nais.io/
 prod: https://prometheus.prod-gcp.nav.cloud.nais.io/
-
 
 ### View ongoing alerts and manage silences
 
@@ -245,18 +249,20 @@ prod: https://alertmanager.prod-fss.nav.cloud.nais.io/#/alerts
 ## Kubernetes
 
 #### Hvis du har brukt gamle måten før, kan du gjøre disse tingene:
+
 1. Fjern KUBECONFIG pathen i shellet ditt
 2. fjern kubeconfig-repoet `navikt/kubeconfig`
 
-#### Et par ting du må gjøre hvis du har lyst til å gjøre noe snacks i kubernetes. 
+#### Et par ting du må gjøre hvis du har lyst til å gjøre noe snacks i kubernetes.
+
 1. Du må ha nais-cli - https://docs.nais.io/cli/
 2. Du må også ha gcloud-cli (kanskje?) - https://cloud.google.com/sdk/docs/install
-3. log inn i gcloud - `gcloud auth login --update-adc` 
+3. log inn i gcloud - `gcloud auth login --update-adc`
 4. Kjør `nais kubeconfig` - Dette vil hente ned alle Clusterene.
-   1. merk: Kjør `nais kubeconfig -io` for å hente on-prem clusters også (dev-fss/prod-fss)
+    1. merk: Kjør `nais kubeconfig -io` for å hente on-prem clusters også (dev-fss/prod-fss)
 5. Sett context du hr lyst til å bruke
-   1. for eksempel: `kubectl config use-context dev-fss`
-   2. Hvis du må sette namespace i tillegg: `kubectl config set-context --current --namespace=supstonad`
+    1. for eksempel: `kubectl config use-context dev-fss`
+    2. Hvis du må sette namespace i tillegg: `kubectl config set-context --current --namespace=supstonad`
 6. Nå skal du kunne kjøre `kubectl get pods` og få listet alle podene våre
 
 ## IBM MQ (oppdrag/utbetaling/simulering)
@@ -295,19 +301,23 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
     6. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-admin`
 
 ## Migrere data fra/til postgres on-prem
+
 Se også https://github.com/navikt/utvikling/blob/main/docs/teknisk/PostgreSQL.md
 
 1. Lag en PR tilsvarende denne: https://github.com/navikt/database-iac/pull/511
 2. Lag en PR tilsvarende denne: https://github.com/navikt/vault-iac/pull/5270
-3. Sjekk at den nye databasen er satt opp og du kan logge inn med vault bruker. Påse at alle extensions er lagt til. E.g. `CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;`. Hvis ikke hør i #postgres i slack.
-4. Merk at vi ønsker plain sql siden vi skal gjøre endringer: `pg_dump -U <vault-db-username> -W -h b27dbvl030.preprod.local -p 5432 supstonad-db-15-dev > preprod.dump`
+3. Sjekk at den nye databasen er satt opp og du kan logge inn med vault bruker. Påse at alle extensions er lagt til.
+   E.g. `CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;`. Hvis ikke hør i #postgres i slack.
+4. Merk at vi ønsker plain sql siden vi skal gjøre endringer:
+   `pg_dump -U <vault-db-username> -W -h b27dbvl030.preprod.local -p 5432 supstonad-db-15-dev > preprod.dump`
 5. Vi må endre db og roles: `sed -i '.bak' 's/supstonad-db-15-dev/<ny-db>/g' preprod.dump`
 6. Fjern extensions-linjene fra dumpen dersom de allerede er utført.
 7. Legg til `SET ROLE '<db>-admin';` øverst i dumpen.
 8. Lag en PR i su-se-bakover med endringene for først preprod og senere en pr for prod.
 9. `kubectl scale deployment su-se-bakover --replicas=0` eller alternivt slett deploymenten.
 10. `kubectl delete cronjob -l app=su-datapakke-soknad`
-11. Kopier skjema+data til ny base: `PGPASSWORD='<vault-db-passord>' psql -h <ny-db-host>> -p 5432 -U <vault-db-username> -d <ny-db> -f preprod.dump`
+11. Kopier skjema+data til ny base:
+    `PGPASSWORD='<vault-db-passord>' psql -h <ny-db-host>> -p 5432 -U <vault-db-username> -d <ny-db> -f preprod.dump`
 12. Hvis det går bra, merge PRen og deploy. Replicas blir da resatt basert på nais.yml.
 13. Deploy su-datapakke-soknad. F.eks. ved å endre på den ./datapakker/README.md eller lignende.
 
@@ -325,4 +335,5 @@ VDI)
 2. `base64 --decode -i input.base64 -o output.pdf`
 
 ## Statistikk
+
 Se https://confluence.adeo.no/spaces/TESUS/pages/514138632/su-topics
