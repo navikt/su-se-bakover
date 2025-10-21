@@ -347,6 +347,7 @@ internal fun Klage.toJson(): KlageJson {
     }
 }
 
+// Disse reflekteres i frontend som status for KlageJson
 private enum class Typer(val verdi: String) {
     /**
      * Dette er den første tilstanden som man kommer i når man har opprettet en ny klage.
