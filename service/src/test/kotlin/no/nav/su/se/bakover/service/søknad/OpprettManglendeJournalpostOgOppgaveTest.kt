@@ -213,7 +213,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                         it shouldBe OppgaveConfig.Søknad(
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalførtSøknad.journalpostId,
-                            søknadId = journalførtSøknad.id,
+                            saksnummer = sak.saksnummer,
                             fnr = person.ident.fnr,
                             clock = fixedClock,
                             tilordnetRessurs = null,
@@ -295,7 +295,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                         it shouldBe OppgaveConfig.Søknad(
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalførtSøknad.journalpostId,
-                            søknadId = journalførtSøknad.id,
+                            saksnummer = sak.saksnummer,
                             fnr = sak.fnr,
                             clock = fixedClock,
                             tilordnetRessurs = null,

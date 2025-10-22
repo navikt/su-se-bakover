@@ -77,7 +77,7 @@ internal class OppgaveHttpClientTest {
                 OppgaveConfig.Søknad(
                     sakstype = sakstype,
                     journalpostId = journalpostId,
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
@@ -140,7 +140,7 @@ internal class OppgaveHttpClientTest {
                 OppgaveConfig.Søknad(
                     sakstype = sakstype,
                     journalpostId = journalpostId,
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
@@ -182,7 +182,7 @@ internal class OppgaveHttpClientTest {
             )
             val actual = client.opprettOppgave(
                 OppgaveConfig.AttesterSøknadsbehandling(
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
@@ -225,7 +225,7 @@ internal class OppgaveHttpClientTest {
                 OppgaveConfig.Søknad(
                     sakstype = Sakstype.UFØRE,
                     journalpostId = journalpostId,
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,

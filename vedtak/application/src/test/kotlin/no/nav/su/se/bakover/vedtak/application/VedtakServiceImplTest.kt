@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagUtenBeregning
 import org.junit.jupiter.api.Test
@@ -65,7 +66,7 @@ class VedtakServiceImplTest {
             argShouldBe(
                 OppgaveConfig.Søknad(
                     journalpostId = vedtak.behandling.søknad.journalpostId,
-                    søknadId = vedtak.behandling.søknad.id,
+                    saksnummer = saksnummer,
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = enUkeEtterFixedClock,

@@ -203,7 +203,7 @@ class SøknadServiceImpl(
             }
             opprettOppgave(
                 søknad = søknad,
-                fnr = sak.fnr,
+                sakInfo = sak.info(),
                 opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
         }.also { log.info("Fant ${it.size} søknader uten gosys-oppgave.") }
@@ -216,7 +216,7 @@ class SøknadServiceImpl(
     ): Søknad.Journalført.MedOppgave.IkkeLukket? {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         val søknad = opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
-            opprettOppgave(journalførtSøknad, sakInfo.fnr)
+            opprettOppgave(journalførtSøknad, sakInfo)
         }
         return søknad.getOrNull()?.getOrNull()
     }
@@ -266,14 +266,14 @@ class SøknadServiceImpl(
 
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
-        fnr: Fnr,
+        sakInfo: SakInfo,
         opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return opprettOppgave(
             OppgaveConfig.Søknad(
                 journalpostId = søknad.journalpostId,
-                søknadId = søknad.id,
-                fnr = fnr,
+                saksnummer = sakInfo.saksnummer,
+                fnr = sakInfo.fnr,
                 clock = clock,
                 tilordnetRessurs = null,
                 sakstype = søknad.søknadInnhold.type(),
