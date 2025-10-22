@@ -83,6 +83,12 @@ internal data class KabalRequest(
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_17("SUP_ST_L_17"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18("SUP_ST_L_18"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_21("SUP_ST_L_21"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_22("SUP_ST_L_22"),
+        LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_12("FVL_12"),
+        LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_28("FVL_28"),
+        LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_29("FVL_29"),
+        LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_31("FVL_31"),
+        LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_32("FVL_32"),
         ;
 
         override fun toString(): String = this.verdi
@@ -105,6 +111,12 @@ internal data class KabalRequest(
                         behandling.klage.domain.Hjemmel.SU_PARAGRAF_17 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_17
                         behandling.klage.domain.Hjemmel.SU_PARAGRAF_18 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18
                         behandling.klage.domain.Hjemmel.SU_PARAGRAF_21 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_21
+                        behandling.klage.domain.Hjemmel.SU_PARAGRAF_22 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_22
+                        behandling.klage.domain.Hjemmel.FVL_PARAGRAF_12 -> LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_12
+                        behandling.klage.domain.Hjemmel.FVL_PARAGRAF_28 -> LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_28
+                        behandling.klage.domain.Hjemmel.FVL_PARAGRAF_29 -> LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_29
+                        behandling.klage.domain.Hjemmel.FVL_PARAGRAF_31 -> LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_31
+                        behandling.klage.domain.Hjemmel.FVL_PARAGRAF_32 -> LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER_PARAGRAF_32
                     }
                 }
             }

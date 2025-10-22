@@ -117,8 +117,27 @@ enum class Hjemmel(val lov: Lov, val kapittel: Int, val paragrafnummer: Int) {
 
     /** Kapittel 4 - § 21.Kontroll (2021-01-01) */
     SU_PARAGRAF_21(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 21),
+
+    /** Kapittel 4 - § 22.Anke til Trygderetten (2021-01-01)  jf. Ftrl. § 21-12 */
+    SU_PARAGRAF_22(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 22),
+
+    // advokat eller annen fullmektig
+    FVL_PARAGRAF_12(Lov.LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER, 3, 12),
+
+    // vedtak som kan påklages, klageinstans
+    FVL_PARAGRAF_28(Lov.LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER, 6, 28),
+
+    // klagefrist
+    FVL_PARAGRAF_29(Lov.LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER, 6, 29),
+
+    // oversitting av klagefristen
+    FVL_PARAGRAF_31(Lov.LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER, 6, 31),
+
+    // klagens adressat, form og innhold
+    FVL_PARAGRAF_32(Lov.LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER, 6, 32),
 }
 
 enum class Lov(val tittel: String) {
     LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE("Lov om supplerande stønad til personar med kort butid i Noreg"),
+    LOV_OM_BEHANDLINGSMÅTEN_I_FORVALTNINGSSAKER("Lov om behandlingsmåten i forvaltningssaker"),
 }
