@@ -24,6 +24,7 @@ private fun Hjemmel.toJsonformat(): String {
         Hjemmel.SU_PARAGRAF_18 -> "SU_PARAGRAF_18"
         Hjemmel.SU_PARAGRAF_21 -> "SU_PARAGRAF_21"
         Hjemmel.SU_PARAGRAF_22 -> "SU_PARAGRAF_22"
+        Hjemmel.FVL_PARAGRAF_12 -> "FVL_PARAGRAF_12"
         Hjemmel.FVL_PARAGRAF_28 -> "FVL_PARAGRAF_28"
         Hjemmel.FVL_PARAGRAF_29 -> "FVL_PARAGRAF_29"
         Hjemmel.FVL_PARAGRAF_31 -> "FVL_PARAGRAF_31"

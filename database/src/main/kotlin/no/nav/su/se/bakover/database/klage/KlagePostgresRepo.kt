@@ -793,6 +793,7 @@ internal class KlagePostgresRepo(
                 SU_PARAGRAF_18("su_paragraf_18"),
                 SU_PARAGRAF_21("su_paragraf_21"),
                 SU_PARAGRAF_22("su_paragraf_22"),
+                FVL_PARAGRAF_12("fvl_paragraf_12"),
                 FVL_PARAGRAF_28("fvl_paragraf_28"),
                 FVL_PARAGRAF_29("fvl_paragraf_29"),
                 FVL_PARAGRAF_31("fvl_paragraf_31"),
@@ -816,6 +817,7 @@ internal class KlagePostgresRepo(
                         SU_PARAGRAF_18 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_18
                         SU_PARAGRAF_21 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_21
                         SU_PARAGRAF_22 -> behandling.klage.domain.Hjemmel.SU_PARAGRAF_22
+                        FVL_PARAGRAF_12 -> behandling.klage.domain.Hjemmel.FVL_PARAGRAF_12
                         FVL_PARAGRAF_28 -> behandling.klage.domain.Hjemmel.FVL_PARAGRAF_28
                         FVL_PARAGRAF_29 -> behandling.klage.domain.Hjemmel.FVL_PARAGRAF_29
                         FVL_PARAGRAF_31 -> behandling.klage.domain.Hjemmel.FVL_PARAGRAF_31
@@ -846,6 +848,7 @@ internal class KlagePostgresRepo(
                                 behandling.klage.domain.Hjemmel.FVL_PARAGRAF_29 -> FVL_PARAGRAF_29
                                 behandling.klage.domain.Hjemmel.FVL_PARAGRAF_31 -> FVL_PARAGRAF_31
                                 behandling.klage.domain.Hjemmel.FVL_PARAGRAF_32 -> FVL_PARAGRAF_32
+                                behandling.klage.domain.Hjemmel.FVL_PARAGRAF_12 -> TODO()
                             }.toString()
                         }
                     }
