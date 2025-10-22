@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
@@ -42,38 +41,36 @@ internal fun Route.iverksettSøknadsbehandlingRoute(
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-                call.withSakId {
-                    call.withBody<WithFritekstBody> { body ->
-                        val navIdent = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-                            "attestant"
-                        } else {
-                            call.suUserContext.navIdent
-                        }
-                        service.iverksett(
-                            IverksettSøknadsbehandlingCommand(
-                                behandlingId = SøknadsbehandlingId(behandlingId),
-                                attestering = Attestering.Iverksatt(
-                                    NavIdentBruker.Attestant(navIdent),
-                                    Tidspunkt.now(clock),
-                                ),
-                                fritekstEndringAttestering = body.fritekst,
-                            ),
-                        ).fold(
-                            {
-                                call.svar(it.tilResultat())
-                            },
-                            {
-                                val søknadsbehandling = it.second
-                                call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                                call.audit(
-                                    søknadsbehandling.fnr,
-                                    AuditLogEvent.Action.UPDATE,
-                                    søknadsbehandling.id.value,
-                                )
-                                call.svar(OK.jsonBody(søknadsbehandling, formuegrenserFactory))
-                            },
-                        )
+                call.withBody<WithFritekstBody> { body ->
+                    val navIdent = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+                        "attestant"
+                    } else {
+                        call.suUserContext.navIdent
                     }
+                    service.iverksett(
+                        IverksettSøknadsbehandlingCommand(
+                            behandlingId = SøknadsbehandlingId(behandlingId),
+                            attestering = Attestering.Iverksatt(
+                                NavIdentBruker.Attestant(navIdent),
+                                Tidspunkt.now(clock),
+                            ),
+                            fritekstEndringAttestering = body.fritekst,
+                        ),
+                    ).fold(
+                        {
+                            call.svar(it.tilResultat())
+                        },
+                        {
+                            val søknadsbehandling = it.second
+                            call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
+                            call.audit(
+                                søknadsbehandling.fnr,
+                                AuditLogEvent.Action.UPDATE,
+                                søknadsbehandling.id.value,
+                            )
+                            call.svar(OK.jsonBody(søknadsbehandling, formuegrenserFactory))
+                        },
+                    )
                 }
             }
         }
