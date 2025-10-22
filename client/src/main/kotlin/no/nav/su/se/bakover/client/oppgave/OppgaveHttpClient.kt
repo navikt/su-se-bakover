@@ -173,7 +173,7 @@ internal class OppgaveHttpClient(
             is OppgaveConfig.AttesterSøknadsbehandling, is OppgaveConfig.Søknad ->
                 "--- ${
                     Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
 
             is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
                 "--- ${
