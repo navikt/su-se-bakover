@@ -93,6 +93,7 @@ fun Sak.avslåSøknad(
                     ),
                     // For avslag pga. manglende dokumentasjon vil saksbehandler og attestant være den samme.
                     saksbehandlerOgAttestantKanIkkeVæreDenSamme = false,
+                    fritekstEndringAttestering = command.fritekstTilBrev,
                 ),
                 genererPdf = { genererPdf(it as IverksettSøknadsbehandlingDokumentCommand.Avslag) },
                 simulerUtbetaling = simulerUtbetaling,
