@@ -47,6 +47,8 @@ internal class OppgaveHttpClientTest {
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
     private val saksnummer = Saksnummer(12345)
+    private val clientId = "oppgaveClientId"
+    private val bearertoken = "Bearer token"
 
     private fun Sakstype.toBehandlingstema(): Behandlingstema =
         when (this) {
@@ -64,7 +66,7 @@ internal class OppgaveHttpClientTest {
     ): OppgaveOgAzure {
         val client = OppgaveHttpClient(
             connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                clientId = "oppgaveClientId",
+                clientId = clientId,
                 url = baseUrl,
             ),
             exchange = azureAdMock,
@@ -94,7 +96,7 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, tilordnetRessurs = saksbehandler, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
-            val response = createResponse()
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
             stubOppgave(expectedSaksbehandlingRequest, response)
 
             val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
@@ -111,8 +113,8 @@ internal class OppgaveHttpClientTest {
             )
 
             verify(clientogAzure.azure).onBehalfOfToken(
-                originalToken = argThat { it shouldBe "Bearer token" },
-                otherAppId = argThat { it shouldBe "oppgaveClientId" },
+                originalToken = argThat { it shouldBe bearertoken },
+                otherAppId = argThat { it shouldBe clientId },
             )
             verifyNoMoreInteractions(clientogAzure.azure)
 
@@ -133,7 +135,7 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
-            val response = createResponse()
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -167,8 +169,8 @@ internal class OppgaveHttpClientTest {
                 tilordnetRessurs = null,
                 sakstype = sakstype,
             )
-            val expectedAttesteringRequest = createOppgaveRequest(journalpostId = null, oppgavetype = "ATT", behandlingstema = sakstype.toBehandlingstema(), saksreferanse = saksnummer.toString(), beskrivelse = oppgave.beskrivelse)
-            val response = createResponse(oppgavetype = "ATT")
+            val expectedAttesteringRequest = createOppgaveRequest(journalpostId = null, oppgavetype = oppgave.oppgavetype.value, behandlingstema = sakstype.toBehandlingstema(), saksreferanse = saksnummer.toString(), beskrivelse = oppgave.beskrivelse)
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
             stubOppgave(expectedAttesteringRequest, response)
 
             val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
@@ -227,7 +229,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse()
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -246,8 +248,8 @@ internal class OppgaveHttpClientTest {
             )
 
             verify(clientogAzure.azure).onBehalfOfToken(
-                originalToken = argThat { it shouldBe "Bearer token" },
-                otherAppId = argThat { it shouldBe "oppgaveClientId" },
+                originalToken = argThat { it shouldBe bearertoken },
+                otherAppId = argThat { it shouldBe clientId },
             )
             verifyNoMoreInteractions(clientogAzure.azure)
 
@@ -273,7 +275,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse()
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -369,7 +371,7 @@ internal class OppgaveHttpClientTest {
     fun `oppretter STADFESTELSE-oppgave for klageinstanshendelse`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val klageoppgave = OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
+            val oppgave = OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 tilordnetRessurs = null,
@@ -383,27 +385,27 @@ internal class OppgaveHttpClientTest {
             val expectedAttesteringRequest = createOppgaveRequest(
                 journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = klageoppgave.beskrivelse,
-                oppgavetype = klageoppgave.oppgavetype.value,
+                beskrivelse = oppgave.beskrivelse,
+                oppgavetype = oppgave.oppgavetype.value,
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(oppgavetype = "ATT")
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedAttesteringRequest, response)
 
             val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
             val actual = clientogAzure.client.opprettOppgave(
-                klageoppgave,
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.ATTESTERING,
+                oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = klageoppgave.beskrivelse,
+                beskrivelse = oppgave.beskrivelse,
             )
 
             assertOppgaveEquals(actual, expected)
@@ -433,7 +435,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(oppgavetype = "ATT")
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedAttesteringRequest, response)
 
@@ -445,7 +447,7 @@ internal class OppgaveHttpClientTest {
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.ATTESTERING,
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedAttesteringRequest,
                 response = response,
                 beskrivelse = oppgave.beskrivelse,
@@ -479,7 +481,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstema = sakstype.toBehandlingstema(),
             )
 
-            val response = createResponse(oppgavetype = "ATT")
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedAttesteringRequest, response)
 
@@ -491,7 +493,7 @@ internal class OppgaveHttpClientTest {
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.ATTESTERING,
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedAttesteringRequest,
                 response = response,
                 beskrivelse = oppgave.beskrivelse,
@@ -542,7 +544,7 @@ internal class OppgaveHttpClientTest {
 
     private fun createResponse(
         tilordnetResurs: Saksbehandler? = null,
-        beskrivelse: String = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer ",
+        beskrivelse: String,
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
     ): String {
@@ -570,12 +572,11 @@ internal class OppgaveHttpClientTest {
             endretAv = null,
         )
 
-        // Serialize to JSON string (handles escaping automatically)
         return serialize(response)
     }
 
     private val stubMapping = WireMock.post(urlPathEqualTo(OPPGAVE_PATH))
-        .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+        .withHeader("Authorization", WireMock.equalTo(bearertoken))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
