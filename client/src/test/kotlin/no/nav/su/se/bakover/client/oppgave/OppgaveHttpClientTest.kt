@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.left
+import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
@@ -12,13 +13,16 @@ import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
+import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -34,6 +38,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
+import java.time.ZonedDateTime
 
 internal class OppgaveHttpClientTest {
 
@@ -41,45 +47,61 @@ internal class OppgaveHttpClientTest {
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
     private val saksnummer = Saksnummer(12345)
+    private val clientId = "oppgaveClientId"
+    private val bearertoken = "Bearer token"
 
     private fun Sakstype.toBehandlingstema(): Behandlingstema =
         when (this) {
             Sakstype.ALDER -> Behandlingstema.SU_ALDER
             Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
         }
+    data class OppgaveOgAzure(
+        val client: OppgaveHttpClient,
+        val azure: AzureAd,
+    )
+
+    private fun createOppgaveClientWithAzure(
+        azureAdMock: AzureAd = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" },
+        baseUrl: String,
+    ): OppgaveOgAzure {
+        val client = OppgaveHttpClient(
+            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                clientId = clientId,
+                url = baseUrl,
+            ),
+            exchange = azureAdMock,
+            clock = fixedClock,
+        )
+
+        return OppgaveOgAzure(client, azureAdMock)
+    }
+
+    private fun WireMockServer.stubOppgave(expectedBody: String, response: String, status: Int = 201) {
+        stubFor(
+            stubMapping.withRequestBody(equalToJson(expectedBody))
+                .willReturn(aResponse().withBody(response).withStatus(status)),
+        )
+    }
 
     @Test
     fun `oppretter oppgave for saksbehandler`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedSaksbehandlingRequest = createRequestBody(tilordnetRessurs = saksbehandler, behandlingstema = sakstype.toBehandlingstema())
-            val response = createResponse()
-
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
-
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
+            val oppgave = OppgaveConfig.Søknad(
+                sakstype = sakstype,
+                journalpostId = journalpostId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = saksbehandler,
                 clock = fixedClock,
             )
+            val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, tilordnetRessurs = saksbehandler, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
+            stubOppgave(expectedSaksbehandlingRequest, response)
 
-            val actual = client.opprettOppgave(
-                OppgaveConfig.Søknad(
-                    sakstype = sakstype,
-                    journalpostId = journalpostId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = saksbehandler,
-                    clock = fixedClock,
-                ),
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
@@ -87,20 +109,16 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedSaksbehandlingRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
-
-            verify(oathMock).onBehalfOfToken(
-                originalToken = argThat { it shouldBe "Bearer token" },
-                otherAppId = argThat { it shouldBe "oppgaveClientId" },
+            verify(clientogAzure.azure).onBehalfOfToken(
+                originalToken = argThat { it shouldBe bearertoken },
+                otherAppId = argThat { it shouldBe clientId },
             )
-            verifyNoMoreInteractions(oathMock)
+            verifyNoMoreInteractions(clientogAzure.azure)
+
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -108,51 +126,35 @@ internal class OppgaveHttpClientTest {
     fun `opprett oppgave med systembruker`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedSaksbehandlingRequest = createRequestBody(behandlingstema = sakstype.toBehandlingstema())
-            val response = createResponse()
-
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
-
-            val oathMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" }
-
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
+            val oppgave = OppgaveConfig.Søknad(
+                sakstype = sakstype,
+                journalpostId = journalpostId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
                 clock = fixedClock,
             )
+            val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
+
+            stubOppgave(expectedSaksbehandlingRequest, response)
+
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedSaksbehandlingRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            val actual = client.opprettOppgaveMedSystembruker(
-                OppgaveConfig.Søknad(
-                    sakstype = sakstype,
-                    journalpostId = journalpostId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                ),
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl(), azureAdMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" })
+            val actual = clientogAzure.client.opprettOppgaveMedSystembruker(
+                oppgave,
             ).getOrFail()
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
-
-            verify(oathMock).getSystemToken(any())
-            verifyNoMoreInteractions(oathMock)
+            verify(clientogAzure.azure).getSystemToken(any())
+            verifyNoMoreInteractions(clientogAzure.azure)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -160,32 +162,20 @@ internal class OppgaveHttpClientTest {
     fun `opprett attestering oppgave`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(jpostId = null, oppgavetype = "ATT", behandlingstema = sakstype.toBehandlingstema(), saksreferanse = saksnummer.toString())
-            val response = createResponse(oppgavetype = "ATT")
-
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
-
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
+            val oppgave = OppgaveConfig.AttesterSøknadsbehandling(
+                saksnummer = saksnummer,
+                fnr = fnr,
                 clock = fixedClock,
+                tilordnetRessurs = null,
+                sakstype = sakstype,
             )
-            val actual = client.opprettOppgave(
-                OppgaveConfig.AttesterSøknadsbehandling(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    clock = fixedClock,
-                    tilordnetRessurs = null,
-                    sakstype = sakstype,
-                ),
+            val expectedAttesteringRequest = createOppgaveRequest(journalpostId = null, oppgavetype = oppgave.oppgavetype.value, behandlingstema = sakstype.toBehandlingstema(), saksreferanse = saksnummer.toString(), beskrivelse = oppgave.beskrivelse)
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
+            stubOppgave(expectedAttesteringRequest, response)
+
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
@@ -193,14 +183,10 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.ATTESTERING,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -209,17 +195,9 @@ internal class OppgaveHttpClientTest {
         startedWireMockServerWithCorrelationId {
             stubFor(stubMapping.willReturn(forbidden()))
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
-            client.opprettOppgave(
+            clientogAzure.client.opprettOppgave(
                 OppgaveConfig.Søknad(
                     sakstype = Sakstype.UFØRE,
                     journalpostId = journalpostId,
@@ -236,39 +214,29 @@ internal class OppgaveHttpClientTest {
     fun `oppretter en saksbehandling for en revurdering`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedSaksbehandlingRequest = createRequestBody(
-                jpostId = null,
+            val oppgave = OppgaveConfig.Revurderingsbehandling(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                sakstype = sakstype,
+            )
+
+            val expectedSaksbehandlingRequest = createOppgaveRequest(
+                journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
+                beskrivelse = oppgave.beskrivelse,
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse()
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
 
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
+            stubOppgave(expectedSaksbehandlingRequest, response)
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
-
-            val actual = client.opprettOppgave(
-                OppgaveConfig.Revurderingsbehandling(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                    sakstype = sakstype,
-                ),
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
@@ -276,20 +244,16 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedSaksbehandlingRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
-
-            verify(oathMock).onBehalfOfToken(
-                originalToken = argThat { it shouldBe "Bearer token" },
-                otherAppId = argThat { it shouldBe "oppgaveClientId" },
+            verify(clientogAzure.azure).onBehalfOfToken(
+                originalToken = argThat { it shouldBe bearertoken },
+                otherAppId = argThat { it shouldBe clientId },
             )
-            verifyNoMoreInteractions(oathMock)
+            verifyNoMoreInteractions(clientogAzure.azure)
+
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -297,57 +261,42 @@ internal class OppgaveHttpClientTest {
     fun `oppretter en saksbehandling for en revurdering med systembruker`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedSaksbehandlingRequest = createRequestBody(
-                jpostId = null,
+            val oppgave = OppgaveConfig.Revurderingsbehandling(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                sakstype = sakstype,
+            )
+            val expectedSaksbehandlingRequest = createOppgaveRequest(
+                journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
+                beskrivelse = oppgave.beskrivelse,
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse()
+            val response = createResponse(beskrivelse = oppgave.beskrivelse)
 
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
-
-            val oathMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" }
-
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
+            stubOppgave(expectedSaksbehandlingRequest, response)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedSaksbehandlingRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            val actual = client.opprettOppgaveMedSystembruker(
-                OppgaveConfig.Revurderingsbehandling(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                    sakstype = sakstype,
-                ),
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl(), azureAdMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" })
+
+            val actual = clientogAzure.client.opprettOppgaveMedSystembruker(
+                oppgave,
             ).getOrFail()
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
+            verify(clientogAzure.azure).getSystemToken(any())
+            verifyNoMoreInteractions(clientogAzure.azure)
 
-            verify(oathMock).getSystemToken(any())
-            verifyNoMoreInteractions(oathMock)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -355,44 +304,33 @@ internal class OppgaveHttpClientTest {
     fun `opprett attestering oppgave for revurdering`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(
-                jpostId = null,
+            val oppgave = OppgaveConfig.AttesterRevurdering(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                sakstype = sakstype,
+            )
+
+            val expectedAttesteringRequest = createOppgaveRequest(
+                journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
-                oppgavetype = "ATT",
+                beskrivelse = oppgave.beskrivelse,
+                oppgavetype = oppgave.oppgavetype.value,
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
 
             val response = createResponse(
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
-                oppgavetype = "ATT",
+                beskrivelse = oppgave.beskrivelse,
+                oppgavetype = oppgave.oppgavetype.value,
                 behandlingstype = "ae0028",
             )
+            stubOppgave(expectedAttesteringRequest, response)
 
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
-
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
-            val actual = client.opprettOppgave(
-                OppgaveConfig.AttesterRevurdering(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                    sakstype = sakstype,
-                ),
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
@@ -400,14 +338,10 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.ATTESTERING,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -419,17 +353,9 @@ internal class OppgaveHttpClientTest {
                     .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
             )
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
-            client.opprettOppgave(
+            clientogAzure.client.opprettOppgave(
                 OppgaveConfig.AttesterRevurdering(
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -445,58 +371,44 @@ internal class OppgaveHttpClientTest {
     fun `oppretter STADFESTELSE-oppgave for klageinstanshendelse`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(
-                jpostId = null,
+            val oppgave = OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
+                avsluttetTidspunkt = fixedTidspunkt,
+                journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+                hendelsestype = "enHendelse",
+                sakstype = sakstype,
+            )
+            val expectedAttesteringRequest = createOppgaveRequest(
+                journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.""",
-                oppgavetype = "VUR_KONS_YTE",
+                beskrivelse = oppgave.beskrivelse,
+                oppgavetype = oppgave.oppgavetype.value,
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(oppgavetype = "ATT")
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
+            stubOppgave(expectedAttesteringRequest, response)
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
-            val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Informasjon(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
-                    avsluttetTidspunkt = fixedTidspunkt,
-                    journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
-                    hendelsestype = "enHendelse",
-                    sakstype = sakstype,
-                ),
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.ATTESTERING,
+                oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -504,57 +416,44 @@ internal class OppgaveHttpClientTest {
     fun `oppretter MEDHOLD-oppgave for klageinstanshendelse`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(
-                jpostId = null,
+            val oppgave = OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                utfall = AvsluttetKlageinstansUtfall.Retur,
+                avsluttetTidspunkt = fixedTidspunkt,
+                journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+                hendelsestype = "enHendelse",
+                sakstype = sakstype,
+            )
+
+            val expectedAttesteringRequest = createOppgaveRequest(
+                journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
+                beskrivelse = oppgave.beskrivelse,
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(oppgavetype = "ATT")
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
+            stubOppgave(expectedAttesteringRequest, response)
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
-            val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.Retur,
-                    avsluttetTidspunkt = fixedTidspunkt,
-                    journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
-                    hendelsestype = "enHendelse",
-                    sakstype = sakstype,
-                ),
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.ATTESTERING,
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
@@ -562,124 +461,122 @@ internal class OppgaveHttpClientTest {
     fun `oppretter RETUR-oppgave for klageinstanshendelse`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(
-                jpostId = null,
+            val oppgave = OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                utfall = AvsluttetKlageinstansUtfall.Retur,
+                avsluttetTidspunkt = fixedTidspunkt,
+                journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+                hendelsestype = "enHendelse",
+                sakstype = sakstype,
+            )
+
+            val expectedAttesteringRequest = createOppgaveRequest(
+                journalpostId = null,
                 saksreferanse = saksnummer.toString(),
-                beskrivelse = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.""",
+                beskrivelse = oppgave.beskrivelse,
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
 
-            val response = createResponse(oppgavetype = "ATT")
+            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
-            stubFor(
-                stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest))
-                    .willReturn(aResponse().withBody(response).withStatus(201)),
-            )
+            stubOppgave(expectedAttesteringRequest, response)
 
-            val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
-            val client = OppgaveHttpClient(
-                connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                    clientId = "oppgaveClientId",
-                    url = baseUrl(),
-                ),
-                exchange = oathMock,
-                clock = fixedClock,
-            )
-            val actual = client.opprettOppgave(
-                OppgaveConfig.Klage.Klageinstanshendelse.AvsluttetKlageinstansUtfall.Handling(
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                    utfall = AvsluttetKlageinstansUtfall.Retur,
-                    avsluttetTidspunkt = fixedTidspunkt,
-                    journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
-                    hendelsestype = "enHendelse",
-                    sakstype = sakstype,
-                ),
+            val actual = clientogAzure.client.opprettOppgave(
+                oppgave,
             ).getOrFail()
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.ATTESTERING,
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nHendelsestype: enHendelse\nRelevante JournalpostIDer: 123, 456\nAvsluttet tidspunkt: 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
+                beskrivelse = oppgave.beskrivelse,
             )
 
-            actual.oppgaveId shouldBe expected.oppgaveId
-            actual.oppgavetype shouldBe expected.oppgavetype
-            actual.beskrivelse shouldBe expected.beskrivelse
-            actual.response shouldBe expected.response
-            JSONAssert.assertEquals(actual.request, expected.request, true)
+            assertOppgaveEquals(actual, expected)
         }
     }
 
-    private fun createRequestBody(
-        jpostId: JournalpostId? = journalpostId,
-        saksreferanse: String = "$saksnummer",
-        tilordnetRessurs: Saksbehandler? = null,
-        beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
+    private fun assertOppgaveEquals(actual: OppgaveHttpKallResponse, expected: OppgaveHttpKallResponse) {
+        actual.oppgaveId shouldBe expected.oppgaveId
+        actual.oppgavetype shouldBe expected.oppgavetype
+        actual.beskrivelse shouldBe expected.beskrivelse
+        actual.response shouldBe expected.response
+        JSONAssert.assertEquals(expected.request, actual.request, true)
+    }
+
+    private fun createOppgaveRequest(
+        journalpostId: JournalpostId? = null,
+        beskrivelse: String,
+        saksreferanse: String = saksnummer.toString(),
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
-        behandlingstema: Behandlingstema,
+        behandlingstema: Behandlingstema?,
+        aktivDato: LocalDate = LocalDate.of(2021, 1, 1),
+        fristFerdigstillelse: LocalDate = LocalDate.of(2021, 1, 31),
+        prioritet: String = "NORM",
+        tilordnetRessurs: Saksbehandler? = null,
     ): String {
-        //language=json
-        return """
-                {
-                    "journalpostId": ${jpostId?.let { "\"$it\"" }},
-                    "saksreferanse": "$saksreferanse",
-                    "personident": "$fnr",
-                    "tema": "SUP",
-                    "beskrivelse": "$beskrivelse",
-                    "oppgavetype": "$oppgavetype",
-                    "behandlingstema": "$behandlingstema",
-                    "behandlingstype": "$behandlingstype",
-                    "aktivDato": "2021-01-01",
-                    "fristFerdigstillelse": "2021-01-31",
-                    "prioritet": "NORM",
-                    "tilordnetRessurs": ${tilordnetRessurs?.let { "\"$it\"" }},
-                    "tildeltEnhetsnr":  ${tilordnetRessurs?.let { "\"4815\"" }}
-                }
-        """.trimIndent()
+        return serialize(
+            OppgaveRequest(
+                journalpostId = journalpostId?.toString(),
+                saksreferanse = saksnummer.toString(),
+                personident = fnr.toString(),
+                tema = Tema.SUPPLERENDE_STØNAD.value,
+                beskrivelse = beskrivelse,
+                oppgavetype = oppgavetype,
+                behandlingstema = behandlingstema?.toString(),
+                behandlingstype = behandlingstype,
+                aktivDato = aktivDato,
+                fristFerdigstillelse = fristFerdigstillelse,
+                prioritet = prioritet,
+                tilordnetRessurs = tilordnetRessurs?.toString(),
+                tildeltEnhetsnr = tilordnetRessurs?.let { "4815" },
+            ),
+        )
     }
 
     private fun createResponse(
         tilordnetResurs: Saksbehandler? = null,
-        beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer """,
+        beskrivelse: String,
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
     ): String {
-        //language=json
-        return """
-                {
-                  "id": 123,
-                  "tildeltEnhetsnr": "4815",
-                  "journalpostId": "$journalpostId",
-                  "saksreferanse": "$saksnummer",
-                  "aktoerId": "$aktørId",
-                  "tilordnetRessurs": ${tilordnetResurs?.let { "\"$it\"" }},
-                  "tema": "SUP",
-                  "beskrivelse": "$beskrivelse",
-                  "behandlingstema": "ab0431",
-                  "oppgavetype": "$oppgavetype",
-                  "behandlingstype":  "$behandlingstype",
-                  "versjon": 1,
-                  "fristFerdigstillelse": "2020-06-06",
-                  "aktivDato": "2020-06-06",
-                  "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
-                  "opprettetAv": "srvsupstonad",
-                  "prioritet": "NORM",
-                  "status": "OPPRETTET",
-                  "metadata": {}
-                }
-        """.trimIndent()
+        val response = OppgaveResponse(
+            id = 123,
+            tildeltEnhetsnr = "4815",
+            journalpostId = journalpostId.toString(),
+            saksreferanse = saksnummer.toString(),
+            aktoerId = aktørId,
+            beskrivelse = beskrivelse,
+            tema = "SUP",
+            behandlingstema = "ab0431",
+            oppgavetype = oppgavetype,
+            tilordnetRessurs = tilordnetResurs?.toString(),
+            behandlingstype = behandlingstype,
+            versjon = 1,
+            opprettetAv = "srvsupstonad",
+            prioritet = "NORM",
+            status = "OPPRETTET",
+            metadata = emptyMap<String, String>(),
+            fristFerdigstillelse = LocalDate.parse("2020-06-06"),
+            aktivDato = LocalDate.parse("2020-06-06"),
+            opprettetTidspunkt = ZonedDateTime.parse("2020-08-20T15:14:23.498+02:00"),
+            ferdigstiltTidspunkt = null,
+            endretAv = null,
+        )
+
+        return serialize(response)
     }
 
     private val stubMapping = WireMock.post(urlPathEqualTo(OPPGAVE_PATH))
-        .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+        .withHeader("Authorization", WireMock.equalTo(bearertoken))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

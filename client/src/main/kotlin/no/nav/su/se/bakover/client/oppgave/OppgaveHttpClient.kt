@@ -169,61 +169,7 @@ internal class OppgaveHttpClient(
         config: OppgaveConfig,
         token: String,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
-        val beskrivelse = when (config) {
-            is OppgaveConfig.AttesterSøknadsbehandling, is OppgaveConfig.Søknad ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.Personhendelse ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${
-                    OppgavebeskrivelseMapper.map(config.personhendelse)
-                }"
-
-            is OppgaveConfig.Kontrollsamtale ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.Klage.Klageinstanshendelse ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${
-                    OppgavebeskrivelseMapper.map(
-                        config,
-                    )
-                }"
-
-            is OppgaveConfig.Klage ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale -> {
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nKontrollnotat/Dokumentasjon av oppfølgingssamtale ikke funnet for perioden: ${config.periode.fraOgMed}-${config.periode.tilOgMed}. Maskinell stans kunne ikke gjennomføres."
-            }
-
-            is OppgaveConfig.Institusjonsopphold -> {
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nEndring i institusjonsopphold"
-            }
-
-            is OppgaveConfig.Tilbakekrevingsbehandling -> {
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-            }
-        }
+        val beskrivelse = config.beskrivelse
 
         return Either.catch {
             val requestBody = serialize(

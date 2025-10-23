@@ -1,9 +1,7 @@
-package no.nav.su.se.bakover.client.oppgave
+package no.nav.su.se.bakover.domain.oppgave
 
 import arrow.core.NonEmptyCollection
-import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import person.domain.SivilstandTyper
 
