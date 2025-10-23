@@ -36,6 +36,7 @@ fun genererBrevutkastForSøknadsbehandling(
         is BrevutkastForSøknadsbehandlingCommand.ForAttestant -> søknadsbehandling.lagBrevutkastCommandForAttestant(
             satsFactory = satsFactory,
             utførtAv = command.utførtAv,
+            fritekst = command.fritekst,
         )
     }.let {
         // Merk at siden vi ikke skal lagre dokumentet, så trenger vi ikke å legge til metadata.

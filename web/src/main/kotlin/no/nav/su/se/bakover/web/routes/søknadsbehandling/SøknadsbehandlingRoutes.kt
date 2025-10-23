@@ -83,7 +83,7 @@ internal fun Route.søknadsbehandlingRoutes(
     val log = LoggerFactory.getLogger(this::class.java)
 
     data class OppstartBehandlingBody(val soknadId: String)
-    data class WithFritekstBody(val fritekst: String)
+    data class WithFritekstBody(val fritekst: String, val underAttestering: Boolean = false)
 
     post("$SAK_PATH/{sakId}/behandlinger") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -247,27 +247,21 @@ internal fun Route.søknadsbehandlingRoutes(
                 call.withBody<WithFritekstBody> { body ->
                     lagBrevutkast(
                         call,
-                        BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler(
-                            søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
-                            utførtAv = Saksbehandler(call.suUserContext.navIdent),
-                            fritekst = body.fritekst,
-                        ),
+                        if (body.underAttestering) {
+                            BrevutkastForSøknadsbehandlingCommand.ForAttestant(
+                                søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
+                                utførtAv = Attestant(call.suUserContext.navIdent),
+                                fritekst = body.fritekst,
+                            )
+                        } else {
+                            BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler(
+                                søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
+                                utførtAv = Saksbehandler(call.suUserContext.navIdent),
+                                fritekst = body.fritekst,
+                            )
+                        },
                     )
                 }
-            }
-        }
-    }
-    // Brukes av attestant når hen skal se på et vedtaksutkast.
-    get("$SØKNADSBEHANDLING_PATH/{behandlingId}/vedtaksutkast") {
-        authorize(Brukerrolle.Attestant) {
-            call.withBehandlingId { behandlingId ->
-                lagBrevutkast(
-                    call,
-                    BrevutkastForSøknadsbehandlingCommand.ForAttestant(
-                        søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
-                        utførtAv = Attestant(call.suUserContext.navIdent),
-                    ),
-                )
             }
         }
     }
