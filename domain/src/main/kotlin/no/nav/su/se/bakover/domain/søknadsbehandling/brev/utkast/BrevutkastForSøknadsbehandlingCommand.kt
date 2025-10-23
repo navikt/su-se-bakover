@@ -22,5 +22,6 @@ sealed interface BrevutkastForSøknadsbehandlingCommand {
     data class ForAttestant(
         override val søknadsbehandlingId: SøknadsbehandlingId,
         override val utførtAv: NavIdentBruker.Attestant,
+        val fritekst: String,
     ) : BrevutkastForSøknadsbehandlingCommand
 }
