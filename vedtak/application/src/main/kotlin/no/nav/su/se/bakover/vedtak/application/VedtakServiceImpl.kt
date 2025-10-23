@@ -228,7 +228,7 @@ class VedtakServiceImpl(
                     StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(
                         søknadsbehandling,
                         saksbehandler,
-                        relatertId = relatertId.value,
+                        relatertId = vedtak.behandling.id.value,
                     ),
                     tx,
                 )

@@ -123,7 +123,7 @@ fun Sak.opprettRevurdering(
             )
         },
         sak = { nyRevurdering(it) },
-        statistikkHendelse = { StatistikkEvent(it, relatertId?.value) },
+        statistikkHendelse = { StatistikkEvent(it, gjeldendeVedtak.behandling.id.value) },
         klageId = relatertId as? KlageId,
     ).right()
 }
