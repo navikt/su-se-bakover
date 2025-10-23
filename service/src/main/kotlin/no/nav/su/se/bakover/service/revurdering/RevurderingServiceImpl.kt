@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
+import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
@@ -17,6 +18,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -29,6 +31,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -38,6 +41,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.LeggTilVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår
@@ -68,6 +72,7 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.retur.KunneIkkeReturnereRevurdering
+import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
@@ -154,24 +159,56 @@ class RevurderingServiceImpl(
         return sak.opprettRevurdering(
             cmd = command,
             clock = clock,
-        ).map {
+        ).map { opprettresult ->
+            val tidspunkt = Tidspunkt.now(clock)
             val oppgaveResponse = oppgaveService.opprettOppgave(
-                it.oppgaveConfig(),
+                OppgaveConfig.Revurderingsbehandling(
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    tilordnetRessurs = command.saksbehandler,
+                    clock = clock,
+                    sakstype = sak.type,
+                ),
             ).getOrElse {
                 return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
             }
-            it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
-        }.map {
+            val revurdering = OpprettetRevurdering(
+                periode = command.periode,
+                opprettet = tidspunkt,
+                oppdatert = tidspunkt,
+                tilRevurdering = opprettresult.gjeldendeVedtak.id,
+                vedtakSomRevurderesMånedsvis = opprettresult.gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
+                saksbehandler = command.saksbehandler,
+                oppgaveId = oppgaveResponse.oppgaveId,
+                revurderingsårsak = opprettresult.revurderingsårsak,
+                grunnlagsdataOgVilkårsvurderinger = opprettresult.gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+                informasjonSomRevurderes = opprettresult.informasjonSomRevurderes,
+                attesteringer = Attesteringshistorikk.empty(),
+                sakinfo = sak.info(),
+                omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(it) },
+            )
+            RevurderingContext(
+                revurdering,
+                StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, opprettresult.gjeldendeVedtak.behandling.id.value),
+                opprettresult.klageId,
+            )
+        }.map { revurderingContext ->
             sessionFactory.withTransactionContext { tx ->
-                it.klageId?.let { klageId ->
-                    klageRepo.knyttMotOmgjøring(klageId, it.opprettetRevurdering.id.value, tx)
+                revurderingContext.klageId?.let { klageId ->
+                    klageRepo.knyttMotOmgjøring(klageId, revurderingContext.revurdering.id.value, tx)
                 }
-                revurderingRepo.lagre(it.opprettetRevurdering, tx)
-                observers.notify(it.statistikkHendelse, tx)
+                revurderingRepo.lagre(revurderingContext.revurdering, tx)
+                observers.notify(revurderingContext.statistikkHendelse, tx)
             }
-            it.opprettetRevurdering
+            revurderingContext.revurdering
         }
     }
+
+    private data class RevurderingContext(
+        val revurdering: OpprettetRevurdering,
+        val statistikkHendelse: StatistikkEvent,
+        val klageId: KlageId?,
+    )
 
     override fun returnerRevurdering(
         request: RevurderingService.ReturnerRevurderingRequest,
