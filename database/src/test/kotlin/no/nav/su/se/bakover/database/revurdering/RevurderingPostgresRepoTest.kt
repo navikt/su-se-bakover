@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -55,7 +54,7 @@ internal class RevurderingPostgresRepoTest {
                             ).getOrFail(),
                         )
                         tdh.revurderingRepo.hent(simulert.id)!!.shouldBeType<RevurderingTilAttestering.Innvilget>().also {
-                            it.oppgaveId shouldBe OppgaveId("oppgaveIdRevurdering")
+                            it.oppgaveId shouldBe oppgaveIdRevurdering
                             it.saksbehandler shouldBe Saksbehandler("DenAndreSaksbehandleren")
                         }
                     }

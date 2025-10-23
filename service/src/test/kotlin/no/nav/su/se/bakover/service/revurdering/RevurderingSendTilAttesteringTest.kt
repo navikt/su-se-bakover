@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -80,7 +80,7 @@ internal class RevurderingSendTilAttesteringTest {
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
                 verify(mocks.oppgaveService).oppdaterOppgave(
-                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
+                    argThat { it shouldBe oppgaveIdRevurdering },
                     argThat {
                         it shouldBe OppdaterOppgaveInfo(
                             beskrivelse = "Sendt revurdering til attestering",
@@ -167,7 +167,7 @@ internal class RevurderingSendTilAttesteringTest {
                 verify(mocks.revurderingRepo).hent(revurderingId)
                 verify(mocks.sakService).hentSakForRevurdering(revurdering.id)
                 verify(mocks.oppgaveService).oppdaterOppgave(
-                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
+                    argThat { it shouldBe oppgaveIdRevurdering },
                     argThat {
                         it shouldBe OppdaterOppgaveInfo(
                             beskrivelse = "Sendt revurdering til attestering",
