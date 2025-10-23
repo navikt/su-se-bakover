@@ -344,7 +344,7 @@ class SøknadTest {
                         it shouldBe OppgaveConfig.Søknad(
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalpostId,
-                            søknadId = actualNySøknad.id,
+                            saksnummer = sak.saksnummer,
                             fnr = person.ident.fnr,
                             tilordnetRessurs = null,
                             clock = fixedClock,
@@ -452,7 +452,7 @@ class SøknadTest {
                         it shouldBe OppgaveConfig.Søknad(
                             sakstype = Sakstype.UFØRE,
                             journalpostId = journalpostId,
-                            søknadId = actualNySøknad.id,
+                            saksnummer = sak.saksnummer,
                             fnr = sak.fnr,
                             tilordnetRessurs = null,
                             clock = fixedClock,

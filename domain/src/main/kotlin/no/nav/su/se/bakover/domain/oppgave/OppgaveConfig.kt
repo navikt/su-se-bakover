@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.I
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 
 private fun Sakstype.toBehandlingstema(): Behandlingstema =
     when (this) {
@@ -45,7 +44,7 @@ sealed interface OppgaveConfig {
      */
     data class Søknad(
         override val journalpostId: JournalpostId,
-        val søknadId: UUID,
+        val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
@@ -58,7 +57,7 @@ sealed interface OppgaveConfig {
             }
         }
 
-        override val saksreferanse = søknadId.toString()
+        override val saksreferanse = saksnummer.toString()
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
@@ -68,7 +67,7 @@ sealed interface OppgaveConfig {
 
     // TODO: Ikke i bruk?
     data class AttesterSøknadsbehandling(
-        val søknadId: UUID,
+        val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
@@ -80,7 +79,7 @@ sealed interface OppgaveConfig {
             }
         }
 
-        override val saksreferanse = søknadId.toString()
+        override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.ATTESTERING

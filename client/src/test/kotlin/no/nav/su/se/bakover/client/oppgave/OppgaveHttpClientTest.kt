@@ -34,14 +34,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
-import java.util.UUID
 
 internal class OppgaveHttpClientTest {
 
     private val saksbehandler = Saksbehandler("Z12345")
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
-    private val søknadId = UUID.randomUUID()
     private val saksnummer = Saksnummer(12345)
 
     private fun Sakstype.toBehandlingstema(): Behandlingstema =
@@ -77,7 +75,7 @@ internal class OppgaveHttpClientTest {
                 OppgaveConfig.Søknad(
                     sakstype = sakstype,
                     journalpostId = journalpostId,
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = fixedClock,
@@ -89,7 +87,7 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedSaksbehandlingRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
@@ -133,14 +131,14 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedSaksbehandlingRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
             )
 
             val actual = client.opprettOppgaveMedSystembruker(
                 OppgaveConfig.Søknad(
                     sakstype = sakstype,
                     journalpostId = journalpostId,
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     tilordnetRessurs = null,
                     clock = fixedClock,
@@ -162,7 +160,7 @@ internal class OppgaveHttpClientTest {
     fun `opprett attestering oppgave`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val expectedAttesteringRequest = createRequestBody(jpostId = null, oppgavetype = "ATT", behandlingstema = sakstype.toBehandlingstema())
+            val expectedAttesteringRequest = createRequestBody(jpostId = null, oppgavetype = "ATT", behandlingstema = sakstype.toBehandlingstema(), saksreferanse = saksnummer.toString())
             val response = createResponse(oppgavetype = "ATT")
 
             stubFor(
@@ -182,7 +180,7 @@ internal class OppgaveHttpClientTest {
             )
             val actual = client.opprettOppgave(
                 OppgaveConfig.AttesterSøknadsbehandling(
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
@@ -195,7 +193,7 @@ internal class OppgaveHttpClientTest {
                 oppgavetype = Oppgavetype.ATTESTERING,
                 request = expectedAttesteringRequest,
                 response = response,
-                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                beskrivelse = "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
             )
 
             actual.oppgaveId shouldBe expected.oppgaveId
@@ -225,7 +223,7 @@ internal class OppgaveHttpClientTest {
                 OppgaveConfig.Søknad(
                     sakstype = Sakstype.UFØRE,
                     journalpostId = journalpostId,
-                    søknadId = søknadId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     clock = fixedClock,
                     tilordnetRessurs = null,
@@ -621,9 +619,9 @@ internal class OppgaveHttpClientTest {
 
     private fun createRequestBody(
         jpostId: JournalpostId? = journalpostId,
-        saksreferanse: String = "$søknadId",
+        saksreferanse: String = "$saksnummer",
         tilordnetRessurs: Saksbehandler? = null,
-        beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId""",
+        beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer""",
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
         behandlingstema: Behandlingstema,
@@ -650,7 +648,7 @@ internal class OppgaveHttpClientTest {
 
     private fun createResponse(
         tilordnetResurs: Saksbehandler? = null,
-        beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId """,
+        beskrivelse: String = """--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer """,
         oppgavetype: String = "BEH_SAK",
         behandlingstype: String = "ae0034",
     ): String {
@@ -660,7 +658,7 @@ internal class OppgaveHttpClientTest {
                   "id": 123,
                   "tildeltEnhetsnr": "4815",
                   "journalpostId": "$journalpostId",
-                  "saksreferanse": "$søknadId",
+                  "saksreferanse": "$saksnummer",
                   "aktoerId": "$aktørId",
                   "tilordnetRessurs": ${tilordnetResurs?.let { "\"$it\"" }},
                   "tema": "SUP",

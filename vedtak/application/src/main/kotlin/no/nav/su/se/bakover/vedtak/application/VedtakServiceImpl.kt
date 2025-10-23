@@ -207,7 +207,7 @@ class VedtakServiceImpl(
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     journalpostId = vedtak.behandling.søknad.journalpostId,
-                    søknadId = vedtak.behandling.søknad.id,
+                    saksnummer = sak.saksnummer,
                     clock = clock,
                     sakstype = sak.type,
                 ),
