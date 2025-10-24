@@ -220,7 +220,7 @@ internal class OppgaveHttpClient(
                         "Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}. Se sikkerlogg for innhold av body",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
-                    sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
+                    sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, responsebody=$body request=$requestBody")
                     KunneIkkeOppretteOppgave.left()
                 }
             }
