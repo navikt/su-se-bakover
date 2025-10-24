@@ -18,7 +18,6 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -41,7 +40,6 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.LeggTilVedtaksbrevvalg
-import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFamiliegjenforeningVilkår
@@ -69,10 +67,10 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVe
 import no.nav.su.se.bakover.domain.revurdering.opphør.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.opprett.kanOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.retur.KunneIkkeReturnereRevurdering
-import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
@@ -156,7 +154,7 @@ class RevurderingServiceImpl(
         val sak = sakService.hentSak(command.sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.SakFinnesIkke.left()
         }
-        return sak.opprettRevurdering(
+        return sak.kanOppretteRevurdering(
             cmd = command,
             clock = clock,
         ).map { opprettresult ->
@@ -172,21 +170,7 @@ class RevurderingServiceImpl(
             ).getOrElse {
                 return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
             }
-            val revurdering = OpprettetRevurdering(
-                periode = command.periode,
-                opprettet = tidspunkt,
-                oppdatert = tidspunkt,
-                tilRevurdering = opprettresult.gjeldendeVedtak.id,
-                vedtakSomRevurderesMånedsvis = opprettresult.gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
-                saksbehandler = command.saksbehandler,
-                oppgaveId = oppgaveResponse.oppgaveId,
-                revurderingsårsak = opprettresult.revurderingsårsak,
-                grunnlagsdataOgVilkårsvurderinger = opprettresult.gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
-                informasjonSomRevurderes = opprettresult.informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-                sakinfo = sak.info(),
-                omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(it) },
-            )
+            val (_, revurdering) = sak.opprettRevurdering(opprettresult, oppgaveId = oppgaveResponse.oppgaveId, tidspunkt = tidspunkt, command = command)
             RevurderingContext(
                 revurdering,
                 StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, opprettresult.gjeldendeVedtak.behandling.id.value),

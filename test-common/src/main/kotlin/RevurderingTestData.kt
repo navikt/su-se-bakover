@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.IverksettInnvil
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.IverksettOpphørtRevurderingMedUtbetalingResponse
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.opprett.kanOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -113,27 +113,12 @@ fun opprettRevurderingFraSaksopplysninger(
         saksbehandler = saksbehandler,
         informasjonSomRevurderes = informasjonSomRevurderes.informasjonSomRevurderes.keys.toList(),
     )
-    return sak.opprettRevurdering(
+    return sak.kanOppretteRevurdering(
         cmd = command,
         clock = clock,
     ).getOrFail().let { opprettresult ->
         val tidspunkt = Tidspunkt.now(clock)
-        val revurdering = OpprettetRevurdering(
-            periode = revurderingsperiode,
-            opprettet = tidspunkt,
-            oppdatert = tidspunkt,
-            tilRevurdering = opprettresult.gjeldendeVedtak.id,
-            vedtakSomRevurderesMånedsvis = opprettresult.gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
-            saksbehandler = command.saksbehandler,
-            oppgaveId = oppgaveIdRevurdering,
-            revurderingsårsak = opprettresult.revurderingsårsak,
-            grunnlagsdataOgVilkårsvurderinger = opprettresult.gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
-            informasjonSomRevurderes = opprettresult.informasjonSomRevurderes,
-            attesteringer = Attesteringshistorikk.empty(),
-            sakinfo = sak.info(),
-            omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(it) },
-        )
-        val oppdatertSak = sak.nyRevurdering(revurdering)
+        val (oppdatertSak, revurdering) = sak.opprettRevurdering(opprettresult, tidspunkt = tidspunkt, oppgaveId = oppgaveIdRevurdering, command = command)
 
         revurdering.let { or ->
             vilkårOverrides.filterIsInstance<UføreVilkår.Vurdert>().firstOrNull()?.let {
@@ -189,7 +174,6 @@ fun opprettRevurderingFraSaksopplysninger(
                 or.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(it).getOrFail()
             } ?: or
         }.let { r ->
-            // TODO: gir disse noen verdi?
             oppdatertSak.oppdaterRevurdering(r) to r
         }
     }

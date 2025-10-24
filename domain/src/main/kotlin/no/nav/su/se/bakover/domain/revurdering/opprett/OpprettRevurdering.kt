@@ -5,10 +5,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
+import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak.Årsak
+import no.nav.su.se.bakover.domain.sak.nyRevurdering
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -19,13 +26,10 @@ import java.util.UUID
 
 private val log = LoggerFactory.getLogger("opprettRevurdering")
 
-// TODO: burde denne vært splittet opp i en valideringsfase og en opprettfase?
-// slik at sideeffekten med opprettelsen av oppgaven kan ignoreres?
-// hvordan blir den bruken i servicen?
-fun Sak.opprettRevurdering(
+fun Sak.kanOppretteRevurdering(
     cmd: OpprettRevurderingCommand,
     clock: Clock,
-): Either<KunneIkkeOppretteRevurdering, OpprettRevurderingResultat> {
+): Either<KunneIkkeOppretteRevurdering, KanOppretteRevurderingResultatData> {
     val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(this.type, cmd.informasjonSomRevurderes)
         .getOrElse { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
@@ -87,11 +91,31 @@ fun Sak.opprettRevurdering(
     informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
         .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
-    return OpprettRevurderingResultat(
+    return KanOppretteRevurderingResultatData(
         gjeldendeVedtak = gjeldendeVedtak,
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         revurderingsårsak = revurderingsårsak,
         informasjonSomRevurderes = informasjonSomRevurderes,
         klageId = relatertId as? KlageId,
     ).right()
+}
+
+fun Sak.opprettRevurdering(kanOppretteRevurderingResultatData: KanOppretteRevurderingResultatData, oppgaveId: OppgaveId, tidspunkt: Tidspunkt, command: OpprettRevurderingCommand): Pair<Sak, OpprettetRevurdering> {
+    val revurdering = OpprettetRevurdering(
+        periode = command.periode,
+        opprettet = tidspunkt,
+        oppdatert = tidspunkt,
+        tilRevurdering = kanOppretteRevurderingResultatData.gjeldendeVedtak.id,
+        vedtakSomRevurderesMånedsvis = kanOppretteRevurderingResultatData.gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
+        saksbehandler = command.saksbehandler,
+        oppgaveId = oppgaveId,
+        revurderingsårsak = kanOppretteRevurderingResultatData.revurderingsårsak,
+        grunnlagsdataOgVilkårsvurderinger = kanOppretteRevurderingResultatData.gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+        informasjonSomRevurderes = kanOppretteRevurderingResultatData.informasjonSomRevurderes,
+        attesteringer = Attesteringshistorikk.empty(),
+        sakinfo = this.info(),
+        omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(it) },
+    )
+    val oppdatertSak = nyRevurdering(revurdering)
+    return Pair(oppdatertSak, revurdering)
 }

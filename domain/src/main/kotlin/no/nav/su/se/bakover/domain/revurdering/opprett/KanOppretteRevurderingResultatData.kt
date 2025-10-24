@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vedtak.domain.VedtakSomKanRevurderes
 
-data class OpprettRevurderingResultat(
+data class KanOppretteRevurderingResultatData(
     val gjeldendeVedtak: VedtakSomKanRevurderes,
     val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     val revurderingsårsak: Revurderingsårsak,
