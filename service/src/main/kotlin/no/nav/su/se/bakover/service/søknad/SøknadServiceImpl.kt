@@ -264,6 +264,9 @@ class SøknadServiceImpl(
         }.right()
     }
 
+    /**
+     Alle oppgaver som ikke blir opprettet her vil bli forsøkt på nytt senere etter spesifikasjonen i [FiksSøknaderUtenOppgave]
+     */
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
         sakInfo: SakInfo,
