@@ -16,13 +16,12 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+const val STUBBEDOPPGAVEID = "stubbedOppgaveId"
 data object OppgaveClientStub : OppgaveClient {
-
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-
-    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
-        OppgaveHttpKallResponse(
-            oppgaveId = OppgaveId("stubbedOppgaveId"),
+    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+        return OppgaveHttpKallResponse(
+            oppgaveId = OppgaveId(STUBBEDOPPGAVEID),
             request = "stubbedRequestBody",
             response = "stubbedResponseBody",
             beskrivelse = "stubbedBeskrivelse",
@@ -30,10 +29,11 @@ data object OppgaveClientStub : OppgaveClient {
             tilordnetRessurs = "stubbedTilordnetRessurs",
             tildeltEnhetsnr = "stubbedTildeltEnhetsnr",
         ).right().also { log.info("OppgaveClientStub oppretter oppgave: $config") }
+    }
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> =
         OppgaveHttpKallResponse(
-            oppgaveId = OppgaveId("stubbedOppgaveId"),
+            oppgaveId = OppgaveId(STUBBEDOPPGAVEID),
             request = "stubbedRequestBody",
             response = "stubbedResponseBody",
             beskrivelse = "stubbedBeskrivelse",

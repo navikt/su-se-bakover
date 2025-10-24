@@ -19,6 +19,9 @@ import java.util.UUID
 
 private val log = LoggerFactory.getLogger("opprettRevurdering")
 
+// TODO: burde denne vært splittet opp i en valideringsfase og en opprettfase?
+// slik at sideeffekten med opprettelsen av oppgaven kan ignoreres?
+// hvordan blir den bruken i servicen?
 fun Sak.opprettRevurdering(
     cmd: OpprettRevurderingCommand,
     clock: Clock,

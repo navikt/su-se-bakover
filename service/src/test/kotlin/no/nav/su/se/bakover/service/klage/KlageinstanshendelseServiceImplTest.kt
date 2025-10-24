@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.UprosessertKlageinstanshendelse
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -89,7 +89,7 @@ internal class KlageinstanshendelseServiceImplTest {
             },
         )
         verify(klageinstanshendelseRepoMock).lagre(
-            mappedKlageinstanshendelse.tilProsessert(OppgaveId("123")),
+            mappedKlageinstanshendelse.tilProsessert(oppgaveId),
             TestSessionFactory.transactionContext,
         )
     }
@@ -144,7 +144,7 @@ internal class KlageinstanshendelseServiceImplTest {
         verify(klageRepoMock).lagre(
             argThat {
                 it as VurdertKlage.Bekreftet
-                it.oppgaveId shouldBe OppgaveId("123")
+                it.oppgaveId shouldBe oppgaveId
                 it.saksbehandler shouldBe klage.saksbehandler
                 it.klageinstanshendelser shouldBe Klageinstanshendelser.create(
                     listOf(
@@ -154,7 +154,7 @@ internal class KlageinstanshendelseServiceImplTest {
                             klageId = klage.id,
                             utfall = AvsluttetKlageinstansUtfall.Retur,
                             journalpostIDer = listOf(JournalpostId("123456")),
-                            oppgaveId = OppgaveId("123"),
+                            oppgaveId = oppgaveId,
                         ),
                     ),
                 )
@@ -162,7 +162,7 @@ internal class KlageinstanshendelseServiceImplTest {
             argShouldBe(TestSessionFactory.transactionContext),
         )
         verify(klageinstanshendelseRepoMock).lagre(
-            mappedKlageinstanshendelse.tilProsessert(OppgaveId("123")),
+            mappedKlageinstanshendelse.tilProsessert(oppgaveId),
             TestSessionFactory.transactionContext,
         )
     }

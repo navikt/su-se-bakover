@@ -8,7 +8,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.klage.shouldBeEqualComparingPublicFieldsAndInterface
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
@@ -366,7 +366,7 @@ internal class KlagePostgresRepoTest {
                 journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
             )
 
-            val nyOppgave = OppgaveId("123")
+            val nyOppgave = oppgaveId
             val nyKlage =
                 klage.leggTilNyKlageinstanshendelse(tolketKlageinstanshendelse) { nyOppgave.right() }.getOrFail()
 
@@ -400,7 +400,7 @@ internal class KlagePostgresRepoTest {
                 journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
             )
 
-            val nyOppgave = OppgaveId("123")
+            val nyOppgave = oppgaveId
             val nyKlage = klage.leggTilNyKlageinstanshendelse(tolketKlageinstanshendelse) { nyOppgave.right() }.getOrFail()
 
             testDataHelper.sessionFactory.withTransactionContext { tx ->

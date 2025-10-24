@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
@@ -81,7 +81,7 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.periode shouldBe søknadsbehandling.periode
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
-                opprettetRevurdering.oppgaveId shouldBe OppgaveId("123")
+                opprettetRevurdering.oppgaveId shouldBe oppgaveId
                 opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
                     begrunnelse = "Ny informasjon",

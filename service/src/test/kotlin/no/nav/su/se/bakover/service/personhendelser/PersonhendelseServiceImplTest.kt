@@ -8,7 +8,6 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nyPersonhendelseIkkeKnyttetTilSak
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.vedtak.toVedtaksammendrag
 import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSak
@@ -235,7 +235,7 @@ internal class PersonhendelseServiceImplTest {
 
         verify(personhendelseRepoMock).lagre(
             argThat<List<Personhendelse.TilknyttetSak.SendtTilOppgave>> {
-                it shouldBe listOf(personhendelse.tilSendtTilOppgave(OppgaveId("123")))
+                it shouldBe listOf(personhendelse.tilSendtTilOppgave(oppgaveId))
             },
         )
         verifyNoMoreInteractions(

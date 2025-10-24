@@ -189,6 +189,7 @@ fun opprettRevurderingFraSaksopplysninger(
                 or.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(it).getOrFail()
             } ?: or
         }.let { r ->
+            // TODO: gir disse noen verdi?
             oppdatertSak.oppdaterRevurdering(r) to r
         }
     }
