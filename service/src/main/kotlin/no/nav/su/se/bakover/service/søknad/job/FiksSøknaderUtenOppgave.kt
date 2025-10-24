@@ -29,7 +29,7 @@ class FiksSøknaderUtenOppgave(
                 søknadService.opprettManglendeJournalpostOgOppgave()
                 logger.info("Ferdig med jobb: 'Fikser søknader uten oppgave'")
             }.let {
-                g FiksSøknaderUtenOppgave (it)
+                FiksSøknaderUtenOppgave(it)
             }
         }
     }
