@@ -4,7 +4,6 @@ import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -67,7 +67,7 @@ internal class UnderkjennRevurderingTest {
                     any(),
                 )
                 verify(mocks.oppgaveService).oppdaterOppgave(
-                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
+                    argThat { it shouldBe oppgaveIdRevurdering },
                     argThat {
                         it shouldBe OppdaterOppgaveInfo(
                             "Revurderingen er blitt underkjent",

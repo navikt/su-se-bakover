@@ -6,7 +6,6 @@ import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.AktørId
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
@@ -227,7 +227,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
     @Test
     fun `happy case`() {
-        val oppgaveId = OppgaveId("123")
+        val oppgaveId = oppgaveId
         val pdf = PdfA("pdf-data".toByteArray())
 
         SøknadServiceOgMocks(

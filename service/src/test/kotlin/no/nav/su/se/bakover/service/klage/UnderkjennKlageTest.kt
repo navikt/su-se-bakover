@@ -8,7 +8,6 @@ import behandling.klage.domain.KlageId
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgaveIdKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -91,7 +91,7 @@ internal class UnderkjennKlageTest {
         verify(mocks.klageRepoMock).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.oppgaveService).oppdaterOppgave(
-            argThat { it shouldBe OppgaveId("oppgaveIdKlage") },
+            argThat { it shouldBe oppgaveIdKlage },
             argThat {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",
@@ -281,7 +281,7 @@ internal class UnderkjennKlageTest {
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.oppgaveService).oppdaterOppgave(
-            argThat { it shouldBe OppgaveId("oppgaveIdKlage") },
+            argThat { it shouldBe oppgaveIdKlage },
             argThat {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",
@@ -322,7 +322,7 @@ internal class UnderkjennKlageTest {
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
         verify(mocks.oppgaveService).oppdaterOppgave(
-            argThat { it shouldBe OppgaveId("oppgaveIdKlage") },
+            argThat { it shouldBe oppgaveIdKlage },
             argThat {
                 it shouldBe OppdaterOppgaveInfo(
                     beskrivelse = "Klagen er blitt underkjent",

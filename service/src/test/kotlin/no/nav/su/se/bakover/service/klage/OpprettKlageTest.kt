@@ -6,7 +6,6 @@ import dokument.domain.journalføring.ErTilknyttetSak
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
@@ -227,7 +227,7 @@ internal class OpprettKlageTest {
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 journalpostId = JournalpostId(value = "1"),
-                oppgaveId = OppgaveId("123"),
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = 1.januar(2021),
                 sakstype = sak.type,

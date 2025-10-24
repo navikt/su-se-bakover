@@ -6,10 +6,10 @@ import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.sak.nyRevurdering
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
 
 /**
  * Tar ikke inn IO-funksjoner for å prøve holde opprett revurdering som en pure function.
@@ -27,10 +26,10 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurde
 
 private val log = LoggerFactory.getLogger("opprettRevurdering")
 
-fun Sak.opprettRevurdering(
+fun Sak.kanOppretteRevurdering(
     cmd: OpprettRevurderingCommand,
     clock: Clock,
-): Either<KunneIkkeOppretteRevurdering, OpprettRevurderingResultatUtenOppgaveId> {
+): Either<KunneIkkeOppretteRevurdering, KanOppretteRevurderingResultatData> {
     val informasjonSomRevurderes = InformasjonSomRevurderes.opprettUtenVurderingerMedFeilmelding(this.type, cmd.informasjonSomRevurderes)
         .getOrElse { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
@@ -92,38 +91,31 @@ fun Sak.opprettRevurdering(
     informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata.vilkårsvurderinger)
         .onLeft { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
-    val tidspunkt = Tidspunkt.now(clock)
-
-    return OpprettRevurderingResultatUtenOppgaveId(
-        fnr = fnr,
-        oppgaveConfig = {
-            OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer,
-                fnr = fnr,
-                tilordnetRessurs = cmd.saksbehandler,
-                clock = clock,
-                sakstype = type,
-            )
-        },
-        opprettRevurdering = { oppgaveId ->
-            OpprettetRevurdering(
-                periode = periode,
-                opprettet = tidspunkt,
-                oppdatert = tidspunkt,
-                tilRevurdering = gjeldendeVedtak.id,
-                vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
-                saksbehandler = cmd.saksbehandler,
-                oppgaveId = oppgaveId,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-                sakinfo = info(),
-                omgjøringsgrunn = cmd.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(cmd.omgjøringsgrunn) },
-            )
-        },
-        sak = { nyRevurdering(it) },
-        statistikkHendelse = { StatistikkEvent(it, gjeldendeVedtak.behandling.id.value) },
+    return KanOppretteRevurderingResultatData(
+        gjeldendeVedtak = gjeldendeVedtak,
+        gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+        revurderingsårsak = revurderingsårsak,
+        informasjonSomRevurderes = informasjonSomRevurderes,
         klageId = relatertId as? KlageId,
     ).right()
+}
+
+fun Sak.opprettRevurdering(kanOppretteRevurderingResultatData: KanOppretteRevurderingResultatData, oppgaveId: OppgaveId, tidspunkt: Tidspunkt, command: OpprettRevurderingCommand): Pair<Sak, OpprettetRevurdering> {
+    val revurdering = OpprettetRevurdering(
+        periode = command.periode,
+        opprettet = tidspunkt,
+        oppdatert = tidspunkt,
+        tilRevurdering = kanOppretteRevurderingResultatData.gjeldendeVedtak.id,
+        vedtakSomRevurderesMånedsvis = kanOppretteRevurderingResultatData.gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
+        saksbehandler = command.saksbehandler,
+        oppgaveId = oppgaveId,
+        revurderingsårsak = kanOppretteRevurderingResultatData.revurderingsårsak,
+        grunnlagsdataOgVilkårsvurderinger = kanOppretteRevurderingResultatData.gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+        informasjonSomRevurderes = kanOppretteRevurderingResultatData.informasjonSomRevurderes,
+        attesteringer = Attesteringshistorikk.empty(),
+        sakinfo = this.info(),
+        omgjøringsgrunn = command.omgjøringsgrunn?.let { Omgjøringsgrunn.valueOf(it) },
+    )
+    val oppdatertSak = nyRevurdering(revurdering)
+    return Pair(oppdatertSak, revurdering)
 }

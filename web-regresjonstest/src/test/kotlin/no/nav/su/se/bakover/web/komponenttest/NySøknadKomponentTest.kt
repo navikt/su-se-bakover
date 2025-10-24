@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.stubs.oppgave.STUBBEDOPPGAVEID
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -29,7 +30,7 @@ internal class NySøknadKomponentTest {
                     it.fnr shouldBe sak.fnr
                     it.type shouldBe Sakstype.UFØRE
                     it.innsendtAv shouldBe NavIdentBruker.Veileder("Z990Lokal")
-                    it.oppgaveId shouldBe OppgaveId("stubbedOppgaveId")
+                    it.oppgaveId shouldBe OppgaveId(STUBBEDOPPGAVEID)
                     it.journalpostId shouldBe JournalpostId("0")
                 }
             }
