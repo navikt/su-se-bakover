@@ -138,13 +138,12 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
         behandlingResultat = behandlingResultat,
         resultatBegrunnelse = resultatBegrunnelse,
         opprettetAv = opprettetAv.navIdent,
-        saksbehandler = opprettetAv.navIdent, // TODO bjg Må verifiseres
+        saksbehandler = opprettetAv.navIdent,
         ansvarligBeslutter = ansvarligBeslutter,
         behandlingMetode = BehandlingMetode.Manuell,
         tilbakekrevBeløp = tilbakekrevBeløp,
-        // TODO bjg Hva skal disse feltene være?
-        funksjonellPeriodeFom = null,
-        funksjonellPeriodeTom = null,
+        funksjonellPeriodeFom = kravgrunnlag.periode?.fraOgMed,
+        funksjonellPeriodeTom = kravgrunnlag.periode?.tilOgMed,
     )
 }
 

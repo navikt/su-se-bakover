@@ -33,7 +33,8 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Registrert.name,
                     opprettetAv = søknadsbehandling.saksbehandler?.navIdent
                         ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
-                    saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
+                    saksbehandler = søknadsbehandling.saksbehandler?.navIdent
+                        ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring -> this.toBehandlingsstatistikkGenerell(
@@ -148,6 +149,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingMetode.Manuell
                     },
+
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -381,8 +383,6 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                 )
             }
         }
-
-        // TODO Tilbakekreving ??
     }
 }
 
