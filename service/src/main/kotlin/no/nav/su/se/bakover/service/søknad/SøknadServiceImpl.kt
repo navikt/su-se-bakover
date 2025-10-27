@@ -282,7 +282,7 @@ class SøknadServiceImpl(
                 sakstype = søknad.søknadInnhold.type(),
             ),
         ).mapLeft {
-            log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")
+            log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it, denne vil bli kjørt igjen.")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
         }.map { oppgaveResponse ->
             return søknad.medOppgave(oppgaveResponse.oppgaveId).also {
