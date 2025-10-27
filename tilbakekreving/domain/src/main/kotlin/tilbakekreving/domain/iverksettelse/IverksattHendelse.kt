@@ -68,6 +68,7 @@ data class IverksattHendelse(
     fun applyToState(behandling: Tilbakekrevingsbehandling): IverksattTilbakekrevingsbehandling {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
+            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             is UnderBehandling,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
@@ -77,6 +78,7 @@ data class IverksattHendelse(
                 forrigeSteg = behandling,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
+                kravgrunnlag = behandling.kravgrunnlag,
                 attesteringer = behandling.attesteringer.leggTilNyAttestering(
                     attestering = Attestering.Iverksatt(
                         attestant = this.utførtAv,

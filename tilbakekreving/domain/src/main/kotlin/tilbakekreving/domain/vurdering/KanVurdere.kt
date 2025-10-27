@@ -5,9 +5,11 @@ package tilbakekreving.domain
 
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 
 sealed interface KanVurdere : KanEndres {
+    override val kravgrunnlag: Kravgrunnlag
 
     fun leggTilVurderinger(
         månedsvurderinger: VurderingerMedKrav,

@@ -25,6 +25,7 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
 import java.time.Clock
@@ -161,6 +162,7 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 clock = clock,
             )
+            is ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand -> TODO()
 
             is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> VedtaksbrevTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
                 command = command,

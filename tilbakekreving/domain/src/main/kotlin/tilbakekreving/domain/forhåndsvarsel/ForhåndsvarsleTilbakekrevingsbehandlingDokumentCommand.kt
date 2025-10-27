@@ -25,3 +25,17 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
     override val utførtAv: NavIdentBruker? = null
     override val brukerroller: List<Brukerrolle> = emptyList()
 }
+
+data class ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand(
+    override val fødselsnummer: Fnr,
+    override val saksnummer: Saksnummer,
+    override val correlationId: CorrelationId?,
+    override val sakId: UUID,
+    override val sakstype: Sakstype,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+    val fritekst: String?,
+) : GenererDokumentCommand,
+    SakshendelseCommand {
+    override val utførtAv: NavIdentBruker? = null
+    override val brukerroller: List<Brukerrolle> = emptyList()
+}

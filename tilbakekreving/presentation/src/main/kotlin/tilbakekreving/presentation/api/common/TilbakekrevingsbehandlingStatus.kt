@@ -1,6 +1,7 @@
 package tilbakekreving.presentation.api.common
 
 enum class TilbakekrevingsbehandlingStatus {
+    OPPRETTET_UTEN_KRAVGRUNNLAG,
     OPPRETTET,
 
     /**

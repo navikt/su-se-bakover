@@ -31,7 +31,7 @@ sealed interface Tilbakekrevingsbehandling : BehandlingMedAttestering {
     override val opprettet: Tidspunkt
     override val attesteringer: Attesteringshistorikk
     val opprettetAv: NavIdentBruker.Saksbehandler
-    val kravgrunnlag: Kravgrunnlag
+    val kravgrunnlag: Kravgrunnlag?
     val erKravgrunnlagUtdatert: Boolean
     val vurderingerMedKrav: VurderingerMedKrav?
 

@@ -45,7 +45,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,
                 sakId = command.sakId,
-                kravgrunnlag = behandling.kravgrunnlag,
+                kravgrunnlag = behandling.kravgrunnlag ?: throw IllegalStateException("Må ha eeget dokument hvis kravgrunnlag mangler"), // TODO bjg,
                 fødselsnummer = sak.fnr,
             ),
         )

@@ -78,3 +78,41 @@ data class OpprettetTilbakekrevingsbehandling(
         notat = notat,
     )
 }
+
+data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
+    override val id: TilbakekrevingsbehandlingId,
+    override val sakId: UUID,
+    override val saksnummer: Saksnummer,
+    override val fnr: Fnr,
+    override val opprettet: Tidspunkt,
+    override val opprettetAv: NavIdentBruker.Saksbehandler,
+    override val versjon: Hendelsesversjon,
+    override val hendelseId: HendelseId,
+) : KanForhåndsvarsle,
+    KanAnnullere {
+
+    override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+    override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
+    override val vurderingerMedKrav: VurderingerMedKrav? = null
+    override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
+    override val notat: NonBlankString? = null
+    override val kravgrunnlag: Kravgrunnlag? = null
+    override val erKravgrunnlagUtdatert: Boolean = false
+
+    override fun leggTilForhåndsvarselDokumentId(
+        dokumentId: UUID,
+        hendelseId: HendelseId,
+        versjon: Hendelsesversjon,
+        hendelsesTidspunkt: Tidspunkt,
+    ): UnderBehandling {
+        TODO("Not yet implemented")
+    }
+
+    override fun erAvsluttet(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun erAvbrutt(): Boolean? {
+        TODO("Not yet implemented")
+    }
+}

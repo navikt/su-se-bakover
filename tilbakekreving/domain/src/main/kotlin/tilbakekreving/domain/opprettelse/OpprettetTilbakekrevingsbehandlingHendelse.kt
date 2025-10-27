@@ -3,6 +3,7 @@
 
 package tilbakekreving.domain
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -70,7 +71,11 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
         return toDomain(fnr, kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
     }
 
-    fun toDomain(fnr: Fnr, kravgrunnlag: Kravgrunnlag, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
+    fun toDomain(
+        fnr: Fnr,
+        kravgrunnlag: Kravgrunnlag,
+        erKravgrunnlagUtdatert: Boolean,
+    ): OpprettetTilbakekrevingsbehandling {
         require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
         return OpprettetTilbakekrevingsbehandling(
             id = id,
@@ -83,6 +88,60 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             versjon = versjon,
             hendelseId = hendelseId,
             erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
+        )
+    }
+}
+
+data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
+    override val hendelseId: HendelseId,
+    override val sakId: UUID,
+    override val hendelsestidspunkt: Tidspunkt,
+    override val versjon: Hendelsesversjon,
+    override val id: TilbakekrevingsbehandlingId,
+    val opprettetAv: NavIdentBruker.Saksbehandler,
+) : TilbakekrevingsbehandlingHendelse {
+    override val utførtAv: NavIdentBruker.Saksbehandler = opprettetAv
+
+    // Dette vil være den første hendelsen i denne behandlingen.
+    override val tidligereHendelseId: HendelseId? = null
+    override val entitetId: UUID = sakId
+
+    override fun compareTo(other: Sakshendelse): Int {
+        TODO("Not yet implemented")
+    }
+
+    companion object {
+        /**
+         * Oppretter en opprettet tilbakekrevingsbehandlinghendelse med en tilfeldig id.
+         */
+        fun opprett(
+            sakId: UUID,
+            opprettetAv: NavIdentBruker.Saksbehandler,
+            versjon: Hendelsesversjon,
+            clock: Clock,
+        ) = OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
+            hendelseId = HendelseId.generer(),
+            sakId = sakId,
+            hendelsestidspunkt = Tidspunkt.now(clock),
+            opprettetAv = opprettetAv,
+            versjon = versjon,
+            id = TilbakekrevingsbehandlingId.generer(),
+        )
+    }
+
+    fun toDomain(
+        fnr: Fnr,
+        saksnummer: Saksnummer,
+    ): OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag {
+        return OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
+            id = id,
+            sakId = sakId,
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = hendelsestidspunkt,
+            opprettetAv = opprettetAv,
+            versjon = versjon,
+            hendelseId = hendelseId,
         )
     }
 }

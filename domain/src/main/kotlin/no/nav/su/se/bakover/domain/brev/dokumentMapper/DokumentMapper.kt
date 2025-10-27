@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import java.time.Clock
 import java.util.UUID
@@ -41,6 +42,7 @@ fun PdfA.tilDokument(
 
         is ForhåndsvarselDokumentCommand,
         is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
+        is ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand,
         is InnkallingTilKontrollsamtaleDokumentCommand,
         is PåminnelseNyStønadsperiodeDokumentCommand,
         -> informasjonViktig(

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag
 import tilbakekreving.domain.Tilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.UnderBehandling
@@ -18,7 +19,7 @@ data class TilbakekrevingsbehandlingJson(
     val sakId: String,
     val opprettet: Tidspunkt,
     val opprettetAv: String,
-    val kravgrunnlag: KravgrunnlagJson,
+    val kravgrunnlag: KravgrunnlagJson?,
     val status: TilbakekrevingsbehandlingStatus,
     val vurderinger: VurderingerMedKravJson?,
     val fritekst: String?,
@@ -40,9 +41,10 @@ data class TilbakekrevingsbehandlingJson(
             sakId = sakId.toString(),
             opprettet = opprettet,
             opprettetAv = opprettetAv.toString(),
-            kravgrunnlag = this.kravgrunnlag.toJson(),
+            kravgrunnlag = this.kravgrunnlag?.toJson(),
             status = when (this) {
                 is OpprettetTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.OPPRETTET
+                is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag -> TilbakekrevingsbehandlingStatus.OPPRETTET_UTEN_KRAVGRUNNLAG
                 is UnderBehandling.Påbegynt -> {
                     when {
                         this.erVurdert() -> TilbakekrevingsbehandlingStatus.VURDERT
@@ -61,6 +63,7 @@ data class TilbakekrevingsbehandlingJson(
             versjon = this.versjon.value,
             sendtTilAttesteringAv = when (this) {
                 is OpprettetTilbakekrevingsbehandling,
+                is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
                 is AvbruttTilbakekrevingsbehandling,
                 is UnderBehandling,
                 -> null

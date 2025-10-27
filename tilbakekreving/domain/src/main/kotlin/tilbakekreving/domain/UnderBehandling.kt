@@ -51,7 +51,7 @@ sealed interface UnderBehandling :
         override val vurderingerMedKrav: VurderingerMedKrav? = forrigeSteg.vurderingerMedKrav,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = forrigeSteg.vedtaksbrevvalg,
-        override val kravgrunnlag: Kravgrunnlag = forrigeSteg.kravgrunnlag,
+        override val kravgrunnlag: Kravgrunnlag = forrigeSteg.kravgrunnlag ?: throw IllegalStateException("Midlertig til jeg finner en bedre håndtering!"), // TODO bjg
         override val erKravgrunnlagUtdatert: Boolean = forrigeSteg.erKravgrunnlagUtdatert,
         override val notat: NonBlankString? = forrigeSteg.notat,
     ) : UnderBehandling,
@@ -94,6 +94,7 @@ sealed interface UnderBehandling :
                     forhåndsvarselsInfo = forhåndsvarselsInfo,
                     versjon = versjon,
                     notat = notat,
+                    kravgrunnlag = kravgrunnlag,
                 )
             }
         }
@@ -143,6 +144,7 @@ sealed interface UnderBehandling :
         override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
         override val notat: NonBlankString? = forrigeSteg.notat,
+        override val kravgrunnlag: Kravgrunnlag,
     ) : UnderBehandling,
         KanEndres,
         UnderBehandlingEllerTilAttestering by forrigeSteg,
@@ -156,6 +158,7 @@ sealed interface UnderBehandling :
             forrigeSteg = forrigeSteg,
             hendelseId = hendelseId,
             versjon = versjon,
+            kravgrunnlag = forrigeSteg.kravgrunnlag,
             vurderingerMedKrav = forrigeSteg.vurderingerMedKrav,
             vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
         )

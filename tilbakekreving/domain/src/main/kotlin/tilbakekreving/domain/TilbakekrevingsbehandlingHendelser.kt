@@ -37,10 +37,12 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         }
 
         sorterteHendelser.groupBy { it.id }.forEach {
-            require(it.value.first() is OpprettetTilbakekrevingsbehandlingHendelse) {
+            require(it.value.first() is OpprettetTilbakekrevingsbehandlingHendelse || it.value.first() is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse) {
                 "Den første hendelsen må være en opprettet hendelse"
             }
-            it.value.filterIsInstance<OpprettetTilbakekrevingsbehandlingHendelse>().let {
+            it.value.filter {
+                it is OpprettetTilbakekrevingsbehandlingHendelse || it is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse
+            }.let {
                 require(it.size == 1) {
                     "Den første hendelse (og kun den første) må være en OpprettetTilbakekrevingsbehandlingHendelse, men fant: ${it.size}"
                 }
@@ -114,6 +116,12 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     )
                 }
 
+                is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse -> {
+                    acc.plus(
+                        hendelseId to hendelse.toDomain(fnr, saksnummer),
+                    )
+                }
+
                 is VurdertTilbakekrevingsbehandlingHendelse -> acc.plus(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
                 ).minus(hendelse.tidligereHendelseId)
@@ -169,20 +177,15 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
     }
 
     private fun toCurrentStateVedtak(): List<VedtakTilbakekrevingsbehandling> {
-        return toCurrentState()
-            .behandlinger
-            .filterIsInstance<IverksattTilbakekrevingsbehandling>()
-            .map { iverksatt ->
-                val dokumenttilstand: Dokumenttilstand =
-                    tilhørendeOgSorterteDokumentHendelser
-                        .hentSerieForRelatertHendelse(iverksatt.hendelseId)
-                        ?.dokumenttilstand()
-                        ?: iverksatt.vedtaksbrevvalg.tilDokumenttilstand()
+        return toCurrentState().behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>().map { iverksatt ->
+            val dokumenttilstand: Dokumenttilstand =
+                tilhørendeOgSorterteDokumentHendelser.hentSerieForRelatertHendelse(iverksatt.hendelseId)
+                    ?.dokumenttilstand() ?: iverksatt.vedtaksbrevvalg.tilDokumenttilstand()
 
-                sorterteHendelser.single { it.hendelseId == iverksatt.hendelseId }.let {
-                    it as IverksattHendelse
-                }.toVedtak(iverksatt = iverksatt, dokumenttilstand = dokumenttilstand)
-            }
+            sorterteHendelser.single { it.hendelseId == iverksatt.hendelseId }.let {
+                it as IverksattHendelse
+            }.toVedtak(iverksatt = iverksatt, dokumenttilstand = dokumenttilstand)
+        }
     }
 
     /**
@@ -211,7 +214,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
     fun hentBehandlingForKravgrunnlag(kravgrunnlagHendelseId: HendelseId): Tilbakekrevingsbehandling? =
         this.currentState.behandlinger.singleOrNullOrThrow {
-            it.kravgrunnlag.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
+            it.kravgrunnlag?.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
         }
 
     /**
@@ -229,8 +232,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
         if (sisteKravgrunnlag.erAvsluttet()) return null
 
-        if (this.currentState.behandlinger
-                .filterIsInstance<IverksattTilbakekrevingsbehandling>()
+        if (this.currentState.behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>()
                 .any { it.kravgrunnlag == sisteKravgrunnlag }
         ) {
             return null

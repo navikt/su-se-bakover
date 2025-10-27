@@ -11,7 +11,7 @@ import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
 import java.time.Clock
 
 sealed interface KanOppdatereKravgrunnlag : KanEndres {
-    override val kravgrunnlag: Kravgrunnlag
+    override val kravgrunnlag: Kravgrunnlag?
 
     fun oppdaterKravgrunnlag(
         command: OppdaterKravgrunnlagCommand,
@@ -19,7 +19,7 @@ sealed interface KanOppdatereKravgrunnlag : KanEndres {
         nyttKravgrunnlag: Kravgrunnlag,
         clock: Clock,
     ): Pair<OppdatertKravgrunnlagPåTilbakekrevingHendelse, UnderBehandling.Påbegynt> {
-        if (this.kravgrunnlag.hendelseId == nyttKravgrunnlag.hendelseId) {
+        if (this.kravgrunnlag?.hendelseId == nyttKravgrunnlag.hendelseId) {
             throw IllegalStateException("Prøvde å oppdatere kravgrunnlag for behandling ${this.id}, men kravgrunnlags-IDen er lik: ${nyttKravgrunnlag.hendelseId}")
         }
 

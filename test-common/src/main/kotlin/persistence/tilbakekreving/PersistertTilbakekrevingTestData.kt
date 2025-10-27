@@ -175,7 +175,7 @@ class PersistertTilbakekrevingTestData(
                     nyVurdertTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
 
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {
@@ -213,7 +213,7 @@ class PersistertTilbakekrevingTestData(
                     nyOppdaterVedtaksbrevTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
@@ -253,7 +253,7 @@ class PersistertTilbakekrevingTestData(
                     nyOppdatertNotatTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
@@ -297,7 +297,7 @@ class PersistertTilbakekrevingTestData(
                     nyOppdatertKravgrunnlagTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc().inc(),
-                        førsteKravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        førsteKravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
                         oppdatertKravgrunnlagPåSakHendelseId = oppdatertKravgrunnlag!!.hendelseId,
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {
@@ -375,7 +375,7 @@ class PersistertTilbakekrevingTestData(
                     nyTilbakekrevingsbehandlingTilAttesteringHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {
                         tilbakekrevingHendelseRepo.lagre(it, defaultHendelseMetadata())
@@ -412,7 +412,7 @@ class PersistertTilbakekrevingTestData(
                     nyUnderkjentTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
 
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {
@@ -450,7 +450,7 @@ class PersistertTilbakekrevingTestData(
                     nyIverksattTilbakekrevingsbehandlingHendelse(
                         forrigeHendelse = hendelser.last(),
                         versjon = hendelser.last().versjon.inc(),
-                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag.hendelseId,
+                        kravgrunnlagPåSakHendelseId = hendelser.currentState.behandlinger.first().kravgrunnlag!!.hendelseId,
 
                         hendelsesTidspunkt = Tidspunkt.now(clock),
                     ).let {

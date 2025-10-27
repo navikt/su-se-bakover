@@ -142,8 +142,8 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
         ansvarligBeslutter = ansvarligBeslutter,
         behandlingMetode = BehandlingMetode.Manuell,
         tilbakekrevBeløp = tilbakekrevBeløp,
-        funksjonellPeriodeFom = kravgrunnlag.periode?.fraOgMed,
-        funksjonellPeriodeTom = kravgrunnlag.periode?.tilOgMed,
+        funksjonellPeriodeFom = kravgrunnlag?.periode?.fraOgMed,
+        funksjonellPeriodeTom = kravgrunnlag?.periode?.tilOgMed,
     )
 }
 

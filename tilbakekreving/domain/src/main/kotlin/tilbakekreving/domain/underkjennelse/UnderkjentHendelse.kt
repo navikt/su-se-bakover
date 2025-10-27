@@ -59,6 +59,7 @@ data class UnderkjentHendelse(
             is OpprettetTilbakekrevingsbehandling,
             is UnderBehandling,
             is AvbruttTilbakekrevingsbehandling,
+            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             is IverksattTilbakekrevingsbehandling,
             -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Vurdert, Avbrutt, Iverksatt] -> Underkjenn. Støtter kun å fra TilAttestering. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
@@ -67,6 +68,7 @@ data class UnderkjentHendelse(
                     forrigeSteg = behandling,
                     hendelseId = this.hendelseId,
                     versjon = this.versjon,
+                    kravgrunnlag = behandling.kravgrunnlag,
                     attesteringer = behandling.attesteringer.leggTilNyAttestering(
                         attestering = Attestering.Underkjent(
                             attestant = this.utførtAv,

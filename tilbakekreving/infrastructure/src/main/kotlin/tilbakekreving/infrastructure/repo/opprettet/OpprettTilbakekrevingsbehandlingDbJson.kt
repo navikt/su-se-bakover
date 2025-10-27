@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
@@ -38,4 +39,31 @@ internal fun OpprettetTilbakekrevingsbehandlingHendelse.toJson(): String {
     ).let {
         serialize(it)
     }
+}
+
+internal data class OpprettTilbakekrevingsbehandlingUtenKravgrunnlagHendelseDbJson(
+    override val behandlingsId: UUID,
+    override val utførtAv: String,
+) : TilbakekrevingDbJson
+
+internal fun OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse.toJson(): String {
+    return OpprettTilbakekrevingsbehandlingUtenKravgrunnlagHendelseDbJson(
+        behandlingsId = this.id.value,
+        utførtAv = this.opprettetAv.navIdent,
+    ).let {
+        serialize(it)
+    }
+}
+
+internal fun PersistertHendelse.mapToOpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(): OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse {
+    val deserialized = deserialize<OpprettTilbakekrevingsbehandlingUtenKravgrunnlagHendelseDbJson>(data)
+
+    return OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
+        hendelseId = hendelseId,
+        sakId = sakId!!,
+        hendelsestidspunkt = hendelsestidspunkt,
+        versjon = versjon,
+        id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
+        opprettetAv = NavIdentBruker.Saksbehandler(deserialized.utførtAv),
+    )
 }
