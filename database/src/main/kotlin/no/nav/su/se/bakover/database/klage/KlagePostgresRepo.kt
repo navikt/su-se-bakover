@@ -775,8 +775,7 @@ internal class KlagePostgresRepo(
             }
         }
 
-        data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) : VedtaksvurderingJson {
-
+        sealed interface OversendtKa {
             enum class Hjemmel(val verdi: String) {
                 SU_PARAGRAF_3("su_paragraf_3"),
                 SU_PARAGRAF_4("su_paragraf_4"),
@@ -861,10 +860,25 @@ internal class KlagePostgresRepo(
 
                 override fun toString() = verdi
             }
+        }
+        data class DelvisOmgjøringKa(val hjemler: List<String>, val klagenotat: String?) :
+            VedtaksvurderingJson,
+            OversendtKa {
+            override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
+                return VurderingerTilKlage.Vedtaksvurdering.createDelvisOmgjøringKa(
+                    hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
+                    klagenotat = klagenotat,
+                ).getOrNull()!!
+            }
+        }
+
+        data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) :
+            VedtaksvurderingJson,
+            OversendtKa {
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-                    hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() },
+                    hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
                     klagenotat = klagenotat,
                 ).getOrNull()!!
             }
@@ -877,7 +891,7 @@ internal class KlagePostgresRepo(
                         årsak = årsak?.name,
                         begrunnelse = begrunnelse,
                     )
-                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold, is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
                     )
@@ -885,7 +899,7 @@ internal class KlagePostgresRepo(
                         årsak = årsak.name,
                         begrunnelse = begrunnelse,
                     )
-                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold, is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
                     )
