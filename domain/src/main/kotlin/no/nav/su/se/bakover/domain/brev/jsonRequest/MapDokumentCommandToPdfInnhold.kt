@@ -162,7 +162,12 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 clock = clock,
             )
-            is ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand -> TODO()
+            is ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand -> ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
+                command = command,
+                personalia = personalia().bind(),
+                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                clock = clock,
+            )
 
             is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand -> VedtaksbrevTilbakekrevingsbehandlingPdfInnhold.fromBrevCommand(
                 command = command,

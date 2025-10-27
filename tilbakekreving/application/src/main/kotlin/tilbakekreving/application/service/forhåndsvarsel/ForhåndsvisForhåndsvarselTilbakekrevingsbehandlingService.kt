@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsviseForhåndsvarsel
 import tilgangstyring.application.TilgangstyringService
@@ -37,7 +38,18 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
 
-        return brevService.lagDokument(
+        val kravgrunnlag = behandling.kravgrunnlag
+        val brevCommand = if (kravgrunnlag == null) {
+            ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand(
+                saksnummer = sak.saksnummer,
+                sakstype = sak.type,
+                fritekst = command.fritekst,
+                saksbehandler = command.utførtAv,
+                correlationId = command.correlationId,
+                sakId = command.sakId,
+                fødselsnummer = sak.fnr,
+            )
+        } else {
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
                 sakstype = sak.type,
@@ -45,10 +57,12 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,
                 sakId = command.sakId,
-                kravgrunnlag = behandling.kravgrunnlag ?: throw IllegalStateException("Må ha eeget dokument hvis kravgrunnlag mangler"), // TODO bjg,
+                kravgrunnlag = kravgrunnlag,
                 fødselsnummer = sak.fnr,
-            ),
-        )
+            )
+        }
+
+        return brevService.lagDokument(brevCommand)
             .mapLeft { KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering(it) }
             .map { it.generertDokument }
     }
