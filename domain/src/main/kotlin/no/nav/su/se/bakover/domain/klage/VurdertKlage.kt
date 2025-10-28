@@ -199,6 +199,14 @@ sealed interface VurdertKlage :
                         sakstype,
                         fritekstTilVedtaksbrev = vurderinger.fritekstTilOversendelsesbrev,
                     )
+
+                    is VurderingerTilKlage.UtfyltDelvisOmgjøringKA -> UtfyltDelvisOmgjøringKA.create(
+                        forrigeSteg,
+                        saksbehandler,
+                        vurderinger,
+                        sakstype,
+                        fritekstTilVedtaksbrev = vurderinger.fritekstTilOversendelsesbrev,
+                    )
                 }
             }
         }
@@ -287,6 +295,60 @@ sealed interface VurdertKlage :
         }
     }
 
+    /*
+        Merge klassene av denne? innholdet er helt likt, enten må vi ha en type eller en klasse
+        -> må se om typen blir bevart på en annen måte ellers lukter det et klassebaserthierarki altså
+        hmmm vurderinger har typen og kan skilles på slik og flyten skal være lik for disse to hele veien ut
+        mao burde de kunne være samme klasse men lager to i første iterasjon og ser hvordan modelleringen blir.
+        TODO: skal vi ha to flytter vi hele logikken inn i interfacet
+     */
+    sealed interface UtfyltOversendtTilKA : Utfylt
+    data class UtfyltDelvisOmgjøringKA internal constructor(
+        private val forrigeSteg: Påbegynt,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val vurderinger: VurderingerTilKlage.UtfyltDelvisOmgjøringKA,
+        override val sakstype: Sakstype,
+        override val fritekstTilVedtaksbrev: String,
+    ) : KanGenerereBrevutkast,
+        UtfyltOversendtTilKA,
+        VurdertKlageFelter by forrigeSteg {
+        override fun internalForrigeStegUtfylt(): Påbegynt = forrigeSteg
+
+        companion object {
+            fun create(
+                forrigeSteg: Påbegynt,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vurderinger: VurderingerTilKlage.UtfyltDelvisOmgjøringKA,
+                sakstype: Sakstype,
+                fritekstTilVedtaksbrev: String,
+            ): UtfyltDelvisOmgjøringKA {
+                return UtfyltDelvisOmgjøringKA(
+                    forrigeSteg = forrigeSteg,
+                    saksbehandler = saksbehandler,
+                    vurderinger = vurderinger,
+                    sakstype = sakstype,
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                )
+            }
+        }
+
+        /**
+         * @param utførtAv brukes kun i attesteringsstegene
+         */
+        override fun lagBrevRequest(
+            utførtAv: NavIdentBruker,
+            hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+            return genererOversendelsesBrev(
+                attestant = null,
+                hentVedtaksbrevDato = hentVedtaksbrevDato,
+            )
+        }
+
+        override val fritekstTilBrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
+    }
+
     data class UtfyltOppretthold internal constructor(
         private val forrigeSteg: Påbegynt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -294,7 +356,7 @@ sealed interface VurdertKlage :
         override val sakstype: Sakstype,
         override val fritekstTilVedtaksbrev: String,
     ) : KanGenerereBrevutkast,
-        Utfylt,
+        UtfyltOversendtTilKA,
         VurdertKlageFelter by forrigeSteg {
         override fun internalForrigeStegUtfylt(): Påbegynt = forrigeSteg
 
@@ -368,6 +430,12 @@ sealed interface VurdertKlage :
                         saksbehandler = saksbehandler,
                         sakstype = sakstype,
                     )
+
+                    is UtfyltDelvisOmgjøringKA -> BekreftetDelvisOmgjøringKA.create(
+                        forrigeSteg = forrigeSteg,
+                        saksbehandler = saksbehandler,
+                        sakstype = sakstype,
+                    )
                 }
             }
         }
@@ -412,8 +480,83 @@ sealed interface VurdertKlage :
         }
     }
 
-    interface OpprettholdKlageFelter : VurdertKlageFelter {
-        override val vurderinger: VurderingerTilKlage.UtfyltOppretthold
+    sealed interface BekreftetOversendtTilKA :
+        BekreftetOversendtTilKAFelter,
+        Bekreftet,
+        KanGenerereBrevutkast {
+        override val fritekstTilBrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
+
+        override val fritekstTilVedtaksbrev: String
+            get() = super.fritekstTilVedtaksbrev
+    }
+
+    sealed interface BekreftetOversendtTilKAFelter : VurdertKlageFelter {
+
+        override val vurderinger: VurderingerTilKlage.OversendtKA
+
+        val fritekstTilVedtaksbrev: String
+            get() = vurderinger.fritekstTilOversendelsesbrev
+    }
+
+    data class BekreftetDelvisOmgjøringKA internal constructor(
+        private val forrigeSteg: UtfyltDelvisOmgjøringKA,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
+        override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
+        override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
+        override val sakstype: Sakstype,
+    ) : BekreftetOversendtTilKA,
+        BekreftetOversendtTilKAFelter,
+        VurdertKlageFelter by forrigeSteg {
+        override val vurderinger: VurderingerTilKlage.UtfyltDelvisOmgjøringKA = forrigeSteg.vurderinger
+
+        override fun sendTilAttestering(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Either<KunneIkkeSendeKlageTilAttestering, KlageTilAttestering> {
+            return KlageTilAttestering.Vurdert(
+                forrigeSteg = this,
+                saksbehandler = saksbehandler,
+                sakstype = sakstype,
+            ).right()
+        }
+
+        override fun bekreftVurderinger(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Bekreftet {
+            return this.copy(saksbehandler = saksbehandler)
+        }
+        override fun internalInstance(): Bekreftet {
+            return this
+        }
+        override fun internalForrigeStegBekreftet() = forrigeSteg
+
+        /**
+         * @param utførtAv brukes kun i attesteringsstegene
+         */
+        override fun lagBrevRequest(
+            utførtAv: NavIdentBruker,
+            hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+            return genererOversendelsesBrev(
+                attestant = null,
+                hentVedtaksbrevDato = hentVedtaksbrevDato,
+            )
+        }
+
+        companion object {
+            fun create(
+                forrigeSteg: UtfyltDelvisOmgjøringKA,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                sakstype: Sakstype,
+            ): BekreftetDelvisOmgjøringKA {
+                return BekreftetDelvisOmgjøringKA(
+                    forrigeSteg = forrigeSteg,
+                    saksbehandler = saksbehandler,
+                    sakstype = sakstype,
+                )
+            }
+        }
     }
 
     data class BekreftetOpprettholdt internal constructor(
@@ -423,9 +566,8 @@ sealed interface VurdertKlage :
         override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
         override val klageinstanshendelser: Klageinstanshendelser = forrigeSteg.klageinstanshendelser,
         override val sakstype: Sakstype,
-    ) : Bekreftet,
-        OpprettholdKlageFelter,
-        KanGenerereBrevutkast,
+    ) : BekreftetOversendtTilKA,
+        BekreftetOversendtTilKAFelter,
         VurdertKlageFelter by forrigeSteg {
         override val vurderinger: VurderingerTilKlage.UtfyltOppretthold = forrigeSteg.vurderinger
 
@@ -448,11 +590,6 @@ sealed interface VurdertKlage :
             return this
         }
         override fun internalForrigeStegBekreftet() = forrigeSteg
-        override val fritekstTilBrev: String
-            get() = vurderinger.fritekstTilOversendelsesbrev
-
-        override val fritekstTilVedtaksbrev: String
-            get() = vurderinger.fritekstTilOversendelsesbrev
 
         /**
          * @param utførtAv brukes kun i attesteringsstegene

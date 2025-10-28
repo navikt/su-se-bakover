@@ -54,7 +54,9 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
         is KlageTilAttestering.Vurdert -> this.fritekstTilVedtaksbrev
         is VurdertKlage.UtfyltOppretthold -> this.fritekstTilVedtaksbrev
         is VurdertKlage.Påbegynt -> this.fritekstTilVedtaksbrev ?: return KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt.left()
-        is VurdertKlage.BekreftetOpprettholdt -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.BekreftetOversendtTilKA -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.UtfyltDelvisOmgjøringKA -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.BekreftetOversendtTilKAFelter -> this.fritekstTilVedtaksbrev
     }
 
     return KlageDokumentCommand.Oppretthold(

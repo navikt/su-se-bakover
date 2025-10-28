@@ -64,14 +64,14 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
             ignoreProperty,
         )
 
-        is VurdertKlage.UtfyltOppretthold, is VurdertKlage.UtfyltOmgjør -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
+        is VurdertKlage.UtfyltOppretthold, is VurdertKlage.UtfyltOmgjør, is VurdertKlage.UtfyltDelvisOmgjøringKA -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
         is VurdertKlage.Bekreftet -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is KlageTilAttestering.Avvist -> this.castAndCompare<AvvistKlageFelter>(expected, ignoreProperty)
         is KlageTilAttestering.Vurdert -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is AvsluttetKlage -> {
             this.castAndCompare<Klage>(expected, ignoreProperty)
         }
-
+        // WHY?
         is OversendtKlage -> this.castAndCompare<VurdertKlage.Utfylt>(expected)
         is IverksattAvvistKlage -> this.castAndCompare<AvvistKlageFelter>(expected)
         is FerdigstiltOmgjortKlage -> this.castAndCompare<FerdigstiltOmgjortKlage>(expected)

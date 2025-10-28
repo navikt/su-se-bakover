@@ -2,7 +2,6 @@ package behandling.klage.domain
 
 import arrow.core.Either
 import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold
-import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Påbegynt.OversendtTilKA
 import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Utfylt.OversendtKa
 
 /**
@@ -108,7 +107,6 @@ sealed interface VurderingerTilKlage {
         }
     }
 
-    // og denne #####SOS
     sealed interface Utfylt : VurderingerTilKlage {
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt
     }
@@ -119,13 +117,14 @@ sealed interface VurderingerTilKlage {
 
     sealed interface OversendtKA : Utfylt {
         val fritekstTilOversendelsesbrev: String
+        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.OversendtKa
         companion object {
             fun create(
                 fritekstTilOversendelsesbrev: String,
                 vedtaksvurdering: OversendtKa,
             ): OversendtKA {
                 return when (vedtaksvurdering) {
-                    is Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> DelvisOmgjøringKA(
+                    is Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> UtfyltDelvisOmgjøringKA(
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
@@ -142,7 +141,7 @@ sealed interface VurderingerTilKlage {
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Oppretthold,
     ) : OversendtKA
 
-    data class DelvisOmgjøringKA(
+    data class UtfyltDelvisOmgjøringKA(
         override val fritekstTilOversendelsesbrev: String,
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt.DelvisOmgjøringKa,
     ) : OversendtKA
@@ -224,18 +223,14 @@ sealed interface VurderingerTilKlage {
                 OversendtTilKA
         }
 
-        // Duplikat for VurdertKlage egentlig, kan jo lure på forskjellen mellom denne #####SOS
         sealed interface Utfylt : Vedtaksvurdering {
             data class Omgjør(val årsak: Årsak, val begrunnelse: String?) : Utfylt
-            sealed interface OversendtKa {
+            sealed interface OversendtKa : Utfylt {
                 val hjemler: Klagehjemler.Utfylt
+                val klagenotat: String?
             }
-            data class Oppretthold(override val hjemler: Klagehjemler.Utfylt, val klagenotat: String?) :
-                Utfylt,
-                OversendtKa
-            data class DelvisOmgjøringKa(override val hjemler: Klagehjemler.Utfylt, val klagenotat: String?) :
-                Utfylt,
-                OversendtKa
+            data class Oppretthold(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : OversendtKa
+            data class DelvisOmgjøringKa(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : OversendtKa
         }
 
         // Se også Omgjøringsgrunn - må se om de skal konsolideres evt fjernes fra behandlingsløpet hvis det lagres her. Blir da kun historisk

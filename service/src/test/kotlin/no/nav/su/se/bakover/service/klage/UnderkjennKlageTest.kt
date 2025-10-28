@@ -271,7 +271,7 @@ internal class UnderkjennKlageTest {
         val underkjent = KlageTilAttestering.Vurdert(bekreftetKlage, klage.saksbehandler, klage.sakstype).underkjenn(attesteringer).getOrElse { throw RuntimeException("feil") }
 
         mocks.service.underkjenn(request).getOrElse { throw RuntimeException(it.toString()) }.also {
-            expectedKlage = underkjent
+            expectedKlage = underkjent as VurdertKlage.BekreftetOpprettholdt
             it shouldBe expectedKlage
         }
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })

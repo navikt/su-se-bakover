@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.database.klage.AvsluttetKlageJson.Companion.toAvslut
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Svarord.Companion.tilDatabaseType
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Tilstand.Companion.databasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Companion.toJson
-import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Oppretthold.Hjemmel.Companion.toDatabasetype
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.OversendtKa.Hjemmel.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -717,10 +717,10 @@ internal class KlagePostgresRepo(
                     is VilkårsvurdertKlage.Bekreftet.Avvist -> VILKÅRSVURDERT_BEKREFTET_AVVIST
 
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
-                    is VurdertKlage.UtfyltOppretthold -> VURDERT_UTFYLT
+                    is VurdertKlage.UtfyltOversendtTilKA -> VURDERT_UTFYLT
                     is VurdertKlage.UtfyltOmgjør -> VURDERT_UTFYLT
                     is VurdertKlage.BekreftetOmgjøring -> VURDERT_BEKREFTET
-                    is VurdertKlage.BekreftetOpprettholdt -> VURDERT_BEKREFTET
+                    is VurdertKlage.BekreftetOpprettholdt, is VurdertKlage.BekreftetDelvisOmgjøringKA -> VURDERT_BEKREFTET
 
                     is AvvistKlage -> AVVIST
 
