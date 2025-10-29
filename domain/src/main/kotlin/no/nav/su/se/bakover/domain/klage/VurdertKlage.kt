@@ -184,6 +184,7 @@ sealed interface VurdertKlage :
         fun internalForrigeStegUtfylt(): Påbegynt
 
         companion object {
+            // SPørsmålet her er om vi her ikke skal skille på de to oversendelsenee til KA eller ei
             fun createUtfylt(
                 vurderinger: VurderingerTilKlage.Utfylt,
                 forrigeSteg: Påbegynt,
