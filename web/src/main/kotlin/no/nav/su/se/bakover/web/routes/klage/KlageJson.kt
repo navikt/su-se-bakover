@@ -58,13 +58,14 @@ internal data class KlageJson(
     data class VedtaksvurderingJson(
         val type: String,
         val omgjør: OmgjørJson?,
-        val oppretthold: OpprettholdJson?,
+        val oppretthold: KabalData?,
+        val delvisOmgjøringKa: KabalData?,
     ) {
 
         enum class Type {
             OMGJØR,
             OPPRETTHOLD,
-            DELVIS_OMGJØRING, // TODO: SKILLE PÅ KA ELLER IKKE HER? hvor brukes denne?
+            DELVIS_OMGJØRING_KA, // TODO: SKILLE PÅ KA ELLER IKKE HER? hvor brukes denne?
         }
 
         data class OmgjørJson(
@@ -72,7 +73,7 @@ internal data class KlageJson(
             val begrunnelse: String?,
         )
 
-        data class OpprettholdJson(
+        data class KabalData(
             val hjemler: List<String>,
             val klagenotat: String?,
         )
@@ -87,23 +88,26 @@ internal data class KlageJson(
                             begrunnelse = begrunnelse,
                         ),
                         oppretthold = null,
+                        delvisOmgjøringKa = null,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> VedtaksvurderingJson(
-                        type = Type.DELVIS_OMGJØRING.toString(),
+                        type = Type.DELVIS_OMGJØRING_KA.toString(),
                         omgjør = null,
-                        oppretthold = OpprettholdJson(
+                        delvisOmgjøringKa = KabalData(
                             hjemler = hjemler.map { it.toString() },
                             klagenotat = klagenotat,
                         ),
+                        oppretthold = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> VedtaksvurderingJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
-                        oppretthold = OpprettholdJson(
+                        oppretthold = KabalData(
                             hjemler = hjemler.map { it.toString() },
                             klagenotat = klagenotat,
                         ),
+                        delvisOmgjøringKa = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> VedtaksvurderingJson(
@@ -113,24 +117,27 @@ internal data class KlageJson(
                             begrunnelse = begrunnelse,
                         ),
                         oppretthold = null,
+                        delvisOmgjøringKa = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> VedtaksvurderingJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
-                        oppretthold = OpprettholdJson(
+                        oppretthold = KabalData(
                             hjemler = hjemler.map { it.toString() },
                             klagenotat = klagenotat,
                         ),
+                        delvisOmgjøringKa = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> VedtaksvurderingJson(
-                        type = Type.DELVIS_OMGJØRING.toString(),
+                        type = Type.DELVIS_OMGJØRING_KA.toString(),
                         omgjør = null,
-                        oppretthold = OpprettholdJson(
+                        delvisOmgjøringKa = KabalData(
                             hjemler = hjemler.map { it.toString() },
                             klagenotat = klagenotat,
                         ),
+                        oppretthold = null,
                     )
                 }
             }

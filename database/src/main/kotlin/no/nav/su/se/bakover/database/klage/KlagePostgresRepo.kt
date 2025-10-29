@@ -762,11 +762,14 @@ internal class KlagePostgresRepo(
             value = VedtaksvurderingJson.Oppretthold::class,
             name = "Oppretthold",
         ),
+        JsonSubTypes.Type(
+            value = VedtaksvurderingJson.DelvisOmgjøringKa::class,
+            name = "DelvisOmgjøringKA",
+        ),
     )
     private sealed interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
         data class Omgjør(val årsak: String?, val begrunnelse: String?) : VedtaksvurderingJson {
-
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
@@ -865,9 +868,10 @@ internal class KlagePostgresRepo(
             VedtaksvurderingJson,
             OversendtKa {
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
-                return VurderingerTilKlage.Vedtaksvurdering.createDelvisOmgjøringKa(
+                return VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
                     hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
                     klagenotat = klagenotat,
+                    erOppretthold = false,
                 ).getOrNull()!!
             }
         }
@@ -877,9 +881,10 @@ internal class KlagePostgresRepo(
             OversendtKa {
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
-                return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+                return VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
                     hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
                     klagenotat = klagenotat,
+                    erOppretthold = true,
                 ).getOrNull()!!
             }
         }
@@ -891,7 +896,11 @@ internal class KlagePostgresRepo(
                         årsak = årsak?.name,
                         begrunnelse = begrunnelse,
                     )
-                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold, is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> Oppretthold(
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
+                        hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> DelvisOmgjøringKa(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
                     )
@@ -899,7 +908,11 @@ internal class KlagePostgresRepo(
                         årsak = årsak.name,
                         begrunnelse = begrunnelse,
                     )
-                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold, is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> Oppretthold(
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
+                        hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> DelvisOmgjøringKa(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
                     )

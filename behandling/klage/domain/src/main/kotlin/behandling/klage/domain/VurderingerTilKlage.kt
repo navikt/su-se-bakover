@@ -2,7 +2,7 @@ package behandling.klage.domain
 
 import arrow.core.Either
 import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold
-import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Utfylt.OversendtKa
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Utfylt.SkalTilKabal
 
 /**
  * Støtter kun opprettholdelse i MVP, men vi har støtte for å lagre alle feltene.
@@ -117,11 +117,11 @@ sealed interface VurderingerTilKlage {
 
     sealed interface OversendtKA : Utfylt {
         val fritekstTilOversendelsesbrev: String
-        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.OversendtKa
+        override val vedtaksvurdering: SkalTilKabal
         companion object {
             fun create(
                 fritekstTilOversendelsesbrev: String,
-                vedtaksvurdering: OversendtKa,
+                vedtaksvurdering: SkalTilKabal,
             ): OversendtKA {
                 return when (vedtaksvurdering) {
                     is Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> UtfyltDelvisOmgjøringKA(
@@ -160,20 +160,15 @@ sealed interface VurderingerTilKlage {
                 )
             }
 
-            fun createOppretthold(hjemler: List<Hjemmel>, klagenotat: String?): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
+            fun createDelvisEllerOpprettholdelse(hjemler: List<Hjemmel>, klagenotat: String?, erOppretthold: Boolean): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
                 return Klagehjemler.tryCreate(hjemler).map {
                     when (it) {
-                        is Klagehjemler.IkkeUtfylt -> Oppretthold(hjemler = it, klagenotat = klagenotat)
-                        is Klagehjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it, klagenotat = klagenotat)
-                    }
-                }
-            }
-
-            fun createDelvisOmgjøringKa(hjemler: List<Hjemmel>, klagenotat: String?): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
-                return Klagehjemler.tryCreate(hjemler).map {
-                    when (it) {
-                        is Klagehjemler.IkkeUtfylt -> Påbegynt.DelvisOmgjøringKA(hjemler = it, klagenotat = klagenotat)
-                        is Klagehjemler.Utfylt -> Utfylt.DelvisOmgjøringKa(hjemler = it, klagenotat = klagenotat)
+                        is Klagehjemler.IkkeUtfylt -> {
+                            Påbegynt.OversendtTilKA.create(erOppretthold = erOppretthold, hjemler = it, klagenotat = klagenotat)
+                        }
+                        is Klagehjemler.Utfylt -> {
+                            SkalTilKabal.create(erOppretthold = erOppretthold, hjemler = it, klagenotat = klagenotat)
+                        }
                     }
                 }
             }
@@ -209,6 +204,19 @@ sealed interface VurderingerTilKlage {
             interface OversendtTilKA {
                 val hjemler: Klagehjemler.IkkeUtfylt
                 val klagenotat: String?
+                companion object {
+                    fun create(
+                        erOppretthold: Boolean,
+                        hjemler: Klagehjemler.IkkeUtfylt,
+                        klagenotat: String?,
+                    ): Vedtaksvurdering {
+                        return if (erOppretthold) {
+                            Oppretthold(hjemler = hjemler, klagenotat = klagenotat)
+                        } else {
+                            DelvisOmgjøringKA(hjemler = hjemler, klagenotat = klagenotat)
+                        }
+                    }
+                }
             }
             data class Oppretthold(
                 override val hjemler: Klagehjemler.IkkeUtfylt,
@@ -225,12 +233,26 @@ sealed interface VurderingerTilKlage {
 
         sealed interface Utfylt : Vedtaksvurdering {
             data class Omgjør(val årsak: Årsak, val begrunnelse: String?) : Utfylt
-            sealed interface OversendtKa : Utfylt {
+            sealed interface SkalTilKabal : Utfylt {
                 val hjemler: Klagehjemler.Utfylt
                 val klagenotat: String?
+
+                companion object {
+                    fun create(
+                        erOppretthold: Boolean,
+                        hjemler: Klagehjemler.Utfylt,
+                        klagenotat: String?,
+                    ): Vedtaksvurdering {
+                        return if (erOppretthold) {
+                            Oppretthold(hjemler = hjemler, klagenotat = klagenotat)
+                        } else {
+                            DelvisOmgjøringKa(hjemler = hjemler, klagenotat = klagenotat)
+                        }
+                    }
+                }
             }
-            data class Oppretthold(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : OversendtKa
-            data class DelvisOmgjøringKa(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : OversendtKa
+            data class Oppretthold(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : SkalTilKabal
+            data class DelvisOmgjøringKa(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : SkalTilKabal
         }
 
         // Se også Omgjøringsgrunn - må se om de skal konsolideres evt fjernes fra behandlingsløpet hvis det lagres her. Blir da kun historisk

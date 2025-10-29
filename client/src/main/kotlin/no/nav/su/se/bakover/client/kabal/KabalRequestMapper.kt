@@ -19,6 +19,7 @@ internal data object KabalRequestMapper {
             fagsak = KabalRequest.Fagsak(klage.saksnummer.toString()),
             kildeReferanse = klage.id.toString(),
             dvhReferanse = klage.id.toString(),
+            // Todo vurderinger.vedtaksvurdering her må også godta delvis omgjøring
             hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.toKabalHjemler(),
             tilknyttedeJournalposter = listOf(
                 KabalRequest.TilknyttedeJournalposter(

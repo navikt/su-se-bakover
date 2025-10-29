@@ -110,7 +110,7 @@ internal class VurderKlageTest {
     @Test
     fun `kan ikke velge både omgjør og oppretthold`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold,
+            feilkode = KunneIkkeVurdereKlage.ForMangeUtfall,
             status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Kan ikke velge både omgjør og oppretthold.\",\"code\":\"kan_ikke_velge_både_omgjør_og_oppretthold\"}",
         )

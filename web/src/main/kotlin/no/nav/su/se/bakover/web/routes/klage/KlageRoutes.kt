@@ -221,7 +221,7 @@ internal fun Route.klageRoutes(
             fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
                 return when (this) {
                     KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
-                    KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
+                    KunneIkkeVurdereKlage.ForMangeUtfall -> BadRequest.errorJson(
                         "Kan ikke velge både omgjør og oppretthold.",
                         "kan_ikke_velge_både_omgjør_og_oppretthold",
                     )
@@ -241,12 +241,13 @@ internal fun Route.klageRoutes(
             }
 
             data class Omgjør(val årsak: String?, val begrunnelse: String?)
-            data class Oppretthold(val hjemler: List<String> = emptyList(), val klagenotat: String?)
+            data class SkalTilKabal(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
                 val fritekstTilBrev: String?,
                 val omgjør: Omgjør?,
-                val oppretthold: Oppretthold?,
+                val oppretthold: SkalTilKabal?,
+                val delvisomgjøringKa: SkalTilKabal?,
             )
 
             call.withKlageId { klageId ->
@@ -262,7 +263,10 @@ internal fun Route.klageRoutes(
                                 )
                             },
                             oppretthold = body.oppretthold?.let { oppretthold ->
-                                KlageVurderingerRequest.Oppretthold(hjemler = oppretthold.hjemler, klagenotat = oppretthold.klagenotat)
+                                KlageVurderingerRequest.SkalTilKabal(hjemler = oppretthold.hjemler, klagenotat = oppretthold.klagenotat, erOppretthold = true)
+                            },
+                            delvisomgjøring_ka = body.delvisomgjøringKa?.let { delvisOmgjøring ->
+                                KlageVurderingerRequest.SkalTilKabal(hjemler = delvisOmgjøring.hjemler, klagenotat = delvisOmgjøring.klagenotat, erOppretthold = false)
                             },
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),
