@@ -145,7 +145,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             fritekst = forhåndsvarsleHendelse.fritekst,
             saksbehandler = forhåndsvarsleHendelse.utførtAv,
             correlationId = correlationId,
-            kravgrunnlag = behandling.kravgrunnlag ?: throw IllegalStateException("Må ha eeget dokument hvis kravgrunnlag mangler"), // TODO bjg,
+            kravgrunnlag = behandling.kravgrunnlag,
         )
 
         val dokument = brevService.lagDokument(id = forhåndsvarsleHendelse.dokumentId, command = command)

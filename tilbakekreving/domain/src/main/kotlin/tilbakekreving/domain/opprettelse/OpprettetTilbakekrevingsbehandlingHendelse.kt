@@ -107,7 +107,8 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
     override val entitetId: UUID = sakId
 
     override fun compareTo(other: Sakshendelse): Int {
-        TODO("Not yet implemented")
+        require(this.entitetId == other.entitetId && this.sakId == other.sakId)
+        return this.versjon.compareTo(other.versjon)
     }
 
     companion object {

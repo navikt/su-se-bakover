@@ -17,6 +17,8 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.util.UUID
 
+// TODO bjg - seal class her??
+
 data class OpprettetTilbakekrevingsbehandling(
     override val id: TilbakekrevingsbehandlingId,
     override val sakId: UUID,
@@ -49,7 +51,7 @@ data class OpprettetTilbakekrevingsbehandling(
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
         hendelsesTidspunkt: Tidspunkt,
-    ) = UnderBehandling.Påbegynt(
+    ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
         versjon = versjon,
@@ -60,7 +62,7 @@ data class OpprettetTilbakekrevingsbehandling(
         månedsvurderinger: VurderingerMedKrav,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
-    ) = UnderBehandling.Påbegynt(
+    ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
         vurderingerMedKrav = månedsvurderinger,
@@ -71,7 +73,7 @@ data class OpprettetTilbakekrevingsbehandling(
         notat: NonBlankString?,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
-    ) = UnderBehandling.Påbegynt(
+    ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
         forrigeSteg = this,
         hendelseId = hendelseId,
         versjon = versjon,
@@ -92,21 +94,24 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
     KanAnnullere {
 
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
-    override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
     override val vurderingerMedKrav: VurderingerMedKrav? = null
     override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
     override val notat: NonBlankString? = null
     override val kravgrunnlag: Kravgrunnlag? = null
     override val erKravgrunnlagUtdatert: Boolean = false
+    override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
 
     override fun leggTilForhåndsvarselDokumentId(
         dokumentId: UUID,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
         hendelsesTidspunkt: Tidspunkt,
-    ): UnderBehandling {
-        TODO("Not yet implemented")
-    }
+    ) = UnderBehandling.UtenKravgrunnlag(
+        forrigeSteg = this,
+        hendelseId = hendelseId,
+        versjon = versjon,
+        forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
+    )
 
     override fun erAvsluttet(): Boolean {
         TODO("Not yet implemented")

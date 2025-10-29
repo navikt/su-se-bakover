@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 
 data class TilbakekrevingsbehandlingTilAttestering(
-    val forrigeSteg: UnderBehandling.Utfylt,
+    val forrigeSteg: UnderBehandling.MedKravgrunnlag.Utfylt,
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
     val sendtTilAttesteringAv: NavIdentBruker.Saksbehandler,

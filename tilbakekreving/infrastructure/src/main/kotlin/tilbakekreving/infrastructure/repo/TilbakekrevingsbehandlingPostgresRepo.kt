@@ -56,7 +56,8 @@ import java.time.Clock
 import java.util.UUID
 
 val OpprettetTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETTET_TILBAKEKREVINGSBEHANDLING")
-val OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelsestype = Hendelsestype("OPPRETTET_TILBAKEKREVINGSBEHANDLING_UTEN_KRAVGRUNNLAG")
+val OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelsestype =
+    Hendelsestype("OPPRETTET_TILBAKEKREVINGSBEHANDLING_UTEN_KRAVGRUNNLAG")
 val ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING")
 val VurdertTilbakekrevingsbehandlingHendelsestype =
@@ -208,6 +209,18 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
             hendelsestidspunkt = this.hendelsestidspunkt,
             versjon = this.versjon,
         )
+
+        /*
+        TODO bjg
+        ForhåndsvarsletTilbakekrevingsbehandlingUtenKravgrunnlagHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomainUtenKravgrunnlag(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            tidligereHendelsesId = this.tidligereHendelseId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+        )
+         */
 
         VurdertTilbakekrevingsbehandlingHendelsestype -> mapToVurdertTilbakekrevingsbehandlingHendelse()
 

@@ -1,7 +1,8 @@
 package tilbakekreving.domain
 
 /**
- * forrigeSteg til [UnderBehandling.Utfylt] kan være en av disse 3: [UnderBehandling.Påbegynt], [UnderBehandling.Utfylt] og [TilbakekrevingsbehandlingTilAttestering]
+ * forrigeSteg til [UnderBehandling.MedKravgrunnlag.Utfylt] kan være en av disse 3:
+ * [UnderBehandling.MedKravgrunnlag.Påbegynt], [UnderBehandling.MedKravgrunnlag.Utfylt] og [TilbakekrevingsbehandlingTilAttestering]
  *
  * Kan sees på en union-type av [UnderBehandling] og [TilbakekrevingsbehandlingTilAttestering]
  */

@@ -117,6 +117,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 }
 
                 is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse -> {
+                    val kravgrunnlag = this.kravgrunnlagPåSak
                     acc.plus(
                         hendelseId to hendelse.toDomain(fnr, saksnummer),
                     )

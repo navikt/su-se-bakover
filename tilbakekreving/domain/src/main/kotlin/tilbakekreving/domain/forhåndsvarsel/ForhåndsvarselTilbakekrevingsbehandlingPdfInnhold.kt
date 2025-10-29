@@ -26,6 +26,10 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
             saksbehandlerNavn: String,
             clock: Clock,
         ): ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
+            if (command.kravgrunnlag == null) {
+                // TODO bjg eget brevinnhold...
+            }
+
             return ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
@@ -33,32 +37,14 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
                 // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
                 // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
                 dato = LocalDate.now(clock).toBrevformat(),
-                sumBruttoSkalTilbakekreve = command.kravgrunnlag.summertBruttoFeilutbetaling,
-                beregningFeilutbetaltBeløp = command.kravgrunnlag.grunnlagsperioder.map {
+                // TODO bjg
+                sumBruttoSkalTilbakekreve = command.kravgrunnlag?.summertBruttoFeilutbetaling ?: 0,
+                beregningFeilutbetaltBeløp = command.kravgrunnlag?.grunnlagsperioder?.map {
                     BeregningFeilutbetaltBeløp(
                         periode = it.periode.ddMMyyyy(),
                         bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
                     )
-                },
-                sakstype = command.sakstype,
-            )
-        }
-        fun fromBrevCommand(
-            command: ForhåndsvarsleTilbakekrevingsbehandlingUtenKravgrunnlagDokumentCommand,
-            personalia: PersonaliaPdfInnhold,
-            saksbehandlerNavn: String,
-            clock: Clock,
-        ): ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
-            // TODO bjg midlertidig - må ha egen pdfinnhold når det ikke finnes kravgrunnlag enda
-            return ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
-                personalia = personalia,
-                saksbehandlerNavn = saksbehandlerNavn,
-                fritekst = command.fritekst,
-                // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
-                // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
-                dato = LocalDate.now(clock).toBrevformat(),
-                sumBruttoSkalTilbakekreve = 0, // TODO bjg midlertidig
-                beregningFeilutbetaltBeløp = emptyList(), // TODO bjg midlertidig
+                } ?: emptyList(),
                 sakstype = command.sakstype,
             )
         }

@@ -47,7 +47,7 @@ class TilbakekrevingsbehandlingTilAttesteringService(
             sak.behandlinger.tilbakekrevinger.hent(id)
                 ?: throw IllegalStateException("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, fant ikke tilbakekrevingsbehandling på sak ${command.sakId}")
             ).let {
-            it as? UnderBehandling.Utfylt
+            it as? UnderBehandling.MedKravgrunnlag.Utfylt
                 ?: throw IllegalStateException("Kunne ikke sende tilbakekrevingsbehandling $id til attestering, behandlingen er ikke i tilstanden utfylt")
         }
 

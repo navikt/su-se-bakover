@@ -45,14 +45,15 @@ data class TilbakekrevingsbehandlingJson(
             status = when (this) {
                 is OpprettetTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.OPPRETTET
                 is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag -> TilbakekrevingsbehandlingStatus.OPPRETTET_UTEN_KRAVGRUNNLAG
-                is UnderBehandling.Påbegynt -> {
+                is UnderBehandling.UtenKravgrunnlag -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
+                is UnderBehandling.MedKravgrunnlag.Påbegynt -> {
                     when {
                         this.erVurdert() -> TilbakekrevingsbehandlingStatus.VURDERT
                         else -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
                     }
                 }
 
-                is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
+                is UnderBehandling.MedKravgrunnlag.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
                 is AvbruttTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.AVBRUTT

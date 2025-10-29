@@ -21,7 +21,9 @@ fun OpprettetTilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
     behandlingStatus = "REGISTRERT",
 )
 
-fun UnderBehandling.Utfylt.toTilbakeStatistikkTilAttestering(
+// TODO bjg - statistikk for nye hendelser
+
+fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkTilAttestering(
     generellSakStatistikk: GenerellSakStatistikk,
 ): SakStatistikk {
     val behandlingResultat = utledResultat(vurderingerMedKrav)
@@ -37,7 +39,7 @@ fun UnderBehandling.Utfylt.toTilbakeStatistikkTilAttestering(
     )
 }
 
-fun UnderBehandling.Utfylt.toTilbakeStatistikkUnderkjent(
+fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkUnderkjent(
     generellSakStatistikk: GenerellSakStatistikk,
 ): SakStatistikk {
     val behandlingResultat = utledResultat(vurderingerMedKrav)

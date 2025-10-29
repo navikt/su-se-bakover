@@ -34,7 +34,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
     fun applyToState(
         behandling: Tilbakekrevingsbehandling,
         kravgrunnlag: Kravgrunnlag,
-    ): UnderBehandling.Påbegynt {
+    ): UnderBehandling.MedKravgrunnlag.Påbegynt {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
@@ -42,7 +42,7 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
             is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             -> throw IllegalArgumentException("Tilstandene [Avbrutt, Iverksatt, TilAttestering] kan ikke oppdatere kravgrunnlag. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is KanOppdatereKravgrunnlag -> UnderBehandling.Påbegynt(
+            is KanOppdatereKravgrunnlag -> UnderBehandling.MedKravgrunnlag.Påbegynt(
                 forrigeSteg = behandling,
                 hendelseId = hendelseId,
                 versjon = versjon,

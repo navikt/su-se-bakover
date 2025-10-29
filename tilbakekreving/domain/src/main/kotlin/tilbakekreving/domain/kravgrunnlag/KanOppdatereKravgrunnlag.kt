@@ -18,7 +18,7 @@ sealed interface KanOppdatereKravgrunnlag : KanEndres {
         nesteVersjon: Hendelsesversjon,
         nyttKravgrunnlag: Kravgrunnlag,
         clock: Clock,
-    ): Pair<OppdatertKravgrunnlagPåTilbakekrevingHendelse, UnderBehandling.Påbegynt> {
+    ): Pair<OppdatertKravgrunnlagPåTilbakekrevingHendelse, UnderBehandling.MedKravgrunnlag.Påbegynt> {
         if (this.kravgrunnlag?.hendelseId == nyttKravgrunnlag.hendelseId) {
             throw IllegalStateException("Prøvde å oppdatere kravgrunnlag for behandling ${this.id}, men kravgrunnlags-IDen er lik: ${nyttKravgrunnlag.hendelseId}")
         }
