@@ -98,6 +98,8 @@ sealed interface UnderBehandling :
          *  * [Utfylt]
          *
          *  Forrige steg, kan bare være [OpprettetTilbakekrevingsbehandling] eller [UnderBehandling]
+         *  Forrige steg er nødt til å ha kravgrunnlag. Hvis tilbakekreving initelt er opprettet uten kravgrunnlag
+         *  må behandling oppdateres med kravgrunnlaget for å påbegynnes [OppdatertKravgrunnlagPåTilbakekrevingHendelse]
          */
         data class Påbegynt(
             val forrigeSteg: KanEndres,
@@ -107,7 +109,7 @@ sealed interface UnderBehandling :
             override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
             override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = forrigeSteg.vedtaksbrevvalg,
             override val kravgrunnlag: Kravgrunnlag = forrigeSteg.kravgrunnlag
-                ?: throw IllegalStateException("Må være et forrige steg hvor kravgrunnlag blir lagt til..."), // TODO bjg
+                ?: throw IllegalStateException("Vurdering av tilbakekreving kan ikke påbegynnes uten at tilbakekreving er oppdatert med kravgrunnlag"),
             override val erKravgrunnlagUtdatert: Boolean = forrigeSteg.erKravgrunnlagUtdatert,
             override val notat: NonBlankString? = forrigeSteg.notat,
         ) : MedKravgrunnlag(
@@ -160,7 +162,7 @@ sealed interface UnderBehandling :
                         versjon = versjon,
                         notat = notat,
                         kravgrunnlag = kravgrunnlag,
-                        erKravgrunnlagUtdatert = forrigeSteg.erKravgrunnlagUtdatert, // TODO bjg - godt nok???
+                        erKravgrunnlagUtdatert = forrigeSteg.erKravgrunnlagUtdatert,
                     )
                 }
             }

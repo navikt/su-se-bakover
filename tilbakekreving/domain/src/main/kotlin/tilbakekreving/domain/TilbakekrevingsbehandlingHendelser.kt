@@ -100,12 +100,15 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             val hendelseId = hendelse.hendelseId
             when (hendelse) {
                 is OpprettetTilbakekrevingsbehandlingHendelse -> {
-                    // TODO bjg - kan ryddes litt her?
                     if (hendelse.kravgrunnlagPåSakHendelseId == null) {
-                        // TODO bjg holder dette eller vil det alltid varsle utdatert sevl etter nye hendelser?
-                        val erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false
                         acc.plus(
-                            hendelseId to hendelse.toDomain(fnr, saksnummer, null, erKravgrunnlagUtdatert),
+                            hendelseId to hendelse.toDomain(
+                                fnr = fnr,
+                                saksnummer = saksnummer,
+                                kravgrunnlag = null,
+                                // TODO bjg ikke godt nok.. dukker opp ved nye hendelser uavhengig av nye kravgrunnlag..
+                                erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false,
+                            ),
                         )
                     } else {
                         val kravgrunnlagsDetaljer =

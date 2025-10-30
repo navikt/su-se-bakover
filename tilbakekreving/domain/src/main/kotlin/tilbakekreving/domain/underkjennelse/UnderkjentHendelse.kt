@@ -80,7 +80,7 @@ data class UnderkjentHendelse(
                     vedtaksbrevvalg = behandling.vedtaksbrevvalg,
                     forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                     notat = behandling.notat,
-                    erKravgrunnlagUtdatert = behandling.forrigeSteg.erKravgrunnlagUtdatert, // TODO bjg - godt nok?
+                    erKravgrunnlagUtdatert = behandling.forrigeSteg.erKravgrunnlagUtdatert,
                 )
             }
         }
