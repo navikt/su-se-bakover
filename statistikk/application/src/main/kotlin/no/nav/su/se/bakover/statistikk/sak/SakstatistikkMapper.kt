@@ -228,7 +228,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.REVURDERING,
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
-                    behandlingAarsak = revurdering.revurderingsårsak.årsak.toString(),
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Opphør.toString(),
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
@@ -240,7 +240,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.REVURDERING,
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.Avsluttet.toString(),
-                    behandlingAarsak = revurdering.revurderingsårsak.årsak.toString(),
+                    behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
