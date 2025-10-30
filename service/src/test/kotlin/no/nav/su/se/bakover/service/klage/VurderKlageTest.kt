@@ -298,7 +298,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             fritekstTilBrev = "fritekstTilBrev",
             omgjør = null,
-            oppretthold = Oppretthold(listOf("SU_PARAGRAF_3"), klagenotat = "klagenotat"),
+            oppretthold = Oppretthold(listOf(Hjemmel.SU_PARAGRAF_3.name), klagenotat = "klagenotat"),
         )
         mocks.service.vurder(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
