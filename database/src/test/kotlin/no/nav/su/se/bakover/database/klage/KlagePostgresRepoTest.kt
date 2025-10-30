@@ -212,7 +212,7 @@ internal class KlagePostgresRepoTest {
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
             }
             val hentetKlage = klageRepo.hentKlage(klage.id)
-            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(hentetKlage)
+            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
             val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
             attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltOppretthold>()
             klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
@@ -231,7 +231,7 @@ internal class KlagePostgresRepoTest {
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
             }
             val hentetKlage = klageRepo.hentKlage(klage.id)
-            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(hentetKlage)
+            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
             val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
             attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltDelvisOmgjøringKA>()
         }
