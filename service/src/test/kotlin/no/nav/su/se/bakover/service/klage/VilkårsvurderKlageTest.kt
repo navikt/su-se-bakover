@@ -179,7 +179,7 @@ internal class VilkårsvurderKlageTest {
             lagOppgaveCallback = { OppgaveId("o").right() },
         ).getOrFail()
 
-        klage.shouldBeTypeOf<VurdertKlage.BekreftetOpprettholdt>()
+        klage.shouldBeTypeOf<VurdertKlage.BekreftetTilOversending>()
 
         klage.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),
@@ -207,7 +207,7 @@ internal class VilkårsvurderKlageTest {
             lagOppgaveCallback = { OppgaveId("o").right() },
         ).getOrFail()
 
-        klage.shouldBeTypeOf<VurdertKlage.BekreftetOpprettholdt>()
+        klage.shouldBeTypeOf<VurdertKlage.BekreftetTilOversending>()
 
         val klageSomHarEndretSvarMenFortsattTilVurdering = klage.vilkårsvurder(
             NavIdentBruker.Saksbehandler("sa"),

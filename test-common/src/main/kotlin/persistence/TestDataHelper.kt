@@ -1589,7 +1589,7 @@ class TestDataHelper(
 
     fun persisterKlageVurdertUtfyltOpprettholdt(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-    ): VurdertKlage.UtfyltOppretthold {
+    ): VurdertKlage.UtfyltTilOversending {
         return persisterKlageVurdertPåbegynt(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.UtfyltOppretthold(
@@ -1602,7 +1602,7 @@ class TestDataHelper(
                 ),
             ),
         ).let {
-            if (it !is VurdertKlage.UtfyltOppretthold) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
+            if (it !is VurdertKlage.UtfyltTilOversending) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
             it
         }.also {
             databaseRepos.klageRepo.lagre(it)

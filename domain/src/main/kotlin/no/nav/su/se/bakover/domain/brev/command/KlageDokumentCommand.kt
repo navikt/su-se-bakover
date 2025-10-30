@@ -12,7 +12,7 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
     /**
      * Førsteinstansen opprettholder et enkeltvedtak. Da sendes det en innstilling til klageinstansen. Det samme brevet sendes som informasjon til bruker (siden de ikke kan agere på dette er det ikke annotert som viktig).
      */
-    data class Oppretthold(
+    data class OpprettholdEllerDelvisOmgjøring(
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
         override val sakstype: Sakstype,

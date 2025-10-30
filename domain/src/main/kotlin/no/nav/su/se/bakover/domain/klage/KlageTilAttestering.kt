@@ -85,11 +85,11 @@ sealed interface KlageTilAttestering :
     }
 
     data class Vurdert(
-        private val forrigeSteg: VurdertKlage.BekreftetOversendtTilKA,
+        private val forrigeSteg: VurdertKlage.BekreftetTilOversending,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val sakstype: Sakstype,
     ) : KlageTilAttestering,
-        VurdertKlage.BekreftetOversendtTilKAFelter by forrigeSteg { // TODO: denne blir klønete
+        VurdertKlage.BekreftetOversendtTilKA by forrigeSteg {
 
         /**
          * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
@@ -119,21 +119,15 @@ sealed interface KlageTilAttestering :
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.BekreftetOversendtTilKA> {
+        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.BekreftetTilOversending> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
-            return when (val forrigeSteg = this.forrigeSteg) {
-                is VurdertKlage.BekreftetDelvisOmgjøringKA -> forrigeSteg.copy(
-                    oppgaveId = oppgaveId,
-                    attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
-                ).right()
-                is VurdertKlage.BekreftetOpprettholdt -> forrigeSteg.copy(
-                    oppgaveId = oppgaveId,
-                    attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
-                ).right()
-            }
+            return forrigeSteg.copy(
+                oppgaveId = oppgaveId,
+                attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
+            ).right()
         }
 
         fun oversend(
@@ -160,18 +154,12 @@ sealed interface KlageTilAttestering :
         fun returFraKlageinstans(
             oppgaveId: OppgaveId,
             klageinstanshendelser: Klageinstanshendelser,
-        ): VurdertKlage.BekreftetOversendtTilKA {
+        ): VurdertKlage.BekreftetTilOversending {
             // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
-            return when (val temp = forrigeSteg) {
-                is VurdertKlage.BekreftetDelvisOmgjøringKA -> temp.copy(
-                    oppgaveId = oppgaveId,
-                    klageinstanshendelser = klageinstanshendelser,
-                )
-                is VurdertKlage.BekreftetOpprettholdt -> temp.copy(
-                    oppgaveId = oppgaveId,
-                    klageinstanshendelser = klageinstanshendelser,
-                )
-            }
+            return forrigeSteg.copy(
+                oppgaveId = oppgaveId,
+                klageinstanshendelser = klageinstanshendelser,
+            )
         }
     }
 }

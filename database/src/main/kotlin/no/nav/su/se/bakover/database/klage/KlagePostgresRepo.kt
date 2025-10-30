@@ -538,7 +538,7 @@ internal class KlagePostgresRepo(
         )
 
         fun vurdertKlageTilAttestering() = KlageTilAttestering.Vurdert(
-            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOversendtTilKA,
+            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetTilOversending,
             saksbehandler = saksbehandler,
             sakstype = sakstype,
         )
@@ -717,10 +717,10 @@ internal class KlagePostgresRepo(
                     is VilkårsvurdertKlage.Bekreftet.Avvist -> VILKÅRSVURDERT_BEKREFTET_AVVIST
 
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
-                    is VurdertKlage.UtfyltOversendtTilKA -> VURDERT_UTFYLT
+                    is VurdertKlage.UtfyltTilOversending -> VURDERT_UTFYLT
                     is VurdertKlage.UtfyltOmgjør -> VURDERT_UTFYLT
                     is VurdertKlage.BekreftetOmgjøring -> VURDERT_BEKREFTET
-                    is VurdertKlage.BekreftetOpprettholdt, is VurdertKlage.BekreftetDelvisOmgjøringKA -> VURDERT_BEKREFTET
+                    is VurdertKlage.BekreftetTilOversending -> VURDERT_BEKREFTET
 
                     is AvvistKlage -> AVVIST
 

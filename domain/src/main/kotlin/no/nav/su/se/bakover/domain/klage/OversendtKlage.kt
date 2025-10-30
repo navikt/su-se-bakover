@@ -21,7 +21,7 @@ data class OversendtKlage(
     override val sakstype: Sakstype,
     val behandlingId: UUID? = null,
 ) : Klage,
-    VurdertKlage.BekreftetOversendtTilKAFelter by forrigeSteg {
+    VurdertKlage.BekreftetOversendtTilKA by forrigeSteg {
 
     /**
      * Merk at i et større perspektiv, f.eks. fra klageinstansen (KA) eller statistikk, vil denne anses som åpen/ikke ferdigbehandlet.
@@ -53,8 +53,7 @@ data class OversendtKlage(
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         val fritekstTilOversendelsesbrev = this.vurderinger.fritekstTilOversendelsesbrev
 
-        // TODO: samme for delvisomgjøring vel?
-        return KlageDokumentCommand.Oppretthold(
+        return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
             sakstype = this.sakstype,

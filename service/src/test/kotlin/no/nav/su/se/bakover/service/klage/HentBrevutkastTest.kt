@@ -177,7 +177,7 @@ internal class HentBrevutkastTest {
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
@@ -222,7 +222,7 @@ internal class HentBrevutkastTest {
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     sakstype = Sakstype.UFØRE,
                     fritekst = fritekst,
                     klageDato = 15.januar(2021),
@@ -265,7 +265,7 @@ internal class HentBrevutkastTest {
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     sakstype = Sakstype.UFØRE,
                     fødselsnummer = sak.fnr,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
@@ -343,7 +343,7 @@ internal class HentBrevutkastTest {
         assertAndVerifyBrevutkast(
             sak = sak,
             klage = klage,
-            KlageDokumentCommand.Oppretthold(
+            KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                 fødselsnummer = sak.fnr,
                 sakstype = Sakstype.UFØRE,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
@@ -382,7 +382,7 @@ internal class HentBrevutkastTest {
             sak = sak,
             klage = klage,
 
-            brevRequest = KlageDokumentCommand.Oppretthold(
+            brevRequest = KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                 fødselsnummer = sak.fnr,
                 sakstype = Sakstype.UFØRE,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
@@ -456,7 +456,7 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(sakId = sak.id, klageId = klage.id, ident = utførtAv) shouldBe pdfAsBytes.right()
 
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        if (brevRequest is KlageDokumentCommand.Oppretthold) {
+        if (brevRequest is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring) {
             verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         }
         verify(mocks.brevServiceMock).lagDokument(
@@ -471,7 +471,7 @@ internal class HentBrevutkastTest {
                         saksnummer = Saksnummer(12345676),
                     )
 
-                    is KlageDokumentCommand.Oppretthold -> KlageDokumentCommand.Oppretthold(
+                    is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                         fødselsnummer = sak.fnr,
                         sakstype = Sakstype.UFØRE,
                         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),

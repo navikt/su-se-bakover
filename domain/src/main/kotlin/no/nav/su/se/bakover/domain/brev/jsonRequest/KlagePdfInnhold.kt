@@ -22,7 +22,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
 
         companion object {
             fun fromBrevCommand(
-                command: KlageDokumentCommand.Oppretthold,
+                command: KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring,
                 personalia: PersonaliaPdfInnhold,
                 saksbehandlerNavn: String,
                 attestantNavn: String,

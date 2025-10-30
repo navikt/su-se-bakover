@@ -118,7 +118,7 @@ fun fromBrevCommand(
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
-            is KlageDokumentCommand.Oppretthold -> KlagePdfInnhold.Oppretthold.fromBrevCommand(
+            is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> KlagePdfInnhold.Oppretthold.fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),

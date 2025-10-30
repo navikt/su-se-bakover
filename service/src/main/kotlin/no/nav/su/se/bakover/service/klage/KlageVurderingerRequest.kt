@@ -42,7 +42,6 @@ data class KlageVurderingerRequest(
         fun toDomain(): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, VurderingerTilKlage.Vedtaksvurdering> {
             return hjemmelToDomain(hjemler)
                 .flatMap {
-                    // createoppretthold holdes ikke her for delvisomgjøring
                     VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
                         hjemler = it,
                         klagenotat = klagenotat,

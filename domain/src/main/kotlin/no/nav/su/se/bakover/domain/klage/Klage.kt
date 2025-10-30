@@ -106,12 +106,12 @@ sealed interface Klage :
         return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(this::class).left()
     }
 
-    /** @return [VurdertKlage.BekreftetOpprettholdt] eller [AvvistKlage] */
+    /** @return [VurdertKlage.BekreftetTilOversending] eller [AvvistKlage] */
     fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneKlage, Klage> {
         // TODO jah: Man kan også underkjenne til Avvist, så til vil variere basert på nåværende tilstand.
-        return KunneIkkeUnderkjenneKlage.UgyldigTilstand(this::class, VurdertKlage.BekreftetOpprettholdt::class).left()
+        return KunneIkkeUnderkjenneKlage.UgyldigTilstand(this::class, VurdertKlage.BekreftetTilOversending::class).left()
     }
 
     /**
