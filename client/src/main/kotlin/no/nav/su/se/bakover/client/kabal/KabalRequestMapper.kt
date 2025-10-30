@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client.kabal
 
-import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.client.kabal.KabalRequest.Hjemmel.Companion.toKabalHjemler
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
@@ -19,8 +18,7 @@ internal data object KabalRequestMapper {
             fagsak = KabalRequest.Fagsak(klage.saksnummer.toString()),
             kildeReferanse = klage.id.toString(),
             dvhReferanse = klage.id.toString(),
-            // Todo vurderinger.vedtaksvurdering her må også godta delvis omgjøring
-            hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.toKabalHjemler(),
+            hjemler = klage.vurderinger.vedtaksvurdering.hjemler.toKabalHjemler(),
             tilknyttedeJournalposter = listOf(
                 KabalRequest.TilknyttedeJournalposter(
                     journalpostId = klage.journalpostId,

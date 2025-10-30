@@ -538,7 +538,7 @@ internal class KlagePostgresRepo(
         )
 
         fun vurdertKlageTilAttestering() = KlageTilAttestering.Vurdert(
-            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOpprettholdt,
+            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOversendtTilKA,
             saksbehandler = saksbehandler,
             sakstype = sakstype,
         )
