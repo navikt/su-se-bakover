@@ -229,7 +229,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saktype = revurdering.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.toString(),
-                    behandlingResultat = BehandlingResultat.Opphør.name,
+                    behandlingResultat = BehandlingResultat.Opphør.toString(),
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                 )
@@ -369,7 +369,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.OversendtKlage.toString(),
                     behandlingResultat = when (this.klage.vurderinger) {
                         is VurderingerTilKlage.UtfyltOppretthold -> BehandlingResultat.OpprettholdtKlage.value
-                        is VurderingerTilKlage.UtfyltDelvisOmgjøringKA -> BehandlingResultat.DelvisOmgjøringKa.name
+                        is VurderingerTilKlage.UtfyltDelvisOmgjøringKA -> BehandlingResultat.DelvisOmgjøringKa.value
                     },
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
