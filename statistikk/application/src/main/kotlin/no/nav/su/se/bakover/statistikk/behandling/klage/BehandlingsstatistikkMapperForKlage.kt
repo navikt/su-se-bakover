@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
+import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
@@ -50,7 +51,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             gitCommit = gitCommit,
             clock = clock,
             behandlingStatus = BehandlingStatus.OversendtKlage,
-            behandlingResultat = BehandlingResultat.OpprettholdtKlage,
+            behandlingResultat = if (this.klage.vurderinger is VurderingerTilKlage.UtfyltOppretthold) BehandlingResultat.OpprettholdtKlage else BehandlingResultat.DelvisOmgjøringKa,
             resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
             // Spesialtilfelle der vi sender en innstilling (ikke vedtak) til klageinstansen som vil si at behandlingen ikke er avsluttet for brukeren.
             avsluttet = false,

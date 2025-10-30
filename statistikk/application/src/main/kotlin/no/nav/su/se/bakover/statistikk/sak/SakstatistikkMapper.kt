@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.statistikk.sak
 
 import behandling.domain.Behandling
+import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
@@ -366,7 +367,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
                     behandlingStatus = BehandlingStatus.OversendtKlage.name,
-                    behandlingResultat = BehandlingResultat.OpprettholdtKlage.name,
+                    behandlingResultat = if (this.klage.vurderinger is VurderingerTilKlage.UtfyltOppretthold) BehandlingResultat.OpprettholdtKlage.name else BehandlingResultat.DelvisOmgjøringKa.name,
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                 )
