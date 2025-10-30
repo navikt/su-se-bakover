@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.klage
 
-import arrow.core.getOrElse
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.VurderingerTilKlage
 import common.presentation.attestering.AttesteringJson
@@ -301,7 +300,7 @@ internal fun Klage.toJson(): KlageJson {
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
             erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
             fremsattRettsligKlageinteresse = this.vilkårsvurderinger.fremsattRettsligKlageinteresse,
-            fritekstTilBrev = this.getFritekstTilBrev().getOrElse { throw IllegalStateException("Må ha fritekst for oversendelse") },
+            fritekstTilBrev = this.vurderinger.fritekstTilOversendelsesbrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
