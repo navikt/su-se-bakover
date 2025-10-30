@@ -42,9 +42,7 @@ data class TilbakekrevingsbehandlingJson(
             opprettetAv = opprettetAv.toString(),
             kravgrunnlag = this.kravgrunnlag?.toJson(),
             status = when (this) {
-                // TODO bjg - en status?
-                is OpprettetTilbakekrevingsbehandling.MedKravgrunnlag -> TilbakekrevingsbehandlingStatus.OPPRETTET
-                is OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag -> TilbakekrevingsbehandlingStatus.OPPRETTET_UTEN_KRAVGRUNNLAG
+                is OpprettetTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.OPPRETTET
                 is UnderBehandling.UtenKravgrunnlag -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
                 is UnderBehandling.MedKravgrunnlag.Påbegynt -> {
                     when {

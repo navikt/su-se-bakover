@@ -27,22 +27,3 @@ fun opprettTilbakekrevingsbehandling(
         it to it.toDomain(fnr, saksnummer, kravgrunnlag, erKravgrunnlagUtdatert)
     }
 }
-
-/*
-fun opprettTilbakekrevingsbehandlingUtenKravgrunnlag(
-    command: OpprettTilbakekrevingsbehandlingCommand,
-    forrigeVersjon: Hendelsesversjon,
-    clock: Clock,
-    fnr: Fnr,
-    saksnummer: Saksnummer,
-): Pair<OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse, OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag> {
-    return OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse.opprett(
-        sakId = command.sakId,
-        opprettetAv = command.opprettetAv,
-        versjon = forrigeVersjon.inc(),
-        clock = clock,
-    ).let {
-        it to it.toDomain(fnr, saksnummer, false)
-    }
-}
-*/

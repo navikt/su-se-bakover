@@ -37,8 +37,6 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
 
-        val kravgrunnlag = behandling.kravgrunnlag
-
         return brevService.lagDokument(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
@@ -47,7 +45,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,
                 sakId = command.sakId,
-                kravgrunnlag = kravgrunnlag,
+                kravgrunnlag = behandling.kravgrunnlag,
                 fødselsnummer = sak.fnr,
             ),
         )

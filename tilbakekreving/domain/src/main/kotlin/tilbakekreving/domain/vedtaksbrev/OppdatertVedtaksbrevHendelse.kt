@@ -50,7 +50,6 @@ data class BrevTilbakekrevingsbehandlingHendelse(
             is UnderBehandling.UtenKravgrunnlag,
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            // TODO Enda en sealed for dette..... maffakka assaaa
             is UnderBehandling.MedKravgrunnlag -> behandling.oppdaterVedtaksbrev(
                 vedtaksbrevvalg = this.brevvalg,
                 hendelseId = this.hendelseId,

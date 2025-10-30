@@ -31,6 +31,9 @@ sealed interface OpprettetTilbakekrevingsbehandling :
     override val hendelseId: HendelseId
     override val erKravgrunnlagUtdatert: Boolean
 
+    override fun erAvsluttet(): Boolean = false
+    override fun erAvbrutt(): Boolean = false
+
     data class MedKravgrunnlag(
         override val id: TilbakekrevingsbehandlingId,
         override val sakId: UUID,
@@ -53,8 +56,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
         override val notat: NonBlankString? = null
 
         override fun erÅpen() = true
-        override fun erAvsluttet() = false
-        override fun erAvbrutt() = false
 
         override fun leggTilForhåndsvarselDokumentId(
             dokumentId: UUID,
@@ -123,13 +124,5 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             versjon = versjon,
             forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
         )
-
-        override fun erAvsluttet(): Boolean {
-            TODO("Not yet implemented")
-        }
-
-        override fun erAvbrutt(): Boolean? {
-            TODO("Not yet implemented")
-        }
     }
 }
