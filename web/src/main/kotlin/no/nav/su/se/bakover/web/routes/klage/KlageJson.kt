@@ -66,7 +66,7 @@ internal data class KlageJson(
         enum class Type {
             OMGJØR,
             OPPRETTHOLD,
-            DELVIS_OMGJØRING_KA, // TODO: SKILLE PÅ KA ELLER IKKE HER? hvor brukes denne?
+            DELVIS_OMGJØRING_KA,
         }
 
         data class OmgjørJson(
