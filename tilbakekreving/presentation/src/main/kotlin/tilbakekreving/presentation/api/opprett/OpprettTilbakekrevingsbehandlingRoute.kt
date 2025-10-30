@@ -51,26 +51,6 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
             }
         }
     }
-    post("$TILBAKEKREVING_PATH/uten_kravgrunnlag") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withSakId { sakId ->
-                call.withBody<Body> { body ->
-                    opprettTilbakekrevingsbehandlingService.opprettUten(
-                        command = OpprettTilbakekrevingsbehandlingCommand(
-                            sakId = sakId,
-                            opprettetAv = call.suUserContext.saksbehandler,
-                            correlationId = call.correlationId,
-                            brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                            klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
-                        ),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
-                    )
-                }
-            }
-        }
-    }
 }
 
 private fun KunneIkkeOppretteTilbakekrevingsbehandling.tilResultat(): Resultat = when (this) {

@@ -45,8 +45,8 @@ data class VurdertTilbakekrevingsbehandlingHendelse(
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
             is TilbakekrevingsbehandlingTilAttestering,
-            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             is UnderBehandling.UtenKravgrunnlag,
+            is OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag,
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering] -> Vurdert. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
         }
     }

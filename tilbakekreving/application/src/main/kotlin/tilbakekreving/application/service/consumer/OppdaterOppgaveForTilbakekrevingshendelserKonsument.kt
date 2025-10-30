@@ -33,7 +33,6 @@ import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.NotatTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.OppdatertKravgrunnlagPåTilbakekrevingHendelse
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse
 import tilbakekreving.domain.TilAttesteringHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.UnderkjentHendelse
@@ -169,7 +168,6 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
 
                 is AvbruttHendelse,
                 is OpprettetTilbakekrevingsbehandlingHendelse,
-                is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse,
                 is VurdertTilbakekrevingsbehandlingHendelse,
                 is BrevTilbakekrevingsbehandlingHendelse,
                 is IverksattHendelse,

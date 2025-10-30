@@ -39,7 +39,6 @@ data class OppdatertKravgrunnlagPåTilbakekrevingHendelse(
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             -> throw IllegalArgumentException("Tilstandene [Avbrutt, Iverksatt, TilAttestering] kan ikke oppdatere kravgrunnlag. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is KanOppdatereKravgrunnlag -> UnderBehandling.MedKravgrunnlag.Påbegynt(

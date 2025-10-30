@@ -37,12 +37,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         }
 
         sorterteHendelser.groupBy { it.id }.forEach {
-            require(it.value.first() is OpprettetTilbakekrevingsbehandlingHendelse || it.value.first() is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse) {
+            require(it.value.first() is OpprettetTilbakekrevingsbehandlingHendelse) {
                 "Den første hendelsen må være en opprettet hendelse"
             }
-            it.value.filter {
-                it is OpprettetTilbakekrevingsbehandlingHendelse || it is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse
-            }.let {
+            it.value.filterIsInstance<OpprettetTilbakekrevingsbehandlingHendelse>().let {
                 require(it.size == 1) {
                     "Den første hendelse (og kun den første) må være en OpprettetTilbakekrevingsbehandlingHendelse, men fant: ${it.size}"
                 }
@@ -102,26 +100,27 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             val hendelseId = hendelse.hendelseId
             when (hendelse) {
                 is OpprettetTilbakekrevingsbehandlingHendelse -> {
-                    val kravgrunnlagsDetaljer =
-                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(hendelse.kravgrunnlagPåSakHendelseId)!!
-                    // opprettet er alltid den første hendelsen i serien, så derfor trenger vi ikke trekke fra tidligereHendelseId.
-                    acc.plus(
-                        hendelseId to hendelse.toDomain(
-                            fnr = fnr,
-                            kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
-                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(
-                                kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId,
-                            ) != kravgrunnlagsDetaljer.kravgrunnlag,
-                        ),
-                    )
-                }
-
-                is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse -> {
-                    // TODO bjg holder dette eller vil det alltid varsle utdatert sevl etter nye hendelser?
-                    val erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false
-                    acc.plus(
-                        hendelseId to hendelse.toDomain(fnr, saksnummer, erKravgrunnlagUtdatert),
-                    )
+                    // TODO bjg - kan ryddes litt her?
+                    if (hendelse.kravgrunnlagPåSakHendelseId == null) {
+                        // TODO bjg holder dette eller vil det alltid varsle utdatert sevl etter nye hendelser?
+                        val erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false
+                        acc.plus(
+                            hendelseId to hendelse.toDomain(fnr, saksnummer, null, erKravgrunnlagUtdatert),
+                        )
+                    } else {
+                        val kravgrunnlagsDetaljer =
+                            this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(hendelse.kravgrunnlagPåSakHendelseId)!!
+                        // opprettet er alltid den første hendelsen i serien, så derfor trenger vi ikke trekke fra tidligereHendelseId.
+                        acc.plus(
+                            hendelseId to hendelse.toDomain(
+                                fnr = fnr,
+                                kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
+                                erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(
+                                    kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId,
+                                ) != kravgrunnlagsDetaljer.kravgrunnlag,
+                            ),
+                        )
+                    }
                 }
 
                 is VurdertTilbakekrevingsbehandlingHendelse -> acc.plus(

@@ -53,7 +53,6 @@ data class TilAttesteringHendelse(
             is UnderBehandling.MedKravgrunnlag.Påbegynt,
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
-            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             is IverksattTilbakekrevingsbehandling,
             -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Påbegynt, TilAttestering, Avbrutt, Iverksatt] -> TilAttestering. Den må vurderes først. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 

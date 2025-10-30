@@ -67,8 +67,8 @@ data class IverksattHendelse(
 
     fun applyToState(behandling: Tilbakekrevingsbehandling): IverksattTilbakekrevingsbehandling {
         return when (behandling) {
-            is OpprettetTilbakekrevingsbehandling,
-            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
+            is OpprettetTilbakekrevingsbehandling.MedKravgrunnlag,
+            is OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag,
             is UnderBehandling,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,

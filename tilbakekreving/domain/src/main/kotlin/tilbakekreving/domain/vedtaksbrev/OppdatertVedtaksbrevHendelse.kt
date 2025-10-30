@@ -47,7 +47,6 @@ data class BrevTilbakekrevingsbehandlingHendelse(
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
             is OpprettetTilbakekrevingsbehandling,
-            is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag,
             is UnderBehandling.UtenKravgrunnlag,
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 

@@ -17,107 +17,119 @@ import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.util.UUID
 
-// TODO bjg - seal class her??
-
-data class OpprettetTilbakekrevingsbehandling(
-    override val id: TilbakekrevingsbehandlingId,
-    override val sakId: UUID,
-    override val saksnummer: Saksnummer,
-    override val fnr: Fnr,
-    override val opprettet: Tidspunkt,
-    override val opprettetAv: NavIdentBruker.Saksbehandler,
-    override val kravgrunnlag: Kravgrunnlag,
-    override val versjon: Hendelsesversjon,
-    override val hendelseId: HendelseId,
-    override val erKravgrunnlagUtdatert: Boolean,
-) : KanForhåndsvarsle,
-    KanVurdere,
+sealed interface OpprettetTilbakekrevingsbehandling :
+    KanForhåndsvarsle,
     KanOppdatereKravgrunnlag,
-    KanOppdatereNotat,
     KanAnnullere {
+    override val id: TilbakekrevingsbehandlingId
+    override val sakId: UUID
+    override val saksnummer: Saksnummer
+    override val fnr: Fnr
+    override val opprettet: Tidspunkt
+    override val opprettetAv: NavIdentBruker.Saksbehandler
+    override val versjon: Hendelsesversjon
+    override val hendelseId: HendelseId
+    override val erKravgrunnlagUtdatert: Boolean
 
-    override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
-    override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
-    override val vurderingerMedKrav: VurderingerMedKrav? = null
-    override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
-    override val notat: NonBlankString? = null
+    data class MedKravgrunnlag(
+        override val id: TilbakekrevingsbehandlingId,
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val opprettet: Tidspunkt,
+        override val opprettetAv: NavIdentBruker.Saksbehandler,
+        override val kravgrunnlag: Kravgrunnlag,
+        override val versjon: Hendelsesversjon,
+        override val hendelseId: HendelseId,
+        override val erKravgrunnlagUtdatert: Boolean,
+    ) : OpprettetTilbakekrevingsbehandling,
+        KanVurdere,
+        KanOppdatereNotat {
 
-    override fun erÅpen() = true
-    override fun erAvsluttet() = false
-    override fun erAvbrutt() = false
+        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
+        override val vurderingerMedKrav: VurderingerMedKrav? = null
+        override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
+        override val notat: NonBlankString? = null
 
-    override fun leggTilForhåndsvarselDokumentId(
-        dokumentId: UUID,
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-        hendelsesTidspunkt: Tidspunkt,
-    ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
-        forrigeSteg = this,
-        hendelseId = hendelseId,
-        versjon = versjon,
-        forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
-    )
+        override fun erÅpen() = true
+        override fun erAvsluttet() = false
+        override fun erAvbrutt() = false
 
-    override fun leggTilVurderinger(
-        månedsvurderinger: VurderingerMedKrav,
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-    ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
-        forrigeSteg = this,
-        hendelseId = hendelseId,
-        vurderingerMedKrav = månedsvurderinger,
-        versjon = versjon,
-    )
+        override fun leggTilForhåndsvarselDokumentId(
+            dokumentId: UUID,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+            hendelsesTidspunkt: Tidspunkt,
+        ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
+            forrigeSteg = this,
+            hendelseId = hendelseId,
+            versjon = versjon,
+            forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
+        )
 
-    override fun oppdaterNotat(
-        notat: NonBlankString?,
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-    ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
-        forrigeSteg = this,
-        hendelseId = hendelseId,
-        versjon = versjon,
-        notat = notat,
-    )
-}
+        override fun leggTilVurderinger(
+            månedsvurderinger: VurderingerMedKrav,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+        ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
+            forrigeSteg = this,
+            hendelseId = hendelseId,
+            vurderingerMedKrav = månedsvurderinger,
+            versjon = versjon,
+        )
 
-data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
-    override val id: TilbakekrevingsbehandlingId,
-    override val sakId: UUID,
-    override val saksnummer: Saksnummer,
-    override val fnr: Fnr,
-    override val opprettet: Tidspunkt,
-    override val opprettetAv: NavIdentBruker.Saksbehandler,
-    override val versjon: Hendelsesversjon,
-    override val hendelseId: HendelseId,
-    override val erKravgrunnlagUtdatert: Boolean,
-) : KanForhåndsvarsle,
-    KanAnnullere {
-
-    override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
-    override val vurderingerMedKrav: VurderingerMedKrav? = null
-    override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
-    override val notat: NonBlankString? = null
-    override val kravgrunnlag: Kravgrunnlag? = null
-    override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
-
-    override fun leggTilForhåndsvarselDokumentId(
-        dokumentId: UUID,
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-        hendelsesTidspunkt: Tidspunkt,
-    ) = UnderBehandling.UtenKravgrunnlag(
-        forrigeSteg = this,
-        hendelseId = hendelseId,
-        versjon = versjon,
-        forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
-    )
-
-    override fun erAvsluttet(): Boolean {
-        TODO("Not yet implemented")
+        override fun oppdaterNotat(
+            notat: NonBlankString?,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+        ) = UnderBehandling.MedKravgrunnlag.Påbegynt(
+            forrigeSteg = this,
+            hendelseId = hendelseId,
+            versjon = versjon,
+            notat = notat,
+        )
     }
 
-    override fun erAvbrutt(): Boolean? {
-        TODO("Not yet implemented")
+    data class UtenKravgrunnlag(
+        override val id: TilbakekrevingsbehandlingId,
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val opprettet: Tidspunkt,
+        override val opprettetAv: NavIdentBruker.Saksbehandler,
+        override val versjon: Hendelsesversjon,
+        override val hendelseId: HendelseId,
+        override val erKravgrunnlagUtdatert: Boolean,
+    ) : OpprettetTilbakekrevingsbehandling,
+        KanForhåndsvarsle,
+        KanAnnullere {
+
+        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        override val vurderingerMedKrav: VurderingerMedKrav? = null
+        override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
+        override val notat: NonBlankString? = null
+        override val kravgrunnlag: Kravgrunnlag? = null
+        override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
+
+        override fun leggTilForhåndsvarselDokumentId(
+            dokumentId: UUID,
+            hendelseId: HendelseId,
+            versjon: Hendelsesversjon,
+            hendelsesTidspunkt: Tidspunkt,
+        ) = UnderBehandling.UtenKravgrunnlag(
+            forrigeSteg = this,
+            hendelseId = hendelseId,
+            versjon = versjon,
+            forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
+        )
+
+        override fun erAvsluttet(): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun erAvbrutt(): Boolean? {
+            TODO("Not yet implemented")
+        }
     }
 }

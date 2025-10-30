@@ -5,8 +5,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandling
 import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingHendelse
-import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag
-import tilbakekreving.domain.OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
 
@@ -15,7 +13,8 @@ fun opprettTilbakekrevingsbehandling(
     forrigeVersjon: Hendelsesversjon,
     clock: Clock,
     fnr: Fnr,
-    kravgrunnlag: Kravgrunnlag,
+    saksnummer: Saksnummer,
+    kravgrunnlag: Kravgrunnlag?,
     erKravgrunnlagUtdatert: Boolean,
 ): Pair<OpprettetTilbakekrevingsbehandlingHendelse, OpprettetTilbakekrevingsbehandling> {
     return OpprettetTilbakekrevingsbehandlingHendelse.opprett(
@@ -23,19 +22,20 @@ fun opprettTilbakekrevingsbehandling(
         opprettetAv = command.opprettetAv,
         versjon = forrigeVersjon.inc(),
         clock = clock,
-        kravgrunnlagPåSakHendelseId = kravgrunnlag.hendelseId,
+        kravgrunnlagPåSakHendelseId = kravgrunnlag?.hendelseId,
     ).let {
-        it to it.toDomain(fnr, kravgrunnlag, erKravgrunnlagUtdatert)
+        it to it.toDomain(fnr, saksnummer, kravgrunnlag, erKravgrunnlagUtdatert)
     }
 }
 
+/*
 fun opprettTilbakekrevingsbehandlingUtenKravgrunnlag(
     command: OpprettTilbakekrevingsbehandlingCommand,
     forrigeVersjon: Hendelsesversjon,
     clock: Clock,
     fnr: Fnr,
     saksnummer: Saksnummer,
-): Pair<OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse, OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag> {
+): Pair<OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse, OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag> {
     return OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse.opprett(
         sakId = command.sakId,
         opprettetAv = command.opprettetAv,
@@ -45,3 +45,4 @@ fun opprettTilbakekrevingsbehandlingUtenKravgrunnlag(
         it to it.toDomain(fnr, saksnummer, false)
     }
 }
+*/

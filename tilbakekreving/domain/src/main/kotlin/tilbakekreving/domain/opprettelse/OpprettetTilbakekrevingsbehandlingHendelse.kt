@@ -28,7 +28,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     override val versjon: Hendelsesversjon,
     override val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
-    val kravgrunnlagPåSakHendelseId: HendelseId,
+    val kravgrunnlagPåSakHendelseId: HendelseId?,
 ) : TilbakekrevingsbehandlingHendelse {
 
     override val utførtAv: NavIdentBruker.Saksbehandler = opprettetAv
@@ -51,7 +51,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             opprettetAv: NavIdentBruker.Saksbehandler,
             versjon: Hendelsesversjon,
             clock: Clock,
-            kravgrunnlagPåSakHendelseId: HendelseId,
+            kravgrunnlagPåSakHendelseId: HendelseId?,
         ) = OpprettetTilbakekrevingsbehandlingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
@@ -68,30 +68,51 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
         erKravgrunnlagUtdatert: Boolean,
     ): OpprettetTilbakekrevingsbehandling {
-        return toDomain(fnr, kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
+        return toDomain(
+            fnr,
+            kravgrunnlagPåSakHendelse.saksnummer,
+            kravgrunnlagPåSakHendelse.kravgrunnlag,
+            erKravgrunnlagUtdatert,
+        )
     }
 
     fun toDomain(
         fnr: Fnr,
-        kravgrunnlag: Kravgrunnlag,
+        saksnummer: Saksnummer,
+        kravgrunnlag: Kravgrunnlag?,
         erKravgrunnlagUtdatert: Boolean,
     ): OpprettetTilbakekrevingsbehandling {
-        require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
-        return OpprettetTilbakekrevingsbehandling(
-            id = id,
-            sakId = sakId,
-            fnr = fnr,
-            saksnummer = kravgrunnlag.saksnummer,
-            opprettet = hendelsestidspunkt,
-            opprettetAv = opprettetAv,
-            kravgrunnlag = kravgrunnlag,
-            versjon = versjon,
-            hendelseId = hendelseId,
-            erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
-        )
+        return if (kravgrunnlag == null) {
+            OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag(
+                id = id,
+                sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
+                opprettet = hendelsestidspunkt,
+                opprettetAv = opprettetAv,
+                versjon = versjon,
+                hendelseId = hendelseId,
+                erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
+            )
+        } else {
+            require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
+            OpprettetTilbakekrevingsbehandling.MedKravgrunnlag(
+                id = id,
+                sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
+                opprettet = hendelsestidspunkt,
+                opprettetAv = opprettetAv,
+                kravgrunnlag = kravgrunnlag,
+                versjon = versjon,
+                hendelseId = hendelseId,
+                erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
+            )
+        }
     }
 }
 
+/*
 data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
@@ -113,8 +134,8 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
 
     companion object {
         /**
-         * Oppretter en opprettet tilbakekrevingsbehandlinghendelse med en tilfeldig id.
-         */
+ * Oppretter en opprettet tilbakekrevingsbehandlinghendelse med en tilfeldig id.
+ */
         fun opprett(
             sakId: UUID,
             opprettetAv: NavIdentBruker.Saksbehandler,
@@ -134,8 +155,8 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
         fnr: Fnr,
         saksnummer: Saksnummer,
         erKravgrunnlagUtdatert: Boolean,
-    ): OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag {
-        return OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
+    ): OpprettetTilbakekrevingsbehandling {
+        return OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag(
             id = id,
             sakId = sakId,
             fnr = fnr,
@@ -148,3 +169,4 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
         )
     }
 }
+*/
