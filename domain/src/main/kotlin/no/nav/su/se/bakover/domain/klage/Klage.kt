@@ -26,15 +26,15 @@ import java.util.UUID
  * - [VilkårsvurdertKlage.Påbegynt] -> [VilkårsvurdertKlage.Påbegynt] og [VilkårsvurdertKlage.Utfylt]
  * - [VilkårsvurdertKlage.Utfylt] -> [VilkårsvurdertKlage.Bekreftet]
  *
- * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.UtfyltOppretthold]
+ * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.UtfyltTilOversending]
  * - [VilkårsvurdertKlage.Bekreftet.Avvist] -> [VilkårsvurdertKlage] og [AvvistKlage]
  *
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
- * - [VurdertKlage.UtfyltOppretthold] -> [VurdertKlage.BekreftetOpprettholdt]
+ * - [VurdertKlage.UtfyltTilOversending] -> [VurdertKlage.BekreftetTilOversending]
  * - [VurdertKlage.UtfyltOmgjør] -> [VurdertKlage.BekreftetOmgjøring]
  * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage]
- * - [VurdertKlage.BekreftetOpprettholdt] -> [VurdertKlage] og [KlageTilAttestering]
+ * - [VurdertKlage.BekreftetTilOversending] -> [VurdertKlage] og [KlageTilAttestering]
  * - [VurdertKlage.BekreftetOmgjøring] -> [FerdigstiltOmgjortKlage]
  *
  * - [AvvistKlage] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage.Bekreftet.Avvist]
