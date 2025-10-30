@@ -12,7 +12,7 @@ class StatistikkEventObserverBuilder(
     gitCommit: GitCommit?,
     sakStatistikkRepo: SakStatistikkRepo,
 ) {
-    val statistikkService: StatistikkEventObserver = StatistikkEventObserver(
+    val statistikkService: StatistikkEventObserver = StatistikkEventObserverImpl(
         publisher = kafkaPublisher,
         clock = clock,
         gitCommit = gitCommit,
