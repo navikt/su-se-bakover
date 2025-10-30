@@ -90,6 +90,7 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
     override val opprettetAv: NavIdentBruker.Saksbehandler,
     override val versjon: Hendelsesversjon,
     override val hendelseId: HendelseId,
+    override val erKravgrunnlagUtdatert: Boolean,
 ) : KanForhåndsvarsle,
     KanAnnullere {
 
@@ -98,7 +99,6 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
     override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = null
     override val notat: NonBlankString? = null
     override val kravgrunnlag: Kravgrunnlag? = null
-    override val erKravgrunnlagUtdatert: Boolean = false
     override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
 
     override fun leggTilForhåndsvarselDokumentId(

@@ -117,9 +117,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                 }
 
                 is OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse -> {
-                    val kravgrunnlag = this.kravgrunnlagPåSak
+                    // TODO bjg holder dette eller vil det alltid varsle utdatert sevl etter nye hendelser?
+                    val erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false
                     acc.plus(
-                        hendelseId to hendelse.toDomain(fnr, saksnummer),
+                        hendelseId to hendelse.toDomain(fnr, saksnummer, erKravgrunnlagUtdatert),
                     )
                 }
 

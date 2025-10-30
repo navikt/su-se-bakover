@@ -42,6 +42,6 @@ fun opprettTilbakekrevingsbehandlingUtenKravgrunnlag(
         versjon = forrigeVersjon.inc(),
         clock = clock,
     ).let {
-        it to it.toDomain(fnr, saksnummer)
+        it to it.toDomain(fnr, saksnummer, false)
     }
 }

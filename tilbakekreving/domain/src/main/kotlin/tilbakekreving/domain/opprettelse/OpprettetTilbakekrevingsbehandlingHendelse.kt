@@ -133,6 +133,7 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
     fun toDomain(
         fnr: Fnr,
         saksnummer: Saksnummer,
+        erKravgrunnlagUtdatert: Boolean,
     ): OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag {
         return OpprettetTilbakekrevingsbehandlingUtenKravgrunnlag(
             id = id,
@@ -143,6 +144,7 @@ data class OpprettetTilbakekrevingsbehandlingUtenKravgrunnlagHendelse(
             opprettetAv = opprettetAv,
             versjon = versjon,
             hendelseId = hendelseId,
+            erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
         )
     }
 }
