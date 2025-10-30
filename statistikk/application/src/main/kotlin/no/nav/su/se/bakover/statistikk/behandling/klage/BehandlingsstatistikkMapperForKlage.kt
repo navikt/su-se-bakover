@@ -51,7 +51,10 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             gitCommit = gitCommit,
             clock = clock,
             behandlingStatus = BehandlingStatus.OversendtKlage,
-            behandlingResultat = if (this.klage.vurderinger is VurderingerTilKlage.UtfyltOppretthold) BehandlingResultat.OpprettholdtKlage else BehandlingResultat.DelvisOmgjøringKa,
+            behandlingResultat = when (this.klage.vurderinger) {
+                is VurderingerTilKlage.UtfyltOppretthold -> BehandlingResultat.OpprettholdtKlage
+                is VurderingerTilKlage.UtfyltDelvisOmgjøringKA -> BehandlingResultat.DelvisOmgjøringKa
+            },
             resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
             // Spesialtilfelle der vi sender en innstilling (ikke vedtak) til klageinstansen som vil si at behandlingen ikke er avsluttet for brukeren.
             avsluttet = false,
