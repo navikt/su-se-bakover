@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.klage
 
+import arrow.core.getOrElse
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
@@ -36,7 +37,7 @@ import no.nav.su.se.bakover.database.klage.AvsluttetKlageJson.Companion.toAvslut
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Svarord.Companion.tilDatabaseType
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Tilstand.Companion.databasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Companion.toJson
-import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Oppretthold.Hjemmel.Companion.toDatabasetype
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.OversendtKa.Hjemmel.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -538,7 +539,7 @@ internal class KlagePostgresRepo(
         )
 
         fun vurdertKlageTilAttestering() = KlageTilAttestering.Vurdert(
-            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOpprettholdt,
+            forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetTilOversending,
             saksbehandler = saksbehandler,
             sakstype = sakstype,
         )
@@ -717,10 +718,10 @@ internal class KlagePostgresRepo(
                     is VilkårsvurdertKlage.Bekreftet.Avvist -> VILKÅRSVURDERT_BEKREFTET_AVVIST
 
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
-                    is VurdertKlage.UtfyltOppretthold -> VURDERT_UTFYLT
+                    is VurdertKlage.UtfyltTilOversending -> VURDERT_UTFYLT
                     is VurdertKlage.UtfyltOmgjør -> VURDERT_UTFYLT
                     is VurdertKlage.BekreftetOmgjøring -> VURDERT_BEKREFTET
-                    is VurdertKlage.BekreftetOpprettholdt -> VURDERT_BEKREFTET
+                    is VurdertKlage.BekreftetTilOversending -> VURDERT_BEKREFTET
 
                     is AvvistKlage -> AVVIST
 
@@ -762,11 +763,14 @@ internal class KlagePostgresRepo(
             value = VedtaksvurderingJson.Oppretthold::class,
             name = "Oppretthold",
         ),
+        JsonSubTypes.Type(
+            value = VedtaksvurderingJson.DelvisOmgjøringKa::class,
+            name = "DelvisOmgjøringKA",
+        ),
     )
     private sealed interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
         data class Omgjør(val årsak: String?, val begrunnelse: String?) : VedtaksvurderingJson {
-
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
@@ -775,8 +779,7 @@ internal class KlagePostgresRepo(
             }
         }
 
-        data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) : VedtaksvurderingJson {
-
+        sealed interface OversendtKa {
             enum class Hjemmel(val verdi: String) {
                 SU_PARAGRAF_3("su_paragraf_3"),
                 SU_PARAGRAF_4("su_paragraf_4"),
@@ -861,12 +864,29 @@ internal class KlagePostgresRepo(
 
                 override fun toString() = verdi
             }
+        }
+        data class DelvisOmgjøringKa(val hjemler: List<String>, val klagenotat: String?) :
+            VedtaksvurderingJson,
+            OversendtKa {
+            override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
+                return VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+                    hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
+                    klagenotat = klagenotat,
+                    erOppretthold = false,
+                ).getOrElse { throw IllegalStateException("Mangler DelvisOmgjøringKa for klage") }
+            }
+        }
+
+        data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) :
+            VedtaksvurderingJson,
+            OversendtKa {
 
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
-                return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-                    hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() },
+                return VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+                    hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
                     klagenotat = klagenotat,
-                ).getOrNull()!!
+                    erOppretthold = true,
+                ).getOrElse { throw IllegalStateException("Mangler Oppretthold for klage") }
             }
         }
 
@@ -881,11 +901,19 @@ internal class KlagePostgresRepo(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
                     )
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> DelvisOmgjøringKa(
+                        hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
+                    )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> Omgjør(
                         årsak = årsak.name,
                         begrunnelse = begrunnelse,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
+                        hjemler = hjemler.toDatabasetype(),
+                        klagenotat = klagenotat,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> DelvisOmgjøringKa(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
                     )

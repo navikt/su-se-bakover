@@ -49,7 +49,7 @@ fun PdfA.tilDokument(
             pdfInnhold = pdfInnhold,
         )
 
-        is KlageDokumentCommand.Oppretthold,
+        is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring,
         is AvsluttRevurderingDokumentCommand,
         is TrukketSøknadDokumentCommand,
         -> informasjonAnnet(

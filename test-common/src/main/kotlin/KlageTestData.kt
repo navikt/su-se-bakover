@@ -379,9 +379,10 @@ fun utfyltVurdertKlage(
     erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
-    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
         klagenotat = "klagenotat",
+        erOppretthold = true,
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId, fnr = fnr).first,
 ): Pair<Sak, VurdertKlage.Utfylt> {
@@ -432,9 +433,10 @@ fun bekreftetVurdertKlage(
     erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
-    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
         klagenotat = "klagenotat",
+        erOppretthold = true,
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
@@ -547,9 +549,10 @@ fun vurdertKlageTilAttestering(
     erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
-    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
         klagenotat = "klagenotat",
+        erOppretthold = true,
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering.Vurdert> {
@@ -641,9 +644,10 @@ fun underkjentKlageTilVurdering(
     erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
-    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
         klagenotat = "klagenotat",
+        erOppretthold = true,
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: UnderkjennAttesteringsgrunnBehandling = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD,
@@ -746,9 +750,10 @@ fun underkjentTilVurderingKlageTilAttestering(
     erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
-    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
         klagenotat = "klagenotat",
+        erOppretthold = true,
     ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
 ): Pair<Sak, KlageTilAttestering> {
@@ -793,9 +798,10 @@ fun oversendtKlage(
     erUnderskrevet: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse = SvarMedBegrunnelse(Svarord.JA, "underskrevet"),
     fritekstTilBrev: String = "fritekstTilBrev",
-    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
         hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
         klagenotat = "klagenotat",
+        erOppretthold = true,
     ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(

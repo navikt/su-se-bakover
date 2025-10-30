@@ -52,12 +52,12 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
         is AvvistKlage -> this.fritekstTilVedtaksbrev
         is KlageTilAttestering.Avvist -> this.fritekstTilVedtaksbrev
         is KlageTilAttestering.Vurdert -> this.fritekstTilVedtaksbrev
-        is VurdertKlage.UtfyltOppretthold -> this.fritekstTilVedtaksbrev
         is VurdertKlage.Påbegynt -> this.fritekstTilVedtaksbrev ?: return KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt.left()
-        is VurdertKlage.BekreftetOpprettholdt -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.BekreftetTilOversending -> this.fritekstTilVedtaksbrev
+        is VurdertKlage.UtfyltTilOversending -> this.fritekstTilVedtaksbrev
     }
 
-    return KlageDokumentCommand.Oppretthold(
+    return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
         fødselsnummer = this.fnr,
         saksnummer = this.saksnummer,
         sakstype = this.sakstype,

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
@@ -22,16 +21,7 @@ data class OversendtKlage(
     override val sakstype: Sakstype,
     val behandlingId: UUID? = null,
 ) : Klage,
-    VurdertKlage.OpprettholdKlageFelter by forrigeSteg {
-    /*
-        TODO: VurdertKlage.UtfyltFelter er egentlig ikke godt nok for denne klasse og misvisende
-        Den åpner den for omgjøring, men da sender vi ikke over noen klager. Sees på når avvisning og delvis omgjøring kommer inn.
-     */
-
-    val fritekstTilVedtaksbrev
-        get() = getFritekstTilBrev().getOrElse {
-            throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
-        }
+    VurdertKlage.BekreftetOversendtTilKA by forrigeSteg {
 
     /**
      * Merk at i et større perspektiv, f.eks. fra klageinstansen (KA) eller statistikk, vil denne anses som åpen/ikke ferdigbehandlet.
@@ -63,7 +53,7 @@ data class OversendtKlage(
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         val fritekstTilOversendelsesbrev = this.vurderinger.fritekstTilOversendelsesbrev
 
-        return KlageDokumentCommand.Oppretthold(
+        return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
             sakstype = this.sakstype,

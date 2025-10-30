@@ -263,7 +263,7 @@ internal class SendKlageTilAttesteringTest {
                 )
             } else {
                 KlageTilAttestering.Vurdert(
-                    forrigeSteg = klage as VurdertKlage.BekreftetOpprettholdt,
+                    forrigeSteg = klage as VurdertKlage.BekreftetTilOversending,
                     saksbehandler = saksbehandlerSomSendteTilAttestering,
                     sakstype = klage.sakstype,
                 )

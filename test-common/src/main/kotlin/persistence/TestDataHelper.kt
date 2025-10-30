@@ -13,6 +13,7 @@ import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.UprosessertKlageinstanshendelse
 import behandling.klage.domain.VurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage.OversendtKA
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.matchers.shouldBe
@@ -1587,22 +1588,25 @@ class TestDataHelper(
         }
     }
 
-    fun persisterKlageVurdertUtfyltOpprettholdt(
+    fun persisterKlageVurdertUtfyltTilOversending(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-    ): VurdertKlage.UtfyltOppretthold {
+        erOppretthold: Boolean = true,
+    ): VurdertKlage.UtfyltTilOversending {
+        val vedtaksvurdering = OversendtKA.create(
+            fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
+            vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.SkalTilKabal.create(
+                erOppretthold = erOppretthold,
+                hjemler = Klagehjemler.Utfylt.create(
+                    nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
+                ),
+                klagenotat = "klagenotat",
+            ) as VurderingerTilKlage.Vedtaksvurdering.Utfylt.SkalTilKabal,
+        )
         return persisterKlageVurdertPåbegynt(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
-            vurderinger = VurderingerTilKlage.UtfyltOppretthold(
-                fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
-                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
-                    hjemler = Klagehjemler.Utfylt.create(
-                        nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
-                    ),
-                    klagenotat = "klagenotat",
-                ),
-            ),
+            vurderinger = vedtaksvurdering,
         ).let {
-            if (it !is VurdertKlage.UtfyltOppretthold) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
+            if (it !is VurdertKlage.UtfyltTilOversending) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
             it
         }.also {
             databaseRepos.klageRepo.lagre(it)
@@ -1611,8 +1615,9 @@ class TestDataHelper(
 
     fun persisterKlageVurdertBekreftet(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        erOppretthold: Boolean = true,
     ): VurdertKlage.Bekreftet {
-        return persisterKlageVurdertUtfyltOpprettholdt(vedtak = vedtak).bekreftVurderinger(
+        return persisterKlageVurdertUtfyltTilOversending(vedtak = vedtak, erOppretthold = erOppretthold).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
         ).also {
             databaseRepos.klageRepo.lagre(it)
@@ -1651,8 +1656,9 @@ class TestDataHelper(
 
     fun persisterKlageTilAttesteringVurdert(
         vedtak: VedtakInnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
+        erOppretthold: Boolean = true,
     ): KlageTilAttestering.Vurdert {
-        return persisterKlageVurdertBekreftet(vedtak = vedtak).sendTilAttestering(
+        return persisterKlageVurdertBekreftet(vedtak = vedtak, erOppretthold = erOppretthold).sendTilAttestering(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
         ).getOrFail().let {
             if (it !is KlageTilAttestering.Vurdert) throw IllegalStateException("Forventet en KlageTilAttestering(TilVurdering). fikk ${it::class} ved opprettelse av test-data")

@@ -11,6 +11,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
@@ -170,7 +171,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVurdertUtfyltOpprettholdt()
+            val klage = testDataHelper.persisterKlageVurdertUtfyltTilOversending()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -205,13 +206,34 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageTilAttesteringVurdert()
+            val klage = testDataHelper.persisterKlageTilAttesteringVurdert(erOppretthold = true)
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
             }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+            val hentetKlage = klageRepo.hentKlage(klage.id)
+            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
+            val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
+            attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltOppretthold>()
             klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        }
+    }
+
+    @Test
+    fun `klage til attestering til vurdering for delvis omgjøring`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val klage = testDataHelper.persisterKlageTilAttesteringVurdert(erOppretthold = false)
+
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+            }
+            val hentetKlage = klageRepo.hentKlage(klage.id)
+            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
+            val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
+            attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltDelvisOmgjøringKA>()
         }
     }
 
@@ -284,6 +306,21 @@ internal class KlagePostgresRepoTest {
             }
             klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
             klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        }
+    }
+
+    @Test
+    fun `oversendt klage med delvis omgjøring`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val klage = testDataHelper.persisterKlageOversendt()
+
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+            }
+            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
         }
     }
 
@@ -408,7 +445,7 @@ internal class KlagePostgresRepoTest {
             }
 
             val hentet = klageRepo.hentKlage(klage.id)!!
-            hentet.shouldBeTypeOf<VurdertKlage.BekreftetOpprettholdt>()
+            hentet.shouldBeTypeOf<VurdertKlage.BekreftetTilOversending>()
             hentet.klageinstanshendelser.shouldBeEmpty()
         }
     }

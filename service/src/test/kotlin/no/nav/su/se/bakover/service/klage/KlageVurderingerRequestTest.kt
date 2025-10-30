@@ -11,15 +11,16 @@ internal class KlageVurderingerRequestTest {
     fun `gyldige hjemler`() {
         val alleGyldigeHjemler = Hjemmel.entries.map { it.name }
 
-        KlageVurderingerRequest.Oppretthold(
+        KlageVurderingerRequest.SkalTilKabal(
             hjemler = alleGyldigeHjemler,
             klagenotat = "klagenotat",
+            erOppretthold = true,
         ).toDomain().shouldBeRight()
     }
 
     @Test
     fun `ugyldige hjemler`() {
-        KlageVurderingerRequest.Oppretthold(
+        KlageVurderingerRequest.SkalTilKabal(
             listOf(
                 "SU_PARAGRAF_0",
                 "SU_PARAGRAF_1",
@@ -40,6 +41,7 @@ internal class KlageVurderingerRequestTest {
                 "SU_PARAGRAF_29",
             ),
             klagenotat = null,
+            erOppretthold = true,
         ).toDomain().shouldBeLeft()
     }
 }

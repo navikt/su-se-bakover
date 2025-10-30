@@ -19,9 +19,10 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 data class KlageVurderingerRequest(
     val klageId: KlageId,
     private val saksbehandler: NavIdentBruker.Saksbehandler,
-    private val fritekstTilBrev: String?,
+    private val fritekstTilBrev: String?, // TODO: Denne burde ligge inne i SkalTilKabal
     private val omgjør: Omgjør?,
-    private val oppretthold: Oppretthold?,
+    private val oppretthold: SkalTilKabal?,
+    private val delvisomgjøring_ka: SkalTilKabal?,
 ) {
     data class Omgjør(val årsak: String?, val begrunnelse: String?) {
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
@@ -37,13 +38,14 @@ data class KlageVurderingerRequest(
         }
     }
 
-    data class Oppretthold(val hjemler: List<String>, val klagenotat: String?) {
+    data class SkalTilKabal(val hjemler: List<String>, val klagenotat: String?, val erOppretthold: Boolean) {
         fun toDomain(): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, VurderingerTilKlage.Vedtaksvurdering> {
             return hjemmelToDomain(hjemler)
                 .flatMap {
-                    VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+                    VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
                         hjemler = it,
                         klagenotat = klagenotat,
+                        erOppretthold = erOppretthold,
                     ).mapLeft {
                         KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler
                     }
@@ -68,18 +70,21 @@ data class KlageVurderingerRequest(
 
     private fun toVedtaksvurdering(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering?> {
         return when {
-            omgjør == null && oppretthold == null -> null.right()
+            omgjør == null && oppretthold == null && delvisomgjøring_ka == null -> null.right()
             omgjør != null -> omgjør.toDomain()
             oppretthold != null -> oppretthold.toDomain()
+            delvisomgjøring_ka != null -> delvisomgjøring_ka.toDomain()
             else -> throw IllegalStateException("Håndterer at ikke begge har lov til å være utfylt.")
         }
     }
 
     fun toDomain(): Either<KunneIkkeVurdereKlage, Domain> {
-        if (omgjør != null && oppretthold != null) {
-            return KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
+        val muligeUtfall = listOf(omgjør, oppretthold, delvisomgjøring_ka)
+        val innsendteUtfall = muligeUtfall.count { it != null }
+        if (innsendteUtfall > 1) {
+            return KunneIkkeVurdereKlage.ForMangeUtfall.left()
         }
-        val fritekstTilBrev = if (oppretthold != null) {
+        val fritekstTilBrev = if (oppretthold != null || delvisomgjøring_ka != null) {
             fritekstTilBrev
         } else {
             null

@@ -163,7 +163,7 @@ internal class OversendKlageTest {
 
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
@@ -217,7 +217,7 @@ internal class OversendKlageTest {
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
@@ -272,7 +272,7 @@ internal class OversendKlageTest {
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,
@@ -527,7 +527,7 @@ internal class OversendKlageTest {
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.brevServiceMock).lagDokument(
             argThat {
-                it shouldBe KlageDokumentCommand.Oppretthold(
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
                     sakstype = Sakstype.UFØRE,
                     saksbehandler = klage.saksbehandler,

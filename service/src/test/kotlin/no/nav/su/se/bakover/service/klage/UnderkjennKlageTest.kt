@@ -223,7 +223,7 @@ internal class UnderkjennKlageTest {
         )
         mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenneKlage.UgyldigTilstand(
             klage::class,
-            VurdertKlage.BekreftetOpprettholdt::class,
+            VurdertKlage.BekreftetTilOversending::class,
         ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -245,7 +245,7 @@ internal class UnderkjennKlageTest {
 
         val attestant = NavIdentBruker.Attestant("s2")
 
-        var expectedKlage: VurdertKlage.BekreftetOpprettholdt?
+        var expectedKlage: VurdertKlage.BekreftetTilOversending?
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
@@ -260,7 +260,7 @@ internal class UnderkjennKlageTest {
             ).second,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             sakstype = klage.sakstype,
-        ) as VurdertKlage.BekreftetOpprettholdt
+        ) as VurdertKlage.BekreftetTilOversending
         val attesteringer =
             Attestering.Underkjent(
                 attestant = attestant,

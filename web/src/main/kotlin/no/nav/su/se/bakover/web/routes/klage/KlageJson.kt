@@ -58,12 +58,14 @@ internal data class KlageJson(
     data class VedtaksvurderingJson(
         val type: String,
         val omgjør: OmgjørJson?,
-        val oppretthold: OpprettholdJson?,
+        val oppretthold: KabalData?,
+        val delvisOmgjøringKa: KabalData?,
     ) {
 
         enum class Type {
             OMGJØR,
             OPPRETTHOLD,
+            DELVIS_OMGJØRING_KA,
         }
 
         data class OmgjørJson(
@@ -71,7 +73,7 @@ internal data class KlageJson(
             val begrunnelse: String?,
         )
 
-        data class OpprettholdJson(
+        data class KabalData(
             val hjemler: List<String>,
             val klagenotat: String?,
         )
@@ -86,15 +88,26 @@ internal data class KlageJson(
                             begrunnelse = begrunnelse,
                         ),
                         oppretthold = null,
+                        delvisOmgjøringKa = null,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> VedtaksvurderingJson(
+                        type = Type.DELVIS_OMGJØRING_KA.toString(),
+                        omgjør = null,
+                        delvisOmgjøringKa = KabalData(
+                            hjemler = hjemler.map { it.toString() },
+                            klagenotat = klagenotat,
+                        ),
+                        oppretthold = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> VedtaksvurderingJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
-                        oppretthold = OpprettholdJson(
+                        oppretthold = KabalData(
                             hjemler = hjemler.map { it.toString() },
                             klagenotat = klagenotat,
                         ),
+                        delvisOmgjøringKa = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> VedtaksvurderingJson(
@@ -104,15 +117,27 @@ internal data class KlageJson(
                             begrunnelse = begrunnelse,
                         ),
                         oppretthold = null,
+                        delvisOmgjøringKa = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> VedtaksvurderingJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
-                        oppretthold = OpprettholdJson(
+                        oppretthold = KabalData(
                             hjemler = hjemler.map { it.toString() },
                             klagenotat = klagenotat,
                         ),
+                        delvisOmgjøringKa = null,
+                    )
+
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> VedtaksvurderingJson(
+                        type = Type.DELVIS_OMGJØRING_KA.toString(),
+                        omgjør = null,
+                        delvisOmgjøringKa = KabalData(
+                            hjemler = hjemler.map { it.toString() },
+                            klagenotat = klagenotat,
+                        ),
+                        oppretthold = null,
                     )
                 }
             }
@@ -215,8 +240,8 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttetStatus,
         )
 
-        is VurdertKlage.UtfyltOppretthold, is VurdertKlage.UtfyltOmgjør -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttetStatus)
-        is VurdertKlage.BekreftetOmgjøring, is VurdertKlage.BekreftetOpprettholdt -> this.mapUtfyltOgBekreftetTilKlageJson(
+        is VurdertKlage.UtfyltOmgjør, is VurdertKlage.UtfyltTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttetStatus)
+        is VurdertKlage.BekreftetOmgjøring, is VurdertKlage.BekreftetTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VURDERT_BEKREFTET.toString(),
             avsluttet = avsluttetStatus,
         )
@@ -275,7 +300,7 @@ internal fun Klage.toJson(): KlageJson {
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
             erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
             fremsattRettsligKlageinteresse = this.vilkårsvurderinger.fremsattRettsligKlageinteresse,
-            fritekstTilBrev = this.fritekstTilVedtaksbrev,
+            fritekstTilBrev = this.vurderinger.fritekstTilOversendelsesbrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },

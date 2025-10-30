@@ -85,11 +85,11 @@ sealed interface KlageTilAttestering :
     }
 
     data class Vurdert(
-        private val forrigeSteg: VurdertKlage.BekreftetOpprettholdt,
+        private val forrigeSteg: VurdertKlage.BekreftetTilOversending,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val sakstype: Sakstype,
     ) : KlageTilAttestering,
-        VurdertKlage.OpprettholdKlageFelter by forrigeSteg {
+        VurdertKlage.BekreftetOversendtTilKA by forrigeSteg {
 
         /**
          * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
@@ -119,11 +119,12 @@ sealed interface KlageTilAttestering :
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.BekreftetOpprettholdt> {
+        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.BekreftetTilOversending> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return this.forrigeSteg.copy(
+
+            return forrigeSteg.copy(
                 oppgaveId = oppgaveId,
                 attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
             ).right()
@@ -153,7 +154,7 @@ sealed interface KlageTilAttestering :
         fun returFraKlageinstans(
             oppgaveId: OppgaveId,
             klageinstanshendelser: Klageinstanshendelser,
-        ): VurdertKlage.BekreftetOpprettholdt {
+        ): VurdertKlage.BekreftetTilOversending {
             // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
             return forrigeSteg.copy(
                 oppgaveId = oppgaveId,

@@ -254,7 +254,7 @@ sealed interface VilkårsvurdertKlage :
                     when (val vurderinger = vurderinger) {
                         is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
                         is VurderingerTilKlage.UtfyltOmgjøring -> null
-                        is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+                        is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
                         null -> null
                     }
 
@@ -569,7 +569,7 @@ sealed interface VilkårsvurdertKlage :
                     when (val vurderinger = vurderinger) {
                         is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
                         is VurderingerTilKlage.UtfyltOmgjøring -> null
-                        is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+                        is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
                         null -> null
                     }
             override fun erÅpen() = true
