@@ -30,6 +30,10 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
         value = "OPPRETTHOLDT",
         beskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
     ),
+    DelvisOmgjøringKa(
+        value = "DELVIS_OMGJØRING",
+        beskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
+    ),
     OmgjortKlage(
         value = "OMGJORT",
         beskrivelse = "Kun brukt i klagebehandling UTEN oversendelse til klageinstansen.",

@@ -20,6 +20,7 @@ import statistikk.domain.StønadstatistikkMåned
 import java.time.YearMonth
 import java.util.UUID
 
+// TODO: ikke i bruk
 class StønadStatistikkRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,

@@ -14,7 +14,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
-internal class StatistikkEventObserver(
+class StatistikkEventObserverImpl(
     private val publisher: KafkaPublisher,
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(StatistikkEventObserver::class.java),

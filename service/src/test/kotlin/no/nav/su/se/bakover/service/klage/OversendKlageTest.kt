@@ -3,7 +3,10 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.VurderingerTilKlage
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import io.kotest.assertions.fail
@@ -35,6 +38,7 @@ import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
@@ -467,9 +471,124 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `Skal kunne oversende en klage som er til attestering`() {
+    fun `Skal kunne oversende en klage som er til attestering av typen opprettholdt`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
+        val pdf = PdfA("brevbytes".toByteArray())
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
+            pdf = pdf,
+            tittel = "test-dokument-informasjon-annet",
+        )
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            vedtakServiceMock = mock {
+                on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+
+            brevServiceMock = mock {
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            },
+            klageClient = mock {
+                on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            observer = observerMock,
+        )
+        val attestant = NavIdentBruker.Attestant("attestant")
+
+        var expectedKlage: OversendtKlage?
+        mocks.service.oversend(
+            sakId = sak.id,
+            klageId = klage.id,
+            attestant = attestant,
+        ).getOrElse { fail(it.toString()) }.also {
+            expectedKlage = OversendtKlage(
+                forrigeSteg = klage,
+                attesteringer = Attesteringshistorikk.create(
+                    Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
+                ),
+                klageinstanshendelser = Klageinstanshendelser.empty(),
+                sakstype = klage.sakstype,
+            )
+            it shouldBe expectedKlage
+            verify(observerMock)
+                .handle(
+                    argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual },
+                    any(),
+                )
+        }
+
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(mocks.brevServiceMock).lagDokument(
+            argThat {
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
+                    fødselsnummer = sak.fnr,
+                    sakstype = Sakstype.UFØRE,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
+                    fritekst = klage.fritekstTilVedtaksbrev,
+                    klageDato = 15.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
+                    saksnummer = klage.saksnummer,
+                )
+            },
+            anyOrNull(),
+        )
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.klageClient).sendTilKlageinstans(
+            klage = argThat { it shouldBe expectedKlage },
+            journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+        )
+        verify(mocks.brevServiceMock).lagreDokument(
+            argThat {
+                it shouldBe Dokument.MedMetadata.Informasjon.Annet(
+                    utenMetadata = dokumentUtenMetadata,
+                    metadata = Dokument.Metadata(
+                        sakId = sak.id,
+                        søknadId = null,
+                        vedtakId = null,
+                        revurderingId = null,
+                        klageId = klage.id.value,
+                        journalpostId = null,
+                        brevbestillingId = null,
+                    ),
+                    distribueringsadresse = null,
+                )
+            },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.oppgaveService).lukkOppgave(
+            argThat { it shouldBe klage.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal kunne oversende en klage som er til attestering av typen delvis omgjøring`() {
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+            hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+            klagenotat = "klagenotat",
+            erOppretthold = false,
+        ).getOrFail()
+
+        val (sak, klage) = vurdertKlageTilAttestering(vedtaksvurdering = vedtaksvurdering)
+        val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
+
         val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
         val pdf = PdfA("brevbytes".toByteArray())
         val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
