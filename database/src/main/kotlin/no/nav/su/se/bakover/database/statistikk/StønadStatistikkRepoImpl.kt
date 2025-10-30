@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import statistikk.domain.StønadsklassifiseringDto
@@ -24,88 +23,6 @@ class StønadStatistikkRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : StønadStatistikkRepo {
-    override fun lagreStønadStatistikk(dto: StønadstatistikkDto, sessionContext: SessionContext?) {
-        return dbMetrics.timeQuery("lagreHendelseStønadstatistikkDto") {
-            sessionFactory.withSessionContext(sessionContext) { sessionContext ->
-                sessionContext.withSession { session ->
-                    val stoenadStatistikkId = UUID.randomUUID()
-                    """
-                    INSERT INTO stoenad_statistikk (
-                    id, har_utenlandsopphold, har_familiegjenforening, personnummer,
-                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
-                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
-                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
-                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
-                    opphorsdato, flyktningsstatus, versjon
-                    ) VALUES (
-                        :id, :har_utenlandsopphold, :har_familiegjenforening, :personnummer,
-                        :personnummer_ektefelle, :funksjonell_tid, :teknisk_tid, :stonadstype, :sak_id, :vedtaksdato,
-                        :vedtakstype, :vedtaksresultat, :behandlende_enhet_kode, :ytelse_virkningstidspunkt,
-                        :gjeldende_stonad_virkningstidspunkt, :gjeldende_stonad_stopptidspunkt,
-                        :gjeldende_stonad_utbetalingsstart, :gjeldende_stonad_utbetalingsstopp, :opphorsgrunn,
-                        :opphorsdato, :flyktningsstatus, :versjon
-                    )
-                    """.trimIndent()
-                        .insert(
-                            mapOf(
-                                "id" to stoenadStatistikkId,
-                                "personnummer" to dto.personnummer.toString(),
-                                "personnummer_ektefelle" to dto.personNummerEktefelle?.toString(),
-                                "funksjonell_tid" to dto.funksjonellTid,
-                                "teknisk_tid" to dto.tekniskTid,
-                                "stonadstype" to dto.stonadstype.name,
-                                "sak_id" to dto.sakId,
-                                "vedtaksdato" to dto.vedtaksdato,
-                                "vedtakstype" to dto.vedtakstype.name,
-                                "vedtaksresultat" to dto.vedtaksresultat.name,
-                                "behandlende_enhet_kode" to dto.behandlendeEnhetKode,
-                                "ytelse_virkningstidspunkt" to dto.ytelseVirkningstidspunkt,
-                                "gjeldende_stonad_virkningstidspunkt" to dto.gjeldendeStonadVirkningstidspunkt,
-                                "gjeldende_stonad_stopptidspunkt" to dto.gjeldendeStonadStopptidspunkt,
-                                "gjeldende_stonad_utbetalingsstart" to dto.gjeldendeStonadUtbetalingsstart,
-                                "gjeldende_stonad_utbetalingsstopp" to dto.gjeldendeStonadUtbetalingsstopp,
-                                "opphorsgrunn" to dto.opphorsgrunn,
-                                "opphorsdato" to dto.opphorsdato,
-                                "har_utenlandsopphold" to dto.harUtenlandsOpphold?.name,
-                                "har_familiegjenforening" to dto.harFamiliegjenforening?.name,
-                                "flyktningsstatus" to dto.flyktningsstatus?.name,
-                                "versjon" to dto.versjon,
-                            ),
-                            session = session,
-                        )
-
-                    dto.månedsbeløp.forEach {
-                        lagreMånedsbeløpMedFradrag(session, stoenadStatistikkId, it)
-                    }
-                }
-            }
-        }
-    }
-
-    override fun hentHendelserForFnr(fnr: Fnr): List<StønadstatistikkDto> {
-        return dbMetrics.timeQuery("hentHendelseStønadstatistikkDto") {
-            sessionFactory.withSession { session ->
-                """
-                SELECT
-                    id, har_utenlandsopphold, har_familiegjenforening, personnummer,
-                    personnummer_ektefelle, funksjonell_tid, teknisk_tid, stonadstype, sak_id, vedtaksdato,
-                    vedtakstype, vedtaksresultat, behandlende_enhet_kode, ytelse_virkningstidspunkt,
-                    gjeldende_stonad_virkningstidspunkt, gjeldende_stonad_stopptidspunkt,
-                    gjeldende_stonad_utbetalingsstart, gjeldende_stonad_utbetalingsstopp, opphorsgrunn,
-                    opphorsdato, flyktningsstatus, versjon
-                FROM stoenad_statistikk
-                WHERE personnummer = :fnr
-                """.trimIndent()
-                    .hentListe(
-                        params = mapOf("fnr" to fnr.toString()),
-                        session = session,
-                    ) { row ->
-                        val månedsbeløp = hentMånedsbeløp(session, row.uuid("id"))
-                        row.toStønadsstatistikk(månedsbeløp)
-                    }
-            }
-        }
-    }
 
     override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned) {
         return dbMetrics.timeQuery("hentStatistikkForMåned") {
