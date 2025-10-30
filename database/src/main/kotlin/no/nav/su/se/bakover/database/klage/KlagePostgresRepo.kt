@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.klage
 
+import arrow.core.getOrElse
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
@@ -872,7 +873,7 @@ internal class KlagePostgresRepo(
                     hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
                     klagenotat = klagenotat,
                     erOppretthold = false,
-                ).getOrNull()!!
+                ).getOrElse { throw IllegalStateException("Mangler DelvisOmgjøringKa for klage") }
             }
         }
 
@@ -885,7 +886,7 @@ internal class KlagePostgresRepo(
                     hjemler = hjemler.map { OversendtKa.Hjemmel.fromString(it).toDomain() },
                     klagenotat = klagenotat,
                     erOppretthold = true,
-                ).getOrNull()!!
+                ).getOrElse { throw IllegalStateException("Mangler Oppretthold for klage") }
             }
         }
 
