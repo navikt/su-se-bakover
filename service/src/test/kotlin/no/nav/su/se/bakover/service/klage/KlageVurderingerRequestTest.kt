@@ -9,10 +9,10 @@ internal class KlageVurderingerRequestTest {
 
     @Test
     fun `gyldige hjemler`() {
-        val allHjemmelStrings = Hjemmel.entries.map { it.name }
+        val alleGyldigeHjemler = Hjemmel.entries.map { it.name }
 
         KlageVurderingerRequest.Oppretthold(
-            hjemler = allHjemmelStrings,
+            hjemler = alleGyldigeHjemler,
             klagenotat = "klagenotat",
         ).toDomain().shouldBeRight()
     }
