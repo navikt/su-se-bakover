@@ -77,6 +77,7 @@ data class IverksattHendelse(
                 forrigeSteg = behandling,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
+                kravgrunnlag = behandling.kravgrunnlag,
                 attesteringer = behandling.attesteringer.leggTilNyAttestering(
                     attestering = Attestering.Iverksatt(
                         attestant = this.utførtAv,

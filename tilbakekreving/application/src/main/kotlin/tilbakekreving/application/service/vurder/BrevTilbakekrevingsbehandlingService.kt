@@ -24,7 +24,7 @@ class BrevTilbakekrevingsbehandlingService(
 
     fun lagreBrevtekst(
         command: OppdaterVedtaksbrevCommand,
-    ): Either<KunneIkkeOppdatereVedtaksbrev, UnderBehandling.Utfylt> {
+    ): Either<KunneIkkeOppdatereVedtaksbrev, UnderBehandling.MedKravgrunnlag.Utfylt> {
         val sakId = command.sakId
         tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
             return KunneIkkeOppdatereVedtaksbrev.IkkeTilgang(it).left()

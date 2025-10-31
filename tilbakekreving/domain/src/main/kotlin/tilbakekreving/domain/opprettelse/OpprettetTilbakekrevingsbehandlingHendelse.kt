@@ -3,6 +3,7 @@
 
 package tilbakekreving.domain
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -27,7 +28,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
     override val versjon: Hendelsesversjon,
     override val id: TilbakekrevingsbehandlingId,
     val opprettetAv: NavIdentBruker.Saksbehandler,
-    val kravgrunnlagPåSakHendelseId: HendelseId,
+    val kravgrunnlagPåSakHendelseId: HendelseId?,
 ) : TilbakekrevingsbehandlingHendelse {
 
     override val utførtAv: NavIdentBruker.Saksbehandler = opprettetAv
@@ -50,7 +51,7 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
             opprettetAv: NavIdentBruker.Saksbehandler,
             versjon: Hendelsesversjon,
             clock: Clock,
-            kravgrunnlagPåSakHendelseId: HendelseId,
+            kravgrunnlagPåSakHendelseId: HendelseId?,
         ) = OpprettetTilbakekrevingsbehandlingHendelse(
             hendelseId = HendelseId.generer(),
             sakId = sakId,
@@ -67,22 +68,46 @@ data class OpprettetTilbakekrevingsbehandlingHendelse(
         kravgrunnlagPåSakHendelse: KravgrunnlagDetaljerPåSakHendelse,
         erKravgrunnlagUtdatert: Boolean,
     ): OpprettetTilbakekrevingsbehandling {
-        return toDomain(fnr, kravgrunnlagPåSakHendelse.kravgrunnlag, erKravgrunnlagUtdatert)
+        return toDomain(
+            fnr,
+            kravgrunnlagPåSakHendelse.saksnummer,
+            kravgrunnlagPåSakHendelse.kravgrunnlag,
+            erKravgrunnlagUtdatert,
+        )
     }
 
-    fun toDomain(fnr: Fnr, kravgrunnlag: Kravgrunnlag, erKravgrunnlagUtdatert: Boolean): OpprettetTilbakekrevingsbehandling {
-        require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
-        return OpprettetTilbakekrevingsbehandling(
-            id = id,
-            sakId = sakId,
-            fnr = fnr,
-            saksnummer = kravgrunnlag.saksnummer,
-            opprettet = hendelsestidspunkt,
-            opprettetAv = opprettetAv,
-            kravgrunnlag = kravgrunnlag,
-            versjon = versjon,
-            hendelseId = hendelseId,
-            erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
-        )
+    fun toDomain(
+        fnr: Fnr,
+        saksnummer: Saksnummer,
+        kravgrunnlag: Kravgrunnlag?,
+        erKravgrunnlagUtdatert: Boolean,
+    ): OpprettetTilbakekrevingsbehandling {
+        return if (kravgrunnlag == null) {
+            OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag(
+                id = id,
+                sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
+                opprettet = hendelsestidspunkt,
+                opprettetAv = opprettetAv,
+                versjon = versjon,
+                hendelseId = hendelseId,
+                erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
+            )
+        } else {
+            require(kravgrunnlag.hendelseId == this.kravgrunnlagPåSakHendelseId)
+            OpprettetTilbakekrevingsbehandling.MedKravgrunnlag(
+                id = id,
+                sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
+                opprettet = hendelsestidspunkt,
+                opprettetAv = opprettetAv,
+                kravgrunnlag = kravgrunnlag,
+                versjon = versjon,
+                hendelseId = hendelseId,
+                erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
+            )
+        }
     }
 }

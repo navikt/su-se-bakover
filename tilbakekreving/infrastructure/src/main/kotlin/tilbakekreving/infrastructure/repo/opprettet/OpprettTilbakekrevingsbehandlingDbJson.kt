@@ -13,7 +13,7 @@ import java.util.UUID
 internal data class OpprettTilbakekrevingsbehandlingHendelseDbJson(
     override val behandlingsId: UUID,
     override val utførtAv: String,
-    val kravgrunnlagPåSakHendelseId: String,
+    val kravgrunnlagPåSakHendelseId: String?,
 ) : TilbakekrevingDbJson
 
 internal fun PersistertHendelse.mapToOpprettetTilbakekrevingsbehandlingHendelse(): OpprettetTilbakekrevingsbehandlingHendelse {
@@ -26,7 +26,7 @@ internal fun PersistertHendelse.mapToOpprettetTilbakekrevingsbehandlingHendelse(
         versjon = versjon,
         id = TilbakekrevingsbehandlingId(deserialized.behandlingsId),
         opprettetAv = NavIdentBruker.Saksbehandler(deserialized.utførtAv),
-        kravgrunnlagPåSakHendelseId = HendelseId.fromString(deserialized.kravgrunnlagPåSakHendelseId),
+        kravgrunnlagPåSakHendelseId = deserialized.kravgrunnlagPåSakHendelseId?.let { HendelseId.fromString(it) },
     )
 }
 
@@ -34,7 +34,7 @@ internal fun OpprettetTilbakekrevingsbehandlingHendelse.toJson(): String {
     return OpprettTilbakekrevingsbehandlingHendelseDbJson(
         behandlingsId = this.id.value,
         utførtAv = this.opprettetAv.navIdent,
-        kravgrunnlagPåSakHendelseId = this.kravgrunnlagPåSakHendelseId.toString(),
+        kravgrunnlagPåSakHendelseId = this.kravgrunnlagPåSakHendelseId?.toString(),
     ).let {
         serialize(it)
     }

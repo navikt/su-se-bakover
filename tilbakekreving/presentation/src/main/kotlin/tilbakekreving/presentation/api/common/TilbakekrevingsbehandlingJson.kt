@@ -18,7 +18,7 @@ data class TilbakekrevingsbehandlingJson(
     val sakId: String,
     val opprettet: Tidspunkt,
     val opprettetAv: String,
-    val kravgrunnlag: KravgrunnlagJson,
+    val kravgrunnlag: KravgrunnlagJson?,
     val status: TilbakekrevingsbehandlingStatus,
     val vurderinger: VurderingerMedKravJson?,
     val fritekst: String?,
@@ -40,17 +40,18 @@ data class TilbakekrevingsbehandlingJson(
             sakId = sakId.toString(),
             opprettet = opprettet,
             opprettetAv = opprettetAv.toString(),
-            kravgrunnlag = this.kravgrunnlag.toJson(),
+            kravgrunnlag = this.kravgrunnlag?.toJson(),
             status = when (this) {
                 is OpprettetTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.OPPRETTET
-                is UnderBehandling.Påbegynt -> {
+                is UnderBehandling.UtenKravgrunnlag -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
+                is UnderBehandling.MedKravgrunnlag.Påbegynt -> {
                     when {
                         this.erVurdert() -> TilbakekrevingsbehandlingStatus.VURDERT
                         else -> TilbakekrevingsbehandlingStatus.FORHÅNDSVARSLET
                     }
                 }
 
-                is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
+                is UnderBehandling.MedKravgrunnlag.Utfylt -> TilbakekrevingsbehandlingStatus.VEDTAKSBREV
                 is TilbakekrevingsbehandlingTilAttestering -> TilbakekrevingsbehandlingStatus.TIL_ATTESTERING
                 is IverksattTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.IVERKSATT
                 is AvbruttTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.AVBRUTT

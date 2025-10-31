@@ -16,7 +16,7 @@ sealed interface KanOppdatereVedtaksbrev : KanEndres {
         vedtaksbrevvalg: Brevvalg.SaksbehandlersValg,
         hendelseId: HendelseId,
         versjon: Hendelsesversjon,
-    ): UnderBehandling.Utfylt
+    ): UnderBehandling.MedKravgrunnlag.Utfylt
 
     override fun erÅpen() = true
 }

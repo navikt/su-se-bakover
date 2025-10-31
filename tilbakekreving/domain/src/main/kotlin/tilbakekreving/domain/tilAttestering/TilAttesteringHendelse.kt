@@ -49,23 +49,25 @@ data class TilAttesteringHendelse(
     fun applyToState(behandling: Tilbakekrevingsbehandling): TilbakekrevingsbehandlingTilAttestering {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
-            is UnderBehandling.Påbegynt,
+            is UnderBehandling.UtenKravgrunnlag,
+            is UnderBehandling.MedKravgrunnlag.Påbegynt,
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
             -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Påbegynt, TilAttestering, Avbrutt, Iverksatt] -> TilAttestering. Den må vurderes først. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is UnderBehandling.Utfylt -> TilbakekrevingsbehandlingTilAttestering(
+            is UnderBehandling.MedKravgrunnlag.Utfylt -> TilbakekrevingsbehandlingTilAttestering(
                 forrigeSteg = behandling,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
                 sendtTilAttesteringAv = this.utførtAv,
+                kravgrunnlag = behandling.kravgrunnlag,
             )
         }
     }
 }
 
-fun UnderBehandling.Utfylt.tilAttestering(
+fun UnderBehandling.MedKravgrunnlag.Utfylt.tilAttestering(
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
     utførtAv: NavIdentBruker.Saksbehandler,
