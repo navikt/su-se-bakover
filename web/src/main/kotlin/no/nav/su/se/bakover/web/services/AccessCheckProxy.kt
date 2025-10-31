@@ -831,7 +831,7 @@ open class AccessCheckProxy(
                 override fun lagreOgSendForhåndsvarsel(
                     revurderingId: RevurderingId,
                     utførtAv: NavIdentBruker.Saksbehandler,
-                    fritekst: String,
+                    fritekst: String?,
                 ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagreOgSendForhåndsvarsel(
