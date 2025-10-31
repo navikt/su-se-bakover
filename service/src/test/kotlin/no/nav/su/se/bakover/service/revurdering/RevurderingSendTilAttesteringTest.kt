@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
@@ -265,6 +266,37 @@ internal class RevurderingSendTilAttesteringTest {
             ).left()
 
             verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
+        }
+    }
+
+    @Test
+    fun `Må ha fritekst vi skal sende attestering og brevvalg har valgt send`() {
+        val (sak, revurdering) = simulertRevurdering(
+            stønadsperiode = stønadsperiode2021,
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+            brevvalg = BrevvalgRevurdering.Valgt.SendBrev(
+                fritekst = null,
+                begrunnelse = null,
+                bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+            ),
+        )
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn revurdering
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+
+        ).let { mocks ->
+            val actual = mocks.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                ),
+            )
+            actual shouldBe KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
         }
     }
 }
