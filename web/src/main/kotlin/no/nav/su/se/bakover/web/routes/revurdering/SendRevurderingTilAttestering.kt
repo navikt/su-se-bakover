@@ -77,5 +77,10 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
                 SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering -> gReguleringKanIkkeFøreTilOpphør
             }
         }
+
+        KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev -> BadRequest.errorJson(
+            "Må ha fritekst for å sende vedtaksbrev, det var blankt.",
+            "revurdering_maa_ha_fritekst_for_vedtaksbrev",
+        )
     }
 }

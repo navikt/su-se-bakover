@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringReq
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
@@ -891,6 +892,13 @@ class RevurderingServiceImpl(
     }
 
     private fun kanSendesTilAttestering(revurdering: Revurdering): Either<KunneIkkeSendeRevurderingTilAttestering, Unit> {
+        val brevvalg = revurdering.brevvalgRevurdering
+        if (brevvalg is BrevvalgRevurdering.Valgt.SendBrev) {
+            if (brevvalg.fritekst.isNullOrBlank()) {
+                return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+            }
+        }
+
         val sak = sakService.hentSakForRevurdering(revurderingId = revurdering.id)
         val gjeldendeMånedsberegninger = sak.hentGjeldendeMånedsberegninger(
             periode = revurdering.periode,
