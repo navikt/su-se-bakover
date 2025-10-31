@@ -25,8 +25,7 @@ sealed interface UnderBehandling :
     KanOppdatereKravgrunnlag,
     KanForhåndsvarsle,
     KanOppdatereNotat,
-    KanAnnullere,
-    UnderBehandlingEllerTilAttestering {
+    KanAnnullere {
 
     override val vurderingerMedKrav: VurderingerMedKrav?
     val erUnderkjent: Boolean
@@ -80,13 +79,11 @@ sealed interface UnderBehandling :
         override val vurderingerMedKrav: VurderingerMedKrav?,
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?,
-        override val kravgrunnlag: Kravgrunnlag,
-        override val erKravgrunnlagUtdatert: Boolean,
         override val notat: NonBlankString?,
     ) : UnderBehandling,
         KanOppdatereVedtaksbrev,
         KanVurdere,
-        KanEndres {
+        KanEndresHarKravgrunnlag {
 
         override fun erÅpen(): Boolean = true
 
@@ -108,8 +105,7 @@ sealed interface UnderBehandling :
             override val vurderingerMedKrav: VurderingerMedKrav? = forrigeSteg.vurderingerMedKrav,
             override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
             override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = forrigeSteg.vedtaksbrevvalg,
-            override val kravgrunnlag: Kravgrunnlag = forrigeSteg.kravgrunnlag
-                ?: throw IllegalStateException("Vurdering av tilbakekreving kan ikke påbegynnes uten at tilbakekreving er oppdatert med kravgrunnlag"),
+            override val kravgrunnlag: Kravgrunnlag,
             override val erKravgrunnlagUtdatert: Boolean = forrigeSteg.erKravgrunnlagUtdatert,
             override val notat: NonBlankString? = forrigeSteg.notat,
         ) : MedKravgrunnlag(
@@ -118,10 +114,9 @@ sealed interface UnderBehandling :
             vurderingerMedKrav = vurderingerMedKrav,
             forhåndsvarselsInfo = forhåndsvarselsInfo,
             vedtaksbrevvalg = vedtaksbrevvalg,
-            kravgrunnlag = kravgrunnlag,
-            erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
             notat = notat,
         ),
+            UnderBehandlingEllerTilAttestering,
             KanEndres by forrigeSteg {
 
             override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -161,8 +156,6 @@ sealed interface UnderBehandling :
                         forhåndsvarselsInfo = forhåndsvarselsInfo,
                         versjon = versjon,
                         notat = notat,
-                        kravgrunnlag = kravgrunnlag,
-                        erKravgrunnlagUtdatert = forrigeSteg.erKravgrunnlagUtdatert,
                     )
                 }
             }
@@ -212,16 +205,12 @@ sealed interface UnderBehandling :
             override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
             override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
             override val notat: NonBlankString? = forrigeSteg.notat,
-            override val kravgrunnlag: Kravgrunnlag,
-            override val erKravgrunnlagUtdatert: Boolean,
         ) : MedKravgrunnlag(
             hendelseId = hendelseId,
             versjon = versjon,
             vurderingerMedKrav = vurderingerMedKrav,
             forhåndsvarselsInfo = forhåndsvarselsInfo,
             vedtaksbrevvalg = vedtaksbrevvalg,
-            kravgrunnlag = kravgrunnlag,
-            erKravgrunnlagUtdatert = erKravgrunnlagUtdatert,
             notat = notat,
         ),
             UnderBehandlingEllerTilAttestering by forrigeSteg,
@@ -235,10 +224,8 @@ sealed interface UnderBehandling :
                 forrigeSteg = forrigeSteg,
                 hendelseId = hendelseId,
                 versjon = versjon,
-                kravgrunnlag = forrigeSteg.kravgrunnlag,
                 vurderingerMedKrav = forrigeSteg.vurderingerMedKrav,
                 vedtaksbrevvalg = forrigeSteg.vedtaksbrevvalg,
-                erKravgrunnlagUtdatert = forrigeSteg.erKravgrunnlagUtdatert,
             )
 
             override val erUnderkjent = attesteringer.erUnderkjent()

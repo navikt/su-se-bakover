@@ -67,7 +67,6 @@ data class UnderkjentHendelse(
                     forrigeSteg = behandling,
                     hendelseId = this.hendelseId,
                     versjon = this.versjon,
-                    kravgrunnlag = behandling.kravgrunnlag,
                     attesteringer = behandling.attesteringer.leggTilNyAttestering(
                         attestering = Attestering.Underkjent(
                             attestant = this.utførtAv,
@@ -80,7 +79,6 @@ data class UnderkjentHendelse(
                     vedtaksbrevvalg = behandling.vedtaksbrevvalg,
                     forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
                     notat = behandling.notat,
-                    erKravgrunnlagUtdatert = behandling.forrigeSteg.erKravgrunnlagUtdatert,
                 )
             }
         }

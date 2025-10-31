@@ -61,6 +61,7 @@ data class TilAttesteringHendelse(
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
                 sendtTilAttesteringAv = this.utførtAv,
+                kravgrunnlag = behandling.kravgrunnlag,
             )
         }
     }

@@ -47,7 +47,8 @@ sealed interface OpprettetTilbakekrevingsbehandling :
         override val erKravgrunnlagUtdatert: Boolean,
     ) : OpprettetTilbakekrevingsbehandling,
         KanVurdere,
-        KanOppdatereNotat {
+        KanOppdatereNotat,
+        KanEndresHarKravgrunnlag {
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
         override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = emptyList()
@@ -67,6 +68,7 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             hendelseId = hendelseId,
             versjon = versjon,
             forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
+            kravgrunnlag = this.kravgrunnlag,
         )
 
         override fun leggTilVurderinger(
@@ -78,6 +80,7 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             hendelseId = hendelseId,
             vurderingerMedKrav = månedsvurderinger,
             versjon = versjon,
+            kravgrunnlag = this.kravgrunnlag,
         )
 
         override fun oppdaterNotat(
@@ -89,6 +92,7 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             hendelseId = hendelseId,
             versjon = versjon,
             notat = notat,
+            kravgrunnlag = this.kravgrunnlag,
         )
     }
 

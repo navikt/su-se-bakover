@@ -106,7 +106,6 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                                 fnr = fnr,
                                 saksnummer = saksnummer,
                                 kravgrunnlag = null,
-                                // TODO bjg ikke godt nok.. dukker opp ved nye hendelser uavhengig av nye kravgrunnlag..
                                 erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false,
                             ),
                         )
