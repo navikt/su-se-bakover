@@ -94,6 +94,10 @@ internal data object Revurderingsfeilresponser {
         is KunneIkkeForhåndsvarsle.Attestering -> this.underliggende.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         is KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> this.underliggende.tilResultat()
+        KunneIkkeForhåndsvarsle.ManglerFritekst -> BadRequest.errorJson(
+            "Mangler fritekst",
+            "mangler_fritekst_forhåndsvarsel",
+        )
     }
 
     fun KunneIkkeLageBrevutkastForRevurdering.tilResultat(): Resultat {

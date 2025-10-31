@@ -729,14 +729,17 @@ class RevurderingServiceImpl(
     override fun lagreOgSendForhåndsvarsel(
         revurderingId: RevurderingId,
         utførtAv: NavIdentBruker.Saksbehandler,
-        fritekst: String?, // TODO: må håndteres
+        fritekst: String?,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId).getOrElse { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
         kanSendesTilAttestering(revurdering).getOrElse {
             return KunneIkkeForhåndsvarsle.Attestering(it).left()
         }
+        if (fritekst == null) {
+            return KunneIkkeForhåndsvarsle.ManglerFritekst.left()
+        }
         return revurdering.lagForhåndsvarsel(
-            fritekst = fritekst!!,
+            fritekst = fritekst,
             utførtAv = utførtAv,
         ).mapLeft {
             KunneIkkeForhåndsvarsle.UgyldigTilstand
