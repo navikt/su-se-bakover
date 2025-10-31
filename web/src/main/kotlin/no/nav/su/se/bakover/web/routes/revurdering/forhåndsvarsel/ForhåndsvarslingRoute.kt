@@ -29,7 +29,7 @@ internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class ForhåndsvarsleBody(val fritekst: String)
+    data class ForhåndsvarsleBody(val fritekst: String?)
     post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->

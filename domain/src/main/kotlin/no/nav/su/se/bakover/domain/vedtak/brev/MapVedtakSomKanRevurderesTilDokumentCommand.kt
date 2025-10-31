@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak.brev
 
 import dokument.domain.GenererDokumentCommand
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -33,7 +32,7 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
              * Vi krever at fritekst ved revurdering er satt dersom BrevvalgRevurdering.Valgt.SendBrev er valgt før attestering for å løse dette [KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev]
              */
             val brevvalg = this.behandling.brevvalgRevurdering
-            if (brevvalg !is BrevvalgRevurdering.Valgt.SendBrev || brevvalg.fritekst == null) {
+            if (!brevvalg.kanSendesTilAttestering()) {
                 fail("Generering av dokument for vedtaket forutsetter at vi skal sende brev, og at friteksten er satt.")
             }
             this.behandling.lagDokumentKommando(

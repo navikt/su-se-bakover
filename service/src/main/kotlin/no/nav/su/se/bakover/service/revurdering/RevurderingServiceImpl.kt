@@ -53,7 +53,6 @@ import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringReq
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
@@ -730,14 +729,14 @@ class RevurderingServiceImpl(
     override fun lagreOgSendForhåndsvarsel(
         revurderingId: RevurderingId,
         utførtAv: NavIdentBruker.Saksbehandler,
-        fritekst: String,
+        fritekst: String?, // TODO: må håndteres
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId).getOrElse { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
         kanSendesTilAttestering(revurdering).getOrElse {
             return KunneIkkeForhåndsvarsle.Attestering(it).left()
         }
         return revurdering.lagForhåndsvarsel(
-            fritekst = fritekst,
+            fritekst = fritekst!!,
             utførtAv = utførtAv,
         ).mapLeft {
             KunneIkkeForhåndsvarsle.UgyldigTilstand
@@ -841,6 +840,10 @@ class RevurderingServiceImpl(
         kanSendesTilAttestering(revurdering).getOrElse {
             return it.left()
         }
+        val brevvalg = revurdering.brevvalgRevurdering
+        if (!brevvalg.kanSendesTilAttestering()) {
+            return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+        }
 
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
             is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(saksbehandler).getOrElse {
@@ -892,13 +895,6 @@ class RevurderingServiceImpl(
     }
 
     private fun kanSendesTilAttestering(revurdering: Revurdering): Either<KunneIkkeSendeRevurderingTilAttestering, Unit> {
-        val brevvalg = revurdering.brevvalgRevurdering
-        if (brevvalg is BrevvalgRevurdering.Valgt.SendBrev) {
-            if (brevvalg.fritekst.isNullOrBlank()) {
-                return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
-            }
-        }
-
         val sak = sakService.hentSakForRevurdering(revurderingId = revurdering.id)
         val gjeldendeMånedsberegninger = sak.hentGjeldendeMånedsberegninger(
             periode = revurdering.periode,
