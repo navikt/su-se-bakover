@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
-import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagDbJson.Companion.toDbJson
 import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsperiodeDbJson
 import tilbakekreving.infrastructure.repo.vurdering.GrunnlagsperiodeDbJson.Companion.toDbJson
 

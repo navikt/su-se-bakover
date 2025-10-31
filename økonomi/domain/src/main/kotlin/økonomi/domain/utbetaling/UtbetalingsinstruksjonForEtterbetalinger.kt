@@ -1,5 +1,7 @@
 package økonomi.domain.utbetaling
 
+import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling
+
 /**
  * Instruks som gjør det mulig å kontrollere tidspunktet eventuelle etterbetalinger skal gjennomføres på.
  * Merk at parameterert kun har effekt for tilfeller hvor det er snakk om etterbetaling, altså tilfeller hvor forfallsdato

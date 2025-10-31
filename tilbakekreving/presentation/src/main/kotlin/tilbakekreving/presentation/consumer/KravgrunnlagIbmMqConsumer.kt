@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMet
 import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.kravgrunnlag.RåttKravgrunnlagService
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
-import java.lang.RuntimeException
 import javax.jms.JMSContext
 import javax.jms.Session
 

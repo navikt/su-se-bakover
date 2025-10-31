@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.hendelse.domain
 
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.ny
+
 @JvmInline
 value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
 

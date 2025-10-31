@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import org.jetbrains.kotlin.backend.common.linkage.issues.PartialLinkageErrorsLogged.errorMessage
 import org.slf4j.LoggerFactory
 
 internal const val PERSONER_PATH = "/rest/v1/personer"

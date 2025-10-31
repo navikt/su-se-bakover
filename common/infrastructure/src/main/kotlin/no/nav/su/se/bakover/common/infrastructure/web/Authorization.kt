@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.common.infrastructure.web
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.RoutingHandler
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
