@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.lang.IllegalStateException
 
 internal class JournalføringOgBrevdistribusjonTest {
     @Nested

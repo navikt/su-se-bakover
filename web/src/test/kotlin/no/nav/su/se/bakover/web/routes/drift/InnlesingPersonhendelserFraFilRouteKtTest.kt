@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.drift
 
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.forms.append
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers

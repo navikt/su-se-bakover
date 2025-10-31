@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post

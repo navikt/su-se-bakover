@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent

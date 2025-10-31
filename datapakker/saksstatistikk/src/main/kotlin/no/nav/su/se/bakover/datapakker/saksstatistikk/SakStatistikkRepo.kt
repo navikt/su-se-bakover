@@ -11,7 +11,6 @@ import java.math.BigInteger
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
-import kotlin.use
 
 object SakStatistikkRepo {
 

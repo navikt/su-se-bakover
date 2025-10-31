@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
+import vilkår.formue.domain.FormuegrenserFactory.Companion.createFromGrunnbeløp
 import java.math.BigDecimal
 import java.time.LocalDate
 

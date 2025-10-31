@@ -4,7 +4,6 @@ import dokument.domain.distribuering.DistribuerDokumentCommand
 import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.distribuering.KunneIkkeDistribuereJournalførtDokument
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
