@@ -57,6 +57,7 @@ fun papirsøknadJson(
  * Mapper til  [no.nav.su.se.bakover.web.routes.søknad.SøknadJson]
  *
  * id og sakId settes statisk og må ignoreres av en matcher.
+ * TODO: representerer [SøknadJson] -> web/src/main/kotlin/no/nav/su/se/bakover/web/routes/søknad/SøknadJson.kt
  */
 private fun søknadJson(
     id: String,
@@ -70,6 +71,7 @@ private fun søknadJson(
         "id":"$id",
         "sakId":"$sakId",
         "søknadInnhold": $søknadInnhold,
+        "innsendtAv": "Z990Lokal",
         "opprettet":"2021-01-01T01:02:03.456789Z",
         "lukket":${if (lukket != null) "$lukket" else null}
     }
