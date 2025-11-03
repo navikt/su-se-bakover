@@ -19,6 +19,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.formue.domain.FormueVilkår
 import vilkår.uføre.domain.UføreVilkår
 
+// TODO: bruk strukturerte data til json her
 internal class SøknadsbehandlingJsonTest {
 
     @Test
@@ -33,6 +34,7 @@ internal class SøknadsbehandlingJsonTest {
             {
               "id": "${søknadsbehandling.id}",
               "søknad": {
+                "innsendtAv": "${søknadsbehandling.søknad.innsendtAv}",
                 "id": "${søknadsbehandling.søknad.id}",
                 "sakId": "${søknadsbehandling.sakId}",
                 "søknadInnhold": {
@@ -555,6 +557,7 @@ internal class SøknadsbehandlingJsonTest {
             {
               "id": "${søknadsbehandling.id}",
               "søknad": {
+                "innsendtAv": "${søknadsbehandling.søknad.innsendtAv}",
                 "id": "${søknadsbehandling.søknad.id}",
                 "sakId": "${søknadsbehandling.sakId}",
                 "søknadInnhold": {

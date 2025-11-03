@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
@@ -150,7 +151,7 @@ private fun verifiserVedtak(vedtak: String, expectedBehandlingId: String) {
         "opprettet":"2021-01-01T01:02:38.456789Z",
         "behandlingId":"$expectedBehandlingId",
         "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
-        "saksbehandler":"Z990Lokal",
+        "saksbehandler":"$DEFAULT_IDENT",
         "utbetalingId":null,
         "type":"AVSLAG",
         "dokumenttilstand":"GENERERT",

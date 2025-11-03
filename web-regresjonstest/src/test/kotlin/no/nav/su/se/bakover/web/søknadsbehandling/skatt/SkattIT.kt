@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.jsonAssertEquals
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -173,7 +174,7 @@ private fun generateExpectedSkattegrunnlag(expectedFnr: String): String {
               }
             }
           ],
-          "saksbehandler":"Z990Lokal",
+          "saksbehandler":"$DEFAULT_IDENT",
           "årSpurtFor":{"fra":2020, "til":2021}
        }
     """.trimIndent()

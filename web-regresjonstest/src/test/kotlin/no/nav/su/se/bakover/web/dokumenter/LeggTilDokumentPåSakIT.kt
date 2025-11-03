@@ -51,7 +51,7 @@ internal class LeggTilDokumentPåSakIT {
         sakId: String,
         expectedOpprettResponse: String,
         client: HttpClient,
-    ) = no.nav.su.se.bakover.web.dokumenter.opprettFritekstDokument(sakId = sakId, client = client).also {
+    ) = opprettFritekstDokument(sakId = sakId, client = client).also {
         it shouldBe expectedOpprettResponse
     }
 
@@ -59,7 +59,7 @@ internal class LeggTilDokumentPåSakIT {
         sakId: String,
         expectedLagreOgSendResponse: String,
         client: HttpClient,
-    ) = no.nav.su.se.bakover.web.dokumenter.lagreOgSendFritekstDokument(sakId = sakId, client = client).also {
+    ) = lagreOgSendFritekstDokument(sakId = sakId, client = client).also {
         jsonAssertEquals(
             expectedLagreOgSendResponse,
             it,

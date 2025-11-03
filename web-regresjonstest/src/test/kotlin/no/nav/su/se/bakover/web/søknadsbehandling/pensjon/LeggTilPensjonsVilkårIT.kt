@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.avslåttPensjonsvilkårJson
 import no.nav.su.se.bakover.web.innvilgetPensjonsvilkårJson
@@ -59,7 +60,7 @@ internal class LeggTilPensjonsVilkårIT {
                         expectedSakId = sakId,
                         expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),
                         expectedSakstype = "alder",
-                        expectedSaksbehandler = "Z990Lokal",
+                        expectedSaksbehandler = "$DEFAULT_IDENT",
                     )
 
                     val fraOgMed: String = 1.januar(2022).toString()
