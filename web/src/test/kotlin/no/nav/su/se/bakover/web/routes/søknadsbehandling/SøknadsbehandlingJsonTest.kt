@@ -33,6 +33,7 @@ internal class SøknadsbehandlingJsonTest {
             {
               "id": "${søknadsbehandling.id}",
               "søknad": {
+                "innsendtAv": "${søknadsbehandling.søknad.innsendtAv}",
                 "id": "${søknadsbehandling.søknad.id}",
                 "sakId": "${søknadsbehandling.sakId}",
                 "søknadInnhold": {
@@ -555,6 +556,7 @@ internal class SøknadsbehandlingJsonTest {
             {
               "id": "${søknadsbehandling.id}",
               "søknad": {
+                "innsendtAv": "${søknadsbehandling.søknad.innsendtAv}",
                 "id": "${søknadsbehandling.søknad.id}",
                 "sakId": "${søknadsbehandling.sakId}",
                 "søknadInnhold": {
