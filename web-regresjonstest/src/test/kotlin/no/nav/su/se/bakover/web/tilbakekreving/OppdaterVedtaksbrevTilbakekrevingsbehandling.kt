@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 
@@ -92,7 +93,7 @@ fun verifiserOppdatertVedtaksbrevTilbakekrevingsbehandlingRespons(
   "id":$tilbakekrevingsbehandlingId,
   "sakId":"$sakId",
   "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
-  "opprettetAv":"Z990Lokal",
+  "opprettetAv":"$DEFAULT_IDENT",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",

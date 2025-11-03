@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
@@ -138,7 +139,7 @@ fun defaultRequest(
     method: HttpMethod,
     uri: String,
     roller: List<Brukerrolle> = emptyList(),
-    navIdent: String = "Z990Lokal",
+    navIdent: String = DEFAULT_IDENT,
     correlationId: String = DEFAULT_CALL_ID,
     client: HttpClient,
     body: String? = null,
@@ -167,7 +168,7 @@ fun formdataRequest(
     uri: String,
     roller: List<Brukerrolle> = emptyList(),
     formData: List<PartData> = formData {},
-    navIdent: String = "Z990Lokal",
+    navIdent: String = DEFAULT_IDENT,
     correlationId: String = DEFAULT_CALL_ID,
     client: HttpClient,
 ): HttpResponse {

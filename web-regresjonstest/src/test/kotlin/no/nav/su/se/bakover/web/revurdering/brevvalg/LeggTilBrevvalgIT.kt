@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.revurdering.brevvalg
 
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
@@ -65,7 +66,7 @@ internal class LeggTilBrevvalgIT {
                         "valg":"SEND",
                         "fritekst":"befriende tekst",
                         "begrunnelse":"godt begrunnet",
-                        "bestemtAv":"Z990Lokal"
+                        "bestemtAv":"$DEFAULT_IDENT"
                     }
                     """,
                             RevurderingJson.hentBrevvalg(it),
@@ -85,7 +86,7 @@ internal class LeggTilBrevvalgIT {
                         "valg":"IKKE_SEND",
                         "fritekst": null,
                         "begrunnelse":"ikke behov likevel",
-                        "bestemtAv":"Z990Lokal"
+                        "bestemtAv":"$DEFAULT_IDENT"
                     }
                     """,
                             RevurderingJson.hentBrevvalg(it),

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.søknad
 
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 
 /**
@@ -71,7 +72,7 @@ private fun søknadJson(
         "id":"$id",
         "sakId":"$sakId",
         "søknadInnhold": $søknadInnhold,
-        "innsendtAv": "Z990Lokal",
+        "innsendtAv": "$DEFAULT_IDENT",
         "opprettet":"2021-01-01T01:02:03.456789Z",
         "lukket":${if (lukket != null) "$lukket" else null}
     }

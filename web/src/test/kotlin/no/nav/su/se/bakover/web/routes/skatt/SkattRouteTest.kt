@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -107,7 +108,7 @@ class SkattRouteTest {
                     epsFnr = null,
                     år = Year.of(2020),
                     begrunnelse = "Jeg vil snoke inn på naboen sin skattemelding",
-                    saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal"),
+                    saksbehandler = NavIdentBruker.Saksbehandler(DEFAULT_IDENT),
                     sakstype = Sakstype.ALDER,
                     fagsystemId = "",
                     verifiserAlder = true,
@@ -169,7 +170,7 @@ class SkattRouteTest {
                     epsFnr = null,
                     år = Year.of(2020),
                     begrunnelse = "Jeg vil snoke inn på naboen sin skattemelding",
-                    saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal"),
+                    saksbehandler = NavIdentBruker.Saksbehandler(DEFAULT_IDENT),
                     sakstype = Sakstype.ALDER,
                     fagsystemId = "",
                     verifiserAlder = true,

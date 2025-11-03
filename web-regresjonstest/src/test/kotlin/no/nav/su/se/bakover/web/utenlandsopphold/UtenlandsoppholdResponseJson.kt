@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.utenlandsopphold
 
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+
 data class UtenlandsResponseJsonData(
     val versjon: Long = 2,
     val fraOgMed: String = "2021-05-05",
@@ -7,8 +9,8 @@ data class UtenlandsResponseJsonData(
     val journalpostIder: String = "[\"1234567\"]",
     val dokumentasjon: String = "Sannsynliggjort",
     val begrunnelse: String? = "Har sendt inn kopi av flybiletter. Se journalpost",
-    val opprettetAv: String = "Z990Lokal",
-    val endretAv: String = "Z990Lokal",
+    val opprettetAv: String = DEFAULT_IDENT,
+    val endretAv: String = DEFAULT_IDENT,
     val antallDagerForPeriode: Long = 157,
     val erAnnullert: Boolean = false,
 )
