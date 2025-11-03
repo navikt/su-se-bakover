@@ -19,6 +19,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.formue.domain.FormueVilkår
 import vilkår.uføre.domain.UføreVilkår
 
+// TODO: bruk strukturerte data til json her
 internal class SøknadsbehandlingJsonTest {
 
     @Test
