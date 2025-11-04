@@ -6,12 +6,14 @@ package tilbakekreving.domain
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 
 data class IverksattTilbakekrevingsbehandling(
     val forrigeSteg: TilbakekrevingsbehandlingTilAttestering,
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
     override val attesteringer: Attesteringshistorikk,
+    override val kravgrunnlag: Kravgrunnlag,
 ) : ErUtfylt by forrigeSteg {
     init {
         require(attesteringer.hentSisteIverksatteAttesteringOrNull() != null) {

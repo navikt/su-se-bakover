@@ -68,19 +68,6 @@ val UnderkjentTilbakekrevingsbehandlingHendelsestype = Hendelsestype("UNDERKJENT
 val IverksattTilbakekrevingsbehandlingHendelsestype = Hendelsestype("IVERKSATT_TILBAKEKREVINGSBEHANDLING")
 val AvbruttTilbakekrevingsbehandlingHendelsestype = Hendelsestype("AVBRUTT_TILBAKEKREVINGSBEHANDLING")
 
-val alleTilbakekrevingsbehandlingHendelser = listOf(
-    OpprettetTilbakekrevingsbehandlingHendelsestype,
-    ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
-    VurdertTilbakekrevingsbehandlingHendelsestype,
-    OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
-    TilbakekrevingsbehandlingTilAttesteringHendelsestype,
-    UnderkjentTilbakekrevingsbehandlingHendelsestype,
-    IverksattTilbakekrevingsbehandlingHendelsestype,
-    AvbruttTilbakekrevingsbehandlingHendelsestype,
-    OppdatertKravgrunnlagPåTilbakekrevingHendelse,
-    NotatTilbakekrevingsbehandlingHendelsestype,
-)
-
 class TilbakekrevingsbehandlingPostgresRepo(
     private val sessionFactory: SessionFactory,
     private val hendelseRepo: HendelseRepo,

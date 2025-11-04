@@ -54,7 +54,7 @@ data class UnderkjentHendelse(
         )
     }
 
-    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Utfylt {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.MedKravgrunnlag.Utfylt {
         return when (behandling) {
             is OpprettetTilbakekrevingsbehandling,
             is UnderBehandling,
@@ -63,7 +63,7 @@ data class UnderkjentHendelse(
             -> throw IllegalArgumentException("Kan ikke gå fra [Opprettet, Vurdert, Avbrutt, Iverksatt] -> Underkjenn. Støtter kun å fra TilAttestering. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is TilbakekrevingsbehandlingTilAttestering -> {
-                UnderBehandling.Utfylt(
+                UnderBehandling.MedKravgrunnlag.Utfylt(
                     forrigeSteg = behandling,
                     hendelseId = this.hendelseId,
                     versjon = this.versjon,
@@ -91,7 +91,7 @@ fun TilbakekrevingsbehandlingTilAttestering.underkjenn(
     utførtAv: NavIdentBruker.Attestant,
     grunn: UnderkjennAttesteringsgrunnTilbakekreving,
     kommentar: String,
-): Pair<UnderkjentHendelse, UnderBehandling.Utfylt> {
+): Pair<UnderkjentHendelse, UnderBehandling.MedKravgrunnlag.Utfylt> {
     return UnderkjentHendelse.create(
         sakId = this.sakId,
         tidligereHendelseId = this.hendelseId,

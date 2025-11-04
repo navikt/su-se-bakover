@@ -42,7 +42,7 @@ fun Sak.vurderTilbakekrevingsbehandling(
 fun Sak.oppdaterVedtaksbrev(
     command: OppdaterVedtaksbrevCommand,
     clock: Clock,
-): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.Utfylt> {
+): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.MedKravgrunnlag.Utfylt> {
     return (this.hentTilbakekrevingsbehandling(command.behandlingId) as? KanOppdatereVedtaksbrev)?.let { behandling ->
         behandling.leggTilBrevtekst(
             command = command,

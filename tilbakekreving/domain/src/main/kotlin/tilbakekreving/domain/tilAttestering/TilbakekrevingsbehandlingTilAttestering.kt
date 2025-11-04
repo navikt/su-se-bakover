@@ -6,11 +6,13 @@ package tilbakekreving.domain
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 
 data class TilbakekrevingsbehandlingTilAttestering(
-    val forrigeSteg: UnderBehandling.Utfylt,
+    val forrigeSteg: UnderBehandling.MedKravgrunnlag.Utfylt,
     override val hendelseId: HendelseId,
     override val versjon: Hendelsesversjon,
+    override val kravgrunnlag: Kravgrunnlag,
     val sendtTilAttesteringAv: NavIdentBruker.Saksbehandler,
 ) : ErUtfylt by forrigeSteg,
     UnderBehandlingEllerTilAttestering

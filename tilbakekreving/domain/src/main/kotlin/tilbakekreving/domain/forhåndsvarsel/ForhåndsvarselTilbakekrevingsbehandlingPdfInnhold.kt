@@ -13,8 +13,7 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
     val saksbehandlerNavn: String,
     val fritekst: String?,
     val dato: String,
-    val sumBruttoSkalTilbakekreve: Int,
-    val beregningFeilutbetaltBeløp: List<BeregningFeilutbetaltBeløp>,
+    val kravgrunnlag: KravgrunnlagData?,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandling
@@ -33,11 +32,15 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
                 // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
                 // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
                 dato = LocalDate.now(clock).toBrevformat(),
-                sumBruttoSkalTilbakekreve = command.kravgrunnlag.summertBruttoFeilutbetaling,
-                beregningFeilutbetaltBeløp = command.kravgrunnlag.grunnlagsperioder.map {
-                    BeregningFeilutbetaltBeløp(
-                        periode = it.periode.ddMMyyyy(),
-                        bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
+                kravgrunnlag = command.kravgrunnlag?.let {
+                    KravgrunnlagData(
+                        sumBruttoSkalTilbakekreve = it.summertBruttoFeilutbetaling,
+                        beregningFeilutbetaltBeløp = it.grunnlagsperioder.map {
+                            BeregningFeilutbetaltBeløp(
+                                periode = it.periode.ddMMyyyy(),
+                                bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
+                            )
+                        },
                     )
                 },
                 sakstype = command.sakstype,
@@ -45,6 +48,11 @@ data class ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold(
         }
     }
 }
+
+data class KravgrunnlagData(
+    val sumBruttoSkalTilbakekreve: Int,
+    val beregningFeilutbetaltBeløp: List<BeregningFeilutbetaltBeløp>,
+)
 
 data class BeregningFeilutbetaltBeløp(
     val periode: String,

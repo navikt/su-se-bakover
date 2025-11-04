@@ -47,29 +47,28 @@ class OpprettTilbakekrevingsbehandlingService(
             return KunneIkkeOppretteTilbakekrevingsbehandling.FinnesAlleredeEnÅpenBehandling.left()
         }
 
-        return when (val k = sak.uteståendeKravgrunnlag) {
-            null -> KunneIkkeOppretteTilbakekrevingsbehandling.IngenUteståendeKravgrunnlag.left()
-            else -> opprettTilbakekrevingsbehandling(
-                command = command,
-                forrigeVersjon = sak.versjon,
-                clock = clock,
-                fnr = sak.fnr,
-                kravgrunnlag = k,
-                erKravgrunnlagUtdatert = false,
-            ).let { (hendelse, opprettetBehandling) ->
-                sessionFactory.withTransactionContext { tx ->
-                    tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata(), tx)
-                    sakStatistikk.lagreSakStatistikk(
-                        opprettetBehandling.toTilbakeStatistikkOpprettet(
-                            GenerellSakStatistikk.create(
-                                clock = clock,
-                                sak = sak,
-                            ),
+        return opprettTilbakekrevingsbehandling(
+            command = command,
+            forrigeVersjon = sak.versjon,
+            clock = clock,
+            fnr = sak.fnr,
+            saksnummer = sak.saksnummer,
+            kravgrunnlag = sak.uteståendeKravgrunnlag,
+            erKravgrunnlagUtdatert = false,
+        ).let { (hendelse, opprettetBehandling) ->
+            sessionFactory.withTransactionContext { tx ->
+                tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata(), tx)
+                // TODO bjg - skal gjøres uten kravgrunnlag også?
+                sakStatistikk.lagreSakStatistikk(
+                    opprettetBehandling.toTilbakeStatistikkOpprettet(
+                        GenerellSakStatistikk.create(
+                            clock = clock,
+                            sak = sak,
                         ),
-                        sessionContext = tx,
-                    )
-                    opprettetBehandling.right()
-                }
+                    ),
+                    sessionContext = tx,
+                )
+                opprettetBehandling.right()
             }
         }
     }
