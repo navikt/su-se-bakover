@@ -29,20 +29,19 @@ class AnnullerKontrollsamtaleVedOpphørServiceImpl(
     ) {
         // TODO jah: Bør vurdere om vi skal legge kontrollsamtaler på Sak (da kan ikke kontrollsamtale:domain ha referanser til :domain)
         // TODO jah: Bør hente alle kontrollsamtaler knyttet til saken og gjøre en litt grundigere vurdering per tilfelle.
-        return kontrollsamtaleService.hentNestePlanlagteEllerInnkalteKontrollsamtale(sakId, sessionContext).fold(
-            {
-                log.info("Trenger ikke annullere kontrollsamtale, siden det er ingen planlagt kontrollsamtale for sakId $sakId")
-            },
-            { kontrollsamtale ->
-                kontrollsamtale.annuller().map { annullertKontrollSamtale ->
-                    kontrollsamtaleRepo.lagre(annullertKontrollSamtale, sessionContext)
-                }.mapLeft {
-                    // hentNestePlanlagteKontrollsamtale(..) returnerer kun Kontrollsamtalestatus.PLANLAGT_INNKALLING + INNKALT,
-                    // som er en gyldig overgang. Så lenge det ikke endrer seg (tester?) er det trygt å kaste her.
-                    // Iverksett revurdering er avhengig av at denne kaster for at den skal kunne rulle tilbake transaksjonen.
-                    throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. Underliggende feil: $it")
-                }
-            },
-        )
+        val samtaler = kontrollsamtaleService.hentNestePlanlagteEllerInnkalteKontrollsamtale(sakId, sessionContext)
+        if (samtaler.isEmpty()) {
+            log.info("Trenger ikke annullere kontrollsamtale, siden det er ingen planlagt kontrollsamtale for sakId $sakId")
+        }
+        samtaler.map { kontrollsamtale ->
+            kontrollsamtale.annuller().map { annullertKontrollSamtale ->
+                kontrollsamtaleRepo.lagre(annullertKontrollSamtale, sessionContext)
+            }.mapLeft {
+                // hentNestePlanlagteKontrollsamtale(..) returnerer kun Kontrollsamtalestatus.PLANLAGT_INNKALLING + INNKALT,
+                // som er en gyldig overgang. Så lenge det ikke endrer seg (tester?) er det trygt å kaste her.
+                // Iverksett revurdering er avhengig av at denne kaster for at den skal kunne rulle tilbake transaksjonen.
+                throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. Underliggende feil: $it")
+            }
+        }
     }
 }
