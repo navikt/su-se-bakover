@@ -182,6 +182,15 @@ class KontrollsamtaleServiceImpl(
             ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
     }
 
+    fun hentNestePlanlagteEllerInnkalteKontrollsamtale(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+    ): Either<KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale, Kontrollsamtale> {
+        val samtaler = kontrollsamtaleRepo.hentForSakId(sakId, sessionContext).sortedBy { it.innkallingsdato }
+        return samtaler.find { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT }?.right()
+            ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
+    }
+
     override fun hentKontrollsamtaler(sakId: UUID): Kontrollsamtaler {
         return kontrollsamtaleRepo.hentForSakId(sakId)
     }

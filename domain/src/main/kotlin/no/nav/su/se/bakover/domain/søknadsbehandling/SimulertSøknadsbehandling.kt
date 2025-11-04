@@ -139,6 +139,7 @@ data class SimulertSøknadsbehandling(
         if (simulering.harFeilutbetalinger()) {
             /**
              * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
+             * TODO: Hvor vises feilutbetalinger?
              */
             sikkerLogg.error("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
             throw IllegalStateException("Simulering inneholder feilutbetalinger. SakId :$sakId Se sikkerlogg for detaljer.")

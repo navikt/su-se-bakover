@@ -98,6 +98,8 @@ data class Kontrollsamtale(
     }
 
     fun settGjennomført(journalpostId: JournalpostId): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        // TODO: burde vært Kontrollsamtalestatus.GJENNOMFØRT in lovligeOvergangerForSaksbehandler() men er det ulike regler for systembruker og saksbehandler?
+        // Gjelder vel alle andre ifs and buts her på status og
         return if (status == Kontrollsamtalestatus.INNKALT) {
             copy(
                 status = Kontrollsamtalestatus.GJENNOMFØRT,
