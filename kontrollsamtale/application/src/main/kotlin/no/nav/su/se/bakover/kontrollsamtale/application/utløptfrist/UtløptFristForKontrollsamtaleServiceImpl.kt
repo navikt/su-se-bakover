@@ -53,7 +53,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         }
 
         if (person.erDød()) {
-            log.info("Person er død for sakId ${sak.id}, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
+            log.info("Person er død for sakId ${sak.id}, saksnummer ${sak.saksnummer}. Avbryter oppfølging kontrollsamtale.")
             val annullert = kontrollsamtale.annuller().getOrElse {
                 throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
             }
