@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -16,10 +17,12 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleJobRepo
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -34,10 +37,31 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private val serviceUser: String,
     private val oppgaveService: OppgaveService,
     private val kontrollsamtaleJobRepo: KontrollsamtaleJobRepo,
+    private val kontrollsamtaleRepo: KontrollsamtaleRepo,
+    private val personService: PersonService,
 ) : UtløptFristForKontrollsamtaleService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private fun sjekkOmPersonLeverOgManSkalHåndtere(
+        sak: Sak,
+        kontrollsamtale: Kontrollsamtale,
+    ): Boolean {
+        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
+            log.error("Fant ikke person for sakId ${sak.id}, saksnummer ${sak.saksnummer}")
+            return false
+        }
+
+        if (person.erDød()) {
+            log.info("Person er død for sakId ${sak.id}, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
+            val annullert = kontrollsamtale.annuller().getOrElse {
+                throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
+            }
+            kontrollsamtaleRepo.lagre(annullert, sessionFactory.newTransactionContext())
+            return false
+        }
+        return true
+    }
     override fun stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist(): UtløptFristForKontrollsamtaleContext? {
         val fristPåDato = kontrollsamtaleService.hentFristUtløptFørEllerPåDato(LocalDate.now(clock))
             ?: run {
@@ -59,11 +83,15 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             }
             .fold(initialContext) { context, prosesseres ->
                 val kontrollsamtale = innkalteKontrollsamtalerMedUtløptFrist.single { it.id == prosesseres }
+                val sak = sakService.hentSak(kontrollsamtale.sakId).getOrElse {
+                    throw IllegalStateException("fant ikke sak for kontrollsamtale ${kontrollsamtale.id}, sakId ${kontrollsamtale.sakId}")
+                }
+                if (!sjekkOmPersonLeverOgManSkalHåndtere(sak, kontrollsamtale)) {
+                    return@fold context
+                }
                 context.håndter(
                     kontrollsamtale = kontrollsamtale,
-                    sak = sakService.hentSak(kontrollsamtale.sakId).getOrElse {
-                        throw IllegalStateException("fant ikke sak for kontrollsamtale ${kontrollsamtale.id}, sakId ${kontrollsamtale.sakId}")
-                    },
+                    sak = sak,
                     hentKontrollnotatMottatt = { saksnummer: Saksnummer, periode: DatoIntervall ->
                         queryJournalpostClient.kontrollnotatMotatt(saksnummer, periode)
                             .mapLeft {
