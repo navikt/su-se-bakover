@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTrans
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
-import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse.SimuleringAvStansFeilet
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException
 import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
@@ -89,7 +88,7 @@ class StansYtelseServiceImpl(
                             stansdato = request.fraOgMed,
                             behandler = request.saksbehandler,
                         ).getOrElse {
-                            throw SimuleringAvStansFeilet(it).exception()
+                            throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
                         }
                         if (simulertUtbetaling.simulering.harFeilutbetalinger()) {
                             throw KunneIkkeStanseYtelse.SimuleringInneholderFeilutbetaling.exception()
