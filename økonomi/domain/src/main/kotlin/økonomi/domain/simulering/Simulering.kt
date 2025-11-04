@@ -25,6 +25,16 @@ data class Simulering(
     val måneder: List<SimulertMåned>,
     val rawResponse: String,
 ) {
+    override fun toString(): String {
+        return "Simulering(" +
+            "gjelderId=$gjelderId, " +
+            "gjelderNavn=$gjelderNavn, " +
+            "datoBeregnet=$datoBeregnet, " +
+            "nettoBeløp=$nettoBeløp, " +
+            "måneder=${måneder.size} måneder, " +
+            "harFeilutbetalinger=${harFeilutbetalinger()}" +
+            ")"
+    }
     private val tolkning = TolketSimulering(this)
 
     init {
@@ -146,6 +156,13 @@ data class SimulertMåned(
     val måned: Måned,
     val utbetaling: SimulertUtbetaling?,
 ) {
+    override fun toString(): String {
+        return "SimulertMåned(" +
+            "måned=$måned, " +
+            "utbetaling=${utbetaling?.toString() ?: "null"}" +
+            ")"
+    }
+
     /** Ikke alle måneder vi simulerer har simuleringsdata. Typisk hvis måneden aldri har vært utbetalt og/eller ikke skal utbetales. Typisk ved hull i stønadsperiode og/eller opphør. */
     constructor(måned: Måned) : this(måned, null)
 
@@ -181,7 +198,17 @@ data class SimulertUtbetaling(
     val feilkonto: Boolean,
     val detaljer: List<SimulertDetaljer>,
 ) {
-
+    override fun toString(): String {
+        return buildString {
+            append("SimulertUtbetaling(")
+            append("fagSystemId=$fagSystemId, ")
+            append("utbetalesTil=$utbetalesTilNavn, ")
+            append("forfall=$forfall, ")
+            append("feilkonto=$feilkonto, ")
+            append("detaljer=${detaljer.size} elementer")
+            append(")")
+        }
+    }
     internal fun tolk(): TolketUtbetaling {
         return TolketUtbetaling(detaljer = detaljer.mapNotNull { it.tolk() }, forfall = forfall)
     }
