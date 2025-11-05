@@ -7,7 +7,6 @@ import kotliquery.sessionOf
 import java.time.YearMonth
 import java.util.UUID
 import javax.sql.DataSource
-import kotlin.use
 
 private fun <T> String.hentListe(
     params: Map<String, Any> = emptyMap(),

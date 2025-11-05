@@ -76,7 +76,7 @@ interface RevurderingService {
     fun lagreOgSendForhåndsvarsel(
         revurderingId: RevurderingId,
         utførtAv: NavIdentBruker.Saksbehandler,
-        fritekst: String,
+        fritekst: String?,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
     fun lagBrevutkastForForhåndsvarsling(

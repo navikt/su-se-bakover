@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -88,7 +89,7 @@ internal class NyRevurderingIT {
                                         "beregning":${JSONObject(søknadsbehandlingJson).getJSONObject("beregning")},
                                         "simulering":${JSONObject(søknadsbehandlingJson).getJSONObject("simulering")},
                                         "attestant":"automatiskAttesteringAvSøknadsbehandling",
-                                        "saksbehandler":"Z990Lokal",
+                                        "saksbehandler":"$DEFAULT_IDENT",
                                         "utbetalingId":"ignore-me",
                                         "behandlingId":"ignore-me",
                                         "periode":{
@@ -106,7 +107,7 @@ internal class NyRevurderingIT {
                                         "beregning":${JSONObject(revurderingJson).getJSONObject("beregning")},
                                         "simulering":${JSONObject(revurderingJson).getJSONObject("simulering")},
                                         "attestant":"automatiskAttesteringAvSøknadsbehandling",
-                                        "saksbehandler":"Z990Lokal",
+                                        "saksbehandler":"$DEFAULT_IDENT",
                                         "utbetalingId":"ignore-me",
                                         "behandlingId":"ignore-me",
                                         "periode":{

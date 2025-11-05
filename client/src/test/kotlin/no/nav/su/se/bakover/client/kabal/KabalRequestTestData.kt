@@ -32,6 +32,7 @@ internal data object KabalRequestTestData {
         ),
         brukersHenvendelseMottattNavDato = Tidspunkt.now(fixedClock).toLocalDate(ZoneOffset.UTC),
         innsendtTilNav = LocalDate.now(fixedClock),
+        kommentar = "kommentartest",
     )
 
     val expected = """
@@ -67,7 +68,8 @@ internal data object KabalRequestTestData {
             "type": "KLAGE",
             "forrigeBehandlendeEnhet": "4815",
             "kilde": "SUPSTONAD",
-            "ytelse": "SUP_UFF"
+            "ytelse": "SUP_UFF",
+            "kommentar": "kommentartest"
         }
     """.trimIndent()
 }

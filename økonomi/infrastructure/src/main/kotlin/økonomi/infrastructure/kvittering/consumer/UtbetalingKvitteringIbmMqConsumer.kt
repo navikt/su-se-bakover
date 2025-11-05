@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toJMSHendelseMetadata
 import org.slf4j.LoggerFactory
 import økonomi.application.kvittering.RåKvitteringService
-import java.lang.RuntimeException
 import javax.jms.JMSContext
 import javax.jms.Session
 

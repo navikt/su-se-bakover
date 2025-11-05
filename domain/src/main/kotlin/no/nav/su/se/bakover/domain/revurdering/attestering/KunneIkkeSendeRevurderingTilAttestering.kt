@@ -18,6 +18,7 @@ sealed interface KunneIkkeSendeRevurderingTilAttestering {
     data object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering
     data object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering
     data object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering
+    data object ManglerFritekstTilVedtaksbrev : KunneIkkeSendeRevurderingTilAttestering
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

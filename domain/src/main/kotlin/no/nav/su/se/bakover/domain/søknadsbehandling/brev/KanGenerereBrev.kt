@@ -23,6 +23,7 @@ sealed interface KanGenerereBrev : Søknadsbehandling {
     fun lagBrevutkastCommandForAttestant(
         satsFactory: SatsFactory,
         utførtAv: NavIdentBruker.Attestant,
+        fritekst: String,
     ): IverksettSøknadsbehandlingDokumentCommand
 
     /**

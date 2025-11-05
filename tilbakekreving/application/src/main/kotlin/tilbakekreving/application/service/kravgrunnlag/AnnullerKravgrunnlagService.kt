@@ -7,8 +7,11 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
+import tilbakekreving.application.service.statistikk.GenerellSakStatistikk
+import tilbakekreving.application.service.statistikk.toTilbakeStatistikkAnnuller
 import tilbakekreving.domain.AvbruttTilbakekrevingsbehandling
 import tilbakekreving.domain.KanAnnullere
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
@@ -28,6 +31,7 @@ class AnnullerKravgrunnlagService(
     private val kravgrunnlagRepo: KravgrunnlagRepo,
     private val tilbakekrevingsklient: Tilbakekrevingsklient,
     private val sessionFactory: SessionFactory,
+    private val sakStatistikkRepo: SakStatistikkRepo,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -78,11 +82,15 @@ class AnnullerKravgrunnlagService(
         return tilbakekrevingsklient.annullerKravgrunnlag(command.annullertAv, kravgrunnlag).mapLeft {
             KunneIkkeAnnullereKravgrunnlag.FeilMotTilbakekrevingskomponenten(it)
         }.map { råTilbakekrevingsvedtakForsendelse ->
-            sessionFactory.withTransactionContext {
+            sessionFactory.withTransactionContext { tx ->
                 kravgrunnlagRepo.lagreKravgrunnlagPåSakHendelse(
                     KravgrunnlagStatusendringPåSakHendelse(
                         hendelseId = HendelseId.generer(),
-                        versjon = if (avbruttHendelse == null) command.klientensSisteSaksversjon.inc() else command.klientensSisteSaksversjon.inc(2),
+                        versjon = if (avbruttHendelse == null) {
+                            command.klientensSisteSaksversjon.inc()
+                        } else {
+                            command.klientensSisteSaksversjon.inc(2)
+                        },
                         sakId = sak.id,
                         hendelsestidspunkt = Tidspunkt.now(clock),
                         tidligereHendelseId = uteståendeKravgrunnlagPåSak.hendelseId,
@@ -97,13 +105,24 @@ class AnnullerKravgrunnlagService(
                         brukerroller = command.brukerroller,
                         tilbakekrevingsvedtakForsendelse = råTilbakekrevingsvedtakForsendelse,
                     ),
-                    it,
+                    tx,
                 )
                 if (avbruttHendelse != null) {
                     tilbakekrevingsbehandlingRepo.lagre(
                         hendelse = avbruttHendelse,
                         meta = command.toDefaultHendelsesMetadata(),
-                        sessionContext = it,
+                        sessionContext = tx,
+                    )
+                }
+                avbruttBehandling?.let {
+                    sakStatistikkRepo.lagreSakStatistikk(
+                        it.toTilbakeStatistikkAnnuller(
+                            GenerellSakStatistikk.create(
+                                clock = clock,
+                                sak = sak,
+                            ),
+                        ),
+                        tx,
                     )
                 }
             }

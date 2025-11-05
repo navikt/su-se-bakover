@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.database.statistikk
 
+import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -10,15 +12,13 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
-import statistikk.domain.BehandlingMetode
-import statistikk.domain.SakStatistikk
 import java.util.UUID
 
 class SakStatistikkRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : SakStatistikkRepo {
-    override fun lagreSakStatistikk(behandlingstatistikk: SakStatistikk, sessionContext: SessionContext?) {
+    override fun lagreSakStatistikk(sakStatistikk: SakStatistikk, sessionContext: SessionContext?) {
         return dbMetrics.timeQuery("lagreSakStatistikk") {
             sessionFactory.withSessionContext(sessionContext) { sessionContext ->
                 sessionContext.withSession { session ->
@@ -41,33 +41,33 @@ class SakStatistikkRepoImpl(
                     """.trimIndent()
                         .insert(
                             mapOf(
-                                "hendelse_tid" to behandlingstatistikk.hendelseTid,
-                                "teknisk_tid" to behandlingstatistikk.tekniskTid,
-                                "sak_id" to behandlingstatistikk.sakId,
-                                "saksnummer" to behandlingstatistikk.saksnummer,
-                                "behandling_id" to behandlingstatistikk.behandlingId,
-                                "relatert_behandling_id" to behandlingstatistikk.relatertBehandlingId,
-                                "aktorid" to behandlingstatistikk.aktorId,
-                                "sak_ytelse" to behandlingstatistikk.sakYtelse,
-                                "sak_utland" to behandlingstatistikk.sakUtland,
-                                "behandling_type" to behandlingstatistikk.behandlingType,
-                                "behandling_metode" to behandlingstatistikk.behandlingMetode.name,
-                                "mottatt_tid" to behandlingstatistikk.mottattTid,
-                                "registrert_tid" to behandlingstatistikk.registrertTid,
-                                "ferdigbehandlet_tid" to behandlingstatistikk.ferdigbehandletTid,
-                                "utbetalt_tid" to behandlingstatistikk.utbetaltTid,
-                                "behandling_status" to behandlingstatistikk.behandlingStatus,
-                                "behandling_resultat" to behandlingstatistikk.behandlingResultat,
-                                "behandling_begrunnelse" to behandlingstatistikk.resultatBegrunnelse,
-                                "behandling_aarsak" to behandlingstatistikk.behandlingAarsak,
-                                "opprettet_av" to behandlingstatistikk.opprettetAv,
-                                "saksbehandler" to behandlingstatistikk.saksbehandler,
-                                "ansvarlig_beslutter" to behandlingstatistikk.ansvarligBeslutter,
-                                "ansvarlig_enhet" to behandlingstatistikk.ansvarligEnhet,
-                                "vedtakslosning_navn" to behandlingstatistikk.vedtaksløsningNavn,
-                                "funksjonell_periode_fom" to behandlingstatistikk.funksjonellPeriodeFom,
-                                "funksjonell_periode_tom" to behandlingstatistikk.funksjonellPeriodeTom,
-                                "tilbakekrev_beloep" to behandlingstatistikk.tilbakekrevBeløp,
+                                "hendelse_tid" to sakStatistikk.hendelseTid,
+                                "teknisk_tid" to sakStatistikk.tekniskTid,
+                                "sak_id" to sakStatistikk.sakId,
+                                "saksnummer" to sakStatistikk.saksnummer,
+                                "behandling_id" to sakStatistikk.behandlingId,
+                                "relatert_behandling_id" to sakStatistikk.relatertBehandlingId,
+                                "aktorid" to sakStatistikk.aktorId,
+                                "sak_ytelse" to sakStatistikk.sakYtelse,
+                                "sak_utland" to sakStatistikk.sakUtland,
+                                "behandling_type" to sakStatistikk.behandlingType,
+                                "behandling_metode" to sakStatistikk.behandlingMetode.name,
+                                "mottatt_tid" to sakStatistikk.mottattTid,
+                                "registrert_tid" to sakStatistikk.registrertTid,
+                                "ferdigbehandlet_tid" to sakStatistikk.ferdigbehandletTid,
+                                "utbetalt_tid" to sakStatistikk.utbetaltTid,
+                                "behandling_status" to sakStatistikk.behandlingStatus,
+                                "behandling_resultat" to sakStatistikk.behandlingResultat,
+                                "behandling_begrunnelse" to sakStatistikk.resultatBegrunnelse,
+                                "behandling_aarsak" to sakStatistikk.behandlingAarsak,
+                                "opprettet_av" to sakStatistikk.opprettetAv,
+                                "saksbehandler" to sakStatistikk.saksbehandler,
+                                "ansvarlig_beslutter" to sakStatistikk.ansvarligBeslutter,
+                                "ansvarlig_enhet" to sakStatistikk.ansvarligEnhet,
+                                "vedtakslosning_navn" to sakStatistikk.vedtaksløsningNavn,
+                                "funksjonell_periode_fom" to sakStatistikk.funksjonellPeriodeFom,
+                                "funksjonell_periode_tom" to sakStatistikk.funksjonellPeriodeTom,
+                                "tilbakekrev_beloep" to sakStatistikk.tilbakekrevBeløp,
                             ),
                             session = session,
                         )

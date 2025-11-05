@@ -41,15 +41,16 @@ data class BrevTilbakekrevingsbehandlingHendelse(
         }
     }
 
-    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.Utfylt {
+    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling.MedKravgrunnlag.Utfylt {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
             is OpprettetTilbakekrevingsbehandling,
+            is UnderBehandling.UtenKravgrunnlag,
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering, Opprettet] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is UnderBehandling -> behandling.oppdaterVedtaksbrev(
+            is UnderBehandling.MedKravgrunnlag -> behandling.oppdaterVedtaksbrev(
                 vedtaksbrevvalg = this.brevvalg,
                 hendelseId = this.hendelseId,
                 versjon = this.versjon,
@@ -63,7 +64,7 @@ fun KanOppdatereVedtaksbrev.leggTilBrevtekst(
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.Utfylt> {
+): Pair<BrevTilbakekrevingsbehandlingHendelse, UnderBehandling.MedKravgrunnlag.Utfylt> {
     val hendelse = BrevTilbakekrevingsbehandlingHendelse(
         hendelseId = HendelseId.generer(),
         sakId = command.sakId,

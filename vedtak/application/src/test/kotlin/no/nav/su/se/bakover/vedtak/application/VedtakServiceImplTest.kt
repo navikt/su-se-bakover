@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.vedtak.application
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -11,11 +12,13 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagUtenBeregning
 import org.junit.jupiter.api.Test
@@ -39,7 +42,7 @@ class VedtakServiceImplTest {
         val oppgaveService =
             mock<OppgaveService> { on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right() }
         val søknadsbehandlingService = mock<SøknadsbehandlingService> {
-            doNothing().whenever(it).lagre(any())
+            doNothing().whenever(it).lagre(any(), any())
         }
         val service = Services(
             sakService = sakService,
@@ -63,7 +66,7 @@ class VedtakServiceImplTest {
             argShouldBe(
                 OppgaveConfig.Søknad(
                     journalpostId = vedtak.behandling.søknad.journalpostId,
-                    søknadId = vedtak.behandling.søknad.id,
+                    saksnummer = saksnummer,
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     clock = enUkeEtterFixedClock,
@@ -71,7 +74,7 @@ class VedtakServiceImplTest {
                 ),
             ),
         )
-        verify(søknadsbehandlingService).lagre(argShouldBe(actual))
+        verify(søknadsbehandlingService).lagre(argShouldBe(actual), any())
 
         service.verifyNoMoreInteractions()
     }
@@ -94,6 +97,7 @@ class VedtakServiceImplTest {
         private val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         private val clock: Clock = enUkeEtterFixedClock,
         private val klageRepo: KlageRepo = mock(),
+        private val sessionFactory: SessionFactory = TestSessionFactory(),
     ) {
         fun testableService() = VedtakServiceImpl(
             vedtakRepo = vedtakRepo,
@@ -102,6 +106,7 @@ class VedtakServiceImplTest {
             søknadsbehandlingService = søknadsbehandlingService,
             clock = clock,
             klageRepo = klageRepo,
+            sessionFactory = sessionFactory,
         )
 
         fun verifyNoMoreInteractions() {

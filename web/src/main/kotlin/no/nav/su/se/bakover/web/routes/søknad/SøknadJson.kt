@@ -15,6 +15,7 @@ data class SøknadJson(
     val søknadInnhold: SøknadsinnholdJson,
     val opprettet: String,
     val lukket: LukketJson?,
+    val innsendtAv: String,
 )
 
 data class LukketJson(
@@ -30,6 +31,7 @@ fun Søknad.toJson(): SøknadJson {
         sakId = sakId.toString(),
         søknadInnhold = søknadInnhold.toSøknadsinnholdJson(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        innsendtAv = innsendtAv.navIdent,
         lukket = if (this is Søknad.Journalført.MedOppgave.Lukket) this.toLukketJson() else null,
     )
 }

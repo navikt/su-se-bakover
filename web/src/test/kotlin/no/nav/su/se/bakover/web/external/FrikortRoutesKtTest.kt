@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.test.applicationConfig
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
@@ -39,7 +40,7 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(HttpMethod.Get, FRIKORT_PATH, navIdent = "Z990Lokal", jwtSubject = "unknownSubject").apply {
+            defaultRequest(HttpMethod.Get, FRIKORT_PATH, navIdent = DEFAULT_IDENT, jwtSubject = "unknownSubject").apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }

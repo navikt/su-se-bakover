@@ -75,7 +75,7 @@ class KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     meta,
                     { saksnummer ->
                         sakService.hentSak(saksnummer).mapLeft {
-                            IllegalStateException("Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for sak $saksnummer hendelseId $hendelseId. Denne vil prøves på nytt.")
+                            IllegalStateException("Fant ikke sak sak på saksnummer $saksnummer. Kunne ikke prosessere kravgrunnlag: mapRåttKravgrunnlag feilet for sak $saksnummer hendelseId $hendelseId. Denne vil prøves på nytt.")
                         }
                     },
                     clock,

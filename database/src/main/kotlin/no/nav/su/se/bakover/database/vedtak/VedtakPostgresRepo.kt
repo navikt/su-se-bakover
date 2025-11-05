@@ -9,6 +9,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
@@ -294,6 +295,7 @@ internal class VedtakPostgresRepo(
                     s.fnr,
                     s.id as sakid,
                     s.saksnummer,
+                    s.type,
                     null as epsFnr
                   from vedtak v
                     left join sak s on s.id = v.sakid
@@ -302,6 +304,37 @@ internal class VedtakPostgresRepo(
                     :dato between fraogmed and tilogmed
                 """.trimIndent()
                     .hentListe(mapOf("dato" to måned.fraOgMed), session) {
+                        it.toVedtaksammendragForSak()
+                    }.groupBySak()
+            }
+        }
+    }
+
+    override fun hentAlleInnvilgelserOgOpphør(): List<VedtaksammendragForSak> {
+        return dbMetrics.timeQuery("hentForMåned") {
+            val vedtakstyper = listOf(
+                VedtakType.SØKNAD.name,
+                VedtakType.OPPHØR.name,
+                VedtakType.ENDRING.name,
+            ).joinToString(", ") { "'$it'" }
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        v.opprettet,
+                        v.fraogmed,
+                        v.tilogmed,
+                        v.vedtaktype,
+                        s.fnr,
+                        s.id as sakid,
+                        s.saksnummer,
+                        s.type,
+                        null as epsFnr
+                    from vedtak v
+                        left join sak s on s.id = v.sakid
+                    where
+                        vedtaktype in ($vedtakstyper)
+                """.trimIndent()
+                    .hentListe(emptyMap(), session) {
                         it.toVedtaksammendragForSak()
                     }.groupBySak()
             }
@@ -320,6 +353,7 @@ internal class VedtakPostgresRepo(
                     s.fnr,
                     s.id as sakid,
                     s.saksnummer,
+                    s.type,
                     null as epsFnr
                   from vedtak v
                     join sak s on s.id = v.sakid
@@ -350,6 +384,7 @@ internal class VedtakPostgresRepo(
                     s.fnr,
                     s.id as sakid,
                     s.saksnummer,
+                    s.type,
                     array_agg(DISTINCT gb.eps_fnr) FILTER (WHERE gb.eps_fnr IS NOT NULL) as epsFnr
                   from vedtak v
                     join sak s on s.id = v.sakid
@@ -387,6 +422,7 @@ internal class VedtakPostgresRepo(
                     s.fnr,
                     s.id as sakid,
                     s.saksnummer,
+                    s.type,
                     array_agg(DISTINCT gb.eps_fnr) FILTER (WHERE gb.eps_fnr IS NOT NULL) as epsFnr
                   from vedtak v
                     join sak s on s.id = v.sakid
@@ -428,6 +464,7 @@ internal class VedtakPostgresRepo(
                     s.fnr,
                     s.id as sakid,
                     s.saksnummer,
+                    s.type,
                     array_agg(DISTINCT gb.eps_fnr) FILTER (WHERE gb.eps_fnr IS NOT NULL) as epsFnr
                   from vedtak v
                     join sak s on s.id = v.sakid
@@ -509,7 +546,8 @@ internal class VedtakPostgresRepo(
                 erAvbrutt = behandling.erAvbrutt(),
             )
         val simulering = stringOrNull("simulering").deserializeNullableSimulering()
-        val avslagsgrunner: List<Avslagsgrunn>? = deserializeListNullable<AvslagsgrunnDbJson>(stringOrNull("avslagsgrunner"))?.map { it.toDomain() }
+        val avslagsgrunner: List<Avslagsgrunn>? =
+            deserializeListNullable<AvslagsgrunnDbJson>(stringOrNull("avslagsgrunner"))?.map { it.toDomain() }
 
         val journalpostId: JournalpostId? = stringOrNull("journalpostid")?.let { JournalpostId(it) }
         val brevbestillingId: BrevbestillingId? = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) }
@@ -819,6 +857,7 @@ internal class VedtakPostgresRepo(
                         "OPPHØR" -> Vedtakstype.REVURDERING_OPPHØR
                         else -> throw IllegalStateException("Hentet ukjent vedtakstype fra databasen: $v")
                     },
+                    sakstype = Sakstype.from(this.string("type")),
                     epsFnr = this.arrayOrNull<String>("epsFnr")
                         ?.map { Fnr(it) }
                         ?.sortedBy { it.toString() }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jsonAssertEquals
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData.pdf
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -135,7 +136,7 @@ private fun verifiserTilbakekrevingsVedtak(tilbakekrevingsbehandlingId: String, 
                     "beregning":null,
                     "simulering":null,
                     "attestant":"AttestantLokal",
-                    "saksbehandler":"Z990Lokal",
+                    "saksbehandler":"$DEFAULT_IDENT",
                     "utbetalingId":null,
                     "behandlingId":$tilbakekrevingsbehandlingId,
                     "periode":null,
@@ -233,7 +234,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
   "id":$tilbakekrevingsbehandlingId,
   "sakId":"$sakId",
   "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
-  "opprettetAv":"Z990Lokal",
+  "opprettetAv":"$DEFAULT_IDENT",
   "kravgrunnlag":{
     "eksternKravgrunnlagsId":"123456",
     "eksternVedtakId":"654321",
@@ -266,7 +267,7 @@ fun verifiserIverksattTilbakekrevingsbehandlingRespons(
   "vurderinger":$vurderinger,
   "fritekst":"$fritekst",
   "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
-  "sendtTilAttesteringAv": "Z990Lokal",
+  "sendtTilAttesteringAv": "$DEFAULT_IDENT",
   "versjon": $expectedVersjon,
   "attesteringer": [
     ${tidligereAttesteringer?.removeFirstAndLastCharacter()?.let { "$it," } ?: ""}

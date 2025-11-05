@@ -44,10 +44,18 @@ data class OpprettetKlage(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
     ) = AvsluttetKlage(
-        underliggendeKlage = this,
         saksbehandler = saksbehandler,
         begrunnelse = begrunnelse,
         avsluttetTidspunkt = tidspunktAvsluttet,
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
+        datoKlageMottatt = datoKlageMottatt,
+        sakstype = sakstype,
     ).right()
 
     override fun vilkårsvurder(

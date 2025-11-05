@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 
 internal data class AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon(
@@ -63,7 +64,7 @@ internal fun verifiserResponse(
                 "id":"${verifiserBehandling.behandlingsId}",
                 "sakId":"${verifiserBehandling.sakId}",
                 "opprettet":"2021-02-01T01:03:53.456789Z",
-                "opprettetAv":"Z990Lokal",
+                "opprettetAv":"$DEFAULT_IDENT",
                 "kravgrunnlag":{
                  "hendelseId":${verifiserBehandling.kravgrunnlagHendelseId},
                  "eksternKravgrunnlagsId":"123456",

@@ -7,7 +7,6 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -15,7 +14,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
-import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.kanOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.behandling.nyeKlager
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -36,7 +36,7 @@ internal class OpprettRevurderingTest {
     fun `kan opprette revurdering dersom det ikke finnes eksisterende åpne behandlinger`() {
         val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
 
-        sakUtenÅpenBehandling.opprettRevurdering(
+        sakUtenÅpenBehandling.kanOppretteRevurdering(
             cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = "MELDING_FRA_BRUKER",
@@ -59,14 +59,14 @@ internal class OpprettRevurderingTest {
             saksnummer = sakUtenÅpenBehandling.saksnummer,
             fnr = sakUtenÅpenBehandling.fnr,
             journalpostId = JournalpostId(value = "1"),
-            oppgaveId = OppgaveId("123"),
+            oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             datoKlageMottatt = 1.januar(2021),
             sakstype = sakUtenÅpenBehandling.type,
         )
         val sakMedKlage = sakUtenÅpenBehandling.nyeKlager(listOf(klage))
 
-        sakMedKlage.opprettRevurdering(
+        sakMedKlage.kanOppretteRevurdering(
             cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = Revurderingsårsak.Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN.name,
@@ -85,7 +85,7 @@ internal class OpprettRevurderingTest {
     fun `kan opprette revurdering dersom det finnes en åpen revurdering`() {
         val sakMedÅpenRevurdering = opprettetRevurdering().first
 
-        sakMedÅpenRevurdering.opprettRevurdering(
+        sakMedÅpenRevurdering.kanOppretteRevurdering(
             cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = "MELDING_FRA_BRUKER",
@@ -101,7 +101,7 @@ internal class OpprettRevurderingTest {
     @Test
     fun `kan opprette revurdering dersom det finnes en åpen regulering`() {
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(mai(2021)).first
-        sakMedÅpenRegulering.opprettRevurdering(
+        sakMedÅpenRegulering.kanOppretteRevurdering(
             cmd = OpprettRevurderingCommand(
                 saksbehandler = saksbehandler,
                 årsak = "MELDING_FRA_BRUKER",

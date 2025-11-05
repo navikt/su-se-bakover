@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 
@@ -47,6 +48,7 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
     }
 }
 
+// TODO: bruke strukturerte data
 private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
     expectedSakId: String,
     expectedSøknadId: String,
@@ -60,6 +62,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
             "søknad":{
               "id":"$expectedSøknadId",
               "sakId":"$expectedSakId",
+              "innsendtAv": "$DEFAULT_IDENT",
               "søknadInnhold":{"type":"uføre","uførevedtak":{"harUførevedtak":true},"flyktningsstatus":{"registrertFlyktning":true},"personopplysninger":{"fnr":"ignored"},"boforhold":{"borOgOppholderSegINorge":true,"delerBoligMedVoksne":true,"delerBoligMed":"VOKSNE_BARN","ektefellePartnerSamboer":null,"innlagtPåInstitusjon":{"datoForInnleggelse":"2020-01-01","datoForUtskrivelse":"2020-01-31","fortsattInnlagt":false},"borPåAdresse":null,"ingenAdresseGrunn":"HAR_IKKE_FAST_BOSTED"},"utenlandsopphold":{"registrertePerioder":[{"utreisedato":"2020-01-01","innreisedato":"2020-01-31"},{"utreisedato":"2020-02-01","innreisedato":"2020-02-05"}],"planlagtePerioder":[{"utreisedato":"2020-07-01","innreisedato":"2020-07-31"}]},"oppholdstillatelse":{"erNorskStatsborger":false,"harOppholdstillatelse":true,"typeOppholdstillatelse":"midlertidig","statsborgerskapAndreLand":false,"statsborgerskapAndreLandFritekst":null},"inntektOgPensjon":{"forventetInntekt":2500,"andreYtelserINav":"sosialstønad","andreYtelserINavBeløp":33,"søktAndreYtelserIkkeBehandletBegrunnelse":"uføre","trygdeytelserIUtlandet":[{"beløp":200,"type":"trygd","valuta":"En valuta"},{"beløp":500,"type":"Annen trygd","valuta":"En annen valuta"}],"pensjon":[{"ordning":"KLP","beløp":2000.0},{"ordning":"SPK","beløp":5000.0}]},"formue":{"eierBolig":true,"borIBolig":true,"verdiPåBolig":600000,"boligBrukesTil":"Mine barn bor der","depositumsBeløp":1000.0,"verdiPåEiendom":3,"eiendomBrukesTil":"","kjøretøy":[{"verdiPåKjøretøy":2500,"kjøretøyDeEier":"bil"}],"innskuddsBeløp":3500,"verdipapirBeløp":4500,"skylderNoenMegPengerBeløp":1200,"kontanterBeløp":1300},"forNav":{"type":"DigitalSøknad","harFullmektigEllerVerge":null},"ektefelle":{"formue":{"eierBolig":true,"borIBolig":false,"verdiPåBolig":0,"boligBrukesTil":"","depositumsBeløp":0,"verdiPåEiendom":0,"eiendomBrukesTil":"","kjøretøy":[],"innskuddsBeløp":0,"verdipapirBeløp":0,"skylderNoenMegPengerBeløp":0,"kontanterBeløp":0},"inntektOgPensjon":{"forventetInntekt":null,"andreYtelserINav":null,"andreYtelserINavBeløp":null,"søktAndreYtelserIkkeBehandletBegrunnelse":null,"trygdeytelserIUtlandet":null,"pensjon":null}}},
               "opprettet":"2021-01-01T01:02:06.456789Z",
               "lukket":null
@@ -69,7 +72,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
             "simulering":null,
             "opprettet":"2021-01-01T01:02:31.456789Z",
             "attesteringer":[],
-            "saksbehandler":"Z990Lokal",
+            "saksbehandler":"$DEFAULT_IDENT",
             "fritekstTilBrev":"Send til attestering er kjørt automatisk av SendTilAttestering.kt",
             "sakId":"$expectedSakId",
             "stønadsperiode":{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}},
@@ -100,6 +103,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
     actual.shouldBeSimilarJsonTo(expected, "id", "opprettet", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id", "søknad.søknadInnhold.personopplysninger.fnr", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].opprettet")
 }
 
+// TODO: bruke strukturerte data
 private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
     expectedSakId: String,
     expectedSøknadId: String,
@@ -112,6 +116,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
             "id":"eaf7118a-cfdd-40da-9966-3a51244e8fdc",
             "søknad":{
               "id":"$expectedSøknadId",
+              "innsendtAv": "$DEFAULT_IDENT",
               "sakId":"$expectedSakId",
               "søknadInnhold":{"type":"uføre","uførevedtak":{"harUførevedtak":true},"flyktningsstatus":{"registrertFlyktning":true},"personopplysninger":{"fnr":"02153759077"},"boforhold":{"borOgOppholderSegINorge":true,"delerBoligMedVoksne":true,"delerBoligMed":"VOKSNE_BARN","ektefellePartnerSamboer":null,"innlagtPåInstitusjon":{"datoForInnleggelse":"2020-01-01","datoForUtskrivelse":"2020-01-31","fortsattInnlagt":false},"borPåAdresse":null,"ingenAdresseGrunn":"HAR_IKKE_FAST_BOSTED"},"utenlandsopphold":{"registrertePerioder":[{"utreisedato":"2020-01-01","innreisedato":"2020-01-31"},{"utreisedato":"2020-02-01","innreisedato":"2020-02-05"}],"planlagtePerioder":[{"utreisedato":"2020-07-01","innreisedato":"2020-07-31"}]},"oppholdstillatelse":{"erNorskStatsborger":false,"harOppholdstillatelse":true,"typeOppholdstillatelse":"midlertidig","statsborgerskapAndreLand":false,"statsborgerskapAndreLandFritekst":null},"inntektOgPensjon":{"forventetInntekt":2500,"andreYtelserINav":"sosialstønad","andreYtelserINavBeløp":33,"søktAndreYtelserIkkeBehandletBegrunnelse":"uføre","trygdeytelserIUtlandet":[{"beløp":200,"type":"trygd","valuta":"En valuta"},{"beløp":500,"type":"Annen trygd","valuta":"En annen valuta"}],"pensjon":[{"ordning":"KLP","beløp":2000.0},{"ordning":"SPK","beløp":5000.0}]},"formue":{"eierBolig":true,"borIBolig":true,"verdiPåBolig":600000,"boligBrukesTil":"Mine barn bor der","depositumsBeløp":1000.0,"verdiPåEiendom":3,"eiendomBrukesTil":"","kjøretøy":[{"verdiPåKjøretøy":2500,"kjøretøyDeEier":"bil"}],"innskuddsBeløp":3500,"verdipapirBeløp":4500,"skylderNoenMegPengerBeløp":1200,"kontanterBeløp":1300},"forNav":{"type":"DigitalSøknad","harFullmektigEllerVerge":null},"ektefelle":{"formue":{"eierBolig":true,"borIBolig":false,"verdiPåBolig":0,"boligBrukesTil":"","depositumsBeløp":0,"verdiPåEiendom":0,"eiendomBrukesTil":"","kjøretøy":[],"innskuddsBeløp":0,"verdipapirBeløp":0,"skylderNoenMegPengerBeløp":0,"kontanterBeløp":0},"inntektOgPensjon":{"forventetInntekt":null,"andreYtelserINav":null,"andreYtelserINavBeløp":null,"søktAndreYtelserIkkeBehandletBegrunnelse":null,"trygdeytelserIUtlandet":null,"pensjon":null}}},
               "opprettet":"2021-01-01T01:02:06.456789Z",
@@ -129,7 +134,7 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
             "simulering":null,
             "opprettet":"2021-01-01T01:02:44.456789Z",
             "attesteringer":[],
-            "saksbehandler":"Z990Lokal",
+            "saksbehandler":"$DEFAULT_IDENT",
             "fritekstTilBrev":"Send til attestering er kjørt automatisk av SendTilAttestering.kt",
             "sakId":"$expectedSakId",
             "stønadsperiode":{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}},

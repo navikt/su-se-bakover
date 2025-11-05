@@ -84,6 +84,7 @@ private constructor(
     fun plus(duration: kotlin.time.Duration): Tidspunkt = instant.plus(duration.toJavaDuration()).toTidspunkt()
     override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
+    fun toLocalDateTime(zoneId: ZoneId): LocalDateTime = LocalDateTime.ofInstant(instant, zoneId)
     fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), tidspunktPresisjon)
     val nano = instant.nano
 

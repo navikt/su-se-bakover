@@ -91,7 +91,6 @@ internal class AvsluttRevurderingTest {
             argThat { it shouldBe opprettetRevurdering.oppgaveId },
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
         )
-        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() }, anyOrNull())
         verifyNoMoreInteractions(revurderingRepoMock, oppgaveServiceMock)
     }
@@ -193,7 +192,6 @@ internal class AvsluttRevurderingTest {
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe stansAvYtelse.id })
-        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() }, anyOrNull())
         verifyNoMoreInteractions(revurderingRepoMock)
     }
@@ -275,7 +273,6 @@ internal class AvsluttRevurderingTest {
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
-        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() }, anyOrNull())
         verifyNoMoreInteractions(revurderingRepoMock)
     }

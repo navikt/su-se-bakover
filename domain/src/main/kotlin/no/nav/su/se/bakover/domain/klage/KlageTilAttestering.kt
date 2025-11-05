@@ -7,7 +7,6 @@ import arrow.core.right
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.VilkårsvurdertKlageFelter
-import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -86,11 +85,12 @@ sealed interface KlageTilAttestering :
     }
 
     data class Vurdert(
-        private val forrigeSteg: VurdertKlage.Bekreftet,
+        private val forrigeSteg: VurdertKlage.BekreftetTilOversending,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val sakstype: Sakstype,
     ) : KlageTilAttestering,
-        VurdertKlage.UtfyltFelter by forrigeSteg {
+        VurdertKlage.BekreftetOversendtTilKA by forrigeSteg {
+
         /**
          * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
          */
@@ -101,12 +101,7 @@ sealed interface KlageTilAttestering :
 
         override fun erÅpen() = true
 
-        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-            return when (val vurderinger = vurderinger) {
-                is VurderingerTilKlage.UtfyltOmgjøring -> KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
-                is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev.right()
-            }
-        }
+        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> = vurderinger.fritekstTilOversendelsesbrev.right()
 
         /**
          * @param utførtAv forventes at denne er NavIdentBruker.Attestant
@@ -124,11 +119,12 @@ sealed interface KlageTilAttestering :
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
-        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.Bekreftet> {
+        ): Either<KunneIkkeUnderkjenneKlage, VurdertKlage.BekreftetTilOversending> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return this.forrigeSteg.copy(
+
+            return forrigeSteg.copy(
                 oppgaveId = oppgaveId,
                 attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
             ).right()
@@ -158,7 +154,7 @@ sealed interface KlageTilAttestering :
         fun returFraKlageinstans(
             oppgaveId: OppgaveId,
             klageinstanshendelser: Klageinstanshendelser,
-        ): VurdertKlage.Bekreftet {
+        ): VurdertKlage.BekreftetTilOversending {
             // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
             return forrigeSteg.copy(
                 oppgaveId = oppgaveId,

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.beregning.KunneIkkeBeregneOgSimul
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -142,7 +143,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     deserialize<SimulertRevurderingJson>(serialize(actualResponse["revurdering"]!!))
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
-                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
                 revurdering.id shouldBe simulertRevurdering.id.toString()

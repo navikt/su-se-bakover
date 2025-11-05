@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -78,5 +77,10 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
                 SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering -> gReguleringKanIkkeFøreTilOpphør
             }
         }
+
+        KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev -> BadRequest.errorJson(
+            "Må ha fritekst for å sende vedtaksbrev, det var blankt.",
+            "revurdering_maa_ha_fritekst_for_vedtaksbrev",
+        )
     }
 }

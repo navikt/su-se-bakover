@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.institusjonsopphold.application.service
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelserPåSak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nyInstitusjonsoppholdHendelse
 import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -159,7 +159,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelserTest {
                     sakId = sak.id,
                     versjon = Hendelsesversjon(value = 3),
                     hendelsestidspunkt = fixedTidspunkt,
-                    oppgaveId = OppgaveId("123"),
+                    oppgaveId = oppgaveId,
                     beskrivelse = "beskrivelse",
                     oppgavetype = Oppgavetype.BEHANDLE_SAK,
                     relaterteHendelser = nonEmptyListOf(hendelse.hendelseId),

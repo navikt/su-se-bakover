@@ -30,6 +30,14 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
         value = "OPPRETTHOLDT",
         beskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
     ),
+    DelvisOmgjøringKa(
+        value = "DELVIS_OMGJØRING",
+        beskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
+    ),
+    OmgjortKlage(
+        value = "OMGJORT",
+        beskrivelse = "Kun brukt i klagebehandling UTEN oversendelse til klageinstansen.",
+    ),
     Avbrutt(
         value = "AVBRUTT",
         beskrivelse = "En paraplybetegnelse for å avbryte/avslutte/lukke en behandling der vi ikke har mer spesifikke data. Spesifiseringer av Avbrutt: [FEILREGISTRERT, TRUKKET, AVVIST].",

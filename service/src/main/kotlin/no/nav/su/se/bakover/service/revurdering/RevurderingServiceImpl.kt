@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
+import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -65,6 +67,7 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVe
 import no.nav.su.se.bakover.domain.revurdering.opphør.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.opprett.kanOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.retur.KunneIkkeReturnereRevurdering
@@ -80,6 +83,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Avsluttet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
@@ -150,25 +154,45 @@ class RevurderingServiceImpl(
         val sak = sakService.hentSak(command.sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.SakFinnesIkke.left()
         }
-        return sak.opprettRevurdering(
+        return sak.kanOppretteRevurdering(
             cmd = command,
             clock = clock,
-        ).map {
+        ).map { opprettresult ->
+            val tidspunkt = Tidspunkt.now(clock)
             val oppgaveResponse = oppgaveService.opprettOppgave(
-                it.oppgaveConfig(),
+                OppgaveConfig.Revurderingsbehandling(
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    tilordnetRessurs = command.saksbehandler,
+                    clock = clock,
+                    sakstype = sak.type,
+                ),
             ).getOrElse {
                 return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
             }
-            it.leggTilOppgaveId(oppgaveResponse.oppgaveId)
-        }.map {
-            it.klageId?.let { klageId ->
-                klageRepo.knyttMotOmgjøring(klageId, it.opprettetRevurdering.id.value)
+            val (_, revurdering) = sak.opprettRevurdering(opprettresult, oppgaveId = oppgaveResponse.oppgaveId, tidspunkt = tidspunkt, command = command)
+            RevurderingContext(
+                revurdering,
+                StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, opprettresult.gjeldendeVedtak.behandling.id.value),
+                opprettresult.klageId,
+            )
+        }.map { revurderingContext ->
+            sessionFactory.withTransactionContext { tx ->
+                revurderingContext.klageId?.let { klageId ->
+                    klageRepo.knyttMotOmgjøring(klageId, revurderingContext.revurdering.id.value, tx)
+                }
+                revurderingRepo.lagre(revurderingContext.revurdering, tx)
+                observers.notify(revurderingContext.statistikkHendelse, tx)
             }
-            revurderingRepo.lagre(it.opprettetRevurdering)
-            observers.notify(it.statistikkHendelse)
-            it.opprettetRevurdering
+            revurderingContext.revurdering
         }
     }
+
+    private data class RevurderingContext(
+        val revurdering: OpprettetRevurdering,
+        val statistikkHendelse: StatistikkEvent,
+        val klageId: KlageId?,
+    )
 
     override fun returnerRevurdering(
         request: RevurderingService.ReturnerRevurderingRequest,
@@ -705,11 +729,14 @@ class RevurderingServiceImpl(
     override fun lagreOgSendForhåndsvarsel(
         revurderingId: RevurderingId,
         utførtAv: NavIdentBruker.Saksbehandler,
-        fritekst: String,
+        fritekst: String?,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId).getOrElse { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
         kanSendesTilAttestering(revurdering).getOrElse {
             return KunneIkkeForhåndsvarsle.Attestering(it).left()
+        }
+        if (fritekst == null) {
+            return KunneIkkeForhåndsvarsle.ManglerFritekst.left()
         }
         return revurdering.lagForhåndsvarsel(
             fritekst = fritekst,
@@ -816,6 +843,10 @@ class RevurderingServiceImpl(
         kanSendesTilAttestering(revurdering).getOrElse {
             return it.left()
         }
+        val brevvalg = revurdering.brevvalgRevurdering
+        if (!brevvalg.kanSendesTilAttestering()) {
+            return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+        }
 
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
             is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(saksbehandler).getOrElse {
@@ -859,10 +890,9 @@ class RevurderingServiceImpl(
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${tilAttestering.oppgaveId} for revurdering ${tilAttestering.id} med informasjon om at den er sendt til attestering. Feilen var $it")
         }
-
-        revurderingRepo.lagre(tilAttestering)
-        statistikkhendelse.also {
-            observers.notify(it)
+        sessionFactory.withTransactionContext { tx ->
+            revurderingRepo.lagre(tilAttestering, tx)
+            observers.notify(statistikkhendelse, tx)
         }
         return tilAttestering.right()
     }
@@ -979,7 +1009,20 @@ class RevurderingServiceImpl(
         }
 
         val underkjent = revurdering.underkjenn(attestering)
-        revurderingRepo.lagre(underkjent)
+        sessionFactory.withTransactionContext { tx ->
+            revurderingRepo.lagre(underkjent, tx)
+            when (underkjent) {
+                is UnderkjentRevurdering.Innvilget -> observers.notify(
+                    StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent),
+                    tx,
+                )
+
+                is UnderkjentRevurdering.Opphørt -> observers.notify(
+                    StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(underkjent),
+                    tx,
+                )
+            }
+        }
 
         // best effort for å oppdatere oppgave
         oppgaveService.oppdaterOppgave(
@@ -991,16 +1034,6 @@ class RevurderingServiceImpl(
             ),
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for revurdering ${underkjent.id} med informasjon om at den er underkjent. Feilen var $it")
-        }
-
-        when (underkjent) {
-            is UnderkjentRevurdering.Innvilget -> observers.notify(
-                StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent),
-            )
-
-            is UnderkjentRevurdering.Opphørt -> observers.notify(
-                StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(underkjent),
-            )
         }
 
         return underkjent.right()
@@ -1074,7 +1107,7 @@ class RevurderingServiceImpl(
             }
         }
 
-        val resultat = if (avsluttetRevurdering is Revurdering && skalSendeAvslutningsbrev) {
+        val resultat = if (avsluttetRevurdering is AvsluttetRevurdering && skalSendeAvslutningsbrev) {
             brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
                 .mapLeft {
                     return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
@@ -1090,23 +1123,32 @@ class RevurderingServiceImpl(
                     sessionFactory.withTransactionContext {
                         brevService.lagreDokument(dokumentMedMetaData, it)
                         revurderingRepo.lagre(avsluttetRevurdering, it)
+                        observers.notify(StatistikkEvent.Behandling.Revurdering.Avsluttet(avsluttetRevurdering, saksbehandler), it)
                     }
                 }
             avsluttetRevurdering.right()
         } else {
-            revurderingRepo.lagre(avsluttetRevurdering)
-            avsluttetRevurdering.right()
-        }
-        val event: StatistikkEvent? = when (val result = resultat.getOrElse { null }) {
-            is AvsluttetRevurdering -> StatistikkEvent.Behandling.Revurdering.Avsluttet(result, saksbehandler)
-            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> StatistikkEvent.Behandling.Gjenoppta.Avsluttet(result)
-            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> StatistikkEvent.Behandling.Stans.Avsluttet(result)
-            else -> null
-        }
-        event?.let {
-            observers.forEach { observer ->
-                observer.handle(it)
+            sessionFactory.withTransactionContext { tx ->
+                revurderingRepo.lagre(avsluttetRevurdering, tx)
+                when (avsluttetRevurdering) {
+                    is AvsluttetRevurdering -> {
+                        observers.notify(
+                            Avsluttet(
+                                avsluttetRevurdering,
+                                saksbehandler,
+                            ),
+                            tx,
+                        )
+                    }
+                    is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
+                        observers.notify(StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering), tx)
+                    }
+                    is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
+                        observers.notify(StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering), tx)
+                    }
+                }
             }
+            avsluttetRevurdering.right()
         }
 
         return resultat

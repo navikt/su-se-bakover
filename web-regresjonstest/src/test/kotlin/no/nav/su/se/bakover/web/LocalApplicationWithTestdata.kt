@@ -6,6 +6,7 @@ import io.ktor.server.netty.Netty
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import org.slf4j.bridge.SLF4JBridgeHandler
+
 /*
     LocalApplicationWithTestdata
     Kjører appen lokalt
@@ -24,7 +25,7 @@ fun main() {
         port = 8080,
         module = {
             susebakover(
-                tilbakekrevingskomponenter = { clock, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, _, tilgangstyringService ->
+                tilbakekrevingskomponenter = { clock, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, _, tilgangstyringService ->
                     tilbakekrevingskomponenterMedClientStubs(
                         clock = clock,
                         sessionFactory = sessionFactory,
@@ -37,6 +38,7 @@ fun main() {
                         dokumentHendelseRepo = dokumentHendelseRepo,
                         brevService = brevService,
                         tilgangstyringService = tilgangstyringService,
+                        sakStatistikkRepo = sakStatistikkRepo,
                     )
                 },
                 disableConsumersAndJobs = false,

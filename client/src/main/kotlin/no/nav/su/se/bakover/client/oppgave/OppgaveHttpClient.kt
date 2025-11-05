@@ -18,9 +18,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
+import no.nav.su.se.bakover.domain.oppgave.OboToken
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.SystembrukerToken
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
@@ -86,7 +88,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse> {
         return oppdaterOppgaveHttpClient.lukkOppgave(
             oppgaveId = oppgaveId,
-            token = exchange.getSystemToken(oppgaveClientId),
+            token = SystembrukerToken(exchange.getSystemToken(oppgaveClientId)),
             tilordnetRessurs = tilordnetRessurs,
         )
     }
@@ -100,7 +102,7 @@ internal class OppgaveHttpClient(
             .flatMap {
                 oppdaterOppgaveHttpClient.lukkOppgave(
                     oppgaveId = oppgaveId,
-                    token = it,
+                    token = OboToken(it),
                     tilordnetRessurs = tilordnetRessurs,
                 )
             }
@@ -112,7 +114,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppdatereOppgave.FeilVedHentingAvToken }
-            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, it, oppdatertOppgaveInfo) }
+            .flatMap { oppdaterOppgaveHttpClient.oppdaterOppgave(oppgaveId, OboToken(it), oppdatertOppgaveInfo) }
     }
 
     override fun oppdaterOppgaveMedSystembruker(
@@ -121,7 +123,7 @@ internal class OppgaveHttpClient(
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
         return oppdaterOppgaveHttpClient.oppdaterOppgave(
             oppgaveId = oppgaveId,
-            token = exchange.getSystemToken(oppgaveClientId),
+            token = SystembrukerToken(exchange.getSystemToken(oppgaveClientId)),
             data = oppdatertOppgaveInfo,
         )
     }
@@ -167,61 +169,7 @@ internal class OppgaveHttpClient(
         config: OppgaveConfig,
         token: String,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
-        val beskrivelse = when (config) {
-            is OppgaveConfig.AttesterSøknadsbehandling, is OppgaveConfig.Søknad ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
-
-            is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.Personhendelse ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${
-                    OppgavebeskrivelseMapper.map(config.personhendelse)
-                }"
-
-            is OppgaveConfig.Kontrollsamtale ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.Klage.Klageinstanshendelse ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${
-                    OppgavebeskrivelseMapper.map(
-                        config,
-                    )
-                }"
-
-            is OppgaveConfig.Klage ->
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-
-            is OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale -> {
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nKontrollnotat/Dokumentasjon av oppfølgingssamtale ikke funnet for perioden: ${config.periode.fraOgMed}-${config.periode.tilOgMed}. Maskinell stans kunne ikke gjennomføres."
-            }
-
-            is OppgaveConfig.Institusjonsopphold -> {
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nEndring i institusjonsopphold"
-            }
-
-            is OppgaveConfig.Tilbakekrevingsbehandling -> {
-                "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-            }
-        }
+        val beskrivelse = config.beskrivelse
 
         return Either.catch {
             val requestBody = serialize(
@@ -272,7 +220,7 @@ internal class OppgaveHttpClient(
                         "Feil i kallet mot oppgave for sak ${config.saksreferanse}. status=${it.statusCode()}. Se sikkerlogg for innhold av body",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
-                    sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
+                    sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, responsebody=$body request=$requestBody")
                     KunneIkkeOppretteOppgave.left()
                 }
             }

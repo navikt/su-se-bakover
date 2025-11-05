@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -42,7 +43,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -81,7 +81,7 @@ internal class RevurderingSendTilAttesteringTest {
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
                 verify(mocks.oppgaveService).oppdaterOppgave(
-                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
+                    argThat { it shouldBe oppgaveIdRevurdering },
                     argThat {
                         it shouldBe OppdaterOppgaveInfo(
                             beskrivelse = "Sendt revurdering til attestering",
@@ -90,7 +90,6 @@ internal class RevurderingSendTilAttesteringTest {
                         )
                     },
                 )
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
 
                 verify(mocks.observer).handle(
@@ -99,7 +98,7 @@ internal class RevurderingSendTilAttesteringTest {
                             actual as RevurderingTilAttestering.Innvilget,
                         )
                     },
-                    isNull(),
+                    any(),
                 )
             }
 
@@ -169,7 +168,7 @@ internal class RevurderingSendTilAttesteringTest {
                 verify(mocks.revurderingRepo).hent(revurderingId)
                 verify(mocks.sakService).hentSakForRevurdering(revurdering.id)
                 verify(mocks.oppgaveService).oppdaterOppgave(
-                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
+                    argThat { it shouldBe oppgaveIdRevurdering },
                     argThat {
                         it shouldBe OppdaterOppgaveInfo(
                             beskrivelse = "Sendt revurdering til attestering",
@@ -178,7 +177,6 @@ internal class RevurderingSendTilAttesteringTest {
                         )
                     },
                 )
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                 mocks.verifyNoMoreInteractions()
             }
@@ -268,6 +266,37 @@ internal class RevurderingSendTilAttesteringTest {
             ).left()
 
             verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
+        }
+    }
+
+    @Test
+    fun `Må ha fritekst vi skal sende attestering og brevvalg har valgt send`() {
+        val (sak, revurdering) = simulertRevurdering(
+            stønadsperiode = stønadsperiode2021,
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+            brevvalg = BrevvalgRevurdering.Valgt.SendBrev(
+                fritekst = null,
+                begrunnelse = null,
+                bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+            ),
+        )
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn revurdering
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+
+        ).let { mocks ->
+            val actual = mocks.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                ),
+            )
+            actual shouldBe KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
         }
     }
 }

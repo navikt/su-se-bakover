@@ -11,6 +11,8 @@ import java.util.Date
 
 val jwtStub get() = JwtStub(applicationConfig().azure)
 
+const val DEFAULT_IDENT = "Z990Lokal"
+
 class JwtStub(
     private val azureConfig: AzureConfig,
 ) {
@@ -18,7 +20,7 @@ class JwtStub(
     fun createJwtToken(
         subject: String = "serviceUserTestUsername",
         roller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder),
-        navIdent: String? = "Z990Lokal",
+        navIdent: String? = DEFAULT_IDENT,
         navn: String? = "Brukerens navn",
         audience: String = azureConfig.clientId,
         expiresAt: Date = Date(Long.MAX_VALUE),

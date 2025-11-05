@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.statistikk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -9,8 +11,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
-import statistikk.domain.BehandlingMetode
-import statistikk.domain.SakStatistikk
 import java.time.LocalDate
 import java.util.UUID
 

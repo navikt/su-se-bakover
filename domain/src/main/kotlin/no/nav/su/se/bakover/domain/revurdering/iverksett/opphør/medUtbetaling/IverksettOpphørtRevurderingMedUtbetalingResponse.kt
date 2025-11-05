@@ -70,9 +70,8 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
+                statistikkObservers().notify(statistikkhendelser, tx)
                 vedtak.behandling
-            }.also {
-                statistikkObservers().notify(statistikkhendelser)
             }
         }.mapLeft {
             when (it) {

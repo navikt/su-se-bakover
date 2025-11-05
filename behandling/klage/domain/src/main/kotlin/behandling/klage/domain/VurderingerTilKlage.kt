@@ -1,6 +1,8 @@
 package behandling.klage.domain
 
 import arrow.core.Either
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Utfylt.SkalTilKabal
 
 /**
  * Støtter kun opprettholdelse i MVP, men vi har støtte for å lagre alle feltene.
@@ -70,7 +72,7 @@ sealed interface VurderingerTilKlage {
             ): VurderingerTilKlage {
                 return when (vedtaksvurdering) {
                     is Vedtaksvurdering.Utfylt.Omgjør -> {
-                        if (fritekstTilOversendelsesbrev == null && vedtaksvurdering.begrunnelse != null) {
+                        if (vedtaksvurdering.begrunnelse != null) {
                             UtfyltOmgjøring(vedtaksvurdering = vedtaksvurdering)
                         } else {
                             Påbegynt(
@@ -79,9 +81,9 @@ sealed interface VurderingerTilKlage {
                             )
                         }
                     }
-                    is Vedtaksvurdering.Utfylt.Oppretthold -> {
+                    is Vedtaksvurdering.Utfylt.Oppretthold, is Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> {
                         if (fritekstTilOversendelsesbrev != null && vedtaksvurdering.hjemler.isNotEmpty()) {
-                            UtfyltOppretthold(
+                            OversendtKA.create(
                                 fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                                 vedtaksvurdering = vedtaksvurdering,
                             )
@@ -96,11 +98,7 @@ sealed interface VurderingerTilKlage {
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
-                    is Vedtaksvurdering.Påbegynt.Omgjør -> Påbegynt(
-                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
-                        vedtaksvurdering = vedtaksvurdering,
-                    )
-                    is Vedtaksvurdering.Påbegynt.Oppretthold -> Påbegynt(
+                    is Oppretthold, is Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA, is Vedtaksvurdering.Påbegynt.Omgjør -> Påbegynt(
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
@@ -112,14 +110,41 @@ sealed interface VurderingerTilKlage {
     sealed interface Utfylt : VurderingerTilKlage {
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt
     }
+
     data class UtfyltOmgjøring(
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Omgjør,
     ) : Utfylt
 
+    sealed interface OversendtKA : Utfylt {
+        val fritekstTilOversendelsesbrev: String
+        override val vedtaksvurdering: SkalTilKabal
+        companion object {
+            fun create(
+                fritekstTilOversendelsesbrev: String,
+                vedtaksvurdering: SkalTilKabal,
+            ): OversendtKA {
+                return when (vedtaksvurdering) {
+                    is Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> UtfyltDelvisOmgjøringKA(
+                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
+                        vedtaksvurdering = vedtaksvurdering,
+                    )
+                    is Vedtaksvurdering.Utfylt.Oppretthold -> UtfyltOppretthold(
+                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
+                        vedtaksvurdering = vedtaksvurdering,
+                    )
+                }
+            }
+        }
+    }
     data class UtfyltOppretthold(
-        val fritekstTilOversendelsesbrev: String,
+        override val fritekstTilOversendelsesbrev: String,
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Oppretthold,
-    ) : Utfylt
+    ) : OversendtKA
+
+    data class UtfyltDelvisOmgjøringKA(
+        override val fritekstTilOversendelsesbrev: String,
+        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.DelvisOmgjøringKa,
+    ) : OversendtKA
 
     sealed interface Vedtaksvurdering {
 
@@ -128,26 +153,29 @@ sealed interface VurderingerTilKlage {
             /**
              * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
              */
-            fun createOmgjør(årsak: Årsak?, utfall: Utfall?, begrunnelse: String?): Vedtaksvurdering {
+            fun createOmgjør(årsak: Årsak?, begrunnelse: String?): Vedtaksvurdering {
                 return Påbegynt.Omgjør.create(
                     årsak = årsak,
-                    utfall = utfall,
                     begrunnelse = begrunnelse,
                 )
             }
 
-            fun createOppretthold(hjemler: List<Hjemmel>): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
+            fun createDelvisEllerOpprettholdelse(hjemler: List<Hjemmel>, klagenotat: String?, erOppretthold: Boolean): Either<Klagehjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
                 return Klagehjemler.tryCreate(hjemler).map {
                     when (it) {
-                        is Klagehjemler.IkkeUtfylt -> Påbegynt.Oppretthold(hjemler = it)
-                        is Klagehjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it)
+                        is Klagehjemler.IkkeUtfylt -> {
+                            Påbegynt.OversendtTilKA.create(erOppretthold = erOppretthold, hjemler = it, klagenotat = klagenotat)
+                        }
+                        is Klagehjemler.Utfylt -> {
+                            SkalTilKabal.create(erOppretthold = erOppretthold, hjemler = it, klagenotat = klagenotat)
+                        }
                     }
                 }
             }
         }
 
         sealed interface Påbegynt : Vedtaksvurdering {
-            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?, val begrunnelse: String?) : Påbegynt {
+            data class Omgjør private constructor(val årsak: Årsak?, val begrunnelse: String?) : Påbegynt {
 
                 companion object {
                     /**
@@ -157,32 +185,74 @@ sealed interface VurderingerTilKlage {
                      */
                     internal fun create(
                         årsak: Årsak?,
-                        utfall: Utfall?,
                         begrunnelse: String? = null,
                     ): Vedtaksvurdering {
-                        return if (årsak != null && utfall != null) {
+                        return if (årsak != null) {
                             Utfylt.Omgjør(
                                 årsak = årsak,
-                                utfall = utfall,
                                 begrunnelse = begrunnelse,
                             )
                         } else {
                             Omgjør(
                                 årsak = årsak,
-                                utfall = utfall,
                                 begrunnelse = begrunnelse,
                             )
                         }
                     }
                 }
             }
+            interface OversendtTilKA {
+                val hjemler: Klagehjemler.IkkeUtfylt
+                val klagenotat: String?
+                companion object {
+                    fun create(
+                        erOppretthold: Boolean,
+                        hjemler: Klagehjemler.IkkeUtfylt,
+                        klagenotat: String?,
+                    ): Vedtaksvurdering {
+                        return if (erOppretthold) {
+                            Oppretthold(hjemler = hjemler, klagenotat = klagenotat)
+                        } else {
+                            DelvisOmgjøringKA(hjemler = hjemler, klagenotat = klagenotat)
+                        }
+                    }
+                }
+            }
+            data class Oppretthold(
+                override val hjemler: Klagehjemler.IkkeUtfylt,
+                override val klagenotat: String?,
+            ) : Påbegynt,
+                OversendtTilKA
 
-            data class Oppretthold(val hjemler: Klagehjemler.IkkeUtfylt) : Påbegynt
+            data class DelvisOmgjøringKA(
+                override val hjemler: Klagehjemler.IkkeUtfylt,
+                override val klagenotat: String?,
+            ) : Påbegynt,
+                OversendtTilKA
         }
 
         sealed interface Utfylt : Vedtaksvurdering {
-            data class Omgjør(val årsak: Årsak, val utfall: Utfall, val begrunnelse: String?) : Utfylt
-            data class Oppretthold(val hjemler: Klagehjemler.Utfylt) : Utfylt
+            data class Omgjør(val årsak: Årsak, val begrunnelse: String?) : Utfylt
+            sealed interface SkalTilKabal : Utfylt {
+                val hjemler: Klagehjemler.Utfylt
+                val klagenotat: String?
+
+                companion object {
+                    fun create(
+                        erOppretthold: Boolean,
+                        hjemler: Klagehjemler.Utfylt,
+                        klagenotat: String?,
+                    ): Vedtaksvurdering {
+                        return if (erOppretthold) {
+                            Oppretthold(hjemler = hjemler, klagenotat = klagenotat)
+                        } else {
+                            DelvisOmgjøringKa(hjemler = hjemler, klagenotat = klagenotat)
+                        }
+                    }
+                }
+            }
+            data class Oppretthold(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : SkalTilKabal
+            data class DelvisOmgjøringKa(override val hjemler: Klagehjemler.Utfylt, override val klagenotat: String?) : SkalTilKabal
         }
 
         // Se også Omgjøringsgrunn - må se om de skal konsolideres evt fjernes fra behandlingsløpet hvis det lagres her. Blir da kun historisk
@@ -197,19 +267,6 @@ sealed interface VurderingerTilKlage {
                 fun toDomain(dbValue: String): Årsak {
                     return entries.find { it.name == dbValue }
                         ?: throw IllegalStateException("Ukjent klageårsak i klage-tabellen: $dbValue")
-                }
-            }
-        }
-
-        enum class Utfall {
-            TIL_GUNST,
-            TIL_UGUNST,
-            ;
-
-            companion object {
-                fun toDomain(dbValue: String): Utfall {
-                    return entries.find { it.name == dbValue }
-                        ?: throw IllegalStateException("Ukjent klage utfall i klage-tabellen: $dbValue")
                 }
             }
         }

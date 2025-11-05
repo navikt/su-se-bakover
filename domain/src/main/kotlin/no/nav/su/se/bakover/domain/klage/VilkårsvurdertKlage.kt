@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt.Companion.createUtfylt
 import java.time.LocalDate
 import java.util.UUID
 
@@ -94,10 +95,18 @@ sealed interface VilkårsvurdertKlage :
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ) = AvsluttetKlage(
-            underliggendeKlage = this,
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             avsluttetTidspunkt = tidspunktAvsluttet,
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            datoKlageMottatt = datoKlageMottatt,
+            sakstype = sakstype,
         ).right()
     }
 
@@ -199,10 +208,18 @@ sealed interface VilkårsvurdertKlage :
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ) = AvsluttetKlage(
-                underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 avsluttetTidspunkt = tidspunktAvsluttet,
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             ).right()
         }
 
@@ -237,7 +254,7 @@ sealed interface VilkårsvurdertKlage :
                     when (val vurderinger = vurderinger) {
                         is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
                         is VurderingerTilKlage.UtfyltOmgjøring -> null
-                        is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+                        is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
                         null -> null
                     }
 
@@ -319,10 +336,18 @@ sealed interface VilkårsvurdertKlage :
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
                 return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
-                        underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
                         avsluttetTidspunkt = tidspunktAvsluttet,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -500,10 +525,18 @@ sealed interface VilkårsvurdertKlage :
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ) = AvsluttetKlage(
-                underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 avsluttetTidspunkt = tidspunktAvsluttet,
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                datoKlageMottatt = datoKlageMottatt,
+                sakstype = sakstype,
             ).right()
         }
 
@@ -536,7 +569,7 @@ sealed interface VilkårsvurdertKlage :
                     when (val vurderinger = vurderinger) {
                         is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
                         is VurderingerTilKlage.UtfyltOmgjøring -> null
-                        is VurderingerTilKlage.UtfyltOppretthold -> vurderinger.fritekstTilOversendelsesbrev
+                        is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
                         null -> null
                     }
             override fun erÅpen() = true
@@ -613,7 +646,7 @@ sealed interface VilkårsvurdertKlage :
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vurderinger: VurderingerTilKlage.Utfylt,
             ): VurdertKlage.Utfylt {
-                return VurdertKlage.Utfylt(
+                return createUtfylt(
                     forrigeSteg = this.vurder(
                         saksbehandler = saksbehandler,
                         // Her hopper vi over [VurdertKlage.Påbegynt] steget
@@ -655,10 +688,18 @@ sealed interface VilkårsvurdertKlage :
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
                 return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
-                        underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
                         avsluttetTidspunkt = tidspunktAvsluttet,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        datoKlageMottatt = datoKlageMottatt,
+                        sakstype = sakstype,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()

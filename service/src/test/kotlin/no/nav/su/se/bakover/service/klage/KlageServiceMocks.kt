@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 import person.domain.PersonService
 import java.time.Clock
 
@@ -26,7 +28,7 @@ internal data class KlageServiceMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = defaultMock(),
     val queryJournalpostClient: QueryJournalpostClient = defaultMock(),
-    val observer: StatistikkEventObserver = defaultMock(),
+    val observer: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} },
     val dokumentHendelseRepo: DokumentHendelseRepo = defaultMock(),
     val clock: Clock = fixedClock,
 ) {

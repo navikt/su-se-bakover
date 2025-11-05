@@ -64,24 +64,17 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
             ignoreProperty,
         )
 
-        is VurdertKlage.Utfylt -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
-        is VurdertKlage.Bekreftet -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected, ignoreProperty)
+        is VurdertKlage.UtfyltOmgjør, is VurdertKlage.UtfyltTilOversending -> this.castAndCompare<VurdertKlageFelter>(expected, ignoreProperty)
+        is VurdertKlage.BekreftetTilOversending -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is KlageTilAttestering.Avvist -> this.castAndCompare<AvvistKlageFelter>(expected, ignoreProperty)
-        is KlageTilAttestering.Vurdert -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected, ignoreProperty)
+        is KlageTilAttestering.Vurdert -> this.castAndCompare<VurdertKlage.Utfylt>(expected, ignoreProperty)
         is AvsluttetKlage -> {
             this.castAndCompare<Klage>(expected, ignoreProperty)
-            // Gjør en spesialsjekk på den underliggende typen som kan variere.
-            // Den brukes både ved instansiering fra databasen og serialisering til json.
-            this.hentUnderliggendeKlage()
-                .shouldBeEqualComparingPublicFieldsAndInterface(
-                    (expected as AvsluttetKlage).hentUnderliggendeKlage(),
-                    Klage::saksbehandler,
-                )
         }
-
-        is OversendtKlage -> this.castAndCompare<VurdertKlage.UtfyltFelter>(expected)
+        is OversendtKlage -> this.castAndCompare<VurdertKlage.Utfylt>(expected)
         is IverksattAvvistKlage -> this.castAndCompare<AvvistKlageFelter>(expected)
         is FerdigstiltOmgjortKlage -> this.castAndCompare<FerdigstiltOmgjortKlage>(expected)
+        is VurdertKlage.BekreftetOmgjøring -> this.castAndCompare<VurdertKlage.BekreftetOmgjøring>(expected)
     }
 }
 

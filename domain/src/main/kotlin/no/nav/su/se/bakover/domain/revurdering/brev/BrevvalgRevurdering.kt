@@ -14,9 +14,19 @@ sealed interface BrevvalgRevurdering {
         }
     }
 
+    fun kanSendesTilAttestering(): Boolean = when (this) {
+        is Valgt -> this.kanSendesTilAttestering()
+        is IkkeValgt -> false
+    }
+
     sealed interface Valgt : BrevvalgRevurdering {
         val bestemtAv: BestemtAv
         val begrunnelse: String?
+
+        override fun kanSendesTilAttestering(): Boolean = when (this) {
+            is SendBrev -> fritekst != null
+            is IkkeSendBrev -> true
+        }
 
         data class SendBrev(
             val fritekst: String?,

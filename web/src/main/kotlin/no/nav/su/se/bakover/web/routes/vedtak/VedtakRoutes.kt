@@ -25,7 +25,6 @@ fun Route.vedtakRoutes(
     vedtakService: VedtakService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    // TODO: her skal også vedtakid inn
     data class Body(
         val omgjøringsårsak: String? = null,
         val omgjøringsgrunn: String? = null,
@@ -83,10 +82,6 @@ internal fun KunneIkkeStarteNySøknadsbehandling.tilResultat(): Resultat = when 
     is KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning -> HttpStatusCode.BadRequest.errorJson(
         "Klagen finnes ikke",
         "klagen_finnes_ikke",
-    )
-    is KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt -> HttpStatusCode.BadRequest.errorJson(
-        "Klagen må være en omgjøring",
-        "ikke_omgjøring",
     )
     is KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn -> HttpStatusCode.BadRequest.errorJson(
         "Må ha lik omgjøringsgrunn",

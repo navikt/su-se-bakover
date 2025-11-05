@@ -11,10 +11,10 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
     fun `en avslagsgrunn`() {
         FormkravTilKlage.create(
             vedtakId = UUID.randomUUID(),
-            innenforFristen = FormkravTilKlage.Svarord.JA,
-            klagesDetPåKonkreteElementerIVedtaket = true,
-            erUnderskrevet = FormkravTilKlage.Svarord.NEI,
-            fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
+            innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+            klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+            erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+            fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
         ).toResultatBegrunnelse() shouldBe "IKKE_UNDERSKREVET"
     }
 
@@ -22,10 +22,10 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
     fun `tre avslagsgrunner`() {
         FormkravTilKlage.create(
             vedtakId = UUID.randomUUID(),
-            innenforFristen = FormkravTilKlage.Svarord.NEI,
-            klagesDetPåKonkreteElementerIVedtaket = false,
-            erUnderskrevet = FormkravTilKlage.Svarord.NEI,
-            fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.NEI,
+            innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+            klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(false, "tekst"),
+            erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.NEI, "Innenfor fristen er NEI"),
+            fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
         ).toResultatBegrunnelse() shouldBe
             "IKKE_INNENFOR_FRISTEN," +
             "KLAGES_IKKE_PÅ_KONKRETE_ELEMENTER_I_VEDTAKET," +
@@ -36,10 +36,10 @@ internal class ResultatBegrunnelseAvvisningMapperTest {
     fun `alle 'ja' bør bli null`() {
         FormkravTilKlage.create(
             vedtakId = UUID.randomUUID(),
-            innenforFristen = FormkravTilKlage.Svarord.JA,
-            klagesDetPåKonkreteElementerIVedtaket = true,
-            erUnderskrevet = FormkravTilKlage.Svarord.JA,
-            fremsattRettsligKlageinteresse = FormkravTilKlage.Svarord.JA,
+            innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+            klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+            erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+            fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
         ).toResultatBegrunnelse() shouldBe null
     }
 }

@@ -4,7 +4,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.CorrelationId
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.test.nyOppgaveHendelse
 import no.nav.su.se.bakover.test.nyOpprettetTilbakekrevingsbehandlingHendelse
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Disabled
@@ -101,7 +101,7 @@ class OpprettOppgaveForTilbakekrevingshendelserKonsumentTest {
                 it shouldBe OppgaveHendelse.Opprettet(
                     hendelseId = it.hendelseId,
                     hendelsestidspunkt = it.hendelsestidspunkt,
-                    oppgaveId = OppgaveId("123"),
+                    oppgaveId = oppgaveId,
                     versjon = Hendelsesversjon(value = 2),
                     sakId = sak.id,
                     relaterteHendelser = listOf(hendelseId),

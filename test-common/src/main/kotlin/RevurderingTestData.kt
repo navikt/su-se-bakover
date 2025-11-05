@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.IverksettInnvil
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.IverksettOpphørtRevurderingMedUtbetalingResponse
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.opprett.kanOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -102,19 +103,24 @@ fun opprettRevurderingFraSaksopplysninger(
     require(vilkårOverrides.none { it.vurdering == Vurdering.Uavklart }) {
         "Man kan ikke sende inn uavklarte vilkår til en revurdering. Den starter som utfylt(innvilget/avslag) også kan man overskrive de med nye vilkår som er innvilget/avslag, men ikke uavklart."
     }
-    return sakOgVedtakSomKanRevurderes.first.opprettRevurdering(
-        cmd = OpprettRevurderingCommand(
-            sakId = sakOgVedtakSomKanRevurderes.first.id,
-            periode = revurderingsperiode,
-            årsak = revurderingsårsak.årsak.name,
-            omgjøringsgrunn = omgjøringsgrunn?.name,
-            begrunnelse = revurderingsårsak.begrunnelse.toString(),
-            saksbehandler = saksbehandler,
-            informasjonSomRevurderes = informasjonSomRevurderes.informasjonSomRevurderes.keys.toList(),
-        ),
+    val sak = sakOgVedtakSomKanRevurderes.first
+    val command = OpprettRevurderingCommand(
+        sakId = sak.id,
+        periode = revurderingsperiode,
+        årsak = revurderingsårsak.årsak.name,
+        omgjøringsgrunn = omgjøringsgrunn?.name,
+        begrunnelse = revurderingsårsak.begrunnelse.toString(),
+        saksbehandler = saksbehandler,
+        informasjonSomRevurderes = informasjonSomRevurderes.informasjonSomRevurderes.keys.toList(),
+    )
+    return sak.kanOppretteRevurdering(
+        cmd = command,
         clock = clock,
-    ).getOrFail().leggTilOppgaveId(oppgaveIdRevurdering).let { (sak, opprettetRevurdering) ->
-        opprettetRevurdering.let { or ->
+    ).getOrFail().let { opprettresult ->
+        val tidspunkt = Tidspunkt.now(clock)
+        val (oppdatertSak, revurdering) = sak.opprettRevurdering(opprettresult, tidspunkt = tidspunkt, oppgaveId = oppgaveIdRevurdering, command = command)
+
+        revurdering.let { or ->
             vilkårOverrides.filterIsInstance<UføreVilkår.Vurdert>().firstOrNull()?.let {
                 or.oppdaterUføreOgMarkerSomVurdert(it).getOrFail()
             } ?: or
@@ -168,7 +174,7 @@ fun opprettRevurderingFraSaksopplysninger(
                 or.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(it).getOrFail()
             } ?: or
         }.let { r ->
-            sak.oppdaterRevurdering(r) to r
+            oppdatertSak.oppdaterRevurdering(r) to r
         }
     }
 }

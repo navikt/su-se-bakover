@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -111,7 +112,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             ),
                         )
                     },
-                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -167,7 +168,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             ),
                         )
                     },
-                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -221,7 +222,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             ),
                         )
                     },
-                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -275,7 +276,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             ),
                         )
                     },
-                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -329,7 +330,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                             ),
                         )
                     },
-                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }

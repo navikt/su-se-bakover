@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
@@ -115,9 +116,9 @@ internal class BekreftVilkårsvurderingerForKlageTest {
 
     @Test
     fun `kan bekrefte utfylt vilkårsvurdert klage`() {
-        val bekreftetVilkårsvurdertKlage = bekreftetVilkårsvurdertKlageTilVurdering().second
+        val klage = bekreftetVilkårsvurdertKlageTilVurdering().second
         val klageServiceMock = mock<KlageService> {
-            on { bekreftVilkårsvurderinger(any(), any()) } doReturn bekreftetVilkårsvurdertKlage.right()
+            on { bekreftVilkårsvurderinger(any(), any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -131,29 +132,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${bekreftetVilkårsvurdertKlage.id}",
-                  "sakid":"${bekreftetVilkårsvurdertKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:03.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING",
-                  "vedtakId":"${bekreftetVilkårsvurdertKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"JA",
-                  "vedtaksvurdering":null,
-                  "attesteringer":[],
-                  "fritekstTilBrev": null,
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
                 )

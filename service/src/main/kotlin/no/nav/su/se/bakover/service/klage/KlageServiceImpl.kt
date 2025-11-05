@@ -134,8 +134,10 @@ class KlageServiceImpl(
             oppgaveId = oppgaveResponse.oppgaveId,
             clock = clock,
         ).also {
-            klageRepo.lagre(it)
-            observers.notify(StatistikkEvent.Behandling.Klage.Opprettet(it))
+            sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(it, tx)
+                observers.notify(StatistikkEvent.Behandling.Klage.Opprettet(it), tx)
+            }
         }.right()
     }
 
@@ -176,9 +178,9 @@ class KlageServiceImpl(
     }
 
     override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
-        return request.toDomain().flatMap { r ->
+        return request.toDomain().flatMap { requestAsDomain ->
             (
-                klageRepo.hentKlage(r.klageId)
+                klageRepo.hentKlage(requestAsDomain.klageId)
                     ?.right()
                     ?: FantIkkeKlage.left()
                 )
@@ -188,8 +190,8 @@ class KlageServiceImpl(
                         ?: KunneIkkeVurdereKlage.UgyldigTilstand(it::class).left()
                 }.map {
                     it.vurder(
-                        saksbehandler = r.saksbehandler,
-                        vurderinger = r.vurderinger,
+                        saksbehandler = requestAsDomain.saksbehandler,
+                        vurderinger = requestAsDomain.vurderinger,
                     ).also { vurdertKlage ->
                         klageRepo.lagre(vurdertKlage)
                     }
@@ -270,15 +272,18 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage.left()
-        val vurdertKlage = klage as? VurdertKlage.Bekreftet ?: return KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand(klage::class).left()
         val ferdigstiltTidspunkt = Tidspunkt.now(clock)
-        return vurdertKlage.ferdigstillOmgjøring(saksbehandler, vurdertKlage, ferdigstiltTidspunkt).onRight {
-            klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(
-                it.oppgaveId,
-                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-            ).mapLeft {
-                log.error("Ferdigstill omgjøring klagebehandling. Feil ved oppdatering av oppgave ${vurdertKlage.oppgaveId}, for klage ${vurdertKlage.id}. Feilen var $it")
+
+        return klage.ferdigstillOmgjøring(saksbehandler, ferdigstiltTidspunkt).onRight {
+            sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(it, tx)
+                observers.notify(StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring(it), tx)
+                oppgaveService.lukkOppgave(
+                    it.oppgaveId,
+                    tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+                ).mapLeft {
+                    log.error("Ferdigstill omgjøring klagebehandling. Feil ved oppdatering av oppgave ${klage.oppgaveId}, for klage ${klage.id}. Feilen var $it")
+                }
             }
         }
     }
@@ -356,10 +361,10 @@ class KlageServiceImpl(
 
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
         try {
-            sessionFactory.withTransactionContext {
-                brevService.lagreDokument(dokument, it)
-                klageRepo.lagre(oversendtKlage, it)
-
+            sessionFactory.withTransactionContext { tx ->
+                brevService.lagreDokument(dokument, tx)
+                klageRepo.lagre(oversendtKlage, tx)
+                observers.notify(StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage), tx)
                 klageClient.sendTilKlageinstans(
                     klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
@@ -372,7 +377,7 @@ class KlageServiceImpl(
             oversendtKlage.oppgaveId,
             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent),
         )
-        observers.notify(StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage))
+
         return oversendtKlage.right()
     }
 
@@ -414,10 +419,11 @@ class KlageServiceImpl(
             distribueringsadresse = null,
         )
         try {
-            sessionFactory.withTransactionContext {
-                klageRepo.lagre(avvistKlage, it)
-                vedtakService.lagreITransaksjon(vedtak, it)
-                brevService.lagreDokument(dokument, it)
+            sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(avvistKlage, tx)
+                vedtakService.lagreITransaksjon(vedtak, tx)
+                brevService.lagreDokument(dokument, tx)
+                observers.notify(StatistikkEvent.Behandling.Klage.Avvist(vedtak), tx)
             }
         } catch (_: Exception) {
             return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()
@@ -427,7 +433,6 @@ class KlageServiceImpl(
             avvistKlage.oppgaveId,
             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent),
         )
-        observers.notify(StatistikkEvent.Behandling.Klage.Avvist(vedtak))
         return avvistKlage.right()
     }
 
@@ -494,12 +499,14 @@ class KlageServiceImpl(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).onRight {
-            klageRepo.lagre(it)
-            oppgaveService.lukkOppgave(
-                it.oppgaveId,
-                OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-            )
-            observers.notify(StatistikkEvent.Behandling.Klage.Avsluttet(it))
+            sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(it, tx)
+                observers.notify(StatistikkEvent.Behandling.Klage.Avsluttet(it), tx)
+                oppgaveService.lukkOppgave(
+                    it.oppgaveId,
+                    OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+                )
+            }
         }
     }
 }

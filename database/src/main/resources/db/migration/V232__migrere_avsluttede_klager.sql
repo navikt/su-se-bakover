@@ -1,0 +1,1 @@
+update klage set type = 'avsluttet' where avsluttet is not null and type != 'avsluttet';

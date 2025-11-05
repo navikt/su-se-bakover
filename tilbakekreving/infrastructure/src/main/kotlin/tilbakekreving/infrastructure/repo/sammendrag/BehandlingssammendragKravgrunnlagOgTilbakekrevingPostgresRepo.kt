@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import tilbakekreving.infrastructure.repo.AvbruttTilbakekrevingsbehandlingHendelsestype
 import tilbakekreving.infrastructure.repo.IverksattTilbakekrevingsbehandlingHendelsestype
-import tilbakekreving.infrastructure.repo.alleTilbakekrevingsbehandlingHendelser
 import tilbakekreving.infrastructure.repo.kravgrunnlag.toKravgrunnlagStatus
 import tilbakekreving.infrastructure.repo.toBehandlingssamendragStatus
 import tilbakekreving.infrastructure.repo.toTilbakekrevingHendelsestype
@@ -129,9 +128,6 @@ class BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
             }
         }
     }
-
-    private val alleTilbakekrevingsbehandlingstyper =
-        alleTilbakekrevingsbehandlingHendelser.joinToString { "'${it.value}'" }
 
     private fun hentBehandlingssammendrag(
         sessionContext: SessionContext?,

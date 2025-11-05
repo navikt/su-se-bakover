@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
@@ -77,11 +79,12 @@ fun Application.runApplicationWithMocks(
         oppgaveHendelseRepo: OppgaveHendelseRepo,
         mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
         hendelseRepo: HendelseRepo,
+        sakStatistikkRepo: SakStatistikkRepo,
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -97,6 +100,7 @@ fun Application.runApplicationWithMocks(
             dbMetrics = dbMetrics,
             samlTokenProvider = FakeSamlTokenProvider(),
             tilgangstyringService = tilgangstyringService,
+            sakStatistikkRepo = sakStatistikkRepo,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = mock(),
@@ -135,7 +139,7 @@ fun defaultRequest(
     method: HttpMethod,
     uri: String,
     roller: List<Brukerrolle> = emptyList(),
-    navIdent: String = "Z990Lokal",
+    navIdent: String = DEFAULT_IDENT,
     correlationId: String = DEFAULT_CALL_ID,
     client: HttpClient,
     body: String? = null,
@@ -164,7 +168,7 @@ fun formdataRequest(
     uri: String,
     roller: List<Brukerrolle> = emptyList(),
     formData: List<PartData> = formData {},
-    navIdent: String = "Z990Lokal",
+    navIdent: String = DEFAULT_IDENT,
     correlationId: String = DEFAULT_CALL_ID,
     client: HttpClient,
 ): HttpResponse {

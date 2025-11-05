@@ -100,18 +100,29 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
             val hendelseId = hendelse.hendelseId
             when (hendelse) {
                 is OpprettetTilbakekrevingsbehandlingHendelse -> {
-                    val kravgrunnlagsDetaljer =
-                        this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(hendelse.kravgrunnlagPåSakHendelseId)!!
-                    // opprettet er alltid den første hendelsen i serien, så derfor trenger vi ikke trekke fra tidligereHendelseId.
-                    acc.plus(
-                        hendelseId to hendelse.toDomain(
-                            fnr = fnr,
-                            kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
-                            erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(
-                                kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId,
-                            ) != kravgrunnlagsDetaljer.kravgrunnlag,
-                        ),
-                    )
+                    if (hendelse.kravgrunnlagPåSakHendelseId == null) {
+                        acc.plus(
+                            hendelseId to hendelse.toDomain(
+                                fnr = fnr,
+                                saksnummer = saksnummer,
+                                kravgrunnlag = null,
+                                erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnlag()?.erÅpen() ?: false,
+                            ),
+                        )
+                    } else {
+                        val kravgrunnlagsDetaljer =
+                            this.kravgrunnlagPåSak.hentKravgrunnlagDetaljerPåSakHendelseForHendelseId(hendelse.kravgrunnlagPåSakHendelseId)!!
+                        // opprettet er alltid den første hendelsen i serien, så derfor trenger vi ikke trekke fra tidligereHendelseId.
+                        acc.plus(
+                            hendelseId to hendelse.toDomain(
+                                fnr = fnr,
+                                kravgrunnlagPåSakHendelse = kravgrunnlagsDetaljer,
+                                erKravgrunnlagUtdatert = this.kravgrunnlagPåSak.hentSisteKravgrunnagforEksternVedtakId(
+                                    kravgrunnlagsDetaljer.kravgrunnlag.eksternVedtakId,
+                                ) != kravgrunnlagsDetaljer.kravgrunnlag,
+                            ),
+                        )
+                    }
                 }
 
                 is VurdertTilbakekrevingsbehandlingHendelse -> acc.plus(
@@ -169,20 +180,15 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
     }
 
     private fun toCurrentStateVedtak(): List<VedtakTilbakekrevingsbehandling> {
-        return toCurrentState()
-            .behandlinger
-            .filterIsInstance<IverksattTilbakekrevingsbehandling>()
-            .map { iverksatt ->
-                val dokumenttilstand: Dokumenttilstand =
-                    tilhørendeOgSorterteDokumentHendelser
-                        .hentSerieForRelatertHendelse(iverksatt.hendelseId)
-                        ?.dokumenttilstand()
-                        ?: iverksatt.vedtaksbrevvalg.tilDokumenttilstand()
+        return toCurrentState().behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>().map { iverksatt ->
+            val dokumenttilstand: Dokumenttilstand =
+                tilhørendeOgSorterteDokumentHendelser.hentSerieForRelatertHendelse(iverksatt.hendelseId)
+                    ?.dokumenttilstand() ?: iverksatt.vedtaksbrevvalg.tilDokumenttilstand()
 
-                sorterteHendelser.single { it.hendelseId == iverksatt.hendelseId }.let {
-                    it as IverksattHendelse
-                }.toVedtak(iverksatt = iverksatt, dokumenttilstand = dokumenttilstand)
-            }
+            sorterteHendelser.single { it.hendelseId == iverksatt.hendelseId }.let {
+                it as IverksattHendelse
+            }.toVedtak(iverksatt = iverksatt, dokumenttilstand = dokumenttilstand)
+        }
     }
 
     /**
@@ -211,7 +217,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
     fun hentBehandlingForKravgrunnlag(kravgrunnlagHendelseId: HendelseId): Tilbakekrevingsbehandling? =
         this.currentState.behandlinger.singleOrNullOrThrow {
-            it.kravgrunnlag.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
+            it.kravgrunnlag?.hendelseId == kravgrunnlagHendelseId && it.erÅpen()
         }
 
     /**
@@ -229,8 +235,7 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
 
         if (sisteKravgrunnlag.erAvsluttet()) return null
 
-        if (this.currentState.behandlinger
-                .filterIsInstance<IverksattTilbakekrevingsbehandling>()
+        if (this.currentState.behandlinger.filterIsInstance<IverksattTilbakekrevingsbehandling>()
                 .any { it.kravgrunnlag == sisteKravgrunnlag }
         ) {
             return null

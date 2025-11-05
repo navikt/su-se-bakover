@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
@@ -123,11 +124,12 @@ fun Application.susebakover(
         oppgaveHendelseRepo: OppgaveHendelseRepo,
         mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
         hendelseRepo: HendelseRepo,
+        sakStatistikkRepo: SakStatistikkRepo,
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, _tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -143,6 +145,7 @@ fun Application.susebakover(
             dbMetrics = dbMetrics,
             samlTokenProvider = samlTokenProvider,
             tilgangstyringService = _tilgangstyringService,
+            sakStatistikkRepo = sakStatistikkRepo,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {
@@ -202,6 +205,7 @@ fun Application.susebakover(
         databaseRepos.oppgaveHendelseRepo,
         mapRåttKravgrunnlagPåSakHendelse,
         databaseRepos.hendelseRepo,
+        databaseRepos.sakStatistikkRepo,
         databaseRepos.dokumentHendelseRepo,
         services.brev,
         applicationConfig.oppdrag.tilbakekreving,
@@ -236,6 +240,7 @@ fun Application.susebakover(
             )
             this.monitor.subscribe(ApplicationStopping) {
                 jobberOgConsumers.stop()
+                databaseRepos.sessionFactory.close()
             }
         }
     }

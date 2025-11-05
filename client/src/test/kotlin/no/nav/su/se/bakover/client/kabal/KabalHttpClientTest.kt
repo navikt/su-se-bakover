@@ -58,7 +58,8 @@ internal class KabalHttpClientTest {
           "type":"KLAGE",
           "forrigeBehandlendeEnhet":"4815",
           "kilde":"SUPSTONAD",
-          "ytelse":"SUP_UFF"
+          "ytelse":"SUP_UFF",
+          "kommentar":"${klage.genererKommentar().replace("\n", "\\n")}"
         }
     """.trimIndent()
 

@@ -2,6 +2,10 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.VurderingerTilKlage
+import com.fasterxml.jackson.databind.ObjectMapper
 import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -12,10 +16,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -185,10 +191,10 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `kan iverksette klage`() {
-        val oversendtKlage = oversendtKlage().second
+    fun `kan iverksette klage opprettholdt`() {
+        val klage = oversendtKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { oversend(any(), any(), any()) } doReturn oversendtKlage.right()
+            on { oversend(any(), any(), any()) } doReturn klage.right()
         }
         testApplication {
             application {
@@ -202,47 +208,46 @@ internal class OversendKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
                     //language=JSON
-                    """
-                {
-                  "id":"${oversendtKlage.id}",
-                  "sakid":"${oversendtKlage.sakId}",
-                  "opprettet":"2021-02-01T01:02:04.456789Z",
-                  "journalpostId":"klageJournalpostId",
-                  "saksbehandler":"saksbehandler",
-                  "datoKlageMottatt":"2021-01-15",
-                  "status":"OVERSENDT",
-                  "vedtakId":"${oversendtKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":"JA",
-                  "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":"JA",
-                  "fremsattRettsligKlageinteresse":"JA",
-                  "fritekstTilBrev":"fritekstTilBrev",
-                  "vedtaksvurdering":{
-                    "type":"OPPRETTHOLD",
-                    "omgjør":null,
-                    "oppretthold":{
-                      "hjemler":[
-                        "SU_PARAGRAF_3",
-                        "SU_PARAGRAF_4"
-                      ]
-                    }
-                  },
-                  "attesteringer":[
-                    {
-                      "attestant":"attestant",
-                      "underkjennelse":null,
-                      "opprettet":"2021-02-01T01:02:04.456789Z"
-                    }
-                  ],
-                  "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_IKKE_AVSLUTTES",
-                  "avsluttetTidspunkt": null,
-                  "avsluttetBegrunnelse": null
-                }
-                    """.trimIndent(),
+                    serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `kan iverksette klage delvis omgjøring`() {
+        val hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail()
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+            hjemler = hjemler,
+            klagenotat = "klagenotat",
+            erOppretthold = false,
+        ).getOrFail()
+        val klage = oversendtKlage(vedtaksvurdering = vedtaksvurdering).second
+        val klageServiceMock = mock<KlageService> {
+            on { oversend(any(), any(), any()) } doReturn klage.right()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services()
+                        .copy(klageService = klageServiceMock),
+                )
+            }
+            defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Attestant)).apply {
+                status shouldBe HttpStatusCode.OK
+                this.contentType() shouldBe ContentType.parse("application/json")
+                val delvisOmgjøringJson = bodyAsText()
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    serialize(klage.toJson()),
+                    delvisOmgjøringJson,
+                    true,
+                )
+                val jsonNode = ObjectMapper().readTree(delvisOmgjøringJson)
+                val vedtakType = jsonNode["vedtaksvurdering"]["type"].asText()
+                vedtakType shouldBe KlageJson.VedtaksvurderingJson.Type.DELVIS_OMGJØRING_KA.toString()
             }
         }
     }

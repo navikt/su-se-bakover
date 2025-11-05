@@ -217,6 +217,7 @@ internal class FerdigeBehandlingerRepo(
 
             KlagePostgresRepo.Tilstand.IVERKSATT_AVVIST -> Behandlingssammendrag.Behandlingsstatus.AVSLAG
             KlagePostgresRepo.Tilstand.OMGJORT -> Behandlingssammendrag.Behandlingsstatus.IVERKSATT
+            KlagePostgresRepo.Tilstand.AVSLUTTET -> Behandlingssammendrag.Behandlingsstatus.AVSLUTTET
         }
     }
 

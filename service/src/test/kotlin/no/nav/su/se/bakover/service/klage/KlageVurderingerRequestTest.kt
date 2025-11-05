@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
+import behandling.klage.domain.Hjemmel
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import org.junit.jupiter.api.Test
@@ -8,28 +9,18 @@ internal class KlageVurderingerRequestTest {
 
     @Test
     fun `gyldige hjemler`() {
-        KlageVurderingerRequest.Oppretthold(
-            listOf(
-                "SU_PARAGRAF_3",
-                "SU_PARAGRAF_4",
-                "SU_PARAGRAF_5",
-                "SU_PARAGRAF_6",
-                "SU_PARAGRAF_8",
-                "SU_PARAGRAF_9",
-                "SU_PARAGRAF_10",
-                "SU_PARAGRAF_11",
-                "SU_PARAGRAF_12",
-                "SU_PARAGRAF_13",
-                "SU_PARAGRAF_17",
-                "SU_PARAGRAF_18",
-                "SU_PARAGRAF_21",
-            ),
+        val alleGyldigeHjemler = Hjemmel.entries.map { it.name }
+
+        KlageVurderingerRequest.SkalTilKabal(
+            hjemler = alleGyldigeHjemler,
+            klagenotat = "klagenotat",
+            erOppretthold = true,
         ).toDomain().shouldBeRight()
     }
 
     @Test
     fun `ugyldige hjemler`() {
-        KlageVurderingerRequest.Oppretthold(
+        KlageVurderingerRequest.SkalTilKabal(
             listOf(
                 "SU_PARAGRAF_0",
                 "SU_PARAGRAF_1",
@@ -49,6 +40,8 @@ internal class KlageVurderingerRequestTest {
                 "SU_PARAGRAF_28",
                 "SU_PARAGRAF_29",
             ),
+            klagenotat = null,
+            erOppretthold = true,
         ).toDomain().shouldBeLeft()
     }
 }

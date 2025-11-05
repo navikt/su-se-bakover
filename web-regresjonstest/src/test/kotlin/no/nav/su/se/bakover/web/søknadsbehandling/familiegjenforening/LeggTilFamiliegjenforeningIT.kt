@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårRequest
 import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson
@@ -61,7 +62,7 @@ class LeggTilFamiliegjenforeningIT {
                         expectedSakId = sakId,
                         expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),
                         expectedSakstype = Sakstype.ALDER.value,
-                        expectedSaksbehandler = "Z990Lokal",
+                        expectedSaksbehandler = "$DEFAULT_IDENT",
                     )
 
                     val fraOgMed: String = 1.januar(2022).toString()

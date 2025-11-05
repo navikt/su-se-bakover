@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.external
 import arrow.core.Either
 import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -48,6 +47,15 @@ internal fun Route.frikortVedtakRoutes(
             Resultat.json(
                 HttpStatusCode.OK,
                 vedtakService.hentInnvilgetFnrForMåned(forMåned).toJson(),
+            ),
+        )
+    }
+    get("$FRIKORT_PATH/alle") {
+        val saker = vedtakService.hentAlleSakerMedInnvilgetVedtak()
+        call.svar(
+            Resultat.json(
+                HttpStatusCode.OK,
+                serialize(saker),
             ),
         )
     }

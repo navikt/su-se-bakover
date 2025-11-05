@@ -30,6 +30,7 @@ data class VedtaksammendragForSak(
         val opprettet: Tidspunkt,
         val periode: Periode,
         val vedtakstype: Vedtakstype,
+        val sakstype: Sakstype,
         val epsFnr: List<Fnr>,
     ) {
 

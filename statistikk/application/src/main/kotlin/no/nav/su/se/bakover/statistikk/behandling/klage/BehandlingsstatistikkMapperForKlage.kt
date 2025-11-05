@@ -51,8 +51,11 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             gitCommit = gitCommit,
             clock = clock,
             behandlingStatus = BehandlingStatus.OversendtKlage,
-            behandlingResultat = BehandlingResultat.OpprettholdtKlage,
-            resultatBegrunnelse = (this.klage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler?.toResultatBegrunnelse(),
+            behandlingResultat = when (this.klage.vurderinger) {
+                is VurderingerTilKlage.UtfyltOppretthold -> BehandlingResultat.OpprettholdtKlage
+                is VurderingerTilKlage.UtfyltDelvisOmgjøringKA -> BehandlingResultat.DelvisOmgjøringKa
+            },
+            resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
             // Spesialtilfelle der vi sender en innstilling (ikke vedtak) til klageinstansen som vil si at behandlingen ikke er avsluttet for brukeren.
             avsluttet = false,
             totrinnsbehandling = true,
@@ -68,10 +71,22 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             behandlingStatus = BehandlingStatus.Avsluttet,
             behandlingResultat = BehandlingResultat.Avbrutt,
             resultatBegrunnelse = null,
-            // Klagebehandlingene krever i utgangspunktet totrinnsbehandling, bortsett fra hvis den avsluttes.
             avsluttet = true,
             totrinnsbehandling = false,
             funksjonellTid = this.klage.avsluttetTidspunkt,
+            beslutter = null,
+        )
+
+        is StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring -> toDto(
+            klage = this.klage,
+            gitCommit = gitCommit,
+            clock = clock,
+            behandlingStatus = BehandlingStatus.Iverksatt,
+            behandlingResultat = BehandlingResultat.Innvilget,
+            resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
+            avsluttet = true,
+            totrinnsbehandling = false,
+            funksjonellTid = this.klage.datoklageferdigstilt,
             beslutter = null,
         )
     }

@@ -4,11 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import behandling.klage.domain.KlageId
-import behandling.klage.domain.VurderingerTilKlage
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -26,6 +27,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
+import no.nav.su.se.bakover.domain.vedtak.SakMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.VedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
@@ -45,6 +49,7 @@ class VedtakServiceImpl(
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val klageRepo: KlageRepo,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) : VedtakService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -76,6 +81,33 @@ class VedtakServiceImpl(
 
     override fun hentInnvilgetFnrForMåned(måned: Måned): InnvilgetForMåned {
         return vedtakRepo.hentForMåned(måned).innvilgetForMåned(måned)
+    }
+
+    override fun hentAlleSakerMedInnvilgetVedtak(): SakerMedVedtakForFrikort {
+        val vedtakPerSak = vedtakRepo.hentAlleInnvilgelserOgOpphør()
+
+        val vedtakForFrikort = vedtakPerSak.groupBy { it.fødselsnummer }.mapValues {
+            // Kan være to saker for et fødselsnummer hvis bruker har hatt både uføre og alder
+            val vedtakPåTversAvYtelser = it.value.flatMap {
+                it.vedtak.map {
+                    VedtakForFrikort(
+                        fraOgMed = it.periode.fraOgMed,
+                        tilOgMed = it.periode.tilOgMed,
+                        type = it.vedtakstype.name,
+                        sakstype = it.sakstype.value,
+                        opprettet = it.opprettet.toLocalDateTime(zoneIdOslo),
+                    )
+                }
+            }.sortedBy { it.opprettet }
+            SakMedVedtakForFrikort(
+                fnr = it.key.toString(),
+                vedtak = vedtakPåTversAvYtelser,
+            )
+        }.values.toList()
+
+        return SakerMedVedtakForFrikort(
+            saker = vedtakForFrikort,
+        )
     }
 
     override fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr> {
@@ -128,11 +160,11 @@ class VedtakServiceImpl(
         }
 
         val omgjøringsårsak = cmd.omgjøringsårsakHent.getOrElse { it ->
-            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}")
+            log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}. Saksnummer: ${sak.saksnummer}")
             return KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak.left()
         }
         val omgjøringsgrunn = cmd.omgjøringsgrunnHent.getOrElse { it ->
-            log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}")
+            log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }
 
@@ -149,23 +181,19 @@ class VedtakServiceImpl(
             when (klage) {
                 is FerdigstiltOmgjortKlage -> {
                     if (klage.behandlingId != null) {
-                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av")
+                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av Saksnummer: ${sak.saksnummer}")
                         return KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
                     }
-                    when (val vedtaksvurdering = klage.vurderinger.vedtaksvurdering) {
-                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> {
-                            if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                                log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}")
-                                return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
-                            }
-                        }
-                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
-                            return KunneIkkeStarteNySøknadsbehandling.KlagenErOpprettholdt.left()
-                        }
+                    val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
+
+                    if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
+                        log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
+                        return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                     }
                 }
+
                 else -> {
-                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen.")
+                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Saksnummer: ${sak.saksnummer}")
                     return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
                 }
             }
@@ -179,7 +207,7 @@ class VedtakServiceImpl(
                     fnr = sak.fnr,
                     tilordnetRessurs = saksbehandler,
                     journalpostId = vedtak.behandling.søknad.journalpostId,
-                    søknadId = vedtak.behandling.søknad.id,
+                    saksnummer = sak.saksnummer,
                     clock = clock,
                     sakstype = sak.type,
                 ),
@@ -189,13 +217,22 @@ class VedtakServiceImpl(
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
         ).map { søknadsbehandling ->
-            søknadsbehandlingService.lagre(søknadsbehandling)
-            when (relatertId) {
-                is KlageId -> {
-                    klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value)
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingService.lagre(søknadsbehandling, tx)
+                when (relatertId) {
+                    is KlageId -> {
+                        klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value, tx)
+                    }
                 }
+                observers.notify(
+                    StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(
+                        søknadsbehandling,
+                        saksbehandler,
+                        relatertId = vedtak.behandling.id.value,
+                    ),
+                    tx,
+                )
             }
-            observers.notify(StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(søknadsbehandling, saksbehandler, relatertId = relatertId.value))
             søknadsbehandling
         }.mapLeft {
             KunneIkkeStarteNySøknadsbehandling.FeilVedOpprettelseAvSøknadsbehandling(it)

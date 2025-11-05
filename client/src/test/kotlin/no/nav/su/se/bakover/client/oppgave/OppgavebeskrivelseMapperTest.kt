@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.oppgave
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.oppgave.OppgavebeskrivelseMapper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate

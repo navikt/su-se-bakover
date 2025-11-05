@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -14,13 +15,16 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.I
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
+import java.time.format.DateTimeFormatter
 
 private fun Sakstype.toBehandlingstema(): Behandlingstema =
     when (this) {
         Sakstype.ALDER -> Behandlingstema.SU_ALDER
         Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
     }
+
+internal fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+    .withZone(zoneIdOslo).format(this)
 
 sealed interface OppgaveConfig {
     val journalpostId: JournalpostId?
@@ -39,13 +43,14 @@ sealed interface OppgaveConfig {
     val clock: Clock
     val aktivDato: LocalDate
     val fristFerdigstillelse: LocalDate
+    val beskrivelse: String get() = "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksreferanse"
 
     /**
      * Denne er knyttet til mottak av søknad (både førstegang og ny periode), men brukes videre av søknadsbehandlinga
      */
     data class Søknad(
         override val journalpostId: JournalpostId,
-        val søknadId: UUID,
+        val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
@@ -58,7 +63,7 @@ sealed interface OppgaveConfig {
             }
         }
 
-        override val saksreferanse = søknadId.toString()
+        override val saksreferanse = saksnummer.toString()
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
@@ -68,7 +73,7 @@ sealed interface OppgaveConfig {
 
     // TODO: Ikke i bruk?
     data class AttesterSøknadsbehandling(
-        val søknadId: UUID,
+        val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
@@ -80,7 +85,7 @@ sealed interface OppgaveConfig {
             }
         }
 
-        override val saksreferanse = søknadId.toString()
+        override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.ATTESTERING
@@ -170,6 +175,8 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+        override val beskrivelse: String
+            get() = super.beskrivelse + "\nPersonhendelse: ${OppgavebeskrivelseMapper.map(personhendelse)}"
 
         init {
             if (tilordnetRessurs != null) {
@@ -193,6 +200,8 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(3)
+        override val beskrivelse: String
+            get() = super.beskrivelse + "\nKontrollnotat/Dokumentasjon av oppfølgingssamtale ikke funnet for perioden: ${periode.fraOgMed}-${periode.tilOgMed}. Maskinell stans kunne ikke gjennomføres."
 
         init {
             if (tilordnetRessurs != null) {
@@ -237,6 +246,8 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+        override val beskrivelse: String
+            get() = super.beskrivelse + "\nEndring i institusjonsopphold"
 
         init {
             if (tilordnetRessurs != null) {
@@ -260,7 +271,8 @@ sealed interface OppgaveConfig {
          * */
         sealed interface Klageinstanshendelse : Klage {
             val hendelsestype: String
-
+            override val beskrivelse: String
+                get() = super.beskrivelse + "\n ${OppgavebeskrivelseMapper.map(this)}"
             sealed interface AvsluttetKlageinstansUtfall : Klageinstanshendelse {
                 val utfall: no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
                 val avsluttetTidspunkt: Tidspunkt

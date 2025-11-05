@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.statistikk.behandling.klage
 
+import behandling.klage.domain.Hjemmel
+import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
@@ -7,10 +10,13 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat
+import no.nav.su.se.bakover.statistikk.behandling.BehandlingStatus
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -31,7 +37,7 @@ internal class StatistikkKlageTest {
 
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(klage),
-            behandlingStatus = "REGISTRERT",
+            behandlingStatus = BehandlingStatus.Registrert.value,
             behandlingStatusBeskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",
             funksjonellTid = klage.opprettet,
         )
@@ -42,9 +48,9 @@ internal class StatistikkKlageTest {
         val klage = avsluttetKlage().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Avsluttet(klage),
-            behandlingStatus = "AVSLUTTET",
+            behandlingStatus = BehandlingStatus.Avsluttet.value,
             behandlingStatusBeskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",
-            resultat = "AVBRUTT",
+            resultat = BehandlingResultat.Avbrutt.value,
             resultatBeskrivelse = "En paraplybetegnelse for å avbryte/avslutte/lukke en behandling der vi ikke har mer spesifikke data. Spesifiseringer av Avbrutt: [FEILREGISTRERT, TRUKKET, AVVIST].",
             avsluttet = true,
             totrinnsbehandling = false,
@@ -57,9 +63,29 @@ internal class StatistikkKlageTest {
         val klage = oversendtKlage().second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(klage),
-            behandlingStatus = "OVERSENDT",
+            behandlingStatus = BehandlingStatus.OversendtKlage.value,
             behandlingStatusBeskrivelse = "Oversendt innstilling til klageinstansen. Denne er unik for klage. Brukes f.eks. ved resultatet [OPPRETTHOLDT].",
-            resultat = "OPPRETTHOLDT",
+            resultat = BehandlingResultat.OpprettholdtKlage.value,
+            resultatBeskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
+            resultatBegrunnelse = "SU_PARAGRAF_3,SU_PARAGRAF_4",
+            beslutter = "attestant",
+            funksjonellTid = Tidspunkt.create(Instant.parse("2021-02-01T01:02:04.456789Z")),
+        )
+    }
+
+    @Test
+    fun `oversendt klage delvis omgjøring`() {
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+            hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+            klagenotat = "klagenotat",
+            erOppretthold = false,
+        ).getOrFail()
+        val klage = oversendtKlage(vedtaksvurdering = vedtaksvurdering).second
+        assert(
+            statistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(klage),
+            behandlingStatus = BehandlingStatus.OversendtKlage.value,
+            behandlingStatusBeskrivelse = "Oversendt innstilling til klageinstansen. Denne er unik for klage. Brukes f.eks. ved resultatet [OPPRETTHOLDT].",
+            resultat = BehandlingResultat.DelvisOmgjøringKa.value,
             resultatBeskrivelse = "Kun brukt i klagebehandling ved oversendelse til klageinstansen.",
             resultatBegrunnelse = "SU_PARAGRAF_3,SU_PARAGRAF_4",
             beslutter = "attestant",
@@ -74,9 +100,9 @@ internal class StatistikkKlageTest {
         val vedtak = sak.vedtakListe[1] as Klagevedtak.Avvist
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Avvist(vedtak),
-            behandlingStatus = "IVERKSATT",
+            behandlingStatus = BehandlingStatus.Iverksatt.value,
             behandlingStatusBeskrivelse = "Behandlingen har blitt iverksatt.",
-            resultat = "AVVIST",
+            resultat = BehandlingResultat.Avvist.value,
             resultatBeskrivelse = "Avvist pga. bl.a. formkrav. En spesifisering av [AVBRUTT].",
             resultatBegrunnelse = "IKKE_INNENFOR_FRISTEN",
             beslutter = "attestant",

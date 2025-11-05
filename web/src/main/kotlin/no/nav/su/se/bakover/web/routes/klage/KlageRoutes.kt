@@ -59,12 +59,6 @@ import java.util.UUID
 
 internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
 
-private enum class Svarord {
-    JA,
-    NEI_MEN_SKAL_VURDERES,
-    NEI,
-}
-
 internal fun Route.klageRoutes(
     klageService: KlageService,
     clock: Clock,
@@ -112,10 +106,10 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val vedtakId: UUID?,
-                val innenforFristen: Svarord?,
-                val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-                val erUnderskrevet: Svarord?,
-                val fremsattRettsligKlageinteresse: Svarord?,
+                val innenforFristen: FormkravTilKlage.SvarMedBegrunnelse?,
+                val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
+                val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
+                val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
@@ -125,26 +119,11 @@ internal fun Route.klageRoutes(
                                 klageId = KlageId(klageId),
                                 saksbehandler = call.suUserContext.saksbehandler,
                                 vedtakId = body.vedtakId,
-                                innenforFristen = when (body.innenforFristen) {
-                                    Svarord.JA -> FormkravTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> FormkravTilKlage.Svarord.NEI
-                                    null -> null
-                                },
+                                innenforFristen = body.innenforFristen,
                                 klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
-                                erUnderskrevet = when (body.erUnderskrevet) {
-                                    Svarord.JA -> FormkravTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> FormkravTilKlage.Svarord.NEI
-                                    null -> null
-                                },
+                                erUnderskrevet = body.erUnderskrevet,
                                 sakId = sakId,
-                                fremsattRettsligKlageinteresse = when (body.fremsattRettsligKlageinteresse) {
-                                    Svarord.JA -> FormkravTilKlage.Svarord.JA
-                                    Svarord.NEI_MEN_SKAL_VURDERES -> FormkravTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
-                                    Svarord.NEI -> FormkravTilKlage.Svarord.NEI
-                                    null -> null
-                                },
+                                fremsattRettsligKlageinteresse = body.fremsattRettsligKlageinteresse,
                             ),
                         ).map {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
@@ -242,14 +221,9 @@ internal fun Route.klageRoutes(
             fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
                 return when (this) {
                     KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
-                    KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
+                    KunneIkkeVurdereKlage.ForMangeUtfall -> BadRequest.errorJson(
                         "Kan ikke velge både omgjør og oppretthold.",
                         "kan_ikke_velge_både_omgjør_og_oppretthold",
-                    )
-
-                    KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
-                        "Ugyldig omgjøringsutfall",
-                        "ugyldig_omgjøringsutfall",
                     )
 
                     KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
@@ -266,13 +240,14 @@ internal fun Route.klageRoutes(
                 }
             }
 
-            data class Omgjør(val årsak: String?, val utfall: String?, val begrunnelse: String?)
-            data class Oppretthold(val hjemler: List<String> = emptyList())
+            data class Omgjør(val årsak: String?, val begrunnelse: String?)
+            data class SkalTilKabal(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
                 val fritekstTilBrev: String?,
                 val omgjør: Omgjør?,
-                val oppretthold: Oppretthold?,
+                val oppretthold: SkalTilKabal?,
+                val delvisomgjøringKa: SkalTilKabal?,
             )
 
             call.withKlageId { klageId ->
@@ -284,12 +259,14 @@ internal fun Route.klageRoutes(
                             omgjør = body.omgjør?.let { o ->
                                 KlageVurderingerRequest.Omgjør(
                                     årsak = o.årsak,
-                                    utfall = o.utfall,
                                     begrunnelse = o.begrunnelse,
                                 )
                             },
-                            oppretthold = body.oppretthold?.let { o ->
-                                KlageVurderingerRequest.Oppretthold(hjemler = o.hjemler)
+                            oppretthold = body.oppretthold?.let { oppretthold ->
+                                KlageVurderingerRequest.SkalTilKabal(hjemler = oppretthold.hjemler, klagenotat = oppretthold.klagenotat, erOppretthold = true)
+                            },
+                            delvisomgjøring_ka = body.delvisomgjøringKa?.let { delvisOmgjøring ->
+                                KlageVurderingerRequest.SkalTilKabal(hjemler = delvisOmgjøring.hjemler, klagenotat = delvisOmgjøring.klagenotat, erOppretthold = false)
                             },
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),
@@ -503,6 +480,11 @@ fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
         is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> InternalServerError.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
+        )
+
+        KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt -> BadRequest.errorJson(
+            "Fritekst er ikke fylt ut",
+            "fritekst_er_ikke_fylt_ut",
         )
     }
 }

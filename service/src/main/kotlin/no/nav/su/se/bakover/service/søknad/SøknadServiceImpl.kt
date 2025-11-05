@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -48,6 +50,7 @@ class SøknadServiceImpl(
     private val oppgaveService: OppgaveService,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -141,13 +144,14 @@ class SøknadServiceImpl(
                 clock = clock,
                 saksbehandler = null,
             ).map { (_, uavklartSøknadsbehandling) ->
-                søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling)
-                observers.forEach { observer ->
-                    observer.handle(
+                sessionFactory.withTransactionContext { tx ->
+                    søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
+                    observers.notify(
                         StatistikkEvent.Behandling.Søknad.Opprettet(
                             uavklartSøknadsbehandling,
                             uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
                         ),
+                        tx,
                     )
                 }
             }
@@ -199,7 +203,7 @@ class SøknadServiceImpl(
             }
             opprettOppgave(
                 søknad = søknad,
-                fnr = sak.fnr,
+                sakInfo = sak.info(),
                 opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
         }.also { log.info("Fant ${it.size} søknader uten gosys-oppgave.") }
@@ -212,7 +216,7 @@ class SøknadServiceImpl(
     ): Søknad.Journalført.MedOppgave.IkkeLukket? {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         val søknad = opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
-            opprettOppgave(journalførtSøknad, sakInfo.fnr)
+            opprettOppgave(journalførtSøknad, sakInfo)
         }
         return søknad.getOrNull()?.getOrNull()
     }
@@ -260,22 +264,25 @@ class SøknadServiceImpl(
         }.right()
     }
 
+    /**
+     Alle oppgaver som ikke blir opprettet her vil bli forsøkt på nytt senere etter spesifikasjonen i [FiksSøknaderUtenOppgave]
+     */
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
-        fnr: Fnr,
+        sakInfo: SakInfo,
         opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return opprettOppgave(
             OppgaveConfig.Søknad(
                 journalpostId = søknad.journalpostId,
-                søknadId = søknad.id,
-                fnr = fnr,
+                saksnummer = sakInfo.saksnummer,
+                fnr = sakInfo.fnr,
                 clock = clock,
                 tilordnetRessurs = null,
                 sakstype = søknad.søknadInnhold.type(),
             ),
         ).mapLeft {
-            log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")
+            log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it, denne vil bli kjørt igjen.")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
         }.map { oppgaveResponse ->
             return søknad.medOppgave(oppgaveResponse.oppgaveId).also {

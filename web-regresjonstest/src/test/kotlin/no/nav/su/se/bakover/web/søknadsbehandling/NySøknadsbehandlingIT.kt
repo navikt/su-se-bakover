@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -56,7 +57,7 @@ internal class NySøknadsbehandlingIT {
                             "beregning":${JSONObject(opprettSøknadsbehandlingResponseJson).getJSONObject("beregning")},
                             "simulering":${JSONObject(opprettSøknadsbehandlingResponseJson).getJSONObject("simulering")},
                             "attestant":"automatiskAttesteringAvSøknadsbehandling",
-                            "saksbehandler":"Z990Lokal",
+                            "saksbehandler":"$DEFAULT_IDENT",
                             "utbetalingId":"ignore-me",
                             "behandlingId":"ignore-me",
                             "periode":{

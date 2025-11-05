@@ -23,6 +23,8 @@ interface VedtakRepo {
      * Vi setter [VedtaksammendragForSak.Vedtak.epsFnr] til en tom liste, istedenfor å lage 2 forskjellige [VedtaksammendragForSak] typer. Dersom dette fører til problemer på sikt, anbefales det å lage en egen type for frikort.
      */
     fun hentForMåned(måned: Måned): List<VedtaksammendragForSak>
+    fun hentAlleInnvilgelserOgOpphør(): List<VedtaksammendragForSak>
+
     fun hentForFraOgMedMånedInklEps(måned: Måned): List<VedtaksammendragForSak>
     fun hentForFraOgMedMånedEksEps(måned: Måned): List<VedtaksammendragForSak>
     fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>

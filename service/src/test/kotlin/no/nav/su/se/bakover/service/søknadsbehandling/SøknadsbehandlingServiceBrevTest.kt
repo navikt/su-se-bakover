@@ -47,6 +47,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
+                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
@@ -74,6 +75,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
+                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
@@ -102,6 +104,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
+                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(underliggendeFeil).left()
             verify(it.brevService).lagDokument(any(), anyOrNull())
@@ -134,6 +137,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
+                    fritekst = "",
                 ),
             ) shouldBe Pair(generertDokument, tilAttesteringInnvilget.fnr).right()
             verify(it.brevService).lagDokument(
@@ -179,6 +183,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = uavklart.id,
                     utførtAv = attestant,
+                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UgyldigTilstand(
                 fra = VilkårsvurdertSøknadsbehandling.Uavklart::class,

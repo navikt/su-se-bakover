@@ -35,9 +35,10 @@ sealed interface KanGenerereAvslagsbrev :
     override fun lagBrevutkastCommandForAttestant(
         satsFactory: SatsFactory,
         utførtAv: NavIdentBruker.Attestant,
+        fritekst: String,
     ) = lagDokumentCommand(
         satsFactory = satsFactory,
-        fritekst = fritekstTilBrev,
+        fritekst = fritekst,
         saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
         attestant = utførtAv,
     )
@@ -64,7 +65,6 @@ sealed interface KanGenerereAvslagsbrev :
         } else {
             null
         }
-
         return IverksettSøknadsbehandlingDokumentCommand.Avslag(
             avslag = Avslag(
                 avslagsgrunner = avslagsgrunner,

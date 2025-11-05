@@ -4,7 +4,6 @@ import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -22,7 +22,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
 
@@ -60,10 +59,15 @@ internal class UnderkjennRevurderingTest {
 
             inOrder(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService, mocks.observer) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
-                verify(mocks.revurderingRepo).defaultTransactionContext()
                 verify(mocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(mocks.observer).handle(
+                    argThat {
+                        it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
+                    },
+                    any(),
+                )
                 verify(mocks.oppgaveService).oppdaterOppgave(
-                    argThat { it shouldBe OppgaveId("oppgaveIdRevurdering") },
+                    argThat { it shouldBe oppgaveIdRevurdering },
                     argThat {
                         it shouldBe OppdaterOppgaveInfo(
                             "Revurderingen er blitt underkjent",
@@ -71,13 +75,6 @@ internal class UnderkjennRevurderingTest {
                             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
                         )
                     },
-                )
-
-                verify(mocks.observer).handle(
-                    argThat {
-                        it shouldBe StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(actual as UnderkjentRevurdering.Innvilget)
-                    },
-                    isNull(),
                 )
             }
             verifyNoMoreInteractions(mocks.revurderingRepo, mocks.personService, mocks.oppgaveService)
