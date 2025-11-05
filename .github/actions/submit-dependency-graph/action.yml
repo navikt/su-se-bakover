@@ -9,7 +9,7 @@ runs:
     - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-java
     - name: Submit dependency graph
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       with:
         gradle-version: wrapper
         dependency-graph: generate-and-submit

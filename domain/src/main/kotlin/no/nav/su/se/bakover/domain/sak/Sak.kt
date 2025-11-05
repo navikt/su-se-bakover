@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsb
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -479,13 +478,6 @@ data class Sak(
 
         data class OverlappendeStønadsperiode(val feil: StøtterIkkeOverlappendeStønadsperioder) : KunneIkkeOppdatereStønadsperiode
     }
-
-    /**
-     * fraOgMed fra det første søknadsbehandlingsvedtaket, null hvis vi ikke har noen vedtak enda.
-     */
-    val førsteYtelsesdato: LocalDate? = vedtakListe
-        .filterIsInstance<VedtakInnvilgetSøknadsbehandling>()
-        .minOfOrNull { it.periode.fraOgMed }
 }
 
 data class AlleredeGjeldendeSakForBruker(
