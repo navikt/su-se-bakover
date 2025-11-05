@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.database.statistikk
 
-import kotliquery.Row
-import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -12,8 +10,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
-import statistikk.domain.StønadstatistikkDto.Fradrag
-import statistikk.domain.StønadstatistikkDto.Månedsbeløp
 import statistikk.domain.StønadstatistikkMåned
 import java.time.YearMonth
 import java.util.UUID
@@ -157,52 +153,6 @@ class StønadStatistikkRepoImpl(
         // månedStatistikk.månedsbeløp?.let { lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, it) }
     }
 
-    private fun lagreMånedsbeløpMedFradrag(session: Session, stoenadStatistikkId: UUID, månedsbeløp: Månedsbeløp) {
-        val manedsbelopId = UUID.randomUUID()
-        """
-                    INSERT INTO manedsbelop_statistikk (
-                        id, stoenad_statistikk_id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum, uforegrad
-                    ) VALUES (
-                        :id, :stoenad_statistikk_id, :maaned, :stonadsklassifisering, :sats, :utbetales, :fradrag_sum,
-                        :uforegrad
-                    )
-        """.trimIndent()
-            .insert(
-                mapOf(
-                    "id" to manedsbelopId,
-                    "stoenad_statistikk_id" to stoenadStatistikkId,
-                    "maaned" to månedsbeløp.måned,
-                    "stonadsklassifisering" to månedsbeløp.stonadsklassifisering.name,
-                    "sats" to månedsbeløp.sats,
-                    "utbetales" to månedsbeløp.utbetales,
-                    "fradrag_sum" to månedsbeløp.fradragSum,
-                    "uforegrad" to månedsbeløp.uføregrad,
-                ),
-                session = session,
-            )
-        månedsbeløp.fradrag.forEach { fradrag ->
-            val fradragId = UUID.randomUUID()
-            """
-                        INSERT INTO fradrag_statistikk (
-                            id, manedsbelop_id, fradragstype, belop, tilhorer, er_utenlandsk
-                        ) VALUES (
-                            :id, :manedsbelop_id, :fradragstype, :belop, :tilhorer, :er_utenlandsk
-                        )
-            """.trimIndent()
-                .insert(
-                    mapOf(
-                        "id" to fradragId,
-                        "manedsbelop_id" to manedsbelopId,
-                        "fradragstype" to fradrag.fradragstype,
-                        "belop" to fradrag.beløp,
-                        "tilhorer" to fradrag.tilhører,
-                        "er_utenlandsk" to fradrag.erUtenlandsk,
-                    ),
-                    session = session,
-                )
-        }
-    }
-
     override fun hentMånedStatistikk(måned: YearMonth): List<StønadstatistikkMåned> {
         return dbMetrics.timeQuery("hentStønadstatistikkMåned") {
             sessionFactory.withSession { session ->
@@ -306,104 +256,5 @@ class StønadStatistikkRepoImpl(
                     }
             }
         }
-    }
-
-    private fun hentMånedsbeløp(session: Session, stoenadStatistikkId: UUID): List<Månedsbeløp> {
-        return """
-        SELECT id, maaned, stonadsklassifisering, sats, utbetales, fradrag_sum, uforegrad 
-        FROM manedsbelop_statistikk
-        WHERE stoenad_statistikk_id = :stoenad_statistikk_id
-        """.trimIndent()
-            .hentListe(
-                params = mapOf("stoenad_statistikk_id" to stoenadStatistikkId),
-                session = session,
-            ) { row ->
-                val manedsbelopId = UUID.fromString(row.string("id"))
-                val maaned = row.string("maaned")
-                val stonadsklassifisering = StønadsklassifiseringDto.valueOf(row.string("stonadsklassifisering"))
-                val sats = row.long("sats")
-                val utbetales = row.long("utbetales")
-                val fradragSum = row.long("fradrag_sum")
-                val uføregrad = row.intOrNull("uforegrad")
-
-                Månedsbeløp(
-                    måned = maaned,
-                    stonadsklassifisering = stonadsklassifisering,
-                    sats = sats,
-                    utbetales = utbetales,
-                    fradrag = hentInntekter(session, manedsbelopId),
-                    fradragSum = fradragSum,
-                    uføregrad = uføregrad,
-                    0L, // Skal slettes
-                )
-            }
-    }
-
-    private fun hentInntekter(session: Session, manedsbelop_id: UUID): List<Fradrag> {
-        return """
-            SELECT fradragstype, belop, tilhorer, er_utenlandsk
-            FROM fradrag_statistikk 
-            WHERE manedsbelop_id = :manedsbelop_id
-        """.trimIndent()
-            .hentListe(
-                params = mapOf("manedsbelop_id" to manedsbelop_id),
-                session = session,
-            ) { row ->
-                Fradrag(
-                    fradragstype = row.string("fradragstype"),
-                    beløp = row.long("belop"),
-                    tilhører = row.string("tilhorer"),
-                    erUtenlandsk = row.boolean("er_utenlandsk"),
-                )
-            }
-    }
-
-    private fun Row.toStønadsstatistikk(månedsbeløp: List<Månedsbeløp>): StønadstatistikkDto {
-        val personnummerDto = Fnr(string("personnummer"))
-        val personnummerEktefelle = stringOrNull("personnummer_ektefelle")?.let { Fnr(it) }
-        val funksjonellTid = tidspunkt("funksjonell_tid")
-        val tekniskTid = tidspunkt("teknisk_tid")
-        val stonadstype = StønadstatistikkDto.Stønadstype.valueOf(string("stonadstype"))
-        val sakId = UUID.fromString(string("sak_id"))
-        val vedtaksdato = localDate("vedtaksdato")
-        val vedtakstype = StønadstatistikkDto.Vedtakstype.valueOf(string("vedtakstype"))
-        val vedtaksresultat = StønadstatistikkDto.Vedtaksresultat.valueOf(string("vedtaksresultat"))
-        val behandlendeEnhetKode = string("behandlende_enhet_kode")
-        val ytelseVirkningstidspunkt = localDate("ytelse_virkningstidspunkt")
-        val gjeldendeStonadVirkningstidspunkt = localDate("gjeldende_stonad_virkningstidspunkt")
-        val gjeldendeStonadStopptidspunkt = localDate("gjeldende_stonad_stopptidspunkt")
-        val gjeldendeStonadUtbetalingsstart = localDate("gjeldende_stonad_utbetalingsstart")
-        val gjeldendeStonadUtbetalingsstopp = localDate("gjeldende_stonad_utbetalingsstopp")
-        val opphorsgrunn = stringOrNull("opphorsgrunn")
-        val opphorsdato = localDateOrNull("opphorsdato")
-        val harUtenlandsOpphold = stringOrNull("har_utenlandsopphold")?.let { JaNei.valueOf(it) }
-        val harFamiliegjenforening = stringOrNull("har_familiegjenforening")?.let { JaNei.valueOf(it) }
-        val flyktningsstatus = stringOrNull("flyktningsstatus")?.let { JaNei.valueOf(it) }
-        val versjon = stringOrNull("versjon")
-
-        return StønadstatistikkDto(
-            personnummer = personnummerDto,
-            personNummerEktefelle = personnummerEktefelle,
-            funksjonellTid = funksjonellTid,
-            tekniskTid = tekniskTid,
-            stonadstype = stonadstype,
-            sakId = sakId,
-            vedtaksdato = vedtaksdato,
-            vedtakstype = vedtakstype,
-            vedtaksresultat = vedtaksresultat,
-            behandlendeEnhetKode = behandlendeEnhetKode,
-            ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
-            gjeldendeStonadVirkningstidspunkt = gjeldendeStonadVirkningstidspunkt,
-            gjeldendeStonadStopptidspunkt = gjeldendeStonadStopptidspunkt,
-            gjeldendeStonadUtbetalingsstart = gjeldendeStonadUtbetalingsstart,
-            gjeldendeStonadUtbetalingsstopp = gjeldendeStonadUtbetalingsstopp,
-            opphorsgrunn = opphorsgrunn,
-            opphorsdato = opphorsdato,
-            flyktningsstatus = flyktningsstatus,
-            harUtenlandsOpphold = harUtenlandsOpphold,
-            harFamiliegjenforening = harFamiliegjenforening,
-            versjon = versjon,
-            månedsbeløp = månedsbeløp,
-        )
     }
 }
