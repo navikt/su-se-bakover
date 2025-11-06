@@ -21,6 +21,7 @@ fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
     // TODO jah: Denne skal slettes etter vi har byttet over til nye crud-endepunkt
+    // TODO: SOS Kan slettes om ikke finner bruk i loggene
     post("/saker/{sakId}/kontrollsamtaler/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
             data class Body(
