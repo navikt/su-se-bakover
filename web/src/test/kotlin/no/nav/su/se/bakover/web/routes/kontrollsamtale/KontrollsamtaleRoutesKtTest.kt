@@ -6,8 +6,6 @@ import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -18,7 +16,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -29,57 +26,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class KontrollsamtaleRoutesKtTest {
-
-    private val validBody = """
-         {"nyDato": "${LocalDate.now(fixedClock).plusMonths(2)}"}
-    """.trimIndent()
-
-    @Test
-    fun `må være innlogget for å endre dato på kontrollsamtale`() {
-        testApplication {
-            application { testSusebakoverWithMockedDb() }
-            client.post("/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato").apply {
-                status shouldBe HttpStatusCode.Unauthorized
-            }
-        }
-    }
-
-    @Test
-    fun `returnerer 200 ok dersom kallet treffer service`() {
-        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
-            on { nyDato(any(), any()) } doReturn Unit.right()
-        }
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(
-                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
-                            override val kontrollsamtaleService = kontrollsamtaleMock
-                            override val opprettPlanlagtKontrollsamtaleService
-                                get() = fail("Should not end up here.")
-                            override val annullerKontrollsamtaleService
-                                get() = fail("Should not end up here.")
-                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                                get() = mock<UtløptFristForKontrollsamtaleService>()
-                        },
-                    ),
-                )
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(validBody)
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-            }
-        }
-    }
 
     @Test
     fun `må være innlogget for å hente kontrollsamtale`() {

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.kontrollsamtale.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
@@ -30,7 +29,6 @@ import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
@@ -41,7 +39,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.time.Clock
@@ -305,63 +302,6 @@ internal class KontrollsamtaleServiceImplTest {
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
             sak.id,
         ) shouldBe expected.right()
-    }
-
-    @Test
-    fun `endre dato skal returnere left om det ikke finnes en sak`() {
-        val services = ServiceOgMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-            },
-        )
-        shouldThrow<java.lang.IllegalArgumentException> {
-            services.kontrollsamtaleService.nyDato(
-                sak.id,
-                fixedLocalDate.plusMonths(2),
-            )
-        }.message shouldBe "Fant ikke sak for sakId ${sak.id}"
-
-        verify(services.sakService).hentSak(any<UUID>())
-        verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
-    }
-
-    @Test
-    fun `endre dato skal returnere left om det ikke er noen stønadsperioder fremover`() {
-        val services = ServiceOgMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattInnvilget().first.right()
-            },
-            clock = fixedClockAt(1.januar(2022)),
-        )
-        services.kontrollsamtaleService.nyDato(
-            sak.id,
-            1.januar(2022),
-        ) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
-
-        verify(services.sakService).hentSak(any<UUID>())
-        verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
-    }
-
-    @Test
-    fun `endre dato skal endre dato ved normal flyt`() {
-        val services = ServiceOgMocks(
-            kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler(
-                    sak.id,
-                    planlagtKontrollsamtale(sakId = sak.id),
-                )
-            },
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn vedtakSøknadsbehandlingIverksattInnvilget().first.right()
-            },
-            clock = fixedClock,
-        )
-        services.kontrollsamtaleService.nyDato(sak.id, fixedLocalDate.plusMonths(2)) shouldBe Unit.right()
-
-        verify(services.sakService).hentSak(any<UUID>())
-        verify(services.kontrollsamtaleRepo).hentForSakId(any(), anyOrNull())
-        verify(services.kontrollsamtaleRepo).lagre(any(), anyOrNull())
-        verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
 
     @Test

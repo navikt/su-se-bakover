@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.tid.between
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
-import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
@@ -90,13 +89,6 @@ data class Kontrollsamtale(
         }
     }
 
-    fun oppdaterInnkallingsdato(innkallingsdato: LocalDate): Either<KunneIkkeOppdatereDato, Kontrollsamtale> {
-        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return KunneIkkeOppdatereDato.UgyldigStatusovergang.left()
-        if (!innkallingsdato.erFørsteDagIMåned()) return KunneIkkeOppdatereDato.DatoErIkkeFørsteIMåned.left()
-        return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato))
-            .right()
-    }
-
     fun settGjennomført(journalpostId: JournalpostId): Either<UgyldigStatusovergang, Kontrollsamtale> {
         // TODO: burde vært Kontrollsamtalestatus.GJENNOMFØRT in lovligeOvergangerForSaksbehandler() men er det ulike regler for systembruker og saksbehandler?
         // Gjelder vel alle andre ifs and buts her på status og
@@ -166,11 +158,6 @@ data class Kontrollsamtale(
                 }
             }
         }
-    }
-
-    sealed interface KunneIkkeOppdatereDato {
-        data object UgyldigStatusovergang : KunneIkkeOppdatereDato
-        data object DatoErIkkeFørsteIMåned : KunneIkkeOppdatereDato
     }
 
     companion object {

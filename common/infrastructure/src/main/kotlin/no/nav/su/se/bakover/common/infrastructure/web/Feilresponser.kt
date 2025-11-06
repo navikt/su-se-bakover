@@ -185,11 +185,6 @@ data object Feilresponser {
         "behandling_krever_en_saksbehandler",
     )
 
-    val datoMåVæreFørsteIMåned = BadRequest.errorJson(
-        "Dato må være første dag i måneden.",
-        "dato_må_være_første_i_mnd",
-    )
-
     val kunneIkkeHenteNesteKontrollsamtale = InternalServerError.errorJson(
         "Kunne ikke hente neste kontrollsamtale",
         "kunne_ikke_hente_neste_kontrollsamtale",
@@ -198,11 +193,6 @@ data object Feilresponser {
     val fantIkkeGjeldendeStønadsperiode = NotFound.errorJson(
         "Fant ikke gjeldende stønadsperiode",
         "fant_ikke_gjeldende_stønadsperiode",
-    )
-
-    val ugyldigStatusovergangKontrollsamtale = NotFound.errorJson(
-        "Kontrollsamtalen som forsøkes å endre er i feil tilstand",
-        "ugyldig_statusovergang_kontrollsamtale",
     )
 
     val kunneIkkeUtbetale = InternalServerError.errorJson(

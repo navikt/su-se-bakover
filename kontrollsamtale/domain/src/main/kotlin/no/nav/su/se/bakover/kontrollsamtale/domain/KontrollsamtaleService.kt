@@ -18,7 +18,6 @@ interface KontrollsamtaleService {
         kontrollsamtale: Kontrollsamtale,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
 
-    fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
     fun hentNestePlanlagteKontrollsamtale(
         sakId: UUID,
         sessionContext: SessionContext? = null,
