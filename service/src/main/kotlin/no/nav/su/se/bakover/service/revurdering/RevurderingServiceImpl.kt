@@ -1120,10 +1120,10 @@ class RevurderingServiceImpl(
                         // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
                         distribueringsadresse = null,
                     )
-                    sessionFactory.withTransactionContext {
-                        brevService.lagreDokument(dokumentMedMetaData, it)
-                        revurderingRepo.lagre(avsluttetRevurdering, it)
-                        observers.notify(StatistikkEvent.Behandling.Revurdering.Avsluttet(avsluttetRevurdering, saksbehandler), it)
+                    sessionFactory.withTransactionContext { tx ->
+                        brevService.lagreDokument(dokumentMedMetaData, tx)
+                        revurderingRepo.lagre(avsluttetRevurdering, tx)
+                        observers.notify(StatistikkEvent.Behandling.Revurdering.Avsluttet(avsluttetRevurdering, saksbehandler), tx)
                     }
                 }
             avsluttetRevurdering.right()

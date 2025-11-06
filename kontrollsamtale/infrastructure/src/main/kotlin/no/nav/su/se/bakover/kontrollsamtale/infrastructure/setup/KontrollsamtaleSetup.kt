@@ -77,6 +77,8 @@ interface KontrollsamtaleSetup {
                     serviceUser = serviceUser,
                     oppgaveService = oppgaveService,
                     kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
+                    kontrollsamtaleRepo = kontrollsamtaleRepo,
+                    personService = personService,
                 )
             }
         }

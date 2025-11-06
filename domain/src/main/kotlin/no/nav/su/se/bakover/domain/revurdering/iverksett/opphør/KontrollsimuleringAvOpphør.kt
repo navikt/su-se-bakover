@@ -11,7 +11,7 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
-
+// TODO UNUSED
 internal fun Sak.kontrollsimulerOpphør(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,

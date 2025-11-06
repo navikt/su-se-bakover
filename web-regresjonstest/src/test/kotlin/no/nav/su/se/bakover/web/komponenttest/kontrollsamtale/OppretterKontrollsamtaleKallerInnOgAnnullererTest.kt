@@ -100,7 +100,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
                         it.innkallingsdato shouldBe førsteInnkalling
                         it.frist shouldBe førsteFrist
                         it.dokumentId shouldNot beNull()
-                        it.status shouldBe Kontrollsamtalestatus.INNKALT
+                        it.status shouldBe Kontrollsamtalestatus.ANNULLERT
                         it.sakId shouldBe sakId
                     }
                     kontrollsamtaler.last().also {
