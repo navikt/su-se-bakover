@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -44,39 +43,6 @@ internal class KontrollsamtaleRoutesKtTest {
             application { testSusebakoverWithMockedDb() }
             client.post("/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato").apply {
                 status shouldBe HttpStatusCode.Unauthorized
-            }
-        }
-    }
-
-    @Test
-    fun `returnerer 200 ok dersom kallet treffer service`() {
-        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
-            on { nyDato(any(), any()) } doReturn Unit.right()
-        }
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(
-                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
-                            override val kontrollsamtaleService = kontrollsamtaleMock
-                            override val opprettPlanlagtKontrollsamtaleService
-                                get() = fail("Should not end up here.")
-                            override val annullerKontrollsamtaleService
-                                get() = fail("Should not end up here.")
-                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
-                                get() = mock<UtløptFristForKontrollsamtaleService>()
-                        },
-                    ),
-                )
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(validBody)
-            }.apply {
-                status shouldBe HttpStatusCode.OK
             }
         }
     }

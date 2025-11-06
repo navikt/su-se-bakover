@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.oppdaterStatu
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.opprettKontrollsamtale
-import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -137,38 +135,6 @@ class KontrollsamtaleServiceImpl(
             ifRight = {
                 log.info("Kontrollsamtale kalt inn for sakId $sakId")
                 Unit.right()
-            },
-        )
-    }
-
-    override fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
-        val sak = sakService.hentSak(sakId).getOrElse {
-            throw IllegalArgumentException("Fant ikke sak for sakId $sakId")
-        }
-        sak.harGjeldendeEllerFremtidigStønadsperiode(clock).ifFalse {
-            log.info("Fant ingen gjeldende stønadsperiode på sakId $sakId")
-            return KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
-        }
-
-        return hentNestePlanlagteKontrollsamtale(sakId).fold(
-            ifLeft = {
-                kontrollsamtaleRepo.lagre(
-                    Kontrollsamtale.opprettNyKontrollsamtale(
-                        sakId = sakId,
-                        innkallingsdato = dato,
-                        clock = clock,
-                    ),
-                ).right()
-            },
-            ifRight = { kontrollsamtale ->
-                kontrollsamtale.oppdaterInnkallingsdato(dato).map { endretKontrollsamtale ->
-                    kontrollsamtaleRepo.lagre(endretKontrollsamtale)
-                }.mapLeft {
-                    when (it) {
-                        Kontrollsamtale.KunneIkkeOppdatereDato.DatoErIkkeFørsteIMåned -> KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned
-                        Kontrollsamtale.KunneIkkeOppdatereDato.UgyldigStatusovergang -> KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang
-                    }
-                }
             },
         )
     }

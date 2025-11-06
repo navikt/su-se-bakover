@@ -187,7 +187,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
-import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
@@ -1294,14 +1293,6 @@ open class AccessCheckProxy(
             kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                 override val kontrollsamtaleService: KontrollsamtaleService = object : KontrollsamtaleService {
                     val service = services.kontrollsamtaleSetup.kontrollsamtaleService
-                    override fun nyDato(
-                        sakId: UUID,
-                        dato: LocalDate,
-                    ): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
-                        assertHarTilgangTilSak(sakId)
-                        return service.nyDato(sakId, dato)
-                    }
-
                     override fun hentNestePlanlagteKontrollsamtale(
                         sakId: UUID,
                         sessionContext: SessionContext?,
