@@ -172,7 +172,7 @@ sealed interface UnderkjentSøknadsbehandling :
                  */
 
                 sikkerLogg.error("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
-                throw IllegalStateException("Simulering inneholder feilutbetalinger. Se sikkerlogg for detaljer.")
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger(sakId.toString()).left()
             }
             return SøknadsbehandlingTilAttestering.Innvilget(
                 id = id,

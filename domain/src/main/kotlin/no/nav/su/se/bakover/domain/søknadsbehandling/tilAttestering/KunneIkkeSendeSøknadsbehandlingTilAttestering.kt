@@ -8,6 +8,7 @@ sealed interface KunneIkkeSendeSøknadsbehandlingTilAttestering {
     data object KunneIkkeFinneAktørId : KunneIkkeSendeSøknadsbehandlingTilAttestering
     data object KunneIkkeOppretteOppgave : KunneIkkeSendeSøknadsbehandlingTilAttestering
     data object InneholderUfullstendigBosituasjon : KunneIkkeSendeSøknadsbehandlingTilAttestering
+    data class Feilutbetalinger(val sakId: String) : KunneIkkeSendeSøknadsbehandlingTilAttestering
 
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,

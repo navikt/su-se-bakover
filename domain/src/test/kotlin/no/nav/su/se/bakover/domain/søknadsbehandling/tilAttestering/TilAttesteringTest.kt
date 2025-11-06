@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanSendesTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
@@ -32,12 +34,11 @@ import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandling
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 internal class TilAttesteringTest {
 
     @Test
-    fun `kaster excepiton hvis innvilget simulering inneholder feilutbetalinger`() {
+    fun `Egen feilkode hvis innvilget simulering inneholder feilutbetalinger`() {
         val simulertMedFeilutbetaling = simulertSøknadsbehandling().let { (_, søknadsbehandling) ->
             søknadsbehandling.copy(
                 simulering = simuleringFeilutbetaling(
@@ -45,13 +46,12 @@ internal class TilAttesteringTest {
                 ),
             )
         }
-        assertThrows<IllegalStateException> {
-            simulertMedFeilutbetaling.tilAttestering(
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = FRITEKST_TIL_BREV,
-                clock = fixedClock,
-            )
-        }
+
+        simulertMedFeilutbetaling.tilAttestering(
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = FRITEKST_TIL_BREV,
+            clock = fixedClock,
+        ).shouldBeLeft().shouldBeInstanceOf<KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger>()
 
         val underkjentInnvilgetMedFeilutbetaling =
             søknadsbehandlingUnderkjentInnvilget().let { (_, søknadsbehandling) ->
@@ -61,13 +61,12 @@ internal class TilAttesteringTest {
                     ),
                 )
             }
-        assertThrows<IllegalStateException> {
-            underkjentInnvilgetMedFeilutbetaling.tilAttestering(
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = FRITEKST_TIL_BREV,
-                clock = fixedClock,
-            )
-        }
+
+        underkjentInnvilgetMedFeilutbetaling.tilAttestering(
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = FRITEKST_TIL_BREV,
+            clock = fixedClock,
+        ).shouldBeLeft().shouldBeInstanceOf<KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger>()
     }
 
     @Test
