@@ -57,6 +57,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             val annullert = kontrollsamtale.annuller().getOrElse {
                 throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
             }
+            // TODO: denne bør egentlig stanse utbetalingen også
             kontrollsamtaleRepo.lagre(annullert, sessionFactory.newTransactionContext())
             return false
         }
