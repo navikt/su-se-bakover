@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -43,6 +44,27 @@ class UtløptFristForKontrollsamtaleServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private fun opprettStans(
+        sakId: UUID,
+        stansDato: LocalDate,
+        transactionContext: TransactionContext,
+    ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
+        return stansAvYtelseService.stansAvYtelseITransaksjon(
+            StansYtelseRequest.Opprett(
+                sakId = sakId,
+                saksbehandler = NavIdentBruker.Saksbehandler(serviceUser),
+                fraOgMed = stansDato,
+                revurderingsårsak = Revurderingsårsak(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING,
+                    begrunnelse = Revurderingsårsak.Begrunnelse.create(
+                        value = "Automatisk stanset som følge av manglende oppmøte til kontrollsamtale",
+                    ),
+                ),
+            ),
+            transactionContext = transactionContext,
+        )
+    }
+
     private fun sjekkOmPersonLeverOgManSkalHåndtere(
         sak: Sak,
         kontrollsamtale: Kontrollsamtale,
@@ -57,8 +79,10 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             val annullert = kontrollsamtale.annuller().getOrElse {
                 throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
             }
-            // TODO: denne bør egentlig stanse utbetalingen også
-            kontrollsamtaleRepo.lagre(annullert, sessionFactory.newTransactionContext())
+            sessionFactory.withTransactionContext { tx ->
+                kontrollsamtaleRepo.lagre(annullert, tx)
+                opprettStans(kontrollsamtale.sakId, LocalDate.now(clock), tx)
+            }
             return false
         }
         return true
@@ -100,20 +124,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                             }
                     },
                     sessionFactory = sessionFactory,
-                    opprettStans = { sakId: UUID, stansDato: LocalDate, transactionContext: TransactionContext ->
-                        stansAvYtelseService.stansAvYtelseITransaksjon(
-                            StansYtelseRequest.Opprett(
-                                sakId = sakId,
-                                saksbehandler = NavIdentBruker.Saksbehandler(serviceUser),
-                                fraOgMed = stansDato,
-                                revurderingsårsak = Revurderingsårsak(
-                                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING,
-                                    begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "Automatisk stanset som følge av manglende oppmøte til kontrollsamtale"),
-                                ),
-                            ),
-                            transactionContext = transactionContext,
-                        )
-                    },
+                    opprettStans = ::opprettStans,
                     iverksettStans = { revurderingId: RevurderingId, transactionContext: TransactionContext ->
                         stansAvYtelseService.iverksettStansAvYtelseITransaksjon(
                             revurderingId = revurderingId,
