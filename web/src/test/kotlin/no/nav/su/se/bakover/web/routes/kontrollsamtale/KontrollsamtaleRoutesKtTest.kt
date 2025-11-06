@@ -6,7 +6,6 @@ import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
-import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -28,24 +26,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class KontrollsamtaleRoutesKtTest {
-
-    private val validBody = """
-         {"nyDato": "${LocalDate.now(fixedClock).plusMonths(2)}"}
-    """.trimIndent()
-
-    @Test
-    fun `må være innlogget for å endre dato på kontrollsamtale`() {
-        testApplication {
-            application { testSusebakoverWithMockedDb() }
-            client.post("/saker/${UUID.randomUUID()}/kontrollsamtaler/nyDato").apply {
-                status shouldBe HttpStatusCode.Unauthorized
-            }
-        }
-    }
 
     @Test
     fun `må være innlogget for å hente kontrollsamtale`() {
