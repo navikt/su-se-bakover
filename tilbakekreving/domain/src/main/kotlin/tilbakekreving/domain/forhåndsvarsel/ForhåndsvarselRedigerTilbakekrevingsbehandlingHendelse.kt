@@ -39,7 +39,7 @@ data class ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse(
             is IverksattTilbakekrevingsbehandling,
             -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering] -> Vurdert. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is KanForhåndsvarsle -> behandling.oppdaterForhånedsvarselFritekst(
+            is KanForhåndsvarsle -> behandling.oppdaterForhåndsvarselFritekst(
                 forhåndsvarselFritekst = fritekst,
                 hendelseId = hendelseId,
                 versjon = versjon,

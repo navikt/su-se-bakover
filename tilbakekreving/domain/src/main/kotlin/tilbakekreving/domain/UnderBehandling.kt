@@ -62,7 +62,7 @@ sealed interface UnderBehandling :
             )
         }
 
-        override fun oppdaterForhånedsvarselFritekst(
+        override fun oppdaterForhåndsvarselFritekst(
             forhåndsvarselFritekst: String,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
@@ -180,7 +180,7 @@ sealed interface UnderBehandling :
                 )
             }
 
-            override fun oppdaterForhånedsvarselFritekst(
+            override fun oppdaterForhåndsvarselFritekst(
                 forhåndsvarselFritekst: String,
                 hendelseId: HendelseId,
                 versjon: Hendelsesversjon,
@@ -286,7 +286,7 @@ sealed interface UnderBehandling :
                 forhåndsvarselFritekst = null,
             )
 
-            override fun oppdaterForhånedsvarselFritekst(
+            override fun oppdaterForhåndsvarselFritekst(
                 forhåndsvarselFritekst: String,
                 hendelseId: HendelseId,
                 versjon: Hendelsesversjon,

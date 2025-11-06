@@ -98,7 +98,7 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             kravgrunnlag = this.kravgrunnlag,
         )
 
-        override fun oppdaterForhånedsvarselFritekst(
+        override fun oppdaterForhåndsvarselFritekst(
             forhåndsvarselFritekst: String,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
@@ -144,7 +144,7 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             forhåndsvarselFritekst = null,
         )
 
-        override fun oppdaterForhånedsvarselFritekst(
+        override fun oppdaterForhåndsvarselFritekst(
             forhåndsvarselFritekst: String,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,

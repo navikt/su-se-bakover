@@ -32,6 +32,7 @@ import tilbakekreving.domain.iverksettelse.IverksattHendelseMetadata
 import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.avbrutt.mapToTilAvbruttHendelse
 import tilbakekreving.infrastructure.repo.avbrutt.toJson
+import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselRedigerTilbakekrevingsbehandlingDbJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingDbJson
 import tilbakekreving.infrastructure.repo.forhåndsvarsel.toJson
 import tilbakekreving.infrastructure.repo.iverksatt.mapToTilIverksattHendelse
@@ -198,7 +199,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
     when (this.type) {
         OpprettetTilbakekrevingsbehandlingHendelsestype -> this.mapToOpprettetTilbakekrevingsbehandlingHendelse()
 
-        ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomainRediger(
+        ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselRedigerTilbakekrevingsbehandlingDbJson.toDomain(
             data = this.data,
             hendelseId = this.hendelseId,
             sakId = this.sakId!!,

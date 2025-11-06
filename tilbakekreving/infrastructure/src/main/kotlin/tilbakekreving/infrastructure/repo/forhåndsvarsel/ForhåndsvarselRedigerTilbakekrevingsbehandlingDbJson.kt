@@ -6,18 +6,17 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
 import java.util.UUID
 
-internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
+internal data class ForhåndsvarselRedigerTilbakekrevingsbehandlingDbJson(
     override val behandlingsId: UUID,
     override val utførtAv: String,
-    val fritekst: String,
-    val dokumentId: UUID,
 ) : TilbakekrevingDbJson {
     companion object {
+
         fun toDomain(
             data: String,
             hendelseId: HendelseId,
@@ -25,10 +24,10 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
             tidligereHendelsesId: HendelseId,
             hendelsestidspunkt: Tidspunkt,
             versjon: Hendelsesversjon,
-        ): ForhåndsvarsletTilbakekrevingsbehandlingHendelse {
+        ): ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse {
             val deserialized = deserialize<ForhåndsvarselTilbakekrevingsbehandlingDbJson>(data)
 
-            return ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
+            return ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse(
                 hendelseId = hendelseId,
                 sakId = sakId,
                 hendelsestidspunkt = hendelsestidspunkt,
@@ -43,7 +42,7 @@ internal data class ForhåndsvarselTilbakekrevingsbehandlingDbJson(
     }
 }
 
-internal fun ForhåndsvarsletTilbakekrevingsbehandlingHendelse.toJson(): String =
+internal fun ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse.toJson(): String =
     ForhåndsvarselTilbakekrevingsbehandlingDbJson(
         fritekst = this.fritekst,
         behandlingsId = this.id.value,
