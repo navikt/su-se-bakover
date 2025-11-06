@@ -182,7 +182,7 @@ class KontrollsamtaleServiceImpl(
             ?: KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
     }
 
-    fun hentNestePlanlagteEllerInnkalteKontrollsamtale(
+    internal fun hentNestePlanlagteEllerInnkalteKontrollsamtale(
         sakId: UUID,
         sessionContext: SessionContext?,
     ): List<Kontrollsamtale> {
