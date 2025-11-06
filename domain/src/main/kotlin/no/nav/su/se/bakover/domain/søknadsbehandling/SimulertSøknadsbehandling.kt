@@ -141,7 +141,7 @@ data class SimulertSøknadsbehandling(
              * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
              */
             sikkerLogg.error("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
-            throw IllegalStateException("Simulering inneholder feilutbetalinger. SakId :$sakId Se sikkerlogg for detaljer.")
+            return KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger(sakId.toString()).left()
         }
         return SøknadsbehandlingTilAttestering.Innvilget(
             id = id,
