@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.NotatTilbakekrevingsbehandlingHendelse
@@ -173,6 +174,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                 is IverksattHendelse,
                 is OppdatertKravgrunnlagPåTilbakekrevingHendelse,
                 is NotatTilbakekrevingsbehandlingHendelse,
+                is ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse,
                 -> throw IllegalStateException("Oppdater oppgave under tilbakekrevingsbehandling: Uforventet hendelse ${tilbakekrevingsbehandlingHendelse::class.simpleName}. Sak: $sakId, tilbakekrevingsbehandlinghendelseId: ${tilbakekrevingsbehandlingHendelse.id}")
             }
 

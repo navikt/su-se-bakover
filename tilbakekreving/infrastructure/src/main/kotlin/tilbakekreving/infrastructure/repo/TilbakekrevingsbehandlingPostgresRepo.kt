@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendel
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.toDbJson
 import tilbakekreving.domain.AvbruttHendelse
 import tilbakekreving.domain.BrevTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.NotatTilbakekrevingsbehandlingHendelse
@@ -54,6 +55,8 @@ import java.time.Clock
 import java.util.UUID
 
 val OpprettetTilbakekrevingsbehandlingHendelsestype = Hendelsestype("OPPRETTET_TILBAKEKREVINGSBEHANDLING")
+val ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype =
+    Hendelsestype("FORHÅNDSVARSEL_TILBAKEKREVINGSBEHANDLING_REDIGERT")
 val ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype =
     Hendelsestype("FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING")
 val VurdertTilbakekrevingsbehandlingHendelsestype =
@@ -112,6 +115,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 is OpprettetTilbakekrevingsbehandlingHendelse -> OpprettetTilbakekrevingsbehandlingHendelsestype
                 is VurdertTilbakekrevingsbehandlingHendelse -> VurdertTilbakekrevingsbehandlingHendelsestype
                 is BrevTilbakekrevingsbehandlingHendelse -> OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype
+                is ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse -> ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype
                 is ForhåndsvarsletTilbakekrevingsbehandlingHendelse -> ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
                 is TilAttesteringHendelse -> TilbakekrevingsbehandlingTilAttesteringHendelsestype
                 is IverksattHendelse -> IverksattTilbakekrevingsbehandlingHendelsestype
@@ -141,6 +145,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
         return sessionFactory.withSessionContext(sessionContext) { openSessionContext ->
             val typer = listOf(
                 OpprettetTilbakekrevingsbehandlingHendelsestype,
+                ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype,
                 ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
                 VurdertTilbakekrevingsbehandlingHendelsestype,
                 OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,
@@ -192,6 +197,15 @@ class TilbakekrevingsbehandlingPostgresRepo(
 private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
     when (this.type) {
         OpprettetTilbakekrevingsbehandlingHendelsestype -> this.mapToOpprettetTilbakekrevingsbehandlingHendelse()
+
+        ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomainRediger(
+            data = this.data,
+            hendelseId = this.hendelseId,
+            sakId = this.sakId!!,
+            tidligereHendelsesId = this.tidligereHendelseId!!,
+            hendelsestidspunkt = this.hendelsestidspunkt,
+            versjon = this.versjon,
+        )
 
         ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype -> ForhåndsvarselTilbakekrevingsbehandlingDbJson.toDomain(
             data = this.data,
@@ -259,6 +273,7 @@ private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): Tilbakekre
 fun TilbakekrevingsbehandlingHendelse.toJson(): String {
     return when (this) {
         is OpprettetTilbakekrevingsbehandlingHendelse -> this.toJson()
+        is ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse -> this.toJson()
         is ForhåndsvarsletTilbakekrevingsbehandlingHendelse -> this.toJson()
         is VurdertTilbakekrevingsbehandlingHendelse -> this.toJson()
         is BrevTilbakekrevingsbehandlingHendelse -> this.toJson()
@@ -273,6 +288,7 @@ fun TilbakekrevingsbehandlingHendelse.toJson(): String {
 
 internal fun String.toTilbakekrevingHendelsestype(): Hendelsestype = when (this) {
     "OPPRETTET_TILBAKEKREVINGSBEHANDLING" -> OpprettetTilbakekrevingsbehandlingHendelsestype
+    "FORHÅNDSVARSEL_TILBAKEKREVINGSBEHANDLING_REDIGERT" -> ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype
     "FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING" -> ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
     "VURDERT_TILBAKEKREVINGSBEHANDLING" -> VurdertTilbakekrevingsbehandlingHendelsestype
     "OPPDATERT_VEDTAKSBREV_TILBAKEKREVINGSBEHANDLING" -> OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype
@@ -287,6 +303,7 @@ internal fun String.toTilbakekrevingHendelsestype(): Hendelsestype = when (this)
 
 internal fun Hendelsestype.erÅpen(): Boolean = when (this) {
     OpprettetTilbakekrevingsbehandlingHendelsestype,
+    ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelsestype,
     ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
     VurdertTilbakekrevingsbehandlingHendelsestype,
     OppdatertVedtaksbrevTilbakekrevingsbehandlingHendelsestype,

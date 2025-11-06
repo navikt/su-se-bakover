@@ -125,6 +125,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
                     }
                 }
 
+                is ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse -> acc.plus(
+                    hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
+                ).minus(hendelse.tidligereHendelseId)
+
                 is VurdertTilbakekrevingsbehandlingHendelse -> acc.plus(
                     hendelseId to hendelse.applyToState(acc[hendelse.tidligereHendelseId]!!),
                 ).minus(hendelse.tidligereHendelseId)

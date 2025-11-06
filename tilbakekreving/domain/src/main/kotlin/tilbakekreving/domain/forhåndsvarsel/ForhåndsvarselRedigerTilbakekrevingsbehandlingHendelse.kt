@@ -3,17 +3,16 @@
 
 package tilbakekreving.domain
 
-import no.nav.su.se.bakover.common.domain.NonBlankString
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Sakshendelse
-import tilbakekreving.domain.notat.OppdaterNotatCommand
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import java.time.Clock
 import java.util.UUID
 
-data class NotatTilbakekrevingsbehandlingHendelse(
+data class ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse(
     override val hendelseId: HendelseId,
     override val sakId: UUID,
     override val hendelsestidspunkt: Tidspunkt,
@@ -21,7 +20,8 @@ data class NotatTilbakekrevingsbehandlingHendelse(
     override val tidligereHendelseId: HendelseId,
     override val id: TilbakekrevingsbehandlingId,
     override val utførtAv: NavIdentBruker.Saksbehandler,
-    val notat: NonBlankString?,
+    val fritekst: String,
+    val dokumentId: UUID = UUID.randomUUID(),
 ) : TilbakekrevingsbehandlingHendelse {
     override val entitetId: UUID = sakId
     override fun compareTo(other: Sakshendelse): Int {
@@ -29,31 +29,32 @@ data class NotatTilbakekrevingsbehandlingHendelse(
         return this.versjon.compareTo(other.versjon)
     }
 
-    fun applyToState(behandling: Tilbakekrevingsbehandling): UnderBehandling {
+    /**
+     * Et forhåndsvarsel endrer ikke tilstanden til behandlingen for øyeblikket. Brevene hentes separat.
+     */
+    fun applyToState(behandling: Tilbakekrevingsbehandling): KanForhåndsvarsle {
         return when (behandling) {
             is TilbakekrevingsbehandlingTilAttestering,
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
-            is OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag,
-            is UnderBehandling.UtenKravgrunnlag,
-            -> throw IllegalArgumentException("Kan ikke gå fra [TilAttestering, Avbrutt, Iverksatt,] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
+            -> throw IllegalArgumentException("Kan ikke gå fra [Avbrutt, Iverksatt, TilAttestering] -> Vurdert. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
-            is KanOppdatereNotat -> behandling.oppdaterNotat(
-                notat = this.notat,
-                hendelseId = this.hendelseId,
-                versjon = this.versjon,
+            is KanForhåndsvarsle -> behandling.oppdaterForhånedsvarselFritekst(
+                forhåndsvarselFritekst = fritekst,
+                hendelseId = hendelseId,
+                versjon = versjon,
             )
         }
     }
 }
 
-fun KanOppdatereNotat.leggTilNotat(
-    command: OppdaterNotatCommand,
+fun KanForhåndsvarsle.leggTilForhåndsvarselFritekst(
+    command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
-): Pair<NotatTilbakekrevingsbehandlingHendelse, UnderBehandling> {
-    val hendelse = NotatTilbakekrevingsbehandlingHendelse(
+): Pair<ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse, KanForhåndsvarsle> =
+    ForhåndsvarselRedigerTilbakekrevingsbehandlingHendelse(
         hendelseId = HendelseId.generer(),
         sakId = command.sakId,
         hendelsestidspunkt = Tidspunkt.now(clock),
@@ -61,8 +62,5 @@ fun KanOppdatereNotat.leggTilNotat(
         tidligereHendelseId = tidligereHendelsesId,
         id = command.behandlingId,
         utførtAv = command.utførtAv,
-        notat = command.notat,
-    )
-
-    return hendelse to hendelse.applyToState(this)
-}
+        fritekst = command.fritekst,
+    ).let { it to it.applyToState(this) }

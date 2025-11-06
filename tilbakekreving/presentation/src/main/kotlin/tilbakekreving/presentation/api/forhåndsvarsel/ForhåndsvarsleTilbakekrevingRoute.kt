@@ -88,6 +88,32 @@ internal fun Route.forhåndsvarsleTilbakekrevingRoute(
             }
         }
     }
+
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/forhandsvarsel/rediger") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withSakId { sakId ->
+                call.withTilbakekrevingId { tilbakekrevingId ->
+                    call.withBody<Body> { body ->
+                        body.toCommand(
+                            sakId = sakId,
+                            behandlingsId = tilbakekrevingId,
+                            utførtAv = call.suUserContext.saksbehandler,
+                            correlationId = call.correlationId,
+                            brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                        ).fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = {
+                                forhåndsvarsleTilbakekrevingsbehandlingService.forhåndsvarselFritekst(it).fold(
+                                    { call.svar(it.tilResultat()) },
+                                    { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 internal fun KunneIkkeForhåndsvarsle.tilResultat(): Resultat = when (this) {

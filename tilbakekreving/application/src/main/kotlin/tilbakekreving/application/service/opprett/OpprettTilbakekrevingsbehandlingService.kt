@@ -58,7 +58,6 @@ class OpprettTilbakekrevingsbehandlingService(
         ).let { (hendelse, opprettetBehandling) ->
             sessionFactory.withTransactionContext { tx ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse, command.toDefaultHendelsesMetadata(), tx)
-                // TODO bjg - skal gjøres uten kravgrunnlag også?
                 sakStatistikk.lagreSakStatistikk(
                     opprettetBehandling.toTilbakeStatistikkOpprettet(
                         GenerellSakStatistikk.create(

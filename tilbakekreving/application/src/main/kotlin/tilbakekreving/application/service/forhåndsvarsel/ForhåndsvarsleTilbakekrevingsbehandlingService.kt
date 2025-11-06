@@ -12,6 +12,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
 import tilbakekreving.domain.leggTilForhåndsvarsel
+import tilbakekreving.domain.leggTilForhåndsvarselFritekst
 import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
@@ -49,6 +50,42 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             }
 
         behandling.leggTilForhåndsvarsel(
+            command = command,
+            tidligereHendelsesId = behandling.hendelseId,
+            nesteVersjon = sak.versjon.inc(),
+            clock = clock,
+        ).let {
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            return it.second.right()
+        }
+    }
+
+    fun forhåndsvarselFritekst(
+        command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
+    ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {
+        val sakId = command.sakId
+        val id = command.behandlingId
+        tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
+            return KunneIkkeForhåndsvarsle.IkkeTilgang(it).left()
+        }
+
+        val sak = sakService.hentSak(sakId).getOrElse {
+            throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak. Command: $command")
+        }
+        if (sak.versjon != command.klientensSisteSaksversjon) {
+            log.info("Forhåndsvis forhåndsvarsel - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
+        }
+
+        val behandling = (
+            sak.behandlinger.tilbakekrevinger.hent(id)
+                ?: throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling. Fant ikke Tilbakekrevingsbehandling $id. Command: $command")
+            )
+            .let {
+                it as? KanForhåndsvarsle
+                    ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
+            }
+
+        behandling.leggTilForhåndsvarselFritekst(
             command = command,
             tidligereHendelsesId = behandling.hendelseId,
             nesteVersjon = sak.versjon.inc(),

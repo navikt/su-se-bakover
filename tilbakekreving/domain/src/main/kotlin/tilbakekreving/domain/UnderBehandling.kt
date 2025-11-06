@@ -24,7 +24,6 @@ import java.util.UUID
 sealed interface UnderBehandling :
     KanOppdatereKravgrunnlag,
     KanForhåndsvarsle,
-    KanOppdatereNotat,
     KanAnnullere {
 
     override val vurderingerMedKrav: VurderingerMedKrav?
@@ -41,6 +40,7 @@ sealed interface UnderBehandling :
         override val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg? = forrigeSteg.vedtaksbrevvalg,
         override val erKravgrunnlagUtdatert: Boolean = forrigeSteg.erKravgrunnlagUtdatert,
         override val notat: NonBlankString? = forrigeSteg.notat,
+        override val forhåndsvarselFritekst: String? = forrigeSteg.forhåndsvarselFritekst,
     ) : UnderBehandling,
         KanEndres by forrigeSteg {
         override val kravgrunnlag: Kravgrunnlag? = null
@@ -58,17 +58,19 @@ sealed interface UnderBehandling :
                 ),
                 hendelseId = hendelseId,
                 versjon = versjon,
+                forhåndsvarselFritekst = null,
             )
         }
 
-        // TODO nødvendig??
-        override fun oppdaterNotat(
-            notat: NonBlankString?,
+        override fun oppdaterForhånedsvarselFritekst(
+            forhåndsvarselFritekst: String,
             hendelseId: HendelseId,
             versjon: Hendelsesversjon,
-        ): UnderBehandling {
-            TODO("Not yet implemented")
-        }
+        ): UtenKravgrunnlag = this.copy(
+            forhåndsvarselFritekst = forhåndsvarselFritekst,
+            hendelseId = hendelseId,
+            versjon = versjon,
+        )
 
         override fun erÅpen(): Boolean = true
     }
@@ -83,6 +85,7 @@ sealed interface UnderBehandling :
     ) : UnderBehandling,
         KanOppdatereVedtaksbrev,
         KanVurdere,
+        KanOppdatereNotat,
         KanEndresHarKravgrunnlag {
 
         override fun erÅpen(): Boolean = true
@@ -108,6 +111,7 @@ sealed interface UnderBehandling :
             override val kravgrunnlag: Kravgrunnlag,
             override val erKravgrunnlagUtdatert: Boolean = forrigeSteg.erKravgrunnlagUtdatert,
             override val notat: NonBlankString? = forrigeSteg.notat,
+            override val forhåndsvarselFritekst: String? = forrigeSteg.forhåndsvarselFritekst,
         ) : MedKravgrunnlag(
             hendelseId = hendelseId,
             versjon = versjon,
@@ -172,8 +176,19 @@ sealed interface UnderBehandling :
                     ),
                     hendelseId = hendelseId,
                     versjon = versjon,
+                    forhåndsvarselFritekst = null,
                 )
             }
+
+            override fun oppdaterForhånedsvarselFritekst(
+                forhåndsvarselFritekst: String,
+                hendelseId: HendelseId,
+                versjon: Hendelsesversjon,
+            ): MedKravgrunnlag = this.copy(
+                forhåndsvarselFritekst = forhåndsvarselFritekst,
+                hendelseId = hendelseId,
+                versjon = versjon,
+            )
 
             override fun leggTilVurderinger(
                 månedsvurderinger: VurderingerMedKrav,
@@ -205,6 +220,7 @@ sealed interface UnderBehandling :
             override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
             override val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo> = forrigeSteg.forhåndsvarselsInfo,
             override val notat: NonBlankString? = forrigeSteg.notat,
+            override val forhåndsvarselFritekst: String? = forrigeSteg.forhåndsvarselFritekst,
         ) : MedKravgrunnlag(
             hendelseId = hendelseId,
             versjon = versjon,
@@ -266,6 +282,17 @@ sealed interface UnderBehandling :
                 forhåndsvarselsInfo = this.forhåndsvarselsInfo.plus(
                     ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt),
                 ),
+                versjon = versjon,
+                forhåndsvarselFritekst = null,
+            )
+
+            override fun oppdaterForhånedsvarselFritekst(
+                forhåndsvarselFritekst: String,
+                hendelseId: HendelseId,
+                versjon: Hendelsesversjon,
+            ): MedKravgrunnlag = this.copy(
+                forhåndsvarselFritekst = forhåndsvarselFritekst,
+                hendelseId = hendelseId,
                 versjon = versjon,
             )
 
