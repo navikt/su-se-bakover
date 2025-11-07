@@ -3,19 +3,23 @@ package no.nav.su.se.bakover.statistikk
 import arrow.core.Either
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
+import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikkOverordnet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import java.time.Clock
 
 class StatistikkEventObserverImpl(
     private val publisher: KafkaPublisher,
+    private val personService: PersonService,
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(StatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,
@@ -25,6 +29,22 @@ class StatistikkEventObserverImpl(
     override fun handle(event: StatistikkEvent, sessionContext: SessionContext?) {
         Either.catch {
             when (event) {
+                is StatistikkEvent.SakOpprettet -> {
+                    if (ApplicationConfig.isProd()) {
+                        val sak = event.sak
+                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
+                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
+                        )
+                    } else {
+                        val sak = event.sak
+                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
+                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
+                        )
+                    }
+                }
+
                 is StatistikkEvent.Behandling -> {
                     publiserEllerLoggFeil(
                         event.toBehandlingsstatistikkDto(
