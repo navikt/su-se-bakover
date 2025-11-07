@@ -58,6 +58,7 @@ data object ServiceBuilder {
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
+            personService = personService,
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.statistikk
 
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -30,6 +31,8 @@ import java.util.UUID
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling as DomeneSøknadsbehandling
 
 sealed interface StatistikkEvent {
+
+    data class SakOpprettet(val sak: Sak) : StatistikkEvent
 
     sealed interface Behandling : StatistikkEvent {
 

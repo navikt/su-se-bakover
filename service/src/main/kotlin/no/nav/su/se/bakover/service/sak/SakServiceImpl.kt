@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -188,7 +189,16 @@ class SakServiceImpl(
         } ?: throw IllegalArgumentException("Fant ikke sak ved henting av journalposter. id $sakId")
     }
 
-    override fun opprettSak(sak: NySak) = sakRepo.opprettSak(sak)
+    override fun opprettSak(sak: NySak) {
+        sakRepo.opprettSak(sak).also {
+            hentSak(sak.id).fold(
+                ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
+                ifRight = {
+                    observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
+                },
+            )
+        }
+    }
 
     override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
         return sakRepo.hentÅpneBehandlinger()
