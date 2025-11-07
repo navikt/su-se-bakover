@@ -60,7 +60,7 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
                 saksversjon = 4,
                 client = this.client,
             ).let {
-                JSONObject(it.responseJson).getJSONObject("kravgrunnlag").getString("eksternVedtakId")
+                it.responseJson.kravgrunnlag!!.eksternVedtakId
             }
             appComponents.emulerViMottarKravgrunnlagstatusendring(
                 saksnummer = saksnummer,
