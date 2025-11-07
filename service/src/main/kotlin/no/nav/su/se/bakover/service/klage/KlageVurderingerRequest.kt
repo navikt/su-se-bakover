@@ -20,15 +20,17 @@ data class KlageVurderingerRequest(
     val klageId: KlageId,
     private val saksbehandler: NavIdentBruker.Saksbehandler,
     private val fritekstTilBrev: String?, // TODO: Denne burde ligge inne i SkalTilKabal
-    private val omgjør: Omgjør?,
+    private val omgjør: BehandlesIVedtaksInstansen?,
+    private val delvisomgjøring_egen_instans: BehandlesIVedtaksInstansen?,
     private val oppretthold: SkalTilKabal?,
     private val delvisomgjøring_ka: SkalTilKabal?,
 ) {
-    data class Omgjør(val årsak: String?, val begrunnelse: String?) {
+    data class BehandlesIVedtaksInstansen(val årsak: String?, val begrunnelse: String?, val erDelvisOmgjøring: Boolean) {
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
             return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                 årsak = årsak?.let { årsakToDomain(it) }?.getOrElse { return it.left() },
                 begrunnelse = begrunnelse,
+                erDelvisOmgjøring = erDelvisOmgjøring,
             ).right()
         }
 
@@ -70,8 +72,9 @@ data class KlageVurderingerRequest(
 
     private fun toVedtaksvurdering(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering?> {
         return when {
-            omgjør == null && oppretthold == null && delvisomgjøring_ka == null -> null.right()
+            omgjør == null && oppretthold == null && delvisomgjøring_ka == null && delvisomgjøring_egen_instans == null -> null.right()
             omgjør != null -> omgjør.toDomain()
+            delvisomgjøring_egen_instans != null -> delvisomgjøring_egen_instans.toDomain()
             oppretthold != null -> oppretthold.toDomain()
             delvisomgjøring_ka != null -> delvisomgjøring_ka.toDomain()
             else -> throw IllegalStateException("Håndterer at ikke begge har lov til å være utfylt.")
@@ -79,7 +82,7 @@ data class KlageVurderingerRequest(
     }
 
     fun toDomain(): Either<KunneIkkeVurdereKlage, Domain> {
-        val muligeUtfall = listOf(omgjør, oppretthold, delvisomgjøring_ka)
+        val muligeUtfall = listOf(omgjør, delvisomgjøring_egen_instans, oppretthold, delvisomgjøring_ka)
         val innsendteUtfall = muligeUtfall.count { it != null }
         if (innsendteUtfall > 1) {
             return KunneIkkeVurdereKlage.ForMangeUtfall.left()

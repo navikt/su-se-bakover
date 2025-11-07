@@ -71,9 +71,9 @@ sealed interface VurderingerTilKlage {
                 vedtaksvurdering: Vedtaksvurdering?,
             ): VurderingerTilKlage {
                 return when (vedtaksvurdering) {
-                    is Vedtaksvurdering.Utfylt.Omgjør -> {
+                    is Vedtaksvurdering.Utfylt.BehandlesIVedtaksInstans -> {
                         if (vedtaksvurdering.begrunnelse != null) {
-                            UtfyltOmgjøring(vedtaksvurdering = vedtaksvurdering)
+                            UtfyltBehandlesIVedtaksInstans(vedtaksvurdering = vedtaksvurdering)
                         } else {
                             Påbegynt(
                                 fritekstTilOversendelsesbrev = null,
@@ -98,7 +98,7 @@ sealed interface VurderingerTilKlage {
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
-                    is Oppretthold, is Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA, is Vedtaksvurdering.Påbegynt.Omgjør -> Påbegynt(
+                    is Oppretthold, is Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA, is Vedtaksvurdering.Påbegynt.BehandlesIVedtaksInstans -> Påbegynt(
                         fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
@@ -111,8 +111,8 @@ sealed interface VurderingerTilKlage {
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt
     }
 
-    data class UtfyltOmgjøring(
-        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.Omgjør,
+    data class UtfyltBehandlesIVedtaksInstans(
+        override val vedtaksvurdering: Vedtaksvurdering.Utfylt.BehandlesIVedtaksInstans,
     ) : Utfylt
 
     sealed interface OversendtKA : Utfylt {
@@ -151,12 +151,13 @@ sealed interface VurderingerTilKlage {
         companion object {
 
             /**
-             * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
+             * @return [Vedtaksvurdering.Påbegynt.BehandlesIVedtaksInstans] eller [Vedtaksvurdering.Utfylt.BehandlesIVedtaksInstans]
              */
-            fun createOmgjør(årsak: Årsak?, begrunnelse: String?): Vedtaksvurdering {
-                return Påbegynt.Omgjør.create(
+            fun createOmgjør(årsak: Årsak?, begrunnelse: String?, erDelvisOmgjøring: Boolean): Vedtaksvurdering {
+                return Påbegynt.BehandlesIVedtaksInstans.create(
                     årsak = årsak,
                     begrunnelse = begrunnelse,
+                    erDelvisOmgjøring = erDelvisOmgjøring,
                 )
             }
 
@@ -175,32 +176,45 @@ sealed interface VurderingerTilKlage {
         }
 
         sealed interface Påbegynt : Vedtaksvurdering {
-            data class Omgjør private constructor(val årsak: Årsak?, val begrunnelse: String?) : Påbegynt {
+            sealed interface BehandlesIVedtaksInstans {
+                val årsak: Årsak?
+                val begrunnelse: String?
 
                 companion object {
-                    /**
-                     * Bruk heller [Vedtaksvurdering.createOmgjør]
-                     *
-                     * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
-                     */
                     internal fun create(
                         årsak: Årsak?,
                         begrunnelse: String? = null,
+                        erDelvisOmgjøring: Boolean,
                     ): Vedtaksvurdering {
                         return if (årsak != null) {
-                            Utfylt.Omgjør(
+                            Utfylt.BehandlesIVedtaksInstans.create(
                                 årsak = årsak,
                                 begrunnelse = begrunnelse,
+                                erDelvisOmgjøring = erDelvisOmgjøring,
                             )
                         } else {
-                            Omgjør(
-                                årsak = årsak,
-                                begrunnelse = begrunnelse,
-                            )
+                            if (erDelvisOmgjøring) {
+                                DelvisOmgjøring(
+                                    årsak = årsak,
+                                    begrunnelse = begrunnelse,
+                                )
+                            } else {
+                                Omgjør(
+                                    årsak = årsak,
+                                    begrunnelse = begrunnelse,
+                                )
+                            }
                         }
                     }
                 }
             }
+            data class Omgjør(override val årsak: Årsak?, override val begrunnelse: String?) :
+                Påbegynt,
+                BehandlesIVedtaksInstans
+            data class DelvisOmgjøring(override val årsak: Årsak?, override val begrunnelse: String?) :
+                Påbegynt,
+                BehandlesIVedtaksInstans
+
             interface OversendtTilKA {
                 val hjemler: Klagehjemler.IkkeUtfylt
                 val klagenotat: String?
@@ -232,7 +246,27 @@ sealed interface VurderingerTilKlage {
         }
 
         sealed interface Utfylt : Vedtaksvurdering {
-            data class Omgjør(val årsak: Årsak, val begrunnelse: String?) : Utfylt
+
+            sealed interface BehandlesIVedtaksInstans : Utfylt {
+                val årsak: Årsak
+                val begrunnelse: String?
+                companion object {
+                    fun create(årsak: Årsak, begrunnelse: String?, erDelvisOmgjøring: Boolean): BehandlesIVedtaksInstans {
+                        return if (erDelvisOmgjøring) {
+                            DelvisOmgjøring(årsak = årsak, begrunnelse = begrunnelse)
+                        } else {
+                            Omgjør(årsak = årsak, begrunnelse = begrunnelse)
+                        }
+                    }
+                }
+            }
+            data class Omgjør(override val årsak: Årsak, override val begrunnelse: String?) :
+                Utfylt,
+                BehandlesIVedtaksInstans
+            data class DelvisOmgjøring(override val årsak: Årsak, override val begrunnelse: String?) :
+                Utfylt,
+                BehandlesIVedtaksInstans
+
             sealed interface SkalTilKabal : Utfylt {
                 val hjemler: Klagehjemler.Utfylt
                 val klagenotat: String?

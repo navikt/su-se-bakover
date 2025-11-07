@@ -191,7 +191,7 @@ sealed interface VurdertKlage :
                 sakstype: Sakstype,
             ): Utfylt {
                 return when (vurderinger) {
-                    is VurderingerTilKlage.UtfyltOmgjøring -> UtfyltOmgjør.create(forrigeSteg, saksbehandler, vurderinger, sakstype)
+                    is VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans -> UtfyltBehandlesIVedtaksinstans.create(forrigeSteg, saksbehandler, vurderinger, sakstype)
 
                     is VurderingerTilKlage.UtfyltDelvisOmgjøringKA, is VurderingerTilKlage.UtfyltOppretthold -> UtfyltTilOversending.create(
                         forrigeSteg,
@@ -260,10 +260,10 @@ sealed interface VurdertKlage :
         }
     }
 
-    data class UtfyltOmgjør private constructor(
+    data class UtfyltBehandlesIVedtaksinstans private constructor(
         private val forrigeSteg: Påbegynt,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val vurderinger: VurderingerTilKlage.UtfyltOmgjøring,
+        override val vurderinger: VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans,
         override val sakstype: Sakstype,
     ) : Utfylt,
         VurdertKlageFelter by forrigeSteg {
@@ -275,10 +275,10 @@ sealed interface VurdertKlage :
             fun create(
                 forrigeSteg: Påbegynt,
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                vurderinger: VurderingerTilKlage.UtfyltOmgjøring,
+                vurderinger: VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans,
                 sakstype: Sakstype,
-            ): UtfyltOmgjør {
-                return UtfyltOmgjør(
+            ): UtfyltBehandlesIVedtaksinstans {
+                return UtfyltBehandlesIVedtaksinstans(
                     forrigeSteg = forrigeSteg,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
@@ -360,7 +360,7 @@ sealed interface VurdertKlage :
                 sakstype: Sakstype,
             ): Bekreftet {
                 return when (forrigeSteg) {
-                    is UtfyltOmgjør -> BekreftetOmgjøring.create(
+                    is UtfyltBehandlesIVedtaksinstans -> BekreftetBehandlesIVedtaksinstans.create(
                         forrigeSteg = forrigeSteg,
                         saksbehandler = saksbehandler,
                         sakstype = sakstype,
@@ -486,11 +486,11 @@ sealed interface VurdertKlage :
     }
 
     interface OmgjøringKlageFelter : VurdertKlageFelter {
-        override val vurderinger: VurderingerTilKlage.UtfyltOmgjøring
+        override val vurderinger: VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans
     }
 
-    data class BekreftetOmgjøring internal constructor(
-        private val forrigeSteg: UtfyltOmgjør,
+    data class BekreftetBehandlesIVedtaksinstans internal constructor(
+        private val forrigeSteg: UtfyltBehandlesIVedtaksinstans,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
         override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
@@ -499,15 +499,15 @@ sealed interface VurdertKlage :
     ) : Bekreftet,
         OmgjøringKlageFelter,
         VurdertKlageFelter by forrigeSteg {
-        override val vurderinger: VurderingerTilKlage.UtfyltOmgjøring = forrigeSteg.vurderinger
+        override val vurderinger: VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans = forrigeSteg.vurderinger
 
         companion object {
             fun create(
-                forrigeSteg: UtfyltOmgjør,
+                forrigeSteg: UtfyltBehandlesIVedtaksinstans,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 sakstype: Sakstype,
-            ): BekreftetOmgjøring {
-                return BekreftetOmgjøring(
+            ): BekreftetBehandlesIVedtaksinstans {
+                return BekreftetBehandlesIVedtaksinstans(
                     forrigeSteg = forrigeSteg,
                     saksbehandler = saksbehandler,
                     sakstype = sakstype,

@@ -32,19 +32,19 @@ import java.util.UUID
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
  * - [VurdertKlage.UtfyltTilOversending] -> [VurdertKlage.BekreftetTilOversending]
- * - [VurdertKlage.UtfyltOmgjør] -> [VurdertKlage.BekreftetOmgjøring]
+ * - [VurdertKlage.UtfyltBehandlesIVedtaksinstans] -> [VurdertKlage.BekreftetBehandlesIVedtaksinstans]
  * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage]
  * - [VurdertKlage.BekreftetTilOversending] -> [VurdertKlage] og [KlageTilAttestering]
- * - [VurdertKlage.BekreftetOmgjøring] -> [FerdigstiltOmgjortKlage]
+ * - [VurdertKlage.BekreftetBehandlesIVedtaksinstans] -> [FerdigstiltOmgjortKlage]
  *
  * - [AvvistKlage] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage.Bekreftet.Avvist]
  *
- * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.BekreftetOmgjøring]
+ * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.BekreftetBehandlesIVedtaksinstans]
  * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage] og [AvvistKlage]
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
- * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.BekreftetOmgjøring])
+ * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.BekreftetBehandlesIVedtaksinstans])
  */
 sealed interface Klage :
     Klagefelter,

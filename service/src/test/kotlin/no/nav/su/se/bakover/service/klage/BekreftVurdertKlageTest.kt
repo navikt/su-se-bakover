@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
+import arrow.core.right
 import behandling.klage.domain.KlageId
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
@@ -171,6 +173,30 @@ internal class BekreftVurdertKlageTest {
                 klage = it.second,
             )
         }
+    }
+
+    @Test
+    fun `skal bekrefte delvis omgjøring i vedtakseneht`() {
+        val klage = vurdertKlageTilAttestering().second
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            oppgaveService = mock {
+                on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+        )
+
+        val bekreftetKlage = VurdertKlage.Bekreftet.createBekreftet(
+            forrigeSteg = utfyltVurdertKlage(
+                fnr = klage.fnr,
+                id = klage.id,
+                vedtakId = klage.vilkårsvurderinger.vedtakId,
+            ).second,
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            sakstype = klage.sakstype,
+        ) as VurdertKlage.BekreftetTilOversending
     }
 
     @Test
