@@ -194,7 +194,7 @@ internal class BekreftVurderingerForKlageTest {
                 JSONAssert.assertEquals(
                     //language=JSON
                     serialize(klage.toJson()),
-                    this.bodyAsText(),
+                    omgjøringVedtaksenhet,
                     true,
                 )
                 val jsonNode = ObjectMapper().readTree(omgjøringVedtaksenhet)

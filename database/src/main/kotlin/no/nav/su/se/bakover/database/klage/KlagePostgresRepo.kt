@@ -770,12 +770,12 @@ internal class KlagePostgresRepo(
     )
     private sealed interface VedtaksvurderingJson {
         fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
-        data class Omgjør(val årsak: String?, val begrunnelse: String?, val erDelvisOmgjøring: Boolean) : VedtaksvurderingJson {
+        data class Omgjør(val årsak: String?, val begrunnelse: String?, val erDelvisOmgjøring: Boolean?) : VedtaksvurderingJson {
             override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
                     begrunnelse = begrunnelse,
-                    erDelvisOmgjøring = erDelvisOmgjøring,
+                    erDelvisOmgjøring = erDelvisOmgjøring ?: false, // Tidligere instanser hadde ikke propertien erDelvisOmgjøring og er da vanlig omgjøring
                 )
             }
         }
