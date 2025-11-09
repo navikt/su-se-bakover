@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import java.time.LocalDate
 import java.util.UUID
 
 interface SakRepo {
@@ -45,4 +46,5 @@ interface SakRepo {
         endretTidspunkt: Tidspunkt,
         sessionContext: SessionContext? = null,
     )
+    fun hentSakOpprettetEtter(fraOgMed: LocalDate, tilOgMed: LocalDate): List<Sak>
 }

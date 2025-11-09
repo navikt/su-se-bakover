@@ -1,5 +1,4 @@
 package no.nav.su.se.bakover.database.sak
-
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -42,6 +41,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.Utbetalinger
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -100,6 +100,26 @@ internal class SakPostgresRepo(
         return dbMetrics.timeQuery("hentSakerForFnr") {
             sessionFactory.withSessionContext {
                 hentSakerInternal(fnr, it)
+            }
+        }
+    }
+
+    override fun hentSakOpprettetEtter(fraOgMed: LocalDate, tilOgMed: LocalDate): List<Sak> {
+        return dbMetrics.timeQuery("hentSakOpprettetEtter") {
+            sessionFactory.withSessionContext { sessionContext ->
+                sessionContext.withSession { session ->
+                    "select * from sak where opprettet > :fom AND opprettet < :tom".hentListe(
+                        mapOf(
+                            "fom" to fraOgMed,
+                            "tom" to tilOgMed.plusDays(1),
+                        ),
+                        session,
+                    ) {
+                        it.toSak(
+                            sessionContext,
+                        )
+                    }
+                }
             }
         }
     }
