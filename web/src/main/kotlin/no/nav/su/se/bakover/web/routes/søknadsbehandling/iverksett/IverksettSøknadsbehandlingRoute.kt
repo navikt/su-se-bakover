@@ -95,7 +95,7 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
         is KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
         KunneIkkeIverksetteSøknadsbehandling.BehandlingenFinnesIkke -> HttpStatusCode.BadRequest.errorJson(message = "Behandlingen finnes ikke", "behandlingen_finnes_ikke")
         KunneIkkeIverksetteSøknadsbehandling.BehandlingenKanIkkeIverksettesFeilTilstand -> HttpStatusCode.BadRequest.errorJson(
-            message = "Behandlingen er i feil tilstand, sjekk om den allerede er attestert",
+            message = "Behandlingen er i feil tilstand, sjekk om den allerede er attestert.",
             "feil_tilstand_behandling",
         )
     }
