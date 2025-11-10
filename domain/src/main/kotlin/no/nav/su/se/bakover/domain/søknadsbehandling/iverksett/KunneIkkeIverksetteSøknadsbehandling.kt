@@ -4,6 +4,8 @@ import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
 
 sealed interface KunneIkkeIverksetteSøknadsbehandling {
+    data object BehandlingenFinnesIkke : KunneIkkeIverksetteSøknadsbehandling
+    data object BehandlingenKanIkkeIverksettesFeilTilstand : KunneIkkeIverksetteSøknadsbehandling
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling
     data class KunneIkkeGenerereVedtaksbrev(
         val underliggendeFeil: KunneIkkeLageDokument,

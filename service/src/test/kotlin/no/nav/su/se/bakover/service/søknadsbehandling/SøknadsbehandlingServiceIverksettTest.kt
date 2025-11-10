@@ -7,6 +7,7 @@ import dokument.domain.DokumentRepo
 import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
@@ -57,7 +58,6 @@ import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -103,21 +103,37 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         @Test
-        fun `kaster exception dersom søknadsbehandlinga ikke er i tilstanden til attestering`() {
+        fun `dersom søknadsbehandlinga ikke er i tilstanden til attestering return left BehandlingenKanIkkeIverksettesFeilTilstand `() {
             val sakOgSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget()
 
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = sakOgSøknadsbehandling,
             )
-            assertThrows<IllegalArgumentException> {
-                serviceAndMocks.service.iverksett(
-                    IverksettSøknadsbehandlingCommand(
-                        behandlingId = sakOgSøknadsbehandling.second.id,
-                        attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
-                        fritekstEndringAttestering = "",
-                    ),
-                )
-            }.message shouldContain "Prøvde iverksette søknadsbehandling som ikke var til attestering"
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = sakOgSøknadsbehandling.second.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
+                ),
+            ).shouldBeLeft().let { it shouldBe KunneIkkeIverksetteSøknadsbehandling.BehandlingenKanIkkeIverksettesFeilTilstand }
+        }
+
+        @Test
+        fun `dersom søknadsbehandlinga ikke finnes return left BehandlingenFinnesIkke `() {
+            val sakOgSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget()
+
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = sakOgSøknadsbehandling,
+            )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = SøknadsbehandlingId.generer(),
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    fritekstEndringAttestering = "",
+                ),
+            ).shouldBeLeft().let { it shouldBe KunneIkkeIverksetteSøknadsbehandling.BehandlingenFinnesIkke }
         }
 
         @Test

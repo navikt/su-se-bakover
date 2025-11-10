@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -39,7 +40,7 @@ fun Sak.iverksettSøknadsbehandling(
     clock: Clock,
     satsFactory: SatsFactory,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out IverksattSøknadsbehandling>> {
-    val søknadsbehandling = hentSøknadsbehandlingEllerKast(command)
+    val søknadsbehandling = hentSøknadsbehandlingEllerKast(command).getOrElse { return it.left() }
 
     validerTotrinnskontroll(command, søknadsbehandling).onLeft {
         return it.left()
@@ -66,13 +67,15 @@ fun Sak.iverksettSøknadsbehandling(
     }
 }
 
-private fun Sak.hentSøknadsbehandlingEllerKast(command: IverksettSøknadsbehandlingCommand): SøknadsbehandlingTilAttestering {
-    return hentSøknadsbehandling(command.behandlingId).getOrElse {
-        throw IllegalArgumentException("Fant ikke behandling ${command.behandlingId} for sak $id")
-    }.let {
-        (it as? SøknadsbehandlingTilAttestering)
-            ?: throw IllegalArgumentException("Prøvde iverksette søknadsbehandling som ikke var til attestering. Sak $id, søknadsbehandling ${it.id} og status ${it::class.qualifiedName}")
-    }
+fun Sak.hentSøknadsbehandlingEllerKast(command: IverksettSøknadsbehandlingCommand): Either<KunneIkkeIverksetteSøknadsbehandling, SøknadsbehandlingTilAttestering> {
+    return hentSøknadsbehandling(command.behandlingId)
+        .mapLeft { KunneIkkeIverksetteSøknadsbehandling.BehandlingenFinnesIkke }
+        .flatMap { behandling ->
+            when (behandling) {
+                is SøknadsbehandlingTilAttestering -> behandling.right()
+                else -> KunneIkkeIverksetteSøknadsbehandling.BehandlingenKanIkkeIverksettesFeilTilstand.left()
+            }
+        }
 }
 
 private fun validerTotrinnskontroll(
