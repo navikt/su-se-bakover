@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.datapakker.stoenadstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.Job
@@ -68,7 +69,11 @@ private fun writeCsvToBigQueryTable(
         .setFormatOptions(FormatOptions.csv())
         .build()
 
-    val writer = bigQuery.writer(jobId, writeConfig)
+    val writer = try {
+        bigQuery.writer(jobId, writeConfig)
+    } catch (e: BigQueryException) {
+        throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
+    }
 
     try {
         writer.use { channel ->
@@ -81,8 +86,17 @@ private fun writeCsvToBigQueryTable(
         throw RuntimeException("Error during CSV write to BigQuery", e)
     }
 
-    val job = writer.job
-    job.waitFor()
+    val job = bigQuery.writer(jobId, writeConfig).use { channel ->
+        Channels.newOutputStream(channel).use { os ->
+            os.write(csvData.toByteArray())
+        }
+        // After the channel is closed, job is more likely to be non-null
+        channel.job ?: throw RuntimeException(
+            "BigQuery job is null after writing CSV. Check dataset, table, location, and permissions.",
+        )
+    }.also {
+        it.waitFor() // wait for job completion
+    }
 
     return job
 }
