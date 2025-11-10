@@ -118,7 +118,7 @@ jobs:
       resource: datapakker/saksstatistikk/.nais/dev.yaml
 
   deploy_to_prod_stoenadstatistikk:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' || github.ref == 'refs/heads/master' }}
     name: Deploy to prod stoenadstatistikk
     permissions:
       contents: read
@@ -131,7 +131,7 @@ jobs:
       resource: datapakker/stoenadstatistikk/.nais/prod.yaml
 
   deploy_to_prod_soknad:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' || github.ref == 'refs/heads/master' }}
     name: Deploy to prod
     permissions:
       contents: read
@@ -144,7 +144,7 @@ jobs:
       resource: datapakker/soknad/.nais/prod.yaml
 
   deploy_to_prod_fritekstAvslag:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' || github.ref == 'refs/heads/master' }}
     name: Deploy to prod
     permissions:
       contents: read
