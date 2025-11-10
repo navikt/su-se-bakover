@@ -9,6 +9,7 @@ import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
+import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import org.slf4j.LoggerFactory
@@ -60,6 +61,8 @@ private fun writeCsvToBigQueryTable(
         .build()
 
     val tableId = TableId.of(project, dataset, tableName)
+
+    log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
 
     val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
         .setFormatOptions(FormatOptions.csv())
