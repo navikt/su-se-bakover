@@ -58,6 +58,7 @@ internal data class KlageJson(
     data class VedtaksvurderingJson(
         val type: String,
         val omgjør: OmgjørJson?,
+        val delvisomgjøringEgenInstans: OmgjørJson?,
         val oppretthold: KabalData?,
         val delvisOmgjøringKa: KabalData?,
     ) {
@@ -66,6 +67,7 @@ internal data class KlageJson(
             OMGJØR,
             OPPRETTHOLD,
             DELVIS_OMGJØRING_KA,
+            DELVIS_OMGJØRING_EGEN_VEDTAKSINSTANS,
         }
 
         data class OmgjørJson(
@@ -89,6 +91,17 @@ internal data class KlageJson(
                         ),
                         oppretthold = null,
                         delvisOmgjøringKa = null,
+                        delvisomgjøringEgenInstans = null,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringEgenVedtaksinstans -> VedtaksvurderingJson(
+                        type = Type.DELVIS_OMGJØRING_EGEN_VEDTAKSINSTANS.toString(),
+                        delvisomgjøringEgenInstans = OmgjørJson(
+                            årsak = årsak?.name,
+                            begrunnelse = begrunnelse,
+                        ),
+                        omgjør = null,
+                        oppretthold = null,
+                        delvisOmgjøringKa = null,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringKA -> VedtaksvurderingJson(
                         type = Type.DELVIS_OMGJØRING_KA.toString(),
@@ -98,6 +111,7 @@ internal data class KlageJson(
                             klagenotat = klagenotat,
                         ),
                         oppretthold = null,
+                        delvisomgjøringEgenInstans = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> VedtaksvurderingJson(
@@ -108,11 +122,23 @@ internal data class KlageJson(
                             klagenotat = klagenotat,
                         ),
                         delvisOmgjøringKa = null,
+                        delvisomgjøringEgenInstans = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> VedtaksvurderingJson(
                         type = Type.OMGJØR.toString(),
                         omgjør = OmgjørJson(
+                            årsak = årsak.name,
+                            begrunnelse = begrunnelse,
+                        ),
+                        oppretthold = null,
+                        delvisOmgjøringKa = null,
+                        delvisomgjøringEgenInstans = null,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringEgenVedtaksinstans -> VedtaksvurderingJson(
+                        type = Type.DELVIS_OMGJØRING_EGEN_VEDTAKSINSTANS.toString(),
+                        omgjør = null,
+                        delvisomgjøringEgenInstans = OmgjørJson(
                             årsak = årsak.name,
                             begrunnelse = begrunnelse,
                         ),
@@ -128,6 +154,7 @@ internal data class KlageJson(
                             klagenotat = klagenotat,
                         ),
                         delvisOmgjøringKa = null,
+                        delvisomgjøringEgenInstans = null,
                     )
 
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringKa -> VedtaksvurderingJson(
@@ -138,6 +165,7 @@ internal data class KlageJson(
                             klagenotat = klagenotat,
                         ),
                         oppretthold = null,
+                        delvisomgjøringEgenInstans = null,
                     )
                 }
             }
@@ -240,8 +268,8 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttetStatus,
         )
 
-        is VurdertKlage.UtfyltOmgjør, is VurdertKlage.UtfyltTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttetStatus)
-        is VurdertKlage.BekreftetOmgjøring, is VurdertKlage.BekreftetTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(
+        is VurdertKlage.UtfyltBehandlesIVedtaksinstans, is VurdertKlage.UtfyltTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttetStatus)
+        is VurdertKlage.BekreftetBehandlesIVedtaksinstans, is VurdertKlage.BekreftetTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(
             status = Typer.VURDERT_BEKREFTET.toString(),
             avsluttet = avsluttetStatus,
         )

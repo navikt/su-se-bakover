@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
  men dette lagres heller i [datoklageferdigstilt] som er reservert for klagebehandlinger som ikke attesteres.
  */
 data class FerdigstiltOmgjortKlage(
-    private val forrigeSteg: VurdertKlage.BekreftetOmgjøring,
+    private val forrigeSteg: VurdertKlage.BekreftetBehandlesIVedtaksinstans,
     override val klageinstanshendelser: Klageinstanshendelser,
     override val sakstype: Sakstype,
     override val saksbehandler: NavIdentBruker.Saksbehandler,

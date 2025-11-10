@@ -240,12 +240,13 @@ internal fun Route.klageRoutes(
                 }
             }
 
-            data class Omgjør(val årsak: String?, val begrunnelse: String?)
+            data class BehandlesIVedtaksinstans(val årsak: String?, val begrunnelse: String?)
             data class SkalTilKabal(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
                 val fritekstTilBrev: String?,
-                val omgjør: Omgjør?,
+                val omgjør: BehandlesIVedtaksinstans?,
+                val delvisomgjøring_egen_instans: BehandlesIVedtaksinstans?,
                 val oppretthold: SkalTilKabal?,
                 val delvisomgjøringKa: SkalTilKabal?,
             )
@@ -257,9 +258,17 @@ internal fun Route.klageRoutes(
                             klageId = KlageId(klageId),
                             fritekstTilBrev = body.fritekstTilBrev,
                             omgjør = body.omgjør?.let { o ->
-                                KlageVurderingerRequest.Omgjør(
+                                KlageVurderingerRequest.BehandlesIVedtaksInstansen(
                                     årsak = o.årsak,
                                     begrunnelse = o.begrunnelse,
+                                    erDelvisOmgjøring = false,
+                                )
+                            },
+                            delvisomgjøring_egen_instans = body.delvisomgjøring_egen_instans?.let { o ->
+                                KlageVurderingerRequest.BehandlesIVedtaksInstansen(
+                                    årsak = o.årsak,
+                                    begrunnelse = o.begrunnelse,
+                                    erDelvisOmgjøring = true,
                                 )
                             },
                             oppretthold = body.oppretthold?.let { oppretthold ->

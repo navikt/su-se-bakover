@@ -253,7 +253,7 @@ sealed interface VilkårsvurdertKlage :
                 get() =
                     when (val vurderinger = vurderinger) {
                         is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
-                        is VurderingerTilKlage.UtfyltOmgjøring -> null
+                        is VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans -> null
                         is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
                         null -> null
                     }
@@ -568,7 +568,7 @@ sealed interface VilkårsvurdertKlage :
                 get() =
                     when (val vurderinger = vurderinger) {
                         is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
-                        is VurderingerTilKlage.UtfyltOmgjøring -> null
+                        is VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans -> null
                         is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
                         null -> null
                     }

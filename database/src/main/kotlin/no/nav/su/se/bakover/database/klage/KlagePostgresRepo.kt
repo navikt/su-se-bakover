@@ -633,7 +633,7 @@ internal class KlagePostgresRepo(
             )
 
             Tilstand.OMGJORT -> FerdigstiltOmgjortKlage(
-                forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetOmgjøring,
+                forrigeSteg = bekreftetVurdertKlage() as VurdertKlage.BekreftetBehandlesIVedtaksinstans,
                 sakstype = sakstype,
                 klageinstanshendelser = klageinstanshendelser,
                 behandlingId = behandlingId,
@@ -719,8 +719,8 @@ internal class KlagePostgresRepo(
 
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                     is VurdertKlage.UtfyltTilOversending -> VURDERT_UTFYLT
-                    is VurdertKlage.UtfyltOmgjør -> VURDERT_UTFYLT
-                    is VurdertKlage.BekreftetOmgjøring -> VURDERT_BEKREFTET
+                    is VurdertKlage.UtfyltBehandlesIVedtaksinstans -> VURDERT_UTFYLT
+                    is VurdertKlage.BekreftetBehandlesIVedtaksinstans -> VURDERT_BEKREFTET
                     is VurdertKlage.BekreftetTilOversending -> VURDERT_BEKREFTET
 
                     is AvvistKlage -> AVVIST
@@ -760,6 +760,10 @@ internal class KlagePostgresRepo(
             name = "Omgjør",
         ),
         JsonSubTypes.Type(
+            value = VedtaksvurderingJson.DelvisOmgjøringEgenVedtaksinstans::class,
+            name = "DelvisOmgjøringEgenVedtaksinstans",
+        ),
+        JsonSubTypes.Type(
             value = VedtaksvurderingJson.Oppretthold::class,
             name = "Oppretthold",
         ),
@@ -775,6 +779,16 @@ internal class KlagePostgresRepo(
                 return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
                     begrunnelse = begrunnelse,
+                    erDelvisOmgjøring = false,
+                )
+            }
+        }
+        data class DelvisOmgjøringEgenVedtaksinstans(val årsak: String?, val begrunnelse: String?) : VedtaksvurderingJson {
+            override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
+                return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+                    årsak = årsak?.let { VurderingerTilKlage.Vedtaksvurdering.Årsak.toDomain(it) },
+                    begrunnelse = begrunnelse,
+                    erDelvisOmgjøring = true,
                 )
             }
         }
@@ -897,6 +911,10 @@ internal class KlagePostgresRepo(
                         årsak = årsak?.name,
                         begrunnelse = begrunnelse,
                     )
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringEgenVedtaksinstans -> DelvisOmgjøringEgenVedtaksinstans(
+                        årsak = årsak?.name,
+                        begrunnelse = begrunnelse,
+                    )
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
                         klagenotat = klagenotat,
@@ -906,6 +924,10 @@ internal class KlagePostgresRepo(
                         klagenotat = klagenotat,
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> Omgjør(
+                        årsak = årsak.name,
+                        begrunnelse = begrunnelse,
+                    )
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringEgenVedtaksinstans -> DelvisOmgjøringEgenVedtaksinstans(
                         årsak = årsak.name,
                         begrunnelse = begrunnelse,
                     )

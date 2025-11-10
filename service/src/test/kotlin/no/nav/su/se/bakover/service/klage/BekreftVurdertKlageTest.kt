@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Årsak
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -164,8 +166,28 @@ internal class BekreftVurdertKlageTest {
     }
 
     @Test
-    fun `Skal kunne bekrefte bekreftet vurdert klage`() {
+    fun `Skal kunne bekrefte bekreftet vurdert klage oppretthold`() {
         bekreftetVurdertKlage().let {
+            verifiserGyldigStatusovergang(
+                vedtak = it.first.vedtakListe.first(),
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Skal kunne bekrefte bekreftet vurdert klage omgjøring`() {
+        bekreftetVurdertKlage(vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(årsak = Årsak.FEIL_LOVANVENDELSE, begrunnelse = "test", erDelvisOmgjøring = false)).let {
+            verifiserGyldigStatusovergang(
+                vedtak = it.first.vedtakListe.first(),
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Skal kunne bekrefte bekreftet vurdert klage delvis omgjøring vedtaksenhet`() {
+        bekreftetVurdertKlage(vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(årsak = Årsak.FEIL_LOVANVENDELSE, begrunnelse = "test", erDelvisOmgjøring = true)).let {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,

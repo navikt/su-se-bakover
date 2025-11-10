@@ -47,7 +47,8 @@ internal class VurderKlageTest {
             klageId = klageId,
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør(Årsak.FEIL_LOVANVENDELSE.name, "begrunnelse"),
+            omgjør = KlageVurderingerRequest.BehandlesIVedtaksInstansen(Årsak.FEIL_LOVANVENDELSE.name, "begrunnelse", erDelvisOmgjøring = false),
+            delvisomgjøring_egen_instans = null,
             oppretthold = null,
             delvisomgjøring_ka = null,
         )
@@ -64,7 +65,25 @@ internal class VurderKlageTest {
             klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør("UGYLDIG_OMGJØRINGSÅRSAK", null),
+            omgjør = KlageVurderingerRequest.BehandlesIVedtaksInstansen("UGYLDIG_OMGJØRINGSÅRSAK", null, erDelvisOmgjøring = false),
+            delvisomgjøring_egen_instans = null,
+            oppretthold = null,
+            delvisomgjøring_ka = null,
+        )
+        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak.left()
+
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `ugyldig omgjøringsårsak delvis`() {
+        val mocks = KlageServiceMocks()
+        val request = KlageVurderingerRequest(
+            klageId = KlageId.generer(),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            fritekstTilBrev = null,
+            omgjør = null,
+            delvisomgjøring_egen_instans = KlageVurderingerRequest.BehandlesIVedtaksInstansen("UGYLDIG_OMGJØRINGSÅRSAK", null, erDelvisOmgjøring = true),
             oppretthold = null,
             delvisomgjøring_ka = null,
         )
@@ -82,7 +101,24 @@ internal class VurderKlageTest {
             fritekstTilBrev = null,
             omgjør = null,
             oppretthold = SkalTilKabal(listOf("UGYLDIG_HJEMMEL"), klagenotat = null, erOppretthold = true),
+            delvisomgjøring_egen_instans = null,
             delvisomgjøring_ka = null,
+        )
+        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `ugyldig opprettholdelseshjemler delvisomgjøringka`() {
+        val mocks = KlageServiceMocks()
+        val request = KlageVurderingerRequest(
+            klageId = KlageId.generer(),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            fritekstTilBrev = null,
+            omgjør = null,
+            delvisomgjøring_egen_instans = null,
+            oppretthold = null,
+            delvisomgjøring_ka = SkalTilKabal(listOf("UGYLDIG_HJEMMEL"), klagenotat = null, erOppretthold = true),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
         mocks.verifyNoMoreInteractions()
@@ -95,16 +131,50 @@ internal class VurderKlageTest {
             klageId = KlageId.generer(),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
-            omgjør = KlageVurderingerRequest.Omgjør(
+            omgjør = KlageVurderingerRequest.BehandlesIVedtaksInstansen(
                 årsak = null,
                 begrunnelse = null,
+                erDelvisOmgjøring = false,
             ),
+            delvisomgjøring_egen_instans = null,
             oppretthold = SkalTilKabal(
                 hjemler = listOf(),
                 klagenotat = null,
                 erOppretthold = true,
             ),
             delvisomgjøring_ka = null,
+        )
+        mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.ForMangeUtfall.left()
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kan ikke velge alle alternativer`() {
+        val mocks = KlageServiceMocks()
+        val request = KlageVurderingerRequest(
+            klageId = KlageId.generer(),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            fritekstTilBrev = null,
+            omgjør = KlageVurderingerRequest.BehandlesIVedtaksInstansen(
+                årsak = null,
+                begrunnelse = null,
+                erDelvisOmgjøring = false,
+            ),
+            delvisomgjøring_egen_instans = KlageVurderingerRequest.BehandlesIVedtaksInstansen(
+                årsak = null,
+                begrunnelse = null,
+                erDelvisOmgjøring = true,
+            ),
+            oppretthold = SkalTilKabal(
+                hjemler = listOf(),
+                klagenotat = null,
+                erOppretthold = true,
+            ),
+            delvisomgjøring_ka = SkalTilKabal(
+                hjemler = listOf(),
+                klagenotat = null,
+                erOppretthold = false,
+            ),
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.ForMangeUtfall.left()
         mocks.verifyNoMoreInteractions()
@@ -192,6 +262,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             fritekstTilBrev = null,
             omgjør = null,
+            delvisomgjøring_egen_instans = null,
             oppretthold = SkalTilKabal(hjemler.map { it.name }, klagenotat = "klagenotat", erOppretthold = true),
             delvisomgjøring_ka = null,
         )
@@ -272,6 +343,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             fritekstTilBrev = null,
             omgjør = null,
+            delvisomgjøring_egen_instans = null,
             oppretthold = null,
             delvisomgjøring_ka = null,
         )
@@ -306,6 +378,7 @@ internal class VurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             fritekstTilBrev = "fritekstTilBrev",
             omgjør = null,
+            delvisomgjøring_egen_instans = null,
             oppretthold = SkalTilKabal(listOf("SU_PARAGRAF_3"), klagenotat = "klagenotat", erOppretthold = true),
             delvisomgjøring_ka = null,
         )

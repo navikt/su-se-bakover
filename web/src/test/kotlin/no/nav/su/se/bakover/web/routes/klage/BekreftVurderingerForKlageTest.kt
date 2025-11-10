@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.VurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Årsak
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -136,6 +139,67 @@ internal class BekreftVurderingerForKlageTest {
                     this.bodyAsText(),
                     true,
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `kan bekrefte utfylt vurdert klage delvis omgjøring i vedtaksenhet`() {
+        val klage = bekreftetVurdertKlage(vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(årsak = Årsak.FEIL_LOVANVENDELSE, begrunnelse = "test", erDelvisOmgjøring = true)).second
+        val klageServiceMock = mock<KlageService> {
+            on { bekreftVurderinger(any(), any()) } doReturn klage.right()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services()
+                        .copy(klageService = klageServiceMock),
+                )
+            }
+            defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
+                status shouldBe HttpStatusCode.OK
+                this.contentType() shouldBe ContentType.parse("application/json")
+                val delvisOmgjøringVedtaksenhet = this.bodyAsText()
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    serialize(klage.toJson()),
+                    delvisOmgjøringVedtaksenhet,
+                    true,
+                )
+
+                val jsonNode = ObjectMapper().readTree(delvisOmgjøringVedtaksenhet)
+                val vedtakType = jsonNode["vedtaksvurdering"]["type"].asText()
+                vedtakType shouldBe KlageJson.VedtaksvurderingJson.Type.DELVIS_OMGJØRING_EGEN_VEDTAKSINSTANS.toString()
+            }
+        }
+    }
+
+    @Test
+    fun `kan bekrefte utfylt vurdert klage omgjøring i vedtaksenhet`() {
+        val klage = bekreftetVurdertKlage(vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(årsak = Årsak.FEIL_LOVANVENDELSE, begrunnelse = "test", erDelvisOmgjøring = false)).second
+        val klageServiceMock = mock<KlageService> {
+            on { bekreftVurderinger(any(), any()) } doReturn klage.right()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services()
+                        .copy(klageService = klageServiceMock),
+                )
+            }
+            defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
+                status shouldBe HttpStatusCode.OK
+                this.contentType() shouldBe ContentType.parse("application/json")
+                val omgjøringVedtaksenhet = this.bodyAsText()
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    serialize(klage.toJson()),
+                    omgjøringVedtaksenhet,
+                    true,
+                )
+                val jsonNode = ObjectMapper().readTree(omgjøringVedtaksenhet)
+                val vedtakType = jsonNode["vedtaksvurdering"]["type"].asText()
+                vedtakType shouldBe KlageJson.VedtaksvurderingJson.Type.OMGJØR.toString()
             }
         }
     }
