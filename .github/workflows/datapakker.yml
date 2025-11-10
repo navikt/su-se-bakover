@@ -36,6 +36,16 @@ jobs:
         uses: ./.github/actions/build-and-test
         with:
           gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build :datapakker:stoenadstatistikk:build :datapakker:saksstatistikk:build
+
+  push_image_soknad:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+    needs: build-test-push-image
+    steps:
+      - uses: actions/checkout@v5
       - name: Push image soknad
         uses: ./.github/actions/push-image
         with:
@@ -44,6 +54,16 @@ jobs:
           image_suffix: 'datapakker-soknad-job'
           cache_from: type=gha
           cache_to: type=gha,mode=max
+
+  push_image_fritekstAvslag:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+    needs: build-test-push-image
+    steps:
+      - uses: actions/checkout@v5
       - name: Push image fritekstAvslag
         uses: ./.github/actions/push-image
         with:
@@ -52,6 +72,16 @@ jobs:
           image_suffix: 'datapakker-fritekstavslag-job'
           cache_from: type=gha
           cache_to: type=gha,mode=max
+
+  push_image_stoenadstatistikk:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+    needs: build-test-push-image
+    steps:
+      - uses: actions/checkout@v5
       - name: Push image stoenadstatistikk
         uses: ./.github/actions/push-image
         with:
@@ -60,6 +90,16 @@ jobs:
           image_suffix: 'datapakker-stoenadstatistikk-job'
           cache_from: type=gha
           cache_to: type=gha,mode=max
+
+  push_image_saksstatistikk:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+    needs: build-test-push-image
+    steps:
+      - uses: actions/checkout@v5
       - name: Push image saksstatistikk
         uses: ./.github/actions/push-image
         with:
@@ -75,7 +115,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_soknad
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-soknad-job:${{ github.sha }}
       cluster: dev-fss
@@ -87,7 +127,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_fritekstAvslag
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-fritekstavslag-job:${{ github.sha }}
       cluster: dev-fss
@@ -99,7 +139,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_stoenadstatistikk
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-stoenadstatistikk-job:${{ github.sha }}
       cluster: dev-fss
@@ -111,7 +151,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_saksstatistikk
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-saksstatistikk-job:${{ github.sha }}
       cluster: dev-fss
@@ -124,7 +164,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_stoenadstatistikk
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-stoenadstatistikk-job:${{ github.sha }}
       cluster: prod-fss
@@ -137,7 +177,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_soknad
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-soknad-job:${{ github.sha }}
       cluster: prod-fss
@@ -150,7 +190,7 @@ jobs:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    needs: build-test-push-image
+    needs: push_image_fritekstAvslag
     with:
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-fritekstavslag-job:${{ github.sha }}
       cluster: prod-fss
