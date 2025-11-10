@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import java.time.LocalDate
 import java.util.UUID
 
 class SakFakeRepo : SakRepo {
@@ -147,6 +148,10 @@ class SakFakeRepo : SakRepo {
         endretTidspunkt: Tidspunkt,
         sessionContext: SessionContext?,
     ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun hentSakOpprettetEtter(fraOgMed: LocalDate, tilOgMed: LocalDate): List<Sak> {
         TODO("Not yet implemented")
     }
 }

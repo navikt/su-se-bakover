@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.statistikk
 import arrow.core.Either
 import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -30,19 +29,11 @@ class StatistikkEventObserverImpl(
         Either.catch {
             when (event) {
                 is StatistikkEvent.SakOpprettet -> {
-                    if (ApplicationConfig.isProd()) {
-                        val sak = event.sak
-                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                        )
-                    } else {
-                        val sak = event.sak
-                        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-                            { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                            { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
-                        )
-                    }
+                    val sak = event.sak
+                    personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                        { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
+                        { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
+                    )
                 }
 
                 is StatistikkEvent.Behandling -> {

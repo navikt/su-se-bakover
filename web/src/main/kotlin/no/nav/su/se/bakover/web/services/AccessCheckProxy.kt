@@ -1380,6 +1380,10 @@ open class AccessCheckProxy(
                         requiredType,
                     )
                 }
+
+                override fun resendStatistikkForSak(fraOgMed: LocalDate, tilOgMed: LocalDate) {
+                    return services.resendStatistikkhendelserService.resendStatistikkForSak(fraOgMed, tilOgMed)
+                }
             },
             personhendelseService = object : PersonhendelseService {
                 override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {

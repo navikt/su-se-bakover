@@ -9,4 +9,5 @@ interface ResendStatistikkhendelserService {
 
     fun resendIverksattSøknadsbehandling(fraOgMedDato: LocalDate)
     fun resendStatistikkForVedtak(vedtakId: UUID, requiredType: KClass<*>? = null): Either<Unit, Unit>
+    fun resendStatistikkForSak(fraOgMed: LocalDate, tilOgMed: LocalDate)
 }

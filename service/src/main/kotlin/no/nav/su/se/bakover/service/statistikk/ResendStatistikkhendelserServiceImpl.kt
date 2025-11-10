@@ -117,4 +117,11 @@ class ResendStatistikkhendelserServiceImpl(
             return Unit.right()
         }
     }
+
+    override fun resendStatistikkForSak(fraOgMed: LocalDate, tilOgMed: LocalDate) {
+        val saker = sakRepo.hentSakOpprettetEtter(fraOgMed, tilOgMed)
+        saker.forEach { sak ->
+            statistikkEventObserver.handle(StatistikkEvent.SakOpprettet(sak))
+        }
+    }
 }

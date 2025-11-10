@@ -49,4 +49,19 @@ internal fun Route.resendStatistikkRoutes(
             }
         }
     }
+
+    post("$DRIFT_PATH/resend-statistikk/sak") {
+        data class Body(
+            val fraOgMed: LocalDate,
+            val tilOgMed: LocalDate,
+        )
+        authorize(Brukerrolle.Drift) {
+            call.withBody<Body> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    resendStatistikkhendelserService.resendStatistikkForSak(fraOgMed = it.fraOgMed, it.tilOgMed)
+                }
+                call.svar(Resultat.okJson())
+            }
+        }
+    }
 }
