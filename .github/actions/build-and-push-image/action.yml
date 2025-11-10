@@ -1,0 +1,37 @@
+name: Build and push image
+description: Build a module JAR and push its Docker image
+
+inputs:
+  dockerfile:
+    required: true
+    description: "Path to Dockerfile"
+  image_suffix:
+    required: true
+    description: "Image suffix for tagging"
+  gradle-arguments:
+    required: true
+    description: "Module to build"
+  cache_from:
+    required: false
+    default: ''
+  cache_to:
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build Module
+      uses: ./.github/actions/build-and-test
+      with:
+        gradle-arguments: "${{ inputs.gradle-arguments }}"
+
+    - name: Push Docker Image
+      uses: ./.github/actions/push-image
+      with:
+        tag: ${{ github.sha }}
+        dockerfile: ${{ inputs.dockerfile }}
+        image_suffix: ${{ inputs.image_suffix }}
+        cache_from: ${{ inputs.cache_from }}
+        cache_to: ${{ inputs.cache_to }}
+
