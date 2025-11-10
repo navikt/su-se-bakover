@@ -23,6 +23,7 @@ on:
 permissions: {}
 
 jobs:
+
   build-test-push-image:
     name: Build and push Docker container
     runs-on: ubuntu-latest
@@ -36,6 +37,15 @@ jobs:
         uses: ./.github/actions/build-and-test
         with:
           gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build :datapakker:stoenadstatistikk:build :datapakker:saksstatistikk:build
+      - name: Upload JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: datapakker-jars
+          path: |
+            datapakker/soknad/build/libs/*.jar
+            datapakker/fritekstAvslag/build/libs/*.jar
+            datapakker/stoenadstatistikk/build/libs/*.jar
+            datapakker/saksstatistikk/build/libs/*.jar
 
   push_image_soknad:
     runs-on: ubuntu-latest
@@ -43,13 +53,12 @@ jobs:
       packages: write
       contents: read
       id-token: write
-    needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
-      - name: Push image soknad
-        uses: ./.github/actions/push-image
+      - name: Build and push image soknad
+        uses: ./.github/actions/build-and-push-image
         with:
-          tag: ${{ github.sha }}
+          gradle-arguments: ":datapakker:soknad:build"
           dockerfile: ./datapakker/soknad/Dockerfile
           image_suffix: 'datapakker-soknad-job'
           cache_from: type=gha
@@ -61,17 +70,17 @@ jobs:
       packages: write
       contents: read
       id-token: write
-    needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
-      - name: Push image fritekstAvslag
-        uses: ./.github/actions/push-image
+      - name: Build and push image fritekstAvslag
+        uses: ./.github/actions/build-and-push-image
         with:
-          tag: ${{ github.sha }}
+          gradle-arguments: ":datapakker:fritekstAvslag:build"
           dockerfile: ./datapakker/fritekstAvslag/Dockerfile
-          image_suffix: 'datapakker-fritekstavslag-job'
+          image_suffix: 'datapakker-fritekstAvslag-job'
           cache_from: type=gha
           cache_to: type=gha,mode=max
+
 
   push_image_stoenadstatistikk:
     runs-on: ubuntu-latest
@@ -79,13 +88,12 @@ jobs:
       packages: write
       contents: read
       id-token: write
-    needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
-      - name: Push image stoenadstatistikk
-        uses: ./.github/actions/push-image
+      - name: Build and push image fritekstAvslag
+        uses: ./.github/actions/build-and-push-image
         with:
-          tag: ${{ github.sha }}
+          gradle-arguments: ":datapakker:stoenadstatistikk:build"
           dockerfile: ./datapakker/stoenadstatistikk/Dockerfile
           image_suffix: 'datapakker-stoenadstatistikk-job'
           cache_from: type=gha
@@ -97,13 +105,12 @@ jobs:
       packages: write
       contents: read
       id-token: write
-    needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
-      - name: Push image saksstatistikk
-        uses: ./.github/actions/push-image
+      - name: Build and push image fritekstAvslag
+        uses: ./.github/actions/build-and-push-image
         with:
-          tag: ${{ github.sha }}
+          gradle-arguments: ":datapakker:saksstatistikk:build"
           dockerfile: ./datapakker/saksstatistikk/Dockerfile
           image_suffix: 'datapakker-saksstatistikk-job'
           cache_from: type=gha
