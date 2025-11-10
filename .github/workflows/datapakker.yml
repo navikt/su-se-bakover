@@ -39,6 +39,10 @@ jobs:
 
   push_image_soknad:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
     needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
@@ -53,6 +57,10 @@ jobs:
 
   push_image_fritekstAvslag:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
     needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
@@ -67,6 +75,10 @@ jobs:
 
   push_image_stoenadstatistikk:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
     needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
@@ -81,6 +93,10 @@ jobs:
 
   push_image_saksstatistikk:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
     needs: build-test-push-image
     steps:
       - uses: actions/checkout@v5
