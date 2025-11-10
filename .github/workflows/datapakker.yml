@@ -13,8 +13,17 @@ on:
       - 'common/**'
       - 'gradle/**'
       - 'build.gradle.kts'
+  workflow_dispatch:
+    inputs:
+      deploy_to_prod:
+        description: "Deploy to prod?"
+        required: true
+        default: "false"
 
 permissions: {}
+
+env:
+  DEPLOY_TO_PROD: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' || github.ref == 'refs/heads/master' }}
 
 jobs:
   build-test-push-image:
@@ -111,9 +120,8 @@ jobs:
       cluster: dev-fss
       resource: datapakker/saksstatistikk/.nais/dev.yaml
 
-  #TODO: her må vi legge inn prod for saksstatistikk
-
   deploy_to_prod_stoenadstatistikk:
+    if: env.DEPLOY_TO_PROD == 'true'
     name: Deploy to prod stoenadstatistikk
     permissions:
       contents: read
@@ -126,6 +134,7 @@ jobs:
       resource: datapakker/stoenadstatistikk/.nais/prod.yaml
 
   deploy_to_prod_soknad:
+    if: env.DEPLOY_TO_PROD == 'true'
     name: Deploy to prod
     permissions:
       contents: read
@@ -138,6 +147,7 @@ jobs:
       resource: datapakker/soknad/.nais/prod.yaml
 
   deploy_to_prod_fritekstAvslag:
+    if: env.DEPLOY_TO_PROD == 'true'
     name: Deploy to prod
     permissions:
       contents: read
