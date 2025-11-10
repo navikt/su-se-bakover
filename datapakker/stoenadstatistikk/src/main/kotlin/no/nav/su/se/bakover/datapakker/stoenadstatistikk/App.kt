@@ -86,17 +86,8 @@ private fun writeCsvToBigQueryTable(
         throw RuntimeException("Error during CSV write to BigQuery", e)
     }
 
-    val job = bigQuery.writer(jobId, writeConfig).use { channel ->
-        Channels.newOutputStream(channel).use { os ->
-            os.write(csvData.toByteArray())
-        }
-        // After the channel is closed, job is more likely to be non-null
-        channel.job ?: throw RuntimeException(
-            "BigQuery job is null after writing CSV. Check dataset, table, location, and permissions.",
-        )
-    }.also {
-        it.waitFor() // wait for job completion
-    }
+    val job = writer.job
+    job.waitFor()
 
     return job
 }
