@@ -194,7 +194,7 @@ sealed interface VurderingerTilKlage {
                             )
                         } else {
                             if (erDelvisOmgjøring) {
-                                DelvisOmgjøring(
+                                DelvisOmgjøringEgenVedtaksinstans(
                                     årsak = årsak,
                                     begrunnelse = begrunnelse,
                                 )
@@ -211,7 +211,7 @@ sealed interface VurderingerTilKlage {
             data class Omgjør(override val årsak: Årsak?, override val begrunnelse: String?) :
                 Påbegynt,
                 BehandlesIVedtaksInstans
-            data class DelvisOmgjøring(override val årsak: Årsak?, override val begrunnelse: String?) :
+            data class DelvisOmgjøringEgenVedtaksinstans(override val årsak: Årsak?, override val begrunnelse: String?) :
                 Påbegynt,
                 BehandlesIVedtaksInstans
 
@@ -253,7 +253,7 @@ sealed interface VurderingerTilKlage {
                 companion object {
                     fun create(årsak: Årsak, begrunnelse: String?, erDelvisOmgjøring: Boolean): BehandlesIVedtaksInstans {
                         return if (erDelvisOmgjøring) {
-                            DelvisOmgjøring(årsak = årsak, begrunnelse = begrunnelse)
+                            DelvisOmgjøringEgenVedtaksinstans(årsak = årsak, begrunnelse = begrunnelse)
                         } else {
                             Omgjør(årsak = årsak, begrunnelse = begrunnelse)
                         }
@@ -263,7 +263,7 @@ sealed interface VurderingerTilKlage {
             data class Omgjør(override val årsak: Årsak, override val begrunnelse: String?) :
                 Utfylt,
                 BehandlesIVedtaksInstans
-            data class DelvisOmgjøring(override val årsak: Årsak, override val begrunnelse: String?) :
+            data class DelvisOmgjøringEgenVedtaksinstans(override val årsak: Årsak, override val begrunnelse: String?) :
                 Utfylt,
                 BehandlesIVedtaksInstans
 

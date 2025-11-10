@@ -93,7 +93,7 @@ internal data class KlageJson(
                         delvisOmgjøringKa = null,
                         delvisomgjøringEgenInstans = null,
                     )
-                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøring -> VedtaksvurderingJson(
+                    is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.DelvisOmgjøringEgenVedtaksinstans -> VedtaksvurderingJson(
                         type = Type.DELVIS_OMGJØRING_EGEN_VEDTAKSINSTANS.toString(),
                         delvisomgjøringEgenInstans = OmgjørJson(
                             årsak = årsak?.name,
@@ -135,7 +135,7 @@ internal data class KlageJson(
                         delvisOmgjøringKa = null,
                         delvisomgjøringEgenInstans = null,
                     )
-                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøring -> VedtaksvurderingJson(
+                    is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringEgenVedtaksinstans -> VedtaksvurderingJson(
                         type = Type.DELVIS_OMGJØRING_EGEN_VEDTAKSINSTANS.toString(),
                         omgjør = null,
                         delvisomgjøringEgenInstans = OmgjørJson(
