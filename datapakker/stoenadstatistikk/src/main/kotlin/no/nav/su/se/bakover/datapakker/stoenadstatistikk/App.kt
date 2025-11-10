@@ -35,7 +35,7 @@ fun main() {
         logger.info("Startet database med url: $databaseUrl")
         hentData(it, YearMonth.now().minusMonths(1))
     }
-
+    logger.info("Hentet ${data.size} rader fra databasen")
     writeToBigQuery(data)
     logger.info("Slutter jobb Stønadstatistikk")
 }
@@ -103,6 +103,7 @@ fun writeToBigQuery(
 
     val stoenadtable = "stoenadstatistikk"
     val stoenadCSV = data.toCSV()
+    logger.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
     val jobStoenad = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
 
     logger.info("Stønadstatistikkjob - stønad: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
