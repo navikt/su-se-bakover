@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.datapakker.stoenadstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.Job
@@ -34,7 +35,7 @@ fun main() {
         logger.info("Startet database med url: $databaseUrl")
         hentData(it, YearMonth.now().minusMonths(1))
     }
-
+    logger.info("Hentet ${data.size} rader fra databasen")
     writeToBigQuery(data)
     logger.info("Slutter jobb Stønadstatistikk")
 }
@@ -68,7 +69,11 @@ private fun writeCsvToBigQueryTable(
         .setFormatOptions(FormatOptions.csv())
         .build()
 
-    val writer = bigQuery.writer(jobId, writeConfig)
+    val writer = try {
+        bigQuery.writer(jobId, writeConfig)
+    } catch (e: BigQueryException) {
+        throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
+    }
 
     try {
         writer.use { channel ->
@@ -98,6 +103,7 @@ fun writeToBigQuery(
 
     val stoenadtable = "stoenadstatistikk"
     val stoenadCSV = data.toCSV()
+    logger.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
     val jobStoenad = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
 
     logger.info("Stønadstatistikkjob - stønad: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
