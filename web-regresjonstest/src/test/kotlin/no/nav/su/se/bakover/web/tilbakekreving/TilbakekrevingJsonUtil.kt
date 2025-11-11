@@ -48,12 +48,13 @@ fun lagKravgrunnlagRespons(
     summertBruttoFeilutbetaling: Int = 2383,
     summertNettoFeilutbetaling: Int = 1191,
     summertSkattFeilutbetaling: Int = 1192,
+    status: KravgrunnlagStatusJson = KravgrunnlagStatusJson.NY,
 ) = KravgrunnlagJson(
     hendelseId = "ignoreres-siden-denne-opprettes-av-tjenesten",
     eksternKravgrunnlagsId = "123456",
     eksternVedtakId = "654321",
     kontrollfelt = "2021-02-01-02.03.51.456789",
-    status = KravgrunnlagStatusJson.NY,
+    status = status,
     grunnlagsperiode = listOf(
         GrunnlagsperiodeJson(
             periode = PeriodeJson(

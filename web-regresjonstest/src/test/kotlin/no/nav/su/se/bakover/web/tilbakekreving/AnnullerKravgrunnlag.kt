@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
 import io.kotest.assertions.withClue
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
@@ -9,9 +10,16 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
-import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.sak.hent.hentSak
+import org.json.JSONObject
+import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
+import tilbakekreving.presentation.api.kravgrunnlag.AnnullertKravgrunnlagJson
 
 internal data class AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon(
     val behandlingsId: String,
@@ -25,7 +33,7 @@ internal fun AppComponents.annullerKravgrunnlag(
     client: HttpClient,
     saksversjon: Long,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.OK,
-    verifiserBehandling: AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon? = null,
+    verifiserBehandling: Boolean = false,
 ): AnnullerKravgrunnlagResponse {
     return runBlocking {
         no.nav.su.se.bakover.test.application.defaultRequest(
@@ -40,10 +48,64 @@ internal fun AppComponents.annullerKravgrunnlag(
                 status shouldBe expectedHttpStatusCode
             }
         }.bodyAsText().let { responseJson ->
-            verifiserResponse(responseJson, verifiserBehandling)
+
+            val sakEtterKallJson = hentSak(sakId, client)
+            val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            val annullertKravgrunnlagRespons = deserialize<AnnullertKravgrunnlagJson>(responseJson)
+            annullertKravgrunnlagRespons.uteståendeKravgrunnlag shouldBe null
+
+            if (verifiserBehandling) {
+                annullertKravgrunnlagRespons.tilbakekrevingsbehandling!!.let {
+                    it.shouldBeEqualToIgnoringFields(
+                        lagOpprettTilbakekrevingRespons(
+                            sakId,
+                            Tidspunkt.now(fixedClock),
+                            saksversjon + 1,
+                            TilbakekrevingsbehandlingStatus.AVBRUTT,
+                        ),
+                        it::id,
+                        it::opprettet,
+                        it::kravgrunnlag,
+                        it::avsluttetTidspunkt,
+                    )
+
+                    it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
+                        lagKravgrunnlagRespons(
+                            status = KravgrunnlagStatusJson.NY,
+                        ),
+                        it.kravgrunnlag!!::hendelseId,
+                        it.kravgrunnlag!!::kontrollfelt,
+                    )
+                }
+
+                deserialize<TilbakekrevingsbehandlingJson>(
+                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                ).let {
+                    it.shouldBeEqualToIgnoringFields(
+                        lagOpprettTilbakekrevingRespons(
+                            sakId,
+                            Tidspunkt.now(fixedClock),
+                            saksversjon + 1,
+                            TilbakekrevingsbehandlingStatus.AVBRUTT,
+                        ),
+                        it::id,
+                        it::opprettet,
+                        it::kravgrunnlag,
+                        it::avsluttetTidspunkt,
+                    )
+
+                    it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
+                        lagKravgrunnlagRespons(
+                            status = KravgrunnlagStatusJson.ANNU,
+                        ),
+                        it.kravgrunnlag!!::hendelseId,
+                        it.kravgrunnlag!!::kontrollfelt,
+                    )
+                }
+            }
 
             AnnullerKravgrunnlagResponse(
-                saksversjon = saksversjon.inc(),
+                saksversjon = saksversjonEtter,
                 responseJson = responseJson,
             )
         }
@@ -54,55 +116,3 @@ data class AnnullerKravgrunnlagResponse(
     val saksversjon: Long,
     val responseJson: String,
 )
-
-internal fun verifiserResponse(
-    actual: String,
-    verifiserBehandling: AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon? = null,
-) {
-    val expected = if (verifiserBehandling != null) {
-        """{
-                "id":"${verifiserBehandling.behandlingsId}",
-                "sakId":"${verifiserBehandling.sakId}",
-                "opprettet":"2021-02-01T01:03:53.456789Z",
-                "opprettetAv":"$DEFAULT_IDENT",
-                "kravgrunnlag":{
-                 "hendelseId":${verifiserBehandling.kravgrunnlagHendelseId},
-                 "eksternKravgrunnlagsId":"123456",
-                 "eksternVedtakId":"654321",
-                 "kontrollfelt":"2021-02-01-02.03.48.456789",
-                 "status":"NY",
-                 "grunnlagsperiode":[{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-01-31"},"betaltSkattForYtelsesgruppen":"1192","bruttoTidligereUtbetalt":"10946","bruttoNyUtbetaling":"8563","bruttoFeilutbetaling":"2383","nettoFeilutbetaling":"1191","skatteProsent":"50","skattFeilutbetaling":"1192"}],
-                 "summertBetaltSkattForYtelsesgruppen":"1192",
-                 "summertBruttoTidligereUtbetalt":10946,
-                 "summertBruttoNyUtbetaling":8563,
-                 "summertBruttoFeilutbetaling":2383,
-                 "summertNettoFeilutbetaling":1191,
-                 "summertSkattFeilutbetaling":1192
-                },
-                "status":"AVBRUTT",
-                "vurderinger":null,
-                "fritekst":null,
-                "forhåndsvarselsInfo":[],
-                "versjon":8,
-                "sendtTilAttesteringAv":null,
-                "attesteringer":[],
-                "erKravgrunnlagUtdatert":false,
-                "avsluttetTidspunkt":"2021-02-01T01:03:57.456789Z",
-                "notat":null
-        }
-        """.trimIndent()
-    } else {
-        null
-    }
-
-    actual.shouldBeSimilarJsonTo(
-        """{
-         "uteståendeKravgrunnlag": null,
-         "tilbakekrevingsbehandling": $expected
-        }
-        """.trimIndent(),
-        "tilbakekrevingsbehandling.opprettet",
-        "tilbakekrevingsbehandling.kravgrunnlag.kontrollfelt",
-        "tilbakekrevingsbehandling.avsluttetTidspunkt",
-    )
-}
