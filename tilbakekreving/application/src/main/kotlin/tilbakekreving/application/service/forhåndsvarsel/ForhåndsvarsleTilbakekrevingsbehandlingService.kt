@@ -88,7 +88,5 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             }
 
         return Pair(behandling, sak)
-
     }
-
 }
