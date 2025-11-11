@@ -9,6 +9,7 @@ Våre app navn:
 su-datapakke-soknad
 su-datapakke-fritekstAvslag
 su-datapakke-stoenadstatistikk
+su-datapakke-saksstatistikk
 ```
 
 ```
