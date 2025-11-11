@@ -26,7 +26,7 @@ spec:
         for: 1s
         annotations:
           consequence: "su-se-bakover har fått en ny error i loggen siste 15 min"
-          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her, LOKI: `{{LOGS_URL_LOKI}}` OPENSEARCH: `{{OPEN_SEARCH_URL}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
           severity: critical
@@ -38,7 +38,7 @@ spec:
         for: 1s
         annotations:
           consequence: "su-datapakke-soknad har fått en ny error i loggen siste 15 min"
-          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her, LOKI: `{{LOGS_URL_LOKI}}` OPENSEARCH: `{{OPEN_SEARCH_URL}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
           severity: critical
@@ -50,7 +50,7 @@ spec:
         for: 1s
         annotations:
           consequence: "su-datapakke-fritekst har fått en ny error i loggen siste 15 min"
-          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her, LOKI: `{{LOGS_URL_LOKI}}` OPENSEARCH: `{{OPEN_SEARCH_URL}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
           severity: critical
@@ -62,7 +62,7 @@ spec:
         for: 1s
         annotations:
           consequence: "su-datapakke-stoenadstatistikk har fått en ny error i loggen siste 15 min"
-          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her, LOKI: `{{LOGS_URL_LOKI}}` OPENSEARCH: `{{OPEN_SEARCH_URL}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
           severity: critical
@@ -74,7 +74,7 @@ spec:
         for: 1s
         annotations:
           consequence: "su-datapakke-saksstatistikk har fått en ny error i loggen siste 15 min"
-          action: "Det er logget en melding med log level ERROR. Sjekk logger her: `{{LOGS_URL_LOKI}}` `{{LOGS_URL}}`"
+          action: "Det er logget en melding med log level ERROR. Sjekk logger her, LOKI: `{{LOGS_URL_LOKI}}` OPENSEARCH: `{{OPEN_SEARCH_URL}}` `{{LOGS_URL}}`"
         labels:
           namespace: supstonad
           severity: critical
