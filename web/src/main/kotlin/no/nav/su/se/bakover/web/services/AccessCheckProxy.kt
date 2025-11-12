@@ -542,9 +542,9 @@ open class AccessCheckProxy(
                     return hentFritekst(referanseId, type)
                 }
 
-                override fun lagreFritekst(referanseId: UUID, type: FritekstType) {
-                    harTilgang(referanseId, type)
-                    lagreFritekst(referanseId, type)
+                override fun lagreFritekst(fritekst: Fritekst) {
+                    harTilgang(fritekst.referanseId, fritekst.type)
+                    lagreFritekst(fritekst)
                 }
 
                 override fun tømFritekst(referanseId: UUID, type: FritekstType) {

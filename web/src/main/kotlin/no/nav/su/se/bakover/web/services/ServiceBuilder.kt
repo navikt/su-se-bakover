@@ -75,7 +75,9 @@ data object ServiceBuilder {
             identClient = clients.identClient,
             clock = clock,
         )
-        val fritekstService = FritekstServiceImpl()
+        val fritekstService = FritekstServiceImpl(
+            repository = databaseRepos.fritekstRepo,
+        )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             clock = clock,

@@ -4,27 +4,25 @@ import java.util.UUID
 
 interface FritekstService {
     fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst?
-    fun lagreFritekst(referanseId: UUID, type: FritekstType)
+    fun lagreFritekst(fritekst: Fritekst)
     fun tømFritekst(referanseId: UUID, type: FritekstType)
 }
 
-class FritekstServiceImpl : FritekstService {
+interface FritekstRepo {
+    fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst?
+    fun lagreFritekst(fritekst: Fritekst)
+    fun tømFritekst(referanseId: UUID, type: FritekstType)
+}
 
-    override fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst? {
-        // val fritekst = repo.hentFritekst(referanseId, type)
-        val fritekst = Fritekst(
-            referanseId = referanseId,
-            type = type,
-            fritekst = "Hubba bubba!",
-        )
-        return fritekst
-    }
+class FritekstServiceImpl(
+    private val repository: FritekstRepo,
+) : FritekstService {
 
-    override fun lagreFritekst(referanseId: UUID, type: FritekstType) {
-    }
+    override fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst? = repository.hentFritekst(referanseId, type)
 
-    override fun tømFritekst(referanseId: UUID, type: FritekstType) {
-    }
+    override fun lagreFritekst(fritekst: Fritekst) = repository.lagreFritekst(fritekst)
+
+    override fun tømFritekst(referanseId: UUID, type: FritekstType) = repository.tømFritekst(referanseId, type)
 }
 
 data class Fritekst(
