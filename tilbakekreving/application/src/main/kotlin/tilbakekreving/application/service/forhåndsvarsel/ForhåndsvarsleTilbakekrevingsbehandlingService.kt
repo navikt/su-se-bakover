@@ -39,10 +39,11 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
         val (behandling, sak) = behandlingSomKanForhåndsvarsleOgSak(command)
 
         val fritekst = fritekstService.hentFritekst(behandling.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
+            .getOrNull()?.fritekst ?: ""
 
         behandling.leggTilForhåndsvarsel(
             command = command,
-            fritekst = fritekst?.fritekst ?: "",
+            fritekst = fritekst,
             tidligereHendelsesId = behandling.hendelseId,
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
@@ -53,6 +54,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
         }
     }
 
+    // TODO bjg - fjern
     fun forhåndsvarselFritekst(
         command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
     ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {

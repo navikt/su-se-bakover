@@ -41,12 +41,13 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
             ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
 
         val fritekst = fritekstService.hentFritekst(behandling.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
+            .getOrNull()?.fritekst
 
         return brevService.lagDokument(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
                 sakstype = sak.type,
-                fritekst = fritekst?.fritekst,
+                fritekst = fritekst,
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,
                 sakId = command.sakId,
