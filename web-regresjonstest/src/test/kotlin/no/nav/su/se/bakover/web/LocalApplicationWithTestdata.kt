@@ -25,7 +25,7 @@ fun main() {
         port = 8080,
         module = {
             susebakover(
-                tilbakekrevingskomponenter = { clock, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, _, tilgangstyringService ->
+                tilbakekrevingskomponenter = { clock, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, _, tilgangstyringService ->
                     tilbakekrevingskomponenterMedClientStubs(
                         clock = clock,
                         sessionFactory = sessionFactory,
@@ -37,6 +37,7 @@ fun main() {
                         hendelseRepo = hendelseRepo,
                         dokumentHendelseRepo = dokumentHendelseRepo,
                         brevService = brevService,
+                        fritekstService = fritekstService,
                         tilgangstyringService = tilgangstyringService,
                         sakStatistikkRepo = sakStatistikkRepo,
                     )

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
 import dokument.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -32,6 +33,7 @@ data class Services(
     val sak: SakService,
     val søknad: SøknadService,
     val brev: BrevService,
+    val fritekstService: FritekstService,
     val lukkSøknad: LukkSøknadService,
     val oppgave: OppgaveService,
     val person: PersonService,

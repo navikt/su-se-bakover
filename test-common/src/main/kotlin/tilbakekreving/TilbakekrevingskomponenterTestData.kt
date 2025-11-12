@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test.tilbakekreving
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -33,6 +34,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
     sakStatistikkRepo: SakStatistikkRepo,
     dokumentHendelseRepo: DokumentHendelseRepo,
     brevService: BrevService,
+    fritekstService: FritekstService,
     tilgangstyringService: TilgangstyringService,
 ): Tilbakekrevingskomponenter {
     val repos = TilbakekrevingRepos.create(
@@ -62,6 +64,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
             mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
+            fritekstService = fritekstService,
             tilbakekrevingsklient = clients.tilbakekrevingsklient,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,

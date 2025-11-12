@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.dokument.application.DokumentServices
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -127,9 +128,10 @@ fun Application.susebakover(
         sakStatistikkRepo: SakStatistikkRepo,
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
+        fritekstService: FritekstService,
         tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, _tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, tilbakekrevingConfig, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -141,6 +143,7 @@ fun Application.susebakover(
             hendelseRepo = hendelseRepo,
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
+            fritekstService = fritekstService,
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
             samlTokenProvider = samlTokenProvider,
@@ -208,6 +211,7 @@ fun Application.susebakover(
         databaseRepos.sakStatistikkRepo,
         databaseRepos.dokumentHendelseRepo,
         services.brev,
+        services.fritekstService,
         applicationConfig.oppdrag.tilbakekreving,
         tilgangstyringService,
     ).also {

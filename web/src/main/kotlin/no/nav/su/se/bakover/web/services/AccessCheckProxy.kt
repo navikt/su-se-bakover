@@ -39,6 +39,9 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -533,6 +536,40 @@ open class AccessCheckProxy(
                     }
                 }
             },
+            fritekstService = object : FritekstService {
+                override fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst? {
+                    harTilgang(referanseId, type)
+                    return hentFritekst(referanseId, type)
+                }
+
+                override fun lagreFritekst(referanseId: UUID, type: FritekstType) {
+                    harTilgang(referanseId, type)
+                    lagreFritekst(referanseId, type)
+                }
+
+                override fun tømFritekst(referanseId: UUID, type: FritekstType) {
+                    harTilgang(referanseId, type)
+                    tømFritekst(referanseId, type)
+                }
+
+                private fun harTilgang(referanseId: UUID, type: FritekstType) =
+                    when (type) {
+                        FritekstType.FRITEKST_BREV -> assertHarTilgangTilSak(referanseId)
+
+                        FritekstType.FORHÅNDSVARSEL_SØKNADSBEHANDLING,
+                        FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                        -> assertHarTilgangTilSøknadsbehandling(SøknadsbehandlingId(referanseId))
+
+                        FritekstType.FORHÅNDSVARSEL_REVURDERING,
+                        FritekstType.VEDTAKSBREV_REVRUDERING,
+                        -> assertHarTilgangTilRevurdering(RevurderingId(referanseId))
+
+                        FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                        FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+                        FritekstType.NOTAT_TILBAKEKREVING,
+                        -> true // TODO accessCheck for tilbakekreving??
+                    }
+            },
             lukkSøknad = object : LukkSøknadService {
                 override fun lukkSøknad(command: LukkSøknadCommand): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> {
                     assertHarTilgangTilSøknad(command.søknadId)
@@ -764,7 +801,10 @@ open class AccessCheckProxy(
                         assertHarTilgangTilSøknadsbehandling(søknadsbehandlingSkatt.behandlingId)
                         return service.oppdaterSkattegrunnlag(søknadsbehandlingSkatt)
                     }
-                    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) = kastKanKunKallesFraAnnenService()
+
+                    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) =
+                        kastKanKunKallesFraAnnenService()
+
                     override fun hentSisteInnvilgetSøknadsbehandlingGrunnlagForSakFiltrerVekkSøknadsbehandling(
                         sakId: UUID,
                         søknadsbehandlingId: SøknadsbehandlingId,
@@ -817,6 +857,7 @@ open class AccessCheckProxy(
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.returnerRevurdering(request)
                 }
+
                 override fun beregnOgSimuler(
                     revurderingId: RevurderingId,
                     saksbehandler: NavIdentBruker.Saksbehandler,

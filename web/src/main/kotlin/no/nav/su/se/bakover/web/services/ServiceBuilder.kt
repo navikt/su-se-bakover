@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
@@ -74,6 +75,7 @@ data object ServiceBuilder {
             identClient = clients.identClient,
             clock = clock,
         )
+        val fritekstService = FritekstServiceImpl()
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             clock = clock,
@@ -266,6 +268,7 @@ data object ServiceBuilder {
             sak = sakService,
             søknad = søknadService,
             brev = brevService,
+            fritekstService = fritekstService,
             lukkSøknad = LukkSøknadServiceImpl(
                 clock = clock,
                 søknadService = søknadService,
