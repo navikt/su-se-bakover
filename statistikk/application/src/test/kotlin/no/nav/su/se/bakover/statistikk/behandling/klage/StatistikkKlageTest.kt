@@ -64,8 +64,13 @@ internal class StatistikkKlageTest {
     }
 
     @Test
-    fun `oversendt klage`() {
-        val klage = oversendtKlage().second
+    fun `oversendt klage til ka med oppretthold`() {
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+            hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+            klagenotat = "klagenotat",
+            erOppretthold = true,
+        ).getOrFail()
+        val klage = oversendtKlage(vedtaksvurdering = vedtaksvurdering).second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(klage),
             behandlingStatus = BehandlingStatus.OversendtKlage.value,
