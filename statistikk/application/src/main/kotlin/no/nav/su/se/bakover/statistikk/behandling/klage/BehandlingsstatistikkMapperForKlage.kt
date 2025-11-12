@@ -90,7 +90,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             avsluttet = true,
             totrinnsbehandling = false,
             funksjonellTid = this.klage.datoklageferdigstilt,
-            beslutter = null, // BUrde vært saksbehandler? er ingen attestant
+            beslutter = null,
         )
     }
 }
