@@ -418,8 +418,11 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandling = klage,
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
-                    behandlingStatus = BehandlingStatus.Avsluttet.toString(),
-                    behandlingResultat = BehandlingResultat.OmgjortKlage.toString(),
+                    behandlingStatus = BehandlingStatus.Iverksatt.toString(),
+                    behandlingResultat = when (this.klage.vurderinger.vedtaksvurdering) {
+                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> BehandlingResultat.OmgjortKlage.value
+                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringEgenVedtaksinstans -> BehandlingResultat.DelvisOmgjøringEgenVedtaksinstans.value
+                    },
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
                     saksbehandler = klage.saksbehandler.navIdent,
                 )

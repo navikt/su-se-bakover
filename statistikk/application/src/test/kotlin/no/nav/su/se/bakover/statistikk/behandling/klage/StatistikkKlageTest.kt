@@ -3,10 +3,14 @@ package no.nav.su.se.bakover.statistikk.behandling.klage
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.VurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Årsak
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.git.GitCommit
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
@@ -20,6 +24,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -59,8 +64,13 @@ internal class StatistikkKlageTest {
     }
 
     @Test
-    fun `oversendt klage`() {
-        val klage = oversendtKlage().second
+    fun `oversendt klage til ka med oppretthold`() {
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createDelvisEllerOpprettholdelse(
+            hjemler = Klagehjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+            klagenotat = "klagenotat",
+            erOppretthold = true,
+        ).getOrFail()
+        val klage = oversendtKlage(vedtaksvurdering = vedtaksvurdering).second
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(klage),
             behandlingStatus = BehandlingStatus.OversendtKlage.value,
@@ -90,6 +100,78 @@ internal class StatistikkKlageTest {
             resultatBegrunnelse = "SU_PARAGRAF_3,SU_PARAGRAF_4",
             beslutter = "attestant",
             funksjonellTid = Tidspunkt.create(Instant.parse("2021-02-01T01:02:04.456789Z")),
+        )
+    }
+
+    @Test
+    fun `klage omgjøring egen vedtaksinstans`() {
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+            årsak = Årsak.FEIL_LOVANVENDELSE,
+            begrunnelse = "test",
+            erDelvisOmgjøring = false,
+        )
+        val sakstype = Sakstype.UFØRE
+        val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+        val klage = VurdertKlage.Bekreftet.createBekreftet(
+            forrigeSteg = utfyltVurdertKlage(
+                vedtaksvurdering = vedtaksvurdering,
+            ).second,
+            saksbehandler = saksbehandler,
+            sakstype = sakstype,
+        )
+        val bekreftetKlageVedtaksinstans = when (klage) {
+            is VurdertKlage.BekreftetBehandlesIVedtaksinstans -> klage
+            is VurdertKlage.BekreftetTilOversending -> throw IllegalStateException("feil testdata")
+        }
+
+        val ferdigstiltOmgjøring = bekreftetKlageVedtaksinstans.ferdigstillOmgjøring(saksbehandler, Tidspunkt.now(fixedClock)).getOrFail()
+        assert(
+            statistikkEvent = StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring(ferdigstiltOmgjøring),
+            behandlingStatus = BehandlingStatus.Iverksatt.value,
+            resultatBeskrivelse = BehandlingResultat.OmgjortKlage.beskrivelse,
+            behandlingStatusBeskrivelse = BehandlingStatus.Iverksatt.beskrivelse,
+            resultat = BehandlingResultat.OmgjortKlage.value,
+            resultatBegrunnelse = ferdigstiltOmgjøring.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
+            beslutter = null,
+            funksjonellTid = Tidspunkt.create(Instant.parse("2021-01-01T01:02:03.456789Z")),
+            avsluttet = true,
+            totrinnsbehandling = false,
+        )
+    }
+
+    @Test
+    fun `klage delvis omgjøring egen vedtaksinstans`() {
+        val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+            årsak = Årsak.FEIL_LOVANVENDELSE,
+            begrunnelse = "test",
+            erDelvisOmgjøring = true,
+        )
+        val sakstype = Sakstype.UFØRE
+        val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+        val klage = VurdertKlage.Bekreftet.createBekreftet(
+            forrigeSteg = utfyltVurdertKlage(
+                vedtaksvurdering = vedtaksvurdering,
+            ).second,
+            saksbehandler = saksbehandler,
+            sakstype = sakstype,
+        )
+        val bekreftetKlageVedtaksinstans = when (klage) {
+            is VurdertKlage.BekreftetBehandlesIVedtaksinstans -> klage
+            is VurdertKlage.BekreftetTilOversending -> throw IllegalStateException("feil testdata")
+        }
+
+        val ferdigstiltOmgjøring = bekreftetKlageVedtaksinstans.ferdigstillOmgjøring(saksbehandler, Tidspunkt.now(fixedClock)).getOrFail()
+        assert(
+            statistikkEvent = StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring(ferdigstiltOmgjøring),
+            behandlingStatus = BehandlingStatus.Iverksatt.value,
+            resultatBeskrivelse = BehandlingResultat.DelvisOmgjøringEgenVedtaksinstans.beskrivelse,
+            behandlingStatusBeskrivelse = BehandlingStatus.Iverksatt.beskrivelse,
+            resultat = BehandlingResultat.DelvisOmgjøringEgenVedtaksinstans.value,
+            resultatBegrunnelse = ferdigstiltOmgjøring.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
+            beslutter = null,
+            funksjonellTid = Tidspunkt.create(Instant.parse("2021-01-01T01:02:03.456789Z")),
+            avsluttet = true,
+            totrinnsbehandling = false,
         )
     }
 

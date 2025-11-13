@@ -82,7 +82,10 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             gitCommit = gitCommit,
             clock = clock,
             behandlingStatus = BehandlingStatus.Iverksatt,
-            behandlingResultat = BehandlingResultat.Innvilget,
+            behandlingResultat = when (this.klage.vurderinger.vedtaksvurdering) {
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> BehandlingResultat.OmgjortKlage
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.DelvisOmgjøringEgenVedtaksinstans -> BehandlingResultat.DelvisOmgjøringEgenVedtaksinstans
+            },
             resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
             avsluttet = true,
             totrinnsbehandling = false,
