@@ -102,10 +102,11 @@ data class GenerellSakStatistikk(
         fun create(
             clock: Clock,
             sak: Sak,
+            relatertId: UUID? = null,
         ) = GenerellSakStatistikk(
             sakType = sak.type,
             tekniskTid = Tidspunkt.now(clock),
-            relatertId = null, // TODO trello - 252-statistikk-relatert-id
+            relatertId = relatertId,
         )
     }
 }

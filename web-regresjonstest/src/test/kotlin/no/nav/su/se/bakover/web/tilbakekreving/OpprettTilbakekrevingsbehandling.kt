@@ -10,11 +10,14 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
+import tilbakekreving.presentation.api.opprett.OpprettTilbakekrevingRequest
+import java.util.UUID
 
 /**
  * Oppretter en tilbakekrevingsbehandling for en gitt sak.
@@ -39,7 +42,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
+        ) { setBody(serialize(OpprettTilbakekrevingRequest(versjon = saksversjon, relatertId = UUID.randomUUID().toString()))) }.apply {
             withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
