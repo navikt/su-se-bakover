@@ -539,17 +539,17 @@ open class AccessCheckProxy(
             fritekstService = object : FritekstService {
                 override fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst> {
                     harTilgang(referanseId, type)
-                    return hentFritekst(referanseId, type)
+                    return services.fritekstService.hentFritekst(referanseId, type)
                 }
 
                 override fun lagreFritekst(fritekst: Fritekst): Either<FritekstFeil, Unit> {
                     harTilgang(fritekst.referanseId, fritekst.type)
-                    return lagreFritekst(fritekst)
+                    return services.fritekstService.lagreFritekst(fritekst)
                 }
 
                 override fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
                     harTilgang(referanseId, type)
-                    return slettFritekst(referanseId, type)
+                    return services.fritekstService.slettFritekst(referanseId, type)
                 }
 
                 private fun harTilgang(referanseId: UUID, type: FritekstType) =
@@ -563,7 +563,7 @@ open class AccessCheckProxy(
                         FritekstType.FORHÅNDSVARSEL_REVURDERING,
                         FritekstType.VEDTAKSBREV_REVURDERING,
                         -> assertHarTilgangTilRevurdering(RevurderingId(referanseId))
-
+                        // TODO: hva med å bare sjekktilgangtilsak/fnr...
                         FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
                         FritekstType.VEDTAKSBREV_TILBAKEKREVING,
                         FritekstType.NOTAT_TILBAKEKREVING,
