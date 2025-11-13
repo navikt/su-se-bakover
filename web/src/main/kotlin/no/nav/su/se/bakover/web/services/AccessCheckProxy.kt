@@ -548,9 +548,9 @@ open class AccessCheckProxy(
                     return lagreFritekst(fritekst)
                 }
 
-                override fun tømFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
+                override fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
                     harTilgang(referanseId, type)
-                    return tømFritekst(referanseId, type)
+                    return slettFritekst(referanseId, type)
                 }
 
                 private fun harTilgang(referanseId: UUID, type: FritekstType) =
@@ -562,7 +562,7 @@ open class AccessCheckProxy(
                         -> assertHarTilgangTilSøknadsbehandling(SøknadsbehandlingId(referanseId))
 
                         FritekstType.FORHÅNDSVARSEL_REVURDERING,
-                        FritekstType.VEDTAKSBREV_REVRUDERING,
+                        FritekstType.VEDTAKSBREV_REVURDERING,
                         -> assertHarTilgangTilRevurdering(RevurderingId(referanseId))
 
                         FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,

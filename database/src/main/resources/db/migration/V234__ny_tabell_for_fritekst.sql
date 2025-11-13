@@ -1,6 +1,5 @@
 CREATE TABLE fritekst
 (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     referanse_id UUID NOT NULL,
     type         TEXT NOT NULL,
     fritekst     TEXT NOT NULL

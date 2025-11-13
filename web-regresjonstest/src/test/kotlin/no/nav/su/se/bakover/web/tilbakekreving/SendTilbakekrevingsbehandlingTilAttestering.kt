@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
@@ -91,7 +92,7 @@ internal fun AppComponents.sendTilbakekrevingsbehandlingTilAttestering(
                             status = TilbakekrevingsbehandlingStatus.TIL_ATTESTERING,
                             fritekst = verifiserFritekst,
                             notat = "notatet",
-                            sendtTilAttesteringAv = "Z990Lokal",
+                            sendtTilAttesteringAv = DEFAULT_IDENT,
                         ),
                         it::id,
                         it::opprettet,

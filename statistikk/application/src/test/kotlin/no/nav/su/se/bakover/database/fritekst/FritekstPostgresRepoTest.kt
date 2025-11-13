@@ -34,4 +34,31 @@ internal class FritekstPostgresRepoTest {
             fritekstRepo.hentFritekst(fritekst.referanseId, fritekst.type) shouldBe null
         }
     }
+
+    @Test
+    fun `lagre flere av samme type`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val fritekstRepo = testDataHelper.fritekstRepo
+
+            val fritekst = Fritekst(
+                referanseId = UUID.randomUUID(),
+                type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                fritekst = "HUBBA BUBBA!",
+            )
+            fritekstRepo.lagreFritekst(fritekst)
+            fritekstRepo.hentFritekst(fritekst.referanseId, fritekst.type) shouldBe fritekst
+
+            val fritekstTo = Fritekst(
+                referanseId = UUID.randomUUID(),
+                type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                fritekst = "HUBBA BUBBA!",
+            )
+            fritekstRepo.lagreFritekst(fritekstTo)
+            fritekstRepo.hentFritekst(fritekstTo.referanseId, fritekstTo.type) shouldBe fritekstTo
+
+            fritekstRepo.tømFritekst(fritekstTo.referanseId, fritekstTo.type)
+            fritekstRepo.hentFritekst(fritekstTo.referanseId, fritekstTo.type) shouldBe null
+        }
+    }
 }

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.fritekst
 import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -19,12 +18,13 @@ import java.util.UUID
 
 internal const val FRITEKST_PATH = "fritekst"
 
+data class Body(val referanseId: String, val type: String)
+
 internal fun Route.fritekstRoutes(
     fritekstService: FritekstService,
 ) {
     post(FRITEKST_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val referanseId: String, val type: String)
             call.withBody<Body> {
                 val resultat = fritekstService.hentFritekst(
                     referanseId = UUID.fromString(it.referanseId),

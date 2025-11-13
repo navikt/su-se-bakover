@@ -8,7 +8,7 @@ import java.util.UUID
 interface FritekstService {
     fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst>
     fun lagreFritekst(fritekst: Fritekst): Either<FritekstFeil, Unit>
-    fun tømFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit>
+    fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit>
 }
 
 interface FritekstRepo {
@@ -30,7 +30,7 @@ class FritekstServiceImpl(
         return repository.lagreFritekst(fritekst).right()
     }
 
-    override fun tømFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
+    override fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
         return repository.tømFritekst(referanseId, type).right()
     }
 }
@@ -48,7 +48,7 @@ enum class FritekstType {
     VEDTAKSBREV_SØKNADSBEHANDLING,
 
     FORHÅNDSVARSEL_REVURDERING,
-    VEDTAKSBREV_REVRUDERING,
+    VEDTAKSBREV_REVURDERING,
 
     FORHÅNDSVARSEL_TILBAKEKREVING,
     VEDTAKSBREV_TILBAKEKREVING,
