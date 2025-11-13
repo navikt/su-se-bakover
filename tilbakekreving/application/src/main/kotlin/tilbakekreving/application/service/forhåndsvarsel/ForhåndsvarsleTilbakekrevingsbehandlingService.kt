@@ -58,7 +58,8 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             clock = clock,
         ).let {
             tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
-            fritekstService.slettFritekst(it.second.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
+            // TODO: Skal det slettes her eller beholdes for historikk? Ser det blir dobbeltlagring opp mot den over
+            fritekstService.slettFritekst(it.second.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING, sakId = sakId)
             return it.second.right()
         }
     }

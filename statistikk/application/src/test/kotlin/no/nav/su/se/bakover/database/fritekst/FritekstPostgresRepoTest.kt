@@ -30,7 +30,7 @@ internal class FritekstPostgresRepoTest {
             fritekstRepo.lagreFritekst(fritekstEndret)
             fritekstRepo.hentFritekst(fritekst.referanseId, fritekst.type) shouldBe fritekstEndret
 
-            fritekstRepo.tømFritekst(fritekst.referanseId, fritekst.type)
+            fritekstRepo.slettFritekst(fritekst.referanseId, fritekst.type)
             fritekstRepo.hentFritekst(fritekst.referanseId, fritekst.type) shouldBe null
         }
     }
@@ -57,7 +57,7 @@ internal class FritekstPostgresRepoTest {
             fritekstRepo.lagreFritekst(fritekstTo)
             fritekstRepo.hentFritekst(fritekstTo.referanseId, fritekstTo.type) shouldBe fritekstTo
 
-            fritekstRepo.tømFritekst(fritekstTo.referanseId, fritekstTo.type)
+            fritekstRepo.slettFritekst(fritekstTo.referanseId, fritekstTo.type)
             fritekstRepo.hentFritekst(fritekstTo.referanseId, fritekstTo.type) shouldBe null
         }
     }

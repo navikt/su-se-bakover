@@ -6,33 +6,47 @@ import arrow.core.right
 import java.util.UUID
 
 interface FritekstService {
-    fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst>
-    fun lagreFritekst(fritekst: Fritekst): Either<FritekstFeil, Unit>
-    fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit>
+    fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst>
+    fun lagreFritekst(fritekst: FritekstMappedRequest): Either<FritekstFeil, Unit>
+    fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit>
 }
 
 interface FritekstRepo {
     fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst?
     fun lagreFritekst(fritekst: Fritekst)
-    fun tømFritekst(referanseId: UUID, type: FritekstType)
+    fun slettFritekst(referanseId: UUID, type: FritekstType)
 }
 
 class FritekstServiceImpl(
     private val repository: FritekstRepo,
 ) : FritekstService {
 
-    override fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst> {
+    override fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst> {
         val fritekst = repository.hentFritekst(referanseId, type)
         return fritekst?.right() ?: FritekstFeil.FantIkkeFritekst.left()
     }
 
-    override fun lagreFritekst(fritekst: Fritekst): Either<FritekstFeil, Unit> {
-        return repository.lagreFritekst(fritekst).right()
+    override fun lagreFritekst(fritekst: FritekstMappedRequest): Either<FritekstFeil, Unit> {
+        return repository.lagreFritekst(fritekst.toFritekst()).right()
     }
 
-    override fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
-        return repository.tømFritekst(referanseId, type).right()
+    override fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit> {
+        return repository.slettFritekst(referanseId, type).right()
     }
+}
+
+data class FritekstMappedRequest(
+    val referanseId: UUID,
+    val sakId: UUID,
+    val type: FritekstType,
+    val fritekst: String,
+) {
+    fun toFritekst(): Fritekst =
+        Fritekst(
+            referanseId = referanseId,
+            type = type,
+            fritekst = fritekst,
+        )
 }
 
 data class Fritekst(

@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstMappedRequest
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import java.util.UUID
 
 internal const val FRITEKST_PATH = "fritekst"
 
-data class Body(val referanseId: String, val type: String)
+data class Body(val referanseId: String, val sakId: String, val type: String)
 
 internal fun Route.fritekstRoutes(
     fritekstService: FritekstService,
@@ -28,6 +28,7 @@ internal fun Route.fritekstRoutes(
             call.withBody<Body> {
                 val resultat = fritekstService.hentFritekst(
                     referanseId = UUID.fromString(it.referanseId),
+                    sakId = UUID.fromString(it.sakId),
                     type = FritekstType.valueOf(it.type),
                 ).map {
                     Resultat.json(HttpStatusCode.OK, serialize(it))
@@ -41,7 +42,7 @@ internal fun Route.fritekstRoutes(
 
     post("$FRITEKST_PATH/lagre") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<Fritekst> {
+            call.withBody<FritekstMappedRequest> {
                 val resultat = fritekstService.lagreFritekst(it).map {
                     Resultat.json(HttpStatusCode.OK, serialize(it))
                 }.getOrElse {
