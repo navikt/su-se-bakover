@@ -57,7 +57,6 @@ data class ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
 
 fun KanForhåndsvarsle.leggTilForhåndsvarsel(
     command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
-    fritekst: String,
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
@@ -70,6 +69,5 @@ fun KanForhåndsvarsle.leggTilForhåndsvarsel(
         tidligereHendelseId = tidligereHendelsesId,
         id = command.behandlingId,
         utførtAv = command.utførtAv,
-        // fritekst = command.fritekst,
-        fritekst = fritekst,
+        fritekst = command.fritekst,
     ).let { it to it.applyToState(this) }

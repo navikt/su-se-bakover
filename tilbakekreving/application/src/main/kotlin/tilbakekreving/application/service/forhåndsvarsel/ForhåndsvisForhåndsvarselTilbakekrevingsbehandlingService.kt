@@ -6,7 +6,6 @@ import arrow.core.left
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
-import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
@@ -40,14 +39,11 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
 
-        val fritekst = fritekstService.hentFritekst(behandling.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
-            .getOrNull()?.fritekst
-
         return brevService.lagDokument(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
                 sakstype = sak.type,
-                fritekst = fritekst,
+                fritekst = command.fritekst,
                 saksbehandler = command.utførtAv,
                 correlationId = command.correlationId,
                 sakId = command.sakId,

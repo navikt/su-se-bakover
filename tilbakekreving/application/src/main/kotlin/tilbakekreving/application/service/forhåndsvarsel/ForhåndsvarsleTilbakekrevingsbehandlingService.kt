@@ -51,12 +51,8 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
             }
 
-        val fritekst = fritekstService.hentFritekst(behandling.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
-            .getOrNull()?.fritekst ?: ""
-
         behandling.leggTilForhåndsvarsel(
             command = command,
-            fritekst = fritekst,
             tidligereHendelsesId = behandling.hendelseId,
             nesteVersjon = sak.versjon.inc(),
             clock = clock,
