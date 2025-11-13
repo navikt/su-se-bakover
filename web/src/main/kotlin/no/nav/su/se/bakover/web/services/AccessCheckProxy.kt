@@ -539,18 +539,18 @@ open class AccessCheckProxy(
             },
             fritekstService = object : FritekstService {
                 override fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst> {
-                    harTilgang(referanseId = referanseId, type, sakId = sakId)
-                    return services.fritekstService.hentFritekst(referanseId = referanseId, type, sakId = sakId)
+                    harTilgang(referanseId = referanseId, type = type, sakId = sakId)
+                    return services.fritekstService.hentFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
 
                 override fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit> {
-                    harTilgang(fritekst.referanseId, fritekst.type, sakId = fritekst.sakId)
+                    harTilgang(referanseId = fritekst.referanseId, type = fritekst.type, sakId = fritekst.sakId)
                     return services.fritekstService.lagreFritekst(fritekst)
                 }
 
                 override fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit> {
-                    harTilgang(referanseId, type, sakId = sakId)
-                    return services.fritekstService.slettFritekst(referanseId = referanseId, type, sakId = sakId)
+                    harTilgang(referanseId = referanseId, type = type, sakId = sakId)
+                    return services.fritekstService.slettFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
 
                 private fun harTilgang(referanseId: UUID, type: FritekstType, sakId: UUID) =
