@@ -41,7 +41,6 @@ class SkatteServiceImpl(
     private val sakService: SakService,
     private val journalpostClient: QueryJournalpostClient,
     val clock: Clock,
-    val isProd: Boolean,
 ) : SkatteService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)

@@ -122,7 +122,6 @@ data object ServiceBuilder {
             sakService = sakService,
             journalpostClient = clients.queryJournalpostClient,
             clock = clock,
-            isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod,
         )
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
