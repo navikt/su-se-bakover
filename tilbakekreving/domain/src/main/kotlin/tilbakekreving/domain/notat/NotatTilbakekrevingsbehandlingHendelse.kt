@@ -35,6 +35,7 @@ data class NotatTilbakekrevingsbehandlingHendelse(
             is AvbruttTilbakekrevingsbehandling,
             is IverksattTilbakekrevingsbehandling,
             is OpprettetTilbakekrevingsbehandling.UtenKravgrunnlag,
+            is UnderBehandling.UtenKravgrunnlag,
             -> throw IllegalArgumentException("Kan ikke gå fra [TilAttestering, Avbrutt, Iverksatt,] -> Vurdert.Utfylt. Hendelse ${this.hendelseId}, for sak ${this.sakId} ")
 
             is KanOppdatereNotat -> behandling.oppdaterNotat(

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.QueryParameterMapp
 import no.nav.su.se.bakover.common.infrastructure.persistence.SessionValidator
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.fritekst.FritekstPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FastOppholdINorgeVilkårsvurderingPostgresRepo
@@ -293,10 +294,11 @@ data object DatabaseBuilder {
             ),
         )
         // TODO jah: Denne kreves av sakRepo. Samtidig som TilbakekrevingRepoer krever sessionFactory og andre repoer herfra. Så vi får 2 instanser av disse, men det går fint.
-        val behandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo = BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
-            sessionFactory = sessionFactory,
-            dbMetrics = dbMetrics,
-        )
+        val behandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo =
+            BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
+                sessionFactory = sessionFactory,
+                dbMetrics = dbMetrics,
+            )
         val dokumentHendelseRepo = DokumentHendelsePostgresRepo(
             hendelseRepo = hendelseRepo,
             hendelseFilRepo = HendelseFilPostgresRepo(sessionFactory),
@@ -349,6 +351,10 @@ data object DatabaseBuilder {
             dokumentHendelseRepo = dokumentHendelseRepo,
             stønadStatistikkRepo = stønadRepo,
             sakStatistikkRepo = sakStatistikkRepo,
+            fritekstRepo = FritekstPostgresRepo(
+                sessionFactory = sessionFactory,
+                dbMetrics = dbMetrics,
+            ),
         )
     }
 }

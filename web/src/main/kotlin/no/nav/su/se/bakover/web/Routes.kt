@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
+import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
@@ -158,6 +159,7 @@ internal fun Application.setupKtorRoutes(
                     )
                     økonomiRoutes(resendUtbetalingService)
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
+                    fritekstRoutes(services.fritekstService)
                 }
             }
         }

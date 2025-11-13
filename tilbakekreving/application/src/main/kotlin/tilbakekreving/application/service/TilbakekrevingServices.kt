@@ -3,6 +3,7 @@ package tilbakekreving.application.service
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -77,6 +78,7 @@ class TilbakekrevingServices(
             mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
+            fritekstService: FritekstService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
             tilgangstyringService: TilgangstyringService,
             sakStatistikkRepo: SakStatistikkRepo,
@@ -123,12 +125,14 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    fritekstService = fritekstService,
                     clock = clock,
                 ),
                 forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService = ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     brevService = brevService,
+                    fritekstService = fritekstService,
                 ),
                 genererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakService = sakService,

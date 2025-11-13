@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":web"))
     implementation(project(":client"))
     implementation(project(":common:domain"))
+    implementation(project(":common:presentation"))
     implementation(project(":common:infrastructure"))
     implementation(project(":service"))
     implementation(project(":test-common"))

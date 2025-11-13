@@ -99,11 +99,7 @@ internal class AnnullerKravgrunnlagIT {
                 kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
                 saksversjon = saksversjonEtterOpprettelseAvBehandling.inc(),
                 client = this.client,
-                verifiserBehandling = AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon(
-                    behandlingsId = tilbakekrevingsbehandlingId,
-                    sakId = sakId,
-                    kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
-                ),
+                verifiserBehandling = true,
             )
             hentKravgrunnlagPåSak(sakId, client) shouldBe null
         }

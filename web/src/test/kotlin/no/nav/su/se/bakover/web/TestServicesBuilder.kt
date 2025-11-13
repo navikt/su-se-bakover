@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import dokument.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -38,6 +39,7 @@ data object TestServicesBuilder {
         sakService: SakService = mock(),
         søknad: SøknadService = mock(),
         brev: BrevService = mock(),
+        fritekstService: FritekstService = mock(),
         lukkSøknad: LukkSøknadService = mock(),
         oppgave: OppgaveService = mock(),
         person: PersonService = mock(),
@@ -72,6 +74,7 @@ data object TestServicesBuilder {
         sak = sakService,
         søknad = søknad,
         brev = brev,
+        fritekstService = fritekstService,
         lukkSøknad = lukkSøknad,
         oppgave = oppgave,
         person = person,

@@ -24,7 +24,6 @@ import java.util.UUID
 sealed interface UnderBehandling :
     KanOppdatereKravgrunnlag,
     KanForhåndsvarsle,
-    KanOppdatereNotat,
     KanAnnullere {
 
     override val vurderingerMedKrav: VurderingerMedKrav?
@@ -61,15 +60,6 @@ sealed interface UnderBehandling :
             )
         }
 
-        // TODO nødvendig??
-        override fun oppdaterNotat(
-            notat: NonBlankString?,
-            hendelseId: HendelseId,
-            versjon: Hendelsesversjon,
-        ): UnderBehandling {
-            TODO("Not yet implemented")
-        }
-
         override fun erÅpen(): Boolean = true
     }
 
@@ -83,6 +73,7 @@ sealed interface UnderBehandling :
     ) : UnderBehandling,
         KanOppdatereVedtaksbrev,
         KanVurdere,
+        KanOppdatereNotat,
         KanEndresHarKravgrunnlag {
 
         override fun erÅpen(): Boolean = true

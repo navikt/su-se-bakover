@@ -78,6 +78,7 @@ data object MockDatabaseBuilder {
             dokumentHendelseRepo = dokumentHendelseRepo,
             stønadStatistikkRepo = mock(),
             sakStatistikkRepo = mock(),
+            fritekstRepo = mock(),
         )
     }
 }

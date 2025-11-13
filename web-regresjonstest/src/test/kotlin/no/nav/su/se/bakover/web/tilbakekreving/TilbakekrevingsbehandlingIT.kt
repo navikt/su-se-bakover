@@ -12,6 +12,10 @@ import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.tilbakekreving.LeggTilNotatTilbakekrevingsbehandling.leggTilNotatTilbakekrevingsbehandling
+import no.nav.su.se.bakover.web.tilbakekreving.OppdaterKravgrunnlagTilbakekrevingsbehandling.oppdaterKravgrunnlag
+import no.nav.su.se.bakover.web.tilbakekreving.OppdaterVedtaksbrevTilbakekrevingsbehandling.oppdaterVedtaksbrevTilbakekrevingsbehandling
+import no.nav.su.se.bakover.web.tilbakekreving.VurderTilbakekrevingsbehandling.vurderTilbakekrevingsbehandling
 import org.json.JSONArray
 import org.junit.jupiter.api.Test
 
@@ -144,35 +148,12 @@ internal class TilbakekrevingsbehandlingIT {
                 tilstand = "VEDTAKSBREV",
                 expectedFritekst = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
                 expectedAttesteringer = underkjentAttestering,
-                expectedVurderinger = """
-              {
-                "perioder":[
-                  {
-                    "periode":{
-                      "fraOgMed":"2021-01-01",
-                      "tilOgMed":"2021-01-31"
-                    },
-                    "vurdering":"SkalIkkeTilbakekreve",
-                    "betaltSkattForYtelsesgruppen":1192,
-                    "bruttoTidligereUtbetalt":10946,
-                    "bruttoNyUtbetaling":8563,
-                    "bruttoSkalTilbakekreve":0,
-                    "nettoSkalTilbakekreve":0,
-                    "bruttoSkalIkkeTilbakekreve":2383,
-                    "skatteProsent":"50"
-                  }
-                ],
-                "eksternKravgrunnlagId":"123456",
-                "eksternVedtakId":"654321",
-                "eksternKontrollfelt":"2021-02-01-02.03.48.456789",
-                "bruttoSkalTilbakekreveSummert":0,
-                "nettoSkalTilbakekreveSummert":0,
-                "bruttoSkalIkkeTilbakekreveSummert":2383,
-                "betaltSkattForYtelsesgruppenSummert":1192,
-                "bruttoNyUtbetalingSummert":8563,
-                "bruttoTidligereUtbetaltSummert":10946
-              }
-                """.trimIndent(),
+                expectedVurderinger = lagVurderingerMedKravJson(
+                    vurdering = "SkalIkkeTilbakekreve",
+                    bruttoSkalTilbakekreve = 0,
+                    nettoSkalTilbakekreve = 0,
+                    bruttoSkalIkkeTilbakekreve = 2383,
+                ),
                 expectedNotat = notat,
             )
             val (_, versjonEtterAndreSendingTilAttestering) = appComponents.sendTilbakekrevingsbehandlingTilAttestering(
@@ -181,7 +162,12 @@ internal class TilbakekrevingsbehandlingIT {
                 saksversjon = versjonEtterVurderingEtterUnderkjenning,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
-                verifiserVurderinger = vurderingerEtterUnderkjenning,
+                verifiserVurderinger = lagVurderingerMedKravJson(
+                    vurdering = "SkalIkkeTilbakekreve",
+                    bruttoSkalTilbakekreve = 0,
+                    nettoSkalTilbakekreve = 0,
+                    bruttoSkalIkkeTilbakekreve = 2383,
+                ),
                 verifiserFritekst = fritekst,
                 expectedAttesteringer = underkjentAttestering,
             )

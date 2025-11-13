@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.KanForhåndsvarsle
@@ -19,6 +21,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
+    private val fritekstService: FritekstService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -55,6 +58,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
             clock = clock,
         ).let {
             tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            fritekstService.slettFritekst(it.second.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
             return it.second.right()
         }
     }
