@@ -23,12 +23,6 @@ sealed interface KanForhåndsvarsle : KanEndres {
 
     override fun erÅpen() = true
 
-    fun oppdaterForhåndsvarselFritekst(
-        forhåndsvarselFritekst: String,
-        hendelseId: HendelseId,
-        versjon: Hendelsesversjon,
-    ): KanForhåndsvarsle
-
     fun lagDokumenthendelseForForhåndsvarsel(
         command: SakshendelseCommand,
         dokumentMedMetadataUtenFil: DokumentMedMetadataUtenFil,

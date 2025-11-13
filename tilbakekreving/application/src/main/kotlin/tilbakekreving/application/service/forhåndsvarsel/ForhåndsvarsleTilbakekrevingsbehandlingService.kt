@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -15,7 +14,6 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingCommand
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
 import tilbakekreving.domain.leggTilForhåndsvarsel
-import tilbakekreving.domain.leggTilForhåndsvarselFritekst
 import tilgangstyring.application.TilgangstyringService
 import java.time.Clock
 
@@ -32,53 +30,10 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
         command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
     ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {
         val sakId = command.sakId
-        tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
-            return KunneIkkeForhåndsvarsle.IkkeTilgang(it).left()
-        }
-
-        val (behandling, sak) = behandlingSomKanForhåndsvarsleOgSak(command)
-
-        val fritekst = fritekstService.hentFritekst(behandling.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
-            .getOrNull()?.fritekst ?: ""
-
-        behandling.leggTilForhåndsvarsel(
-            command = command,
-            fritekst = fritekst,
-            tidligereHendelsesId = behandling.hendelseId,
-            nesteVersjon = sak.versjon.inc(),
-            clock = clock,
-        ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
-            fritekstService.tømFritekst(it.second.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
-            return it.second.right()
-        }
-    }
-
-    // TODO bjg - fjern
-    fun forhåndsvarselFritekst(
-        command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
-    ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {
-        val sakId = command.sakId
-        tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
-            return KunneIkkeForhåndsvarsle.IkkeTilgang(it).left()
-        }
-
-        val (behandling, sak) = behandlingSomKanForhåndsvarsleOgSak(command)
-
-        behandling.leggTilForhåndsvarselFritekst(
-            command = command,
-            tidligereHendelsesId = behandling.hendelseId,
-            nesteVersjon = sak.versjon.inc(),
-            clock = clock,
-        ).let {
-            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
-            return it.second.right()
-        }
-    }
-
-    private fun behandlingSomKanForhåndsvarsleOgSak(command: ForhåndsvarselTilbakekrevingsbehandlingCommand): Pair<KanForhåndsvarsle, Sak> {
-        val sakId = command.sakId
         val id = command.behandlingId
+        tilgangstyring.assertHarTilgangTilSak(sakId).onLeft {
+            return KunneIkkeForhåndsvarsle.IkkeTilgang(it).left()
+        }
 
         val sak = sakService.hentSak(sakId).getOrElse {
             throw IllegalStateException("Kunne ikke sende forhåndsvarsel for tilbakekrevingsbehandling, fant ikke sak. Command: $command")
@@ -96,6 +51,19 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
             }
 
-        return Pair(behandling, sak)
+        val fritekst = fritekstService.hentFritekst(behandling.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
+            .getOrNull()?.fritekst ?: ""
+
+        behandling.leggTilForhåndsvarsel(
+            command = command,
+            fritekst = fritekst,
+            tidligereHendelsesId = behandling.hendelseId,
+            nesteVersjon = sak.versjon.inc(),
+            clock = clock,
+        ).let {
+            tilbakekrevingsbehandlingRepo.lagre(it.first, command.toDefaultHendelsesMetadata())
+            fritekstService.tømFritekst(it.second.id.value, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING)
+            return it.second.right()
+        }
     }
 }

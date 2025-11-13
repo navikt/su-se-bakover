@@ -30,7 +30,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
     override val versjon: Hendelsesversjon
     override val hendelseId: HendelseId
     override val erKravgrunnlagUtdatert: Boolean
-    override val forhåndsvarselFritekst: String?
 
     override fun erAvsluttet(): Boolean = false
     override fun erAvbrutt(): Boolean = false
@@ -46,7 +45,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
         override val versjon: Hendelsesversjon,
         override val hendelseId: HendelseId,
         override val erKravgrunnlagUtdatert: Boolean,
-        override val forhåndsvarselFritekst: String? = null,
     ) : OpprettetTilbakekrevingsbehandling,
         KanVurdere,
         KanOppdatereNotat,
@@ -71,7 +69,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             versjon = versjon,
             forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
             kravgrunnlag = this.kravgrunnlag,
-            forhåndsvarselFritekst = null,
         )
 
         override fun leggTilVurderinger(
@@ -97,16 +94,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             notat = notat,
             kravgrunnlag = this.kravgrunnlag,
         )
-
-        override fun oppdaterForhåndsvarselFritekst(
-            forhåndsvarselFritekst: String,
-            hendelseId: HendelseId,
-            versjon: Hendelsesversjon,
-        ): MedKravgrunnlag = this.copy(
-            forhåndsvarselFritekst = forhåndsvarselFritekst,
-            hendelseId = hendelseId,
-            versjon = versjon,
-        )
     }
 
     data class UtenKravgrunnlag(
@@ -119,7 +106,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
         override val versjon: Hendelsesversjon,
         override val hendelseId: HendelseId,
         override val erKravgrunnlagUtdatert: Boolean,
-        override val forhåndsvarselFritekst: String? = null,
     ) : OpprettetTilbakekrevingsbehandling,
         KanForhåndsvarsle,
         KanAnnullere {
@@ -141,17 +127,6 @@ sealed interface OpprettetTilbakekrevingsbehandling :
             hendelseId = hendelseId,
             versjon = versjon,
             forhåndsvarselsInfo = listOf(ForhåndsvarselMetaInfo(dokumentId, hendelsesTidspunkt)),
-            forhåndsvarselFritekst = null,
-        )
-
-        override fun oppdaterForhåndsvarselFritekst(
-            forhåndsvarselFritekst: String,
-            hendelseId: HendelseId,
-            versjon: Hendelsesversjon,
-        ): UtenKravgrunnlag = this.copy(
-            forhåndsvarselFritekst = forhåndsvarselFritekst,
-            hendelseId = hendelseId,
-            versjon = versjon,
         )
     }
 }

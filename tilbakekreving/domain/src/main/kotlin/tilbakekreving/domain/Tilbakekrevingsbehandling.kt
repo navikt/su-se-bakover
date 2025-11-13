@@ -39,7 +39,6 @@ sealed interface Tilbakekrevingsbehandling : BehandlingMedAttestering {
     val vedtaksbrevvalg: Brevvalg.SaksbehandlersValg?
     val versjon: Hendelsesversjon
     val hendelseId: HendelseId
-    val forhåndsvarselFritekst: String?
     val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>
     val notat: NonBlankString?
 

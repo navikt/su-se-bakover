@@ -22,7 +22,6 @@ data class TilbakekrevingsbehandlingJson(
     val status: TilbakekrevingsbehandlingStatus,
     val vurderinger: VurderingerMedKravJson?,
     val fritekst: String?,
-    val forhåndsvarselFritekst: String?,
     val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfoJson>,
     val versjon: Long,
     val sendtTilAttesteringAv: String?,
@@ -58,7 +57,6 @@ data class TilbakekrevingsbehandlingJson(
                 is AvbruttTilbakekrevingsbehandling -> TilbakekrevingsbehandlingStatus.AVBRUTT
             },
             vurderinger = this.vurderingerMedKrav?.toJson(),
-            forhåndsvarselFritekst = forhåndsvarselFritekst,
             forhåndsvarselsInfo = forhåndsvarselsInfo.toJson(),
             fritekst = this.vedtaksbrevvalg?.fritekst,
             versjon = this.versjon.value,

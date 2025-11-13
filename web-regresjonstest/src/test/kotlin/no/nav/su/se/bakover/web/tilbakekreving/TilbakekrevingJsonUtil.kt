@@ -31,7 +31,6 @@ fun lagOpprettTilbakekrevingRespons(
     status = status,
     vurderinger = null,
     fritekst = fritekst,
-    forhåndsvarselFritekst = null,
     forhåndsvarselsInfo = emptyList(),
     versjon = expectedVersjon,
     sendtTilAttesteringAv = sendtTilAttesteringAv,
