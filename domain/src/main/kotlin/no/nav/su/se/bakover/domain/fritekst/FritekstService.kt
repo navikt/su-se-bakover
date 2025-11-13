@@ -26,6 +26,7 @@ class FritekstServiceImpl(
         return fritekst?.right() ?: FritekstFeil.FantIkkeFritekst.left()
     }
 
+    // TODO: hvorfor either her?
     override fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit> {
         return repository.lagreFritekst(fritekst.toFritekst()).right()
     }
