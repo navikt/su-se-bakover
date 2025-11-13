@@ -58,7 +58,7 @@ class FritekstPostgresRepo(
     }
 
     override fun slettFritekst(referanseId: UUID, type: FritekstType) {
-        dbMetrics.timeQuery("tømFritekst") {
+        dbMetrics.timeQuery("slettFritekst") {
             sessionFactory.withSession { session ->
                 """
                     delete from fritekst where referanse_id = :referanse_id and type = :type
