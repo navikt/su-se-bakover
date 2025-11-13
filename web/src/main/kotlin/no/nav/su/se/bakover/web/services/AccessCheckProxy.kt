@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -537,19 +538,19 @@ open class AccessCheckProxy(
                 }
             },
             fritekstService = object : FritekstService {
-                override fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst? {
+                override fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst> {
                     harTilgang(referanseId, type)
                     return hentFritekst(referanseId, type)
                 }
 
-                override fun lagreFritekst(fritekst: Fritekst) {
+                override fun lagreFritekst(fritekst: Fritekst): Either<FritekstFeil, Unit> {
                     harTilgang(fritekst.referanseId, fritekst.type)
-                    lagreFritekst(fritekst)
+                    return lagreFritekst(fritekst)
                 }
 
-                override fun tømFritekst(referanseId: UUID, type: FritekstType) {
+                override fun tømFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
                     harTilgang(referanseId, type)
-                    tømFritekst(referanseId, type)
+                    return tømFritekst(referanseId, type)
                 }
 
                 private fun harTilgang(referanseId: UUID, type: FritekstType) =
