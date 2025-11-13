@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -39,6 +40,7 @@ class Tilbakekrevingskomponenter(
             hendelseRepo: HendelseRepo,
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
+            fritekstService: FritekstService,
             sakStatistikkRepo: SakStatistikkRepo,
             tilbakekrevingConfig: TilbakekrevingConfig,
             dbMetrics: DbMetrics,
@@ -72,6 +74,7 @@ class Tilbakekrevingskomponenter(
                     mapRåttKravgrunnlag = mapRåttKravgrunnlagPåSakHendelse,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     brevService = brevService,
+                    fritekstService = fritekstService,
                     tilbakekrevingsklient = clients.tilbakekrevingsklient,
                     tilgangstyringService = tilgangstyringService,
                     sakStatistikkRepo = sakStatistikkRepo,

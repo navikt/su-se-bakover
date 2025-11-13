@@ -54,6 +54,7 @@ internal class ServiceBuilderTest {
                 dokumentHendelseRepo = mock(),
                 mock(),
                 mock(),
+                mock(),
             ),
             clients = Clients(
                 oauth = mock(),

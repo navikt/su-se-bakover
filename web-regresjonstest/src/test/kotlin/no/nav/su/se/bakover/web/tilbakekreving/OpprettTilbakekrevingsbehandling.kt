@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
 import io.kotest.assertions.withClue
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
@@ -10,12 +11,16 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
-import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.opprett.OpprettTilbakekrevingRequest
 import java.util.UUID
 
@@ -36,7 +41,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
     return runBlocking {
         val correlationId = CorrelationId.generate()
-        no.nav.su.se.bakover.test.application.defaultRequest(
+        defaultRequest(
             HttpMethod.Post,
             "/saker/$sakId/tilbakekreving/ny",
             listOf(Brukerrolle.Saksbehandler),
@@ -67,6 +72,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
             }
             val sakEtterKallJson = hentSak(sakId, client)
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            val tilbakekrevingRespons = deserialize<TilbakekrevingsbehandlingJson>(responseJson)
             if (verifiserRespons) {
                 if (utførSideeffekter) {
                     // oppgavehendelse
@@ -76,20 +82,31 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
                 }
                 sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
                 listOf(
-                    responseJson,
-                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                    tilbakekrevingRespons,
+                    deserialize(JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()),
                 ).forEach {
-                    verifiserOpprettetTilbakekrevingsbehandlingRespons(
-                        actual = it,
-                        sakId = sakId,
-                        expectedVersjon = saksversjon + 1,
+                    it.shouldBeEqualToIgnoringFields(
+                        lagOpprettTilbakekrevingRespons(
+                            sakId,
+                            Tidspunkt.now(fixedClock),
+                            saksversjon + 1,
+                        ),
+                        it::id,
+                        it::opprettet,
+                        it::kravgrunnlag,
+                    )
+
+                    it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
+                        lagKravgrunnlagRespons(),
+                        it.kravgrunnlag!!::hendelseId,
+                        it.kravgrunnlag!!::kontrollfelt,
                     )
                 }
             }
             OpprettetTilbakekrevingsbehandlingRespons(
-                tilbakekrevingsbehandlingId = hentTilbakekrevingsbehandlingId(responseJson),
+                tilbakekrevingsbehandlingId = tilbakekrevingRespons.id,
                 saksversjon = saksversjonEtter,
-                responseJson = responseJson,
+                responseJson = tilbakekrevingRespons,
             )
         }
     }
@@ -98,62 +115,5 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
 internal data class OpprettetTilbakekrevingsbehandlingRespons(
     val tilbakekrevingsbehandlingId: String,
     val saksversjon: Long,
-    val responseJson: String,
+    val responseJson: TilbakekrevingsbehandlingJson,
 )
-
-fun verifiserOpprettetTilbakekrevingsbehandlingRespons(
-    actual: String,
-    sakId: String,
-    expectedVersjon: Long,
-) {
-    //language=json
-    val expected = """
-{
-  "id":"ignoreres-siden-denne-opprettes-av-tjenesten",
-  "sakId":"$sakId",
-  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
-  "opprettetAv":"$DEFAULT_IDENT",
-  "kravgrunnlag":{
-    "eksternKravgrunnlagsId":"123456",
-    "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.48.456789",
-    "status":"NY",
-    "grunnlagsperiode":[
-      {
-        "periode":{
-          "fraOgMed":"2021-01-01",
-          "tilOgMed":"2021-01-31"
-        },
-        "betaltSkattForYtelsesgruppen":"1192",
-        "bruttoTidligereUtbetalt":"10946",
-        "bruttoNyUtbetaling":"8563",
-        "bruttoFeilutbetaling":"2383",
-        "nettoFeilutbetaling": "1191",
-        "skatteProsent":"50",
-        "skattFeilutbetaling":"1192"
-      }
-    ],
-    "summertBetaltSkattForYtelsesgruppen": "1192",
-    "summertBruttoTidligereUtbetalt": 10946,
-    "summertBruttoNyUtbetaling": 8563,
-    "summertBruttoFeilutbetaling": 2383,
-    "summertNettoFeilutbetaling": 1191,
-    "summertSkattFeilutbetaling": 1192,
-    "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
-  },
-  "status":"OPPRETTET",
-  "vurderinger":null,
-  "fritekst":null,
-  "forhåndsvarselsInfo": [],
-  "sendtTilAttesteringAv": null,
-  "versjon": $expectedVersjon,
-  "attesteringer": [],
-  "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": null,
-  "notat": null
-}"""
-    actual.shouldBeSimilarJsonTo(expected, "id", "kravgrunnlag.hendelseId", "kravgrunnlag.kontrollfelt", "opprettet")
-    JSONObject(actual).has("id") shouldBe true
-    JSONObject(actual).has("opprettet") shouldBe true
-    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
-}

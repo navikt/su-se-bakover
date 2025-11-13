@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
@@ -17,6 +18,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val brevService: BrevService,
+    private val fritekstService: FritekstService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

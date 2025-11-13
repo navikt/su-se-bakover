@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.UnderkjennelseJson
 import io.kotest.assertions.withClue
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
@@ -9,12 +12,19 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
+import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
+import tilbakekreving.presentation.api.common.VurderingerMedKravJson
 
 internal fun AppComponents.underkjennTilbakekrevingsbehandling(
     sakId: String,
@@ -25,8 +35,8 @@ internal fun AppComponents.underkjennTilbakekrevingsbehandling(
     utførSideeffekter: Boolean = true,
     saksversjon: Long,
     brevtekst: String?,
-    verifiserForhåndsvarselDokumenter: String,
-    verifiserVurderinger: String,
+    verifiserForhåndsvarselDokumenter: List<ForhåndsvarselMetaInfoJson>,
+    verifiserVurderinger: VurderingerMedKravJson,
     kommentar: String = "Underkjent av underkjennTilbakekrevingsbehandling() - TilbakekrevingsbehandlingIT",
     grunn: UnderkjennAttesteringsgrunnTilbakekreving = UnderkjennAttesteringsgrunnTilbakekreving.VURDERINGEN_ER_FEIL,
 ): UnderkjennTilbakekrevingsbehandlingRespons {
@@ -75,6 +85,7 @@ internal fun AppComponents.underkjennTilbakekrevingsbehandling(
             }
             val sakEtterKallJson = hentSak(sakId, client)
             val saksversjonEtter = JSONObject(sakEtterKallJson).getLong("versjon")
+            val tilbakekrevingRespons = deserialize<TilbakekrevingsbehandlingJson>(responseJson)
             if (utførSideeffekter) {
                 // oppgavehendelse
                 saksversjonEtter shouldBe saksversjon + 2
@@ -84,107 +95,53 @@ internal fun AppComponents.underkjennTilbakekrevingsbehandling(
             sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
             if (verifiserRespons) {
                 listOf(
-                    responseJson,
-                    JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString(),
+                    tilbakekrevingRespons,
+                    deserialize(JSONObject(sakEtterKallJson).getJSONArray("tilbakekrevinger").getJSONObject(0).toString()),
                 ).forEach {
-                    verifiserUnderkjentTilbakekrevingsbehandlingRespons(
-                        actual = it,
-                        sakId = sakId,
-                        vurderinger = verifiserVurderinger,
-                        tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
-                        forhåndsvarselDokumenter = verifiserForhåndsvarselDokumenter,
-                        expectedVersjon = saksversjon + 1,
-                        brevtekst = brevtekst,
-                        expectedGrunn = grunn.toString(),
-                        expectedKommentar = kommentar,
+                    it.shouldBeEqualToIgnoringFields(
+                        lagOpprettTilbakekrevingRespons(
+                            sakId,
+                            Tidspunkt.now(fixedClock),
+                            saksversjon + 1,
+                            status = TilbakekrevingsbehandlingStatus.VEDTAKSBREV,
+                            fritekst = brevtekst,
+                            notat = "notatet",
+                        ),
+                        it::id,
+                        it::opprettet,
+                        it::kravgrunnlag,
+                        it::forhåndsvarselsInfo,
+                        it::vurderinger,
+                        it::attesteringer,
                     )
+                    it.forhåndsvarselsInfo shouldBe verifiserForhåndsvarselDokumenter
+                    it.vurderinger shouldBe verifiserVurderinger
+                    it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
+                        lagKravgrunnlagRespons(),
+                        it.kravgrunnlag!!::hendelseId,
+                        it.kravgrunnlag!!::kontrollfelt,
+                    )
+                    it.attesteringer.size shouldBe 1
+                    it.attesteringer.single().let {
+                        it.shouldBeEqualToIgnoringFields(
+                            lagUnderkjentAttesteringJson(
+                                attestant = DEFAULT_IDENT,
+                                underkjennelse = UnderkjennelseJson(grunn.toString(), kommentar),
+                            ),
+                            it::opprettet,
+                        )
+                    }
                 }
             }
             UnderkjennTilbakekrevingsbehandlingRespons(
-                underkjentAttestering = hentAttesteringer(responseJson),
+                underkjentAttestering = tilbakekrevingRespons.attesteringer,
                 saksversjon = saksversjonEtter,
-                responseJson = responseJson,
             )
         }
     }
 }
 
 internal data class UnderkjennTilbakekrevingsbehandlingRespons(
-    val underkjentAttestering: String,
+    val underkjentAttestering: List<AttesteringJson>,
     val saksversjon: Long,
-    val responseJson: String,
 )
-
-fun verifiserUnderkjentTilbakekrevingsbehandlingRespons(
-    actual: String,
-    sakId: String,
-    brevtekst: String?,
-    tilbakekrevingsbehandlingId: String,
-    vurderinger: String,
-    forhåndsvarselDokumenter: String,
-    expectedVersjon: Long,
-    expectedGrunn: String,
-    expectedKommentar: String,
-) {
-    //language=json
-    val expected = """
-{
-  "id":"$tilbakekrevingsbehandlingId",
-  "sakId":"$sakId",
-  "opprettet":"dette-sjekkes-av-opprettet-verifikasjonen",
-  "opprettetAv":"$DEFAULT_IDENT",
-  "kravgrunnlag":{
-    "eksternKravgrunnlagsId":"123456",
-    "eksternVedtakId":"654321",
-    "kontrollfelt":"2021-02-01-02.03.48.456789",
-    "status":"NY",
-    "grunnlagsperiode":[
-      {
-        "periode":{
-          "fraOgMed":"2021-01-01",
-          "tilOgMed":"2021-01-31"
-        },
-        "betaltSkattForYtelsesgruppen":"1192",
-        "bruttoTidligereUtbetalt":"10946",
-        "bruttoNyUtbetaling":"8563",
-        "bruttoFeilutbetaling":"2383",
-        "nettoFeilutbetaling": "1191",
-        "skatteProsent":"50",
-        "skattFeilutbetaling":"1192"
-      }
-    ],
-    "summertBetaltSkattForYtelsesgruppen": "1192",
-    "summertBruttoTidligereUtbetalt": 10946,
-    "summertBruttoNyUtbetaling": 8563,
-    "summertBruttoFeilutbetaling": 2383,
-    "summertNettoFeilutbetaling": 1191,
-    "summertSkattFeilutbetaling": 1192,
-    "hendelseId": "ignoreres-siden-denne-opprettes-av-tjenesten"
-  },
-  "status":"VEDTAKSBREV",
-  "vurderinger":$vurderinger,
-  "fritekst": "$brevtekst",
-  "forhåndsvarselsInfo": $forhåndsvarselDokumenter,
-  "sendtTilAttesteringAv": null,
-  "versjon": $expectedVersjon,
-  "attesteringer": [
-    {
-      "attestant": "$DEFAULT_IDENT",
-      "underkjennelse": {
-        "grunn": "$expectedGrunn",
-        "kommentar": "$expectedKommentar"
-      },
-      "opprettet": "ignore-me"
-    }
-  ],
-  "erKravgrunnlagUtdatert": false,
-  "avsluttetTidspunkt": null,
-  "notat": "notatet"
-}"""
-    actual.shouldBeSimilarJsonTo(expected, "kravgrunnlag.hendelseId", "kravgrunnlag.kontrollfelt", "opprettet", "attesteringer[*].opprettet")
-    JSONObject(actual).has("opprettet") shouldBe true
-    JSONObject(actual).getJSONObject("kravgrunnlag").has("hendelseId") shouldBe true
-    JSONObject(actual).getJSONArray("attesteringer").all {
-        (it as JSONObject).has("opprettet")
-    } shouldBe true
-}

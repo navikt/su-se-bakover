@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -82,9 +83,10 @@ fun Application.runApplicationWithMocks(
         sakStatistikkRepo: SakStatistikkRepo,
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
+        fritekstService: FritekstService,
         tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, tilbakekrevingConfig, tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, tilbakekrevingConfig, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -96,6 +98,7 @@ fun Application.runApplicationWithMocks(
             hendelseRepo = hendelseRepo,
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
+            fritekstService = fritekstService,
             tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
             samlTokenProvider = FakeSamlTokenProvider(),

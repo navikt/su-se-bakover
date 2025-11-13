@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import dokument.domain.DokumentRepo
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
@@ -51,4 +52,5 @@ data class DatabaseRepos(
     val dokumentHendelseRepo: DokumentHendelseRepo,
     val stønadStatistikkRepo: StønadStatistikkRepo,
     val sakStatistikkRepo: SakStatistikkRepo,
+    val fritekstRepo: FritekstRepo,
 )

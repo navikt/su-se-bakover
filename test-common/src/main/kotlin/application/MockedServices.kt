@@ -10,6 +10,7 @@ fun mockedServices() = Services(
     sak = mock(),
     søknad = mock(),
     brev = mock(),
+    fritekstService = mock(),
     lukkSøknad = mock(),
     oppgave = mock(),
     person = mock(),

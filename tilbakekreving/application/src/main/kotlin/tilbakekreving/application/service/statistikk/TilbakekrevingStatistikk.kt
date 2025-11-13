@@ -18,7 +18,7 @@ fun OpprettetTilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
     generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "REGISTRERT",
+    behandlingStatus = "OPPRETTET",
 )
 
 // TODO bjg - statistikk for nye hendelser
