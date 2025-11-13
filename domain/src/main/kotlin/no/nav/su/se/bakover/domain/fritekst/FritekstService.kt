@@ -7,7 +7,7 @@ import java.util.UUID
 
 interface FritekstService {
     fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst>
-    fun lagreFritekst(fritekst: FritekstMappedRequest): Either<FritekstFeil, Unit>
+    fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit>
     fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit>
 }
 
@@ -26,7 +26,7 @@ class FritekstServiceImpl(
         return fritekst?.right() ?: FritekstFeil.FantIkkeFritekst.left()
     }
 
-    override fun lagreFritekst(fritekst: FritekstMappedRequest): Either<FritekstFeil, Unit> {
+    override fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit> {
         return repository.lagreFritekst(fritekst.toFritekst()).right()
     }
 
@@ -35,7 +35,7 @@ class FritekstServiceImpl(
     }
 }
 
-data class FritekstMappedRequest(
+data class FritekstDomain(
     val referanseId: UUID,
     val sakId: UUID,
     val type: FritekstType,

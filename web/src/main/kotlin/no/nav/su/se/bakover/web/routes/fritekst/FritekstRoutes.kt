@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.fritekst.FritekstMappedRequest
+import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import java.util.UUID
@@ -42,7 +42,7 @@ internal fun Route.fritekstRoutes(
 
     post("$FRITEKST_PATH/lagre") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<FritekstMappedRequest> {
+            call.withBody<FritekstDomain> {
                 val resultat = fritekstService.lagreFritekst(it).map {
                     Resultat.json(HttpStatusCode.OK, serialize(it))
                 }.getOrElse {

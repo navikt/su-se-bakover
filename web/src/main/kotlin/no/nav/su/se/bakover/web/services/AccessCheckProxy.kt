@@ -40,8 +40,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
-import no.nav.su.se.bakover.domain.fritekst.FritekstMappedRequest
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -543,7 +543,7 @@ open class AccessCheckProxy(
                     return services.fritekstService.hentFritekst(referanseId = referanseId, type, sakId = sakId)
                 }
 
-                override fun lagreFritekst(fritekst: FritekstMappedRequest): Either<FritekstFeil, Unit> {
+                override fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit> {
                     harTilgang(fritekst.referanseId, fritekst.type, sakId = fritekst.sakId)
                     return services.fritekstService.lagreFritekst(fritekst)
                 }
