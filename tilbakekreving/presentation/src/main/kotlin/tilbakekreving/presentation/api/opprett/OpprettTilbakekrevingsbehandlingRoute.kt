@@ -22,9 +22,11 @@ import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import tilbakekreving.presentation.api.common.ingenUteståendeKravgrunnlag
+import java.util.UUID
 
-private data class Body(
+data class OpprettTilbakekrevingRequest(
     val versjon: Long,
+    val relatertId: String,
 )
 
 internal fun Route.opprettTilbakekrevingsbehandlingRoute(
@@ -33,7 +35,7 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
     post("$TILBAKEKREVING_PATH/ny") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
+                call.withBody<OpprettTilbakekrevingRequest> { body ->
                     opprettTilbakekrevingsbehandlingService.opprett(
                         command = OpprettTilbakekrevingsbehandlingCommand(
                             sakId = sakId,
@@ -41,6 +43,7 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
                             correlationId = call.correlationId,
                             brukerroller = call.suUserContext.roller.toNonEmptyList(),
                             klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
+                            relatertId = UUID.fromString(body.relatertId),
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },

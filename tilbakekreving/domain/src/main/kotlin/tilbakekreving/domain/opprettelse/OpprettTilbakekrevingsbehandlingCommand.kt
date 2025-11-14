@@ -14,6 +14,7 @@ data class OpprettTilbakekrevingsbehandlingCommand(
     val correlationId: CorrelationId,
     val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
+    val relatertId: UUID,
 ) {
     fun toDefaultHendelsesMetadata(): DefaultHendelseMetadata = DefaultHendelseMetadata(
         correlationId = correlationId,

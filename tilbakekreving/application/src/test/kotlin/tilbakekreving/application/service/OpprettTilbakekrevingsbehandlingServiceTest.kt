@@ -67,6 +67,7 @@ class OpprettTilbakekrevingsbehandlingServiceTest {
                 correlationId = correlationId,
                 brukerroller = brukerroller,
                 klientensSisteSaksversjon = Hendelsesversjon(1),
+                relatertId = UUID.randomUUID(),
             ),
         ).shouldBeRight()
 

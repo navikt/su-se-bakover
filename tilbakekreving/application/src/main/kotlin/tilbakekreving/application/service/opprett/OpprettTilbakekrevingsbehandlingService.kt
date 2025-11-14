@@ -63,6 +63,7 @@ class OpprettTilbakekrevingsbehandlingService(
                         GenerellSakStatistikk.create(
                             clock = clock,
                             sak = sak,
+                            relatertId = command.relatertId,
                         ),
                     ),
                     sessionContext = tx,
