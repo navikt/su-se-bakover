@@ -7,7 +7,7 @@ import java.util.UUID
 
 interface FritekstService {
     fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst>
-    fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit>
+    fun lagreFritekst(fritekst: FritekstDomain): Unit
     fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit>
 }
 
@@ -26,9 +26,8 @@ class FritekstServiceImpl(
         return fritekst?.right() ?: FritekstFeil.FantIkkeFritekst.left()
     }
 
-    // TODO: hvorfor either her?
-    override fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit> {
-        return repository.lagreFritekst(fritekst.toFritekst()).right()
+    override fun lagreFritekst(fritekst: FritekstDomain) {
+        return repository.lagreFritekst(fritekst.toFritekst())
     }
 
     override fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit> {

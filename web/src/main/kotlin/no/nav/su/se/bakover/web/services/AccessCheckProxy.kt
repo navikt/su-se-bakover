@@ -543,7 +543,7 @@ open class AccessCheckProxy(
                     return services.fritekstService.hentFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
 
-                override fun lagreFritekst(fritekst: FritekstDomain): Either<FritekstFeil, Unit> {
+                override fun lagreFritekst(fritekst: FritekstDomain) {
                     harTilgang(referanseId = fritekst.referanseId, type = fritekst.type, sakId = fritekst.sakId)
                     return services.fritekstService.lagreFritekst(fritekst)
                 }

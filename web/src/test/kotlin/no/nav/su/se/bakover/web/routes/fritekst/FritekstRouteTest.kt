@@ -20,8 +20,10 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.util.UUID
 
 internal class FritekstRouteTest {
@@ -86,9 +88,11 @@ internal class FritekstRouteTest {
         val sakId = UUID.randomUUID()
         val friteksttekst = "fritekst for vedtak"
         val fritekstDomain = FritekstDomain(referanseId = referanseId, type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING, fritekst = friteksttekst, sakId = sakId)
-        val fritekstMockService = mock<FritekstService> {
-            on { lagreFritekst(fritekstDomain) } doReturn Unit.right()
-        }
+        val fritekstMockService = mock<FritekstService>()
+
+        doNothing()
+            .`when`(fritekstMockService)
+            .lagreFritekst(fritekstDomain)
 
         val request = FritekstRequestLagre(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name, fritekst = friteksttekst)
         testApplication {
@@ -105,6 +109,7 @@ internal class FritekstRouteTest {
                 status shouldBe HttpStatusCode.OK
             }
         }
+        verify(fritekstMockService).lagreFritekst(fritekstDomain)
     }
 
     @Test

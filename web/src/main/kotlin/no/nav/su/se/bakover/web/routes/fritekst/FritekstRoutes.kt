@@ -79,12 +79,8 @@ internal fun Route.fritekstRoutes(
                         call.svar(FeilResponser.ugyldigBody(mappingFeil.asMessage()))
                     },
                     {
-                        val resultat = fritekstService.lagreFritekst(it).map {
-                            Resultat.json(HttpStatusCode.OK, serialize(it))
-                        }.getOrElse {
-                            FeilResponser.kunneIkkeLagreFritekst
-                        }
-                        call.svar(resultat)
+                        fritekstService.lagreFritekst(it)
+                        call.svar(Resultat.okJson())
                     },
                 )
             }
@@ -94,7 +90,6 @@ internal fun Route.fritekstRoutes(
 
 data object FeilResponser {
     val fantIkkeFritekst = HttpStatusCode.NotFound.errorJson("Fant ikke fritekst", "fant_ikke_fritekst")
-    val kunneIkkeLagreFritekst = HttpStatusCode.InternalServerError.errorJson("Kunne ikke lagre fritekst", "kunne_ikke_lagre_fritekst")
     fun ugyldigBody(message: String): Resultat =
         HttpStatusCode.BadRequest.errorJson(
             message = message,
