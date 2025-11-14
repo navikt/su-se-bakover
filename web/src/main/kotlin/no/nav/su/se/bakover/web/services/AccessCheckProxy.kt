@@ -40,7 +40,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
+import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -537,22 +539,22 @@ open class AccessCheckProxy(
                 }
             },
             fritekstService = object : FritekstService {
-                override fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst> {
-                    harTilgang(referanseId, type)
-                    return services.fritekstService.hentFritekst(referanseId, type)
+                override fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst> {
+                    harTilgang(referanseId = hentDomain.referanseId, type = hentDomain.type, sakId = hentDomain.sakId)
+                    return services.fritekstService.hentFritekst(hentDomain = hentDomain)
                 }
 
-                override fun lagreFritekst(fritekst: Fritekst): Either<FritekstFeil, Unit> {
-                    harTilgang(fritekst.referanseId, fritekst.type)
+                override fun lagreFritekst(fritekst: FritekstDomain) {
+                    harTilgang(referanseId = fritekst.referanseId, type = fritekst.type, sakId = fritekst.sakId)
                     return services.fritekstService.lagreFritekst(fritekst)
                 }
 
-                override fun slettFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Unit> {
-                    harTilgang(referanseId, type)
-                    return services.fritekstService.slettFritekst(referanseId, type)
+                override fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit> {
+                    harTilgang(referanseId = referanseId, type = type, sakId = sakId)
+                    return services.fritekstService.slettFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
 
-                private fun harTilgang(referanseId: UUID, type: FritekstType) =
+                private fun harTilgang(referanseId: UUID, type: FritekstType, sakId: UUID) =
                     when (type) {
                         FritekstType.FRITEKST_BREV -> assertHarTilgangTilSak(referanseId)
 
@@ -563,11 +565,11 @@ open class AccessCheckProxy(
                         FritekstType.FORHÅNDSVARSEL_REVURDERING,
                         FritekstType.VEDTAKSBREV_REVURDERING,
                         -> assertHarTilgangTilRevurdering(RevurderingId(referanseId))
-                        // TODO: hva med å bare sjekktilgangtilsak/fnr...
+
                         FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
                         FritekstType.VEDTAKSBREV_TILBAKEKREVING,
                         FritekstType.NOTAT_TILBAKEKREVING,
-                        -> true // TODO accessCheck for tilbakekreving??
+                        -> assertHarTilgangTilSak(sakId)
                     }
             },
             lukkSøknad = object : LukkSøknadService {
