@@ -463,6 +463,38 @@ internal class VilkårsvurderKlageTest {
         forventetAvvistVilkårsvurdertKlage.shouldBeTypeOf<VilkårsvurdertKlage.Utfylt.Avvist>()
     }
 
+    @Test
+    fun `Påbegynt create skal returnere Påbegynt hvis rettsligfremstilt er null`() {
+        val klageErPåbegyntOmRettsligfremstilterNull = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
+            vilkårsvurderinger = FormkravTilKlage.create(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = null,
+            ),
+        ).getOrFail()
+        klageErPåbegyntOmRettsligfremstilterNull.vilkårsvurderinger.shouldBeTypeOf<FormkravTilKlage.Påbegynt>()
+        klageErPåbegyntOmRettsligfremstilterNull.shouldBeTypeOf<VilkårsvurdertKlage.Påbegynt>()
+    }
+
+    @Test
+    fun `Påbegynt create skal returnere Utfylt alt er utfylt`() {
+        val klageErUtfylt = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
+            vilkårsvurderinger = FormkravTilKlage.create(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+            ),
+        ).getOrFail()
+        klageErUtfylt.vilkårsvurderinger.shouldBeTypeOf<FormkravTilKlage.Utfylt>()
+        klageErUtfylt.shouldBeTypeOf<VilkårsvurdertKlage.Utfylt.TilVurdering>()
+    }
+
     private fun verifiserGyldigStatusovergangTilPåbegynt(
         sak: Sak,
         klage: Klage,
