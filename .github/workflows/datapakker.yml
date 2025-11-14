@@ -38,7 +38,7 @@ jobs:
         with:
           gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build :datapakker:stoenadstatistikk:build :datapakker:saksstatistikk:build
       - name: Upload JARs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: datapakker-jars
           path: |
