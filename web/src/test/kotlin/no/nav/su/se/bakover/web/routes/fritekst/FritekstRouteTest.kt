@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.fritekst
 
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -33,11 +34,10 @@ internal class FritekstRouteTest {
         val referanseId = UUID.randomUUID()
         val sakId = UUID.randomUUID()
         val fritekst = Fritekst(referanseId = referanseId, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING, fritekst = "fritekst for vedtak")
+        val request = FritekstRequestHent(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name)
         val fritekstMockService = mock<FritekstService> {
-            on { hentFritekst(referanseId = referanseId, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING, sakId = sakId) } doReturn fritekst.right()
+            on { hentFritekst(hentDomain = request.toDomain().getOrElse { throw IllegalStateException("feilmapping") }) } doReturn fritekst.right()
         }
-
-        val request = Body(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name)
         testApplication {
             application {
                 testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
@@ -59,11 +59,10 @@ internal class FritekstRouteTest {
     fun `Får fritekst feil for ikke eksisterende fritekst`() {
         val referanseId = UUID.randomUUID()
         val sakId = UUID.randomUUID()
+        val request = FritekstRequestHent(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name)
         val fritekstMockService = mock<FritekstService> {
-            on { hentFritekst(referanseId = referanseId, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING, sakId = sakId) } doReturn FritekstFeil.FantIkkeFritekst.left()
+            on { hentFritekst(hentDomain = request.toDomain().getOrElse { throw IllegalStateException("feilmapping") }) } doReturn FritekstFeil.FantIkkeFritekst.left()
         }
-
-        val request = Body(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name)
         testApplication {
             application {
                 testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
@@ -113,7 +112,7 @@ internal class FritekstRouteTest {
     }
 
     @Test
-    fun `Sjekker at lagring kun skjer hvis det blir riktig domeneobjet`() {
+    fun `Sjekker at lagring kun skjer hvis det blir riktig domeneobjekt`() {
         val referanseId = UUID.randomUUID()
         val sakId = UUID.randomUUID()
         val friteksttekst = "fritekst for vedtak"

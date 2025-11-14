@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
+import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -538,9 +539,9 @@ open class AccessCheckProxy(
                 }
             },
             fritekstService = object : FritekstService {
-                override fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst> {
-                    harTilgang(referanseId = referanseId, type = type, sakId = sakId)
-                    return services.fritekstService.hentFritekst(referanseId = referanseId, type = type, sakId = sakId)
+                override fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst> {
+                    harTilgang(referanseId = hentDomain.referanseId, type = hentDomain.type, sakId = hentDomain.sakId)
+                    return services.fritekstService.hentFritekst(hentDomain = hentDomain)
                 }
 
                 override fun lagreFritekst(fritekst: FritekstDomain) {

@@ -6,7 +6,7 @@ import arrow.core.right
 import java.util.UUID
 
 interface FritekstService {
-    fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst>
+    fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst>
     fun lagreFritekst(fritekst: FritekstDomain): Unit
     fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit>
 }
@@ -21,8 +21,8 @@ class FritekstServiceImpl(
     private val repository: FritekstRepo,
 ) : FritekstService {
 
-    override fun hentFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Fritekst> {
-        val fritekst = repository.hentFritekst(referanseId, type)
+    override fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst> {
+        val fritekst = repository.hentFritekst(referanseId = hentDomain.referanseId, type = hentDomain.type)
         return fritekst?.right() ?: FritekstFeil.FantIkkeFritekst.left()
     }
 
@@ -34,6 +34,12 @@ class FritekstServiceImpl(
         return repository.slettFritekst(referanseId, type).right()
     }
 }
+
+data class FritekstHentDomain(
+    val referanseId: UUID,
+    val type: FritekstType,
+    val sakId: UUID,
+)
 
 data class FritekstDomain(
     val referanseId: UUID,

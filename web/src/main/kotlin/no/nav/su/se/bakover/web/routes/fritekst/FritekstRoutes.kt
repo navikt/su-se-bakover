@@ -15,13 +15,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
+import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import java.util.UUID
 
 internal const val FRITEKST_PATH = "fritekst"
 
-data class Body(val referanseId: String, val sakId: String, val type: String)
 data class FritekstRequestLagre(
     val referanseId: String,
     val sakId: String,
@@ -51,22 +51,44 @@ data class FeilDatatype(val field: String, val invalidValue: String) {
     fun asMessage(): String = "Ugyldig verdi for felt '$field': '$invalidValue'"
 }
 
+data class FritekstRequestHent(
+    val referanseId: String,
+    val sakId: String,
+    val type: String,
+) {
+    fun toDomain(): Either<KunneIkkeHenteFritekst, FritekstHentDomain> =
+        Either.catch {
+            FritekstHentDomain(
+                referanseId = UUID.fromString(referanseId),
+                sakId = UUID.fromString(sakId),
+                type = FritekstType.valueOf(type),
+            )
+        }.mapLeft {
+            KunneIkkeHenteFritekst("Ugyldig input. objekt $it")
+        }
+}
+
+data class KunneIkkeHenteFritekst(val årsak: String)
+
 internal fun Route.fritekstRoutes(
     fritekstService: FritekstService,
 ) {
     post(FRITEKST_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<Body> {
-                val resultat = fritekstService.hentFritekst(
-                    referanseId = UUID.fromString(it.referanseId),
-                    sakId = UUID.fromString(it.sakId),
-                    type = FritekstType.valueOf(it.type),
-                ).map {
-                    Resultat.json(HttpStatusCode.OK, serialize(it))
-                }.getOrElse {
-                    FeilResponser.fantIkkeFritekst
-                }
-                call.svar(resultat)
+            call.withBody<FritekstRequestHent> {
+                it.toDomain().fold(
+                    {
+                        call.svar(FeilResponser.ugyldigBody(it.årsak))
+                    },
+                    { mappetDomene ->
+                        val resultat = fritekstService.hentFritekst(mappetDomene).map {
+                            Resultat.json(HttpStatusCode.OK, serialize(it))
+                        }.getOrElse {
+                            FeilResponser.fantIkkeFritekst
+                        }
+                        call.svar(resultat)
+                    },
+                )
             }
         }
     }
