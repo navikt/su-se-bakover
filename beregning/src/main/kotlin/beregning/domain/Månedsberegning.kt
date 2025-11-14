@@ -3,6 +3,7 @@ package beregning.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import satser.domain.Satskategori
@@ -19,6 +20,7 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getFradrag(): List<FradragForMåned>
     fun getFribeløpForEps(): Double
     fun getMerknader(): List<Merknad.Beregning>
+    fun getBenyttetRegler(): List<Regelspesifsering>
 
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }

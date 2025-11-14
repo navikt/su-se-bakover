@@ -1,4 +1,4 @@
-package beregning.domain
+package no.nav.su.se.bakover.common.domain.regelspesifisering
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.Clock
@@ -7,6 +7,7 @@ enum class Regelspesifiseringer(
     val kode: String,
     val versjon: String,
 ) {
+    REGEL_BEREGN_SATS_UFØRE_MÅNED("REGEL-BEREGN-SATS-UFØRE-MÅNED", "1"),
     REGEL_MÅNEDSBEREGNING("REGEL-MÅNEDSBEREGNING", "1"),
     ;
 
@@ -24,5 +25,9 @@ data class Regelspesifsering(
 )
 
 interface RegelspesifisertBeregning {
-    val benyttetRegel: Regelspesifsering
+    val benyttetRegel: MutableList<Regelspesifsering>
+    // TODO grunnlag????
+    // TODO kilde ???
+
+    fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning
 }

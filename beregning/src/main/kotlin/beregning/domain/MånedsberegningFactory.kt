@@ -2,6 +2,7 @@ package beregning.domain
 
 import no.nav.su.se.bakover.common.domain.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.domain.extensions.positiveOrZero
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.sum
@@ -35,11 +36,15 @@ data object MånedsberegningFactory {
         return BeregningForMåned(
             måned = måned,
             fullSupplerendeStønadForMåned = ytelseFørFradrag,
+            // TODO bjg wrapper?? eller nedenfor?
             fradrag = fradragForMåned,
+            // TODO bjg wrapper??
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
+        ).leggTilbenyttetRegler(
+            mutableListOf(Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering()) +
+                ytelseFørFradrag.benyttetRegel,
         )
     }
 }

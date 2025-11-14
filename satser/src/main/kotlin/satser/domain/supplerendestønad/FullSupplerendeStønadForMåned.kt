@@ -2,6 +2,9 @@ package satser.domain.supplerendestønad
 
 import grunnbeløp.domain.GrunnbeløpForMåned
 import no.nav.su.se.bakover.common.domain.extensions.avrund
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.garantipensjon.GarantipensjonForMåned
@@ -15,7 +18,7 @@ import java.time.LocalDate
  * Den kan også endre hva slags satstype som ligger til grunn.
  * F.eks. SU Alder gikk fra å bruke minstepensjon til garantipensjon i 2021-01-01
  */
-sealed interface FullSupplerendeStønadForMåned {
+sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
     val måned: Måned
     val satskategori: Satskategori
     val toProsentAvHøyForMåned: BigDecimal
@@ -33,12 +36,18 @@ sealed interface FullSupplerendeStønadForMåned {
     val toProsentAvHøyForMånedAsDouble: Double
     val periode: Måned
 
+    override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
+        benyttetRegel.add(regel)
+        return this
+    }
+
     data class Uføre(
         override val måned: Måned,
         override val satskategori: Satskategori,
         val grunnbeløp: GrunnbeløpForMåned,
         val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
         override val toProsentAvHøyForMåned: BigDecimal,
+        override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf(),
     ) : Comparable<FullSupplerendeStønadForMåned>,
         FullSupplerendeStønadForMåned {
 
@@ -56,6 +65,7 @@ sealed interface FullSupplerendeStønadForMåned {
             require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
             require(måned == minsteÅrligYtelseForUføretrygdede.måned)
             require(måned == grunnbeløp.måned)
+            leggTilbenyttetRegel(Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering())
         }
 
         /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
@@ -74,13 +84,14 @@ sealed interface FullSupplerendeStønadForMåned {
         override val satskategori: Satskategori,
         val garantipensjonForMåned: GarantipensjonForMåned,
         override val toProsentAvHøyForMåned: BigDecimal,
+        override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf(),
     ) : Comparable<FullSupplerendeStønadForMåned>,
         FullSupplerendeStønadForMåned {
 
         override val satsPerÅr: BigDecimal = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
 
         override val satsForMåned: BigDecimal = satsPerÅr.divide(12.toBigDecimal(), MathContext.DECIMAL128)
-        override val satsForMånedAvrundet: Int = satsForMåned.avrund()
+        override val satsForMånedAvrundet: Int = satsForMåned.avrund() // TODO bjg - skal ikke skje?
         override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
 
         init {
