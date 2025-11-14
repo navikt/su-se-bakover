@@ -23,30 +23,6 @@ on:
 permissions: {}
 
 jobs:
-
-  build-test-push-image:
-    name: Build and push Docker container
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v5
-      - name: Build and test
-        uses: ./.github/actions/build-and-test
-        with:
-          gradle-arguments: :datapakker:soknad:build :datapakker:fritekstAvslag:build :datapakker:stoenadstatistikk:build :datapakker:saksstatistikk:build
-      - name: Upload JARs
-        uses: actions/upload-artifact@v5
-        with:
-          name: datapakker-jars
-          path: |
-            datapakker/soknad/build/libs/*.jar
-            datapakker/fritekstAvslag/build/libs/*.jar
-            datapakker/stoenadstatistikk/build/libs/*.jar
-            datapakker/saksstatistikk/build/libs/*.jar
-
   push_image_soknad:
     runs-on: ubuntu-latest
     permissions:
