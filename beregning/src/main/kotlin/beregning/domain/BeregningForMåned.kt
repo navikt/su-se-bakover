@@ -19,7 +19,9 @@ data class BeregningForMåned(
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-) : Månedsberegning {
+    override val benyttetRegel: Regelspesifsering,
+) : Månedsberegning,
+    RegelspesifisertBeregning {
 
     override val periode: Måned = måned
 

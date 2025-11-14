@@ -11,6 +11,8 @@ data object MånedsberegningFactory {
     /**
      * Beregner ytelsen for en spesifiskert måned i henhold til angitt strategi.
      *
+     * Regelspesifisering: [Regelspesifiseringer.REGEL_MÅNEDSBEREGNING]
+     *
      * @param måned måned det skal beregnes for
      * @param strategy strategien som skal benyttes for beregningen
      * @param fradrag en liste med fradrag som skal trekkes fra ytelsen. Kun fradrag som er aktuelle for [måned] tas med i beregningen.
@@ -37,6 +39,7 @@ data object MånedsberegningFactory {
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
+            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
         )
     }
 }
