@@ -78,11 +78,11 @@ sealed interface FormkravTilKlage {
                 erUnderskrevet: SvarMedBegrunnelse?,
                 fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
             ): FormkravTilKlage {
-                // TODO: SOS: legg ikke fremsattRettsligKlageinteresse == null Når dagens klager er ferdigbehandlet. Er påkrevd i frontend for nye enn så lenge.
                 val erFerdigutfylt = vedtakId == null ||
                     innenforFristen == null ||
                     klagesDetPåKonkreteElementerIVedtaket == null ||
-                    erUnderskrevet == null
+                    erUnderskrevet == null ||
+                    fremsattRettsligKlageinteresse == null
 
                 return if (!erFerdigutfylt) {
                     createUtfyltOnly(
