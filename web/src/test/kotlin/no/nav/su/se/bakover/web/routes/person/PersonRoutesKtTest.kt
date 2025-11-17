@@ -148,7 +148,7 @@ internal class PersonRoutesKtTest {
             TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.Ukjent.left()
@@ -183,7 +183,7 @@ internal class PersonRoutesKtTest {
             TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.FantIkkePerson.left()
@@ -218,7 +218,7 @@ internal class PersonRoutesKtTest {
             TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.IkkeTilgangTilPerson.left()

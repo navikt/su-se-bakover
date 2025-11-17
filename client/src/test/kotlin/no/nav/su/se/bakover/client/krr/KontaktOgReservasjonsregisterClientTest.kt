@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 
 class KontaktOgReservasjonsregisterClientTest {
 
@@ -22,6 +23,7 @@ class KontaktOgReservasjonsregisterClientTest {
             url = baseUrl,
         ),
         azure = AzureClientStub,
+        suMetrics = mock(),
     )
 
     private val fnr: Fnr = Fnr(fødselsnummer)

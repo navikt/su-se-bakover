@@ -70,7 +70,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         kontrollsamtale: Kontrollsamtale,
     ): Boolean {
         // TODO: trenger ikke kontaktinfo
-        val person = personService.hentPersonMedSystembruker(sak.fnr, true).getOrElse {
+        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
             log.error("Fant ikke person for sakId ${sak.id}, saksnummer ${sak.saksnummer}")
             return false
         }

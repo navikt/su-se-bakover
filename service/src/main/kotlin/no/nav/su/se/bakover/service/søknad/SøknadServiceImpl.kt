@@ -177,7 +177,7 @@ class SøknadServiceImpl(
                 return@map KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Fant ikke sak").left()
             }
             // TODO: trenger ikke kontaktinfo
-            val person = personService.hentPersonMedSystembruker(sak.fnr, true).getOrElse {
+            val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
                 return@map KunneIkkeOppretteJournalpost(sak.id, søknad.id, "Fant ikke person").left()
             }

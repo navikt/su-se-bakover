@@ -68,7 +68,7 @@ data class PersonOppslagStub(
             nyTestPerson(fnr).right()
         }
 
-    override fun personMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+    override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
         AktørId("2437280977705").right()
 

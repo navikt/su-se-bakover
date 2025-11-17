@@ -39,7 +39,7 @@ class BrevServiceImpl(
         return command.tilPdfInnhold(
             clock = clock,
             // TODO jah: Både saksbehandlere/attestanter/systemet må kunne generere dokumenter. Skal vi holde oss til systembruker her? Eller bør vi lage en egen funksjon for å hente person uten systembruker?
-            hentPerson = { personService.hentPersonMedSystembruker(command.fødselsnummer, true) },
+            hentPerson = { personService.hentPersonMedSystembruker(command.fødselsnummer) },
             // TODO: trenger ikke kontaktinfo - her henter vi persondetaljer med feil rettigheter burde ha lagdokument og lagDokumentSystembruker
             hentNavnForIdent = identClient::hentNavnForNavIdent,
         ).mapLeft { KunneIkkeLageDokument.FeilVedHentingAvInformasjon }

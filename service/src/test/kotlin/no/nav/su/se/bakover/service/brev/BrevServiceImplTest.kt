@@ -76,7 +76,7 @@ internal class BrevServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any(), true) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val identClientMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturn "testname".right()
@@ -111,7 +111,7 @@ internal class BrevServiceImplTest {
                 )
             },
         )
-        verify(personServiceMock).hentPersonMedSystembruker(dokumentCommand.fødselsnummer, true)
+        verify(personServiceMock).hentPersonMedSystembruker(dokumentCommand.fødselsnummer)
         verify(identClientMock).hentNavnForNavIdent(saksbehandler)
 
         serviceOgMocks.verifyNoMoreInteraction()
@@ -134,7 +134,7 @@ internal class BrevServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any(), true) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val identClientMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturn "testname".right()
@@ -149,7 +149,7 @@ internal class BrevServiceImplTest {
             it.brevService.lagDokument(dokumentCommand) shouldBe KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             // Disse testes i happy case
             verify(pdfGeneratorMock).genererPdf(any<PdfInnhold>())
-            verify(personServiceMock).hentPersonMedSystembruker(any(), true)
+            verify(personServiceMock).hentPersonMedSystembruker(any())
             verify(identClientMock).hentNavnForNavIdent(any())
             it.verifyNoMoreInteraction()
         }
@@ -211,7 +211,7 @@ internal class BrevServiceImplTest {
     fun `personservice finner ikke personen`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any(), true) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
         ServiceOgMocks(
             personService = personServiceMock,
@@ -228,7 +228,7 @@ internal class BrevServiceImplTest {
     fun `identClient klarer ikke hente navnet`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any(), true) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val microsoftGraphApiOppslagMock = mock<IdentClient> {
@@ -244,7 +244,7 @@ internal class BrevServiceImplTest {
                     satsFactory = satsFactoryTestPåDato(),
                 ),
             ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
-            verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr, true)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
             verify(it.identClient).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
             it.verifyNoMoreInteraction()
         }

@@ -3,11 +3,8 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
-import io.kotest.matchers.types.shouldNotBeSameInstanceAs
-import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
@@ -38,13 +35,14 @@ internal class PersonClientTest {
     @Nested
     inner class `person()` {
         @Test
-        fun `andre kall med samme token hentes fra cache`() {
+        fun `andre kall med samme token hentes på nytt`() {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.person(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
             }.getOrFail()
             verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.person(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
+            mocks.personClient.person(fnr = mocks.fnr).getOrFail() shouldBe first
+            verify(mocks.pdlClient, times(2)).person(mocks.fnr, mocks.brukerTokenGenerator.first())
             verifyNoMoreInteractions(mocks.pdlClient)
         }
 
@@ -57,26 +55,9 @@ internal class PersonClientTest {
                 mocks.personClient.person(fnr = mocks.fnr).also { it shouldBe mocks.person().right() }.getOrFail()
             mocks.personClient.person(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
-                it.getOrFail() shouldNotBeSameInstanceAs first
+                it.getOrFail() shouldBe first
             }
             verify(mocks.pdlClient, times(2)).person(eq(mocks.fnr), any())
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
-
-        @Test
-        fun `andre kall med annet fnr hentes ikke fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val fnr1 = mocks.fnr
-            val fnr2 = Fnr.generer()
-            val first = mocks.personClient.person(fnr = fnr1).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            mocks.personClient.person(fnr = fnr2).also {
-                it shouldBe mocks.person().right()
-                it.getOrFail() shouldNotBeSameInstanceAs first
-            }
-            verify(mocks.pdlClient).person(eq(fnr1), any())
-            verify(mocks.pdlClient).person(eq(fnr2), any())
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -85,25 +66,14 @@ internal class PersonClientTest {
     inner class `personMedSystembruker()` {
 
         @Test
-        fun `andre kall med samme token hentes fra cache`() {
+        fun `andre kall med samme token gir likt svar`() {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
             }.getOrFail()
             verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
-
-        @Test
-        fun `første kall med personbruker og andre kall med systembruker hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.person(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            verifyNoMoreInteractions(mocks.pdlClient)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
+            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBe first
+            verify(mocks.pdlClient, times(2)).personForSystembruker(mocks.fnr)
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -151,13 +121,14 @@ internal class PersonClientTest {
     @Nested
     inner class `sjekkTilgangTilPerson()` {
         @Test
-        fun `andre kall med samme token hentes fra cache`() {
+        fun `Skal returnere samme 2 gang med lik data for sjekktilgangforperson`() {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).also {
                 it shouldBe Unit.right()
             }.getOrFail()
             verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
             mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
+            verify(mocks.pdlClient, times(2)).person(mocks.fnr, mocks.brukerTokenGenerator.first())
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -176,8 +147,6 @@ internal class PersonClientTest {
     private class PersonClientConfigTestMocks(
         val brukerTokenGenerator: BrukertokenGenerator = BrukertokenGenerator(),
         val fnr: Fnr = Fnr.generer(),
-        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person/domain", suMetrics = mock()),
-        aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId", suMetrics = mock()),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",
@@ -252,7 +221,7 @@ internal class PersonClientTest {
             dødsdato = pdlData().dødsdato!!,
         )
 
-        val pdlClient: PdlClient = mock {
+        val pdlClient: PdlClientWithCache = mock {
             on { person(any(), any()) } doReturn pdlData().right()
             on { personForSystembruker(any()) } doReturn pdlData().right()
             on { aktørIdMedSystembruker(any()) } doReturn aktørId.right()
@@ -277,8 +246,6 @@ internal class PersonClientTest {
             config = personClientConfig,
             pdlClient = pdlClient,
             hentBrukerToken = hentBrukerToken,
-            personCache = personCacheSpy,
-            aktørIdCache = aktørIdCacheSpy,
             suMetrics = mock(),
         )
     }

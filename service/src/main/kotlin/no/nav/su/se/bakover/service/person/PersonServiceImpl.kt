@@ -18,8 +18,8 @@ class PersonServiceImpl(
         return personOppslag.person(fnr)
     }
 
-    override fun hentPersonMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean): Either<KunneIkkeHentePerson, Person> {
-        return personOppslag.personMedSystembruker(fnr, fetchKontaktinfo)
+    override fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+        return personOppslag.personMedSystembruker(fnr)
     }
 
     override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
