@@ -141,10 +141,12 @@ class PdlClientWithCacheTest {
         verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(0)).person(fnr, brukerToken)
         verify(pdlClient, times(0)).personForSystembruker(fnr)
+        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe aktørid
         client.aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(0)).person(fnr, brukerToken)
         verify(pdlClient, times(0)).personForSystembruker(fnr)
+        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe aktørid
         verifyNoMoreInteractions(pdlClient)
     }
 }
