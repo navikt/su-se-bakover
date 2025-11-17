@@ -193,6 +193,7 @@ internal class StatistikkSøknadsbehandlingTest {
             statistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(
                 søknadsbehandling,
                 lukketAv = NavIdentBruker.Saksbehandler("saksbehandlerSomAvsluttet"),
+                avslagTidligSøknad = false,
             ),
             behandlingStatus = "AVSLUTTET",
             behandlingStatusBeskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",

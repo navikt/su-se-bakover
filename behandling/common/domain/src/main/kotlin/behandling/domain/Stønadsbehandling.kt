@@ -61,6 +61,9 @@ interface BehandlingMedAttestering : Behandling {
     fun hentAttestantSomIverksatte(): NavIdentBruker.Attestant? {
         return this.attesteringer.hentSisteIverksatteAttesteringOrNull()?.attestant
     }
+    fun hentAttestantSomUnderkjente(): NavIdentBruker.Attestant? {
+        return this.attesteringer.hentSisteUnderkjenteAttesteringOrNull()?.attestant
+    }
 
     fun prøvHentSisteAttestering(): Attestering? = attesteringer.prøvHentSisteAttestering()
     fun prøvHentSisteAttestant(): NavIdentBruker.Attestant? = prøvHentSisteAttestering()?.attestant
