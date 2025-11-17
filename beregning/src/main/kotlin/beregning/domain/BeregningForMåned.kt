@@ -31,7 +31,7 @@ data class BeregningForMåned(
         benyttetRegel.add(regel)
         return this
     }
-    fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): BeregningForMåned {
+    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): BeregningForMåned {
         benyttetRegel.addAll(regler)
         return this
     }

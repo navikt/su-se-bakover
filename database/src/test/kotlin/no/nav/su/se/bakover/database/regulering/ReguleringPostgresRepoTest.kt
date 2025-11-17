@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.regulering
 
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import grunnbeløp.domain.GrunnbeløpForMåned
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -246,24 +247,30 @@ internal class ReguleringPostgresRepoTest {
             hentRegulering shouldBe regulering
             val beregning = hentRegulering!!.beregning as BeregningMedFradragBeregnetMånedsvis
             beregning.getMånedsberegninger().zip((mai(2021)..desember(2021)).måneder()) { a, b ->
-                a.fullSupplerendeStønadForMåned shouldBe FullSupplerendeStønadForMåned.Uføre(
+                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                    faktor = Faktor(value = 2.48),
+                    satsKategori = Satskategori.HØY,
+                    ikrafttredelse = 1.januar(2015),
+                    virkningstidspunkt = 1.januar(2015),
                     måned = b,
-                    satskategori = Satskategori.HØY,
-                    grunnbeløp = GrunnbeløpForMåned(
+                    benyttetRegel = mutableListOf(),
+                )
+                a.fullSupplerendeStønadForMåned.shouldBeEqualToIgnoringFields(
+                    FullSupplerendeStønadForMåned.Uføre(
                         måned = b,
-                        grunnbeløpPerÅr = 101351,
-                        ikrafttredelse = 4.september(2020),
-                        virkningstidspunkt = 1.mai(2020),
-                        omregningsfaktor = BigDecimal(1.014951),
+                        satskategori = Satskategori.HØY,
+                        grunnbeløp = GrunnbeløpForMåned(
+                            måned = b,
+                            grunnbeløpPerÅr = 101351,
+                            ikrafttredelse = 4.september(2020),
+                            virkningstidspunkt = 1.mai(2020),
+                            omregningsfaktor = BigDecimal(1.014951),
+                        ),
+                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
                     ),
-                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                        faktor = Faktor(value = 2.48),
-                        satsKategori = Satskategori.HØY,
-                        ikrafttredelse = 1.januar(2015),
-                        virkningstidspunkt = 1.januar(2015),
-                        måned = b,
-                    ),
-                    toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
+                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
+                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
                 )
             }
         }

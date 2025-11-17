@@ -19,7 +19,7 @@ import java.util.UUID
 class BeregningRegelspesifiseringTest {
 
     @Test
-    fun `månedsberegninger skal legge ved alle benytta regelspesifiseringer`() {
+    fun `uføre uten eps`() {
         val periode = YearMonth.of(2025, 1).let {
             Periode.create(it.atDay(1), it.atEndOfMonth())
         }
@@ -58,6 +58,7 @@ class BeregningRegelspesifiseringTest {
             val forventet = listOf(
                 Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
                 Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(),
+                Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
             )
 
             faktisk.forMangeRegler(forventet)

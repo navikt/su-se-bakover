@@ -41,6 +41,11 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
         return this
     }
 
+    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
+        benyttetRegel.addAll(regler)
+        return this
+    }
+
     data class Uføre(
         override val måned: Måned,
         override val satskategori: Satskategori,
@@ -65,7 +70,10 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
             require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
             require(måned == minsteÅrligYtelseForUføretrygdede.måned)
             require(måned == grunnbeløp.måned)
-            leggTilbenyttetRegel(Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering())
+            leggTilbenyttetRegler(
+                listOf(Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering()) +
+                    minsteÅrligYtelseForUføretrygdede.benyttetRegel,
+            )
         }
 
         /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
