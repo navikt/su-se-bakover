@@ -20,40 +20,6 @@ data class Person(
     val vergemål: Boolean? = null,
     val dødsdato: LocalDate? = null,
 ) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Person) return false
-
-        return ident == other.ident &&
-            navn == other.navn &&
-            telefonnummer == other.telefonnummer &&
-            adresse == other.adresse &&
-            statsborgerskap == other.statsborgerskap &&
-            sivilstand == other.sivilstand &&
-            fødsel == other.fødsel &&
-            adressebeskyttelse == other.adressebeskyttelse &&
-            skjermet == other.skjermet &&
-            vergemål == other.vergemål &&
-            dødsdato == other.dødsdato &&
-            this.kontaktinfo() == other.kontaktinfo()
-    }
-
-    override fun hashCode(): Int {
-        return listOf(
-            ident,
-            navn,
-            telefonnummer,
-            adresse,
-            statsborgerskap,
-            sivilstand,
-            fødsel,
-            adressebeskyttelse,
-            skjermet,
-            vergemål,
-            dødsdato,
-            kontaktinfo(),
-        ).fold(0) { acc, e -> 31 * acc + (e?.hashCode() ?: 0) }
-    }
 
     fun getAlder(påDato: LocalDate): Int? = fødsel?.getAlder(påDato)
     fun alderSomFylles(påÅr: Year): Int? = fødsel?.alderSomFylles(påÅr)
