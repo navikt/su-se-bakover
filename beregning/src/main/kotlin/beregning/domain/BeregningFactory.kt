@@ -2,6 +2,7 @@ package beregning.domain
 
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -108,6 +109,12 @@ class BeregningFactory(val clock: Clock) {
                             månedsberegning
                         }
                     }
+                        .leggTilbenyttetRegler(
+                            listOf(
+                                Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(),
+                                Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(),
+                            ),
+                        )
                 }
             }
         }

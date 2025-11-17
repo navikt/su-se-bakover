@@ -56,6 +56,8 @@ class BeregningRegelspesifiseringTest {
         with(result.getMånedsberegninger().single()) {
             val faktisk = getBenyttetRegler()
             val forventet = listOf(
+                Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(),
+                Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(),
                 Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
                 Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(),
                 Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
