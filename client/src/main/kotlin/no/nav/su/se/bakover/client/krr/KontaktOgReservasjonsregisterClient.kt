@@ -54,6 +54,7 @@ class KontaktOgReservasjonsregisterClient(
                             deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
                         } else {
                             val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=mangler fnr i objekt."
+                            log.error(errorMessage, RuntimeException("Trigger stacktrace"))
                             sikkerLogg.error(errorMessage + "obj: $jsonNode")
                             KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
                         }
@@ -62,13 +63,13 @@ class KontaktOgReservasjonsregisterClient(
                     jsonNode.has("feil") -> {
                         val feil = jsonNode.get("feil").get(fnr.toString())?.toString()
                         val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=$feil."
-                        log.error(errorMessage + "Se sikkerlogg for mer kontekst.")
+                        log.error(errorMessage + "Se sikkerlogg for mer kontekst.", RuntimeException("Trigger stacktrace"))
                         sikkerLogg.error(errorMessage + "Fnr: $fnr")
                         KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
                     }
 
                     else -> {
-                        log.error("""Feil under deserialisering av respons KRR. Mangler felter "personer" og "feil"""".trimIndent())
+                        log.error("""Feil under deserialisering av respons KRR. Mangler felter "personer" og "feil"""".trimIndent(), RuntimeException("Trigger stacktrace"))
                         KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
                     }
                 }
