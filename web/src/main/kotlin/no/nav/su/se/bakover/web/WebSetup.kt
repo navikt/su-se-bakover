@@ -113,6 +113,7 @@ private fun Application.setupKtorCallLogging() {
                 ?: principal?.payload?.getClaim("azp_name")?.asString()
                 ?: "ukjent"
         }
+        mdc("Authorization") { it.request.headers["Authorization"] }
         disableDefaultColors()
     }
 }
