@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.domain.extensions.scaleTo4
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -37,6 +38,7 @@ import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUf
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
@@ -60,7 +62,11 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         virkningstidspunkt = 1.mai(2025),
                     ),
                     // GarantipensjonHøy2025-5 * 0.02 / 12
-                    toProsentAvHøyForMåned = BigDecimal("404.03"),
+                    toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                        BigDecimal("404.03"),
+                        it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    ),
                 )
                 it.satsPerÅr shouldBe BigDecimal("224248")
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("18687.3333") // GarantipensjonHøy2025 / 12
@@ -85,7 +91,11 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         virkningstidspunkt = 1.mai(2025),
                     ),
                     // GarantipensjonHøy2025-5 * 0.02 / 12
-                    toProsentAvHøyForMåned = BigDecimal("404.03"),
+                    toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                        BigDecimal("404.03"),
+                        it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    ),
                 )
                 it.satsPerÅr shouldBe BigDecimal("242418")
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("20201.5000") // GarantipensjonHøy2025 / 12
@@ -151,7 +161,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * 106399 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("418.9174666666666666666666666666667"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -193,7 +206,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * 101351 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("418.9174666666666666666666666666667"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -235,7 +251,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * 106399 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("439.7825333333333333333333333333333"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("439.7825333333333333333333333333333"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -277,7 +296,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * 106399 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("439.7825333333333333333333333333333"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("439.7825333333333333333333333333333"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -319,7 +341,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * G2022-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("460.7716"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("460.7716"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -361,7 +386,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * G2022-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("460.7716"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("460.7716"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -403,7 +431,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * G2023-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("490.2960"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("490.2960"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -445,7 +476,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * G2023-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("490.2960"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("490.2960"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -489,7 +523,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * G2024-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("512.6490666666666666666666666666667"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("512.6490666666666666666666666666667"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -531,7 +568,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.48 * G2024-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("512.6490666666666666666666666666667"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("512.6490666666666666666666666666667"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -574,7 +614,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.529 * G2024-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("522.77802"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("522.77802"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -616,7 +659,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.529 * G2024-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("522.77802"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("522.77802"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -658,7 +704,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.529 * G2025-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("548.62440"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("548.62440"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -700,7 +749,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         // 2.529 * G2025-5 * 0.02 / 12
-                        toProsentAvHøyForMåned = BigDecimal("548.62440"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("548.62440"),
+                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -738,12 +790,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
 
         @Test
         fun `historisk med dagens dato er lik seg selv`() {
-            satsFactoryTestPåDato(påDato = fixedLocalDate).forSatskategoriUføre(
+            val faktisk = satsFactoryTestPåDato(påDato = fixedLocalDate).forSatskategoriUføre(
                 mai(2022),
                 Satskategori.HØY,
-            ).shouldBeEqualToIgnoringFields(
-                satsFactoryTestPåDato(påDato = fixedLocalDate).forSatskategoriUføre(mai(2022), Satskategori.HØY),
+            )
+            val forventet =
+                satsFactoryTestPåDato(påDato = fixedLocalDate).forSatskategoriUføre(mai(2022), Satskategori.HØY)
+            faktisk.shouldBeEqualToIgnoringFields(
+                forventet,
+                FullSupplerendeStønadForMåned.Uføre::toProsentAvHøyForMåned,
                 FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
+            )
+            faktisk.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
+                forventet.toProsentAvHøyForMåned,
+                ToProsentAvHøyForMåned::benyttetRegel,
             )
         }
 
@@ -772,7 +832,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             ),
                             minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                             // 2.48 * G2022-5 * 0.02 / 12
-                            toProsentAvHøyForMåned = BigDecimal("412.7464"),
+                            toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                                BigDecimal("412.7464"),
+                                it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            ),
                         ),
                         FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                         FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
@@ -918,7 +981,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 ),
             )
             satsFactory.gjeldende(1.januar(2022)).let {
-                it.høyAlder(januar(2022)) shouldBe FullSupplerendeStønadForMåned.Alder(
+                val høyAlder = it.høyAlder(januar(2022))
+                høyAlder shouldBe FullSupplerendeStønadForMåned.Alder(
                     måned = januar(2022),
                     satskategori = Satskategori.HØY,
                     garantipensjonForMåned = GarantipensjonForMåned(
@@ -928,7 +992,11 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ikrafttredelse = 1.januar(2022),
                         virkningstidspunkt = 1.januar(2022),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("0.01666666666666666666666666666666667"),
+                    toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                        BigDecimal("0.01666666666666666666666666666666667"),
+                        høyAlder.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    ),
                 )
                 it.grunnbeløp(januar(2022)) shouldBe GrunnbeløpForMåned(
                     måned = januar(2022),
@@ -945,7 +1013,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     måned = november(2021),
                     benyttetRegel = mutableListOf(),
                 )
-                it.høyUføre(november(2021)).shouldBeEqualToIgnoringFields(
+                val høyUføre = it.høyUføre(november(2021))
+                høyUføre.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = november(2021),
                         satskategori = Satskategori.HØY,
@@ -957,7 +1026,10 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             omregningsfaktor = BigDecimal(1.049807),
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
-                        toProsentAvHøyForMåned = BigDecimal("0.06666666666666666666666666666666667"),
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("0.06666666666666666666666666666666667"),
+                            høyUføre.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,

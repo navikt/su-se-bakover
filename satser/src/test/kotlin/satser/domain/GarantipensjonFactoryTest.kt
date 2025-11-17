@@ -2,20 +2,26 @@ package satser.domain
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import satser.domain.garantipensjon.GarantipensjonForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import java.math.BigDecimal
 
 internal class GarantipensjonFactoryTest {
@@ -71,10 +77,28 @@ internal class GarantipensjonFactoryTest {
                 ikrafttredelse = 4.september(2020),
                 virkningstidspunkt = 1.mai(2020),
             ),
-            toProsentAvHøyForMåned = BigDecimal("320.2083333333333333333333333333333"),
+            toProsentAvHøyForMåned = createToProsentAvHøyForMåned(BigDecimal("320.2083333333333333333333333333333")),
         )
-        satsFactoryTestPåDato().ordinærAlder(mai(2020)) shouldBe expected(mai(2020))
-        satsFactoryTestPåDato().ordinærAlder(juli(2020)) shouldBe expected(juli(2020))
+
+        val mai = satsFactoryTestPåDato().ordinærAlder(mai(2020))
+        mai.shouldBeEqualToIgnoringFields(
+            expected(mai(2020)),
+            FullSupplerendeStønadForMåned.Alder::toProsentAvHøyForMåned,
+        )
+        mai.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
+            expected(mai(2020)).toProsentAvHøyForMåned,
+            ToProsentAvHøyForMåned::benyttetRegel,
+        )
+
+        val juli = satsFactoryTestPåDato().ordinærAlder(juli(2020))
+        juli.shouldBeEqualToIgnoringFields(
+            expected(juli(2020)),
+            FullSupplerendeStønadForMåned.Alder::toProsentAvHøyForMåned,
+        )
+        juli.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
+            expected(juli(2020)).toProsentAvHøyForMåned,
+            ToProsentAvHøyForMåned::benyttetRegel,
+        )
     }
 
     @Test
@@ -112,3 +136,19 @@ internal class GarantipensjonFactoryTest {
         satsFactoryTestPåDato(påDato = 1.januar(2021)).høyAlder(mai(2022)).satsPerÅr.intValueExact() shouldBe 192125
     }
 }
+
+fun createToProsentAvHøyForMåned(
+    verdi: BigDecimal,
+    tidspunkt: Tidspunkt = fixedTidspunkt,
+    regel: Regelspesifiseringer = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+) =
+    ToProsentAvHøyForMåned.Uføre(
+        verdi = verdi,
+        benyttetRegel = mutableListOf(
+            Regelspesifsering(
+                kode = regel.kode,
+                versjon = regel.versjon,
+                benyttetTidspunkt = tidspunkt,
+            ),
+        ),
+    )

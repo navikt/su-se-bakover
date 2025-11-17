@@ -21,7 +21,7 @@ import java.time.LocalDate
 sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
     val måned: Måned
     val satskategori: Satskategori
-    val toProsentAvHøyForMåned: BigDecimal
+    val toProsentAvHøyForMåned: ToProsentAvHøyForMåned
     val satsPerÅr: BigDecimal
     val satsForMåned: BigDecimal
     val satsForMånedAvrundet: Int
@@ -51,7 +51,7 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
         override val satskategori: Satskategori,
         val grunnbeløp: GrunnbeløpForMåned,
         val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
-        override val toProsentAvHøyForMåned: BigDecimal,
+        override val toProsentAvHøyForMåned: ToProsentAvHøyForMåned,
         override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf(),
     ) : Comparable<FullSupplerendeStønadForMåned>,
         FullSupplerendeStønadForMåned {
@@ -67,12 +67,13 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
 
         init {
             require(satsForMåned >= BigDecimal.ZERO)
-            require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+            require(toProsentAvHøyForMåned.verdi >= BigDecimal.ZERO)
             require(måned == minsteÅrligYtelseForUføretrygdede.måned)
             require(måned == grunnbeløp.måned)
             leggTilbenyttetRegler(
                 listOf(Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering()) +
-                    minsteÅrligYtelseForUføretrygdede.benyttetRegel,
+                    minsteÅrligYtelseForUføretrygdede.benyttetRegel +
+                    toProsentAvHøyForMåned.benyttetRegel,
             )
         }
 
@@ -80,7 +81,7 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
         override val ikrafttredelse: LocalDate =
             maxOf(grunnbeløp.ikrafttredelse, minsteÅrligYtelseForUføretrygdede.ikrafttredelse)
 
-        override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.toDouble()
+        override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.verdi.toDouble()
 
         override val periode: Måned = måned
 
@@ -91,7 +92,7 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
         override val måned: Måned,
         override val satskategori: Satskategori,
         val garantipensjonForMåned: GarantipensjonForMåned,
-        override val toProsentAvHøyForMåned: BigDecimal,
+        override val toProsentAvHøyForMåned: ToProsentAvHøyForMåned,
         override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf(),
     ) : Comparable<FullSupplerendeStønadForMåned>,
         FullSupplerendeStønadForMåned {
@@ -104,16 +105,70 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
 
         init {
             require(satsForMåned >= BigDecimal.ZERO)
-            require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+            require(toProsentAvHøyForMåned.verdi >= BigDecimal.ZERO)
             require(måned == garantipensjonForMåned.måned)
         }
 
         override val ikrafttredelse: LocalDate = garantipensjonForMåned.ikrafttredelse
 
-        override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.toDouble()
+        override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.verdi.toDouble()
 
         override val periode: Måned = måned
 
         override fun compareTo(other: FullSupplerendeStønadForMåned) = this.måned.compareTo(other.måned)
+    }
+}
+
+sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
+    abstract val verdi: BigDecimal
+
+    override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
+        benyttetRegel.add(regel)
+        return this
+    }
+
+    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
+        benyttetRegel.addAll(regler)
+        return this
+    }
+
+    data class Uføre(
+        override val verdi: BigDecimal,
+        override val benyttetRegel: MutableList<Regelspesifsering>,
+    ) : ToProsentAvHøyForMåned() {
+        companion object {
+            fun create(grunnbeløp: GrunnbeløpForMåned, faktorSomBigDecimal: BigDecimal): Uføre {
+                return Uføre(
+                    verdi = grunnbeløp.grunnbeløpPerÅr.toBigDecimal()
+                        .multiply(faktorSomBigDecimal)
+                        .multiply(TO_PROSENT)
+                        .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                    benyttetRegel = mutableListOf(Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering()),
+                )
+            }
+        }
+    }
+
+    data class Alder(
+        override val verdi: BigDecimal,
+        override val benyttetRegel: MutableList<Regelspesifsering>,
+    ) : ToProsentAvHøyForMåned() {
+        companion object {
+            fun create(garantipensjonPerÅr: BigDecimal): Uføre {
+                return Uføre(
+                    verdi = garantipensjonPerÅr
+                        .multiply(TO_PROSENT)
+                        .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                    benyttetRegel = mutableListOf(
+                        Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(),
+                    ),
+                )
+            }
+        }
+    }
+
+    companion object {
+        private val TO_PROSENT = BigDecimal("0.02")
+        private val MÅNEDER_PER_ÅR = BigDecimal("12")
     }
 }

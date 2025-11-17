@@ -2,6 +2,7 @@ package satser.domain
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.extensions.scaleTo4
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -26,7 +27,11 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
                     ikrafttredelse = 20.mai(2022),
                     virkningstidspunkt = 1.mai(2022),
                 ),
-                toProsentAvHøyForMåned = BigDecimal("349.285"),
+                toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                    BigDecimal("349.285"),
+                    it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                ),
             )
             it.satsPerÅr shouldBe BigDecimal("193862")
             it.satsForMåned.scaleTo4() shouldBe BigDecimal("16155.1667")
@@ -50,7 +55,11 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
                     ikrafttredelse = 20.mai(2022),
                     virkningstidspunkt = 1.mai(2022),
                 ),
-                toProsentAvHøyForMåned = BigDecimal("349.285"),
+                toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                    BigDecimal("349.285"),
+                    it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                ),
             )
             it.satsPerÅr shouldBe BigDecimal("209571")
             it.satsForMåned.scaleTo4() shouldBe BigDecimal("17464.2500")

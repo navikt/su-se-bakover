@@ -12,6 +12,8 @@ enum class Regelspesifiseringer(
     REGEL_MÅNEDSBEREGNING("REGEL-MÅNEDSBEREGNING", "1"),
     REGEL_SOSIALSTØNAD_UNDER_2_PROSENT("REGEL-SOSIALSTØNAD-UNDER-2-PROSENT", "1"),
     REGEL_MINDRE_ENN_2_PROSENT("REGEL-MINDRE-ENN-2-PROSENT", "1"),
+    REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE("REGEL-TO-PROSENT-AV-HØY-SATS-UFØRE", "1"),
+    REGEL_TO_PROSENT_AV_HØY_SATS_ALDER("REGEL-TO-PROSENT-AV-HØY-SATS-ALDER", "1"),
     ;
 
     fun benyttRegelspesifisering() = Regelspesifsering(
@@ -27,6 +29,7 @@ data class Regelspesifsering(
     val benyttetTidspunkt: Tidspunkt,
 )
 
+// TODO bjg klasse??
 interface RegelspesifisertBeregning {
     val benyttetRegel: MutableList<Regelspesifsering>
     // TODO grunnlag????

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test
 import satser.domain.Satskategori
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
@@ -267,7 +268,11 @@ internal class ReguleringPostgresRepoTest {
                             omregningsfaktor = BigDecimal(1.014951),
                         ),
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
-                        toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
+                        toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Uføre(
+                            verdi = BigDecimal("418.9174666666666666666666666666667"),
+                            benyttetRegel = a.fullSupplerendeStønadForMåned.toProsentAvHøyForMåned.benyttetRegel,
+
+                        ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
                     FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
