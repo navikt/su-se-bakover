@@ -177,13 +177,16 @@ data class PersonResponseJson(
             },
             adressebeskyttelse = this.adressebeskyttelse,
             skjermet = this.skjermet,
-            kontaktinfo = this.kontaktinfo?.let {
-                KontaktinfoJson(
-                    epostadresse = it.epostadresse,
-                    mobiltelefonnummer = it.mobiltelefonnummer,
-                    språk = it.språk,
-                    kanKontaktesDigitalt = it.kanKontaktesDigitalt,
-                )
+            kontaktinfo = this.kontaktinfo.let { hentKontaktinfo ->
+                val info = hentKontaktinfo()
+                info?.let {
+                    KontaktinfoJson(
+                        epostadresse = it.epostadresse,
+                        mobiltelefonnummer = it.mobiltelefonnummer,
+                        språk = it.språk,
+                        kanKontaktesDigitalt = it.kanKontaktesDigitalt,
+                    )
+                }
             },
             vergemål = this.vergemål,
             dødsdato = this.dødsdato,

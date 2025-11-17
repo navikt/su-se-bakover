@@ -49,12 +49,14 @@ data class PersonOppslagStub(
         ),
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         skjermet = false,
-        kontaktinfo = Person.Kontaktinfo(
-            epostadresse = "mail@epost.com",
-            mobiltelefonnummer = "90909090",
-            språk = "nb",
-            kanKontaktesDigitalt = true,
-        ),
+        kontaktinfo = {
+            Person.Kontaktinfo(
+                epostadresse = "mail@epost.com",
+                mobiltelefonnummer = "90909090",
+                språk = "nb",
+                kanKontaktesDigitalt = true,
+            )
+        },
         vergemål = null,
         dødsdato = null,
     )
@@ -66,7 +68,7 @@ data class PersonOppslagStub(
             nyTestPerson(fnr).right()
         }
 
-    override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+    override fun personMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
         AktørId("2437280977705").right()
 

@@ -16,7 +16,7 @@ data class Person(
     val fødsel: Fødsel? = null,
     val adressebeskyttelse: String? = null,
     val skjermet: Boolean? = null,
-    val kontaktinfo: Kontaktinfo? = null,
+    val kontaktinfo: () -> Kontaktinfo?,
     val vergemål: Boolean? = null,
     val dødsdato: LocalDate? = null,
 ) {

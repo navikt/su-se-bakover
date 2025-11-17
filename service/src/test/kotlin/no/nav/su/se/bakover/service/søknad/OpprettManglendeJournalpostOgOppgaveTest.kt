@@ -70,6 +70,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         fødsel = Person.Fødsel.MedFødselsår(
             år = Year.of(1956),
         ),
+        kontaktinfo = { null },
     )
 
     @Test
@@ -136,7 +137,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSak(sakId) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(fnr) } doReturn person.right()
+                on { hentPersonMedSystembruker(fnr, true) } doReturn person.right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
@@ -155,7 +156,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
+                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr }, true)
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -186,7 +187,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSak(sakId) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(fnr) } doReturn person.right()
+                on { hentPersonMedSystembruker(fnr, true) } doReturn person.right()
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave.left()
@@ -239,7 +240,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSak(sakId) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(fnr) } doReturn person.right()
+                on { hentPersonMedSystembruker(fnr, true) } doReturn person.right()
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -259,7 +260,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr })
+                verify(it.personService).hentPersonMedSystembruker(argThat { it shouldBe fnr }, true)
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(

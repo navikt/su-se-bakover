@@ -616,7 +616,7 @@ open class AccessCheckProxy(
                     return services.person.hentPerson(fnr)
                 }
 
-                override fun hentPersonMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentPersonMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean) = kastKanKunKallesFraAnnenService()
 
                 override fun hentAktørIdMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 

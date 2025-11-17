@@ -131,7 +131,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
         val person = hentPerson(sak.fnr).getOrElse {
-            return KunneIkkeSendePåminnelse.FantIkkePerson.left()
+            return KunneIkkeSendePåminnelse.FantIkkePerson.left() // TODO: trenger ikke kontaktinfo
         }
         return if (skalSendePåminnelse(sak, person)) {
             val dokumentCommand = PåminnelseNyStønadsperiodeDokumentCommand.ny(

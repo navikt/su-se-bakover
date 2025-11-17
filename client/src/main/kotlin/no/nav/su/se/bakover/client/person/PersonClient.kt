@@ -75,7 +75,7 @@ internal class PersonClient(
         }
     }
 
-    override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+    override fun personMedSystembruker(fnr: Fnr, fetchKontaktinfo: Boolean): Either<KunneIkkeHentePerson, Person> {
         return personCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
             pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
         }
@@ -89,7 +89,8 @@ internal class PersonClient(
 
     /**
      * En forenkling av [PersonOppslag.person] for å sjekke tilgang til personen uten at vi trenger å gjøre noe videre
-     * med resultatet
+     * med resultatet.
+     * Kontaktinfo er ikke relevant for tilgangssjekk. Skjermet oppslaget burde ikke være med heller da man ikke tolker resultatet
      */
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
@@ -98,6 +99,9 @@ internal class PersonClient(
         }.map { }
     }
 
+    /**
+     * Har to sideeffekter, ett kall til krr proxy og et kall til skjermingstjenesten.
+     */
     private fun toPerson(pdlData: PdlData, token: JwtToken) = Person(
         ident = Ident(pdlData.ident.fnr, pdlData.ident.aktørId),
         navn = pdlData.navn.let {
@@ -139,7 +143,7 @@ internal class PersonClient(
         },
         adressebeskyttelse = pdlData.adressebeskyttelse,
         skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),
-        kontaktinfo = kontaktinfo(pdlData.ident.fnr),
+        kontaktinfo = { kontaktinfo(pdlData.ident.fnr) }, // Kjører lazy loading på denne da den stort sett ikke brukes
         vergemål = pdlData.vergemålEllerFremtidsfullmakt,
         dødsdato = pdlData.dødsdato,
     )

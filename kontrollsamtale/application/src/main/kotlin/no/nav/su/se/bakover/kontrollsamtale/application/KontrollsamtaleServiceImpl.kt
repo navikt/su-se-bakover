@@ -75,8 +75,8 @@ class KontrollsamtaleServiceImpl(
             )
             return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
         }
-
-        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
+        // TODO: trenger ikke kontaktinfo
+        val person = personService.hentPersonMedSystembruker(sak.fnr, true).getOrElse {
             log.error("Fant ikke person for sakId $sakId, saksnummer ${sak.saksnummer}")
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }

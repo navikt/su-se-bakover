@@ -91,6 +91,7 @@ fun person(
     navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     fødsel = fødsel,
     dødsdato = dødsdato,
+    kontaktinfo = { null },
 )
 
 val stønadsperiode2021 = Stønadsperiode.create(år(2021))

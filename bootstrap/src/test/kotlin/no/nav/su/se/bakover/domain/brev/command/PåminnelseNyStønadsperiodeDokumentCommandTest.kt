@@ -20,6 +20,7 @@ class PåminnelseNyStønadsperiodeDokumentCommandTest {
                     ident = Ident(fnr, AktørId("123")),
                     navn = Person.Navn("", "", ""),
                     fødsel = Person.Fødsel.MedFødselsdato(15.juni(1958)),
+                    kontaktinfo = { null },
                 ),
                 utløpsdato = 1.juni(2025),
             ).getOrFail(),

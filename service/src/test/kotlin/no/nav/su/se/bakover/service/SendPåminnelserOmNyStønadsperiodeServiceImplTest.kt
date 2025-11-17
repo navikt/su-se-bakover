@@ -105,7 +105,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+                on { hentPersonMedSystembruker(any(), true) } doReturn person().right()
             },
             sendPåminnelseNyStønadsperiodeJobRepo = mock {
                 on { hent(any()) } doReturn null
@@ -206,7 +206,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+                on { hentPersonMedSystembruker(any(), true) } doReturn person().right()
             },
             sendPåminnelseNyStønadsperiodeJobRepo = mock {
                 on { hent(any()) } doReturn
@@ -328,7 +328,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+                on { hentPersonMedSystembruker(any(), true) } doReturn person().right()
             },
             sendPåminnelseNyStønadsperiodeJobRepo = mock {
                 on { hent(any()) } doReturn null
@@ -414,7 +414,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 on { hent(any()) } doReturn null
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person(fnr = sak.fnr).right()
+                on { hentPersonMedSystembruker(any(), true) } doReturn person(fnr = sak.fnr).right()
             },
         ).let {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(

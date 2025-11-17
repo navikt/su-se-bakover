@@ -240,12 +240,14 @@ internal class PersonClientTest {
             },
             adressebeskyttelse = pdlData().adressebeskyttelse,
             skjermet = false,
-            kontaktinfo = Person.Kontaktinfo(
-                epostadresse = kontaktinformasjon.epostadresse,
-                mobiltelefonnummer = kontaktinformasjon.mobiltelefonnummer,
-                språk = kontaktinformasjon.språk,
-                kanKontaktesDigitalt = true,
-            ),
+            kontaktinfo = {
+                Person.Kontaktinfo(
+                    epostadresse = kontaktinformasjon.epostadresse,
+                    mobiltelefonnummer = kontaktinformasjon.mobiltelefonnummer,
+                    språk = kontaktinformasjon.språk,
+                    kanKontaktesDigitalt = true,
+                )
+            },
             vergemål = pdlData().vergemålEllerFremtidsfullmakt,
             dødsdato = pdlData().dødsdato!!,
         )
