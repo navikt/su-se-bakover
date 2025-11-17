@@ -104,10 +104,14 @@ private fun Application.setupKtorCallLogging() {
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
-
+        mdc("id-type") { call ->
+            call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")?.asString()
+        }
         mdc("X_USER") { call ->
             val principal = call.principal<JWTPrincipal>()
-            principal?.payload?.getClaim("sub")?.asString() // or "oid"
+            principal?.payload?.getClaim("NAVident")?.asString()
+                ?: principal?.payload?.getClaim("azp_name")?.asString()
+                ?: "ukjent"
         }
         disableDefaultColors()
     }
