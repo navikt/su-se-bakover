@@ -31,13 +31,13 @@ class KontaktOgReservasjonsregisterClient(
     val config: ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig,
     val azure: AzureAd,
     private val suMetrics: SuMetrics,
-) : KontaktOgReservasjonsregister {
-    private val log = LoggerFactory.getLogger(this::class.java)
     private val krrCache: Cache<Fnr, Kontaktinformasjon> = newCache(
         cacheName = "kontaktinfo",
         expireAfterWrite = Duration.ofMinutes(30),
         suMetrics = suMetrics,
-    )
+    ),
+) : KontaktOgReservasjonsregister {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentKontaktinformasjon(fnr: Fnr): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {
         val request = serialize(
@@ -45,7 +45,7 @@ class KontaktOgReservasjonsregisterClient(
                 personidenter = listOf(fnr.toString()),
             ),
         )
-        // TODO: test
+
         krrCache.getIfPresent(fnr)?.let { cachedKontaktinfo ->
             return cachedKontaktinfo.right()
         }
