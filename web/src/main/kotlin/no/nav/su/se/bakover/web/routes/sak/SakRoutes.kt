@@ -158,7 +158,6 @@ internal fun Route.sakRoutes(
                                     )
                                 },
                                 ifRight = { saksnummer ->
-
                                     sakService.hentSak(saksnummer).fold(
                                         {
                                             NotFound.errorJson(

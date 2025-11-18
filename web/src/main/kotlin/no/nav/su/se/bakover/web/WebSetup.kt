@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -62,13 +63,16 @@ val AuthTokenContextPlugin = createRouteScopedPlugin("AuthTokenContextPlugin") {
         val authHeader = call.request.header(HttpHeaders.Authorization)
         if (authHeader == null) {
             call.respond(HttpStatusCode.Unauthorized)
-            return@onCall // stop pipeline
+            return@onCall
         }
 
         val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
 
-        withContext(tokenContextElement) {
-            // Nothing else needed; pipeline continues automatically
+        // Intercept the pipeline to run the rest of the call in the new context
+        call.application.intercept(ApplicationCallPipeline.Call) {
+            withContext(tokenContextElement) {
+                proceed()
+            }
         }
     }
 }
