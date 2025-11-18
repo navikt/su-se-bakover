@@ -150,7 +150,7 @@ fun defaultRequest(
 ): HttpResponse {
     return runBlocking {
         client.request(uri) {
-            val auth: String? = MDC.get("Authorization")
+            val auth: String? = MDC.get("Authorization") // TODO: må fikses
             val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
             this.method = method
             if (body != null) {
@@ -180,7 +180,7 @@ fun formdataRequest(
             url = uri,
             formData = formData,
         ) {
-            val auth: String? = MDC.get("Authorization")
+            val auth: String? = MDC.get("Authorization") // TODO MÅ fikses
             val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
             this.method = method
             this.headers {
