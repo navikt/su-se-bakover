@@ -4,6 +4,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
+import io.ktor.server.auth.AuthenticationChecked
 import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import kotlinx.coroutines.asContextElement
@@ -16,16 +17,16 @@ class TokenContext(
 object Kontekst : ThreadLocal<TokenContext>()
 
 val AuthTokenContextPlugin = createRouteScopedPlugin("AuthTokenContextPlugin") {
-    onCall { call ->
+    on(AuthenticationChecked) { call ->
         val authHeader = call.request.header(HttpHeaders.Authorization)
         if (authHeader == null) {
             call.respond(HttpStatusCode.Unauthorized)
-            return@onCall
+            return@on
         }
 
         val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
 
-        // Intercept the pipeline to run the rest of the call in the new context
+        // Run the rest of the call in the new context
         call.application.intercept(ApplicationCallPipeline.Call) {
             withContext(tokenContextElement) {
                 proceed()
