@@ -93,6 +93,8 @@ internal fun Application.setupKtor(
     )
 }
 
+const val BRUKER = "X_USER"
+const val TOKENTYPE = "X_TOKENTYPE"
 private fun Application.setupKtorCallLogging() {
     install(CallLogging) {
         level = Level.INFO
@@ -104,16 +106,21 @@ private fun Application.setupKtorCallLogging() {
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
-        mdc("id-type") { call ->
-            call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")?.asString()
+        mdc(TOKENTYPE) { call ->
+            val idtype = call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")
+            if (idtype != null && idtype.toString() == "app") {
+                "MASKINBRUKER"
+            } else {
+                "PERSONBRUKER"
+            }
         }
-        mdc("X_USER") { call ->
+        mdc(BRUKER) { call ->
             val principal = call.principal<JWTPrincipal>()
             principal?.payload?.getClaim("NAVident")?.asString()
                 ?: principal?.payload?.getClaim("azp_name")?.asString()
                 ?: "ukjent"
         }
-        mdc("Authorization") { it.request.headers["Authorization"] }
+
         disableDefaultColors()
     }
 }
