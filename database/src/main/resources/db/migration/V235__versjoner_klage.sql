@@ -8,6 +8,6 @@ AND fremsattrettsligklageinteresse is NULL;
 
 UPDATE klage
 SET versjon = 1
-WHERE opprettet < '2025-10-24';
+WHERE opprettet < '2025-10-24' AND fremsattrettsligklageinteresse is NULL;
 -- Da fremsattrettsligklageinteresse ble innført + 1 dag. Kan selvfølgelig være saksbehandlere som ikke refresha siden
 -- og lagret ned med gammel versjon men da får vi bare sette den versjonen til 1.
