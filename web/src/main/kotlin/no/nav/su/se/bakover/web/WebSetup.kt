@@ -6,6 +6,8 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
@@ -22,7 +24,6 @@ import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
-import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -101,9 +102,18 @@ private fun Application.setupKtorCallLogging() {
 
             return@filter true
         }
-        callIdMdc(CORRELATION_ID_HEADER)
 
-        mdc("Authorization") { it.authHeader() }
+        callIdMdc(CORRELATION_ID_HEADER)
+        mdc("id-type") { call ->
+            call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")?.asString()
+        }
+        mdc("X_USER") { call ->
+            val principal = call.principal<JWTPrincipal>()
+            principal?.payload?.getClaim("NAVident")?.asString()
+                ?: principal?.payload?.getClaim("azp_name")?.asString()
+                ?: "ukjent"
+        }
+        mdc("Authorization") { it.request.headers["Authorization"] }
         disableDefaultColors()
     }
 }

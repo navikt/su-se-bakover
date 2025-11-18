@@ -51,13 +51,6 @@ fun main() {
         },
     ).start(true)
 }
-/*
-private fun Route.api() {
-    // authenticate {}
-}
-*/
-
-// TODO egen fil?
 
 const val CORRELATION_ID_HEADER = "X-Correlation-ID"
 
