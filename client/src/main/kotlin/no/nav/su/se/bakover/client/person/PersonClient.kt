@@ -51,6 +51,7 @@ internal class PersonClient(
      * En forenkling av [PersonOppslag.person] for å sjekke tilgang til personen uten at vi trenger å gjøre noe videre
      * med resultatet.
      * Kontaktinfo er ikke relevant for tilgangssjekk. Skjermet oppslaget burde ikke være med heller da man ikke tolker resultatet
+     * Denne gjøres ofte i tillegg til selve datafetchingen men da blir det lagt i cache så burde ikke vært et stort problem.
      */
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
