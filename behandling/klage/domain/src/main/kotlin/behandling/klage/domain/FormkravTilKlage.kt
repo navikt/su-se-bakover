@@ -6,6 +6,15 @@ import java.util.UUID
  * Inneholder kun selve vilkårsvurderingene/formkravene som er gjort i forbindelse med en klage.
  * For selve klagen se [VilkårsvurdertKlage]
  */
+
+/*
+Versjonhistorikk - egentlig for hele klage men vi får se hvor vi putter den
+1. Formkrav uten fremsattrettsligklageinteresse
+2. Formkrav med fremsattrettsligklageinteresse
+
+Settes ved opprettelse av klager.
+ */
+const val VERSJON = 2
 sealed interface FormkravTilKlage {
 
     val vedtakId: UUID?
@@ -77,19 +86,27 @@ sealed interface FormkravTilKlage {
                 klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
                 erUnderskrevet: SvarMedBegrunnelse?,
                 fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
+                versjon: Int? = VERSJON,
             ): FormkravTilKlage {
-                val erFerdigutfylt = vedtakId == null ||
-                    innenforFristen == null ||
-                    klagesDetPåKonkreteElementerIVedtaket == null ||
-                    erUnderskrevet == null ||
-                    fremsattRettsligKlageinteresse == null
+                val erFerdigutfylt = if (versjon != null && versjon < VERSJON) {
+                    vedtakId != null &&
+                        innenforFristen != null &&
+                        klagesDetPåKonkreteElementerIVedtaket != null &&
+                        erUnderskrevet != null
+                } else {
+                    vedtakId != null &&
+                        innenforFristen != null &&
+                        klagesDetPåKonkreteElementerIVedtaket != null &&
+                        erUnderskrevet != null &&
+                        fremsattRettsligKlageinteresse != null
+                }
 
                 return if (!erFerdigutfylt) {
                     createUtfyltOnly(
-                        vedtakId = vedtakId,
-                        innenforFristen = innenforFristen,
-                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-                        erUnderskrevet = erUnderskrevet,
+                        vedtakId = vedtakId!!,
+                        innenforFristen = innenforFristen!!,
+                        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
+                        erUnderskrevet = erUnderskrevet!!,
                         fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                     )
                 } else {
@@ -144,6 +161,7 @@ sealed interface FormkravTilKlage {
             klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
             erUnderskrevet: SvarMedBegrunnelse?,
             fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
+            versjon: Int? = VERSJON, // Skal kun benyttes settes fra KlagePostgresRepo
         ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
@@ -151,6 +169,7 @@ sealed interface FormkravTilKlage {
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
                 fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
+                versjon = versjon,
             )
         }
     }
