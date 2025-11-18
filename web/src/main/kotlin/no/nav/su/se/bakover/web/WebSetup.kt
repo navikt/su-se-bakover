@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.web
 
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
@@ -15,11 +17,16 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
+import kotlinx.coroutines.asContextElement
+import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
+import no.nav.su.se.bakover.common.domain.auth.Kontekst
+import no.nav.su.se.bakover.common.domain.auth.TokenContext
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
@@ -47,6 +54,20 @@ import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
 import java.time.Clock
 import java.time.format.DateTimeParseException
+
+val AuthTokenContextPlugin = createRouteScopedPlugin("AuthTokenContextPlugin") {
+    onCall { call ->
+        val authHeader = call.request.header(HttpHeaders.Authorization)
+            ?: throw IllegalStateException("Authorization header ikke satt")
+
+        val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
+
+        // Just wrap the downstream pipeline in the ThreadLocal context
+        withContext(tokenContextElement) {
+            // Nothing else needed; pipeline continues automatically
+        }
+    }
+}
 
 internal fun Application.setupKtor(
     services: Services,
@@ -76,7 +97,7 @@ internal fun Application.setupKtor(
 
     setupKtorCallId()
     setupKtorCallLogging(azureGroupMapper)
-
+    install(AuthTokenContextPlugin)
     install(XForwardedHeaders)
     setupKtorRoutes(
         services = services,

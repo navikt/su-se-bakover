@@ -3,11 +3,13 @@ package no.nav.su.se.bakover.common.infrastructure.web
 import arrow.core.Either
 import arrow.core.getOrElse
 import com.auth0.jwt.interfaces.Payload
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.plugins.callid.callId
+import io.ktor.server.request.header
 import io.ktor.server.request.receiveStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,6 +26,10 @@ import java.util.UUID
 
 fun ApplicationCall.sikkerlogg(msg: String) {
     sikkerLogg.info("${suUserContext.navIdent} $msg")
+}
+
+fun ApplicationCall.authHeader(): String {
+    return this.request.header(HttpHeaders.Authorization).toString()
 }
 
 /**

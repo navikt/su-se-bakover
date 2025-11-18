@@ -63,7 +63,7 @@ internal class QueryJournalpostHttpClient(
             getQueryFrom("/hentJournalpostQuery.graphql"),
             HentJournalpostVariables(journalpostId.toString()),
         )
-        val brukerToken = JwtToken.BrukerToken.fraMdc()
+        val brukerToken = JwtToken.BrukerToken.fraCoroutineContext() // TF?
 
         return gqlRequest(
             request = request,
