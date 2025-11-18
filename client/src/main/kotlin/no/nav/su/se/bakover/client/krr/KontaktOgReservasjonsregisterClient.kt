@@ -67,13 +67,7 @@ class KontaktOgReservasjonsregisterClient(
                         if (personer.has(fnr.toString())) {
                             val personFunnet = personer.get(fnr.toString()).toString()
                             val svar = deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
-                            svar.fold(
-                                { leftValue -> leftValue.left() },
-                                { aktivt ->
-                                    krrCache.put(fnr, aktivt)
-                                    aktivt.right()
-                                },
-                            )
+                            svar.onRight { krrCache.put(fnr, it) }
                         } else {
                             val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=mangler fnr i objekt."
                             log.error(errorMessage, RuntimeException("Trigger stacktrace"))

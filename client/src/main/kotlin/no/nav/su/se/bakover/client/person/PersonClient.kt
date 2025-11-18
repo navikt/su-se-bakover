@@ -54,7 +54,7 @@ internal class PersonClient(
      */
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
-        return pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
+        return pdlClient.person(fnr, brukerToken).map { }
     }
 
     /**
