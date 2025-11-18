@@ -108,7 +108,7 @@ private fun Application.setupKtorCallLogging() {
         callIdMdc(CORRELATION_ID_HEADER)
         mdc(TOKENTYPE) { call ->
             val idtype = call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")
-            if (idtype != null && idtype.toString() == "app") {
+            if (idtype != null && idtype.asString() == "app") {
                 "MASKINBRUKER"
             } else {
                 "PERSONBRUKER"
