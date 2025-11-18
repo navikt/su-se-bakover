@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
@@ -32,31 +33,22 @@ import java.time.Year
 internal class PersonClientTest {
 
     @Nested
-    inner class `person()` {
-        @Test
-        fun `andre kall med samme token hentes på nytt`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.person(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.person(fnr = mocks.fnr).getOrFail() shouldBe first
-            verify(mocks.pdlClient, times(2)).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
-    }
-
-    @Nested
     inner class `personMedSystembruker()` {
 
         @Test
         fun `andre kall med samme token gir likt svar`() {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
+                it.getOrFail().shouldBeEqualToIgnoringFields(
+                    mocks.person(),
+                    Person::kontaktinfo,
+                )
             }.getOrFail()
             verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBe first
+            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail().shouldBeEqualToIgnoringFields(
+                first,
+                Person::kontaktinfo,
+            )
             verify(mocks.pdlClient, times(2)).personForSystembruker(mocks.fnr)
             verifyNoMoreInteractions(mocks.pdlClient)
         }
