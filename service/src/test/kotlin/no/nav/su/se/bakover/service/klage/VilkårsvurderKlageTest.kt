@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VERSJON
 import behandling.klage.domain.VurderingerTilKlage
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -464,7 +465,7 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `Påbegynt create skal returnere Påbegynt hvis rettsligfremstilt er null`() {
+    fun `Påbegynt create skal returnere Påbegynt hvis rettsligfremstilt er null versjon 2`() {
         val klageErPåbegyntOmRettsligfremstilterNull = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
             vilkårsvurderinger = FormkravTilKlage.create(
@@ -473,6 +474,7 @@ internal class VilkårsvurderKlageTest {
                 klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
                 erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
                 fremsattRettsligKlageinteresse = null,
+                versjon = VERSJON,
             ),
         ).getOrFail()
         klageErPåbegyntOmRettsligfremstilterNull.vilkårsvurderinger.shouldBeTypeOf<FormkravTilKlage.Påbegynt>()
@@ -480,7 +482,24 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `Påbegynt create skal returnere Utfylt alt er utfylt`() {
+    fun `Påbegynt create skal returnere Påbegynt hvis innenforFristen er null med versjon 1`() {
+        val klageErPåbegyntOmRettsligfremstilterNull = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
+            vilkårsvurderinger = FormkravTilKlage.create(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = null,
+                fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                versjon = 1,
+            ),
+        ).getOrFail()
+        klageErPåbegyntOmRettsligfremstilterNull.vilkårsvurderinger.shouldBeTypeOf<FormkravTilKlage.Påbegynt>()
+        klageErPåbegyntOmRettsligfremstilterNull.shouldBeTypeOf<VilkårsvurdertKlage.Påbegynt>()
+    }
+
+    @Test
+    fun `Påbegynt create skal returnere Utfylt hvis alt er utfylt for versjon 2`() {
         val klageErUtfylt = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
             vilkårsvurderinger = FormkravTilKlage.create(
@@ -493,6 +512,23 @@ internal class VilkårsvurderKlageTest {
         ).getOrFail()
         klageErUtfylt.vilkårsvurderinger.shouldBeTypeOf<FormkravTilKlage.Utfylt>()
         klageErUtfylt.shouldBeTypeOf<VilkårsvurdertKlage.Utfylt.TilVurdering>()
+    }
+
+    @Test
+    fun `Påbegynt create skal returnere Utfylt hvis rettsligfremstilt er null med versjon 1`() {
+        val klageErPåbegyntOmRettsligfremstilterNull = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
+            vilkårsvurderinger = FormkravTilKlage.create(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                klagesDetPåKonkreteElementerIVedtaket = FormkravTilKlage.BooleanMedBegrunnelse(true, "tekst"),
+                erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
+                fremsattRettsligKlageinteresse = null,
+                versjon = 1,
+            ),
+        ).getOrFail()
+        klageErPåbegyntOmRettsligfremstilterNull.vilkårsvurderinger.shouldBeTypeOf<FormkravTilKlage.Utfylt>()
+        klageErPåbegyntOmRettsligfremstilterNull.shouldBeTypeOf<VilkårsvurdertKlage.Utfylt.TilVurdering>()
     }
 
     private fun verifiserGyldigStatusovergangTilPåbegynt(

@@ -88,8 +88,8 @@ internal class KlagePostgresRepo(
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type, version)
-                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type, :version)
+            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type, versjon)
+                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type, :versjon)
         """.trimIndent()
             .insert(
                 params = mapOf(
@@ -102,7 +102,7 @@ internal class KlagePostgresRepo(
                     "saksbehandler" to klage.saksbehandler,
                     "datoKlageMottatt" to klage.datoKlageMottatt,
                     "type" to klage.databasetype(),
-                    "version" to VERSJON,
+                    "versjon" to VERSJON,
                 ),
                 session = session,
             )

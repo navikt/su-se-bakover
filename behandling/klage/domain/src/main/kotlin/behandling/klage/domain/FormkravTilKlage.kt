@@ -86,22 +86,22 @@ sealed interface FormkravTilKlage {
                 klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
                 erUnderskrevet: SvarMedBegrunnelse?,
                 fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
-                versjon: Int? = VERSJON,
+                versjon: Int = VERSJON,
             ): FormkravTilKlage {
-                val erFerdigutfylt = if (versjon != null && versjon < VERSJON) {
-                    vedtakId != null &&
-                        innenforFristen != null &&
-                        klagesDetPåKonkreteElementerIVedtaket != null &&
-                        erUnderskrevet != null
+                val erIkkeFerdigutfylt = if (versjon < VERSJON) {
+                    vedtakId == null ||
+                        innenforFristen == null ||
+                        klagesDetPåKonkreteElementerIVedtaket == null ||
+                        erUnderskrevet == null
                 } else {
-                    vedtakId != null &&
-                        innenforFristen != null &&
-                        klagesDetPåKonkreteElementerIVedtaket != null &&
-                        erUnderskrevet != null &&
-                        fremsattRettsligKlageinteresse != null
+                    vedtakId == null ||
+                        innenforFristen == null ||
+                        klagesDetPåKonkreteElementerIVedtaket == null ||
+                        erUnderskrevet == null ||
+                        fremsattRettsligKlageinteresse == null
                 }
 
-                return if (!erFerdigutfylt) {
+                return if (!erIkkeFerdigutfylt) {
                     createUtfyltOnly(
                         vedtakId = vedtakId!!,
                         innenforFristen = innenforFristen!!,
@@ -161,7 +161,7 @@ sealed interface FormkravTilKlage {
             klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
             erUnderskrevet: SvarMedBegrunnelse?,
             fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
-            versjon: Int? = VERSJON, // Skal kun benyttes settes fra KlagePostgresRepo
+            versjon: Int = VERSJON, // Skal kun benyttes settes fra KlagePostgresRepo
         ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
