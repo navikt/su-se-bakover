@@ -1,11 +1,9 @@
 package beregning.domain
 
-import no.nav.su.se.bakover.common.domain.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.domain.extensions.positiveOrZero
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import vilkår.inntekt.domain.grunnlag.Fradrag
-import vilkår.inntekt.domain.grunnlag.sum
 import kotlin.math.roundToInt
 
 data object MånedsberegningFactory {
@@ -24,27 +22,27 @@ data object MånedsberegningFactory {
         fradrag: List<Fradrag>,
     ): BeregningForMåned {
         val ytelseFørFradrag = strategy.beregn(måned)
-        val fradragForMåned = strategy.beregnFradrag(måned, fradrag)
-        val fribeløpForEps = strategy.beregnFribeløpEPS(måned)
-
         val satsbeløp: Double = ytelseFørFradrag.satsForMånedAsDouble
-        val sumFradrag = fradragForMåned.sum().limitedUpwardsTo(satsbeløp)
+
+        val beregnetFradrag = strategy.beregnFradrag(måned, fradrag, satsbeløp)
+        val sumFradrag = beregnetFradrag.sumFradrag
+
         val sumYtelse: Int = (satsbeløp - sumFradrag)
             .positiveOrZero()
             .roundToInt()
 
+        val fribeløpForEps = strategy.beregnFribeløpEPS(måned) // TODO ?? må den være her eller kan den hentes fra kilde/bruk?
         return BeregningForMåned(
             måned = måned,
             fullSupplerendeStønadForMåned = ytelseFørFradrag,
-            // TODO bjg wrapper?? eller nedenfor?
-            fradrag = fradragForMåned,
-            // TODO bjg wrapper??
+            fradrag = beregnetFradrag.fradragForMåned,
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
         ).leggTilbenyttetRegler(
-            mutableListOf(Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering()) +
-                ytelseFørFradrag.benyttetRegel,
+            mutableListOf(
+                Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
+            ) + ytelseFørFradrag.benyttetRegel + beregnetFradrag.benyttetRegel,
         )
     }
 }

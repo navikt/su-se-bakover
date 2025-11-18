@@ -7,6 +7,7 @@ enum class Regelspesifiseringer(
     val kode: String,
     val versjon: String,
 ) {
+    REGEL_SAMLET_FRADRAG("REGEL-SAMLET-FRADRAG", "1"),
     REGEL_UFØRE_FAKTOR("REGEL-UFØRE-FAKTOR", "1"),
     REGEL_BEREGN_SATS_UFØRE_MÅNED("REGEL-BEREGN-SATS-UFØRE-MÅNED", "1"),
     REGEL_MÅNEDSBEREGNING("REGEL-MÅNEDSBEREGNING", "1"),

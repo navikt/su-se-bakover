@@ -7,8 +7,8 @@ import satser.domain.SatsFactory
 import satser.domain.Satsgrunn
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
+import vilkår.inntekt.domain.grunnlag.BeregnetFradrag
 import vilkår.inntekt.domain.grunnlag.Fradrag
-import vilkår.inntekt.domain.grunnlag.FradragForMåned
 
 sealed interface BeregningStrategy {
     val satsFactory: SatsFactory
@@ -19,10 +19,12 @@ sealed interface BeregningStrategy {
 
     fun beregn(måned: Måned): FullSupplerendeStønadForMåned
 
-    fun beregnFradrag(måned: Måned, fradrag: List<Fradrag>): List<FradragForMåned> {
+    fun beregnFradrag(måned: Måned, fradrag: List<Fradrag>, satsbeløp: Double): BeregnetFradrag {
         return when (sakstype) {
             Sakstype.ALDER -> fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList()
             Sakstype.UFØRE -> fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList()
+        }.let {
+            BeregnetFradrag.create(it, satsbeløp)
         }
     }
 
@@ -140,18 +142,22 @@ fun Bosituasjon.Fullstendig.utledBeregningsstrategi(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
+
         is Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
+
         is Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
+
         is Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(
             satsFactory = satsFactory,
             sakstype = sakstype,
         )
+
         is Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene(
             satsFactory = satsFactory,
             sakstype = sakstype,
