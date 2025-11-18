@@ -64,13 +64,12 @@ internal fun Application.setupKtorRoutes(
         }
 
         authenticate("jwt") {
+            install(AuthTokenContextPlugin)
             withUser(applicationConfig) {
                 meRoutes(applicationConfig, azureGroupMapper)
-
                 withAccessProtectedServices(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
-                    install(AuthTokenContextPlugin)
                     extraRoutes(this, services)
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
