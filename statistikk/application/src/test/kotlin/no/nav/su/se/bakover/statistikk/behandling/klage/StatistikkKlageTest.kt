@@ -185,7 +185,7 @@ internal class StatistikkKlageTest {
             behandlingStatus = BehandlingStatus.Iverksatt.value,
             behandlingStatusBeskrivelse = "Behandlingen har blitt iverksatt.",
             resultat = BehandlingResultat.Avvist.value,
-            resultatBeskrivelse = "Avvist pga. bl.a. formkrav. En spesifisering av [AVBRUTT].",
+            resultatBeskrivelse = "Avslag pga. bl.a. formkrav. En spesifisering av [AVBRUTT].",
             resultatBegrunnelse = "IKKE_INNENFOR_FRISTEN",
             beslutter = "attestant",
             avsluttet = true,
