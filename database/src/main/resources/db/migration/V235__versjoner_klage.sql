@@ -2,7 +2,7 @@ ALTER TABLE klage ADD COLUMN versjon INT NOT NULL DEFAULT 2;
 
 update klage set versjon = 1 where type in
                                    ('vilkårsvurdert_bekreftet_til_vurdering',
-                                    'vilkårsvurdert_utfylt_til_vurdering', 'vilkårsvurdert_utfylt_avvist', 'vilkårsvurdert_bekreftet_avvist', 'vurdert_påbegynt', 'vurdert_utfylt'
+                                    'vilkårsvurdert_utfylt_til_vurdering', 'vilkårsvurdert_utfylt_avvist', 'vilkårsvurdert_bekreftet_avvist', 'vurdert_påbegynt', 'vurdert_utfylt',
                                    'vurdert_bekreftet', 'til_attestering_til_vurdering', 'til_attestering_avvist', 'oversendt', 'omgjort')
 AND fremsattrettsligklageinteresse is NULL;
 
