@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
@@ -69,6 +70,7 @@ internal fun Application.setupKtorRoutes(
                 withAccessProtectedServices(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
+                    install(AuthTokenContextPlugin)
                     extraRoutes(this, services)
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)

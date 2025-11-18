@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -20,6 +21,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.withContext
@@ -58,7 +60,10 @@ import java.time.format.DateTimeParseException
 val AuthTokenContextPlugin = createRouteScopedPlugin("AuthTokenContextPlugin") {
     onCall { call ->
         val authHeader = call.request.header(HttpHeaders.Authorization)
-            ?: throw IllegalStateException("Authorization header ikke satt")
+        if (authHeader == null) {
+            call.respond(HttpStatusCode.Unauthorized)
+            return@onCall // stop pipeline
+        }
 
         val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
 
@@ -96,7 +101,7 @@ internal fun Application.setupKtor(
 
     setupKtorCallId()
     setupKtorCallLogging(azureGroupMapper)
-    install(AuthTokenContextPlugin)
+
     install(XForwardedHeaders)
     setupKtorRoutes(
         services = services,
