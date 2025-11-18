@@ -67,7 +67,6 @@ class MDCLogTest {
         val logStatement = appender.list.first { it.message.contains("200 OK") }
         val logbackFormatted = String(rootAppender.encoder.encode(logStatement))
         logStatement.mdcPropertyMap shouldContainKey "X-Correlation-ID"
-        logStatement.mdcPropertyMap shouldContainKey "Authorization"
         logbackFormatted shouldContain "X-Correlation-ID"
         logbackFormatted shouldNotContain "Authorization"
     }

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
@@ -74,7 +75,7 @@ internal fun Application.setupKtor(
     }
 
     setupKtorCallId()
-    setupKtorCallLogging()
+    setupKtorCallLogging(azureGroupMapper)
 
     install(XForwardedHeaders)
     setupKtorRoutes(
@@ -93,7 +94,10 @@ internal fun Application.setupKtor(
     )
 }
 
-private fun Application.setupKtorCallLogging() {
+const val BRUKER = "X_USER"
+const val TOKENTYPE = "X_TOKENTYPE"
+const val ROLLER = "X_ROLES"
+private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
         level = Level.INFO
         filter { call ->
@@ -104,16 +108,25 @@ private fun Application.setupKtorCallLogging() {
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
-        mdc("id-type") { call ->
-            call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")?.asString()
+        mdc(TOKENTYPE) { call ->
+            val idtype = call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")
+            if (idtype != null && idtype.asString() == "app") {
+                "MASKINBRUKER"
+            } else {
+                "PERSONBRUKER"
+            }
         }
-        mdc("X_USER") { call ->
+        mdc(BRUKER) { call ->
             val principal = call.principal<JWTPrincipal>()
             principal?.payload?.getClaim("NAVident")?.asString()
                 ?: principal?.payload?.getClaim("azp_name")?.asString()
-                ?: "ukjent"
+                ?: "Ukjent"
         }
-        mdc("Authorization") { it.request.headers["Authorization"] }
+        mdc(ROLLER) { call ->
+            val rollerMappet = call.suUserContext.roller.map { azureGroupMapper.fromAzureGroup(it.name) }
+            rollerMappet.joinToString(",")
+        }
+
         disableDefaultColors()
     }
 }
