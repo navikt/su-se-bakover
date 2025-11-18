@@ -95,7 +95,6 @@ include("økonomi:application")
 include("økonomi:domain")
 include("økonomi:infrastructure")
 include("økonomi:presentation")
-include("statistikk-app")
 
 include("statistikk:application")
 include("statistikk:domain")
