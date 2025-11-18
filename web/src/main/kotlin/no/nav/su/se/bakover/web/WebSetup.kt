@@ -62,7 +62,6 @@ val AuthTokenContextPlugin = createRouteScopedPlugin("AuthTokenContextPlugin") {
 
         val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
 
-        // Just wrap the downstream pipeline in the ThreadLocal context
         withContext(tokenContextElement) {
             // Nothing else needed; pipeline continues automatically
         }
