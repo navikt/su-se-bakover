@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
@@ -64,7 +63,6 @@ internal fun Application.setupKtorRoutes(
         }
 
         authenticate("jwt") {
-            install(AuthTokenContextPlugin)
             withUser(applicationConfig) {
                 meRoutes(applicationConfig, azureGroupMapper)
                 withAccessProtectedServices(
