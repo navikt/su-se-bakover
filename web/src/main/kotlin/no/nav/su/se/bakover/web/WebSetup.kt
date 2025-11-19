@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.web
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
@@ -15,6 +16,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
@@ -26,7 +28,6 @@ import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
-import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
@@ -94,9 +95,16 @@ internal fun Application.setupKtor(
     )
 }
 
-const val BRUKER = "X_USER"
-const val TOKENTYPE = "X_TOKENTYPE"
-const val ROLLER = "X_ROLES"
+const val BRUKER = "USER"
+const val TOKENTYPE = "TOKENTYPE"
+const val ROLLER = "ROLES"
+
+private fun ApplicationCall.getJwtToken(): DecodedJWT? {
+    val header = request.header(HttpHeaders.Authorization) ?: return null
+    val raw = header.substringAfterLast("Bearer ").trim()
+    return runCatching { JWT.decode(raw) }.getOrNull()
+}
+
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
         level = Level.INFO
@@ -108,22 +116,27 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
+        // Skulle egentlig benyttet idtype ihht https://docs.nais.io/auth/entra-id/reference/?h=azp_name#claims
+        // Men jeg ser at den ikke er med i tokenet så vi sjekker bare på navident
         mdc(TOKENTYPE) { call ->
-            val idtype = call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")?.asString()
-            when (idtype) {
-                "app" -> "MASKINBRUKER"
-                else -> "PERSONBRUKER"
+            call.getJwtToken()?.let { token ->
+                val claims = token.claims
+                val user = claims["NAVident"]?.asString()
+                if (user == null) "MASKINBRUKER" else "PERSONBRUKER"
             }
         }
         mdc(BRUKER) { call ->
-            val principal = call.principal<JWTPrincipal>()
-            principal?.payload?.getClaim("NAVident")?.asString()
-                ?: principal?.payload?.getClaim("azp_name")?.asString()
-                ?: "Ukjent"
+            call.getJwtToken()?.let { token ->
+                val claims = token.claims
+                val user = claims["NAVident"]?.asString() ?: claims["azp_name"]?.asString() ?: "Ukjent"
+                user
+            }
         }
+        // Merk denne vil ikke logge sensitive roller da de ikke finnes i azureGroupMapper
         mdc(ROLLER) { call ->
-            val rollerMappet = call.suUserContext.roller.map { azureGroupMapper.fromAzureGroup(it.name) }
-            rollerMappet.joinToString(",")
+            call.getJwtToken()?.let { token ->
+                token.claims["groups"]?.asList(String::class.java)?.mapNotNull { azureGroupMapper.fromAzureGroup(it) }?.joinToString(",") ?: ""
+            }
         }
 
         disableDefaultColors()
