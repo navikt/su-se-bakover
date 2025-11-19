@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
-import org.slf4j.MDC
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
@@ -150,8 +149,7 @@ fun defaultRequest(
 ): HttpResponse {
     return runBlocking {
         client.request(uri) {
-            val auth: String? = MDC.get("Authorization") // TODO: må fikses
-            val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
+            val bearerToken = jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
             this.method = method
             if (body != null) {
                 contentType(ContentType.Application.Json)
@@ -180,8 +178,7 @@ fun formdataRequest(
             url = uri,
             formData = formData,
         ) {
-            val auth: String? = MDC.get("Authorization") // TODO MÅ fikses
-            val bearerToken = auth ?: jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
+            val bearerToken = jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
             this.method = method
             this.headers {
                 append(HttpHeaders.XCorrelationId, correlationId)
