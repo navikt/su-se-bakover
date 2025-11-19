@@ -27,7 +27,7 @@ internal class LukkSøknadInputHandlerTest {
                 søknadId = UUID.randomUUID(),
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
-            ) shouldBe UgyldigLukkSøknadRequest.left()
+            ) shouldBe FeilVedLukkSøknad.BodyErNull.left()
         }
     }
 
@@ -39,7 +39,7 @@ internal class LukkSøknadInputHandlerTest {
                 søknadId = UUID.randomUUID(),
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
-            ) shouldBe UgyldigLukkSøknadRequest.left()
+            ) shouldBe FeilVedLukkSøknad.DeserializeFeil.left()
         }
     }
 
@@ -93,7 +93,7 @@ internal class LukkSøknadInputHandlerTest {
             LukkSøknadInputHandler.handle(
                 body = """
                     {
-                        "type":"AVVIST",
+                        "type":"AVSLAG",
                         "brevConfig": {
                             "brevtype":"${LukketJson.BrevType.VEDTAK}",
                             "fritekst": "Jeg er fritekst"
@@ -118,7 +118,7 @@ internal class LukkSøknadInputHandlerTest {
             LukkSøknadInputHandler.handle(
                 body = """
                     {
-                        "type":"AVVIST"
+                        "type":"AVSLAG"
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
@@ -138,7 +138,7 @@ internal class LukkSøknadInputHandlerTest {
             LukkSøknadInputHandler.handle(
                 body = """
                     {
-                        "type":"AVVIST",
+                        "type":"AVSLAG",
                         "brevConfig": {
                             "brevtype":"FJAS"
                         }
@@ -147,7 +147,7 @@ internal class LukkSøknadInputHandlerTest {
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
-            ) shouldBe UgyldigLukkSøknadRequest.left()
+            ) shouldBe FeilVedLukkSøknad.DeserializeFeil.left()
         }
     }
 
@@ -176,7 +176,7 @@ internal class LukkSøknadInputHandlerTest {
             LukkSøknadInputHandler.handle(
                 body = """
                     {
-                        "type":"AVVIST",
+                        "type":"AVSLAG",
                         "brevConfig": {
                             "brevtype":"${LukketJson.BrevType.FRITEKST}",
                             "fritekst": "jeg er fritekst"
