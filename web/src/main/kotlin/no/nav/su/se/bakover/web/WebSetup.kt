@@ -116,9 +116,9 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
                 val claims = token.claims
                 val user = claims["NAVident"]?.asString()
                 if (user == null) {
-                    return@let "PERSONBRUKER"
-                } else {
                     return@let "MASKINBRUKER"
+                } else {
+                    return@let "PERSONBRUKER"
                 }
             }
         }
