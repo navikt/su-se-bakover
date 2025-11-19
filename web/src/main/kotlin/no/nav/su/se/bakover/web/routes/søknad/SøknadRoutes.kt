@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknad.lukk.FeilVedLukkSøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
@@ -219,7 +220,11 @@ internal fun Route.søknadRoutes(
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     clock = clock,
                 ).mapLeft {
-                    call.svar(Feilresponser.ugyldigInput)
+                    when (it) {
+                        FeilVedLukkSøknad.BodyErNull -> call.svar(Feilresponser.ugyldigBody)
+                        FeilVedLukkSøknad.DeserializeFeil -> call.svar(Feilresponser.deserializeFeil)
+                        FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
+                    }
                 }.map { request ->
                     lukkSøknadService.lagBrevutkast(
                         request,

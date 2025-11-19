@@ -65,13 +65,13 @@ internal data object LukkSøknadInputHandler {
         søknadId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
-    ): Either<UgyldigLukkSøknadRequest, LukkSøknadCommand> {
+    ): Either<FeilVedLukkSøknad, LukkSøknadCommand> {
         if (body == null) {
-            return UgyldigLukkSøknadRequest.left()
+            return FeilVedLukkSøknad.BodyErNull.left()
         }
 
         val bodyAsJson = deserializeBody(body).getOrElse {
-            return it.left()
+            return FeilVedLukkSøknad.DeserializeFeil.left()
         }
 
         return when (bodyAsJson) {
@@ -97,7 +97,7 @@ internal data object LukkSøknadInputHandler {
 
                 else -> {
                     if (bodyAsJson.brevConfig.fritekst == null) {
-                        UgyldigLukkSøknadRequest.left()
+                        FeilVedLukkSøknad.FritekstErnull.left()
                     } else {
                         LukkSøknadCommand.MedBrev.AvvistSøknad(
                             søknadId = søknadId,
@@ -136,5 +136,11 @@ internal fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, Lu
 internal inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
     Either.catch { deserialize<T>(body) }
         .mapLeft { UgyldigLukkSøknadRequest }
+
+sealed interface FeilVedLukkSøknad {
+    data object DeserializeFeil : FeilVedLukkSøknad
+    data object BodyErNull : FeilVedLukkSøknad
+    data object FritekstErnull : FeilVedLukkSøknad
+}
 
 internal data object UgyldigLukkSøknadRequest
