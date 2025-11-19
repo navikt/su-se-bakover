@@ -54,9 +54,9 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
         value = "TRUKKET",
         beskrivelse = "Bruker eller verge/fullmakt har bedt om å trekke søknad/klage. En spesifisering av [AVBRUTT].",
     ),
-    Avvist(
-        value = "AVVIST",
-        beskrivelse = "Avvist pga. bl.a. formkrav. En spesifisering av [AVBRUTT].",
+    Avslag(
+        value = "AVSLAG",
+        beskrivelse = "Søknaden blir lukket med status avslag.",
     ),
     ;
 

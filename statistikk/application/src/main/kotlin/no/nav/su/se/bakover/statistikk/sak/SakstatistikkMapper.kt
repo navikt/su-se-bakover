@@ -106,7 +106,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
                     behandlingStatus = BehandlingStatus.TilAttestering.toString(),
-                    behandlingResultat = BehandlingResultat.Avvist.toString(),
+                    behandlingResultat = BehandlingResultat.Avslag.toString(),
                     resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                 )
@@ -153,7 +153,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
-                    behandlingResultat = BehandlingResultat.Avvist.toString(),
+                    behandlingResultat = BehandlingResultat.Avslag.toString(),
                     resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
                     ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
                         ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
@@ -394,7 +394,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
-                    behandlingResultat = BehandlingResultat.Avvist.toString(),
+                    behandlingResultat = BehandlingResultat.Avslag.toString(),
                     resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                 )

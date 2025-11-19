@@ -38,7 +38,7 @@ internal fun StatistikkEvent.Behandling.Klage.toBehandlingsstatistikkDto(
             gitCommit = gitCommit,
             clock = clock,
             behandlingStatus = BehandlingStatus.Iverksatt,
-            behandlingResultat = BehandlingResultat.Avvist,
+            behandlingResultat = BehandlingResultat.Avslag,
             resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
             avsluttet = true,
             totrinnsbehandling = true,
