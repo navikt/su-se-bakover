@@ -330,9 +330,10 @@ sealed interface FradragStrategy {
                 ),
             )
         }.let {
-            fradrag.copy(
-                verdi = it,
-            ) // .leggTilbenyttetRegel() TODO bjg regel
+            fradrag.nyBeregning(
+                fradrag = it,
+                nyeRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(),
+            )
         }
     }
 }
