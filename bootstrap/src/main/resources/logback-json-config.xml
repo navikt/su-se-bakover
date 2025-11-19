@@ -5,9 +5,9 @@
             <includeMdcKeyName>trace_id</includeMdcKeyName>
             <includeMdcKeyName>span_id</includeMdcKeyName>
             <includeMdcKeyName>X-Correlation-ID</includeMdcKeyName>
-            <includeMdcKeyName>X_USER</includeMdcKeyName>
-            <includeMdcKeyName>X_TOKENTYPE</includeMdcKeyName>
-            <includeMdcKeyName>X_ROLES</includeMdcKeyName>
+            <includeMdcKeyName>USER</includeMdcKeyName>
+            <includeMdcKeyName>TOKENTYPE</includeMdcKeyName>
+            <includeMdcKeyName>ROLES</includeMdcKeyName>
             <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
                 <!-- Making stacktraces shorter, because see https://doc.nais.io/observability/logs/examples#issues-with-long-log-messages -->
                 <maxDepthPerThrowable>20</maxDepthPerThrowable>
