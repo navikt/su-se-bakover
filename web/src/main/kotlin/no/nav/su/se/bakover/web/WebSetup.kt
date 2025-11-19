@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import com.auth0.jwt.JWT
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -94,9 +95,16 @@ internal fun Application.setupKtor(
     )
 }
 
-const val BRUKER = "X_USER"
-const val TOKENTYPE = "X_TOKENTYPE"
-const val ROLLER = "X_ROLES"
+const val BRUKER = "USER"
+const val TOKENTYPE = "TOKENTYPE"
+const val ROLLER = "ROLES"
+
+private fun ApplicationCall.getJwtToken(): DecodedJWT? {
+    val header = request.header(HttpHeaders.Authorization) ?: return null
+    val raw = header.substringAfterLast("Bearer ").trim()
+    return runCatching { JWT.decode(raw) }.getOrNull()
+}
+
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
         level = Level.INFO
@@ -111,8 +119,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
         // Skulle egentlig benyttet idtype ihht https://docs.nais.io/auth/entra-id/reference/?h=azp_name#claims
         // Men jeg ser at den ikke er med i tokenet så vi sjekker bare på navident
         mdc(TOKENTYPE) { call ->
-            call.request.header(HttpHeaders.Authorization)?.let {
-                val token = JWT.decode(it.substringAfterLast("Bearer "))
+            call.getJwtToken()?.let { token ->
                 val claims = token.claims
                 val user = claims["NAVident"]?.asString()
                 if (user == null) {
@@ -123,16 +130,14 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
             }
         }
         mdc(BRUKER) { call ->
-            call.request.header(HttpHeaders.Authorization)?.let {
-                val token = JWT.decode(it.substringAfterLast("Bearer "))
+            call.getJwtToken()?.let { token ->
                 val claims = token.claims
                 val user = claims["NAVident"]?.asString() ?: claims["azp_name"]?.asString() ?: "Ukjent"
                 user
             }
         }
         mdc(ROLLER) { call ->
-            call.request.header(HttpHeaders.Authorization)?.let {
-                val token = JWT.decode(it.substringAfterLast("Bearer "))
+            call.getJwtToken()?.let { token ->
                 token.claims["groups"]?.asList(String::class.java)?.mapNotNull { azureGroupMapper.fromAzureGroup(it) }?.joinToString(",") ?: ""
             }
         }
