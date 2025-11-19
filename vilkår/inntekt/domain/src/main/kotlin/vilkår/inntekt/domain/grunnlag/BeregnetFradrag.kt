@@ -18,29 +18,43 @@ data class BeregnetFradrag(
         throw NotImplementedError("Ikke relevant for klasse")
     }
 
-    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
-        throw NotImplementedError("Ikke relevant for klasse")
+    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): BeregnetFradrag {
+        benyttetRegel.addAll(regler)
+        return this
     }
 
     companion object {
         fun create(fradragForMåned: BeregnetFradragForMåned, satsbeløp: Double) = BeregnetFradrag(
             fradragForMåned = fradragForMåned,
             sumFradrag = fradragForMåned.verdi.sum().limitedUpwardsTo(satsbeløp),
-            benyttetRegel = mutableListOf(Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering()),
-        )
+            benyttetRegel = mutableListOf(
+                Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(),
+            ),
+        ).leggTilbenyttetRegler(fradragForMåned.benyttetRegel)
     }
 }
 
+/*
+Vil bestå av fradrag som legges til av saksbehandler og basert på bosituasjon og div regelberegninger mutere innholdet.
+*/
 data class BeregnetFradragForMåned(
     val måned: Måned,
     val verdi: List<FradragForMåned>, // TODO istedenfor felt, heller extende List<FradragForMåned> ??
     override val benyttetRegel: MutableList<Regelspesifsering>,
 ) : RegelspesifisertBeregning {
-    override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
-        TODO("Not yet implemented")
+    override fun leggTilbenyttetRegel(regel: Regelspesifsering): BeregnetFradragForMåned {
+        benyttetRegel.add(regel)
+        return this
     }
 
     override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
         TODO("Not yet implemented")
     }
+
+    fun nyBeregning(
+        fradrag: List<FradragForMåned>,
+        nyeRegel: Regelspesifsering,
+    ) = copy(
+        verdi = fradrag,
+    ).leggTilbenyttetRegel(nyeRegel)
 }

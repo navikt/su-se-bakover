@@ -2,6 +2,7 @@
 
 package beregning.domain.fradrag
 
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import satser.domain.SatsFactory
@@ -59,9 +60,9 @@ sealed interface FradragStrategy {
             } else {
                 fradrag.verdi.minus(arbeidsinntekter.toSet())
             }.let {
-                fradrag.copy(
-                    verdi = it,
-                    benyttetRegel = mutableListOf(), // TODO bjg
+                fradrag.nyBeregning(
+                    fradrag = it,
+                    nyeRegel = Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(),
                 )
             }
         }
