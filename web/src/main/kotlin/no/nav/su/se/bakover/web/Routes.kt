@@ -65,7 +65,6 @@ internal fun Application.setupKtorRoutes(
         authenticate("jwt") {
             withUser(applicationConfig) {
                 meRoutes(applicationConfig, azureGroupMapper)
-
                 withAccessProtectedServices(
                     accessCheckProxy,
                 ) { accessProtectedServices ->

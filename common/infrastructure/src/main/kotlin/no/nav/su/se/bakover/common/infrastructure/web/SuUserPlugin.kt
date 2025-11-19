@@ -18,6 +18,7 @@ import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.auth.authTokenContextPlugin
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -77,6 +78,7 @@ fun Route.withUser(
 ): Route {
     val routeWithUser = createChild(SuUserRouteSelector())
     routeWithUser.install(brukerinfoPlugin(log) { BrukerinfoPluginConfig(applicationConfig) })
+    routeWithUser.install(authTokenContextPlugin(log))
     routeWithUser.build()
     return routeWithUser
 }
@@ -89,6 +91,7 @@ private fun brukerinfoPlugin(
 ): RouteScopedPlugin<BrukerinfoPluginConfig> {
     return createRouteScopedPlugin("SuBrukerPlugin", config) {
         on(AuthenticationChecked) { call ->
+
             when {
                 call.isHandled -> {
                     /** En annen plugin i pipelinen har allerede gitt en respons på kallet, ikke gjør noe. */

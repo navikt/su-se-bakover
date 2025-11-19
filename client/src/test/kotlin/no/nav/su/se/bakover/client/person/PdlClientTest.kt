@@ -289,7 +289,8 @@ internal class PdlClientTest {
 
     @Test
     fun `hent person OK og fjerner duplikate adresser`() {
-        startedWireMockServerWithCorrelationId {
+        val token = "etOnBehalfOfToken"
+        startedWireMockServerWithCorrelationId(token = token) {
             //language=JSON
             val suksessResponseJson =
                 """
@@ -394,11 +395,11 @@ internal class PdlClientTest {
             }
                 """.trimIndent()
             val azureAdMock = mock<AzureAd> {
-                on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+                on { onBehalfOfToken(any(), any()) } doReturn token
             }
 
             stubFor(
-                wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
+                wiremockBuilderOnBehalfOf("Bearer $token")
                     .willReturn(WireMock.ok(suksessResponseJson)),
             )
 
