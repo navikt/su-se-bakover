@@ -122,11 +122,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
             call.getJwtToken()?.let { token ->
                 val claims = token.claims
                 val user = claims["NAVident"]?.asString()
-                if (user == null) {
-                    return@let "MASKINBRUKER"
-                } else {
-                    return@let "PERSONBRUKER"
-                }
+                if (user == null) "MASKINBRUKER" else "PERSONBRUKER"
             }
         }
         mdc(BRUKER) { call ->
@@ -136,6 +132,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
                 user
             }
         }
+        // Merk denne vil ikke logge sensitive roller da de ikke finnes i azureGroupMapper
         mdc(ROLLER) { call ->
             call.getJwtToken()?.let { token ->
                 token.claims["groups"]?.asList(String::class.java)?.mapNotNull { azureGroupMapper.fromAzureGroup(it) }?.joinToString(",") ?: ""
