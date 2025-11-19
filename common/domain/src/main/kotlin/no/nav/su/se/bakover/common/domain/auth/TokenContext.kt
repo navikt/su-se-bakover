@@ -10,39 +10,18 @@ import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelinePhase
-import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-class TokenContext(val token: String) :
-    AbstractCoroutineContextElement(Key),
-    ThreadContextElement<TokenContext> {
+data class TokenContext(val token: String) : AbstractCoroutineContextElement(Key) {
     companion object Key : CoroutineContext.Key<TokenContext>
-    override fun updateThreadContext(context: CoroutineContext) = this
-    override fun restoreThreadContext(context: CoroutineContext, oldState: TokenContext) {}
 }
 
 object Kontekst : ThreadLocal<TokenContext>()
 
 val AuthTokenContextPlugin = createRouteScopedPlugin("AuthTokenContextPlugin") {
-/*    onCall { call ->
-        val authHeader = call.request.header(HttpHeaders.Authorization)
-        if (authHeader == null) {
-            call.respond(HttpStatusCode.Unauthorized)
-            return@onCall
-        }
-
-        val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
-
-        // Continue processing call in token context
-        withContext(tokenContextElement) {
-            // pipeline execution continues naturally here
-        }
-    }
- */
-
     on(TokenHook(ApplicationCallPipeline.Call)) { call, proceed ->
         val authHeader = call.request.header(HttpHeaders.Authorization)
         if (authHeader == null) {
