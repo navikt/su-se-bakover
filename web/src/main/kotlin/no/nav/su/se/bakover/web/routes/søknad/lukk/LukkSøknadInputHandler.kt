@@ -17,7 +17,7 @@ internal sealed interface LukketJson {
     val type: LukketType
 
     enum class LukketType {
-        AVVIST,
+        AVSLAG,
         BORTFALT,
         TRUKKET,
     }
@@ -44,7 +44,7 @@ internal sealed interface LukketJson {
         val brevConfig: BrevConfigJson? = null,
     ) : LukketJson {
         init {
-            require(type == LukketType.AVVIST)
+            require(type == LukketType.AVSLAG)
         }
 
         data class BrevConfigJson(
