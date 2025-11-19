@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web
 
+import com.auth0.jwt.JWT
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
@@ -15,6 +15,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
-import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.jacksonConverter
 import no.nav.su.se.bakover.common.person.UgyldigFnrException
@@ -108,22 +108,33 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
+        // Skulle egentlig benyttet idtype ihht https://docs.nais.io/auth/entra-id/reference/?h=azp_name#claims
+        // Men jeg ser at den ikke er med i tokenet så vi sjekker bare på navident
         mdc(TOKENTYPE) { call ->
-            val idtype = call.principal<JWTPrincipal>()?.payload?.getClaim("idtyp")?.asString()
-            when (idtype) {
-                "app" -> "MASKINBRUKER"
-                else -> "PERSONBRUKER"
+            call.request.header(HttpHeaders.Authorization)?.let {
+                val token = JWT.decode(it.substringAfterLast("Bearer "))
+                val claims = token.claims
+                val user = claims["NAVident"]?.asString()
+                if (user == null) {
+                    return@let "PERSONBRUKER"
+                } else {
+                    return@let "MASKINBRUKER"
+                }
             }
         }
         mdc(BRUKER) { call ->
-            val principal = call.principal<JWTPrincipal>()
-            principal?.payload?.getClaim("NAVident")?.asString()
-                ?: principal?.payload?.getClaim("azp_name")?.asString()
-                ?: "Ukjent"
+            call.request.header(HttpHeaders.Authorization)?.let {
+                val token = JWT.decode(it.substringAfterLast("Bearer "))
+                val claims = token.claims
+                val user = claims["NAVident"]?.asString() ?: claims["azp_name"]?.asString() ?: "Ukjent"
+                user
+            }
         }
         mdc(ROLLER) { call ->
-            val rollerMappet = call.suUserContext.roller.map { azureGroupMapper.fromAzureGroup(it.name) }
-            rollerMappet.joinToString(",")
+            call.request.header(HttpHeaders.Authorization)?.let {
+                val token = JWT.decode(it.substringAfterLast("Bearer "))
+                token.claims["groups"]?.asList(String::class.java)?.mapNotNull { azureGroupMapper.fromAzureGroup(it) }?.joinToString(",") ?: ""
+            }
         }
 
         disableDefaultColors()
