@@ -35,7 +35,7 @@ data object MånedsberegningFactory {
         return BeregningForMåned(
             måned = måned,
             fullSupplerendeStønadForMåned = ytelseFørFradrag,
-            fradrag = beregnetFradrag.fradragForMåned,
+            fradrag = beregnetFradrag.fradragForMåned.verdi,
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,

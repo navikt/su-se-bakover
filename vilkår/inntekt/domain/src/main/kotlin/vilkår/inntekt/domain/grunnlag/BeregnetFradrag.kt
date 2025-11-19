@@ -4,12 +4,13 @@ import no.nav.su.se.bakover.common.domain.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
+import no.nav.su.se.bakover.common.tid.periode.Måned
 
 /*
  Regelspesifisering beregning av summert fradrag for en måned
 */
 data class BeregnetFradrag(
-    val fradragForMåned: List<FradragForMåned>,
+    val fradragForMåned: BeregnetFradragForMåned,
     val sumFradrag: Double,
     override val benyttetRegel: MutableList<Regelspesifsering>,
 ) : RegelspesifisertBeregning {
@@ -22,10 +23,24 @@ data class BeregnetFradrag(
     }
 
     companion object {
-        fun create(fradragForMåned: List<FradragForMåned>, satsbeløp: Double) = BeregnetFradrag(
+        fun create(fradragForMåned: BeregnetFradragForMåned, satsbeløp: Double) = BeregnetFradrag(
             fradragForMåned = fradragForMåned,
-            sumFradrag = fradragForMåned.sum().limitedUpwardsTo(satsbeløp),
+            sumFradrag = fradragForMåned.verdi.sum().limitedUpwardsTo(satsbeløp),
             benyttetRegel = mutableListOf(Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering()),
         )
+    }
+}
+
+data class BeregnetFradragForMåned(
+    val måned: Måned,
+    val verdi: List<FradragForMåned>, // TODO istedenfor felt, heller extende List<FradragForMåned> ??
+    override val benyttetRegel: MutableList<Regelspesifsering>,
+) : RegelspesifisertBeregning {
+    override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
+        TODO("Not yet implemented")
+    }
+
+    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
+        TODO("Not yet implemented")
     }
 }

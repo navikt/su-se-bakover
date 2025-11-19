@@ -7,6 +7,7 @@ enum class Regelspesifiseringer(
     val kode: String,
     val versjon: String,
 ) {
+    REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET("REGEL-FRADRAG-MINUS-MINST-ARBEID-OG-FORVENTET", "1"),
     REGEL_SAMLET_FRADRAG("REGEL-SAMLET-FRADRAG", "1"),
     REGEL_UFØRE_FAKTOR("REGEL-UFØRE-FAKTOR", "1"),
     REGEL_BEREGN_SATS_UFØRE_MÅNED("REGEL-BEREGN-SATS-UFØRE-MÅNED", "1"),
@@ -30,12 +31,15 @@ data class Regelspesifsering(
     val benyttetTidspunkt: Tidspunkt,
 )
 
+// TODO slå sammen disse to?
+
 // TODO bjg klasse??
 interface RegelspesifisertBeregning {
     val benyttetRegel: MutableList<Regelspesifsering>
     // TODO grunnlag????
     // TODO kilde ???
 
+    // TODO behøves begge?
     fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning
     fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning
 }

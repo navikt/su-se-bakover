@@ -42,7 +42,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode,
         ).let {
             it shouldHaveSize 1
-            it.values.forEach { it shouldBe listOf(forventetInntekt) }
+            it.values.forEach { it.verdi shouldBe listOf(forventetInntekt) }
         }
     }
 
@@ -59,7 +59,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode,
         ).let {
             it shouldHaveSize 1
-            it.values.forEach { it shouldContainAll listOf(forventetInntekt, expectedEpsFradrag) }
+            it.values.forEach { it.verdi shouldContainAll listOf(forventetInntekt, expectedEpsFradrag) }
         }
     }
 
@@ -113,12 +113,12 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = år(2020),
         ).let {
             it shouldHaveSize 12
-            it[januar(2020)]!! shouldContainAll listOf(
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedFradragBrukerJan,
                 expectedEpsFradragJan,
             )
-            it[mars(2020)]!! shouldBe listOf(expectedFradragBrukerMars)
-            it[juli(2020)]!! shouldContainAll listOf(
+            it[mars(2020)]!!.verdi shouldBe listOf(expectedFradragBrukerMars)
+            it[juli(2020)]!!.verdi shouldContainAll listOf(
                 expectedFradragBrukerJuli,
                 expectedEpsFradragJuli,
             )
@@ -144,7 +144,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
         ).let {
             it shouldHaveSize 4
             it.values.forEach {
-                it.filter { it.tilhører == EPS }
+                it.verdi.filter { it.tilhører == EPS }
                     .all { it.fradragstype == BeregnetFradragEPS }
             }
         }
@@ -168,7 +168,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             fradrag = listOf(forventetInntekt, epsKapitalinntekt, epsPrivatPensjon),
             beregningsperiode = periode,
         ).let {
-            it[januar(2020)]!! shouldContainAll listOf(
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
                 forventetInntekt,
                 expectedBeregnetEpsFradrag,
             )
@@ -186,8 +186,8 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode,
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumOf { it.månedsbeløp } shouldBe arbeidsinntekt.månedsbeløp }
-            it.values.forEach { it.none { it.tilhører == EPS } shouldBe true }
+            it.values.forEach { it.verdi.sumOf { it.månedsbeløp } shouldBe arbeidsinntekt.månedsbeløp }
+            it.values.forEach { it.verdi.none { it.tilhører == EPS } shouldBe true }
         }
     }
 
@@ -203,7 +203,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode,
         ).let {
             it shouldHaveSize 8
-            it.values.sumOf { it.sumOf { it.månedsbeløp } }
+            it.values.sumOf { it.verdi.sumOf { it.månedsbeløp } }
         } shouldBe 8 * 5000
     }
 }

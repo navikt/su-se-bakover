@@ -21,10 +21,10 @@ sealed interface BeregningStrategy {
 
     fun beregnFradrag(måned: Måned, fradrag: List<Fradrag>, satsbeløp: Double): BeregnetFradrag {
         return when (sakstype) {
-            Sakstype.ALDER -> fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList()
-            Sakstype.UFØRE -> fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList()
+            Sakstype.ALDER -> fradragStrategy().beregn(fradrag, måned)[måned]
+            Sakstype.UFØRE -> fradragStrategy().beregn(fradrag, måned)[måned]
         }.let {
-            BeregnetFradrag.create(it, satsbeløp)
+            BeregnetFradrag.create(it!!, satsbeløp) // TODO bjg nullhåndtering...
         }
     }
 
