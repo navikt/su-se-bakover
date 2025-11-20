@@ -248,14 +248,6 @@ internal class ReguleringPostgresRepoTest {
             hentRegulering shouldBe regulering
             val beregning = hentRegulering!!.beregning as BeregningMedFradragBeregnetMånedsvis
             beregning.getMånedsberegninger().zip((mai(2021)..desember(2021)).måneder()) { a, b ->
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(value = 2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = b,
-                    benyttetRegel = mutableListOf(),
-                )
                 a.fullSupplerendeStønadForMåned.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = b,
@@ -267,15 +259,20 @@ internal class ReguleringPostgresRepoTest {
                             virkningstidspunkt = 1.mai(2020),
                             omregningsfaktor = BigDecimal(1.014951),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(value = 2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = b,
+                        ),
                         toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Uføre(
                             verdi = BigDecimal("418.9174666666666666666666666666667"),
                             benyttetRegel = a.fullSupplerendeStønadForMåned.toProsentAvHøyForMåned.benyttetRegel,
 
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
             }
         }

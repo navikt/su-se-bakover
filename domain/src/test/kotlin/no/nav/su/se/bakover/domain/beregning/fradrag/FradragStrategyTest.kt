@@ -172,25 +172,25 @@ internal class FradragStrategyTest {
         @Test
         fun `EPS over 67 år bruker garantipensjonsnivå`() {
             FradragStrategy.Uføre.EpsOver67År(satsFactoryTestPåDato())
-                .getEpsFribeløp(periode) shouldBe 14674.9166666.plusOrMinus(0.5)
+                .getEpsFribeløp(periode).satsForMånedAsDouble shouldBe 14674.9166666.plusOrMinus(0.5)
         }
 
         @Test
         fun `EPS under 67 år ufør flyktning bruker ordinær SU-sats`() {
             FradragStrategy.Uføre.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato())
-                .getEpsFribeløp(periode) shouldBe 18973.0.plusOrMinus(0.5)
+                .getEpsFribeløp(periode).satsForMånedAsDouble shouldBe 18973.0.plusOrMinus(0.5)
         }
 
         @Test
         fun `Enslig gir ikke fribeløp EPS`() {
             FradragStrategy.Uføre.Enslig
-                .getEpsFribeløp(periode) shouldBe 0.0
+                .getEpsFribeløp(periode) shouldBe null
         }
 
         @Test
         fun `EPS under 67 ikke ufør flyktning gir ikke fribeløp EPS`() {
             FradragStrategy.Uføre.EpsUnder67År
-                .getEpsFribeløp(periode) shouldBe 0.0
+                .getEpsFribeløp(periode) shouldBe null
         }
     }
 }

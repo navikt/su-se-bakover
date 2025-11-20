@@ -140,14 +140,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - januar 2021`() {
             satsFactoryTestPåDato(påDato = fixedLocalDate).ordinærUføre(januar(2021)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.28),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = januar(2021),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = januar(2021),
@@ -159,19 +151,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2020),
                             omregningsfaktor = BigDecimal(1.014951),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.28),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = januar(2021),
+                        ),
                         // 2.48 * 106399 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("418.9174666666666666666666666666667"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("231080.28") // 2.28 * 101351
                 it.satsForMåned shouldBe BigDecimal("19256.69") // 2.28 * 101351 / 12
@@ -185,14 +178,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - januar 2021`() {
             satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(januar(2021)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = januar(2021),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = januar(2021),
@@ -204,19 +189,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2020),
                             omregningsfaktor = BigDecimal(1.014951),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = januar(2021),
+                        ),
                         // 2.48 * 101351 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("418.9174666666666666666666666666667"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("251350.48") // 2.48 * 101351
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("20945.8733") // 2.48 * 101351 / 12
@@ -230,14 +216,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - mai 2021`() {
             satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærUføre(mai(2021)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.28),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2021),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2021),
@@ -249,19 +227,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2021),
                             omregningsfaktor = BigDecimal(1.049807),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.28),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2021),
+                        ),
                         // 2.48 * 106399 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("439.7825333333333333333333333333333"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("242589.72") // 2.28 * 106399
                 it.satsForMåned shouldBe BigDecimal("20215.81") // 2.28 * 106399 / 12
@@ -275,14 +254,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - mai 2021`() {
             satsFactoryTestPåDato(påDato = 1.juni(2021)).høyUføre(mai(2021)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2021),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2021),
@@ -294,19 +265,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2021),
                             omregningsfaktor = BigDecimal(1.049807),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2021),
+                        ),
                         // 2.48 * 106399 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("439.7825333333333333333333333333333"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("263869.52") // 2.48 * 106399
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("21989.1267") // 2.48 * 106399 / 12
@@ -320,14 +292,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - mai 2022`() {
             satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærUføre(mai(2022)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.28),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2022),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2022),
@@ -339,19 +303,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2022),
                             omregningsfaktor = BigDecimal(1.047726),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.28),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2022),
+                        ),
                         // 2.48 * G2022-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("460.7716"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("254167.56") // 2.28 * G2022-5
                 it.satsForMåned shouldBe BigDecimal("21180.63") // 2.28 * G2022-5 / 12
@@ -365,14 +330,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - mai 2022`() {
             satsFactoryTestPåDato(påDato = 1.juni(2022)).høyUføre(mai(2022)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2022),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2022),
@@ -384,19 +341,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2022),
                             omregningsfaktor = BigDecimal(1.047726),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2022),
+                        ),
                         // 2.48 * G2022-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("460.7716"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("276462.96") // 2.48 * G2022-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("23038.5800") // 2.48 * G2022-5 / 12
@@ -410,14 +368,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - mai 2023`() {
             satsFactoryTestPåDato(påDato = 26.mai(2023)).ordinærUføre(mai(2023)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.28),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2023),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2023),
@@ -429,19 +379,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2023),
                             omregningsfaktor = BigDecimal(1.064076),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.28),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2023),
+                        ),
                         // 2.48 * G2023-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("490.2960"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("270453.60") // 2.28 * G2023-5
                 it.satsForMåned shouldBe BigDecimal("22537.80") // 2.28 * G2023-5 / 12
@@ -455,14 +406,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - mai 2023`() {
             satsFactoryTestPåDato(påDato = 1.juni(2023)).høyUføre(mai(2023)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2023),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2023),
@@ -474,22 +417,21 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2023),
                             omregningsfaktor = BigDecimal(1.064076),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2023),
+                        ),
                         // 2.48 * G2023-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("490.2960"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
-
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
-                )
-
                 it.satsPerÅr shouldBe BigDecimal("294177.60") // 2.48 * G2023-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("24514.8000") // 2.48 * G2023-5 / 12
                 it.satsForMånedAvrundet shouldBe 24515
@@ -502,14 +444,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - mai 2024`() {
             satsFactoryTestPåDato(påDato = 24.mai(2024)).ordinærUføre(mai(2024)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.28),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2024),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2024),
@@ -521,19 +455,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2024),
                             omregningsfaktor = BigDecimal(1.045591),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.28),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2024),
+                        ),
                         // 2.48 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("512.6490666666666666666666666666667"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("282783.84") // 2.28 * G2024-5
                 it.satsForMåned shouldBe BigDecimal("23565.32") // 2.28 * G2024-5 / 12
@@ -547,14 +482,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - mai 2024`() {
             satsFactoryTestPåDato(påDato = 1.juni(2024)).høyUføre(mai(2024)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = mai(2024),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2024),
@@ -566,21 +493,21 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2024),
                             omregningsfaktor = BigDecimal(1.045591),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            virkningstidspunkt = 1.januar(2015),
+                            måned = mai(2024),
+                        ),
                         // 2.48 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("512.6490666666666666666666666666667"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
-                )
-
                 it.satsPerÅr shouldBe BigDecimal("307589.44") // 2.48 * G2024-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("25632.4533") // 2.48 * G2024-5 / 12
                 it.satsForMånedAvrundet shouldBe 25632
@@ -593,14 +520,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - 1 juli 2024`() {
             satsFactoryTestPåDato(påDato = 1.juli(2024)).ordinærUføre(juli(2024)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.329),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.juli(2024),
-                    virkningstidspunkt = 1.juli(2024),
-                    måned = juli(2024),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = juli(2024),
@@ -612,19 +531,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2024),
                             omregningsfaktor = BigDecimal(1.045591),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.329),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.juli(2024),
+                            virkningstidspunkt = 1.juli(2024),
+                            måned = juli(2024),
+                        ),
                         // 2.529 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("522.77802"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("288861.212") // 2.329 * G2024-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("24071.7677") // 2.329 * G2024-5 / 12
@@ -638,14 +558,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - 1 juli 2024`() {
             satsFactoryTestPåDato(påDato = 2.juli(2024)).høyUføre(juli(2024)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.529),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.juli(2024),
-                    virkningstidspunkt = 1.juli(2024),
-                    måned = juli(2024),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = juli(2024),
@@ -657,19 +569,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2024),
                             omregningsfaktor = BigDecimal(1.045591),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.529),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.juli(2024),
+                            virkningstidspunkt = 1.juli(2024),
+                            måned = juli(2024),
+                        ),
                         // 2.529 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("522.77802"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("313666.812") // 2.529 * G2024-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("26138.9010") // 2.529 * G2024-5 / 12
@@ -683,14 +596,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `ordinær - mai 2025`() {
             satsFactoryTestPåDato(påDato = 23.mai(2025)).ordinærUføre(mai(2025)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.329),
-                    satsKategori = Satskategori.ORDINÆR,
-                    ikrafttredelse = 1.juli(2024),
-                    virkningstidspunkt = 1.juli(2024),
-                    måned = mai(2025),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2025),
@@ -702,19 +607,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2025),
                             omregningsfaktor = BigDecimal(1.049440),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.329),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.juli(2024),
+                            virkningstidspunkt = 1.juli(2024),
+                            måned = mai(2025),
+                        ),
                         // 2.529 * G2025-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("548.62440"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("303142.640") // 2.28 * G2025-5
                 it.satsForMåned shouldBe BigDecimal("25261.88666666666666666666666666667") // 2.28 * G2025-5 / 12
@@ -728,14 +634,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         @Test
         fun `høy - 1 mai 2025`() {
             satsFactoryTestPåDato(påDato = 23.mai(2025)).høyUføre(mai(2025)).let {
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(2.529),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.juli(2024),
-                    virkningstidspunkt = 1.juli(2024),
-                    måned = mai(2025),
-                    benyttetRegel = mutableListOf(),
-                )
                 it.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2025),
@@ -747,19 +645,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.mai(2025),
                             omregningsfaktor = BigDecimal(1.049440),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.529),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.juli(2024),
+                            virkningstidspunkt = 1.juli(2024),
+                            måned = mai(2025),
+                        ),
                         // 2.529 * G2025-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("548.62440"),
                             it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                )
-                it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                    minsteÅrligYtelseForUføretrygdede,
-                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
                 it.satsPerÅr shouldBe BigDecimal("329174.640") // 2.529 * G2025-5
                 it.satsForMåned.scaleTo4() shouldBe BigDecimal("27431.2200") // 2.529 * G2025-5 / 12
@@ -799,7 +698,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
             faktisk.shouldBeEqualToIgnoringFields(
                 forventet,
                 FullSupplerendeStønadForMåned.Uføre::toProsentAvHøyForMåned,
-                FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
+                FullSupplerendeStønadForMåned.Uføre::sats,
             )
             faktisk.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
                 forventet.toProsentAvHøyForMåned,
@@ -811,14 +710,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
         fun `verdi for mai 2022 i januar 2020`() {
             satsFactoryTestPåDato(påDato = 1.januar(2020)).forSatskategoriUføre(mai(2022), Satskategori.HØY)
                 .let {
-                    val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                        faktor = Faktor(2.48),
-                        satsKategori = Satskategori.HØY,
-                        ikrafttredelse = 1.januar(2015),
-                        virkningstidspunkt = 1.januar(2015),
-                        måned = mai(2022),
-                        benyttetRegel = mutableListOf(),
-                    )
                     it.shouldBeEqualToIgnoringFields(
                         FullSupplerendeStønadForMåned.Uføre(
                             måned = mai(2022),
@@ -830,19 +721,20 @@ internal class SatsFactoryForSupplerendeStønadTest {
                                 virkningstidspunkt = 1.mai(2019),
                                 omregningsfaktor = BigDecimal(1.030707),
                             ),
-                            minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                            minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                                faktor = Faktor(2.48),
+                                satsKategori = Satskategori.HØY,
+                                ikrafttredelse = 1.januar(2015),
+                                virkningstidspunkt = 1.januar(2015),
+                                måned = mai(2022),
+                            ),
                             // 2.48 * G2022-5 * 0.02 / 12
                             toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                                 BigDecimal("412.7464"),
                                 it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                             ),
                         ),
-                        FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                        FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
-                    )
-                    it.minsteÅrligYtelseForUføretrygdede.shouldBeEqualToIgnoringFields(
-                        minsteÅrligYtelseForUføretrygdede,
-                        MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                        FullSupplerendeStønadForMåned.Uføre::sats,
                     )
                     it.satsPerÅr shouldBe BigDecimal("247647.84") // 2.48 * G2022-5
                     it.satsForMåned.scaleTo4() shouldBe BigDecimal("20637.3200") // 2.48 * G2022-5 / 12
@@ -1005,14 +897,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     virkningstidspunkt = 1.desember(2021),
                     omregningsfaktor = BigDecimal(1.049807),
                 )
-                val minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(4.0),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 16.november(2021),
-                    virkningstidspunkt = 1.november(2021),
-                    måned = november(2021),
-                    benyttetRegel = mutableListOf(),
-                )
                 val høyUføre = it.høyUføre(november(2021))
                 høyUføre.shouldBeEqualToIgnoringFields(
                     FullSupplerendeStønadForMåned.Uføre(
@@ -1025,14 +909,19 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             virkningstidspunkt = 1.november(2021),
                             omregningsfaktor = BigDecimal(1.049807),
                         ),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(4.0),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 16.november(2021),
+                            virkningstidspunkt = 1.november(2021),
+                            måned = november(2021),
+                        ),
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("0.06666666666666666666666666666666667"),
                             høyUføre.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
                         ),
                     ),
-                    FullSupplerendeStønadForMåned.Uføre::minsteÅrligYtelseForUføretrygdede,
-                    FullSupplerendeStønadForMåned.Uføre::benyttetRegel,
+                    FullSupplerendeStønadForMåned.Uføre::sats,
                 )
             }
         }

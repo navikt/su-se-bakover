@@ -42,7 +42,7 @@ data object MånedsberegningFactory {
         ).leggTilbenyttetRegler(
             mutableListOf(
                 Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
-            ) + ytelseFørFradrag.benyttetRegel + beregnetFradrag.benyttetRegel,
+            ) + ytelseFørFradrag.sats.benyttetRegel + beregnetFradrag.benyttetRegel,
         )
     }
 }

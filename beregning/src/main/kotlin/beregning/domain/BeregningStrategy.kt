@@ -29,7 +29,13 @@ sealed interface BeregningStrategy {
     }
 
     fun beregnFribeløpEPS(måned: Måned): Double {
-        return fradragStrategy().getEpsFribeløp(måned)
+        return fradragStrategy().getEpsFribeløp(måned).let {
+            when (it) {
+                is FullSupplerendeStønadForMåned.Alder -> it.satsForMånedAsDouble
+                is FullSupplerendeStønadForMåned.Uføre -> it.satsForMånedAsDouble
+                null -> 0.0
+            }
+        }
     }
 
     data class BorAlene(

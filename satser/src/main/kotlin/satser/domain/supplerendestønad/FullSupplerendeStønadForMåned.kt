@@ -18,10 +18,11 @@ import java.time.LocalDate
  * Den kan også endre hva slags satstype som ligger til grunn.
  * F.eks. SU Alder gikk fra å bruke minstepensjon til garantipensjon i 2021-01-01
  */
-sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
+sealed interface FullSupplerendeStønadForMåned {
     val måned: Måned
     val satskategori: Satskategori
     val toProsentAvHøyForMåned: ToProsentAvHøyForMåned
+    val sats: BeregnSats
     val satsPerÅr: BigDecimal
     val satsForMåned: BigDecimal
     val satsForMånedAvrundet: Int
@@ -36,32 +37,20 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
     val toProsentAvHøyForMånedAsDouble: Double
     val periode: Måned
 
-    override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
-        benyttetRegel.add(regel)
-        return this
-    }
-
-    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
-        benyttetRegel.addAll(regler)
-        return this
-    }
-
     data class Uføre(
         override val måned: Måned,
         override val satskategori: Satskategori,
         val grunnbeløp: GrunnbeløpForMåned,
         val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
         override val toProsentAvHøyForMåned: ToProsentAvHøyForMåned,
-        override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf(),
     ) : Comparable<FullSupplerendeStønadForMåned>,
         FullSupplerendeStønadForMåned {
 
-        override val satsPerÅr: BigDecimal =
-            grunnbeløp.grunnbeløpPerÅr
-                .toBigDecimal()
-                .multiply(minsteÅrligYtelseForUføretrygdede.faktorSomBigDecimal)
+        override val sats: BeregnSats = BeregnSats.Uføre.create(grunnbeløp, minsteÅrligYtelseForUføretrygdede)
+        override val satsPerÅr: BigDecimal = sats.sats
+        override val satsForMåned: BigDecimal = sats.satsMåned
 
-        override val satsForMåned: BigDecimal = satsPerÅr.divide(12.toBigDecimal(), MathContext.DECIMAL128)
+        // TODO bjg - fjern/erstatt kun test og brevvsining..
         override val satsForMånedAvrundet: Int = satsForMåned.avrund()
         override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
 
@@ -70,11 +59,15 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
             require(toProsentAvHøyForMåned.verdi >= BigDecimal.ZERO)
             require(måned == minsteÅrligYtelseForUføretrygdede.måned)
             require(måned == grunnbeløp.måned)
+            /*
+            // TODO skal det alltid gjøres ved init eller ved faktisk bruk????? harmonerer ikke med EPS fradrag fribeløp
             leggTilbenyttetRegler(
                 listOf(Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering()) +
                     minsteÅrligYtelseForUføretrygdede.benyttetRegel +
                     toProsentAvHøyForMåned.benyttetRegel,
             )
+
+             */
         }
 
         /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
@@ -93,14 +86,15 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
         override val satskategori: Satskategori,
         val garantipensjonForMåned: GarantipensjonForMåned,
         override val toProsentAvHøyForMåned: ToProsentAvHøyForMåned,
-        override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf(),
     ) : Comparable<FullSupplerendeStønadForMåned>,
         FullSupplerendeStønadForMåned {
 
-        override val satsPerÅr: BigDecimal = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
+        override val sats: BeregnSats.Alder = BeregnSats.Alder.create(garantipensjonForMåned)
+        override val satsPerÅr: BigDecimal = sats.sats
+        override val satsForMåned: BigDecimal = sats.satsMåned
 
-        override val satsForMåned: BigDecimal = satsPerÅr.divide(12.toBigDecimal(), MathContext.DECIMAL128)
-        override val satsForMånedAvrundet: Int = satsForMåned.avrund() // TODO bjg - skal ikke skje?
+        // TODO bjg - fjern / erstatt
+        override val satsForMånedAvrundet: Int = satsForMåned.avrund()
         override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
 
         init {
@@ -111,11 +105,76 @@ sealed interface FullSupplerendeStønadForMåned : RegelspesifisertBeregning {
 
         override val ikrafttredelse: LocalDate = garantipensjonForMåned.ikrafttredelse
 
+        // TODO bjg erstatt
         override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.verdi.toDouble()
 
         override val periode: Måned = måned
 
         override fun compareTo(other: FullSupplerendeStønadForMåned) = this.måned.compareTo(other.måned)
+    }
+}
+
+sealed class BeregnSats : RegelspesifisertBeregning {
+    abstract val sats: BigDecimal
+    abstract val satsMåned: BigDecimal
+
+    data class Uføre(
+        override val sats: BigDecimal,
+        override val satsMåned: BigDecimal,
+        override val benyttetRegel: MutableList<Regelspesifsering>,
+    ) : BeregnSats() {
+        override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
+            TODO("Not yet implemented")
+        }
+
+        override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
+            TODO("Not yet implemented")
+        }
+
+        companion object {
+            fun create(
+                grunnbeløp: GrunnbeløpForMåned,
+                minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
+            ): Uføre {
+                val sats = grunnbeløp.grunnbeløpPerÅr
+                    .toBigDecimal()
+                    .multiply(minsteÅrligYtelseForUføretrygdede.faktorSomBigDecimal)
+                return Uføre(
+                    sats = sats,
+                    satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                    benyttetRegel = mutableListOf(
+                        Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(),
+                        // TODO bjg - riktig å ha denne her? strengt talt ikke her den utledes..
+                        Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
+                    ),
+                )
+            }
+        }
+    }
+
+    data class Alder(
+        override val sats: BigDecimal,
+        override val satsMåned: BigDecimal,
+        override val benyttetRegel: MutableList<Regelspesifsering>,
+    ) : BeregnSats() {
+        override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
+            TODO("Not yet implemented")
+        }
+
+        override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
+            TODO("Not yet implemented")
+        }
+
+        companion object {
+            fun create(garantipensjonForMåned: GarantipensjonForMåned): Alder {
+                val sats = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
+                return Alder(
+                    sats = sats,
+                    satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                    benyttetRegel = mutableListOf(Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering()),
+                )
+            }
+        }
     }
 }
 

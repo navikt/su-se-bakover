@@ -120,6 +120,7 @@ class BeregningRegelspesifiseringTest {
             with(result.getMånedsberegninger().single()) {
                 val faktisk = getBenyttetRegler()
                 val forventet = listOf(
+                    Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering(), // TODO bjg skille på eps og søker?
                     Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(),
                     Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(),
                     Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(),

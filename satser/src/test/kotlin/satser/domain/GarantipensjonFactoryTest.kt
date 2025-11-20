@@ -84,6 +84,7 @@ internal class GarantipensjonFactoryTest {
         mai.shouldBeEqualToIgnoringFields(
             expected(mai(2020)),
             FullSupplerendeStønadForMåned.Alder::toProsentAvHøyForMåned,
+            FullSupplerendeStønadForMåned.Alder::sats,
         )
         mai.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
             expected(mai(2020)).toProsentAvHøyForMåned,
@@ -94,6 +95,7 @@ internal class GarantipensjonFactoryTest {
         juli.shouldBeEqualToIgnoringFields(
             expected(juli(2020)),
             FullSupplerendeStønadForMåned.Alder::toProsentAvHøyForMåned,
+            FullSupplerendeStønadForMåned.Alder::sats,
         )
         juli.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
             expected(juli(2020)).toProsentAvHøyForMåned,

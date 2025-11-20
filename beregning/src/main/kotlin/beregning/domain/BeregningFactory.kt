@@ -52,7 +52,7 @@ class BeregningFactory(val clock: Clock) {
         }
 
         fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
-            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
+            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned.verdi.toDouble()
 
             // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
             if (getSumYtelse() >= toProsentAvHøy) return false
@@ -111,6 +111,8 @@ class BeregningFactory(val clock: Clock) {
                     }
                         .leggTilbenyttetRegler(
                             listOf(
+                                // TODO bjg - må endres - Hver boolean her på wrappes..
+                                Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(),
                                 Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(),
                                 Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(),
                             ),

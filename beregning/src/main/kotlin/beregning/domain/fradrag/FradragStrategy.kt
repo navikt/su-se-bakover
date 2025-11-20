@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringe
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import satser.domain.SatsFactory
+import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import vilkår.inntekt.domain.grunnlag.BeregnetFradragForMåned
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragFactory
@@ -19,7 +20,7 @@ import java.lang.Double.max
 sealed interface FradragStrategy {
 
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, BeregnetFradragForMåned>
-    fun getEpsFribeløp(måned: Måned): Double
+    fun getEpsFribeløp(måned: Måned): FullSupplerendeStønadForMåned?
 
     /**
      * Kun ment brukt av de som arver fra denne klassen.
@@ -62,7 +63,7 @@ sealed interface FradragStrategy {
             }.let {
                 fradrag.nyBeregning(
                     fradrag = it,
-                    nyeRegel = Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(),
+                    nyeRegler = mutableListOf(Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering()),
                 )
             }
         }
@@ -82,7 +83,7 @@ sealed interface FradragStrategy {
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = 0.0
+            override fun getEpsFribeløp(måned: Måned) = null
         }
 
         data class EpsOver67År(val satsfactory: SatsFactory) : Uføre() {
@@ -98,7 +99,8 @@ sealed interface FradragStrategy {
                     .`fjern EPS fradrag opp til garantipensjonsnivå`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærAlder(måned).satsForMånedAsDouble
+            override fun getEpsFribeløp(måned: Måned): FullSupplerendeStønadForMåned.Alder =
+                satsfactory.ordinærAlder(måned)
 
             private fun List<BeregnetFradragForMåned>.`fjern EPS fradrag opp til garantipensjonsnivå`(): List<BeregnetFradragForMåned> {
                 return map {
@@ -123,7 +125,8 @@ sealed interface FradragStrategy {
                     .`fjern EPS fradrag opp til satsbeløp`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærUføre(måned).satsForMånedAsDouble
+            override fun getEpsFribeløp(måned: Måned): FullSupplerendeStønadForMåned.Uføre =
+                satsfactory.ordinærUføre(måned)
 
             private fun List<BeregnetFradragForMåned>.`fjern EPS fradrag opp til satsbeløp`(): List<BeregnetFradragForMåned> {
                 return map {
@@ -147,7 +150,7 @@ sealed interface FradragStrategy {
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                     .`slå sammen eps sine fradrag til en og samme type`()
 
-            override fun getEpsFribeløp(måned: Måned): Double = 0.0
+            override fun getEpsFribeløp(måned: Måned) = null
 
             private fun List<BeregnetFradragForMåned>.`slå sammen eps sine fradrag til en og samme type`(): List<BeregnetFradragForMåned> {
                 return map { `slå sammen eps sine fradrag til en og samme type`(it) }
@@ -203,7 +206,7 @@ sealed interface FradragStrategy {
                 }
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = 0.0
+            override fun getEpsFribeløp(måned: Måned) = null
         }
 
         data class EpsOver67År(val satsfactory: SatsFactory) : Alder() {
@@ -217,7 +220,8 @@ sealed interface FradragStrategy {
                 }.`fjern EPS fradrag opp til garantipensjonsnivå`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærAlder(måned).satsForMånedAsDouble
+            override fun getEpsFribeløp(måned: Måned): FullSupplerendeStønadForMåned.Alder =
+                satsfactory.ordinærAlder(måned)
 
             private fun List<BeregnetFradragForMåned>.`fjern EPS fradrag opp til garantipensjonsnivå`(): List<BeregnetFradragForMåned> {
                 return map {
@@ -240,7 +244,8 @@ sealed interface FradragStrategy {
                 }.`fjern EPS fradrag opp til satsbeløp`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærUføre(måned).satsForMånedAsDouble
+            override fun getEpsFribeløp(måned: Måned): FullSupplerendeStønadForMåned.Uføre =
+                satsfactory.ordinærUføre(måned)
 
             private fun List<BeregnetFradragForMåned>.`fjern EPS fradrag opp til satsbeløp`(): List<BeregnetFradragForMåned> {
                 return map {
@@ -263,7 +268,7 @@ sealed interface FradragStrategy {
                 }.`slå sammen eps sine fradrag til en og samme type`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = 0.0
+            override fun getEpsFribeløp(måned: Måned) = null
 
             private fun List<BeregnetFradragForMåned>.`slå sammen eps sine fradrag til en og samme type`(): List<BeregnetFradragForMåned> {
                 return map { `slå sammen eps sine fradrag til en og samme type`(it) }
@@ -300,7 +305,7 @@ sealed interface FradragStrategy {
      * TODO jah: Flytt ut av interface? Annet?
      */
     fun `fjern EPS fradrag opp til beløpsgrense`(
-        beløpsgrense: Double,
+        beløpsgrense: FullSupplerendeStønadForMåned,
         fradrag: BeregnetFradragForMåned,
     ): BeregnetFradragForMåned {
         val (epsFradrag, søkersFradrag) = fradrag.verdi.partition { it.tilhører == FradragTilhører.EPS }
@@ -310,7 +315,7 @@ sealed interface FradragStrategy {
         val sumUtenSosialstønad = epsFradrag.sumEksklusiv(Fradragstype.Sosialstønad)
 
         // ekskluder sosialstønad fra summering mot beløpsgrense
-        val sumOverstigerBeløpsgrense = max(sumUtenSosialstønad - beløpsgrense, 0.0)
+        val sumOverstigerBeløpsgrense = max(sumUtenSosialstønad - beløpsgrense.satsForMånedAsDouble, 0.0)
 
         val ingenFradragEps = sumSosialstønad == 0.0 && sumOverstigerBeløpsgrense == 0.0
 
@@ -332,7 +337,9 @@ sealed interface FradragStrategy {
         }.let {
             fradrag.nyBeregning(
                 fradrag = it,
-                nyeRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(),
+                nyeRegler = mutableListOf(
+                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(),
+                ) + beløpsgrense.sats.benyttetRegel,
             )
         }
     }

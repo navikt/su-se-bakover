@@ -47,14 +47,15 @@ data class BeregnetFradragForMåned(
         return this
     }
 
-    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
-        TODO("Not yet implemented")
+    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): BeregnetFradragForMåned {
+        benyttetRegel.addAll(regler)
+        return this
     }
 
     fun nyBeregning(
         fradrag: List<FradragForMåned>,
-        nyeRegel: Regelspesifsering,
+        nyeRegler: List<Regelspesifsering>,
     ) = copy(
         verdi = fradrag,
-    ).leggTilbenyttetRegel(nyeRegel)
+    ).leggTilbenyttetRegler(nyeRegler)
 }
