@@ -43,7 +43,7 @@ sealed interface OppgaveConfig {
     val clock: Clock
     val aktivDato: LocalDate
     val fristFerdigstillelse: LocalDate
-    val beskrivelse: String get() = "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksreferanse"
+    val beskrivelse: String get() = " Saksnummer : $saksreferanse"
 
     /**
      * Denne er knyttet til mottak av søknad (både førstegang og ny periode), men brukes videre av søknadsbehandlinga
