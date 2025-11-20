@@ -42,8 +42,8 @@ class Postgres(
 abstract class AbstractDatasource(private val jdbcUrl: String) {
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
-        maximumPoolSize = 5
-        connectionTimeout = 2.seconds.inWholeMilliseconds
+        maximumPoolSize = 15
+        connectionTimeout = 3.seconds.inWholeMilliseconds
         maxLifetime = 30.minutes.inWholeMilliseconds
     }
 
