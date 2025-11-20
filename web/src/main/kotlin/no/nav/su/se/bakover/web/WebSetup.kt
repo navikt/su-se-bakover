@@ -13,6 +13,7 @@ import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
 import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.calllogging.processingTimeMillis
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -98,6 +99,7 @@ internal fun Application.setupKtor(
 const val BRUKER = "USER"
 const val TOKENTYPE = "TOKENTYPE"
 const val ROLLER = "ROLES"
+const val TIME_USED = "TIMEUSED_MS"
 
 private fun ApplicationCall.getJwtToken(): DecodedJWT? {
     val header = request.header(HttpHeaders.Authorization) ?: return null
@@ -124,6 +126,9 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
                 val user = claims["NAVident"]?.asString()
                 if (user == null) "MASKINBRUKER" else "PERSONBRUKER"
             }
+        }
+        mdc(TIME_USED) { call ->
+            call.processingTimeMillis().toString()
         }
         mdc(BRUKER) { call ->
             call.getJwtToken()?.let { token ->
