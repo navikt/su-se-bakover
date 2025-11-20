@@ -64,7 +64,11 @@ class LukkSøknadServiceImpl(
                 }
                 søknadService.persisterSøknad(it.søknad, tx)
                 søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
-                observers.notify(StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler), tx)
+                val avvistForTidigSøknad = command is LukkSøknadCommand.MedBrev.AvvistSøknad
+                observers.notify(
+                    StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler, avvistForTidigSøknad),
+                    tx,
+                )
                 oppgaveService.lukkOppgave(
                     oppgaveId = it.søknad.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),

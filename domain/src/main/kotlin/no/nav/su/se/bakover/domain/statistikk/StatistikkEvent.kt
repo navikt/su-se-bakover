@@ -95,6 +95,7 @@ sealed interface StatistikkEvent {
                 override val søknadsbehandling: LukketSøknadsbehandling,
                 // TODO jah: Erstatt med saksbehandler fra behandlinga hvis det blir implmentert.
                 val lukketAv: NavIdentBruker.Saksbehandler,
+                val avslagTidligSøknad: Boolean,
             ) : Søknad
         }
 

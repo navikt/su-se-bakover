@@ -51,6 +51,10 @@ data class Attesteringshistorikk private constructor(
         return this.filterIsInstance<Attestering.Iverksatt>().singleOrNull()
     }
 
+    fun hentSisteUnderkjenteAttesteringOrNull(): Attestering.Underkjent? {
+        return this.filterIsInstance<Attestering.Underkjent>().singleOrNull()
+    }
+
     fun erUnderkjent(): Boolean = this.any { it is Attestering.Underkjent }
 }
 
