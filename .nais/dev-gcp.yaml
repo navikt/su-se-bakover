@@ -76,7 +76,6 @@ spec:
       cpu: 1000m
   ingresses:
     - https://su-se-bakover.intern.dev.nav.no
-  webproxy: true
   prometheus:
     enabled: true
     path: /metrics
@@ -85,6 +84,7 @@ spec:
   leaderElection: true
   kafka:
     pool: nav-dev
+  #må vi også bytte fra vault for å gå i gcp?`
   vault:
     enabled: true
     paths:
