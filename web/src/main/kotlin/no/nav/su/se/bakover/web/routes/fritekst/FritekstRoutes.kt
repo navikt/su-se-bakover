@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstSlettDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import java.util.UUID
 
@@ -43,6 +45,29 @@ data class FritekstRequestLagre(
             sakId = sakUUID,
             type = typeEnum,
             fritekst = fritekst,
+        ).right()
+    }
+}
+
+data class FritekstRequestSlett(
+    val referanseId: String,
+    val sakId: String,
+    val type: String,
+) {
+    fun toDomain(): Either<FeilDatatype, FritekstSlettDomain> {
+        val typeEnum = FritekstType.entries.find { it.name == type }
+            ?: return FeilDatatype("Friteksttype", type).left()
+
+        val referanseUUID = Either.catch { UUID.fromString(referanseId) }
+            .getOrElse { return FeilDatatype("referanseId", referanseId).left() }
+
+        val sakUUID = Either.catch { UUID.fromString(sakId) }
+            .getOrElse { return FeilDatatype("sakId", sakId).left() }
+
+        return FritekstSlettDomain(
+            referanseId = referanseUUID,
+            sakId = sakUUID,
+            type = typeEnum,
         ).right()
     }
 }
@@ -103,6 +128,30 @@ internal fun Route.fritekstRoutes(
                     {
                         fritekstService.lagreFritekst(it)
                         call.svar(Resultat.okJson())
+                    },
+                )
+            }
+        }
+    }
+
+    delete(path = "$FRITEKST_PATH/slett") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withBody<FritekstRequestSlett> { request ->
+                request.toDomain().fold(
+                    {
+                        call.svar(FeilResponser.ugyldigBody(it.asMessage()))
+                    },
+                    { slettDomain ->
+                        val resultat = fritekstService.slettFritekst(
+                            referanseId = slettDomain.referanseId,
+                            type = slettDomain.type,
+                            sakId = slettDomain.sakId,
+                        ).map {
+                            Resultat.okJson()
+                        }.getOrElse {
+                            FeilResponser.fantIkkeFritekst
+                        }
+                        call.svar(resultat)
                     },
                 )
             }
