@@ -5,7 +5,7 @@ on:
     inputs:
       cluster:
         required: true
-        description: 'dev-fss/prod-fss'
+        description: 'dev-fss/prod-fss og nå dev-gcp'
         type: string
       var:
         required: false
