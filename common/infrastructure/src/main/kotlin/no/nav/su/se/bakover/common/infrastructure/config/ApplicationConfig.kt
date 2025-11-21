@@ -212,7 +212,7 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables(isGCP: Boolean): DatabaseConfig {
                 // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
                 return when (isGCP) {
-                    true -> StaticCredentials(getEnvironmentVariableOrThrow("${DatabaseConfigEnvs.DB_JDBC_URL}"))
+                    true -> StaticCredentials(getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()))
                     false -> RotatingCredentials(
                         databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
                         jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
