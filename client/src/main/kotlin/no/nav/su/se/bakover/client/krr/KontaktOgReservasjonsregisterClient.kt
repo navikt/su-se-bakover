@@ -3,28 +3,39 @@ package no.nav.su.se.bakover.client.krr
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.github.benmanes.caffeine.cache.Cache
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 internal const val PERSONER_PATH = "/rest/v1/personer"
 
 /**
  * @see https://digdir-krr-proxy.intern.dev.nav.no/swagger-ui/index.html#/
  */
+
 class KontaktOgReservasjonsregisterClient(
     val config: ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig,
     val azure: AzureAd,
+    private val suMetrics: SuMetrics,
+    private val krrCache: Cache<Fnr, Kontaktinformasjon> = newCache(
+        cacheName = "kontaktinfo",
+        expireAfterWrite = Duration.ofMinutes(30),
+        suMetrics = suMetrics,
+    ),
 ) : KontaktOgReservasjonsregister {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -34,6 +45,10 @@ class KontaktOgReservasjonsregisterClient(
                 personidenter = listOf(fnr.toString()),
             ),
         )
+
+        krrCache.getIfPresent(fnr)?.let { cachedKontaktinfo ->
+            return cachedKontaktinfo.right()
+        }
         val (_, response, result) = "${config.url}$PERSONER_PATH".httpPost()
             .authentication().bearer(azure.getSystemToken(config.appId))
             .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
@@ -51,7 +66,8 @@ class KontaktOgReservasjonsregisterClient(
                         val personer = jsonNode.get("personer")
                         if (personer.has(fnr.toString())) {
                             val personFunnet = personer.get(fnr.toString()).toString()
-                            deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
+                            val svar = deserialize<HentKontaktinformasjonRepsonse>(personFunnet).toKontaktinformasjon()
+                            svar.onRight { krrCache.put(fnr, it) }
                         } else {
                             val errorMessage = "Feil ved henting av digital kontaktinformasjon. Årsak=mangler fnr i objekt."
                             log.error(errorMessage, RuntimeException("Trigger stacktrace"))

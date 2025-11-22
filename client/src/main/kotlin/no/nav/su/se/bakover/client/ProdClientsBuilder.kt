@@ -61,6 +61,7 @@ data class ProdClientsBuilder(
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,
             azure = oAuth,
+            suMetrics = suMetrics,
         )
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
         val pdlClientConfig = PdlClientConfig(

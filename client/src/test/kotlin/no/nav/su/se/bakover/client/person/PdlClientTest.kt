@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import person.domain.KunneIkkeHentePerson
 import person.domain.SivilstandTyper
 import java.time.LocalDate
