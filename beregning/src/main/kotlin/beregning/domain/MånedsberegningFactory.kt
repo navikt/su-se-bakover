@@ -39,10 +39,12 @@ data object MånedsberegningFactory {
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-        ).leggTilbenyttetRegler(
-            mutableListOf(
-                Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
-            ) + ytelseFørFradrag.sats.benyttetRegel + beregnetFradrag.benyttetRegel,
+            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                avhengigeRegler = listOf(
+                    ytelseFørFradrag.sats.benyttetRegel!!,
+                    beregnetFradrag.benyttetRegel,
+                ),
+            ),
         )
     }
 }

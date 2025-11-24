@@ -64,7 +64,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     // GarantipensjonHøy2025-5 * 0.02 / 12
                     toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                         BigDecimal("404.03"),
-                        it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        it.toProsentAvHøyForMåned.benyttetRegel.benyttetTidspunkt,
                         Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     ),
                 )
@@ -93,7 +93,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     // GarantipensjonHøy2025-5 * 0.02 / 12
                     toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                         BigDecimal("404.03"),
-                        it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     ),
                 )
@@ -161,7 +161,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * 106399 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("418.9174666666666666666666666666667"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -199,7 +199,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * 101351 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("418.9174666666666666666666666666667"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -237,7 +237,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * 106399 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("439.7825333333333333333333333333333"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -275,7 +275,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * 106399 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("439.7825333333333333333333333333333"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -313,7 +313,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * G2022-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("460.7716"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -351,7 +351,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * G2022-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("460.7716"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -389,7 +389,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * G2023-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("490.2960"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -427,7 +427,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * G2023-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("490.2960"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -465,7 +465,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("512.6490666666666666666666666666667"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -503,7 +503,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.48 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("512.6490666666666666666666666666667"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -541,7 +541,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.529 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("522.77802"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -579,7 +579,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.529 * G2024-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("522.77802"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -617,7 +617,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.529 * G2025-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("548.62440"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -655,7 +655,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         // 2.529 * G2025-5 * 0.02 / 12
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("548.62440"),
-                            it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,
@@ -731,7 +731,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                             // 2.48 * G2022-5 * 0.02 / 12
                             toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                                 BigDecimal("412.7464"),
-                                it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                                it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                             ),
                         ),
                         FullSupplerendeStønadForMåned.Uføre::sats,
@@ -886,7 +886,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     ),
                     toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                         BigDecimal("0.01666666666666666666666666666666667"),
-                        høyAlder.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                        høyAlder.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     ),
                 )
@@ -918,7 +918,7 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ),
                         toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                             BigDecimal("0.06666666666666666666666666666666667"),
-                            høyUføre.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                            høyUføre.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                         ),
                     ),
                     FullSupplerendeStønadForMåned.Uføre::sats,

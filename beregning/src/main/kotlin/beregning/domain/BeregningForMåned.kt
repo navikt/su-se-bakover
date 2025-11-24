@@ -1,7 +1,7 @@
 package beregning.domain
 
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
@@ -21,20 +21,11 @@ data class BeregningForMåned(
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,
     private val sumFradrag: Double,
+    override val benyttetRegel: Regelspesifisering,
 ) : Månedsberegning,
     RegelspesifisertBeregning {
 
     override val periode: Måned = måned
-
-    override val benyttetRegel: MutableList<Regelspesifsering> = mutableListOf()
-    override fun leggTilbenyttetRegel(regel: Regelspesifsering): BeregningForMåned {
-        benyttetRegel.add(regel)
-        return this
-    }
-    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): BeregningForMåned {
-        benyttetRegel.addAll(regler)
-        return this
-    }
 
     init {
         require(fradrag.all { it.måned == måned }) { "Fradrag må være gjeldende for aktuell måned" }
@@ -69,8 +60,8 @@ data class BeregningForMåned(
         return merknader.alle()
     }
 
-    override fun getBenyttetRegler(): List<Regelspesifsering> {
-        return this.benyttetRegel
+    override fun getBenyttetRegler(): Regelspesifisering {
+        return this.benyttetRegel!! // TODO bjg fjern når grunnlag er lagt til
     }
 
     fun leggTilMerknad(merknad: Merknad.Beregning) {

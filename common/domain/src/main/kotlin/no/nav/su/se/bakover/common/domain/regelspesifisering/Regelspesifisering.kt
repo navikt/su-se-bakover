@@ -20,28 +20,50 @@ enum class Regelspesifiseringer(
     REGEL_TO_PROSENT_AV_HØY_SATS_ALDER("REGEL-TO-PROSENT-AV-HØY-SATS-ALDER", "1"),
     ;
 
-    fun benyttRegelspesifisering() = Regelspesifsering(
+    fun benyttRegelspesifisering(
+        avhengigeRegler: List<Regelspesifisering> = emptyList(),
+    ) = Regelspesifisering.Beregning(
         kode = this.kode,
         versjon = this.versjon,
         benyttetTidspunkt = Tidspunkt.now(Clock.systemUTC()),
+        avhengigeRegler = avhengigeRegler,
     )
 }
 
-data class Regelspesifsering(
+enum class RegelspesifisertGrunnlag(
     val kode: String,
     val versjon: String,
-    val benyttetTidspunkt: Tidspunkt,
-)
+) {
+    GRUNNLAG_FRADRAG("GRUNNLAG-FRADRAG", "1"),
+    ;
 
-// TODO slå sammen disse to?
+    fun benyttGrunnlag() = Regelspesifisering.Grunnlag(
+        kode,
+        versjon,
+        Tidspunkt.now(Clock.systemUTC()),
+    )
+}
 
-// TODO bjg klasse??
 interface RegelspesifisertBeregning {
-    val benyttetRegel: MutableList<Regelspesifsering>
-    // TODO grunnlag????
-    // TODO kilde ???
+    val benyttetRegel: Regelspesifisering
+}
 
-    // TODO behøves begge?
-    fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning
-    fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning
+sealed class Regelspesifisering {
+    abstract val kode: String
+    abstract val versjon: String
+    abstract val benyttetTidspunkt: Tidspunkt
+
+    data class Beregning(
+        override val kode: String,
+        override val versjon: String,
+        override val benyttetTidspunkt: Tidspunkt,
+        val avhengigeRegler: List<Regelspesifisering>,
+    ) : Regelspesifisering()
+
+    data class Grunnlag(
+        override val kode: String,
+        override val versjon: String,
+        override val benyttetTidspunkt: Tidspunkt,
+        val kilde: String? = null, // TODO bjg må settes?
+    ) : Regelspesifisering()
 }

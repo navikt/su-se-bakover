@@ -3,6 +3,7 @@
 package beregning.domain.fradrag
 
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import satser.domain.SatsFactory
@@ -61,9 +62,11 @@ sealed interface FradragStrategy {
             } else {
                 fradrag.verdi.minus(arbeidsinntekter.toSet())
             }.let {
-                fradrag.nyBeregning(
-                    fradrag = it,
-                    nyeRegler = mutableListOf(Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering()),
+                fradrag.copy(
+                    verdi = it,
+                    benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(
+                        avhengigeRegler = listOf(fradrag.benyttetRegel),
+                    ),
                 )
             }
         }
@@ -77,7 +80,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = it.key,
                         verdi = it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER },
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -92,7 +95,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -118,7 +121,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -144,7 +147,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -176,7 +179,6 @@ sealed interface FradragStrategy {
                 }.let {
                     fradrag.copy(
                         verdi = it,
-                        benyttetRegel = mutableListOf(), // TODO bjg regel
                     )
                 }
             }
@@ -201,7 +203,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag.filter { it.tilhører == FradragTilhører.BRUKER },
-                        benyttetRegel = mutableListOf(), // TODO bjg regel? kilde?
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }
             }
@@ -215,7 +217,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }.`fjern EPS fradrag opp til garantipensjonsnivå`()
             }
@@ -239,7 +241,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }.`fjern EPS fradrag opp til satsbeløp`()
             }
@@ -263,7 +265,7 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = mutableListOf(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
                     )
                 }.`slå sammen eps sine fradrag til en og samme type`()
             }
@@ -335,11 +337,12 @@ sealed interface FradragStrategy {
                 ),
             )
         }.let {
-            fradrag.nyBeregning(
-                fradrag = it,
-                nyeRegler = mutableListOf(
-                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(),
-                ) + beløpsgrense.sats.benyttetRegel,
+            // TODO bjg - metode som forenkler dette?
+            fradrag.copy(
+                verdi = it,
+                benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                    avhengigeRegler = listOf(fradrag.benyttetRegel, beløpsgrense.sats.benyttetRegel!!),
+                ),
             )
         }
     }

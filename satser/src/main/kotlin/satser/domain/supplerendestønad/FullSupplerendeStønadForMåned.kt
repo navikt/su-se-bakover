@@ -2,9 +2,9 @@ package satser.domain.supplerendestønad
 
 import grunnbeløp.domain.GrunnbeløpForMåned
 import no.nav.su.se.bakover.common.domain.extensions.avrund
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.garantipensjon.GarantipensjonForMåned
@@ -59,15 +59,6 @@ sealed interface FullSupplerendeStønadForMåned {
             require(toProsentAvHøyForMåned.verdi >= BigDecimal.ZERO)
             require(måned == minsteÅrligYtelseForUføretrygdede.måned)
             require(måned == grunnbeløp.måned)
-            /*
-            // TODO skal det alltid gjøres ved init eller ved faktisk bruk????? harmonerer ikke med EPS fradrag fribeløp
-            leggTilbenyttetRegler(
-                listOf(Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering()) +
-                    minsteÅrligYtelseForUføretrygdede.benyttetRegel +
-                    toProsentAvHøyForMåned.benyttetRegel,
-            )
-
-             */
         }
 
         /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
@@ -121,15 +112,8 @@ sealed class BeregnSats : RegelspesifisertBeregning {
     data class Uføre(
         override val sats: BigDecimal,
         override val satsMåned: BigDecimal,
-        override val benyttetRegel: MutableList<Regelspesifsering>,
+        override val benyttetRegel: Regelspesifisering,
     ) : BeregnSats() {
-        override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
-            TODO("Not yet implemented")
-        }
-
-        override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
-            TODO("Not yet implemented")
-        }
 
         companion object {
             fun create(
@@ -142,10 +126,11 @@ sealed class BeregnSats : RegelspesifisertBeregning {
                 return Uføre(
                     sats = sats,
                     satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
-                    benyttetRegel = mutableListOf(
-                        Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(),
-                        // TODO bjg - riktig å ha denne her? strengt talt ikke her den utledes..
-                        Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
+                    benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(
+                        avhengigeRegler = listOf(
+                            // TODO bjg - riktig å ha denne her? strengt talt ikke her den utledes..
+                            Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
+                        ),
                     ),
                 )
             }
@@ -155,23 +140,15 @@ sealed class BeregnSats : RegelspesifisertBeregning {
     data class Alder(
         override val sats: BigDecimal,
         override val satsMåned: BigDecimal,
-        override val benyttetRegel: MutableList<Regelspesifsering>,
+        override val benyttetRegel: Regelspesifisering,
     ) : BeregnSats() {
-        override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
-            TODO("Not yet implemented")
-        }
-
-        override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
-            TODO("Not yet implemented")
-        }
-
         companion object {
             fun create(garantipensjonForMåned: GarantipensjonForMåned): Alder {
                 val sats = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
                 return Alder(
                     sats = sats,
                     satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
-                    benyttetRegel = mutableListOf(Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering()),
+                    benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering(),
                 )
             }
         }
@@ -181,19 +158,9 @@ sealed class BeregnSats : RegelspesifisertBeregning {
 sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
     abstract val verdi: BigDecimal
 
-    override fun leggTilbenyttetRegel(regel: Regelspesifsering): RegelspesifisertBeregning {
-        benyttetRegel.add(regel)
-        return this
-    }
-
-    override fun leggTilbenyttetRegler(regler: List<Regelspesifsering>): RegelspesifisertBeregning {
-        benyttetRegel.addAll(regler)
-        return this
-    }
-
     data class Uføre(
         override val verdi: BigDecimal,
-        override val benyttetRegel: MutableList<Regelspesifsering>,
+        override val benyttetRegel: Regelspesifisering,
     ) : ToProsentAvHøyForMåned() {
         companion object {
             fun create(grunnbeløp: GrunnbeløpForMåned, faktorSomBigDecimal: BigDecimal): Uføre {
@@ -202,7 +169,7 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
                         .multiply(faktorSomBigDecimal)
                         .multiply(TO_PROSENT)
                         .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
-                    benyttetRegel = mutableListOf(Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering()),
+                    benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(),
                 )
             }
         }
@@ -210,7 +177,7 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
 
     data class Alder(
         override val verdi: BigDecimal,
-        override val benyttetRegel: MutableList<Regelspesifsering>,
+        override val benyttetRegel: Regelspesifisering,
     ) : ToProsentAvHøyForMåned() {
         companion object {
             fun create(garantipensjonPerÅr: BigDecimal): Uføre {
@@ -218,9 +185,7 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
                     verdi = garantipensjonPerÅr
                         .multiply(TO_PROSENT)
                         .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
-                    benyttetRegel = mutableListOf(
-                        Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(),
-                    ),
+                    benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(),
                 )
             }
         }

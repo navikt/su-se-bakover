@@ -4,8 +4,8 @@ import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -146,11 +146,11 @@ fun createToProsentAvHøyForMåned(
 ) =
     ToProsentAvHøyForMåned.Uføre(
         verdi = verdi,
-        benyttetRegel = mutableListOf(
-            Regelspesifsering(
-                kode = regel.kode,
-                versjon = regel.versjon,
-                benyttetTidspunkt = tidspunkt,
-            ),
+        benyttetRegel =
+        Regelspesifisering.Beregning(
+            kode = regel.kode,
+            versjon = regel.versjon,
+            benyttetTidspunkt = tidspunkt,
+            avhengigeRegler = listOf(),
         ),
     )

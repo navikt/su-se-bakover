@@ -4,6 +4,7 @@ import beregning.domain.BeregningForMåned
 import beregning.domain.Merknader
 import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.MånedJson
 import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
@@ -85,6 +86,7 @@ internal data class PersistertMånedsberegning(
             merknader = Merknader.Beregningsmerknad(merknader.mapNotNull { it.toDomain() }.toMutableList()),
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
+            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(), // TODO bjg hvordan håndetere persistering? list som aldri fylles ved uttak? Faktisk hente det fra db? hm?
         )
     }
 }

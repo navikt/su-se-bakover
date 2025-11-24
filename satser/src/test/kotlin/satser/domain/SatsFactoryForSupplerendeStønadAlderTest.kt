@@ -29,7 +29,7 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
                 ),
                 toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                     BigDecimal("349.285"),
-                    it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                    it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                 ),
             )
@@ -57,7 +57,7 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
                 ),
                 toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
                     BigDecimal("349.285"),
-                    it.toProsentAvHøyForMåned.benyttetRegel.single().benyttetTidspunkt,
+                    it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                 ),
             )

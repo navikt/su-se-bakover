@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import beregning.domain.Beregning
 import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -41,7 +41,7 @@ internal data object TestMånedsberegning : Månedsberegning {
     override fun getFradrag(): List<FradragForMåned> = listOf(TestFradrag, TestFradragEps)
     override fun getFribeløpForEps(): Double = 0.0
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
-    override fun getBenyttetRegler(): List<Regelspesifsering> = emptyList()
+    override fun getBenyttetRegler(): Regelspesifisering = throw NotImplementedError()
 
     override val periode: Periode = august(2020)
     override val måned: Måned = august(2020)

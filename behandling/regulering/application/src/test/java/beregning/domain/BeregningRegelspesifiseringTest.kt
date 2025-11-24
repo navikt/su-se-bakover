@@ -1,9 +1,9 @@
 package beregning.domain
 
-import io.kotest.assertions.failure
-import io.kotest.matchers.collections.shouldContainAllIgnoringFields
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifsering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.test.fixedClock
@@ -56,22 +56,41 @@ class BeregningRegelspesifiseringTest {
                     ),
                 ),
             )
-
             with(result.getMånedsberegninger().single()) {
                 val faktisk = getBenyttetRegler()
-                val forventet = listOf(
-                    Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(),
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_UFØRE_FAKTOR,
+                                    listOf(), // TODO bjg - grunnlag
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
+                                    listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
                 )
 
-                faktisk.forMangeRegler(forventet)
-                faktisk.shouldContainAllIgnoringFields(forventet, Regelspesifsering::benyttetTidspunkt)
+                faktisk shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        Regelspesifisering.Beregning::benyttetTidspunkt,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                    )
+                    forventet
+                }
             }
         }
 
@@ -118,22 +137,64 @@ class BeregningRegelspesifiseringTest {
             )
 
             with(result.getMånedsberegninger().single()) {
-                val faktisk = getBenyttetRegler()
-                val forventet = listOf(
-                    Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering(), // TODO bjg skille på eps og søker?
-                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_UFØRE_FAKTOR.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(),
-                    Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(),
+                val faktisk = this.getBenyttetRegler()
+
+                forventetRegel(
+                    Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            avhengigeRegler = listOf(
+                                forventetRegel(Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE, listOf()),
+                                // TODO månedsbereging etc
+                            ),
+                        ),
+                        forventetRegel(Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE, listOf()),
+                    ),
                 )
 
-                faktisk.forMangeRegler(forventet)
-                faktisk.shouldContainAllIgnoringFields(forventet, Regelspesifsering::benyttetTidspunkt)
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_UFØRE_FAKTOR,
+                                    listOf(), // TODO bjg - grunnlag
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
+                                    listOf(
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                                            ),
+                                        ),
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                                            listOf(), // TODO bjg - grunnlag
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+                faktisk shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        Regelspesifisering.Beregning::benyttetTidspunkt,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                    )
+                    forventet
+                }
             }
         }
     }
@@ -141,12 +202,15 @@ class BeregningRegelspesifiseringTest {
     @Nested
     inner class Alder
 
-    // TODO en test for alle permuteringer??
-    // TODO egen for sats endringsknekkpunkt? må skille på grunnlag
+// TODO en test for alle permuteringer
+// TODO alle botilstander per uføre/alder
+// TODO under to prosent uten sosial stønad
+// TODO under to prosent med sosial stønad
 
-    private fun List<Regelspesifsering>.forMangeRegler(forventet: List<Regelspesifsering>) {
-        if (size > forventet.size) {
-            throw failure("Månedsberegning har for mange benytta regelspesifiseringer")
-        }
-    }
+// TODO egen for sats endringsknekkpunkt? må skille på grunnlag
 }
+
+fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesifisering>) =
+    regel.benyttRegelspesifisering(
+        avhengigeRegler = avhengigeRegler,
+    )
