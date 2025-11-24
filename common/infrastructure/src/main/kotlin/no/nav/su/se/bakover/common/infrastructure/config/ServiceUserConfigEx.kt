@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.common.infrastructure.config
 
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 
+// TODO: MÅ BYTTES UT kun for å teste
 fun ServiceUserConfig.Companion.createFromEnvironmentVariables() = ServiceUserConfig(
-    username = EnvironmentConfig.getEnvironmentVariableOrThrow("username"),
-    password = EnvironmentConfig.getEnvironmentVariableOrThrow("password"),
+    username = "test",
+    password = "test",
 )
 
 fun ServiceUserConfig.Companion.createLocalConfig() = ServiceUserConfig(

@@ -26,7 +26,7 @@ on:
       - '*.md'
 
 permissions: {}
-
+#TODO: GCP migrering, må ha autamtisk deploy av backend ved merge til master her
 jobs:
   build-test-push-image:
     name: Build, test and push image
