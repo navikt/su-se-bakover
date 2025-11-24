@@ -47,6 +47,10 @@ internal data object EnvironmentConfig {
     }
 }
 
+interface EnvEnum {
+    fun key(): String
+}
+
 data class ApplicationConfig(
     val runtimeEnvironment: RuntimeEnvironment,
     val naisCluster: NaisCluster?,
@@ -176,6 +180,19 @@ data class ApplicationConfig(
     }
 
     sealed interface DatabaseConfig {
+
+        enum class DatabaseConfigEnvs : EnvEnum {
+            DB_JDBC_URL,
+            DB_HOST,
+            DB_USERNAME,
+            DB_PASSWORD,
+            DB_PORT,
+            DB_DATABASE,
+            ;
+
+            override fun key() = name
+        }
+
         val jdbcUrl: String
 
         data class RotatingCredentials(
@@ -192,11 +209,17 @@ data class ApplicationConfig(
         }
 
         companion object {
-            fun createFromEnvironmentVariables() = RotatingCredentials(
-                databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
-                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
-                vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
-            )
+            fun createFromEnvironmentVariables(isGCP: Boolean): DatabaseConfig {
+                // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
+                return when (isGCP) {
+                    true -> StaticCredentials(getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()))
+                    false -> RotatingCredentials(
+                        databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
+                        jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
+                        vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
+                    )
+                }
+            }
 
             fun createLocalConfig() = StaticCredentials(
                 jdbcUrl = getEnvironmentVariableOrDefault(
@@ -538,7 +561,7 @@ data class ApplicationConfig(
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             frikort = FrikortConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
-            database = DatabaseConfig.createFromEnvironmentVariables(),
+            database = DatabaseConfig.createFromEnvironmentVariables(isGcp()),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
@@ -576,6 +599,8 @@ data class ApplicationConfig(
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
         fun isProd() = naisCluster() == NaisCluster.Prod
+        fun isGcp() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").contains("gcp")
+
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
 
