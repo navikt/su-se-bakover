@@ -19,14 +19,14 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             val (sak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null // Er bare en wrapperklasse med hendelser inni som er det man skal sjekke på
-                it?.size shouldBe 0
+                it.size shouldBe 0
             }
             val expected = nyInstitusjonsoppholdHendelse(sakId = sak.id)
             testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
-                it?.size shouldBe 1
-                it?.first shouldBe expected
+                it.size shouldBe 1
+                it.first shouldBe expected
             }
         }
     }
@@ -40,7 +40,7 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
-                it!!.size shouldBe 1
+                it.size shouldBe 1
                 it.first shouldBe expected
             }
         }
@@ -56,7 +56,7 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
-                it!!.size shouldBe 1
+                it.size shouldBe 1
                 it.last shouldBe expected
             }
         }
