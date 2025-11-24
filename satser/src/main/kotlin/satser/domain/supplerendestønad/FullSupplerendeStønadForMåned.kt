@@ -129,6 +129,7 @@ sealed class BeregnSats : RegelspesifisertBeregning {
                     satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(
                         avhengigeRegler = listOf(
+                            RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                             when (minsteÅrligYtelseForUføretrygdede.satsKategori) {
                                 Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag()
                                 Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag()

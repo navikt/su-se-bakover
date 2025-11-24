@@ -64,6 +64,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                                 RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
                             ),
                         ),
@@ -165,6 +166,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                                 RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
                             ),
                         ),
@@ -184,6 +186,120 @@ class BeregningRegelspesifiseringTest {
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                                             listOf(
                                                 RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                                    listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                                    listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+                faktisk shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        Regelspesifisering.Beregning::benyttetTidspunkt,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                    )
+                    forventet
+                }
+            }
+        }
+
+        @Test
+        fun `EPS uføre flyktning`() {
+            val periode = YearMonth.of(2025, 1).let {
+                Periode.create(it.atDay(1), it.atEndOfMonth())
+            }
+            val strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato(), Sakstype.UFØRE)
+
+            val result = BeregningFactory(clock = fixedClock).ny(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                fradrag = listOf(
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 55000.0,
+                        utenlandskInntekt = null,
+                        periode = periode,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
+                        månedsbeløp = 1000.0,
+                        utenlandskInntekt = null,
+                        periode = periode,
+                        tilhører = FradragTilhører.EPS,
+                    ),
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
+                        månedsbeløp = 1000.0,
+                        utenlandskInntekt = null,
+                        periode = periode,
+                        tilhører = FradragTilhører.EPS,
+                    ),
+                ),
+                begrunnelse = "begrunnelse",
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = periode,
+                        strategy = strategy,
+                    ),
+                ),
+            )
+
+            with(result.getMånedsberegninger().single()) {
+                val faktisk = this.getBenyttetRegler()
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
+                                    listOf(
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                                            ),
+                                        ),
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
                                             ),
                                         ),
                                     ),

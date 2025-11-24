@@ -341,7 +341,7 @@ sealed interface FradragStrategy {
             fradrag.copy(
                 verdi = it,
                 benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
-                    avhengigeRegler = listOf(fradrag.benyttetRegel, beløpsgrense.sats.benyttetRegel!!),
+                    avhengigeRegler = listOf(fradrag.benyttetRegel, beløpsgrense.sats.benyttetRegel),
                 ),
             )
         }
