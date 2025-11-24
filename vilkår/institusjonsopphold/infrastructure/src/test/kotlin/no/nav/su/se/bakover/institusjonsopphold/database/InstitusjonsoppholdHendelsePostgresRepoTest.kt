@@ -13,6 +13,25 @@ import org.junit.jupiter.api.Test
 class InstitusjonsoppholdHendelsePostgresRepoTest {
 
     @Test
+    fun `Kan hente hendelser for sak uten at det finnes en inst2 hendelse fra før av`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val (sak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
+            testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
+                it shouldNotBe null // Er bare en wrapperklasse med hendelser inni som er det man skal sjekke på
+                it?.size shouldBe 0
+            }
+            val expected = nyInstitusjonsoppholdHendelse(sakId = sak.id)
+            testDataHelper.institusjonsoppholdHendelseRepo.lagre(expected, defaultHendelseMetadata())
+            testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
+                it shouldNotBe null
+                it?.size shouldBe 1
+                it?.first shouldBe expected
+            }
+        }
+    }
+
+    @Test
     fun `kan lagre hendelse uten oppgave id`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
