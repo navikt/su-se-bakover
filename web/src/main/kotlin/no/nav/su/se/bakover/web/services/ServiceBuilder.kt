@@ -86,6 +86,7 @@ data object ServiceBuilder {
             brevService = brevService,
             clients.queryJournalpostClient,
             personService = personService,
+            fritekstService = fritekstService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val oppgaveService = OppgaveServiceImpl(

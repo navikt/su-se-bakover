@@ -61,12 +61,6 @@ data class Fritekst(
     val fritekst: String,
 )
 
-data class FritekstSlettDomain(
-    val referanseId: UUID,
-    val type: FritekstType,
-    val sakId: UUID,
-)
-
 enum class FritekstType {
     FRITEKST_BREV,
 

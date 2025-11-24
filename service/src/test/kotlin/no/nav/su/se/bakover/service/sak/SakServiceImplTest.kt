@@ -68,7 +68,7 @@ internal class SakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
         verify(sakRepo).opprettSak(any())
@@ -82,7 +82,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -108,7 +108,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -161,7 +161,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -207,7 +207,7 @@ internal class SakServiceImplTest {
             } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
         }
 
-        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock(), mock())
+        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock(), mock(), mock())
             .genererFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
@@ -239,7 +239,7 @@ internal class SakServiceImplTest {
             doNothing().whenever(it).lagre(any(), anyOrNull())
         }
 
-        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock())
+        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock(), mock())
             .genererLagreOgSendFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
@@ -287,7 +287,7 @@ internal class SakServiceImplTest {
         }
 
         val actual =
-            SakServiceImpl(SakFakeRepo(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
+            SakServiceImpl(SakFakeRepo(), fixedClock, dokumentRepo, mock(), mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
                 request = JournalførOgSendOpplastetPdfSomBrevCommand(
                     sakId = expecedSakId,
                     saksbehandler = saksbehandler,
@@ -324,7 +324,7 @@ internal class SakServiceImplTest {
                 Journalpost(JournalpostId("journalpostId"), "journalpost tittel"),
             ).right()
         }
-        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), queryJournalpostClient, mock())
+        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), queryJournalpostClient, mock(), mock())
             .hentAlleJournalposter(sak.id).shouldBeRight()
 
         verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
@@ -339,7 +339,7 @@ internal class SakServiceImplTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
                 .hentAlleJournalposter(sak.id)
         }
         verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
@@ -359,6 +359,7 @@ internal class SakServiceImplTest {
         SakServiceImpl(
             sakRepo,
             fixedClock,
+            mock(),
             mock(),
             mock(),
             mock(),
