@@ -22,7 +22,7 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
                 it!!.size shouldBe 1
-                it.first() shouldBe expected
+                it.first shouldBe expected
             }
         }
     }
@@ -38,7 +38,7 @@ class InstitusjonsoppholdHendelsePostgresRepoTest {
             testDataHelper.institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                 it shouldNotBe null
                 it!!.size shouldBe 1
-                it.last() shouldBe expected
+                it.last shouldBe expected
             }
         }
     }
