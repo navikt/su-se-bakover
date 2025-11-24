@@ -15,6 +15,7 @@ spec:
         name: supstonad-db-15-dev
         databases:
           - name: supstonad
+            envVarPrefix: DB
         flags:
           - name: max_connections
             value: "100"
