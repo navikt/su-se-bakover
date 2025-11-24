@@ -56,18 +56,16 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         ).forEach { (sakId, hendelseIder) ->
             prosesseserSak(sakId, hendelseIder, correlationId)
         }
-        // Eventuelle exceptions fanges i jobben som kjører denne.
     }
 
     private fun prosesseserSak(sakId: UUID, uprosesserteHendelser: Nel<HendelseId>, correlationId: CorrelationId) {
         log.info("starter opprettelse av oppgaver for inst-hendelser på sak $sakId")
-
-        // Merk at dette er alle oppgavehendelsene på saken, ikke bare de oppgavene som er knyttet til inst-hendelser.
-        val alleOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
         val alleInstHendelser = institusjonsoppholdHendelseRepo.hentForSak(sakId)
         if (alleInstHendelser.hendelser.isEmpty()) {
-            return Unit.also { log.debug("Sak {} har ingen inst-hendelser", sakId) }
+            return Unit.also { log.info("Sakid {} har ingen inst-hendelser", sakId) }
         }
+        // Merk at dette er alle oppgavehendelsene på saken, ikke bare de oppgavene som er knyttet til inst-hendelser.
+        val alleOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
 
         val instOgOppgaveHendelserPåSak = InstitusjonOgOppgaveHendelserPåSak(
             alleInstHendelser,
@@ -77,6 +75,9 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         // Det kan være en mismatch mellom uprosesserte insthendelser (konsumentkøen) og hendelser som mangler oppgave.
         // Si f.eks. at vi har resatt konsumentkøen, så ønsker vi ikke lage nye oppgaver.
         // Vi bruker kun uprosesserteHendelser for å markere disse som prosessert.
+        /*
+            Trodde dette problemet ble borte med sjekke på harEksternHendelse som sjekker om hendelsen allerede er lagret.
+         */
         val hendelserSomManglerOppgaver = instOgOppgaveHendelserPåSak.hentInstHendelserSomManglerOppgave()
         when {
             hendelserSomManglerOppgaver.isEmpty() -> {

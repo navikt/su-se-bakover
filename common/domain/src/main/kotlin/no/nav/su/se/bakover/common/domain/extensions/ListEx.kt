@@ -12,6 +12,7 @@ fun <T, R> List<T>.pickByCondition(targetList: Collection<R>, condition: (T, R) 
     return this.filter { mainElement -> targetList.any { condition(mainElement, it) } }
 }
 
+@Deprecated("Bruk toNonEmptyListOrNull() istedenfor, og håndter tom listen ordentlig ikke ved en skjult exception kasting")
 fun <T> List<T>.toNonEmptyList(): NonEmptyList<T> {
     return this.toNonEmptyListOrNull() ?: throw IllegalArgumentException("Kan ikke lage NonEmptyList fra en tom liste.")
 }
