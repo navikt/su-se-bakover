@@ -7,6 +7,9 @@ import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppga
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
+/**
+* Denne oppretter oppgaver i gosys for relevante institusjonshendelser opprettet fra [InstitusjonsoppholdConsumer]
+ */
 class InstitusjonsoppholdOppgaveJob(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {

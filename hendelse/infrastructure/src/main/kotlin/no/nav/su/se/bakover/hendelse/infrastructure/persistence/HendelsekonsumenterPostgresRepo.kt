@@ -80,6 +80,7 @@ class HendelsekonsumenterPostgresRepo(
                 }.let {
                     it.groupBy { it.first }
                         .mapValues { (_, value) ->
+                            // TODO: SOS: denne vil kaste for alle som kaller denne og logger error, det ønsker vi ikke bedre om konsumentene returner enn å kaste error?
                             value.map { it.second }.toNonEmptyList()
                         }
                 }
