@@ -64,10 +64,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_UFØRE_FAKTOR,
-                                    listOf(), // TODO bjg - grunnlag
-                                ),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
                             ),
                         ),
                         forventetRegel(
@@ -87,7 +84,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        // TODO bjg grunnlag
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                                     ),
                                 ),
                             ),
@@ -98,7 +96,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        // TODO bjg grunnlag
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                                     ),
                                 ),
                             ),
@@ -160,31 +159,13 @@ class BeregningRegelspesifiseringTest {
 
             with(result.getMånedsberegninger().single()) {
                 val faktisk = this.getBenyttetRegler()
-
-                forventetRegel(
-                    Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
-                    avhengigeRegler = listOf(
-                        forventetRegel(
-                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
-                            avhengigeRegler = listOf(
-                                forventetRegel(Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE, listOf()),
-                                // TODO månedsbereging etc
-                            ),
-                        ),
-                        forventetRegel(Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE, listOf()),
-                    ),
-                )
-
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_UFØRE_FAKTOR,
-                                    listOf(), // TODO bjg - grunnlag
-                                ),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
                             ),
                         ),
                         forventetRegel(
@@ -201,7 +182,9 @@ class BeregningRegelspesifiseringTest {
                                         ),
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
-                                            listOf(), // TODO bjg - grunnlag
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(),
+                                            ),
                                         ),
                                     ),
                                 ),
@@ -213,7 +196,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        // TODO bjg grunnlag
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                                     ),
                                 ),
                             ),
@@ -224,7 +208,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        // TODO bjg grunnlag
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
                                     ),
                                 ),
                             ),

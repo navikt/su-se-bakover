@@ -20,14 +20,13 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getFradrag(): List<FradragForMåned>
     fun getFribeløpForEps(): Double
     fun getMerknader(): List<Merknad.Beregning>
-    fun getBenyttetRegler(): Regelspesifisering
+    fun getBenyttetRegler(): Regelspesifisering.Beregning
 
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
     val måned: Måned
 
-    // TODO fjerne?
     val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned
 
     /**

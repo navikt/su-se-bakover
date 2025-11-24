@@ -21,7 +21,7 @@ data class BeregningForMåned(
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-    override val benyttetRegel: Regelspesifisering,
+    override val benyttetRegel: Regelspesifisering.Beregning,
 ) : Månedsberegning,
     RegelspesifisertBeregning {
 
@@ -60,7 +60,7 @@ data class BeregningForMåned(
         return merknader.alle()
     }
 
-    override fun getBenyttetRegler(): Regelspesifisering {
+    override fun getBenyttetRegler(): Regelspesifisering.Beregning {
         return this.benyttetRegel
     }
 

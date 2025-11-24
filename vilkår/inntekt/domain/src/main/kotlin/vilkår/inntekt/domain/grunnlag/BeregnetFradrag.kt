@@ -20,7 +20,7 @@ data class BeregnetFradrag(
             sumFradrag = fradragForMåned.verdi.sum().limitedUpwardsTo(satsbeløp),
             benyttetRegel = Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(
                 avhengigeRegler = listOf(
-                    fradragForMåned.benyttetRegel!!,
+                    fradragForMåned.benyttetRegel,
                 ),
             ),
         )

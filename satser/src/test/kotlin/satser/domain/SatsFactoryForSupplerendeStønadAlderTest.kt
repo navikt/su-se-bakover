@@ -1,8 +1,8 @@
 package satser.domain
 
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.extensions.scaleTo4
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import satser.domain.garantipensjon.GarantipensjonForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import java.math.BigDecimal
 
 internal class SatsFactoryForSupplerendeStønadAlderTest {
@@ -17,22 +18,24 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
     @Test
     fun `ordinær - mai 2022`() {
         satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærAlder(mai(2022)).let {
-            it shouldBe FullSupplerendeStønadForMåned.Alder(
-                måned = mai(2022),
-                satskategori = Satskategori.ORDINÆR,
-                garantipensjonForMåned = GarantipensjonForMåned(
+            it shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    FullSupplerendeStønadForMåned.Alder::sats,
+                    ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                )
+                FullSupplerendeStønadForMåned.Alder(
                     måned = mai(2022),
-                    satsKategori = Satskategori.ORDINÆR,
-                    garantipensjonPerÅr = 193862,
-                    ikrafttredelse = 20.mai(2022),
-                    virkningstidspunkt = 1.mai(2022),
-                ),
-                toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
-                    BigDecimal("349.285"),
-                    it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
-                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
-                ),
-            )
+                    satskategori = Satskategori.ORDINÆR,
+                    garantipensjonForMåned = GarantipensjonForMåned(
+                        måned = mai(2022),
+                        satsKategori = Satskategori.ORDINÆR,
+                        garantipensjonPerÅr = 193862,
+                        ikrafttredelse = 20.mai(2022),
+                        virkningstidspunkt = 1.mai(2022),
+                    ),
+                    toProsentAvHøyForMåned = createToProsentAvHøyForMånedAlder(BigDecimal("349.285")),
+                )
+            }
             it.satsPerÅr shouldBe BigDecimal("193862")
             it.satsForMåned.scaleTo4() shouldBe BigDecimal("16155.1667")
             it.satsForMånedAvrundet shouldBe 16155
@@ -45,22 +48,24 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
     @Test
     fun `høy - mai 2022`() {
         satsFactoryTestPåDato(påDato = 1.juni(2022)).høyAlder(mai(2022)).let {
-            it shouldBe FullSupplerendeStønadForMåned.Alder(
-                måned = mai(2022),
-                satskategori = Satskategori.HØY,
-                garantipensjonForMåned = GarantipensjonForMåned(
+            it shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    FullSupplerendeStønadForMåned.Alder::sats,
+                    ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                )
+                FullSupplerendeStønadForMåned.Alder(
                     måned = mai(2022),
-                    satsKategori = Satskategori.HØY,
-                    garantipensjonPerÅr = 209571,
-                    ikrafttredelse = 20.mai(2022),
-                    virkningstidspunkt = 1.mai(2022),
-                ),
-                toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
-                    BigDecimal("349.285"),
-                    it.toProsentAvHøyForMåned.benyttetRegel!!.benyttetTidspunkt,
-                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
-                ),
-            )
+                    satskategori = Satskategori.HØY,
+                    garantipensjonForMåned = GarantipensjonForMåned(
+                        måned = mai(2022),
+                        satsKategori = Satskategori.HØY,
+                        garantipensjonPerÅr = 209571,
+                        ikrafttredelse = 20.mai(2022),
+                        virkningstidspunkt = 1.mai(2022),
+                    ),
+                    toProsentAvHøyForMåned = createToProsentAvHøyForMånedAlder(BigDecimal("349.285")),
+                )
+            }
             it.satsPerÅr shouldBe BigDecimal("209571")
             it.satsForMåned.scaleTo4() shouldBe BigDecimal("17464.2500")
             it.satsForMånedAvrundet shouldBe 17464
