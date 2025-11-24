@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -239,7 +241,11 @@ internal class SakServiceImplTest {
             doNothing().whenever(it).lagre(any(), anyOrNull())
         }
 
-        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock(), mock())
+        val fritekstService = mock<FritekstService> {
+            on { slettFritekst(any(), any(), any()) } doReturn Unit.right()
+        }
+
+        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock(), fritekstService)
             .genererLagreOgSendFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
@@ -273,6 +279,12 @@ internal class SakServiceImplTest {
             anyOrNull(),
         )
         verify(dokumentRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+
+        verify(fritekstService).slettFritekst(
+            referanseId = sak.id,
+            type = FritekstType.FRITEKST_BREV,
+            sakId = sak.id,
+        )
 
         verifyNoMoreInteractions(sakRepo)
         verifyNoMoreInteractions(brevService)
