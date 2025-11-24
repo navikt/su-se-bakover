@@ -45,11 +45,13 @@ internal class InstitusjonsoppholdServiceTest {
     @Test
     fun `person har sak blir prosessert og hendelse blir knyttet til sak`() {
         val correlationId = CorrelationId.generate()
+        val sak = søknadsbehandlingIverksattInnvilget().first
         val institusjonsoppholdHendelseRepo = mock<InstitusjonsoppholdHendelseRepo> {
             doNothing().whenever(it).lagre(any(), any())
             on { hentTidligereInstHendelserForOpphold(any(), any()) } doReturn emptyList()
+            on { hentForSak(sak.id) } doReturn InstitusjonsoppholdHendelserPåSak(emptyList())
         }
-        val sak = søknadsbehandlingIverksattInnvilget().first
+
         val sakRepo = mock<SakRepo> {
             on { hentSaker(any()) } doReturn listOf(sak)
         }

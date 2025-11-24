@@ -65,7 +65,9 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         // Merk at dette er alle oppgavehendelsene på saken, ikke bare de oppgavene som er knyttet til inst-hendelser.
         val alleOppgaveHendelser = oppgaveHendelseRepo.hentForSak(sakId)
         val alleInstHendelser = institusjonsoppholdHendelseRepo.hentForSak(sakId)
-            ?: return Unit.also { log.debug("Sak {} har ingen inst-hendelser", sakId) }
+        if (alleInstHendelser.hendelser.isEmpty()) {
+            return Unit.also { log.debug("Sak {} har ingen inst-hendelser", sakId) }
+        }
 
         val instOgOppgaveHendelserPåSak = InstitusjonOgOppgaveHendelserPåSak(
             alleInstHendelser,
