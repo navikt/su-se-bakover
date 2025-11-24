@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 
 // TODO: MÅ BYTTES UT kun for å teste
 fun ServiceUserConfig.Companion.createFromEnvironmentVariables() = ServiceUserConfig(
-    username = "test",
-    password = "test",
+    username = "username",
+    password = "password",
 )
 
 fun ServiceUserConfig.Companion.createLocalConfig() = ServiceUserConfig(
