@@ -81,6 +81,28 @@ class BeregningRegelspesifiseringTest {
                                 ),
                             ),
                         ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                                    listOf(
+                                        // TODO bjg grunnlag
+                                    ),
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                                    listOf(
+                                        // TODO bjg grunnlag
+                                    ),
+                                ),
+                            ),
+                        ),
                     ),
                 )
 
@@ -181,6 +203,28 @@ class BeregningRegelspesifiseringTest {
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                                             listOf(), // TODO bjg - grunnlag
                                         ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                                    listOf(
+                                        // TODO bjg grunnlag
+                                    ),
+                                ),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                                    listOf(
+                                        // TODO bjg grunnlag
                                     ),
                                 ),
                             ),

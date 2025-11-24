@@ -61,15 +61,10 @@ data class BeregningForMåned(
     }
 
     override fun getBenyttetRegler(): Regelspesifisering {
-        return this.benyttetRegel!! // TODO bjg fjern når grunnlag er lagt til
+        return this.benyttetRegel
     }
 
     fun leggTilMerknad(merknad: Merknad.Beregning) {
         merknader.leggTil(merknad)
-    }
-
-    // TODO bjg wrapper for regel??
-    fun beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): Boolean {
-        return getSumYtelse() > 0 && getSumYtelse() < fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
     }
 }

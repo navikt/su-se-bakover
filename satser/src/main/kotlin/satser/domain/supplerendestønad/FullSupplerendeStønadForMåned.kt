@@ -169,7 +169,9 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
                         .multiply(faktorSomBigDecimal)
                         .multiply(TO_PROSENT)
                         .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
-                    benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(),
+                    benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(
+                        // TODO bjg grunnlag
+                    ),
                 )
             }
         }
