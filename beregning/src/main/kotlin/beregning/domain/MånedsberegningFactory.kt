@@ -41,7 +41,7 @@ data object MånedsberegningFactory {
             sumFradrag = sumFradrag,
             benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
                 avhengigeRegler = listOf(
-                    ytelseFørFradrag.sats.benyttetRegel!!,
+                    ytelseFørFradrag.sats.benyttetRegel,
                     beregnetFradrag.benyttetRegel,
                 ),
             ),

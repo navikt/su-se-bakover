@@ -51,7 +51,6 @@ sealed interface FullSupplerendeStønadForMåned {
         override val satsPerÅr: BigDecimal = sats.sats
         override val satsForMåned: BigDecimal = sats.satsMåned
 
-        // TODO bjg - fjern/erstatt kun test og brevvsining..
         override val satsForMånedAvrundet: Int = satsForMåned.avrund()
         override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
 
@@ -85,7 +84,6 @@ sealed interface FullSupplerendeStønadForMåned {
         override val satsPerÅr: BigDecimal = sats.sats
         override val satsForMåned: BigDecimal = sats.satsMåned
 
-        // TODO bjg - fjern / erstatt
         override val satsForMånedAvrundet: Int = satsForMåned.avrund()
         override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
 
@@ -97,7 +95,6 @@ sealed interface FullSupplerendeStønadForMåned {
 
         override val ikrafttredelse: LocalDate = garantipensjonForMåned.ikrafttredelse
 
-        // TODO bjg erstatt
         override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.verdi.toDouble()
 
         override val periode: Måned = måned

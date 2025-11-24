@@ -276,7 +276,6 @@ sealed interface FradragStrategy {
                 return map { `slå sammen eps sine fradrag til en og samme type`(it) }
             }
 
-            // TODO bjg kan være felles på tvers av uføre og alder?
             private fun `slå sammen eps sine fradrag til en og samme type`(fradragForMåned: BeregnetFradragForMåned): BeregnetFradragForMåned {
                 val (epsFradrag, søkersFradrag) = fradragForMåned.verdi.partition { it.tilhører == FradragTilhører.EPS }
                 return if (epsFradrag.isEmpty()) {
@@ -295,8 +294,8 @@ sealed interface FradragStrategy {
                 }.let {
                     fradragForMåned.copy(
                         verdi = it,
+                        // benyttetRegel =  TODO bjg Må bli egen regel...
                     )
-                    // .leggTilbenyttetRegel() TODO bjg regel
                 }
             }
         }
@@ -337,7 +336,6 @@ sealed interface FradragStrategy {
                 ),
             )
         }.let {
-            // TODO bjg - metode som forenkler dette?
             fradrag.copy(
                 verdi = it,
                 benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(

@@ -3,11 +3,14 @@ package no.nav.su.se.bakover.database.beregning
 import beregning.domain.BeregningForMåned
 import beregning.domain.Merknader
 import beregning.domain.Månedsberegning
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.MånedJson
 import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
@@ -27,6 +30,7 @@ internal data class PersistertMånedsberegning(
     val periode: MånedJson,
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),
+    val benyttetRegel: RegelspesifiseringJson?,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -86,7 +90,7 @@ internal data class PersistertMånedsberegning(
             merknader = Merknader.Beregningsmerknad(merknader.mapNotNull { it.toDomain() }.toMutableList()),
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(), // TODO bjg hvordan håndetere persistering? list som aldri fylles ved uttak? Faktisk hente det fra db? hm?
+            benyttetRegel = benyttetRegel?.toDomain() ?: Regelspesifisering.BeregnetUtenSpesifisering,
         )
     }
 }
@@ -103,7 +107,72 @@ internal fun Månedsberegning.toJson(): PersistertMånedsberegning {
         periode = måned.toJson(),
         fribeløpForEps = getFribeløpForEps(),
         merknader = getMerknader().toSnapshot(),
+        benyttetRegel = getBenyttetRegler().toJson(),
     )
+}
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type",
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = RegelspesifiseringJson.Beregning::class, name = "Beregning"),
+    JsonSubTypes.Type(value = RegelspesifiseringJson.Grunnlag::class, name = "Grunnlag"),
+)
+sealed interface RegelspesifiseringJson {
+
+    fun toDomain(): Regelspesifisering
+
+    data class Beregning(
+        val kode: String,
+        val versjon: String,
+        val benyttetTidspunkt: Tidspunkt,
+        val avhengigeRegler: List<RegelspesifiseringJson>,
+    ) : RegelspesifiseringJson {
+        override fun toDomain() = Regelspesifisering.Beregning(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            avhengigeRegler = avhengigeRegler.map {
+                it.toDomain()
+            },
+        )
+    }
+
+    data class Grunnlag(
+        val kode: String,
+        val versjon: String,
+        val benyttetTidspunkt: Tidspunkt,
+        val kilde: String? = null, // TODO bjg må settes?
+    ) : RegelspesifiseringJson {
+        override fun toDomain() = Regelspesifisering.Grunnlag(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            kilde = kilde,
+        )
+    }
+}
+
+internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
+    return when (this) {
+        is Regelspesifisering.Beregning -> RegelspesifiseringJson.Beregning(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            avhengigeRegler = avhengigeRegler.map {
+                it.toJson()
+            },
+        )
+        is Regelspesifisering.Grunnlag -> RegelspesifiseringJson.Grunnlag(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            kilde = null,
+        )
+        Regelspesifisering.BeregnetUtenSpesifisering -> TODO()
+    }
 }
 
 private fun Double.isEqualToTwoDecimals(other: Double): Boolean {

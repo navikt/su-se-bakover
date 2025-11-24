@@ -94,7 +94,6 @@ class BeregningFactory(val clock: Clock) {
         )
 
         fun beregn(): Map<Måned, Månedsberegning> {
-            // TODO bjg dette bør være egen regel..
             val månedTilStrategi: Map<Måned, BeregningStrategy> = beregningsperioder
                 .fold<Beregningsperiode, Map<Måned, BeregningStrategy>>(emptyMap()) { acc, beregningsperiode ->
                     acc + beregningsperiode.månedsoversikt()

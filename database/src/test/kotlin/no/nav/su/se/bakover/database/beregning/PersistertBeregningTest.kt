@@ -43,6 +43,10 @@ internal class PersistertBeregningTest {
             periode = mai(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato), Sakstype.UFØRE),
         )
+
+        // TODO bjg midlertidig
+        val benyttaRegler = serialize(actualBeregning.getMånedsberegninger().single().getBenyttetRegler().toJson())
+
         //language=json
         val expectedJson = """
             {
@@ -88,7 +92,8 @@ internal class PersistertBeregningTest {
                     {
                       "type": "BeløpErNull"
                     }
-                  ]
+                  ],
+                  "benyttetRegel": $benyttaRegler 
                 }
               ],
               "fradrag": [

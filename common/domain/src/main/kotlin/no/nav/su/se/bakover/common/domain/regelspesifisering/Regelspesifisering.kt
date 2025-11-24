@@ -33,18 +33,32 @@ enum class RegelspesifisertGrunnlag(
     val kode: String,
     val versjon: String,
 ) {
+    GRUNNLAG_BOTILSTAND("GRUNNLAG-BOTILSTAND", "1"),
     GRUNNLAG_FRADRAG("GRUNNLAG-FRADRAG", "1"),
     GRUNNLAG_UFØRE_FAKTOR_ORDINÆR("GRUNNLAG-UFØRE-FAKTOR-ORDINÆR", "1"),
     GRUNNLAG_UFØRE_FAKTOR_HØY("GRUNNLAG-UFØRE-FAKTOR-HØY", "1"),
-    GRUNNLAG_GARANTPIPENSJON_ORDINÆR("GRUNNLA-GARANTPIPENSJON-ORDINÆR", "1"),
-    GRUNNLAG_GARANTPIPENSJON_HØY("GRUNNLA-GARANTPIPENSJON-HØY", "1"),
+    GRUNNLAG_GARANTPIPENSJON_ORDINÆR("GRUNNLAG-GARANTPIPENSJON-ORDINÆR", "1"),
+    GRUNNLAG_GARANTPIPENSJON_HØY("GRUNNLAG-GARANTPIPENSJON-HØY", "1"),
     GRUNNLAG_GRUNNBELØP("GRUNNLAG-GRUNNBELØP", "1"),
     ;
 
-    fun benyttGrunnlag() = Regelspesifisering.Grunnlag(
+    fun benyttGrunnlag(
+        kilde: String? = when (this) {
+            GRUNNLAG_BOTILSTAND,
+            GRUNNLAG_FRADRAG,
+            -> null // TODO
+            GRUNNLAG_UFØRE_FAKTOR_ORDINÆR,
+            GRUNNLAG_UFØRE_FAKTOR_HØY,
+            GRUNNLAG_GARANTPIPENSJON_ORDINÆR,
+            GRUNNLAG_GARANTPIPENSJON_HØY,
+            GRUNNLAG_GRUNNBELØP,
+            -> "SU-App"
+        },
+    ) = Regelspesifisering.Grunnlag(
         kode,
         versjon,
         Tidspunkt.now(Clock.systemUTC()),
+        kilde,
     )
 }
 
@@ -53,21 +67,20 @@ interface RegelspesifisertBeregning {
 }
 
 sealed class Regelspesifisering {
-    abstract val kode: String
-    abstract val versjon: String
-    abstract val benyttetTidspunkt: Tidspunkt
 
     data class Beregning(
-        override val kode: String,
-        override val versjon: String,
-        override val benyttetTidspunkt: Tidspunkt,
+        val kode: String,
+        val versjon: String,
+        val benyttetTidspunkt: Tidspunkt,
         val avhengigeRegler: List<Regelspesifisering>,
     ) : Regelspesifisering()
 
     data class Grunnlag(
-        override val kode: String,
-        override val versjon: String,
-        override val benyttetTidspunkt: Tidspunkt,
-        val kilde: String? = null, // TODO bjg må settes?
+        val kode: String,
+        val versjon: String,
+        val benyttetTidspunkt: Tidspunkt,
+        val kilde: String? = null, // TODO bjg må settes
     ) : Regelspesifisering()
+
+    data object BeregnetUtenSpesifisering : Regelspesifisering()
 }
