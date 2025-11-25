@@ -16,7 +16,6 @@ data class MinsteÅrligYtelseForUføretrygdedeForMåned(
     val virkningstidspunkt: LocalDate,
     val måned: Måned,
     override val benyttetRegel: Regelspesifisering = when (satsKategori) {
-        // TODO skille mellom uføre og alder...
         Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag()
         Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag()
     },

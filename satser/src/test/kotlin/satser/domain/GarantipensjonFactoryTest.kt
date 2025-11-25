@@ -2,8 +2,9 @@ package satser.domain
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -79,26 +80,37 @@ internal class GarantipensjonFactoryTest {
         )
 
         val mai = satsFactoryTestPåDato().ordinærAlder(mai(2020))
-        mai.shouldBeEqualToIgnoringFields(
-            expected(mai(2020)),
-            FullSupplerendeStønadForMåned.Alder::toProsentAvHøyForMåned,
-            FullSupplerendeStønadForMåned.Alder::sats,
-        )
-        mai.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
-            expected(mai(2020)).toProsentAvHøyForMåned,
-            ToProsentAvHøyForMåned.Alder::benyttetRegel,
-        )
+
+        mai shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+            )
+            expected(mai(2020))
+        }
+        mai.toProsentAvHøyForMåned shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+            )
+            expected(mai(2020)).toProsentAvHøyForMåned
+        }
 
         val juli = satsFactoryTestPåDato().ordinærAlder(juli(2020))
-        juli.shouldBeEqualToIgnoringFields(
-            expected(juli(2020)),
-            FullSupplerendeStønadForMåned.Alder::toProsentAvHøyForMåned,
-            FullSupplerendeStønadForMåned.Alder::sats,
-        )
-        juli.toProsentAvHøyForMåned.shouldBeEqualToIgnoringFields(
-            expected(juli(2020)).toProsentAvHøyForMåned,
-            ToProsentAvHøyForMåned::benyttetRegel,
-        )
+        juli shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+            )
+            expected(juli(2020))
+        }
+        juli.toProsentAvHøyForMåned shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+            )
+            expected(juli(2020)).toProsentAvHøyForMåned
+        }
     }
 
     @Test

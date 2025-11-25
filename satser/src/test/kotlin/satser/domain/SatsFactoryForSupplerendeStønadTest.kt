@@ -54,8 +54,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
             satsFactoryTestPåDato(påDato = 23.mai(2025)).ordinærAlder(mai(2025)).let {
                 it shouldBeEqualUsingFields {
                     excludedProperties = setOf(
-                        FullSupplerendeStønadForMåned.Alder::sats,
-                        ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                        Regelspesifisering.Beregning::benyttetTidspunkt,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Alder(
                         måned = mai(2025),
@@ -87,8 +87,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
             satsFactoryTestPåDato(påDato = 23.mai(2025)).høyAlder(mai(2025)).let {
                 it shouldBeEqualUsingFields {
                     excludedProperties = setOf(
-                        FullSupplerendeStønadForMåned.Alder::sats,
-                        ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                        Regelspesifisering.Beregning::benyttetTidspunkt,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Alder(
                         måned = mai(2025),
@@ -962,8 +962,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 val høyAlder = it.høyAlder(januar(2022))
                 høyAlder shouldBeEqualUsingFields {
                     excludedProperties = setOf(
-                        FullSupplerendeStønadForMåned.Alder::sats,
-                        ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                        Regelspesifisering.Beregning::benyttetTidspunkt,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Alder(
                         måned = januar(2022),

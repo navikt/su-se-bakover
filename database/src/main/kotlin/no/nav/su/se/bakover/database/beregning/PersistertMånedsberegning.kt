@@ -144,7 +144,7 @@ sealed interface RegelspesifiseringJson {
         val kode: String,
         val versjon: String,
         val benyttetTidspunkt: Tidspunkt,
-        val kilde: String? = null, // TODO bjg må settes?
+        val kilde: String,
     ) : RegelspesifiseringJson {
         override fun toDomain() = Regelspesifisering.Grunnlag(
             kode = kode,
@@ -169,7 +169,7 @@ internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
             kode = kode,
             versjon = versjon,
             benyttetTidspunkt = benyttetTidspunkt,
-            kilde = null,
+            kilde = kilde,
         )
         Regelspesifisering.BeregnetUtenSpesifisering -> TODO()
     }

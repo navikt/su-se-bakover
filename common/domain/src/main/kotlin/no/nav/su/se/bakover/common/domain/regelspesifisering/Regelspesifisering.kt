@@ -43,10 +43,10 @@ enum class RegelspesifisertGrunnlag(
     ;
 
     fun benyttGrunnlag(
-        kilde: String? = when (this) {
+        kilde: String = when (this) {
             GRUNNLAG_BOTILSTAND,
             GRUNNLAG_FRADRAG,
-            -> null // TODO
+            -> "Saksbehandler"
             GRUNNLAG_UFØRE_FAKTOR_ORDINÆR,
             GRUNNLAG_UFØRE_FAKTOR_HØY,
             GRUNNLAG_GARANTPIPENSJON_ORDINÆR,
@@ -79,7 +79,7 @@ sealed class Regelspesifisering {
         val kode: String,
         val versjon: String,
         val benyttetTidspunkt: Tidspunkt,
-        val kilde: String? = null, // TODO bjg må settes
+        val kilde: String,
     ) : Regelspesifisering()
 
     data object BeregnetUtenSpesifisering : Regelspesifisering()

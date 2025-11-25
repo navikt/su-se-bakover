@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
-import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.garantipensjon.GarantipensjonForMåned
@@ -148,10 +147,7 @@ sealed class BeregnSats : RegelspesifisertBeregning {
                     satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering(
                         avhengigeRegler = listOf(
-                            when (garantipensjonForMåned.satsKategori) {
-                                Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag()
-                                Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag()
-                            },
+                            garantipensjonForMåned.benyttetRegel,
                         ),
                     ),
                 )
@@ -191,14 +187,14 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
         override val benyttetRegel: Regelspesifisering.Beregning,
     ) : ToProsentAvHøyForMåned() {
         companion object {
-            fun create(garantipensjonPerÅr: BigDecimal): Alder {
+            fun create(garantipensjonPerÅr: GarantipensjonForMåned): Alder {
                 return Alder(
-                    verdi = garantipensjonPerÅr
+                    verdi = garantipensjonPerÅr.garantipensjonPerÅr.toBigDecimal()
                         .multiply(TO_PROSENT)
                         .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
                     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(
                         listOf(
-                            RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(),
+                            garantipensjonPerÅr.benyttetRegel,
                         ),
                     ),
                 )

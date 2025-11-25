@@ -124,7 +124,7 @@ sealed interface FullSupplerendeStønadFactory {
                         satskategori = Satskategori.ORDINÆR,
                         garantipensjonForMåned = garantipensjonForMåned,
                         toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Alder.create(
-                            garantipensjonFactory.forMåned(måned, Satskategori.HØY).garantipensjonPerÅr.toBigDecimal(),
+                            garantipensjonFactory.forMåned(måned, Satskategori.HØY),
                         ),
                     )
                 }
@@ -218,9 +218,7 @@ sealed interface FullSupplerendeStønadFactory {
                         måned = måned,
                         satskategori = Satskategori.HØY,
                         garantipensjonForMåned = garantipensjonForMåned,
-                        toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Alder.create(
-                            garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal(),
-                        ),
+                        toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Alder.create(garantipensjonForMåned),
                     )
                 }
 

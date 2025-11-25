@@ -3,6 +3,7 @@ package satser.domain
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.extensions.scaleTo4
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import satser.domain.garantipensjon.GarantipensjonForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
-import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import java.math.BigDecimal
 
 internal class SatsFactoryForSupplerendeStønadAlderTest {
@@ -20,8 +20,8 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
         satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærAlder(mai(2022)).let {
             it shouldBeEqualUsingFields {
                 excludedProperties = setOf(
-                    FullSupplerendeStønadForMåned.Alder::sats,
-                    ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                    Regelspesifisering.Beregning::benyttetTidspunkt,
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
                 )
                 FullSupplerendeStønadForMåned.Alder(
                     måned = mai(2022),
@@ -50,8 +50,8 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
         satsFactoryTestPåDato(påDato = 1.juni(2022)).høyAlder(mai(2022)).let {
             it shouldBeEqualUsingFields {
                 excludedProperties = setOf(
-                    FullSupplerendeStønadForMåned.Alder::sats,
-                    ToProsentAvHøyForMåned.Alder::benyttetRegel,
+                    Regelspesifisering.Beregning::benyttetTidspunkt,
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
                 )
                 FullSupplerendeStønadForMåned.Alder(
                     måned = mai(2022),
