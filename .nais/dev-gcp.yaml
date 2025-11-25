@@ -57,6 +57,10 @@ spec:
       rules:
         - application: kodeverk-dev
           namespace: team-rocket
+      external:
+        - host: b27apvl220.preprod.local
+          ports:
+            - port: 1413
   image: {{ image }}
   liveness:
     path: /isalive
