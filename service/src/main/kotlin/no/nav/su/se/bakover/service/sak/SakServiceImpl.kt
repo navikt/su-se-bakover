@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
@@ -55,6 +57,7 @@ class SakServiceImpl(
     private val brevService: BrevService,
     private val journalpostClient: QueryJournalpostClient,
     private val personService: PersonService,
+    private val fritekstService: FritekstService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -171,6 +174,11 @@ class SakServiceImpl(
             it.leggTilMetadata(Dokument.Metadata(sakId = request.sakId), request.distribueringsadresse)
         }.onRight {
             dokumentRepo.lagre(it)
+            fritekstService.slettFritekst(
+                referanseId = request.sakId,
+                type = FritekstType.FRITEKST_BREV,
+                sakId = request.sakId,
+            )
         }
     }
 

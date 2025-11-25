@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -68,7 +70,7 @@ internal class SakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
         verify(sakRepo).opprettSak(any())
@@ -82,7 +84,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -108,7 +110,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -161,7 +163,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -207,7 +209,7 @@ internal class SakServiceImplTest {
             } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
         }
 
-        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock(), mock())
+        SakServiceImpl(sakRepo, fixedClock, mock(), brevService, mock(), mock(), mock())
             .genererFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
@@ -239,7 +241,11 @@ internal class SakServiceImplTest {
             doNothing().whenever(it).lagre(any(), anyOrNull())
         }
 
-        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock())
+        val fritekstService = mock<FritekstService> {
+            on { slettFritekst(any(), any(), any()) } doReturn Unit.right()
+        }
+
+        val actual = SakServiceImpl(sakRepo, fixedClock, dokumentRepo, brevService, mock(), mock(), fritekstService)
             .genererLagreOgSendFritekstbrevPåSak(
                 request = OpprettDokumentRequest(
                     sakId = sak.id,
@@ -274,6 +280,12 @@ internal class SakServiceImplTest {
         )
         verify(dokumentRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
 
+        verify(fritekstService).slettFritekst(
+            referanseId = sak.id,
+            type = FritekstType.FRITEKST_BREV,
+            sakId = sak.id,
+        )
+
         verifyNoMoreInteractions(sakRepo)
         verifyNoMoreInteractions(brevService)
         verifyNoMoreInteractions(dokumentRepo)
@@ -287,7 +299,7 @@ internal class SakServiceImplTest {
         }
 
         val actual =
-            SakServiceImpl(SakFakeRepo(), fixedClock, dokumentRepo, mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
+            SakServiceImpl(SakFakeRepo(), fixedClock, dokumentRepo, mock(), mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
                 request = JournalførOgSendOpplastetPdfSomBrevCommand(
                     sakId = expecedSakId,
                     saksbehandler = saksbehandler,
@@ -324,7 +336,7 @@ internal class SakServiceImplTest {
                 Journalpost(JournalpostId("journalpostId"), "journalpost tittel"),
             ).right()
         }
-        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), queryJournalpostClient, mock())
+        SakServiceImpl(sakRepo, fixedClock, mock(), mock(), queryJournalpostClient, mock(), mock())
             .hentAlleJournalposter(sak.id).shouldBeRight()
 
         verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
@@ -339,7 +351,7 @@ internal class SakServiceImplTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock())
+            SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
                 .hentAlleJournalposter(sak.id)
         }
         verify(sakRepo).hentSakInfo(argThat<UUID> { it shouldBe sak.id })
@@ -359,6 +371,7 @@ internal class SakServiceImplTest {
         SakServiceImpl(
             sakRepo,
             fixedClock,
+            mock(),
             mock(),
             mock(),
             mock(),
