@@ -185,7 +185,7 @@ data class ApplicationConfig(
 
         data class StaticCredentials(
             override val jdbcUrl: String,
-            val username: String = "user",
+            val username: String = "user", // Default for lokal postgres/testoppsett, burde vel strengt talt vært definert et annet sted.
             val password: String = "pwd",
         ) : DatabaseConfig
 
