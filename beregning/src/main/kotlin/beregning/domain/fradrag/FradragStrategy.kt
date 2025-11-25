@@ -294,7 +294,9 @@ sealed interface FradragStrategy {
                 }.let {
                     fradragForMåned.copy(
                         verdi = it,
-                        // benyttetRegel =  TODO bjg Må bli egen regel...
+                        benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                            avhengigeRegler = listOf(fradragForMåned.benyttetRegel),
+                        ),
                     )
                 }
             }
