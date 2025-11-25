@@ -57,6 +57,7 @@ data class JmsConfig(
 
     private fun createJmsContextWithTimeout(): JMSContext {
         log.info("Initializing JMSContext with timeout...")
+        System.setProperty("com.ibm.mq.cfg.TCP.Connect_Timeout", "10")
         return MQConnectionFactory().apply {
             applicationConfig.oppdrag.let {
                 hostName = it.mqHostname
