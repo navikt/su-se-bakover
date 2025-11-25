@@ -126,11 +126,8 @@ sealed class BeregnSats : RegelspesifisertBeregning {
                     satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(
                         avhengigeRegler = listOf(
-                            RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                            when (minsteÅrligYtelseForUføretrygdede.satsKategori) {
-                                Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag()
-                                Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag()
-                            },
+                            grunnbeløp.benyttetRegel,
+                            minsteÅrligYtelseForUføretrygdede.benyttetRegel,
                         ),
                     ),
                 )
@@ -172,16 +169,16 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
         override val benyttetRegel: Regelspesifisering.Beregning,
     ) : ToProsentAvHøyForMåned() {
         companion object {
-            fun create(grunnbeløp: GrunnbeløpForMåned, faktorSomBigDecimal: BigDecimal): Uføre {
+            fun create(grunnbeløp: GrunnbeløpForMåned, faktor: MinsteÅrligYtelseForUføretrygdedeForMåned): Uføre {
                 return Uføre(
                     verdi = grunnbeløp.grunnbeløpPerÅr.toBigDecimal()
-                        .multiply(faktorSomBigDecimal)
+                        .multiply(faktor.faktorSomBigDecimal)
                         .multiply(TO_PROSENT)
                         .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
                     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(
                         listOf(
-                            RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                            RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                            faktor.benyttetRegel,
+                            grunnbeløp.benyttetRegel,
                         ),
                     ),
                 )

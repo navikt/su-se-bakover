@@ -48,7 +48,7 @@ sealed interface FullSupplerendeStønadFactory {
                 minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                 toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Uføre.create(
                     grunnbeløp,
-                    minsteÅrligYtelseForUføretrygdedeHøy.faktorSomBigDecimal,
+                    minsteÅrligYtelseForUføretrygdedeHøy,
                 ),
             )
         }

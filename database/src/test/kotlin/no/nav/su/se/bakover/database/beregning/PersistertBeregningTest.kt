@@ -45,7 +45,7 @@ internal class PersistertBeregningTest {
         )
 
         // TODO bjg midlertidig
-        val benyttaRegler = serialize(actualBeregning.getMånedsberegninger().single().getBenyttetRegler().toJson())
+        val benyttetRegler = serialize(actualBeregning.getMånedsberegninger().single().getBenyttetRegler().toJson())
 
         //language=json
         val expectedJson = """
@@ -93,7 +93,7 @@ internal class PersistertBeregningTest {
                       "type": "BeløpErNull"
                     }
                   ],
-                  "benyttetRegel": $benyttaRegler 
+                  "benyttetRegel": $benyttetRegler 
                 }
               ],
               "fradrag": [

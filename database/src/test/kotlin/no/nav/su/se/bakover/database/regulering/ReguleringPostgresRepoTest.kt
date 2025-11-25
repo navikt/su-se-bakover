@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.database.regulering
 
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import grunnbeløp.domain.GrunnbeløpForMåned
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -248,7 +249,11 @@ internal class ReguleringPostgresRepoTest {
             hentRegulering shouldBe regulering
             val beregning = hentRegulering!!.beregning as BeregningMedFradragBeregnetMånedsvis
             beregning.getMånedsberegninger().zip((mai(2021)..desember(2021)).måneder()) { a, b ->
-                a.fullSupplerendeStønadForMåned.shouldBeEqualToIgnoringFields(
+                a.fullSupplerendeStønadForMåned shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        FullSupplerendeStønadForMåned.Uføre::sats,
+                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                    )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = b,
                         satskategori = Satskategori.HØY,
@@ -271,9 +276,8 @@ internal class ReguleringPostgresRepoTest {
                             benyttetRegel = a.fullSupplerendeStønadForMåned.toProsentAvHøyForMåned.benyttetRegel,
 
                         ),
-                    ),
-                    FullSupplerendeStønadForMåned.Uføre::sats,
-                )
+                    )
+                }
             }
         }
     }
