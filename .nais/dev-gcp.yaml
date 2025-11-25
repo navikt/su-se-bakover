@@ -73,7 +73,7 @@ spec:
     limits:
       memory: 4Gi
     requests:
-      memory: 1Gi
+      memory: 2Gi
       cpu: 1000m
   ingresses:
     - https://su-se-bakover.intern.dev.nav.no
