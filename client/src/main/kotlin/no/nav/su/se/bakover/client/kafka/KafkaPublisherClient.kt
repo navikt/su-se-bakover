@@ -14,22 +14,10 @@ import java.util.Queue
 import java.util.Timer
 import kotlin.concurrent.timer
 
-private fun safeInitProducer(producerConfig: ApplicationConfig.KafkaConfig.ProducerCfg, log: Logger): KafkaProducer<String, String> {
-    try {
-        log.info("Attempting to initialize KafkaProducer with config:")
-        producerConfig.kafkaConfig.forEach { (k, v) -> log.info("  $k = $v") }
-
-        return KafkaProducer(producerConfig.kafkaConfig)
-    } catch (e: Exception) {
-        log.error("❌ Failed to initialize KafkaProducer", e)
-        throw e
-    }
-}
-
 internal class KafkaPublisherClient(
     private val producerConfig: ApplicationConfig.KafkaConfig.ProducerCfg,
     private val log: Logger = LoggerFactory.getLogger(KafkaPublisherClient::class.java),
-    private val initProducer: () -> Producer<String, String> = { safeInitProducer(producerConfig, log) },
+    private val initProducer: () -> Producer<String, String> = { KafkaProducer(producerConfig.kafkaConfig) },
 ) : KafkaPublisher {
     private var producer: Producer<String, String> = initProducer()
     private val failed: Queue<ProducerRecord<String, String>> = LinkedList()
