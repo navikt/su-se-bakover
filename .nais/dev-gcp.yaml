@@ -85,6 +85,9 @@ spec:
   leaderElection: true
   kafka:
     pool: nav-dev
+  envFrom:
+      #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
+    - secret: supstonad-servicerbruker
   env:
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"

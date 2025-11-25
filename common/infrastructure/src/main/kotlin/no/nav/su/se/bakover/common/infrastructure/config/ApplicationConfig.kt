@@ -17,10 +17,13 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
+
+fun isGCP() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("gcp")
 
 internal data object EnvironmentConfig {
     private val env by lazy {
@@ -538,10 +541,10 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
-            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
+            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(isGCP()),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
-            database = DatabaseConfig.createFromEnvironmentVariables(isGcp()),
+            database = DatabaseConfig.createFromEnvironmentVariables(isGCP()),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
@@ -578,7 +581,6 @@ data class ApplicationConfig(
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
         fun isProd() = naisCluster() == NaisCluster.Prod
-        fun isGcp() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").contains("gcp")
 
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
