@@ -31,7 +31,8 @@ data object MånedsberegningFactory {
             .positiveOrZero()
             .roundToInt()
 
-        val fribeløpForEps = strategy.beregnFribeløpEPS(måned) // TODO ?? må den være her eller kan den hentes fra kilde/bruk?
+        // TODO fribeløp bergnes på nytt her, men kun for visningsformål. Bør egentlig finne fribeløp som er benyttet i faktisk beregning
+        val fribeløpForEps = strategy.beregnFribeløpEPS(måned)
         return BeregningForMåned(
             måned = måned,
             fullSupplerendeStønadForMåned = ytelseFørFradrag,
@@ -39,7 +40,7 @@ data object MånedsberegningFactory {
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
+            benyttetRegel = Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.benyttRegelspesifisering(
                 avhengigeRegler = listOf(
                     ytelseFørFradrag.sats.benyttetRegel,
                     beregnetFradrag.benyttetRegel,

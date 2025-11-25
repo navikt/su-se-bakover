@@ -67,7 +67,10 @@ class BeregningFactory(val clock: Clock) {
                 BeregningUnderToProsent(
                     verdi = it,
                     benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
-                        avhengigeRegler = listOf(toProsentAvHøy.benyttetRegel),
+                        avhengigeRegler = listOf(
+                            getBenyttetRegler(),
+                            toProsentAvHøy.benyttetRegel,
+                        ),
                     ),
                 )
             }
@@ -78,7 +81,10 @@ class BeregningFactory(val clock: Clock) {
             return BeregningUnderToProsent(
                 verdi = getSumYtelse() > 0 && getSumYtelse() < toProsentAvHøyForMåned.verdi.toDouble(),
                 benyttetRegel = Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(
-                    avhengigeRegler = listOf(toProsentAvHøyForMåned.benyttetRegel),
+                    avhengigeRegler = listOf(
+                        getBenyttetRegler(),
+                        toProsentAvHøyForMåned.benyttetRegel,
+                    ),
                 ),
             )
         }
@@ -137,14 +143,13 @@ class BeregningFactory(val clock: Clock) {
                             månedsberegning
                         }
                     }.copy(
-                        benyttetRegel = (månedsberegning.benyttetRegel as Regelspesifisering.Beregning).let {
-                            it.copy(
-                                avhengigeRegler = it.avhengigeRegler + listOf(
-                                    sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
-                                    beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
-                                ),
-                            )
-                        },
+                        benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                            avhengigeRegler = listOf(
+                                månedsberegning.benyttetRegel,
+                                sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
+                                beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
+                            ),
+                        ),
                     )
                 }
             }

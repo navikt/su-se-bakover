@@ -58,9 +58,9 @@ class BeregningRegelspesifiseringTest {
             )
             with(result.getMånedsberegninger().single()) {
                 val faktisk = getBenyttetRegler()
-                val forventet = forventetRegel(
-                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
-                    listOf(
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
@@ -79,28 +79,31 @@ class BeregningRegelspesifiseringTest {
                                 ),
                             ),
                         ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    avhengigeRegler = listOf(
+                        forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
-                                    listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                                    ),
-                                ),
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
                             ),
                         ),
                         forventetRegel(
                             Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
-                                    listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                                    ),
-                                ),
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
                             ),
                         ),
                     ),
