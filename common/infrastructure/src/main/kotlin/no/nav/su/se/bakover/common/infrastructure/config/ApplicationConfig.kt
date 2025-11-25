@@ -185,16 +185,21 @@ data class ApplicationConfig(
 
         data class StaticCredentials(
             override val jdbcUrl: String,
-        ) : DatabaseConfig {
-            val username = "user"
-            val password = "pwd"
-        }
+            val username: String = "user",
+            val password: String = "pwd",
+        ) : DatabaseConfig
 
         companion object {
             fun createFromEnvironmentVariables(isGCP: Boolean): DatabaseConfig {
                 // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
                 return when (isGCP) {
-                    true -> StaticCredentials(getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()))
+                    true -> StaticCredentials(
+                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
+                        getEnvironmentVariableOrThrow(
+                            DatabaseConfigEnvs.DB_USERNAME.key(),
+                        ),
+                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
+                    )
                     false -> RotatingCredentials(
                         databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
                         jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
@@ -208,6 +213,8 @@ data class ApplicationConfig(
                     "DATABASE_JDBC_URL",
                     "jdbc:postgresql://localhost:5432/supstonad-db-local",
                 ),
+                username = "user",
+                password = "pwd",
             )
         }
     }
