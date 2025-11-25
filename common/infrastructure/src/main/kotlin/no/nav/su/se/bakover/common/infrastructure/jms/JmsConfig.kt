@@ -8,12 +8,15 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.slf4j.LoggerFactory
+import javax.jms.ExceptionListener
 import javax.jms.JMSContext
 import javax.jms.JMSException
+import kotlin.system.exitProcess
 
 /**
  * Wrapper class for JmsConfig
- *
+ * Vurder     it.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET, UTF_8_WITH_PUA)
+ * private const val UTF_8_WITH_PUA = 1208
  */
 
 data class JmsConfig(
@@ -21,17 +24,30 @@ data class JmsConfig(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
+    private fun exceptionListener() =
+        ExceptionListener {
+            log.error(
+                "En feil oppstod med tilkoblingen mot jms: ${it.message}. " +
+                    "Restarter appen for å sette opp tilkobling på nytt",
+                it,
+            )
+
+            // Trigger restart av appen for å sette opp tilkobling mot MQ på nytt
+            exitProcess(-1)
+        }
+
     val jmsContext: JMSContext by lazy {
         runBlocking {
             try {
                 withTimeout(10_000) {
                     createJmsContextWithTimeout()
-                }.also {
+                }.also { ctx ->
                     log.info("JMSContext created successfully")
+                    ctx.exceptionListener = exceptionListener()
                 }
             } catch (ex: JMSException) {
                 log.error("Failed to create JMSContext: ${ex.message}", ex)
-                throw ex // or handle/fallback if appropriate
+                throw ex
             } catch (ex: TimeoutCancellationException) {
                 log.error("JMSContext creation timed out", ex)
                 throw ex
@@ -55,6 +71,6 @@ data class JmsConfig(
         }.createContext(
             applicationConfig.serviceUser.username,
             applicationConfig.serviceUser.password,
-        )
+        ).apply { exceptionListener }
     }
 }
