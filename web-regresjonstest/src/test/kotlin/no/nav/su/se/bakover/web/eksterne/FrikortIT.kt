@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.roller.Eksternrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -251,7 +252,7 @@ private fun hentAktiveFnr(
             HttpMethod.Get,
             "/frikort/",
             client = client,
-            externalRoles = listOf("frikort"),
+            externalRoles = listOf(Eksternrolle.FRIKORT.rolle),
         ).apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
@@ -269,7 +270,7 @@ private fun hentAlle(
             HttpMethod.Get,
             "/frikort/alle",
             client = client,
-            externalRoles = listOf("frikort"),
+            externalRoles = listOf(Eksternrolle.FRIKORT.rolle),
         ).apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK

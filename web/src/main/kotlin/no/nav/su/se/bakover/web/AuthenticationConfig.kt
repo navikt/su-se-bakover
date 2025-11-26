@@ -8,6 +8,7 @@ import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.roller.Eksternrolle
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -85,7 +86,7 @@ internal fun Application.configureAuthentication(
                         sikkerLogg.debug("jwt-auth frikort azure: audience-token var ikke gyldig. Forventet audience: ${applicationConfig.azure.clientId}. Token: $printableToken")
                         "jwt-auth frikort azure: audience-token var ikke gyldig. Se sikkerlogg for mer informasjon."
                     }
-                    require(credentials.getRoles().any { it == "frikort" }) {
+                    require(credentials.getRoles().any { it == Eksternrolle.FRIKORT.rolle }) {
                         sikkerLogg.debug("jwt-auth frikort azure: Forventet claim 'roles' inneholder 'frikort'. Token: $printableToken")
                         "jwt-auth frikort azure: Forventet claim 'roles' inneholder 'frikort'. Se sikkerlogg for mer informasjon."
                     }
