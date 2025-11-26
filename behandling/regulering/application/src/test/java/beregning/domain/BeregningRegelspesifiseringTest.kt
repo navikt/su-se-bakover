@@ -64,7 +64,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
-                                strategy.somBeregningsgrunnlag(),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
                                 RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
                             ),
                         ),
@@ -115,6 +115,16 @@ class BeregningRegelspesifiseringTest {
         }
 
         @Test
+        fun `Bor med andre voksne`() {
+            // TODO
+        }
+
+        @Test
+        fun `EPS under 67`() {
+            // TODO
+        }
+
+        @Test
         fun `EPS over 67`() {
             val periode = YearMonth.of(2025, 1).let {
                 Periode.create(it.atDay(1), it.atEndOfMonth())
@@ -158,10 +168,10 @@ class BeregningRegelspesifiseringTest {
 
             with(result.getMånedsberegningerMedRegel().single()) {
                 val faktisk = benyttetRegel
-                val forventet = forventetRegel(
-                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
-                    listOf(
-                        strategy.somBeregningsgrunnlag(),
+
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
@@ -184,35 +194,41 @@ class BeregningRegelspesifiseringTest {
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(
+                                                    "",
+                                                ),
                                             ),
                                         ),
                                     ),
                                 ),
                             ),
                         ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        strategy.somBeregningsgrunnlag(),
+                        forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
-                                    listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
-                                    ),
-                                ),
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
                             ),
                         ),
                         forventetRegel(
                             Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
-                                    listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
-                                    ),
-                                ),
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
                             ),
                         ),
                     ),
@@ -266,9 +282,9 @@ class BeregningRegelspesifiseringTest {
 
             with(result.getMånedsberegningerMedRegel().single()) {
                 val faktisk = benyttetRegel
-                val forventet = forventetRegel(
-                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
-                    listOf(
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
@@ -278,10 +294,10 @@ class BeregningRegelspesifiseringTest {
                         ),
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
-                            listOf(
+                            avhengigeRegler = listOf(
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
-                                    listOf(
+                                    avhengigeRegler = listOf(
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
                                             listOf(
@@ -292,35 +308,41 @@ class BeregningRegelspesifiseringTest {
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                                             listOf(
                                                 RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
-                                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(""),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(
+                                                    "",
+                                                ),
                                             ),
                                         ),
                                     ),
                                 ),
                             ),
                         ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        strategy.somBeregningsgrunnlag(),
+                        forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
-                                    listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
-                                    ),
-                                ),
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
                             ),
                         ),
                         forventetRegel(
                             Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
                             listOf(
-                                forventetRegel(
-                                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
-                                    listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
-                                    ),
-                                ),
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
                             ),
                         ),
                     ),
@@ -329,17 +351,58 @@ class BeregningRegelspesifiseringTest {
                 sammenlignRegel(faktisk, forventet)
             }
         }
+
+        @Test
+        fun `beregning blir to prosent under høy sats`() {
+            // TODO
+        }
+
+        @Test
+        fun `beregning blir to prosent under høy sats på grunn av sosialstønad`() {
+            // TODO
+        }
     }
 
     @Nested
-    inner class Alder
+    inner class Alder {
 
-// TODO en test for alle permuteringer
-// TODO alle botilstander per uføre/alder
-// TODO under to prosent uten sosial stønad
-// TODO under to prosent med sosial stønad
+        @Test
+        fun `Bor alene`() {
+            // TODO
+        }
 
-// TODO egen for sats endringsknekkpunkt? må skille på grunnlag
+        @Test
+        fun `Bor med andre voksne`() {
+            // TODO
+        }
+
+        @Test
+        fun `EPS under 67`() {
+            // TODO
+        }
+
+        @Test
+        fun `EPS over 67`() {
+            // TODO
+        }
+
+        @Test
+        fun `EPS uføre flyktning`() {
+            // TODO
+        }
+
+        @Test
+        fun `beregning blir to prosent under høy sats`() {
+            // TODO
+        }
+
+        @Test
+        fun `beregning blir to prosent under høy sats på grunn av sosialstønad`() {
+            // TODO
+        }
+    }
+
+    // TODO egen for sats endringsknekkpunkt? må skille på grunnlag ??
 }
 
 fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesifisering>) =
@@ -349,13 +412,13 @@ fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesi
     )
 
 internal fun sammenlignRegel(forventet: Regelspesifisering, faktisk: Regelspesifisering) {
-    faktisk shouldBeEqualUsingFields {
+    forventet shouldBeEqualUsingFields {
         excludedProperties = setOf(
             Regelspesifisering.Beregning::benyttetTidspunkt,
             Regelspesifisering.Beregning::verdi,
             Regelspesifisering.Grunnlag::benyttetTidspunkt,
             Regelspesifisering.Grunnlag::verdi,
         )
-        forventet
+        faktisk
     }
 }
