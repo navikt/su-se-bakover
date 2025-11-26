@@ -1,5 +1,6 @@
 package beregning.domain
 
+import beregning.domain.BeregningRegelspesifiseringTest.Companion.periode
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
@@ -19,44 +20,19 @@ import java.util.UUID
 
 class BeregningRegelspesifiseringTest {
 
+    companion object {
+        val periode = YearMonth.of(2025, 1).let {
+            Periode.create(it.atDay(1), it.atEndOfMonth())
+        }
+    }
+
     @Nested
     inner class Uføre {
 
         @Test
         fun `Bor alene`() {
-            val periode = YearMonth.of(2025, 1).let {
-                Periode.create(it.atDay(1), it.atEndOfMonth())
-            }
-            val strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE)
-
-            val result = BeregningFactory(clock = fixedClock).ny(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                fradrag = listOf(
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 55000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
-                        månedsbeløp = 1000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                begrunnelse = "begrunnelse",
-                beregningsperioder = listOf(
-                    Beregningsperiode(
-                        periode = periode,
-                        strategy = strategy,
-                    ),
-                ),
-            )
-            with(result.getMånedsberegningerMedRegel().single()) {
+            val strategi = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE)
+            with(månedsBeregning(strategi)) {
                 val faktisk = benyttetRegel
                 val forventetSatsMinusFradrag = forventetRegel(
                     Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
@@ -91,7 +67,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     avhengigeRegler = listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategy.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -126,47 +102,8 @@ class BeregningRegelspesifiseringTest {
 
         @Test
         fun `EPS over 67`() {
-            val periode = YearMonth.of(2025, 1).let {
-                Periode.create(it.atDay(1), it.atEndOfMonth())
-            }
-            val strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.UFØRE)
-
-            val result = BeregningFactory(clock = fixedClock).ny(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                fradrag = listOf(
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 55000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
-                        månedsbeløp = 1000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.EPS,
-                    ),
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
-                        månedsbeløp = 1000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.EPS,
-                    ),
-                ),
-                begrunnelse = "begrunnelse",
-                beregningsperioder = listOf(
-                    Beregningsperiode(
-                        periode = periode,
-                        strategy = strategy,
-                    ),
-                ),
-            )
-
-            with(result.getMånedsberegningerMedRegel().single()) {
+            val strategi = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.UFØRE)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
                 val faktisk = benyttetRegel
 
                 val forventetSatsMinusFradrag = forventetRegel(
@@ -215,7 +152,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategy.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -240,47 +177,8 @@ class BeregningRegelspesifiseringTest {
 
         @Test
         fun `EPS uføre flyktning`() {
-            val periode = YearMonth.of(2025, 1).let {
-                Periode.create(it.atDay(1), it.atEndOfMonth())
-            }
-            val strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato(), Sakstype.UFØRE)
-
-            val result = BeregningFactory(clock = fixedClock).ny(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                fradrag = listOf(
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 55000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
-                        månedsbeløp = 1000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.EPS,
-                    ),
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.Annet("vant på flaxlodd"),
-                        månedsbeløp = 1000.0,
-                        utenlandskInntekt = null,
-                        periode = periode,
-                        tilhører = FradragTilhører.EPS,
-                    ),
-                ),
-                begrunnelse = "begrunnelse",
-                beregningsperioder = listOf(
-                    Beregningsperiode(
-                        periode = periode,
-                        strategy = strategy,
-                    ),
-                ),
-            )
-
-            with(result.getMånedsberegningerMedRegel().single()) {
+            val strategi = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato(), Sakstype.UFØRE)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
                 val faktisk = benyttetRegel
                 val forventetSatsMinusFradrag = forventetRegel(
                     Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
@@ -329,7 +227,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategy.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -410,6 +308,59 @@ fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesi
         verdi = "",
         avhengigeRegler = avhengigeRegler,
     )
+
+internal fun månedsBeregning(
+    strategi: BeregningStrategy,
+    eps: Boolean = false,
+): BeregningForMånedRegelspesifisert {
+    val result = BeregningFactory(clock = fixedClock).ny(
+        id = UUID.randomUUID(),
+        opprettet = fixedTidspunkt,
+        fradrag = if (eps) {
+            listOf(
+                FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 1000.0,
+                    utenlandskInntekt = null,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 1000.0,
+                    utenlandskInntekt = null,
+                    periode = periode,
+                    tilhører = FradragTilhører.EPS,
+                ),
+                FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.Alderspensjon,
+                    månedsbeløp = 1000.0,
+                    utenlandskInntekt = null,
+                    periode = periode,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            )
+        } else {
+            listOf(
+                FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 1000.0,
+                    utenlandskInntekt = null,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            )
+        },
+        begrunnelse = "begrunnelse",
+        beregningsperioder = listOf(
+            Beregningsperiode(
+                periode = periode,
+                strategy = strategi,
+            ),
+        ),
+    )
+    return result.getMånedsberegningerMedRegel().single()
+}
 
 internal fun sammenlignRegel(forventet: Regelspesifisering, faktisk: Regelspesifisering) {
     forventet shouldBeEqualUsingFields {
