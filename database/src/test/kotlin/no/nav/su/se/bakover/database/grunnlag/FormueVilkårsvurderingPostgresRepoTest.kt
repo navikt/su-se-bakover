@@ -10,36 +10,39 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.formueverdier
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.Formueverdier
 import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class FormueVilkårsvurderingPostgresRepoTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(DbExtension::class)
+internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: DataSource) {
 
     @Test
     fun `lagrer og henter IkkeVurdert`() {
-        withMigratedDb { dataSource ->
-            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = SøknadsbehandlingId.generer()
-            val vilkår = formuevilkårIkkeVurdert()
-            dataSource.withTransaction { session ->
-                repo.lagre(behandlingId, vilkår, session)
-                repo.hent(behandlingId, session).let {
-                    it shouldBe vilkår
-                    it.erAvslag shouldBe false
-                    it.erInnvilget shouldBe false
-                    it.vurdering shouldBe Vurdering.Uavklart
-                }
+        val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
+        val behandlingId = SøknadsbehandlingId.generer()
+        val vilkår = formuevilkårIkkeVurdert()
+        dataSource.withTransaction { session ->
+            repo.lagre(behandlingId, vilkår, session)
+            repo.hent(behandlingId, session).let {
+                it shouldBe vilkår
+                it.erAvslag shouldBe false
+                it.erInnvilget shouldBe false
+                it.vurdering shouldBe Vurdering.Uavklart
             }
         }
     }
@@ -81,20 +84,18 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter innvilget med epsFormue`() {
         val periode = år(2021)
 
-        withMigratedDb { dataSource ->
-            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = SøknadsbehandlingId.generer()
-            val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
-                grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
-            )
-            dataSource.withTransaction { session ->
-                repo.lagre(behandlingId, vilkår, session)
-                repo.hent(behandlingId, session).let {
-                    it shouldBe vilkår
-                    it.erAvslag shouldBe false
-                    it.erInnvilget shouldBe true
-                    it.vurdering shouldBe Vurdering.Innvilget
-                }
+        val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
+        val behandlingId = SøknadsbehandlingId.generer()
+        val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
+            grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
+        )
+        dataSource.withTransaction { session ->
+            repo.lagre(behandlingId, vilkår, session)
+            repo.hent(behandlingId, session).let {
+                it shouldBe vilkår
+                it.erAvslag shouldBe false
+                it.erInnvilget shouldBe true
+                it.vurdering shouldBe Vurdering.Innvilget
             }
         }
     }
@@ -103,20 +104,18 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter innvilget uten epsFormue`() {
         val periode = år(2021)
 
-        withMigratedDb { dataSource ->
-            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = SøknadsbehandlingId.generer()
-            val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
-                grunnlag = nonEmptyListOf(formuegrunnlag(periode = periode, epsFormue = null)),
-            )
-            dataSource.withTransaction { session ->
-                repo.lagre(behandlingId, vilkår, session)
-                repo.hent(behandlingId, session).let {
-                    it shouldBe vilkår
-                    it.erAvslag shouldBe false
-                    it.erInnvilget shouldBe true
-                    it.vurdering shouldBe Vurdering.Innvilget
-                }
+        val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
+        val behandlingId = SøknadsbehandlingId.generer()
+        val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
+            grunnlag = nonEmptyListOf(formuegrunnlag(periode = periode, epsFormue = null)),
+        )
+        dataSource.withTransaction { session ->
+            repo.lagre(behandlingId, vilkår, session)
+            repo.hent(behandlingId, session).let {
+                it shouldBe vilkår
+                it.erAvslag shouldBe false
+                it.erInnvilget shouldBe true
+                it.vurdering shouldBe Vurdering.Innvilget
             }
         }
     }
@@ -125,34 +124,32 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter avslag med for høy epsFormue`() {
         val periode = år(2021)
 
-        withMigratedDb { dataSource ->
-            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = SøknadsbehandlingId.generer()
-            val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
-                grunnlag = nonEmptyListOf(
-                    formuegrunnlag(
-                        periode = periode,
-                        epsFormue = formueverdier(
-                            verdiIkkePrimærbolig = 1,
-                            verdiEiendommer = 2,
-                            verdiKjøretøy = 3,
-                            innskudd = 4,
-                            verdipapir = 5,
-                            pengerSkyldt = 6,
-                            kontanter = 70000,
-                            depositumskonto = 3,
-                        ),
+        val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
+        val behandlingId = SøknadsbehandlingId.generer()
+        val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
+            grunnlag = nonEmptyListOf(
+                formuegrunnlag(
+                    periode = periode,
+                    epsFormue = formueverdier(
+                        verdiIkkePrimærbolig = 1,
+                        verdiEiendommer = 2,
+                        verdiKjøretøy = 3,
+                        innskudd = 4,
+                        verdipapir = 5,
+                        pengerSkyldt = 6,
+                        kontanter = 70000,
+                        depositumskonto = 3,
                     ),
                 ),
-            )
-            dataSource.withTransaction { session ->
-                repo.lagre(behandlingId, vilkår, session)
-                repo.hent(behandlingId, session).let {
-                    it shouldBe vilkår
-                    it.erAvslag shouldBe true
-                    it.erInnvilget shouldBe false
-                    it.vurdering shouldBe Vurdering.Avslag
-                }
+            ),
+        )
+        dataSource.withTransaction { session ->
+            repo.lagre(behandlingId, vilkår, session)
+            repo.hent(behandlingId, session).let {
+                it shouldBe vilkår
+                it.erAvslag shouldBe true
+                it.erInnvilget shouldBe false
+                it.vurdering shouldBe Vurdering.Avslag
             }
         }
     }
@@ -161,63 +158,59 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter uavklart uten epsFormue`() {
         val periode = år(2021)
 
-        withMigratedDb { dataSource ->
-            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
-            val behandlingId = SøknadsbehandlingId.generer()
-            val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
-                nonEmptyListOf(
-                    VurderingsperiodeFormue.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        // TODO(satsfactory_formue) jah: Man kan ikke opprette formuevilkår/vurdering/grunnlag som uavklart lenger. Kan sjekke at det ikke finnes spor av denne i basen og fjerne muligheten?
-                        vurdering = Vurdering.Uavklart,
-                        grunnlag = formuegrunnlag(periode = periode, epsFormue = null),
-                        periode = periode,
-                    ),
+        val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
+        val behandlingId = SøknadsbehandlingId.generer()
+        val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
+            nonEmptyListOf(
+                VurderingsperiodeFormue.create(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    // TODO(satsfactory_formue) jah: Man kan ikke opprette formuevilkår/vurdering/grunnlag som uavklart lenger. Kan sjekke at det ikke finnes spor av denne i basen og fjerne muligheten?
+                    vurdering = Vurdering.Uavklart,
+                    grunnlag = formuegrunnlag(periode = periode, epsFormue = null),
+                    periode = periode,
                 ),
-            )
-            dataSource.withTransaction { session ->
-                repo.lagre(behandlingId, vilkår, session)
-                repo.hent(behandlingId, session).let {
-                    it shouldBe vilkår
-                    it.erAvslag shouldBe false
-                    it.erInnvilget shouldBe false
-                    it.vurdering shouldBe Vurdering.Uavklart
-                }
+            ),
+        )
+        dataSource.withTransaction { session ->
+            repo.lagre(behandlingId, vilkår, session)
+            repo.hent(behandlingId, session).let {
+                it shouldBe vilkår
+                it.erAvslag shouldBe false
+                it.erInnvilget shouldBe false
+                it.vurdering shouldBe Vurdering.Uavklart
             }
         }
     }
 
     @Test
     fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
-            val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetricsStub)
-            val formueVilkårsvurderingPostgresRepo =
-                FormueVilkårsvurderingPostgresRepo(formuegrunnlagPostgresRepo, dbMetricsStub)
-            val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
-                bosituasjon = bosituasjongrunnlagEnslig(periode = år(2021)),
-            ).let { it to it.grunnlag }
+        val testDataHelper = TestDataHelper(dataSource)
+        val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
+        val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetricsStub)
+        val formueVilkårsvurderingPostgresRepo =
+            FormueVilkårsvurderingPostgresRepo(formuegrunnlagPostgresRepo, dbMetricsStub)
+        val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
+            bosituasjon = bosituasjongrunnlagEnslig(periode = år(2021)),
+        ).let { it to it.grunnlag }
 
-            dataSource.withTransaction { session ->
-                formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, session)
-                formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
-                formueVilkårsvurderingPostgresRepo.lagre(
-                    søknadsbehandling.id,
-                    formuevilkårIkkeVurdert(),
-                    session,
-                )
-                formueVilkårsvurderingPostgresRepo.hent(
-                    behandlingId = søknadsbehandling.id,
-                    session = session,
-                ) shouldBe formuevilkårIkkeVurdert()
+        dataSource.withTransaction { session ->
+            formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, session)
+            formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+            formueVilkårsvurderingPostgresRepo.lagre(
+                søknadsbehandling.id,
+                formuevilkårIkkeVurdert(),
+                session,
+            )
+            formueVilkårsvurderingPostgresRepo.hent(
+                behandlingId = søknadsbehandling.id,
+                session = session,
+            ) shouldBe formuevilkårIkkeVurdert()
 
-                formuegrunnlagPostgresRepo.hentFormuegrunnlag(
-                    formuegrunnlagId = grunnlag.first().id,
-                    session = session,
-                ) shouldBe null
-            }
+            formuegrunnlagPostgresRepo.hentFormuegrunnlag(
+                formuegrunnlagId = grunnlag.first().id,
+                session = session,
+            ) shouldBe null
         }
     }
 }

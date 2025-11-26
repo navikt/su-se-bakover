@@ -5,7 +5,11 @@ import io.zonky.test.db.postgres.embedded.PreparedDbProvider
 import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
 import no.nav.su.se.bakover.database.Postgres
 import org.jetbrains.annotations.TestOnly
+import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.ParameterContext
+import org.junit.jupiter.api.extension.ParameterResolver
 import org.slf4j.LoggerFactory
+import java.sql.Connection
 import javax.sql.DataSource
 
 private val log = LoggerFactory.getLogger("EmbeddedDatabase.kt")
@@ -16,7 +20,7 @@ fun withMigratedDb(
     dbMigrationVersion: Int? = null,
     test: (dataSource: DataSource) -> Unit,
 ) {
-    test(createNewDatabase(dbMigrationVersion = dbMigrationVersion))
+    test(createNewDatabase())
 }
 
 @TestOnly
@@ -24,45 +28,56 @@ fun migratedDb(): DataSource {
     return createNewDatabase()
 }
 
-private fun createNewDatabase(dbMigrationVersion: Int? = null): DataSource {
-    val provider = PreparedDbProvider.forPreparer(CustomFlywayPreparer(toVersion = dbMigrationVersion))
+private fun ensureRoleExists(conn: Connection, role: String) {
+    conn.prepareStatement(
+        """
+        DO $$
+        BEGIN
+            CREATE ROLE "$role-${Postgres.Role.Admin}";
+        EXCEPTION WHEN DUPLICATE_OBJECT THEN
+            RAISE NOTICE 'Role $role already exists';
+        END
+        $$;
+        """.trimIndent(),
+    ).use { it.execute() }
+}
+
+private fun ensureExtensions(conn: Connection) {
+    conn.prepareStatement("""CREATE EXTENSION IF NOT EXISTS "uuid-ossp"""").use { it.execute() }
+}
+
+/*
+Creating the template database is slow because PostgreSQL must run all your Flyway migrations and build your entire schema from scratch.
+Derfor lages denne en gang per test mens createNewDb kjører per test
+ */
+private fun createTemplate(): PreparedDbProvider {
+    return PreparedDbProvider.forPreparer(CustomFlywayPreparer())
+}
+
+/*
+Creating a new test database is fast because PostgreSQL simply clones the already-prepared template at the filesystem level without re-running any migrations.
+ */
+private fun createNewDb(provider: PreparedDbProvider): DataSource {
+    val info = provider.createNewDatabase()
+    return provider.createDataSourceFromConnectionInfo(info)
+}
+
+// TODO: rm
+private fun createNewDatabase(): DataSource {
+    val provider = PreparedDbProvider.forPreparer(CustomFlywayPreparer())
     val info = provider.createNewDatabase()
     return provider.createDataSourceFromConnectionInfo(info)
 }
 
 private class CustomFlywayPreparer(
     val role: String = "postgres",
-    val toVersion: Int? = null,
 ) : DatabasePreparer {
     override fun prepare(ds: DataSource) {
         log.info("Preparing and migrating database for tests ...")
         ds.connection.use { connection ->
-            connection
-                // Ikke feile dersom dette kjører flere ganger (selvom det ikke skal skje). Kan vurdere legge på synchronous
-                //language=SQL
-                .prepareStatement(
-                    """
-                    DO $$
-                    BEGIN
-                        CREATE ROLE "$role-${Postgres.Role.Admin}";
-                        EXCEPTION WHEN DUPLICATE_OBJECT THEN
-                        RAISE NOTICE 'not creating role my_role -- it already exists';
-                    END
-                    $$;
-                    """,
-                ).use {
-                    it.execute() // Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
-                }
-            connection
-                //language=SQL
-                .prepareStatement("""create EXTENSION IF NOT EXISTS "uuid-ossp"""").use {
-                    it.execute()
-                }
-            if (toVersion != null) {
-                Flyway(ds, role).migrateTo(toVersion)
-            } else {
-                Flyway(ds, role).migrate()
-            }
+            ensureRoleExists(connection, role)
+            ensureExtensions(connection)
+            Flyway(ds, role).migrate()
         }
     }
 
@@ -73,14 +88,29 @@ private class CustomFlywayPreparer(
         other as CustomFlywayPreparer
 
         if (role != other.role) return false
-        if (toVersion != other.toVersion) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = role.hashCode()
-        result = 31 * result + (toVersion ?: 0)
+        result *= 31
         return result
+    }
+}
+
+class DbExtension : ParameterResolver {
+    private val provider: PreparedDbProvider = createTemplate()
+
+    override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
+        return parameterContext.parameter.type == DataSource::class.java
+    }
+
+    override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any {
+        if (parameterContext.parameter?.type == DataSource::class.java) {
+            return createNewDb(provider)
+        } else {
+            throw IllegalArgumentException("Kan ikke resolve parameter av type ${parameterContext.parameter?.type}")
+        }
     }
 }
