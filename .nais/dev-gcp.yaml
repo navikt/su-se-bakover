@@ -155,7 +155,5 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://dev-gcp.team-rocket.kodeverk-api"
-    - name: STS_URL
-      value: "http://security-token-service.default.svc.nais.local"
     - name: GANDALF_URL
       value: "https://security-token-service.nais.preprod.local"

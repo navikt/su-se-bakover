@@ -216,7 +216,6 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val stsUrl: String, // TODO: sjekk om kan fjernes
         val stsSamlUrl: String,
         val skjermingUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
@@ -232,9 +231,6 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                stsUrl = getEnvironmentVariableOrThrow(
-                    "STS_URL",
-                ),
                 stsSamlUrl = getEnvironmentVariableOrThrow(
                     "GANDALF_URL",
                 ),
@@ -252,10 +248,6 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
                 pdfgenUrl = "mocked",
-                stsUrl = getEnvironmentVariableOrDefault(
-                    "STS_URL",
-                    "mocked",
-                ),
                 stsSamlUrl = getEnvironmentVariableOrDefault(
                     "GANDALF_URL",
                     "mocked",

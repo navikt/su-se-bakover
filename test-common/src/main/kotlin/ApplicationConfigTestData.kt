@@ -69,7 +69,6 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "pdlClientId",
         ),
         pdfgenUrl = "pdfgenUrl",
-        stsUrl = "stsUrl",
         stsSamlUrl = "stsSamlUrl",
         skjermingUrl = "skjermingUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
