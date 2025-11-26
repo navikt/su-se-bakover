@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
-import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -55,9 +54,6 @@ data class ProdClientsBuilder(
             kodeverkClientId = clientsConfig.kodeverkConfig.clientId,
             azureAd = oAuth,
         )
-        val tokenOppslag = StsClient(
-            baseUrl = clientsConfig.stsUrl,
-        )
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,
             azure = oAuth,
@@ -89,7 +85,6 @@ data class ProdClientsBuilder(
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,
-            tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
                 val client = JournalførHttpClient(

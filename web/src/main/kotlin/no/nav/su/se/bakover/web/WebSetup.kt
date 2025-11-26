@@ -68,7 +68,7 @@ internal fun Application.setupKtor(
     installMetrics(suMetrics.prometheusMeterRegistry)
     naisRoutes(suMetrics.prometheusMeterRegistry)
 
-    configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
+    configureAuthentication(clients.oauth, applicationConfig)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(ContentNegotiation) {

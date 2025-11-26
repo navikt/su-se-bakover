@@ -78,6 +78,7 @@ data class ApplicationConfig(
         Prod,
     }
 
+    // TODO: se på bruken av denne
     data class FrikortConfig(
         val serviceUsername: List<String>,
         val useStubForSts: Boolean,
@@ -234,7 +235,7 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val stsUrl: String,
+        val stsUrl: String, // TODO: sjekk om kan fjernes
         val stsSamlUrl: String,
         val skjermingUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
