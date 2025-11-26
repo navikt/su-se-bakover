@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
 import beregning.domain.BeregningFactory
+import beregning.domain.BeregningForMånedRegelspesifisert
 import beregning.domain.BeregningStrategy
 import beregning.domain.Beregningsperiode
 import beregning.domain.Månedsberegning
@@ -78,6 +79,7 @@ internal class UtbetalingsstrategiNyTest {
         override fun getId(): UUID = mock()
         override fun getOpprettet(): Tidspunkt = mock()
         override fun getMånedsberegninger(): List<Månedsberegning> = emptyList()
+        override fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert> = emptyList()
         override fun getFradrag(): List<Fradrag> = emptyList()
         override fun getSumYtelse(): Int = 1000
         override fun getSumFradrag(): Double = 1000.0

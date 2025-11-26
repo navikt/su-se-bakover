@@ -21,12 +21,14 @@ enum class Regelspesifiseringer(
     ;
 
     fun benyttRegelspesifisering(
+        verdi: String,
         avhengigeRegler: List<Regelspesifisering> = emptyList(),
     ) = Regelspesifisering.Beregning(
         kode = this.kode,
         versjon = this.versjon,
         benyttetTidspunkt = Tidspunkt.now(Clock.systemUTC()),
         avhengigeRegler = avhengigeRegler,
+        verdi = verdi,
     )
 }
 
@@ -34,6 +36,7 @@ enum class RegelspesifisertGrunnlag(
     val kode: String,
     val versjon: String,
 ) {
+    GRUNNLAG_BOTILSTAND("GRUNNLAG-BOTILSTAND", "1"),
     GRUNNLAG_FRADRAG("GRUNNLAG-FRADRAG", "1"),
     GRUNNLAG_UFØRE_FAKTOR_ORDINÆR("GRUNNLAG-UFØRE-FAKTOR-ORDINÆR", "1"),
     GRUNNLAG_UFØRE_FAKTOR_HØY("GRUNNLAG-UFØRE-FAKTOR-HØY", "1"),
@@ -43,9 +46,12 @@ enum class RegelspesifisertGrunnlag(
     ;
 
     fun benyttGrunnlag(
+        verdi: String,
         kilde: String = when (this) {
+            GRUNNLAG_BOTILSTAND,
             GRUNNLAG_FRADRAG,
             -> "Saksbehandler"
+
             GRUNNLAG_UFØRE_FAKTOR_ORDINÆR,
             GRUNNLAG_UFØRE_FAKTOR_HØY,
             GRUNNLAG_GARANTPIPENSJON_ORDINÆR,
@@ -57,6 +63,7 @@ enum class RegelspesifisertGrunnlag(
         kode,
         versjon,
         Tidspunkt.now(Clock.systemUTC()),
+        verdi,
         kilde,
     )
 }
@@ -71,6 +78,7 @@ sealed class Regelspesifisering {
         val kode: String,
         val versjon: String,
         val benyttetTidspunkt: Tidspunkt,
+        val verdi: String,
         val avhengigeRegler: List<Regelspesifisering>,
     ) : Regelspesifisering()
 
@@ -78,6 +86,7 @@ sealed class Regelspesifisering {
         val kode: String,
         val versjon: String,
         val benyttetTidspunkt: Tidspunkt,
+        val verdi: String,
         val kilde: String,
     ) : Regelspesifisering()
 

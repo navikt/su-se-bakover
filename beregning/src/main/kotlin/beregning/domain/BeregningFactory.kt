@@ -32,7 +32,7 @@ class BeregningFactory(val clock: Clock) {
             måned: Måned,
             fradrag: List<Fradrag>,
             strategy: BeregningStrategy,
-        ): BeregningForMåned {
+        ): BeregningForMånedRegelspesifisert {
             return MånedsberegningFactory.ny(
                 måned = måned,
                 strategy = strategy,
@@ -50,10 +50,10 @@ class BeregningFactory(val clock: Clock) {
                 måned = måned,
                 fradrag = fradrag.utenSosialstønad(),
                 strategy = strategy,
-            ).getSumYtelse()
+            ).verdi.getSumYtelse()
         }
 
-        fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): BeregningUnderToProsent {
+        fun BeregningForMånedRegelspesifisert.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): BeregningUnderToProsent = with(verdi) {
             val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
             val toProsentAvHøyDouble = toProsentAvHøy.verdi.toDouble()
 
@@ -67,8 +67,9 @@ class BeregningFactory(val clock: Clock) {
                 BeregningUnderToProsent(
                     verdi = it,
                     benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
+                        verdi = it.toString(),
                         avhengigeRegler = listOf(
-                            getBenyttetRegler(),
+                            benyttetRegel,
                             toProsentAvHøy.benyttetRegel,
                         ),
                     ),
@@ -76,30 +77,32 @@ class BeregningFactory(val clock: Clock) {
             }
         }
 
-        fun Månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): BeregningUnderToProsent {
+        fun BeregningForMånedRegelspesifisert.beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): BeregningUnderToProsent = with(verdi) {
             val toProsentAvHøyForMåned = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
+            val verdi = getSumYtelse() > 0 && getSumYtelse() < toProsentAvHøyForMåned.verdi.toDouble()
             return BeregningUnderToProsent(
-                verdi = getSumYtelse() > 0 && getSumYtelse() < toProsentAvHøyForMåned.verdi.toDouble(),
+                verdi = verdi,
                 benyttetRegel = Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(
+                    verdi = verdi.toString(),
                     avhengigeRegler = listOf(
-                        getBenyttetRegler(),
+                        benyttetRegel,
                         toProsentAvHøyForMåned.benyttetRegel,
                     ),
                 ),
             )
         }
 
-        fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
+        fun BeregningForMånedRegelspesifisert.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.UnderMinstenivå,
-                månedsbeløp = getSumYtelse().toDouble(),
-                periode = måned,
+                månedsbeløp = verdi.getSumYtelse().toDouble(),
+                periode = verdi.måned,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
         )
 
-        fun beregn(): Map<Måned, Månedsberegning> {
+        fun beregn(): Map<Måned, BeregningForMånedRegelspesifisert> {
             val månedTilStrategi: Map<Måned, BeregningStrategy> = beregningsperioder
                 .fold<Beregningsperiode, Map<Måned, BeregningStrategy>>(emptyMap()) { acc, beregningsperiode ->
                     acc + beregningsperiode.månedsoversikt()
@@ -119,7 +122,7 @@ class BeregningFactory(val clock: Clock) {
 
                     when {
                         sosialstønadFørerTilBeløpUnderToProsentAvHøySats.verdi -> {
-                            månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+                            månedsberegning.verdi.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
                             månedsberegning
                         }
 
@@ -129,33 +132,38 @@ class BeregningFactory(val clock: Clock) {
                                 fradrag = fradrag + månedsberegning.lagFradragForBeløpUnderMinstegrense(),
                                 strategy = strategi,
                             ).let {
-                                it.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
+                                it.verdi.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
                                 it
                             }
                         }
 
-                        månedsberegning.getSumYtelse() == 0 -> {
-                            månedsberegning.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
+                        månedsberegning.verdi.getSumYtelse() == 0 -> {
+                            månedsberegning.verdi.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
                             månedsberegning
                         }
 
                         else -> {
                             månedsberegning
                         }
-                    }.copy(
-                        benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
-                            avhengigeRegler = listOf(
-                                månedsberegning.benyttetRegel,
-                                sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
-                                beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
+                    }.let { ny ->
+                        BeregningForMånedRegelspesifisert(
+                            verdi = ny.verdi,
+                            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                                verdi = ny.verdi.toString(),
+                                avhengigeRegler = listOf(
+                                    strategi.somBeregningsgrunnlag(),
+                                    månedsberegning.benyttetRegel,
+                                    sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
+                                    beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
+                                ),
                             ),
-                        ),
-                    )
+                        )
+                    }
                 }
             }
         }
 
-        val månedTilMånedsberegning: Map<Måned, Månedsberegning> = beregn()
+        val månedTilMånedsberegning: Map<Måned, BeregningForMånedRegelspesifisert> = beregn()
 
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
@@ -164,10 +172,11 @@ class BeregningFactory(val clock: Clock) {
             fradrag = fradrag,
             begrunnelse = begrunnelse,
             sumYtelse = månedTilMånedsberegning.values
-                .sumOf { it.getSumYtelse() },
+                .sumOf { it.verdi.getSumYtelse() },
             sumFradrag = månedTilMånedsberegning.values
-                .sumOf { it.getSumFradrag() },
-            månedsberegninger = månedTilMånedsberegning.values.toList().toNonEmptyList(),
+                .sumOf { it.verdi.getSumFradrag() },
+            månedsberegninger = månedTilMånedsberegning.values.toList().map { it.verdi }.toNonEmptyList(),
+            månedsberegningerMedRegelspesifsering = månedTilMånedsberegning.values.toList().toNonEmptyList(),
         )
     }
 }

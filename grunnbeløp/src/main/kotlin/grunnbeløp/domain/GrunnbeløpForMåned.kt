@@ -15,7 +15,9 @@ data class GrunnbeløpForMåned(
     val ikrafttredelse: LocalDate,
     val virkningstidspunkt: LocalDate,
     val omregningsfaktor: BigDecimal,
-    override val benyttetRegel: Regelspesifisering = RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+    override val benyttetRegel: Regelspesifisering = RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(
+        grunnbeløpPerÅr.toString(),
+    ),
 ) : RegelspesifisertBeregning {
 
     init {

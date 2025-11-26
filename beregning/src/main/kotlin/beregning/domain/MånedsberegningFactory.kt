@@ -10,8 +10,6 @@ data object MånedsberegningFactory {
     /**
      * Beregner ytelsen for en spesifiskert måned i henhold til angitt strategi.
      *
-     * Regelspesifisering: [Regelspesifiseringer.REGEL_MÅNEDSBEREGNING]
-     *
      * @param måned måned det skal beregnes for
      * @param strategy strategien som skal benyttes for beregningen
      * @param fradrag en liste med fradrag som skal trekkes fra ytelsen. Kun fradrag som er aktuelle for [måned] tas med i beregningen.
@@ -20,7 +18,7 @@ data object MånedsberegningFactory {
         måned: Måned,
         strategy: BeregningStrategy,
         fradrag: List<Fradrag>,
-    ): BeregningForMåned {
+    ): BeregningForMånedRegelspesifisert {
         val ytelseFørFradrag = strategy.beregn(måned)
         val satsbeløp: Double = ytelseFørFradrag.satsForMånedAsDouble
 
@@ -33,14 +31,18 @@ data object MånedsberegningFactory {
 
         // TODO fribeløp bergnes på nytt her, men kun for visningsformål. Bør egentlig finne fribeløp som er benyttet i faktisk beregning
         val fribeløpForEps = strategy.beregnFribeløpEPS(måned)
-        return BeregningForMåned(
+        val verdi = BeregningForMåned(
             måned = måned,
             fullSupplerendeStønadForMåned = ytelseFørFradrag,
             fradrag = beregnetFradrag.fradragForMåned.verdi,
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
+        )
+        return BeregningForMånedRegelspesifisert(
+            verdi = verdi,
             benyttetRegel = Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.benyttRegelspesifisering(
+                verdi = verdi.toString(),
                 avhengigeRegler = listOf(
                     ytelseFørFradrag.sats.benyttetRegel,
                     beregnetFradrag.benyttetRegel,

@@ -18,7 +18,11 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val begrunnelse: String?,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
+
+    // TODO bjg kan slåes sammen og løses med to getter?
     private val månedsberegninger: NonEmptyList<Månedsberegning>,
+    private val månedsberegningerMedRegelspesifsering: NonEmptyList<BeregningForMånedRegelspesifisert>,
+
 ) : Beregning {
 
     init {
@@ -38,6 +42,8 @@ data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSumFradrag(): Double = sumFradrag
 
     override fun getMånedsberegninger(): List<Månedsberegning> = månedsberegninger
+    override fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert> =
+        månedsberegningerMedRegelspesifsering
 
     override fun getFradrag(): List<Fradrag> = fradrag
 

@@ -22,6 +22,7 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
                 excludedProperties = setOf(
                     Regelspesifisering.Beregning::benyttetTidspunkt,
                     Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                    Regelspesifisering.Grunnlag::verdi,
                 )
                 FullSupplerendeStønadForMåned.Alder(
                     måned = mai(2022),
@@ -52,6 +53,7 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
                 excludedProperties = setOf(
                     Regelspesifisering.Beregning::benyttetTidspunkt,
                     Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                    Regelspesifisering.Grunnlag::verdi,
                 )
                 FullSupplerendeStønadForMåned.Alder(
                     måned = mai(2022),

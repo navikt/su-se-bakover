@@ -120,10 +120,12 @@ sealed class BeregnSats : RegelspesifisertBeregning {
                 val sats = grunnbeløp.grunnbeløpPerÅr
                     .toBigDecimal()
                     .multiply(minsteÅrligYtelseForUføretrygdede.faktorSomBigDecimal)
+                val satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128)
                 return Uføre(
                     sats = sats,
-                    satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                    satsMåned = satsMåned,
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.benyttRegelspesifisering(
+                        verdi = "sats: $sats, satsMåned: $satsMåned",
                         avhengigeRegler = listOf(
                             grunnbeløp.benyttetRegel,
                             minsteÅrligYtelseForUføretrygdede.benyttetRegel,
@@ -142,10 +144,12 @@ sealed class BeregnSats : RegelspesifisertBeregning {
         companion object {
             fun create(garantipensjonForMåned: GarantipensjonForMåned): Alder {
                 val sats = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
+                val satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128)
                 return Alder(
                     sats = sats,
-                    satsMåned = sats.divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                    satsMåned = satsMåned,
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.benyttRegelspesifisering(
+                        verdi = "sats: $sats, satsMåned: $satsMåned",
                         avhengigeRegler = listOf(
                             garantipensjonForMåned.benyttetRegel,
                         ),
@@ -166,12 +170,14 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
     ) : ToProsentAvHøyForMåned() {
         companion object {
             fun create(grunnbeløp: GrunnbeløpForMåned, faktor: MinsteÅrligYtelseForUføretrygdedeForMåned): Uføre {
+                val verdi = grunnbeløp.grunnbeløpPerÅr.toBigDecimal()
+                    .multiply(faktor.faktorSomBigDecimal)
+                    .multiply(TO_PROSENT)
+                    .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128)
                 return Uføre(
-                    verdi = grunnbeløp.grunnbeløpPerÅr.toBigDecimal()
-                        .multiply(faktor.faktorSomBigDecimal)
-                        .multiply(TO_PROSENT)
-                        .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                    verdi = verdi,
                     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(
+                        verdi = verdi.toString(),
                         listOf(
                             faktor.benyttetRegel,
                             grunnbeløp.benyttetRegel,
@@ -188,11 +194,13 @@ sealed class ToProsentAvHøyForMåned : RegelspesifisertBeregning {
     ) : ToProsentAvHøyForMåned() {
         companion object {
             fun create(garantipensjonPerÅr: GarantipensjonForMåned): Alder {
+                val verdi = garantipensjonPerÅr.garantipensjonPerÅr.toBigDecimal()
+                    .multiply(TO_PROSENT)
+                    .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128)
                 return Alder(
-                    verdi = garantipensjonPerÅr.garantipensjonPerÅr.toBigDecimal()
-                        .multiply(TO_PROSENT)
-                        .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                    verdi = verdi,
                     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(
+                        verdi = verdi.toString(),
                         listOf(
                             garantipensjonPerÅr.benyttetRegel,
                         ),

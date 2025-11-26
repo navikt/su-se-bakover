@@ -1,6 +1,8 @@
 package beregning.domain
 
 import beregning.domain.fradrag.FradragStrategy
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.SatsFactory
@@ -38,6 +40,8 @@ sealed interface BeregningStrategy {
         }
     }
 
+    fun somBeregningsgrunnlag(): Regelspesifisering.Grunnlag
+
     data class BorAlene(
         override val satsFactory: SatsFactory,
         override val sakstype: Sakstype,
@@ -56,6 +60,11 @@ sealed interface BeregningStrategy {
                 Sakstype.UFØRE -> satsFactory.høyUføre(måned)
             }
         }
+
+        override fun somBeregningsgrunnlag(): Regelspesifisering.Grunnlag =
+            RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(
+                BosituasjonType.BOR_ALENE.name,
+            )
     }
 
     data class BorMedVoksne(
@@ -76,6 +85,11 @@ sealed interface BeregningStrategy {
                 Sakstype.UFØRE -> satsFactory.ordinærUføre(måned)
             }
         }
+
+        override fun somBeregningsgrunnlag(): Regelspesifisering.Grunnlag =
+            RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(
+                BosituasjonType.BOR_MED_VOKSNE.name,
+            )
     }
 
     data class Eps67EllerEldre(
@@ -96,6 +110,11 @@ sealed interface BeregningStrategy {
                 Sakstype.UFØRE -> satsFactory.ordinærUføre(måned)
             }
         }
+
+        override fun somBeregningsgrunnlag(): Regelspesifisering.Grunnlag =
+            RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(
+                BosituasjonType.EPS_67_ELLER_ELDRE.name,
+            )
     }
 
     data class EpsUnder67ÅrOgUførFlyktning(
@@ -116,6 +135,11 @@ sealed interface BeregningStrategy {
                 Sakstype.UFØRE -> satsFactory.ordinærUføre(måned)
             }
         }
+
+        override fun somBeregningsgrunnlag(): Regelspesifisering.Grunnlag =
+            RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(
+                BosituasjonType.EPS_UNDER_67_ÅR_OG_UFØR_FLYKTNING.name,
+            )
     }
 
     data class EpsUnder67År(
@@ -136,6 +160,11 @@ sealed interface BeregningStrategy {
                 Sakstype.UFØRE -> satsFactory.høyUføre(måned)
             }
         }
+
+        override fun somBeregningsgrunnlag(): Regelspesifisering.Grunnlag =
+            RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(
+                BosituasjonType.EPS_UNDER_67_ÅR.name,
+            )
     }
 }
 
@@ -169,4 +198,12 @@ fun Bosituasjon.Fullstendig.utledBeregningsstrategi(
             sakstype = sakstype,
         )
     }
+}
+
+internal enum class BosituasjonType {
+    BOR_ALENE,
+    BOR_MED_VOKSNE,
+    EPS_67_ELLER_ELDRE,
+    EPS_UNDER_67_ÅR_OG_UFØR_FLYKTNING,
+    EPS_UNDER_67_ÅR,
 }

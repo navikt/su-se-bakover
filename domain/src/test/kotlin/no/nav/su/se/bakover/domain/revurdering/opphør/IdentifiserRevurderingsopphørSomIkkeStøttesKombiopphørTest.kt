@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import beregning.domain.BeregningForMåned
 import io.kotest.assertions.arrow.core.shouldBeRight
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.juni
@@ -56,7 +55,6 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesKombiopphørTest {
                 fullSupplerendeStønadForMåned = satsFactoryTestPåDato.høyUføre(mars(2024)),
                 sumYtelse = 18317,
                 sumFradrag = 6198.0,
-                benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
             ),
             BeregningForMåned(
                 måned = april(2024),
@@ -72,7 +70,6 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesKombiopphørTest {
                 fullSupplerendeStønadForMåned = satsFactoryTestPåDato.høyUføre(april(2024)),
                 sumYtelse = 18317,
                 sumFradrag = 6198.0,
-                benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
             ),
             BeregningForMåned(
                 måned = mai(2024),
@@ -88,7 +85,6 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesKombiopphørTest {
                 fullSupplerendeStønadForMåned = satsFactoryTestPåDato.høyUføre(mai(2024)),
                 sumYtelse = 19151,
                 sumFradrag = 6481.0,
-                benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
             ),
             BeregningForMåned(
                 måned = juni(2024),
@@ -104,7 +100,6 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesKombiopphørTest {
                 fullSupplerendeStønadForMåned = satsFactoryTestPåDato.høyUføre(juni(2024)),
                 sumYtelse = 19151,
                 sumFradrag = 6481.0,
-                benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(),
             ),
         )
         val nyeUføregrunnlag: NonEmptyList<Uføregrunnlag> = nonEmptyListOf(

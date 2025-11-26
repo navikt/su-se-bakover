@@ -45,7 +45,7 @@ internal class PersistertBeregningTest {
         )
 
         // TODO bjg midlertidig
-        val benyttetRegler = serialize(actualBeregning.getMånedsberegninger().single().getBenyttetRegler().toJson())
+        val benyttetRegler = serialize(actualBeregning.getMånedsberegningerMedRegel().single().benyttetRegel.toJson())
 
         //language=json
         val expectedJson = """

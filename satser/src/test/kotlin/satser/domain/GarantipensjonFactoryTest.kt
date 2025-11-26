@@ -85,6 +85,7 @@ internal class GarantipensjonFactoryTest {
             excludedProperties = setOf(
                 Regelspesifisering.Beregning::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
             )
             expected(mai(2020))
         }
@@ -92,6 +93,7 @@ internal class GarantipensjonFactoryTest {
             excludedProperties = setOf(
                 Regelspesifisering.Beregning::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
             )
             expected(mai(2020)).toProsentAvHøyForMåned
         }
@@ -101,6 +103,7 @@ internal class GarantipensjonFactoryTest {
             excludedProperties = setOf(
                 Regelspesifisering.Beregning::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
             )
             expected(juli(2020))
         }
@@ -108,6 +111,7 @@ internal class GarantipensjonFactoryTest {
             excludedProperties = setOf(
                 Regelspesifisering.Beregning::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
             )
             expected(juli(2020)).toProsentAvHøyForMåned
         }
@@ -154,7 +158,8 @@ fun createToProsentAvHøyForMåned(
 ) = ToProsentAvHøyForMåned.Uføre(
     verdi = verdi,
     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(
-        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag()),
+        verdi = verdi.toString(),
+        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag("")),
     ),
 )
 
@@ -163,6 +168,7 @@ fun createToProsentAvHøyForMånedAlder(
 ) = ToProsentAvHøyForMåned.Alder(
     verdi = verdi,
     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(
-        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag()),
+        verdi = verdi.toString(),
+        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag("")),
     ),
 )

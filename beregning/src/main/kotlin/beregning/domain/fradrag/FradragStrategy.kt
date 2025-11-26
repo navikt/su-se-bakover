@@ -65,6 +65,7 @@ sealed interface FradragStrategy {
                 fradrag.copy(
                     verdi = it,
                     benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET.benyttRegelspesifisering(
+                        verdi = it.toString(),
                         avhengigeRegler = listOf(fradrag.benyttetRegel),
                     ),
                 )
@@ -80,7 +81,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = it.key,
                         verdi = it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER },
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -95,7 +98,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -121,7 +126,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -147,7 +154,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }
                     .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -203,7 +212,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag.filter { it.tilhører == FradragTilhører.BRUKER },
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }
             }
@@ -217,7 +228,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }.`fjern EPS fradrag opp til garantipensjonsnivå`()
             }
@@ -241,7 +254,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }.`fjern EPS fradrag opp til satsbeløp`()
             }
@@ -265,7 +280,9 @@ sealed interface FradragStrategy {
                     BeregnetFradragForMåned(
                         måned = måned,
                         verdi = fradrag,
-                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                        benyttetRegel = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+                            fradrag.toString(),
+                        ),
                     )
                 }.`slå sammen eps sine fradrag til en og samme type`()
             }
@@ -295,6 +312,7 @@ sealed interface FradragStrategy {
                     fradragForMåned.copy(
                         verdi = it,
                         benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                            verdi = it.toString(),
                             avhengigeRegler = listOf(fradragForMåned.benyttetRegel),
                         ),
                     )
@@ -341,6 +359,7 @@ sealed interface FradragStrategy {
             fradrag.copy(
                 verdi = it,
                 benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                    verdi = it.toString(),
                     avhengigeRegler = listOf(fradrag.benyttetRegel, beløpsgrense.sats.benyttetRegel),
                 ),
             )

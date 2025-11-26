@@ -56,16 +56,16 @@ class BeregningRegelspesifiseringTest {
                     ),
                 ),
             )
-            with(result.getMånedsberegninger().single()) {
-                val faktisk = getBenyttetRegler()
+            with(result.getMånedsberegningerMedRegel().single()) {
+                val faktisk = benyttetRegel
                 val forventetSatsMinusFradrag = forventetRegel(
                     Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
                     avhengigeRegler = listOf(
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
+                                strategy.somBeregningsgrunnlag(),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -74,7 +74,7 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
                                     listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
                                     ),
                                 ),
                             ),
@@ -84,13 +84,14 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     avhengigeRegler = listOf(
+                        strategy.somBeregningsgrunnlag(),
                         forventetSatsMinusFradrag,
                         forventetRegel(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -109,13 +110,7 @@ class BeregningRegelspesifiseringTest {
                     ),
                 )
 
-                faktisk shouldBeEqualUsingFields {
-                    excludedProperties = setOf(
-                        Regelspesifisering.Beregning::benyttetTidspunkt,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                    )
-                    forventet
-                }
+                sammenlignRegel(faktisk, forventet)
             }
         }
 
@@ -161,16 +156,17 @@ class BeregningRegelspesifiseringTest {
                 ),
             )
 
-            with(result.getMånedsberegninger().single()) {
-                val faktisk = this.getBenyttetRegler()
+            with(result.getMånedsberegningerMedRegel().single()) {
+                val faktisk = benyttetRegel
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
+                        strategy.somBeregningsgrunnlag(),
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -182,13 +178,13 @@ class BeregningRegelspesifiseringTest {
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
                                             ),
                                         ),
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
                                             ),
                                         ),
                                     ),
@@ -201,8 +197,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
                                     ),
                                 ),
                             ),
@@ -213,8 +209,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
                                     ),
                                 ),
                             ),
@@ -222,13 +218,7 @@ class BeregningRegelspesifiseringTest {
                     ),
                 )
 
-                faktisk shouldBeEqualUsingFields {
-                    excludedProperties = setOf(
-                        Regelspesifisering.Beregning::benyttetTidspunkt,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                    )
-                    forventet
-                }
+                sammenlignRegel(faktisk, forventet)
             }
         }
 
@@ -274,16 +264,16 @@ class BeregningRegelspesifiseringTest {
                 ),
             )
 
-            with(result.getMånedsberegninger().single()) {
-                val faktisk = this.getBenyttetRegler()
+            with(result.getMånedsberegningerMedRegel().single()) {
+                val faktisk = benyttetRegel
                 val forventet = forventetRegel(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -295,14 +285,14 @@ class BeregningRegelspesifiseringTest {
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
                                             ),
                                         ),
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
-                                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(""),
                                             ),
                                         ),
                                     ),
@@ -315,8 +305,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
                                     ),
                                 ),
                             ),
@@ -327,8 +317,8 @@ class BeregningRegelspesifiseringTest {
                                 forventetRegel(
                                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
                                     listOf(
-                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(),
-                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
                                     ),
                                 ),
                             ),
@@ -336,13 +326,7 @@ class BeregningRegelspesifiseringTest {
                     ),
                 )
 
-                faktisk shouldBeEqualUsingFields {
-                    excludedProperties = setOf(
-                        Regelspesifisering.Beregning::benyttetTidspunkt,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                    )
-                    forventet
-                }
+                sammenlignRegel(faktisk, forventet)
             }
         }
     }
@@ -360,5 +344,18 @@ class BeregningRegelspesifiseringTest {
 
 fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesifisering>) =
     regel.benyttRegelspesifisering(
+        verdi = "",
         avhengigeRegler = avhengigeRegler,
     )
+
+internal fun sammenlignRegel(forventet: Regelspesifisering, faktisk: Regelspesifisering) {
+    faktisk shouldBeEqualUsingFields {
+        excludedProperties = setOf(
+            Regelspesifisering.Beregning::benyttetTidspunkt,
+            Regelspesifisering.Beregning::verdi,
+            Regelspesifisering.Grunnlag::benyttetTidspunkt,
+            Regelspesifisering.Grunnlag::verdi,
+        )
+        forventet
+    }
+}

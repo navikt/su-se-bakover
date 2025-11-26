@@ -15,15 +15,19 @@ data class BeregnetFradrag(
     override val benyttetRegel: Regelspesifisering,
 ) : RegelspesifisertBeregning {
     companion object {
-        fun create(fradragForMåned: BeregnetFradragForMåned, satsbeløp: Double) = BeregnetFradrag(
-            fradragForMåned = fradragForMåned,
-            sumFradrag = fradragForMåned.verdi.sum().limitedUpwardsTo(satsbeløp),
-            benyttetRegel = Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(
-                avhengigeRegler = listOf(
-                    fradragForMåned.benyttetRegel,
+        fun create(fradragForMåned: BeregnetFradragForMåned, satsbeløp: Double): BeregnetFradrag {
+            val verdi = fradragForMåned.verdi.sum().limitedUpwardsTo(satsbeløp)
+            return BeregnetFradrag(
+                fradragForMåned = fradragForMåned,
+                sumFradrag = verdi,
+                benyttetRegel = Regelspesifiseringer.REGEL_SAMLET_FRADRAG.benyttRegelspesifisering(
+                    verdi = verdi.toString(),
+                    avhengigeRegler = listOf(
+                        fradragForMåned.benyttetRegel,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 }
 

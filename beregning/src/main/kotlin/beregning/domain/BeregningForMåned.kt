@@ -21,9 +21,7 @@ data class BeregningForMåned(
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-    override val benyttetRegel: Regelspesifisering,
-) : Månedsberegning,
-    RegelspesifisertBeregning {
+) : Månedsberegning {
 
     override val periode: Måned = måned
 
@@ -61,17 +59,24 @@ data class BeregningForMåned(
         return merknader.alle()
     }
 
+    /*
     override fun getBenyttetRegler(): Regelspesifisering.Beregning {
         return when (this.benyttetRegel) {
             Regelspesifisering.BeregnetUtenSpesifisering,
             is Regelspesifisering.Grunnlag,
-            -> throw IllegalStateException("Månedsberegning må bruke Regelspesisert beregning")
+                -> throw IllegalStateException("Månedsberegning må bruke Regelspesisert beregning")
 
             is Regelspesifisering.Beregning -> this.benyttetRegel
         }
     }
+     */
 
     fun leggTilMerknad(merknad: Merknad.Beregning) {
         merknader.leggTil(merknad)
     }
 }
+
+data class BeregningForMånedRegelspesifisert(
+    val verdi: BeregningForMåned,
+    override val benyttetRegel: Regelspesifisering,
+) : RegelspesifisertBeregning

@@ -16,8 +16,13 @@ data class MinsteÅrligYtelseForUføretrygdedeForMåned(
     val virkningstidspunkt: LocalDate,
     val måned: Måned,
     override val benyttetRegel: Regelspesifisering = when (satsKategori) {
-        Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag()
-        Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag()
+        Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(
+            faktor.value.toString(),
+        )
+
+        Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(
+            faktor.value.toString(),
+        )
     },
 ) : RegelspesifisertBeregning {
     val faktorSomBigDecimal: BigDecimal = faktor.toBigDecimal()

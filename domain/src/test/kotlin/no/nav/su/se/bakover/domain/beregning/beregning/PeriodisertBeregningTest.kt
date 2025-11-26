@@ -32,7 +32,7 @@ internal class PeriodisertBeregningTest {
             måned = januar(2020),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
         månedsberegning.getSumYtelse() shouldBe 20637
         månedsberegning.getSumFradrag() shouldBe 0
     }
@@ -51,7 +51,7 @@ internal class PeriodisertBeregningTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
         månedsberegning.getSumYtelse() shouldBe 15637
         månedsberegning.getSumFradrag() shouldBe 5000
     }
@@ -71,7 +71,7 @@ internal class PeriodisertBeregningTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
         månedsberegning.getSumYtelse() shouldBe 0
     }
 
@@ -90,7 +90,7 @@ internal class PeriodisertBeregningTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
         månedsberegning.getSumYtelse() shouldBe 0
         månedsberegning.getSumFradrag() shouldBe 18973.02
     }
@@ -101,14 +101,14 @@ internal class PeriodisertBeregningTest {
             måned = januar(2020),
             strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
         m1.getBenyttetGrunnbeløp() shouldBe 99858
 
         val m2 = MånedsberegningFactory.ny(
             måned = desember(2020),
             strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
         m2.getBenyttetGrunnbeløp() shouldBe 101351
     }
 
@@ -128,7 +128,7 @@ internal class PeriodisertBeregningTest {
                 forventetInntekt,
                 f1,
             ),
-        )
+        ).verdi
         m1.getFradrag() shouldBe listOf(f1)
     }
 
@@ -148,7 +148,7 @@ internal class PeriodisertBeregningTest {
                 forventetInntekt,
                 f1,
             ),
-        )
+        ).verdi
         m1.erFradragForEpsBenyttetIBeregning() shouldBe true
 
         val f2 = FradragFactory.nyMånedsperiode(
@@ -165,7 +165,7 @@ internal class PeriodisertBeregningTest {
                 forventetInntekt,
                 f2,
             ),
-        )
+        ).verdi
 
         m2.erFradragForEpsBenyttetIBeregning() shouldBe false
     }

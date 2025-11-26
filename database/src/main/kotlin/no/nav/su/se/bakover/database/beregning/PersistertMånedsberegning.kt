@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.beregning
 
 import beregning.domain.BeregningForMåned
+import beregning.domain.BeregningForMånedRegelspesifisert
 import beregning.domain.Merknader
-import beregning.domain.Månedsberegning
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -40,7 +40,7 @@ internal data class PersistertMånedsberegning(
         sakstype: Sakstype,
         saksnummer: Saksnummer,
         erAvbrutt: Boolean?,
-    ): BeregningForMåned {
+    ): BeregningForMånedRegelspesifisert {
         val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
@@ -90,25 +90,31 @@ internal data class PersistertMånedsberegning(
             merknader = Merknader.Beregningsmerknad(merknader.mapNotNull { it.toDomain() }.toMutableList()),
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            benyttetRegel = benyttetRegel?.toDomain() ?: Regelspesifisering.BeregnetUtenSpesifisering,
-        )
+        ).let {
+            BeregningForMånedRegelspesifisert(
+                verdi = it,
+                benyttetRegel = benyttetRegel?.toDomain() ?: Regelspesifisering.BeregnetUtenSpesifisering,
+            )
+        }
     }
 }
 
 /** Database-representasjon til serialisering */
-internal fun Månedsberegning.toJson(): PersistertMånedsberegning {
-    return PersistertMånedsberegning(
-        sumYtelse = getSumYtelse(),
-        sumFradrag = getSumFradrag(),
-        benyttetGrunnbeløp = getBenyttetGrunnbeløp(),
-        sats = getSats(),
-        satsbeløp = getSatsbeløp(),
-        fradrag = getFradrag().map { it.toJson() },
-        periode = måned.toJson(),
-        fribeløpForEps = getFribeløpForEps(),
-        merknader = getMerknader().toSnapshot(),
-        benyttetRegel = getBenyttetRegler().toJson(),
-    )
+internal fun BeregningForMånedRegelspesifisert.toJson(): PersistertMånedsberegning {
+    return with(verdi) {
+        PersistertMånedsberegning(
+            sumYtelse = getSumYtelse(),
+            sumFradrag = getSumFradrag(),
+            benyttetGrunnbeløp = getBenyttetGrunnbeløp(),
+            sats = getSats(),
+            satsbeløp = getSatsbeløp(),
+            fradrag = getFradrag().map { it.toJson() },
+            periode = måned.toJson(),
+            fribeløpForEps = getFribeløpForEps(),
+            merknader = getMerknader().toSnapshot(),
+            benyttetRegel = benyttetRegel.toJson(),
+        )
+    }
 }
 
 @JsonTypeInfo(
@@ -128,12 +134,14 @@ sealed interface RegelspesifiseringJson {
         val kode: String,
         val versjon: String,
         val benyttetTidspunkt: Tidspunkt,
+        val verdi: String,
         val avhengigeRegler: List<RegelspesifiseringJson>,
     ) : RegelspesifiseringJson {
         override fun toDomain() = Regelspesifisering.Beregning(
             kode = kode,
             versjon = versjon,
             benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
             avhengigeRegler = avhengigeRegler.map {
                 it.toDomain()
             },
@@ -144,12 +152,14 @@ sealed interface RegelspesifiseringJson {
         val kode: String,
         val versjon: String,
         val benyttetTidspunkt: Tidspunkt,
+        val verdi: String,
         val kilde: String,
     ) : RegelspesifiseringJson {
         override fun toDomain() = Regelspesifisering.Grunnlag(
             kode = kode,
             versjon = versjon,
             benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
             kilde = kilde,
         )
     }
@@ -161,16 +171,20 @@ internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
             kode = kode,
             versjon = versjon,
             benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
             avhengigeRegler = avhengigeRegler.map {
                 it.toJson()
             },
         )
+
         is Regelspesifisering.Grunnlag -> RegelspesifiseringJson.Grunnlag(
             kode = kode,
             versjon = versjon,
             benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
             kilde = kilde,
         )
+
         Regelspesifisering.BeregnetUtenSpesifisering -> TODO()
     }
 }

@@ -15,6 +15,7 @@ interface Beregning : PeriodisertInformasjon {
     fun getId(): UUID
     fun getOpprettet(): Tidspunkt
     fun getMånedsberegninger(): List<Månedsberegning>
+    fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert>
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double

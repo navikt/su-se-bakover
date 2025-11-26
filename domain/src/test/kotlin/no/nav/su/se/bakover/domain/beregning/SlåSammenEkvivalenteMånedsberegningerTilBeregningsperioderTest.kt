@@ -37,13 +37,13 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             måned = januar(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -69,7 +69,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             måned = januar(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
@@ -84,7 +84,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -109,25 +109,25 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             måned = januar(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
             strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val mars = MånedsberegningFactory.ny(
             måned = mars(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val april = MånedsberegningFactory.ny(
             måned = april(2021),
             strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -159,7 +159,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
@@ -181,7 +181,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -216,7 +216,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
@@ -238,7 +238,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -286,7 +286,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
@@ -322,7 +322,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -340,25 +340,25 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             måned = januar(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val april = MånedsberegningFactory.ny(
             måned = april(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         val desember = MånedsberegningFactory.ny(
             måned = desember(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
-        )
+        ).verdi
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
             listOf(
@@ -383,7 +383,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                         måned = januar(2021),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         fradrag = listOf(forventetInntekt),
-                    ),
+                    ).verdi,
                 ),
             ).beregningsperioder.first().måned
         }
@@ -395,7 +395,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                         måned = januar(2021),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         fradrag = listOf(forventetInntekt),
-                    ),
+                    ).verdi,
                 ),
             ).beregningsperioder.first().fullSupplerendeStønadForMåned
         }
@@ -407,7 +407,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                         måned = januar(2021),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         fradrag = listOf(forventetInntekt),
-                    ),
+                    ).verdi,
                 ),
             ).beregningsperioder.first().getFradrag()
         }
@@ -422,12 +422,12 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                         måned = januar(2021),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         fradrag = listOf(forventetInntekt),
-                    ),
+                    ).verdi,
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
                         strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         fradrag = listOf(forventetInntekt),
-                    ),
+                    ).verdi,
                 ),
             )
         }
@@ -439,7 +439,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                         måned = januar(2021),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         fradrag = listOf(forventetInntekt),
-                    ),
+                    ).verdi,
                     MånedsberegningFactory.ny(
                         måned = februar(2021),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
@@ -453,7 +453,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                                 tilhører = FradragTilhører.BRUKER,
                             ),
                         ),
-                    ),
+                    ).verdi,
                 ),
             )
         }
