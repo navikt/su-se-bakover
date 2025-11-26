@@ -28,10 +28,6 @@ fun applicationConfig() = ApplicationConfig(
             drift = "testAzureGroupDrift",
         ),
     ),
-    frikort = ApplicationConfig.FrikortConfig(
-        serviceUsername = listOf("frikort"),
-        useStubForSts = true,
-    ),
     oppdrag = ApplicationConfig.OppdragConfig(
         mqQueueManager = "testMqQueueManager",
         mqPort = -22,
@@ -73,7 +69,6 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "pdlClientId",
         ),
         pdfgenUrl = "pdfgenUrl",
-        stsUrl = "stsUrl",
         stsSamlUrl = "stsSamlUrl",
         skjermingUrl = "skjermingUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(

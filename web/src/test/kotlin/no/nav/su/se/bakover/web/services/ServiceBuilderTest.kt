@@ -59,7 +59,6 @@ internal class ServiceBuilderTest {
             clients = Clients(
                 oauth = mock(),
                 personOppslag = mock(),
-                tokenOppslag = mock(),
                 pdfGenerator = mock(),
                 journalførClients = JournalførClients(
                     skattedokumentUtenforSak = mock(),

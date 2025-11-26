@@ -62,10 +62,6 @@ class ApplicationConfigTest {
                 drift = "drift",
             ),
         ),
-        frikort = ApplicationConfig.FrikortConfig(
-            serviceUsername = listOf("frikort"),
-            useStubForSts = false,
-        ),
         oppdrag = ApplicationConfig.OppdragConfig(
             mqQueueManager = "oppdragMqQueueManager",
             mqPort = 77665,
@@ -104,7 +100,6 @@ class ApplicationConfigTest {
                 clientId = "pdlClientId",
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
-            stsUrl = "stsUrl",
             stsSamlUrl = "stsSamlUrl",
             skjermingUrl = "skjermingUrl",
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
@@ -181,7 +176,6 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
-                "FRIKORT_SERVICE_USERNAME" to "frikort",
                 "MQ_QUEUE_MANAGER" to "oppdragMqQueueManager",
                 "MQ_PORT" to "77665",
                 "MQ_HOSTNAME" to "mqHostname",
@@ -200,7 +194,6 @@ class ApplicationConfigTest {
                 "DOKDIST_CLIENT_ID" to "dokDistClientId",
                 "DOKARKIV_URL" to "dokArkivUrl",
                 "DOKARKIV_CLIENT_ID" to "dokArkivClientId",
-                "STS_URL" to "stsUrl",
                 "GANDALF_URL" to "stsSamlUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
@@ -248,10 +241,6 @@ class ApplicationConfigTest {
                     username = "unused",
                     password = "unused",
                 ),
-                frikort = ApplicationConfig.FrikortConfig(
-                    serviceUsername = listOf("frikort"),
-                    useStubForSts = true,
-                ),
                 oppdrag = ApplicationConfig.OppdragConfig(
                     mqQueueManager = "unused",
                     mqPort = -1,
@@ -288,7 +277,6 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     pdfgenUrl = "mocked",
-                    stsUrl = "mocked",
                     stsSamlUrl = "mocked",
                     skjermingUrl = "mocked",
                     kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.test.application
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
-import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import org.mockito.Mockito.mock
 
 /**
@@ -12,7 +11,6 @@ import org.mockito.Mockito.mock
 fun mockedClients() = Clients(
     oauth = AzureClientStub,
     personOppslag = mock(),
-    tokenOppslag = TokenOppslagStub,
     pdfGenerator = mock(),
     journalførClients = JournalførClients(
         skattedokumentUtenforSak = mock(),

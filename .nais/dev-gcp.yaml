@@ -127,8 +127,6 @@ spec:
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
-    - name: FRIKORT_SERVICE_USERNAME
-      value: "srvfrikortborger,srvfrikorttjenester"
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL
@@ -157,7 +155,5 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://dev-gcp.team-rocket.kodeverk-api"
-    - name: STS_URL
-      value: "http://security-token-service.default.svc.nais.local"
     - name: GANDALF_URL
       value: "https://security-token-service.nais.preprod.local"
