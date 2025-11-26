@@ -25,8 +25,9 @@ class JwtStub(
         audience: String = azureConfig.clientId,
         expiresAt: Date = Date(Long.MAX_VALUE),
         issuer: String = AuthStubCommonConfig.ISSUER,
+        externalRoles: List<String>? = null,
     ): String {
-        return JWT.create()
+        val tokenBuilder = JWT.create()
             .withIssuer(issuer)
             .withAudience(audience)
             .withClaim("NAVident", navIdent)
@@ -36,8 +37,12 @@ class JwtStub(
             .withArrayClaim("groups", roller.map(::toAzureTestGroup).toTypedArray())
             .withClaim("oid", subject + "oid")
             .withExpiresAt(expiresAt)
-            .sign(Algorithm.RSA256(AuthStubCommonConfig.public, AuthStubCommonConfig.private))
-            .toString()
+
+        if (externalRoles != null) {
+            tokenBuilder.withArrayClaim("roles", externalRoles.toTypedArray())
+        }
+
+        return tokenBuilder.sign(Algorithm.RSA256(AuthStubCommonConfig.public, AuthStubCommonConfig.private))
     }
 
     private fun toAzureTestGroup(rolle: Brukerrolle) =

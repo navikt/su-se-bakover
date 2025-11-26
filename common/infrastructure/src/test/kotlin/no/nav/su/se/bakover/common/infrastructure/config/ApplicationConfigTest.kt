@@ -62,10 +62,6 @@ class ApplicationConfigTest {
                 drift = "drift",
             ),
         ),
-        frikort = ApplicationConfig.FrikortConfig(
-            serviceUsername = listOf("frikort"),
-            useStubForSts = false,
-        ),
         oppdrag = ApplicationConfig.OppdragConfig(
             mqQueueManager = "oppdragMqQueueManager",
             mqPort = 77665,
@@ -181,7 +177,6 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
-                "FRIKORT_SERVICE_USERNAME" to "frikort",
                 "MQ_QUEUE_MANAGER" to "oppdragMqQueueManager",
                 "MQ_PORT" to "77665",
                 "MQ_HOSTNAME" to "mqHostname",
@@ -247,10 +242,6 @@ class ApplicationConfigTest {
                 serviceUser = ServiceUserConfig(
                     username = "unused",
                     password = "unused",
-                ),
-                frikort = ApplicationConfig.FrikortConfig(
-                    serviceUsername = listOf("frikort"),
-                    useStubForSts = true,
                 ),
                 oppdrag = ApplicationConfig.OppdragConfig(
                     mqQueueManager = "unused",

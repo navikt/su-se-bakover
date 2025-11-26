@@ -59,7 +59,6 @@ data class ApplicationConfig(
     val pdfgenLocal: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
-    val frikort: FrikortConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
@@ -76,24 +75,6 @@ data class ApplicationConfig(
     enum class NaisCluster {
         Dev,
         Prod,
-    }
-
-    // TODO: se på bruken av denne
-    data class FrikortConfig(
-        val serviceUsername: List<String>,
-        val useStubForSts: Boolean,
-    ) {
-        companion object {
-            fun createFromEnvironmentVariables() = FrikortConfig(
-                serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME").split(","),
-                useStubForSts = false,
-            )
-
-            fun createLocalConfig() = FrikortConfig(
-                serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort").split(","),
-                useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true",
-            )
-        }
     }
 
     data class OppdragConfig(
@@ -560,7 +541,6 @@ data class ApplicationConfig(
             pdfgenLocal = false,
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
-            frikort = FrikortConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(isGcp()),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
@@ -577,7 +557,6 @@ data class ApplicationConfig(
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(::getEnvironmentVariableOrDefault),
-            frikort = FrikortConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),

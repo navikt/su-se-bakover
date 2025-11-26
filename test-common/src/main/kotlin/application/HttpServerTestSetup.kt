@@ -145,11 +145,12 @@ fun defaultRequest(
     correlationId: String = DEFAULT_CALL_ID,
     client: HttpClient,
     body: String? = null,
+    externalRoles: List<String>? = null,
     setup: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
     return runBlocking {
         client.request(uri) {
-            val bearerToken = jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken()
+            val bearerToken = jwtStub.createJwtToken(roller = roller, navIdent = navIdent, externalRoles = externalRoles).asBearerToken()
             this.method = method
             if (body != null) {
                 contentType(ContentType.Application.Json)
