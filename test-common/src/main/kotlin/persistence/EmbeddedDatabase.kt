@@ -99,6 +99,15 @@ private class CustomFlywayPreparer(
     }
 }
 
+/*
+    Rationalen bak denne er at når man kjører hundrevis av tester
+    så hjelper det veldig å gjenbruke templatecreation som tar ca 5 sekunder.
+    Typisk scenario er at man har 10 tråder som kan kjøre tester, så man vil aldri ha nok
+    tråder til å kjøre alle enkelttestene i en klassetest slik som skjer når man kjører en og en i
+    intellij feks. Så med å kun gjøre templatecreation en gang sparer man 5 sekunder per test case
+    i en testklasse gitt at vi ikke har mange nok tråder/kjerner til å betjenee alle testene.(Noe vi ikke har)
+    Gitt det så vil tråd 1 som kjører db tester i en testklasse x spare masse tid på alle scenarioene i den testklassen.
+ */
 class DbExtension : ParameterResolver {
     private val provider: PreparedDbProvider = createTemplate()
 
