@@ -92,12 +92,130 @@ class BeregningRegelspesifiseringTest {
 
         @Test
         fun `Bor med andre voksne`() {
-            // TODO
+            val strategi = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
+                val faktisk = benyttetRegel
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
+                                    listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
         fun `EPS under 67`() {
-            // TODO
+            val strategi = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.UFØRE)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
+                val faktisk = benyttetRegel
+
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
+                                    listOf(
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET,
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
@@ -266,27 +384,306 @@ class BeregningRegelspesifiseringTest {
 
         @Test
         fun `Bor alene`() {
-            // TODO
+            val strategi = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi)) {
+                val faktisk = benyttetRegel
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    avhengigeRegler = listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
         fun `Bor med andre voksne`() {
-            // TODO
+            val strategi = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
+                val faktisk = benyttetRegel
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
         fun `EPS under 67`() {
-            // TODO
+            val strategi = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
+                val faktisk = benyttetRegel
+
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
+                                    avhengigeRegler = listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
         fun `EPS over 67`() {
-            // TODO
+            val strategi = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
+                val faktisk = benyttetRegel
+
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
+                                    listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(
+                                                    "",
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
         fun `EPS uføre flyktning`() {
-            // TODO
+            val strategi = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi = strategi, eps = true)) {
+                val faktisk = benyttetRegel
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            avhengigeRegler = listOf(
+                                forventetRegel(
+                                    Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP,
+                                    avhengigeRegler = listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                                        forventetRegel(
+                                            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED,
+                                            listOf(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(""),
+                                                RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(
+                                                    "",
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test

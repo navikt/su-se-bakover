@@ -188,6 +188,10 @@ sealed interface FradragStrategy {
                 }.let {
                     fradrag.copy(
                         verdi = it,
+                        benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                            verdi = it.toString(),
+                            avhengigeRegler = listOf(fradrag.benyttetRegel),
+                        ),
                     )
                 }
             }
