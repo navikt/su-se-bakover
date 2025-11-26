@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPe
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentSisteInnvilgetSøknadsbehandlingGrunnlagFiltrerVekkSøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -94,6 +95,7 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
+import toBehandlingsstatistikkOverordnet
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import vilkår.formue.domain.FormuegrenserFactory
@@ -120,6 +122,7 @@ class SøknadsbehandlingServiceImpl(
     private val satsFactory: SatsFactory,
     private val skatteService: SkatteService,
     private val sessionFactory: SessionFactory,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -198,7 +201,10 @@ class SøknadsbehandlingServiceImpl(
         ).map { (sak, uavklartSøknadsbehandling) ->
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
-                observers.notify(StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler), tx)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler)
+
+                observers.notify(sakStatistikkEvent, tx)
+                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
             }
             Pair(sak, uavklartSøknadsbehandling)
         }
@@ -297,15 +303,23 @@ class SøknadsbehandlingServiceImpl(
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering, tx)
                 when (søknadsbehandlingTilAttestering) {
-                    is SøknadsbehandlingTilAttestering.Avslag -> observers.notify(
-                        StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering),
-                        tx,
-                    )
+                    is SøknadsbehandlingTilAttestering.Avslag -> {
+                        val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(søknadsbehandlingTilAttestering)
+                        observers.notify(
+                            sakStatistikkEvent,
+                            tx,
+                        )
+                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                    }
 
-                    is SøknadsbehandlingTilAttestering.Innvilget -> observers.notify(
-                        StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering),
-                        tx,
-                    )
+                    is SøknadsbehandlingTilAttestering.Innvilget -> {
+                        val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(søknadsbehandlingTilAttestering)
+                        observers.notify(
+                            sakStatistikkEvent,
+                            tx,
+                        )
+                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock))
+                    }
                 }
             }
             return søknadsbehandlingTilAttestering.right()
@@ -439,15 +453,23 @@ class SøknadsbehandlingServiceImpl(
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(underkjent, tx)
                 when (underkjent) {
-                    is UnderkjentSøknadsbehandling.Avslag -> observers.notify(
-                        StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent),
-                        tx,
-                    )
+                    is UnderkjentSøknadsbehandling.Avslag -> {
+                        val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent)
+                        observers.notify(
+                            sakStatistikkEvent,
+                            tx,
+                        )
+                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                    }
 
-                    is UnderkjentSøknadsbehandling.Innvilget -> observers.notify(
-                        StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent),
-                        tx,
-                    )
+                    is UnderkjentSøknadsbehandling.Innvilget -> {
+                        val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent)
+                        observers.notify(
+                            sakStatistikkEvent,
+                            tx,
+                        )
+                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                    }
                 }
             }
             underkjent
