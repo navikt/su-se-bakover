@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -53,44 +54,46 @@ class BeregningFactory(val clock: Clock) {
             ).verdi.getSumYtelse()
         }
 
-        fun BeregningForMånedRegelspesifisert.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): BeregningUnderToProsent = with(verdi) {
-            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
-            val toProsentAvHøyDouble = toProsentAvHøy.verdi.toDouble()
+        fun BeregningForMånedRegelspesifisert.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): BeregningUnderToProsent =
+            with(verdi) {
+                val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
+                val toProsentAvHøyDouble = toProsentAvHøy.verdi.toDouble()
 
-            // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
-            return if (getSumYtelse() >= toProsentAvHøyDouble) {
-                false
-            } else {
-                // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
-                sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøyDouble
-            }.let {
-                BeregningUnderToProsent(
-                    verdi = it,
-                    benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
-                        verdi = it.toString(),
+                // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
+                return if (getSumYtelse() >= toProsentAvHøyDouble) {
+                    false
+                } else {
+                    // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
+                    sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøyDouble
+                }.let {
+                    BeregningUnderToProsent(
+                        verdi = it,
+                        benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
+                            verdi = it.toString(),
+                            avhengigeRegler = listOf(
+                                benyttetRegel,
+                                toProsentAvHøy.benyttetRegel,
+                            ),
+                        ),
+                    )
+                }
+            }
+
+        fun BeregningForMånedRegelspesifisert.beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): BeregningUnderToProsent =
+            with(verdi) {
+                val toProsentAvHøyForMåned = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
+                val verdi = getSumYtelse() > 0 && getSumYtelse() < toProsentAvHøyForMåned.verdi.toDouble()
+                return BeregningUnderToProsent(
+                    verdi = verdi,
+                    benyttetRegel = Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(
+                        verdi = verdi.toString(),
                         avhengigeRegler = listOf(
                             benyttetRegel,
-                            toProsentAvHøy.benyttetRegel,
+                            toProsentAvHøyForMåned.benyttetRegel,
                         ),
                     ),
                 )
             }
-        }
-
-        fun BeregningForMånedRegelspesifisert.beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): BeregningUnderToProsent = with(verdi) {
-            val toProsentAvHøyForMåned = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
-            val verdi = getSumYtelse() > 0 && getSumYtelse() < toProsentAvHøyForMåned.verdi.toDouble()
-            return BeregningUnderToProsent(
-                verdi = verdi,
-                benyttetRegel = Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(
-                    verdi = verdi.toString(),
-                    avhengigeRegler = listOf(
-                        benyttetRegel,
-                        toProsentAvHøyForMåned.benyttetRegel,
-                    ),
-                ),
-            )
-        }
 
         fun BeregningForMånedRegelspesifisert.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
             FradragFactory.nyFradragsperiode(
@@ -151,7 +154,7 @@ class BeregningFactory(val clock: Clock) {
                             benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
                                 verdi = ny.verdi.toString(),
                                 avhengigeRegler = listOf(
-                                    strategi.somBeregningsgrunnlag(),
+                                    RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
                                     månedsberegning.benyttetRegel,
                                     sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
                                     beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
