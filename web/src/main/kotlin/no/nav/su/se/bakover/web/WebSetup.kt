@@ -20,6 +20,7 @@ import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
+import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
@@ -41,7 +42,6 @@ import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
@@ -107,7 +107,6 @@ private fun ApplicationCall.getJwtToken(): DecodedJWT? {
 
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
-        level = Level.INFO
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
@@ -193,7 +192,8 @@ private fun Application.setupKtorExceptionHandling(
             )
         }
         exception<Throwable> { call, cause ->
-            log.error("Got Throwable with message=${cause.message}", cause)
+            call.attributes.put(AttributeKey("call_exception"), cause)
+            log.error("Got Throwable with message=${cause.message} route ${call.request.path()}", cause)
             call.svar(Feilresponser.ukjentFeil)
         }
     }
