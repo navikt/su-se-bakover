@@ -99,39 +99,23 @@ private class CustomFlywayPreparer(
 }
 
 /*
-    Rationalen bak denne er at når man kjører hundrevis av tester
-    så hjelper det veldig å gjenbruke templatecreation som tar ca 5 sekunder.
-    Typisk scenario er at man har 10 tråder som kan kjøre tester, så man vil aldri ha nok
-    tråder til å kjøre alle enkelttestene i en klassetest slik som skjer når man kjører en og en i
-    intellij feks. Så med å kun gjøre templatecreation en gang sparer man 5 sekunder per test case
-    i en testklasse gitt at vi ikke har mange nok tråder/kjerner til å betjenee alle testene.(Noe vi ikke har)
-    Gitt det så vil tråd 1 som kjører db tester i en testklasse x spare masse tid på alle scenarioene i den testklassen.
-
-    Tldr; mange testklasser er bedre om man kun lager en embedded server per testklasse
-    TODO:
-    mål: Kun lage en template og kopiere denne, det kan gjøres med en ExtensionContext.Store her.
-    Men vil første teste hvor mye raskere denne løsningen er. Denne vil gi stor gevinst siden vi har 200 db tester
-    : BeforeAllCallback, ExtensionContext.Store.CloseableResource
-        override fun beforeAll(context: ExtensionContext) {
-        // Store the object in the root store to ensure it's only created once
-        val store = context.root.getStore(ExtensionContext.Namespace.GLOBAL)
-        store.getOrComputeIfAbsent("myDataSource", { this }, DataSourceExtension::class.java)
-    }
-
-    resolveParameter(...
-    val templateprovider: PreparedDbProvider = extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get("POSTGRES_TEMPLATE")
-
-
-        override fun close() {
-        // Cleanup if needed
-        if (::dataSource.isInitialized) {
-            dataSource.close()
-        }
-    }
-
+    ExtensionContext er per jvm, så når man kjører test av hele repoet fungerer det enda raskere.
+    Kjører man tester kun for ett prosjekt med flere jvms mister man denne speedupen.
+    Vi får uansett en speed up at createTemplate() kun blir kalt en gang per jvm.
+    En annen måte hadde vært å kjøre en single jvm for feks database modulen med mange tråder men ser ikke ut som den benytter
+    alle kjerner som er tilgjengelig.
+    tldr; gir speedup fordi template bare blir laget en gang per jvm i testkjøring
  */
 class DbExtension : ParameterResolver {
-    private val provider: PreparedDbProvider = createTemplate()
+    companion object {
+        private const val PROVIDER_KEY = "GLOBAL_PROVIDER"
+    }
+    private fun getProvider(context: ExtensionContext): PreparedDbProvider {
+        val rootStore = context.root.getStore(ExtensionContext.Namespace.GLOBAL)
+        return rootStore.getOrComputeIfAbsent(PROVIDER_KEY) {
+            createTemplate()
+        } as PreparedDbProvider
+    }
 
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
         return parameterContext.parameter.type == DataSource::class.java
@@ -139,7 +123,7 @@ class DbExtension : ParameterResolver {
 
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): DataSource {
         if (parameterContext.parameter?.type == DataSource::class.java) {
-            return createNewDb(provider)
+            return createNewDb(getProvider(extensionContext))
         } else {
             throw IllegalArgumentException("Kan ikke resolve parameter av type ${parameterContext.parameter?.type}")
         }
