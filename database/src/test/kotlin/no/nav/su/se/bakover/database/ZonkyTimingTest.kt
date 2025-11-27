@@ -9,7 +9,11 @@ import org.junit.jupiter.api.Test
 import javax.sql.DataSource
 import kotlin.system.measureTimeMillis
 
-class DbCloneSpeedTest {
+/*
+    Denne er disabled by default og er kun ment for å illustrere
+    hvordan embedded postgres(zonky) fungerer og hva som tar tid.
+ */
+class ZonkyTimingTest {
 
     class FlywayPreparer : DatabasePreparer {
         override fun prepare(ds: DataSource) {
