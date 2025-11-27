@@ -199,7 +199,6 @@ subprojects {
             val cpus = Runtime.getRuntime().availableProcessors()
             val forks = if(cpus > 6) 6 else cpus
             maxParallelForks = forks
-            // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
             systemProperties["junit.jupiter.execution.parallel.enabled"] = "true"
             systemProperties["junit.jupiter.execution.parallel.config.strategy"] = "fixed"
             systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = cpus.toString()
@@ -217,6 +216,7 @@ subprojects {
         }
     }
 }
+
 allprojects {
     configurations.all {
             // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720

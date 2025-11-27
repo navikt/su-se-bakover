@@ -8,21 +8,18 @@ import org.jetbrains.annotations.TestOnly
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
-import org.slf4j.LoggerFactory
 import java.sql.Connection
 import javax.sql.DataSource
-
-private val log = LoggerFactory.getLogger("EmbeddedDatabase.kt")
 
 /** Kjører kun flyway-migrering på første kallet, bruker templates for å opprette nye databaser. */
 @TestOnly
 fun withMigratedDb(
-    dbMigrationVersion: Int? = null,
     test: (dataSource: DataSource) -> Unit,
 ) {
     test(createNewDatabase())
 }
 
+// TODO: se over bruken av denne.
 @TestOnly
 fun migratedDb(): DataSource {
     return createNewDatabase()
