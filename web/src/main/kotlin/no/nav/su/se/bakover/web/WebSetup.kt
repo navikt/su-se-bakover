@@ -107,7 +107,7 @@ private fun ApplicationCall.getJwtToken(): DecodedJWT? {
     return runCatching { JWT.decode(raw) }.getOrNull()
 }
 
-const val EXCEPTIONATTRIBUTE_KEY = "exception_key"
+val EXCEPTIONATTRIBUTE_KEY = AttributeKey<Throwable>("exception_key")
 
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
@@ -116,7 +116,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
 
-            call.attributes.getOrNull(AttributeKey<Throwable>(EXCEPTIONATTRIBUTE_KEY))?.let { ex ->
+            call.attributes.getOrNull(AttributeKey<Throwable>(EXCEPTIONATTRIBUTE_KEY.name))?.let { ex ->
                 call.application.log.error(
                     "Request ${call.request.httpMethod} ${call.request.path()} failed with exception",
                     ex,
@@ -203,7 +203,7 @@ private fun Application.setupKtorExceptionHandling(
             )
         }
         exception<Throwable> { call, cause ->
-            call.attributes.put(AttributeKey(EXCEPTIONATTRIBUTE_KEY), cause)
+            call.attributes.put(AttributeKey(EXCEPTIONATTRIBUTE_KEY.name), cause)
             log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             call.svar(Feilresponser.ukjentFeil)
         }
