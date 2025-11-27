@@ -46,12 +46,12 @@ class BeregningFactory(val clock: Clock) {
          * filtrert vekk eventuell sosialstønad for EPS. Etter at fradragene har vært gjennom [FradragStrategy.beregnFradrag]
          * vil alle EPS sine fradrag være bakt sammen til et element av typen [Fradragstype.BeregnetFradragEPS]
          */
-        fun sumYtelseUtenSosialstønad(måned: Måned, strategy: BeregningStrategy): Int {
+        fun ytelseUtenSosialstønad(måned: Måned, strategy: BeregningStrategy): BeregningForMånedRegelspesifisert {
             return beregnMåned(
                 måned = måned,
                 fradrag = fradrag.utenSosialstønad(),
                 strategy = strategy,
-            ).verdi.getSumYtelse()
+            )
         }
 
         fun BeregningForMånedRegelspesifisert.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): BeregningUnderToProsent =
@@ -61,17 +61,28 @@ class BeregningFactory(val clock: Clock) {
 
                 // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
                 return if (getSumYtelse() >= toProsentAvHøyDouble) {
-                    false
-                } else {
-                    // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
-                    sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøyDouble
-                }.let {
+                    val verdi = false
                     BeregningUnderToProsent(
-                        verdi = it,
+                        verdi = verdi,
                         benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
-                            verdi = it.toString(),
+                            verdi = verdi.toString(),
                             avhengigeRegler = listOf(
                                 benyttetRegel,
+                                toProsentAvHøy.benyttetRegel,
+                            ),
+                        ),
+                    )
+                } else {
+                    // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
+                    val ytelseUten = ytelseUtenSosialstønad(måned = måned, strategy = strategy)
+                    val verdi = ytelseUten.verdi.getSumYtelse() >= toProsentAvHøyDouble
+                    BeregningUnderToProsent(
+                        verdi = verdi,
+                        benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
+                            verdi = verdi.toString(),
+                            avhengigeRegler = listOf(
+                                benyttetRegel,
+                                ytelseUten.benyttetRegel,
                                 toProsentAvHøy.benyttetRegel,
                             ),
                         ),
