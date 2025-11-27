@@ -21,10 +21,11 @@ sealed interface BeregningStrategy {
 
     fun beregnFradrag(måned: Måned, fradrag: List<Fradrag>, satsbeløp: Double): BeregnetFradrag {
         return when (sakstype) {
-            Sakstype.ALDER -> fradragStrategy().beregn(fradrag, måned)[måned]
-            Sakstype.UFØRE -> fradragStrategy().beregn(fradrag, måned)[måned]
+            Sakstype.ALDER -> fradragStrategy().beregn(fradrag, måned)
+            Sakstype.UFØRE -> fradragStrategy().beregn(fradrag, måned)
         }.let {
-            BeregnetFradrag.create(it!!, satsbeløp) // TODO bjg nullhåndtering...
+            val beregnetFradragForMåned = it[måned] ?: throw IllegalStateException("Beregning av fradrag returnerer ikke angitt måned")
+            BeregnetFradrag.create(beregnetFradragForMåned, satsbeløp)
         }
     }
 
