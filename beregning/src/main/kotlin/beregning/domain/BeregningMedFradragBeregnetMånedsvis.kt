@@ -18,16 +18,12 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val begrunnelse: String?,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-
-    // TODO bjg kan slåes sammen og løses med to getter?
-    private val månedsberegninger: NonEmptyList<Månedsberegning>,
-    private val månedsberegningerMedRegelspesifsering: NonEmptyList<BeregningForMånedRegelspesifisert>,
-
+    private val månedsberegninger: NonEmptyList<BeregningForMånedRegelspesifisert>,
 ) : Beregning {
 
     init {
         require(fradrag.all { periode inneholder it.periode })
-        månedsberegninger.map { it.måned }.let {
+        månedsberegninger.map { it.verdi.måned }.let {
             require(periode.måneder().containsAll(it))
             require(it.sorted() == it)
         }
@@ -41,9 +37,8 @@ data class BeregningMedFradragBeregnetMånedsvis(
 
     override fun getSumFradrag(): Double = sumFradrag
 
-    override fun getMånedsberegninger(): List<Månedsberegning> = månedsberegninger
-    override fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert> =
-        månedsberegningerMedRegelspesifsering
+    override fun getMånedsberegninger(): List<Månedsberegning> = månedsberegninger.map { it.verdi }
+    override fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert> = månedsberegninger
 
     override fun getFradrag(): List<Fradrag> = fradrag
 

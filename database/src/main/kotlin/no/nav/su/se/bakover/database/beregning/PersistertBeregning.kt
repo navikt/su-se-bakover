@@ -49,8 +49,7 @@ private data class PersistertBeregning(
             begrunnelse = begrunnelse,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            månedsberegninger = månedsberegninger.map { it.verdi },
-            månedsberegningerMedRegelspesifsering = månedsberegninger,
+            månedsberegninger = månedsberegninger,
         )
     }
 }

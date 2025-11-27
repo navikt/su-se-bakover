@@ -189,8 +189,7 @@ class BeregningFactory(val clock: Clock) {
                 .sumOf { it.verdi.getSumYtelse() },
             sumFradrag = månedTilMånedsberegning.values
                 .sumOf { it.verdi.getSumFradrag() },
-            månedsberegninger = månedTilMånedsberegning.values.toList().map { it.verdi }.toNonEmptyList(),
-            månedsberegningerMedRegelspesifsering = månedTilMånedsberegning.values.toList().toNonEmptyList(),
+            månedsberegninger = månedTilMånedsberegning.values.toList().toNonEmptyList(),
         )
     }
 }
