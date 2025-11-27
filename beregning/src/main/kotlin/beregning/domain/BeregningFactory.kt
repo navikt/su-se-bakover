@@ -166,7 +166,7 @@ class BeregningFactory(val clock: Clock) {
                                 verdi = ny.verdi.toString(),
                                 avhengigeRegler = listOf(
                                     RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
-                                    månedsberegning.benyttetRegel,
+                                    ny.benyttetRegel,
                                     sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
                                     beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
                                 ),

@@ -2,6 +2,8 @@ package beregning.domain
 
 import beregning.domain.BeregningRegelspesifiseringTest.Companion.periode
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -367,16 +370,6 @@ class BeregningRegelspesifiseringTest {
                 sammenlignRegel(faktisk, forventet)
             }
         }
-
-        @Test
-        fun `beregning blir to prosent under høy sats`() {
-            // TODO
-        }
-
-        @Test
-        fun `beregning blir to prosent under høy sats på grunn av sosialstønad`() {
-            // TODO
-        }
     }
 
     @Nested
@@ -685,19 +678,133 @@ class BeregningRegelspesifiseringTest {
                 sammenlignRegel(faktisk, forventet)
             }
         }
+    }
+
+    @Nested
+    inner class UnderToProsent {
 
         @Test
         fun `beregning blir to prosent under høy sats`() {
-            // TODO
+            val strategi = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi, underToProsent = true)) {
+                val faktisk = benyttetRegel
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    avhengigeRegler = listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                // Dette vil være to ulike beregninger men, vi verifiserer ikke resultat til beregninger, kun anvendte regler.
+                                forventetSatsMinusFradrag,
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                val gjeldendeMånedsberegning = (faktisk as Regelspesifisering.Beregning).avhengigeRegler[1]
+                val månedsberegningFørUnder2ProsentRegel =
+                    (faktisk.avhengigeRegler[3] as Regelspesifisering.Beregning).avhengigeRegler[0]
+                gjeldendeMånedsberegning shouldNotBe månedsberegningFørUnder2ProsentRegel
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
 
         @Test
         fun `beregning blir to prosent under høy sats på grunn av sosialstønad`() {
-            // TODO
+            val strategi = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.ALDER)
+            with(månedsBeregning(strategi, underToProsentSosialstønad = true)) {
+                val faktisk = benyttetRegel
+                val forventetSatsMinusFradrag = forventetRegel(
+                    Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET,
+                    avhengigeRegler = listOf(
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SAMLET_FRADRAG,
+                            listOf(
+                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(""),
+                            ),
+                        ),
+                    ),
+                )
+                val forventetToProsentAvHøySatsUføre = forventetRegel(
+                    Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
+                    listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                    ),
+                )
+                val forventet = forventetRegel(
+                    Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
+                    avhengigeRegler = listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        forventetSatsMinusFradrag,
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
+                            listOf(
+                                // Dette vil være to ulike beregninger men, vi verifiserer ikke resultat til beregninger, kun anvendte regler.
+                                forventetSatsMinusFradrag,
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                        forventetRegel(
+                            Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT,
+                            listOf(
+                                forventetSatsMinusFradrag,
+                                forventetToProsentAvHøySatsUføre,
+                            ),
+                        ),
+                    ),
+                )
+
+                val gjeldendeMånedsberegning = (faktisk as Regelspesifisering.Beregning).avhengigeRegler[1]
+                val månedsberegningFørUnder2ProsentRegel =
+                    (faktisk.avhengigeRegler[3] as Regelspesifisering.Beregning).avhengigeRegler[0]
+                gjeldendeMånedsberegning shouldBe månedsberegningFørUnder2ProsentRegel
+
+                sammenlignRegel(faktisk, forventet)
+            }
         }
     }
-
-    // TODO egen for sats endringsknekkpunkt? må skille på grunnlag ??
 }
 
 fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesifisering>) =
@@ -709,45 +816,89 @@ fun forventetRegel(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesi
 internal fun månedsBeregning(
     strategi: BeregningStrategy,
     eps: Boolean = false,
+    underToProsent: Boolean = false,
+    underToProsentSosialstønad: Boolean = false,
+): BeregningForMånedRegelspesifisert = månedsBeregning(
+    strategi,
+    when {
+        eps -> listOf(
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
+                månedsbeløp = 1000.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
+                månedsbeløp = 1000.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.EPS,
+            ),
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Alderspensjon,
+                månedsbeløp = 1000.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.EPS,
+            ),
+        )
+
+        underToProsent -> listOf(
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
+                månedsbeløp = 1000.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Annet("Noe for å få ytelse til å bli under 2%"),
+                månedsbeløp = 14800.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+
+        underToProsentSosialstønad -> listOf(
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
+                månedsbeløp = 1000.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Sosialstønad,
+                månedsbeløp = 14800.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+
+        else -> listOf(
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
+                månedsbeløp = 1000.0,
+                utenlandskInntekt = null,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+    },
+)
+
+internal fun månedsBeregning(
+    strategi: BeregningStrategy,
+    fradrag: List<Fradrag>,
 ): BeregningForMånedRegelspesifisert {
     val result = BeregningFactory(clock = fixedClock).ny(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
-        fradrag = if (eps) {
-            listOf(
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 1000.0,
-                    utenlandskInntekt = null,
-                    periode = periode,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 1000.0,
-                    utenlandskInntekt = null,
-                    periode = periode,
-                    tilhører = FradragTilhører.EPS,
-                ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.Alderspensjon,
-                    månedsbeløp = 1000.0,
-                    utenlandskInntekt = null,
-                    periode = periode,
-                    tilhører = FradragTilhører.EPS,
-                ),
-            )
-        } else {
-            listOf(
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 1000.0,
-                    utenlandskInntekt = null,
-                    periode = periode,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            )
-        },
+        fradrag = fradrag,
         begrunnelse = "begrunnelse",
         beregningsperioder = listOf(
             Beregningsperiode(
