@@ -9,13 +9,11 @@ import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
 import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(DbExtension::class)
 internal class OpplysningspliktVilkårsvurderingPostgresRepoTest(private val dataSource: DataSource) {
 

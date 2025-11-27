@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Vurdering
 import vilkår.uføre.domain.UføreVilkår
@@ -21,7 +20,6 @@ import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.util.UUID
 import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(DbExtension::class)
 internal class UføreVilkårsvurderingPostgresRepoTest(private val dataSource: DataSource) {
 

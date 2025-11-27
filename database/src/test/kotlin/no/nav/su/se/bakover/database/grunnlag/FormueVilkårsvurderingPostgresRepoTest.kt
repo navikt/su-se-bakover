@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Vurdering
 import vilkår.formue.domain.FormueVilkår
@@ -27,7 +26,6 @@ import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(DbExtension::class)
 internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: DataSource) {
 

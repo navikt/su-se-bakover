@@ -23,12 +23,10 @@ import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
 import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(DbExtension::class)
 internal class GjenopptakAvYtelsePostgresRepoTest(private val dataSource: DataSource) {
     @Test

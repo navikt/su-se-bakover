@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.serialize
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
-internal class PersistertMerknadTest {
+internal class MerknadSerialiseringTest {
     @Test
     fun `serialisering og av merknad for beløp lik null`() {
         //language=json

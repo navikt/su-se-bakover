@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Vurdering
 import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
@@ -24,7 +23,6 @@ import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.util.UUID
 import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(DbExtension::class)
 internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest(private val dataSource: DataSource) {
 

@@ -73,7 +73,6 @@ private class CustomFlywayPreparer(
     val role: String = "postgres",
 ) : DatabasePreparer {
     override fun prepare(ds: DataSource) {
-        log.info("Preparing and migrating database for tests ...")
         ds.connection.use { connection ->
             ensureRoleExists(connection, role)
             ensureExtensions(connection)
