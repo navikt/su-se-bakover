@@ -184,9 +184,12 @@ subprojects {
 subprojects {
     tasks.test.configure {
         sharedTestSetup()
-        maxParallelForks = 1
+        val cpus = Runtime.getRuntime().availableProcessors()
+        maxParallelForks = cpus
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+        systemProperties["junit.jupiter.execution.parallel.config.strategy"] = "fixed"
+        systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = cpus
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
         systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
