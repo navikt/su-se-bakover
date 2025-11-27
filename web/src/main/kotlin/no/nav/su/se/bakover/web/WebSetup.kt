@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
@@ -105,12 +107,21 @@ private fun ApplicationCall.getJwtToken(): DecodedJWT? {
     return runCatching { JWT.decode(raw) }.getOrNull()
 }
 
+const val EXCEPTIONATTRIBUTE_KEY = "exception_key"
+
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
+        level = Level.INFO
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
 
+            call.attributes.getOrNull(AttributeKey<Throwable>(EXCEPTIONATTRIBUTE_KEY))?.let { ex ->
+                call.application.log.error(
+                    "Request ${call.request.httpMethod} ${call.request.path()} failed with exception",
+                    ex,
+                )
+            }
             return@filter true
         }
 
@@ -151,7 +162,7 @@ private fun Application.setupKtorCallId() {
 }
 
 private fun Application.setupKtorExceptionHandling(
-    log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.setupKtorExceptionHandling"),
+    log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.StatusPages"),
 ) {
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
@@ -192,8 +203,8 @@ private fun Application.setupKtorExceptionHandling(
             )
         }
         exception<Throwable> { call, cause ->
-            call.attributes.put(AttributeKey("call_exception"), cause)
-            log.error("Got Throwable with message=${cause.message} route ${call.request.path()}", cause)
+            call.attributes.put(AttributeKey(EXCEPTIONATTRIBUTE_KEY), cause)
+            log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             call.svar(Feilresponser.ukjentFeil)
         }
     }
