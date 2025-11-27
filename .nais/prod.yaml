@@ -17,6 +17,7 @@ spec:
       claims:
         extra:
           - "NAVident"
+          - "azp_name"
         groups:
           - id: "b64af061-f7c4-4d05-907f-b457e23da339" # 0000-GA-SU-UFOR-ATTESTANT
           - id: "654d28c0-b02b-4c50-86a0-896cf64e79f0" # 0000-GA-SU-UFOR-SAKSBEHANDLER
