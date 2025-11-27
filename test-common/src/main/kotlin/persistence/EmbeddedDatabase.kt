@@ -62,7 +62,6 @@ private fun createNewDb(provider: PreparedDbProvider): DataSource {
     return provider.createDataSourceFromConnectionInfo(info)
 }
 
-// TODO: rm
 private fun createNewDatabase(): DataSource {
     val provider = PreparedDbProvider.forPreparer(CustomFlywayPreparer())
     val info = provider.createNewDatabase()
