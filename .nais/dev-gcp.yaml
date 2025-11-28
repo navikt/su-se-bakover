@@ -57,7 +57,15 @@ spec:
       rules:
         - application: kodeverk-dev
           namespace: team-rocket
+          cluster: dev-gcp
+        - application: kodeverk-api
+          namespace: team-rocket
+          cluster: dev-gcp
       external:
+        - host: saf-q2.dev-fss-pub.nais.io
+        - host: dokdistfordeling.dev-fss-pub.nais.io
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: oppgave.dev-fss-pub.nais.io
         - host: b27apvl220.preprod.local
           ports:
             - port: 1413
@@ -104,15 +112,15 @@ spec:
     - name: DATABASE_NAME
       value: "supstonad-db-15-dev"
     - name: DOKARKIV_URL
-      value: "http://dokarkiv.teamdokumenthandtering.svc.nais.local"
+      value: "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1"
     - name: DOKARKIV_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
     - name: OPPGAVE_URL
-      value: "http://oppgave.oppgavehandtering.svc.nais.local"
+      value: "https://oppgave.dev-fss-pub.nais.io"
     - name: OPPGAVE_CLIENT_ID
-      value: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
+      value: "dev-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
-      value: "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local"
+      value: "https://dokdistfordeling.dev-fss-pub.nais.io/rest/v1"
     - name: DOKDIST_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
@@ -142,7 +150,7 @@ spec:
     - name: KABAL_CLIENT_ID
       value: "api://dev-gcp.klage.kabal-api"
     - name: SAF_URL
-      value: "https://saf.dev.intern.nav.no"
+      value: "https://saf-q2.dev-fss-pub.nais.io"
     - name: SAF_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
@@ -154,7 +162,7 @@ spec:
     - name: SKATT_CLIENT_ID
       value: "api://dev-fss.team-inntekt.sigrun-q4"
     - name: KRR_URL
-      value: "https://digdir-krr-proxy.intern.dev.nav.no"
+      value: "http://digdir-krr-proxy.team-rocket"
     - name: KRR_APP_ID
       value: "api://dev-gcp.team-rocket.digdir-krr-proxy"
     - name: INSTITUSJONSOPPHOLD_TOPIC
