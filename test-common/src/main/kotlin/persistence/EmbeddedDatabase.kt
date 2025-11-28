@@ -100,7 +100,7 @@ private class CustomFlywayPreparer(
     Vi får uansett en speed up at createTemplate() kun blir kalt en gang per jvm.
     En annen måte hadde vært å kjøre en single jvm for feks database modulen med mange tråder men ser ikke ut som den benytter
     alle kjerner som er tilgjengelig.
-    tldr; gir speedup fordi template bare blir laget en gang per jvm i testkjøring
+    tldr; gir speedup fordi template bare blir laget en gang per jvm i testkjøring gitt ExtensionContext.Namespace.GLOBAL
  */
 class DbExtension : ParameterResolver {
     companion object {
