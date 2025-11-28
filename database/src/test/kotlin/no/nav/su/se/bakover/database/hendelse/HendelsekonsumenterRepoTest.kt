@@ -7,42 +7,39 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
+import javax.sql.DataSource
 
-class HendelsekonsumenterRepoTest {
+@ExtendWith(DbExtension::class)
+class HendelsekonsumenterRepoTest(private val dataSource: DataSource) {
 
     @Test
     fun `lagrer en hendelse`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.persisterInstJobbHendelse()
-            hentAlle(testDataHelper.sessionFactory.newSessionContext()).size shouldBe 1
-        }
+        val testDataHelper = TestDataHelper(dataSource)
+        testDataHelper.persisterInstJobbHendelse()
+        hentAlle(testDataHelper.sessionFactory.newSessionContext()).size shouldBe 1
     }
 
     @Test
     fun `lagrer flere hendelser`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.persisterFlereInstJobbHendelser()
-            hentAlle(testDataHelper.sessionFactory.newSessionContext()).size shouldBe 2
-        }
+        val testDataHelper = TestDataHelper(dataSource)
+        testDataHelper.persisterFlereInstJobbHendelser()
+        hentAlle(testDataHelper.sessionFactory.newSessionContext()).size shouldBe 2
     }
 
     @Test
     fun `henter sakId og hendelse ider for hendelser som ikke har kjørt en action`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val lagret = testDataHelper.persisterInstitusjonsoppholdHendelse()
-            val hentet = testDataHelper.hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
-                HendelseskonsumentId("INSTITUSJON"),
-                Hendelsestype("INSTITUSJONSOPPHOLD"),
-            )
-            hentet shouldBe mapOf(lagret.sakId to listOf(lagret.hendelseId))
-        }
+        val testDataHelper = TestDataHelper(dataSource)
+        val lagret = testDataHelper.persisterInstitusjonsoppholdHendelse()
+        val hentet = testDataHelper.hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+            HendelseskonsumentId("INSTITUSJON"),
+            Hendelsestype("INSTITUSJONSOPPHOLD"),
+        )
+        hentet shouldBe mapOf(lagret.sakId to listOf(lagret.hendelseId))
     }
 
     private fun hentAlle(tx: SessionContext): List<Triple<UUID, HendelseId, String>> {

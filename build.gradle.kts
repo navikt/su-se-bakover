@@ -184,14 +184,19 @@ subprojects {
 subprojects {
     tasks.test.configure {
         sharedTestSetup()
+        val cpus = Runtime.getRuntime().availableProcessors()
+        // denne gir en jvm per modul ikke for hele prosjektet!
         maxParallelForks = 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
-        systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+        systemProperties["junit.jupiter.execution.parallel.enabled"] = "true"
+        systemProperties["junit.jupiter.execution.parallel.config.strategy"] = "fixed"
+        systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = (cpus - 1).toString()
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
         systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
     if (project.name == "web-regresjonstest") {
         tasks.test.configure {
+            sharedTestSetup()
             // jah: Fikk problemer med at reg-testene fikk timeout etter opgpradering til ktor 3
             maxParallelForks = 1
             systemProperties["junit.jupiter.execution.parallel.enabled"] = false
@@ -200,6 +205,7 @@ subprojects {
         }
     }
 }
+
 allprojects {
     configurations.all {
             // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720

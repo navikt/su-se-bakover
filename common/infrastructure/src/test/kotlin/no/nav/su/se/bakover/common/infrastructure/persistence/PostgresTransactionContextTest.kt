@@ -5,45 +5,44 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.persistence.withTestContext
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class PostgresTransactionContextTest {
+@ExtendWith(DbExtension::class)
+internal class PostgresTransactionContextTest(private val dataSource: DataSource) {
 
     @Test
     fun `commits transaction and Starts and closes only one connection`() {
-        withMigratedDb { dataSource ->
-            withTestContext(dataSource, 1) { spiedDataSource ->
-                spiedDataSource.withTransaction { tx ->
-                    insertSak(tx)
-                    insertSak(tx)
-                    "select count(1) from sak".antall(session = tx) shouldBe 2
-                }
+        withTestContext(dataSource, 1) { spiedDataSource ->
+            spiedDataSource.withTransaction { tx ->
+                insertSak(tx)
+                insertSak(tx)
+                "select count(1) from sak".antall(session = tx) shouldBe 2
             }
         }
     }
 
     @Test
     fun `throw should rollback`() {
-        withMigratedDb { dataSource ->
-            withTestContext(dataSource, 3) { spiedDataSource ->
-                spiedDataSource.withSession { session ->
-                    "select count(1) from sak".antall(session = session) shouldBe 0
+        withTestContext(dataSource, 3) { spiedDataSource ->
+            spiedDataSource.withSession { session ->
+                "select count(1) from sak".antall(session = session) shouldBe 0
+            }
+            Either.catch {
+                spiedDataSource.withTransaction { session ->
+                    insertSak(session)
+                    "select count(1) from sak".antall(session = session) shouldBe 1
+                    throw IllegalStateException("Throwing before transaction completes")
                 }
-                Either.catch {
-                    spiedDataSource.withTransaction { session ->
-                        insertSak(session)
-                        "select count(1) from sak".antall(session = session) shouldBe 1
-                        throw IllegalStateException("Throwing before transaction completes")
-                    }
-                }
-                spiedDataSource.withSession { session ->
-                    "select count(1) from sak".antall(session = session) shouldBe 0
-                }
+            }
+            spiedDataSource.withSession { session ->
+                "select count(1) from sak".antall(session = session) shouldBe 0
             }
         }
     }

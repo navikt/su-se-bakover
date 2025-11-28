@@ -33,7 +33,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-internal class PersistertBeregningTest {
+internal class BeregningSerialisertTest {
 
     @Test
     fun `serialiserer og derserialiserer beregning`() {
