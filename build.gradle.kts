@@ -193,19 +193,6 @@ subprojects {
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
         systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
-    if(project.name == "database") {
-        tasks.test.configure {
-            sharedTestSetup()
-            val cpus = Runtime.getRuntime().availableProcessors()
-            val forks = if(cpus > 6) 6 else cpus
-            maxParallelForks = forks
-            systemProperties["junit.jupiter.execution.parallel.enabled"] = "true"
-            systemProperties["junit.jupiter.execution.parallel.config.strategy"] = "fixed"
-            systemProperties["junit.jupiter.execution.parallel.config.fixed.parallelism"] = cpus.toString()
-            systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
-            systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
-        }
-    }
     if (project.name == "web-regresjonstest") {
         tasks.test.configure {
             sharedTestSetup()
