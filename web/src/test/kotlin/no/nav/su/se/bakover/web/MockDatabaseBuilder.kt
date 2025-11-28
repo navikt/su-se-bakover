@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -51,6 +52,7 @@ data object MockDatabaseBuilder {
         oppgaveHendelseRepo: OppgaveHendelseRepo = mock(),
         hendelsekonsumenterRepo: HendelsekonsumenterRepo = mock(),
         dokumentHendelseRepo: DokumentHendelseRepo = mock(),
+        sakStatistikkRepo: SakStatistikkRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -77,7 +79,7 @@ data object MockDatabaseBuilder {
             hendelsekonsumenterRepo = hendelsekonsumenterRepo,
             dokumentHendelseRepo = dokumentHendelseRepo,
             stønadStatistikkRepo = mock(),
-            sakStatistikkRepo = mock(),
+            sakStatistikkRepo = sakStatistikkRepo,
             fritekstRepo = mock(),
         )
     }

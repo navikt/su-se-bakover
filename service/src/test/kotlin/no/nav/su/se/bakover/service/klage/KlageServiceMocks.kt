@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
@@ -31,6 +32,9 @@ internal data class KlageServiceMocks(
     val observer: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} },
     val dokumentHendelseRepo: DokumentHendelseRepo = defaultMock(),
     val clock: Clock = fixedClock,
+    val sakStatistikkRepo: SakStatistikkRepo = mock {
+        on { lagreSakStatistikk(any(), any()) }.then {}
+    },
 ) {
     val service = KlageServiceImpl(
         sakService = sakServiceMock,
@@ -43,6 +47,7 @@ internal data class KlageServiceMocks(
         queryJournalpostClient = queryJournalpostClient,
         dokumentHendelseRepo = dokumentHendelseRepo,
         clock = clock,
+        sakStatistikkRepo = sakStatistikkRepo,
     ).apply {
         addObserver(observer)
     }

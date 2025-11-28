@@ -318,7 +318,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock))
+                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
                     }
                 }
             }

@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
@@ -167,6 +168,7 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
+    sakStatistikkRepo: SakStatistikkRepo,
 ): Pair<Sak, IverksattRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,

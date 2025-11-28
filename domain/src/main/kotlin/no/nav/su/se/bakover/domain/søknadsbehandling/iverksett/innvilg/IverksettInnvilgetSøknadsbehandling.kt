@@ -111,6 +111,8 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
             StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak),
         ),
         utbetaling = simulertUtbetaling,
+        clock = clock,
+
     ).right()
 }
 

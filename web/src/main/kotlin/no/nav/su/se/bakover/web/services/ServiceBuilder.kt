@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.sak.SakFactory
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
@@ -51,6 +52,7 @@ data object ServiceBuilder {
         formuegrenserFactory: FormuegrenserFactory,
         applicationConfig: ApplicationConfig,
         dbMetrics: DbMetrics,
+        sakStatistikkRepo: SakStatistikkRepo,
     ): Services {
         val personService = PersonServiceImpl(
             personOppslag = clients.personOppslag,
@@ -103,6 +105,7 @@ data object ServiceBuilder {
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -141,6 +144,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             sessionFactory = databaseRepos.sessionFactory,
             skatteService = skatteServiceImpl,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -153,6 +157,7 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -171,6 +176,7 @@ data object ServiceBuilder {
             sakService = sakService,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply { addObserver(statistikkEventObserver) }
 
         val kontrollsamtaleSetup = KontrollsamtaleSetup.create(
@@ -204,6 +210,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
             klageRepo = databaseRepos.klageRepo,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
@@ -213,6 +220,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sakService = sakService,
             sessionFactory = databaseRepos.sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply { addObserver(statistikkEventObserver) }
 
         val reguleringService = ReguleringServiceImpl(
@@ -238,6 +246,7 @@ data object ServiceBuilder {
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply { addObserver(statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
@@ -258,6 +267,7 @@ data object ServiceBuilder {
             brevService = brevService,
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -280,6 +290,7 @@ data object ServiceBuilder {
                 søknadsbehandlingService = søknadsbehandlingService,
                 sakService = sakService,
                 sessionFactory = databaseRepos.sessionFactory,
+                sakStatistikkRepo = sakStatistikkRepo,
             ).apply {
                 addObserver(statistikkEventObserver)
             },

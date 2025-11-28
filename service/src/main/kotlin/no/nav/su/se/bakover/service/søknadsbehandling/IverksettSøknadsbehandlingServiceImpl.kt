@@ -5,6 +5,7 @@ import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -34,6 +35,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val brevService: BrevService,
     private val skattDokumentService: SkattDokumentService,
     private val satsFactory: SatsFactory,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -71,6 +73,9 @@ class IverksettSøknadsbehandlingServiceImpl(
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
+            lagreSakstatistikk = { statistikk, tx ->
+                sakStatistikkRepo.lagreSakStatistikk(statistikk, tx)
+            },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
     }
 }

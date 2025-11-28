@@ -55,6 +55,7 @@ internal fun Application.testSusebakoverWithMockedDb(
             formuegrenserFactory = formuegrenserFactory,
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,
+            sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
         )
     },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(

@@ -114,6 +114,7 @@ fun Application.susebakover(
             formuegrenserFactory = formuegrenserFactoryIDag,
             applicationConfig = applicationConfig,
             dbMetrics = dbMetrics,
+            sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
         )
     },
     tilbakekrevingskomponenter: (

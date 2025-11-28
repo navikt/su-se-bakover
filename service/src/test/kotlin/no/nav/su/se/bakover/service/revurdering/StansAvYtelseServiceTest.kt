@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -421,6 +422,7 @@ internal class StansAvYtelseServiceTest {
         val sakService: SakService = defaultMock(),
         val clock: Clock = fixedClock,
         val sessionFactory: SessionFactory = TestSessionFactory(),
+        val sakStatistikkRepo: SakStatistikkRepo = mock(),
         val observer: StatistikkEventObserver = mock(),
     ) {
         val stansYtelseService = StansYtelseServiceImpl(
@@ -430,6 +432,7 @@ internal class StansAvYtelseServiceTest {
             sakService = sakService,
             clock = clock,
             sessionFactory = sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply { addObserver(observer) }
 
         fun all() = listOf(

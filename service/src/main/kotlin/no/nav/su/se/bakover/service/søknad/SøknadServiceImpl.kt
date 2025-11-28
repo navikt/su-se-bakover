@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
+import toBehandlingsstatistikkOverordnet
 import java.time.Clock
 import java.util.UUID
 
@@ -51,6 +53,7 @@ class SøknadServiceImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -146,13 +149,12 @@ class SøknadServiceImpl(
             ).map { (_, uavklartSøknadsbehandling) ->
                 sessionFactory.withTransactionContext { tx ->
                     søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
+                    val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker())
                     observers.notify(
-                        StatistikkEvent.Behandling.Søknad.Opprettet(
-                            uavklartSøknadsbehandling,
-                            uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
-                        ),
+                        sakStatistikkEvent,
                         tx,
                     )
+                    sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
                 }
             }
         }

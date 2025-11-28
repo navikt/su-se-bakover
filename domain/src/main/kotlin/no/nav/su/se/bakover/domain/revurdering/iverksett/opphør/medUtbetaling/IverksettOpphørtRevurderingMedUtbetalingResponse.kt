@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -16,10 +17,12 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import org.slf4j.LoggerFactory
+import toBehandlingsstatistikkOverordnet
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import java.time.Clock
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger("IverksettOpphørtRevurderingResponse")
@@ -28,6 +31,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
     override val sak: Sak,
     override val vedtak: Opphørsvedtak,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
+    val clock: Clock,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
     override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
         StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak),
@@ -39,6 +43,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
         lagreVedtak: (vedtak: Opphørsvedtak, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
+        lagreSakstatistikk: (SakStatistikk, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -70,7 +75,9 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                statistikkObservers().notify(statistikkhendelser, tx)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak)
+                statistikkObservers().notify(sakStatistikkEvent, tx)
+                lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
                 vedtak.behandling
             }
         }.mapLeft {

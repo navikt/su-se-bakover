@@ -655,7 +655,9 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(clock),
     avsluttetAv: NavIdentBruker = saksbehandler,
 ): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
-    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock).let { (sak, simulert) ->
+    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        clock,
+    ).let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
