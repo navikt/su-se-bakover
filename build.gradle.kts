@@ -210,8 +210,7 @@ subprojects {
         tasks.test.configure {
             sharedTestSetup()
             // jah: Fikk problemer med at reg-testene fikk timeout etter opgpradering til ktor 3
-            val cpus = Runtime.getRuntime().availableProcessors()
-            maxParallelForks = cpus
+            maxParallelForks = 1
             systemProperties["junit.jupiter.execution.parallel.enabled"] = false
             systemProperties["junit.jupiter.execution.parallel.mode.default"] = "same_thread"
             systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "same_thread"
