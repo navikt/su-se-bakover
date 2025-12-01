@@ -15,6 +15,7 @@ spec:
         name: supstonad-db-15-dev
         databases:
           - name: supstonad
+            envVarPrefix: DB
         flags:
           - name: max_connections
             value: "100"
@@ -42,6 +43,8 @@ spec:
     inbound:
       rules:
         - application: su-se-framover
+          namespace: supstonad
+          cluster: dev-gcp
         - application: "frikorttjenester"
           namespace: "teamfrikort"
           permissions:
@@ -54,8 +57,25 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: kabal-api
+          namespace: klage
+          cluster: dev-gcp
         - application: kodeverk-dev
           namespace: team-rocket
+          cluster: dev-gcp
+        - application: kodeverk-api
+          namespace: team-rocket
+          cluster: dev-gcp
+      external:
+        - host: pdl-api.dev-fss-pub.nais.io
+        - host: sigrun-q2.dev.adeo.no
+        - host: saf-q2.dev-fss-pub.nais.io
+        - host: dokdistfordeling.dev-fss-pub.nais.io
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: oppgave.dev-fss-pub.nais.io
+        - host: b27apvl220.preprod.local
+          ports:
+            - port: 1413
   image: {{ image }}
   liveness:
     path: /isalive
@@ -72,7 +92,7 @@ spec:
     limits:
       memory: 4Gi
     requests:
-      memory: 1Gi
+      memory: 2Gi
       cpu: 1000m
   ingresses:
     - https://su-se-bakover.intern.dev.nav.no
@@ -84,6 +104,9 @@ spec:
   leaderElection: true
   kafka:
     pool: nav-dev
+  envFrom:
+      #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
+    - secret: supstonad-servicerbruker
   env:
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
@@ -96,15 +119,15 @@ spec:
     - name: DATABASE_NAME
       value: "supstonad-db-15-dev"
     - name: DOKARKIV_URL
-      value: "http://dokarkiv.teamdokumenthandtering.svc.nais.local"
+      value: "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1"
     - name: DOKARKIV_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
     - name: OPPGAVE_URL
-      value: "http://oppgave.oppgavehandtering.svc.nais.local"
+      value: "https://oppgave.dev-fss-pub.nais.io"
     - name: OPPGAVE_CLIENT_ID
-      value: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
+      value: "dev-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
-      value: "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local"
+      value: "https://dokdistfordeling.dev-fss-pub.nais.io/rest/v1"
     - name: DOKDIST_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
@@ -127,14 +150,16 @@ spec:
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
+    - name: PDL_URL
+      value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL
-      value: "https://kabal-api.intern.dev.nav.no"
+      value: "http://kabal-api.klage"
     - name: KABAL_CLIENT_ID
       value: "api://dev-gcp.klage.kabal-api"
     - name: SAF_URL
-      value: "https://saf.dev.intern.nav.no"
+      value: "https://saf-q2.dev-fss-pub.nais.io"
     - name: SAF_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
@@ -142,11 +167,11 @@ spec:
     - name: TILBAKEKREVING_URL
       value: "https://cics-q1.adeo.no/oppdrag/K231CW80"
     - name: SKATTEETATEN_URL
-      value: "https://sigrun-ske.dev.adeo.no"
+      value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
     - name: SKATT_CLIENT_ID
       value: "api://dev-fss.team-inntekt.sigrun-q4"
     - name: KRR_URL
-      value: "https://digdir-krr-proxy.intern.dev.nav.no"
+      value: "http://digdir-krr-proxy.team-rocket"
     - name: KRR_APP_ID
       value: "api://dev-gcp.team-rocket.digdir-krr-proxy"
     - name: INSTITUSJONSOPPHOLD_TOPIC

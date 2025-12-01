@@ -116,6 +116,8 @@ spec:
       value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.P234.OB29_AVSTEMMING_XML?targetClient=1"
+    - name: PDL_URL
+      value: "http://pdl-api.default.svc.nais.local"
     - name: PDL_CLIENT_ID
       value: "api://prod-fss.pdl.pdl-api"
     - name: KABAL_URL

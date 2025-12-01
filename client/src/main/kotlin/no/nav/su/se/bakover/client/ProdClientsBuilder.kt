@@ -120,7 +120,7 @@ data class ProdClientsBuilder(
                             sendQueue = it.utbetaling.mqSendQueue,
                             replyTo = it.utbetaling.mqReplyTo,
                         ),
-                        jmsContext = jmsConfig.jmsContext,
+                        jmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
                     )
                 },
             ),
@@ -130,7 +130,7 @@ data class ProdClientsBuilder(
                     MqPublisherConfig(
                         sendQueue = applicationConfig.oppdrag.avstemming.mqSendQueue,
                     ),
-                    jmsContext = jmsConfig.jmsContext,
+                    jmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
                 ),
             ),
             identClient = MicrosoftGraphApiClient(oAuth),

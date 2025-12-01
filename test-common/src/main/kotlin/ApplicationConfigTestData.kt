@@ -58,6 +58,8 @@ fun applicationConfig() = ApplicationConfig(
     ),
     database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",
+        username = "user",
+        password = "pwd",
     ),
     clientsConfig = ApplicationConfig.ClientsConfig(
         oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(

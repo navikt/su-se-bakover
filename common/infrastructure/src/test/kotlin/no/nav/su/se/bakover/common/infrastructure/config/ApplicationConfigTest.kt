@@ -266,6 +266,8 @@ class ApplicationConfigTest {
                 ),
                 database = ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "jdbc:postgresql://localhost:5432/supstonad-db-local",
+                    username = "user",
+                    password = "pwd",
                 ),
                 clientsConfig = ApplicationConfig.ClientsConfig(
                     oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
