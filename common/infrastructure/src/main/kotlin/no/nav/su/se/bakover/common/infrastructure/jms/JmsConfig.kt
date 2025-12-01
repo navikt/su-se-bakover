@@ -81,6 +81,6 @@ data class JmsConfig(
         }.createContext(
             applicationConfig.serviceUser.username,
             applicationConfig.serviceUser.password,
-        ).apply { exceptionListener }
+        ).apply { exceptionListener = exceptionListener() }
     }
 }
