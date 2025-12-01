@@ -142,7 +142,9 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "https://skjermede-personer-pip.intern.dev.nav.no" #TODO: må byttes ingen med local kan eksistere i gcp..
+      value: "https://skjermede-personer-pip.intern.dev.nav.no"
+    - name: AZURE_SCOPE_SKJERMEDE_PIP
+      value: "api://dev-gcp.nom.skjermede-personer-pip/.default"
     - name: MQ_QUEUE_MANAGER
       value: "MQLS02"
     - name: MQ_PORT
