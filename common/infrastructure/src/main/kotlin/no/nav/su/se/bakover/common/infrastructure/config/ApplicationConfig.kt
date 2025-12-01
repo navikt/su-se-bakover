@@ -313,7 +313,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = PdlConfig(
-                    url = getEnvironmentVariableOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+                    url = getEnvironmentVariableOrThrow("PDL_URL"),
                     clientId = getEnvironmentVariableOrThrow("PDL_CLIENT_ID"),
                 )
 
@@ -330,7 +330,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = KabalConfig(
-                    url = getEnvironmentVariableOrDefault("KABAL_URL", "http://kabal-api.klage"),
+                    url = getEnvironmentVariableOrThrow("KABAL_URL"),
                     clientId = getEnvironmentVariableOrDefault("KABAL_CLIENT_ID", "api://dev-gcp.klage.kabal-api"),
                 )
 
