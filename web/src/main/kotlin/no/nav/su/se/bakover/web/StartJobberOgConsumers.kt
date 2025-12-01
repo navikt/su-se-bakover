@@ -321,7 +321,7 @@ private fun naisJobberOgConsumers(
         StønadstatistikkJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
-            periode = Duration.of(1, ChronoUnit.DAYS),
+            periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
