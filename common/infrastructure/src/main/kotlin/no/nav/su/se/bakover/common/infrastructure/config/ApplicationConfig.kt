@@ -37,6 +37,7 @@ internal data object EnvironmentConfig {
         return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
     }
 
+    // TODO: se over bruken her
     fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
         return env[environmentVariableName] ?: default
     }
