@@ -55,6 +55,9 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: kabal-api
+          namespace: klage
+          cluster: dev-gcp
         - application: kodeverk-dev
           namespace: team-rocket
           cluster: dev-gcp
@@ -147,7 +150,7 @@ spec:
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL
-      value: "https://kabal-api.intern.dev.nav.no"
+      value: "http://kabal-api.klage"
     - name: KABAL_CLIENT_ID
       value: "api://dev-gcp.klage.kabal-api"
     - name: SAF_URL
