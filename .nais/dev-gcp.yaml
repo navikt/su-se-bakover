@@ -158,7 +158,7 @@ spec:
     - name: TILBAKEKREVING_URL
       value: "https://cics-q1.adeo.no/oppdrag/K231CW80"
     - name: SKATTEETATEN_URL
-      value: "https://sigrun-ske.dev.adeo.no"
+      value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
     - name: SKATT_CLIENT_ID
       value: "api://dev-fss.team-inntekt.sigrun-q4"
     - name: KRR_URL
