@@ -35,23 +35,32 @@ data class JmsConfig(
             // Trigger restart av appen for å sette opp tilkobling mot MQ på nytt
             exitProcess(-1)
         }
+    val jmsContext: JMSContext?
 
-    val jmsContext: JMSContext by lazy {
-        runBlocking {
-            try {
-                withTimeout(10_000) {
-                    createJmsContextWithTimeout()
-                }.also { ctx ->
-                    log.info("JMSContext created successfully")
-                    ctx.exceptionListener = exceptionListener()
+    /*
+        Denne sørger for at jmscontext blir startet i main tråden slik at ingen coroutines evt får en deadlock her.
+        Forbedring er å gjøre dette i susebakover(.. oppsettet men det var fult av if else på env for å tilpasse testoppsett så gjorde det slik for å unngå rewrite av hele oppsettet.
+     */
+    init {
+        jmsContext = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+            runBlocking {
+                try {
+                    withTimeout(10_000) {
+                        createJmsContextWithTimeout()
+                    }.also { ctx ->
+                        log.info("JMSContext created successfully")
+                        ctx.exceptionListener = exceptionListener()
+                    }
+                } catch (ex: JMSException) {
+                    log.error("Failed to create JMSContext: ${ex.message}", ex)
+                    throw ex
+                } catch (ex: TimeoutCancellationException) {
+                    log.error("JMSContext creation timed out", ex)
+                    throw ex
                 }
-            } catch (ex: JMSException) {
-                log.error("Failed to create JMSContext: ${ex.message}", ex)
-                throw ex
-            } catch (ex: TimeoutCancellationException) {
-                log.error("JMSContext creation timed out", ex)
-                throw ex
             }
+        } else {
+            null
         }
     }
 

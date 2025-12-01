@@ -47,6 +47,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
 import java.time.Clock
 import java.time.LocalDate
+import javax.jms.JMSContext
 
 /**
  * Kun ment til brukt fra produksjons-main. Testene og lokal bør starte sin egen embeddedServer.
@@ -67,6 +68,23 @@ val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagP�
 /**
  * @param disableConsumersAndJobs Kun for testene.
  */
+
+data class AppComponents(
+    val clock: Clock,
+    val dbMetrics: DbMetrics,
+    val databaseRepos: DatabaseRepos,
+    val jmsConfig: JmsConfig,
+    val jmsContext: JMSContext?,
+    val clients: Clients,
+    val services: Services,
+    val tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    val dokumentkomponenter: Dokumentkomponenter,
+    val accessCheckProxy: AccessCheckProxy,
+    val beregningStrategyFactory: BeregningStrategyFactory,
+    val resendUtbetalingService: ResendUtbetalingService,
+    val distribuerDokumentService: DistribuerDokumentService,
+)
+
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     suMetrics: SuMetrics = SuMetrics(),

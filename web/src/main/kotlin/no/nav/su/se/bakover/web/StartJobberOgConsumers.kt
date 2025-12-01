@@ -497,7 +497,7 @@ private fun naisJobberOgConsumers(
         },
         KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
-            globalJmsContext = jmsConfig.jmsContext,
+            globalJmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
         ),
         PersonhendelseConsumer(
