@@ -347,7 +347,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = SafConfig(
-                    url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf-q2.dev-fss-pub.nais.io"), // TODO: feil?
+                    url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf-q2.dev-fss-pub.nais.io"),
                     clientId = getEnvironmentVariableOrDefault(
                         "SAF_CLIENT_ID",
                         "api:////dev-fss.teamdokumenthandtering.saf/.default",
