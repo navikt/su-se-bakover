@@ -62,6 +62,7 @@ spec:
           namespace: team-rocket
           cluster: dev-gcp
       external:
+        - host: sigrun-q2.dev.adeo.no
         - host: saf-q2.dev-fss-pub.nais.io
         - host: dokdistfordeling.dev-fss-pub.nais.io
         - host: dokarkiv-q2.dev-fss-pub.nais.io
