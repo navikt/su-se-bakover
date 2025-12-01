@@ -67,6 +67,7 @@ spec:
           namespace: team-rocket
           cluster: dev-gcp
       external:
+        - host: pdl-api.dev-fss-pub.nais.io
         - host: sigrun-q2.dev.adeo.no
         - host: saf-q2.dev-fss-pub.nais.io
         - host: dokdistfordeling.dev-fss-pub.nais.io
@@ -149,6 +150,8 @@ spec:
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
+    - name: PDL_URL
+      value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL

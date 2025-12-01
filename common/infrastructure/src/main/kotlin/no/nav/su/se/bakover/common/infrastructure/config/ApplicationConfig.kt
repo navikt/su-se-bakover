@@ -330,7 +330,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = KabalConfig(
-                    url = getEnvironmentVariableOrDefault("KABAL_URL", "https://kabal-api.dev.intern.nav.no"),
+                    url = getEnvironmentVariableOrDefault("KABAL_URL", "http://kabal-api.klage"),
                     clientId = getEnvironmentVariableOrDefault("KABAL_CLIENT_ID", "api://dev-gcp.klage.kabal-api"),
                 )
 
