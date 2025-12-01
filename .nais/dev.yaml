@@ -121,6 +121,8 @@ spec:
       value: "Q1_SU_SE_BAKOVER"
     - name: MQ_SEND_QUEUE_UTBETALING
       value: "QA.Q1_231.OB04_OPPDRAG_XML"
+    - name: PDFGEN_URL
+      value: "http://su-pdfgen.supstonad.svc.nais.local"
     - name: MQ_REPLY_TO
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
