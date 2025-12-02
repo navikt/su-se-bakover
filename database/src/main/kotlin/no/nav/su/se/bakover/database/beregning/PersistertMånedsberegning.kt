@@ -185,7 +185,7 @@ internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
             kilde = kilde,
         )
 
-        Regelspesifisering.BeregnetUtenSpesifisering -> TODO()
+        Regelspesifisering.BeregnetUtenSpesifisering -> throw IllegalStateException("Denne tilstanden skal kun være for beregnigner som ble gjort før regelspesifisering ble innført. Den skal aldri brukes på nye beregninger.")
     }
 }
 

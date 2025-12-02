@@ -44,7 +44,6 @@ internal class BeregningSerialisertTest {
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato), Sakstype.UFØRE),
         )
 
-        // TODO bjg midlertidig
         val benyttetRegler = serialize(actualBeregning.getMånedsberegningerMedRegel().single().benyttetRegel.toJson())
 
         //language=json
