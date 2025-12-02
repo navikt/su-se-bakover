@@ -59,18 +59,6 @@ data class BeregningForMåned(
         return merknader.alle()
     }
 
-    /*
-    override fun getBenyttetRegler(): Regelspesifisering.Beregning {
-        return when (this.benyttetRegel) {
-            Regelspesifisering.BeregnetUtenSpesifisering,
-            is Regelspesifisering.Grunnlag,
-                -> throw IllegalStateException("Månedsberegning må bruke Regelspesisert beregning")
-
-            is Regelspesifisering.Beregning -> this.benyttetRegel
-        }
-    }
-     */
-
     fun leggTilMerknad(merknad: Merknad.Beregning) {
         merknader.leggTil(merknad)
     }
