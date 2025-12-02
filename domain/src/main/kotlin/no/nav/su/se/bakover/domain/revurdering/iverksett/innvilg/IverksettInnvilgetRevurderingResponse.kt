@@ -74,10 +74,11 @@ data class IverksettInnvilgetRevurderingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak)
-                statistikkObservers().notify(sakStatistikkEvent, tx)
-                lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
-
+                val sakStatistikkEvents = statistikkhendelser
+                statistikkObservers().notify(sakStatistikkEvents, tx)
+                sakStatistikkEvents.filterIsInstance<StatistikkEvent.Behandling>().forEach { sakStatistikkEvent ->
+                    lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                }
                 vedtak.behandling
             }
         }.mapLeft {

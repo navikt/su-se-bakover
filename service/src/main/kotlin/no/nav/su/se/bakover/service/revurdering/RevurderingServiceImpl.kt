@@ -193,11 +193,11 @@ class RevurderingServiceImpl(
                     klageRepo.knyttMotOmgjøring(klageId, revurderingContext.revurdering.id.value, tx)
                 }
                 revurderingRepo.lagre(revurderingContext.revurdering, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(
-                    revurdering = revurderingContext.revurdering,
-                )
-                observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                val sakStatistikkEvent = revurderingContext.statistikkHendelse
+                if (sakStatistikkEvent is StatistikkEvent.Behandling) {
+                    observers.notify(sakStatistikkEvent, tx)
+                    sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                }
             }
             revurderingContext.revurdering
         }
@@ -907,9 +907,8 @@ class RevurderingServiceImpl(
         }
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(tilAttestering, tx)
-            val sakStatistikkEvent = statistikkhendelse
-            observers.notify(sakStatistikkEvent, tx)
-            sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+            observers.notify(statistikkhendelse, tx)
+            sakStatistikkRepo.lagreSakStatistikk(statistikkhendelse.toBehandlingsstatistikkOverordnet(clock), tx)
         }
         return tilAttestering.right()
     }

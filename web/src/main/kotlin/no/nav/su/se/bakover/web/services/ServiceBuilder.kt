@@ -64,7 +64,6 @@ data object ServiceBuilder {
             personService = personService,
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
-            sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
         ).statistikkService
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
