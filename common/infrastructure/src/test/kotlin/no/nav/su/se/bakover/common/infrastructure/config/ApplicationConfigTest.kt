@@ -214,6 +214,7 @@ class ApplicationConfigTest {
                 "INSTITUSJONSOPPHOLD_TOPIC" to "INSTITUSJONSOPPHOLD_TOPIC",
                 "KODEVERK_URL" to "kodeverkUrl",
                 "KODEVERK_CLIENT_ID" to "kodeverkClientId",
+                "PDL_URL" to "http://pdl-api.default.svc.nais.local",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig

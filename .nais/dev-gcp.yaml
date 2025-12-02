@@ -57,6 +57,11 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
+          namespace: nom
+        - application: su-pdfgen
+          namespace: supstonad
+          cluster: dev-gcp
         - application: kabal-api
           namespace: klage
           cluster: dev-gcp
@@ -118,6 +123,8 @@ spec:
       value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
     - name: DATABASE_NAME
       value: "supstonad-db-15-dev"
+    - name: PDFGEN_URL
+      value: "http://su-pdfgen"
     - name: DOKARKIV_URL
       value: "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1"
     - name: DOKARKIV_CLIENT_ID
@@ -135,7 +142,9 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "https://skjermede-personer-pip.nais.preprod.local"
+      value: "https://skjermede-personer-pip.intern.dev.nav.no"
+    - name: AZURE_SCOPE_SKJERMEDE_PIP
+      value: "api://dev-gcp.nom.skjermede-personer-pip/.default"
     - name: MQ_QUEUE_MANAGER
       value: "MQLS02"
     - name: MQ_PORT

@@ -94,6 +94,8 @@ spec:
       value: "50346823-61a0-49e7-ad89-ea2b1a0e90f8"
     - name: DOKDIST_URL
       value: "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local"
+    - name: PDFGEN_URL
+      value: "http://su-pdfgen.supstonad.svc.nais.local"
     - name: DOKDIST_CLIENT_ID
       value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
