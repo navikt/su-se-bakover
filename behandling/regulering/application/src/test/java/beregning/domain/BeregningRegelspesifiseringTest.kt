@@ -252,7 +252,7 @@ class BeregningRegelspesifiseringTest {
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_ORDINÆR.benyttGrunnlag(
                                                     "",
                                                 ),
                                             ),
@@ -386,7 +386,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -400,7 +400,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
@@ -440,7 +440,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_ORDINÆR.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -454,7 +454,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
@@ -495,7 +495,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -514,7 +514,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
@@ -555,7 +555,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_ORDINÆR.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -568,7 +568,7 @@ class BeregningRegelspesifiseringTest {
                                         forventetRegel(
                                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                                             listOf(
-                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(
+                                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_ORDINÆR.benyttGrunnlag(
                                                     "",
                                                 ),
                                             ),
@@ -582,7 +582,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
@@ -622,7 +622,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_ORDINÆR.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -650,7 +650,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
@@ -694,7 +694,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -708,7 +708,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(
@@ -755,7 +755,7 @@ class BeregningRegelspesifiseringTest {
                         forventetRegel(
                             Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED,
                             listOf(
-                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                                RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                             ),
                         ),
                         forventetRegel(
@@ -769,7 +769,7 @@ class BeregningRegelspesifiseringTest {
                 val forventetToProsentAvHøySatsUføre = forventetRegel(
                     Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(""),
+                        RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(""),
                     ),
                 )
                 val forventet = forventetRegel(

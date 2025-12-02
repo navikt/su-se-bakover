@@ -169,6 +169,6 @@ fun createToProsentAvHøyForMånedAlder(
     verdi = verdi,
     benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(
         verdi = verdi.toString(),
-        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag("")),
+        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag("")),
     ),
 )

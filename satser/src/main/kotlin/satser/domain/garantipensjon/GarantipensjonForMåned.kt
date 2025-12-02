@@ -16,10 +16,10 @@ data class GarantipensjonForMåned(
     /** Datoen denne garantipensjonen gjelder fra (med tilbakevirkende kraft); typisk 1 mai. */
     val virkningstidspunkt: LocalDate,
     override val benyttetRegel: Regelspesifisering = when (satsKategori) {
-        Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_ORDINÆR.benyttGrunnlag(
+        Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_ORDINÆR.benyttGrunnlag(
             garantipensjonPerÅr.toString(),
         )
-        Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_GARANTPIPENSJON_HØY.benyttGrunnlag(
+        Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag(
             garantipensjonPerÅr.toString(),
         )
     },
