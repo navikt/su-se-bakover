@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
-import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
@@ -19,9 +18,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.common.domain.auth.TokenOppslag
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
@@ -59,11 +56,6 @@ class StubClientsBuilder(
         return Clients(
             oauth = oauth,
             personOppslag = PersonOppslagStub().also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
-            tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
-                TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
-            } else {
-                StsClient(applicationConfig.clientsConfig.stsUrl)
-            },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
             } else {

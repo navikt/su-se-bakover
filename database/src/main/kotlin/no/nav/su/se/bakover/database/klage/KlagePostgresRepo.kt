@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
+import behandling.klage.domain.VERSJON
 import behandling.klage.domain.VurderingerTilKlage
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -87,8 +88,8 @@ internal class KlagePostgresRepo(
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type)
-                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type)
+            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type, versjon)
+                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type, :versjon)
         """.trimIndent()
             .insert(
                 params = mapOf(
@@ -101,6 +102,7 @@ internal class KlagePostgresRepo(
                     "saksbehandler" to klage.saksbehandler,
                     "datoKlageMottatt" to klage.datoKlageMottatt,
                     "type" to klage.databasetype(),
+                    "versjon" to VERSJON,
                 ),
                 session = session,
             )
@@ -408,7 +410,7 @@ internal class KlagePostgresRepo(
         val oppgaveId = OppgaveId(row.string("oppgaveId"))
         val datoKlageMottatt = row.localDate("datoKlageMottatt")
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
-
+        val versjon = row.int("versjon")
         val attesteringer = row.string("attestering").toAttesteringshistorikk()
         val klageinstanshendelser =
             Klageinstanshendelser.create(
@@ -448,6 +450,7 @@ internal class KlagePostgresRepo(
                     begrunnelse = row.stringOrNull("fremsattrettsligklageinteresse_begrunnelse"),
                 )
             },
+            versjon = versjon,
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")

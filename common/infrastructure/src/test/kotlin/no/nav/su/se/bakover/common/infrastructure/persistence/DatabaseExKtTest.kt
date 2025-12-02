@@ -2,16 +2,19 @@ package no.nav.su.se.bakover.common.infrastructure.persistence
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.mock
 import org.postgresql.util.PSQLException
+import javax.sql.DataSource
 
-internal class DatabaseExKtTest {
+@ExtendWith(DbExtension::class)
+internal class DatabaseExKtTest(private val dataSource: DataSource) {
 
     @Test
     fun `kaster exception med hjelpende feilmelding hvis man forsøker å bruke særnorske tegn i parameter mapping`() {
@@ -57,51 +60,47 @@ internal class DatabaseExKtTest {
 
     @Test
     fun `transaksjonelle spørringer committer og lagrer i databasen hvis alt er ok`() {
-        withMigratedDb { dataSource ->
-            dataSource.withTransaction {
-                """
+        dataSource.withTransaction {
+            """
                     CREATE TABLE IF NOT EXISTS test (id int not null)
-                """.trimIndent()
-                    .insert(emptyMap(), it)
-                """
+            """.trimIndent()
+                .insert(emptyMap(), it)
+            """
                     INSERT INTO test (id) VALUES (1)
-                """.trimIndent()
-                    .insert(emptyMap(), it)
-            }
-            dataSource.withSession {
-                """
+            """.trimIndent()
+                .insert(emptyMap(), it)
+        }
+        dataSource.withSession {
+            """
                     SELECT COUNT (*) FROM test
-                """.trimIndent().antall(emptyMap(), it) shouldBe 1
-            }
+            """.trimIndent().antall(emptyMap(), it) shouldBe 1
         }
     }
 
     @Test
     fun `transaksjonelle spørringer ruller tilbake dersom noe går galt`() {
-        withMigratedDb { dataSource ->
-            try {
-                dataSource.withTransaction {
-                    """
+        try {
+            dataSource.withTransaction {
+                """
                         CREATE TABLE IF NOT EXISTS test (id int not null)
-                    """.trimIndent()
-                        .insert(emptyMap(), it)
-                    """
+                """.trimIndent()
+                    .insert(emptyMap(), it)
+                """
                         INSERT INTO test (id) VALUES ('dette funker vel ikke')
-                    """.trimIndent()
-                        .insert(emptyMap(), it)
-                }
-            } catch (ex: Exception) {
-                /* noop */
+                """.trimIndent()
+                    .insert(emptyMap(), it)
             }
-            assertThrows<PSQLException> {
-                dataSource.withSession {
-                    """
+        } catch (ex: Exception) {
+            /* noop */
+        }
+        assertThrows<PSQLException> {
+            dataSource.withSession {
+                """
                     SELECT COUNT (*) FROM test
-                    """.trimIndent().antall(emptyMap(), it)
-                }
-            }.let {
-                it.message shouldContain """relation "test" does not exist"""
+                """.trimIndent().antall(emptyMap(), it)
             }
+        }.let {
+            it.message shouldContain """relation "test" does not exist"""
         }
     }
 }

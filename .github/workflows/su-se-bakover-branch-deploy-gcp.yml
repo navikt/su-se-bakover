@@ -1,4 +1,7 @@
-name: Deploy statistikk to dev-gcp [manual deploy]
+name: Deploy branch to dev-gcp GCP [manual deploy]
+# If you want to deploy a branch (feature branch or even redeploy master/main) to dev-gcp (preprod) we use Github actions workflow_dispatch
+# Goto https://github.com/navikt/su-se-bakover/actions/workflows/su-se-bakover-branch-deploy.yml choose a branch and deploy it
+# See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
 on: workflow_dispatch
 
 permissions: {}
@@ -39,19 +42,15 @@ jobs:
         uses: ./.github/actions/push-image
         with:
           tag: ${{ github.sha }}
-  deploy-to-dev-gcp:
-    name: dev-gcp
-    runs-on: ubuntu-latest
+          image_suffix: 'app'
+  deploy-to-preprod:
     needs: build-test-push-image
+    name: Deploy to preprod
     permissions:
       contents: read
       id-token: write
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-    #      TELEMETRY: ${{ steps.docker-build-push.outputs.telemetry }} TODO ??
-          CLUSTER: dev-gcp
-          RESOURCE: statistikk-app/.nais/dev.yaml
-          VAR: image=${{ needs.build-test-push-image.outputs.image }}
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    with:
+      cluster: dev-gcp
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
+      resource: .nais/dev-gcp.yaml

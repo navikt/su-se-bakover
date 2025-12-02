@@ -19,434 +19,395 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.klage.shouldBeEqualComparingPublicFieldsAndInterface
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class KlagePostgresRepoTest {
+@ExtendWith(DbExtension::class)
+internal class KlagePostgresRepoTest(private val dataSource: DataSource) {
 
     @Test
     fun `kan opprette og hente klager`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageOpprettet()
+        val klage = testDataHelper.persisterKlageOpprettet()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `vilkårsvurdert klage med alle felter null `() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageOpprettet().vilkårsvurder(
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVilkårsvurderinger"),
-                vilkårsvurderinger = FormkravTilKlage.empty(),
-            ).getOrFail().also {
-                klageRepo.lagre(it)
-            }
-
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        val klage = testDataHelper.persisterKlageOpprettet().vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVilkårsvurderinger"),
+            vilkårsvurderinger = FormkravTilKlage.empty(),
+        ).getOrFail().also {
+            klageRepo.lagre(it)
         }
+
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+        }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `kan lagre utfyltVilkårsvurdertTilVurdering`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVilkårsvurdertUtfyltTilVurdering()
+        val klage = testDataHelper.persisterKlageVilkårsvurdertUtfyltTilVurdering()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `kan lagre utfyltVilkårsvurdertAvvist`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVilkårsvurdertUtfyltAvvist()
+        val klage = testDataHelper.persisterKlageVilkårsvurdertUtfyltAvvist()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `kan lagre bekreftetVilkårsvurdertTilVurdering`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetTilVurdering()
+        val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetTilVurdering()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `kan lagre bekreftetVilkårsvurdertAvvist`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetAvvist()
+        val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetAvvist()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                val klager = klageRepo.hentKlager(klage.sakId, sessionContext)
-                klager.shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            val klager = klageRepo.hentKlager(klage.sakId, sessionContext)
+            klager.shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `vurdert klage med alle felter null`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetTilVurdering().vurder(
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVurderinger"),
-                vurderinger = VurderingerTilKlage.empty(),
-            ).also {
-                klageRepo.lagre(it)
-            }
-
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetTilVurdering().vurder(
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVurderinger"),
+            vurderinger = VurderingerTilKlage.empty(),
+        ).also {
+            klageRepo.lagre(it)
         }
+
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
+        }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `vurdert klage med alle felter utfylt`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageVurdertUtfyltTilOversending()
+        val klage = testDataHelper.persisterKlageVurdertUtfyltTilOversending()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `lagrer avvist klage`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
-            val klage = testDataHelper.persisterKlageAvvist()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val klage = testDataHelper.persisterKlageAvvist()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `klage til attestering til vurdering`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageTilAttesteringVurdert(erOppretthold = true)
+        val klage = testDataHelper.persisterKlageTilAttesteringVurdert(erOppretthold = true)
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            val hentetKlage = klageRepo.hentKlage(klage.id)
-            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
-            attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltOppretthold>()
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        val hentetKlage = klageRepo.hentKlage(klage.id)
+        hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
+        attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltOppretthold>()
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `klage til attestering til vurdering for delvis omgjøring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val klage = testDataHelper.persisterKlageTilAttesteringVurdert(erOppretthold = false)
+        val klage = testDataHelper.persisterKlageTilAttesteringVurdert(erOppretthold = false)
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            val hentetKlage = klageRepo.hentKlage(klage.id)
-            hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
-            attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltDelvisOmgjøringKA>()
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        val hentetKlage = klageRepo.hentKlage(klage.id)
+        hentetKlage.shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        val attestertKlage = hentetKlage as KlageTilAttestering.Vurdert
+        attestertKlage.vurderinger.shouldBeInstanceOf<VurderingerTilKlage.UtfyltDelvisOmgjøringKA>()
     }
 
     @Test
     fun `kan lagre avvist klage til attestering`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageTilAttesteringAvvist()
+        val klage = testDataHelper.persisterKlageTilAttesteringAvvist()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `underkjent klage til vurdering`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageUnderkjentVurdert()
+        val klage = testDataHelper.persisterKlageUnderkjentVurdert()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `lagrer avvist underkjent klage`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageUnderkjentAvvist()
+        val klage = testDataHelper.persisterKlageUnderkjentAvvist()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `oversendt klage`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageOversendt()
+        val klage = testDataHelper.persisterKlageOversendt()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `oversendt klage med delvis omgjøring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val klage = testDataHelper.persisterKlageOversendt()
+        val klage = testDataHelper.persisterKlageOversendt()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
     }
 
     @Test
     fun `knytt behandling mot oversendt klage`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageOversendt()
+        val klage = testDataHelper.persisterKlageOversendt()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
-
-            val behandlingId = UUID.randomUUID()
-            klageRepo.knyttMotOmgjøring(klage.id, behandlingId = behandlingId)
-            val knyttetOverSendtKlage = klageRepo.hentKlage(klage.id)
-            knyttetOverSendtKlage.shouldNotBeNull()
-            knyttetOverSendtKlage.shouldBeInstanceOf<OversendtKlage>()
-            knyttetOverSendtKlage.behandlingId shouldBe behandlingId
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+
+        val behandlingId = UUID.randomUUID()
+        klageRepo.knyttMotOmgjøring(klage.id, behandlingId = behandlingId)
+        val knyttetOverSendtKlage = klageRepo.hentKlage(klage.id)
+        knyttetOverSendtKlage.shouldNotBeNull()
+        knyttetOverSendtKlage.shouldBeInstanceOf<OversendtKlage>()
+        knyttetOverSendtKlage.behandlingId shouldBe behandlingId
     }
 
     @Test
     fun `lagrer en iverksatt avvist klage`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageIverksattAvvist()
+        val klage = testDataHelper.persisterKlageIverksattAvvist()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `kan lagre og hente en avsluttet klage`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+        val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.persisterKlageAvsluttet()
+        val klage = testDataHelper.persisterKlageAvsluttet()
 
-            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
-                klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
-            klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+        testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+            klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
+        klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
     }
 
     @Test
     fun `henter klageinstanshendelser knyttet til klagen`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val klage = testDataHelper.persisterKlageOversendt()
-            val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
+        val klage = testDataHelper.persisterKlageOversendt()
+        val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
 
-            val tolketKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
-                id = klageinstanshendelseId,
-                opprettet = fixedTidspunkt,
-                avsluttetTidspunkt = fixedTidspunkt,
-                klageId = klage.id,
-                utfall = AvsluttetKlageinstansUtfall.Retur,
-                journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
+        val tolketKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
+            id = klageinstanshendelseId,
+            opprettet = fixedTidspunkt,
+            avsluttetTidspunkt = fixedTidspunkt,
+            klageId = klage.id,
+            utfall = AvsluttetKlageinstansUtfall.Retur,
+            journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
+        )
+
+        val nyOppgave = oppgaveId
+        val nyKlage =
+            klage.leggTilNyKlageinstanshendelse(tolketKlageinstanshendelse) { nyOppgave.right() }.getOrFail()
+
+        testDataHelper.sessionFactory.withTransactionContext { tx ->
+            klageRepo.lagre(nyKlage, tx)
+            testDataHelper.klageinstanshendelsePostgresRepo.lagre(
+                tolketKlageinstanshendelse.tilProsessert(nyOppgave),
+                tx,
             )
-
-            val nyOppgave = oppgaveId
-            val nyKlage =
-                klage.leggTilNyKlageinstanshendelse(tolketKlageinstanshendelse) { nyOppgave.right() }.getOrFail()
-
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                klageRepo.lagre(nyKlage, tx)
-                testDataHelper.klageinstanshendelsePostgresRepo.lagre(
-                    tolketKlageinstanshendelse.tilProsessert(nyOppgave),
-                    tx,
-                )
-            }
-            klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(nyKlage)
-            klageRepo.hentKlager(klage.sakId).shouldBeEqualComparingPublicFieldsAndInterface(listOf(nyKlage))
         }
+        klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(nyKlage)
+        klageRepo.hentKlager(klage.sakId).shouldBeEqualComparingPublicFieldsAndInterface(listOf(nyKlage))
     }
 
     @Test
     fun `henter kun prosesserte klageinstanshendelser knyttet til klagen`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val klageRepo = testDataHelper.klagePostgresRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
 
-            val klage = testDataHelper.persisterKlageOversendt()
-            val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
+        val klage = testDataHelper.persisterKlageOversendt()
+        val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
 
-            val tolketKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
-                id = klageinstanshendelseId,
-                opprettet = fixedTidspunkt,
-                avsluttetTidspunkt = fixedTidspunkt,
-                klageId = klage.id,
-                utfall = AvsluttetKlageinstansUtfall.Retur,
-                journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
-            )
+        val tolketKlageinstanshendelse = TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
+            id = klageinstanshendelseId,
+            opprettet = fixedTidspunkt,
+            avsluttetTidspunkt = fixedTidspunkt,
+            klageId = klage.id,
+            utfall = AvsluttetKlageinstansUtfall.Retur,
+            journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
+        )
 
-            val nyOppgave = oppgaveId
-            val nyKlage = klage.leggTilNyKlageinstanshendelse(tolketKlageinstanshendelse) { nyOppgave.right() }.getOrFail()
+        val nyOppgave = oppgaveId
+        val nyKlage = klage.leggTilNyKlageinstanshendelse(tolketKlageinstanshendelse) { nyOppgave.right() }.getOrFail()
 
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                klageRepo.lagre(nyKlage, tx)
-            }
-
-            val hentet = klageRepo.hentKlage(klage.id)!!
-            hentet.shouldBeTypeOf<VurdertKlage.BekreftetTilOversending>()
-            hentet.klageinstanshendelser.shouldBeEmpty()
+        testDataHelper.sessionFactory.withTransactionContext { tx ->
+            klageRepo.lagre(nyKlage, tx)
         }
+
+        val hentet = klageRepo.hentKlage(klage.id)!!
+        hentet.shouldBeTypeOf<VurdertKlage.BekreftetTilOversending>()
+        hentet.klageinstanshendelser.shouldBeEmpty()
     }
 }

@@ -9,18 +9,20 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.roller.Eksternrolle
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
-import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.customizeableJwtRequest
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
@@ -47,6 +49,54 @@ internal class FrikortRoutesKtTest {
     }
 
     @Test
+    fun `Krever riktig rolle, ingen brukerroller skal gi tilgang til frikorttjensten, må være frikort som kaller oss`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            defaultRequest(HttpMethod.Get, FRIKORT_PATH, navIdent = DEFAULT_IDENT, roller = Brukerrolle.entries).apply {
+                this.status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+    }
+
+    @Test
+    fun `Må ha audience`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            customizeableJwtRequest(HttpMethod.Get, FRIKORT_PATH).apply {
+                this.status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+    }
+
+    @Test
+    fun `Må ha riktig audience, feil gir unauth`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            customizeableJwtRequest(HttpMethod.Get, FRIKORT_PATH, audience = "noe-annet-enn-su").apply {
+                this.status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+    }
+
+    @Test
+    fun `Riktig audience men feil rolle `() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            customizeableJwtRequest(HttpMethod.Get, FRIKORT_PATH, audience = "su-se-bakover", externalRoles = listOf("etterlatte")).apply {
+                this.status shouldBe HttpStatusCode.Unauthorized
+            }
+        }
+    }
+
+    @Test
     fun `secure endpoint ok med gyldig token`() {
         val vedtakServiceMock = mock<VedtakService> {
             on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(januar(2021), emptyList())
@@ -60,7 +110,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(externalRoles = listOf(Eksternrolle.FRIKORT.rolle), subject = "frikorttjenester").asBearerToken(),
                 )
             }.apply {
                 this.status shouldBe HttpStatusCode.OK
@@ -78,7 +128,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(externalRoles = listOf(Eksternrolle.FRIKORT.rolle), subject = "frikorttjenester").asBearerToken(),
                 )
             }.apply {
                 this.status shouldBe HttpStatusCode.BadRequest
@@ -106,7 +156,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(externalRoles = listOf(Eksternrolle.FRIKORT.rolle), subject = "frikorttjenester").asBearerToken(),
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
@@ -133,7 +183,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(externalRoles = listOf(Eksternrolle.FRIKORT.rolle), subject = "frikorttjenester").asBearerToken(),
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
@@ -159,7 +209,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(externalRoles = listOf(Eksternrolle.FRIKORT.rolle), subject = "frikorttjenester").asBearerToken(),
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)

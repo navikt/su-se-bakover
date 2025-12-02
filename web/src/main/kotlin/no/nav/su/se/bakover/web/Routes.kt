@@ -58,14 +58,13 @@ internal fun Application.setupKtorRoutes(
     distribuerDokumentService: DistribuerDokumentService,
 ) {
     routing {
-        authenticate("frikort", "frikort2") {
+        authenticate("frikort2") {
             frikortVedtakRoutes(services.vedtakService, clock)
         }
 
         authenticate("jwt") {
             withUser(applicationConfig) {
                 meRoutes(applicationConfig, azureGroupMapper)
-
                 withAccessProtectedServices(
                     accessCheckProxy,
                 ) { accessProtectedServices ->

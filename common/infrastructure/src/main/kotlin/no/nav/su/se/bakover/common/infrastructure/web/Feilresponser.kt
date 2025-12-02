@@ -247,6 +247,15 @@ data object Feilresponser {
         "ukjent_feil",
     )
 
+    val fritesktErNull = InternalServerError.errorJson(
+        "Fritekst er null",
+        "fritekst_er_null",
+    )
+
+    val deserializeFeil = InternalServerError.errorJson(
+        "Feil ved deserialisering",
+        "deserialize_feil",
+    )
     val ugyldigTilstand = BadRequest.errorJson("Ugyldig tilstand", "ugyldig_tilstand")
 
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {

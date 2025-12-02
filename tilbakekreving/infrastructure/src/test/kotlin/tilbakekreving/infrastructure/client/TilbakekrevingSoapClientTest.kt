@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseOk
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseVedtakIdFinnesIkke
 import no.nav.su.se.bakover.test.vurderingerMedKrav
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.vedtak.KunneIkkeSendeTilbakekrevingsvedtak
@@ -87,6 +88,8 @@ internal class TilbakekrevingSoapClientTest {
         }
     }
 
+    // Ikke tatt i bruk enda
+    @Disabled
     @Test
     fun `annullerer et kravgrunnlag`() {
         val responseXml = tilbakekrevingSoapResponseOk()

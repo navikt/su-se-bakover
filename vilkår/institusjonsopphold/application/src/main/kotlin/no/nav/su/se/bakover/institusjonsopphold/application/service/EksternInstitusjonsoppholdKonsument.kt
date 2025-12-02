@@ -32,7 +32,7 @@ class EksternInstitusjonsoppholdKonsument(
     fun process(hendelse: EksternInstitusjonsoppholdHendelse, correlationId: CorrelationId) {
         sakRepo.hentSaker(hendelse.norskident).ifNotEmpty {
             this.forEach { sak ->
-                institusjonsoppholdHendelseRepo.hentForSak(sak.id)?.let {
+                institusjonsoppholdHendelseRepo.hentForSak(sak.id).let {
                     if (it.harEksternHendelse(hendelse.hendelseId)) {
                         log.info("Hopper over ekstern institusjonshendelse ${hendelse.hendelseId} - denne hendelsen har vi allerede lagret.")
                         return

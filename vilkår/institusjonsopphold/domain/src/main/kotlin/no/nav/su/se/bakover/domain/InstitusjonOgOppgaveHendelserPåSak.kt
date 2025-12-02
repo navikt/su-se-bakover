@@ -13,7 +13,7 @@ data class InstitusjonOgOppgaveHendelserPåSak(
 ) {
 
     init {
-        instHendelser.map { it.sakId }.let {
+        instHendelser.hendelser.map { it.sakId }.let {
             require(it.distinct().size == 1) {
                 "Institusjonsoppholdhendelsene må være knyttet til samme sak, men var: $it"
             }
@@ -21,7 +21,7 @@ data class InstitusjonOgOppgaveHendelserPåSak(
         oppgaveHendelser.whenever(
             isEmpty = {},
             isNotEmpty = {
-                require(instHendelser.map { it.sakId }.distinct().single() == it.map { it.sakId }.distinct().single()) {
+                require(instHendelser.hendelser.map { it.sakId }.distinct().single() == it.map { it.sakId }.distinct().single()) {
                     "Institusjonsopphold hendelsene og oppgave hendelsene må være knyttet til samme sak"
                 }
             },
@@ -31,12 +31,12 @@ data class InstitusjonOgOppgaveHendelserPåSak(
     fun hentInstHendelserSomManglerOppgave(): List<InstitusjonsoppholdHendelse> {
         val relaterteHendelser = oppgaveHendelser.flatMap { it.relaterteHendelser }
 
-        return instHendelser.filter { it.hendelseId !in relaterteHendelser }
+        return instHendelser.hendelser.filter { it.hendelseId !in relaterteHendelser }
     }
 
     fun sisteOppgaveId(): OppgaveId? {
         val relevanteOppgaveHendelser = oppgaveHendelser.filter { oppgave ->
-            oppgave.relaterteHendelser.intersect(instHendelser.map { it.hendelseId }.toSet()).isNotEmpty()
+            oppgave.relaterteHendelser.intersect(instHendelser.hendelser.map { it.hendelseId }.toSet()).isNotEmpty()
         }
 
         return relevanteOppgaveHendelser.maxByOrNull { it.hendelsestidspunkt.instant }?.oppgaveId

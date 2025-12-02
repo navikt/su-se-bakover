@@ -37,7 +37,7 @@ fun startAsynkroneUtbetalingsprosesser(
                 // Har en init som starter consumern.
                 UtbetalingKvitteringIbmMqConsumer(
                     kvitteringQueueName = oppdragConfig.utbetaling.mqReplyTo,
-                    globalJmsContext = jmsConfig.jmsContext,
+                    globalJmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
                     råKvitteringService = utbetalingskvitteringKomponenter.råKvitteringService,
                 ),
             ),

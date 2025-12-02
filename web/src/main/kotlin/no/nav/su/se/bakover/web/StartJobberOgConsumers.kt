@@ -321,7 +321,7 @@ private fun naisJobberOgConsumers(
         StønadstatistikkJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
-            periode = Duration.of(1, ChronoUnit.DAYS),
+            periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
@@ -497,7 +497,7 @@ private fun naisJobberOgConsumers(
         },
         KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
-            globalJmsContext = jmsConfig.jmsContext,
+            globalJmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
         ),
         PersonhendelseConsumer(

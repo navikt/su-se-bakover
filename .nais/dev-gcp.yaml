@@ -6,6 +6,19 @@ metadata:
   labels:
     team: supstonad
 spec:
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_17
+        tier: db-g1-small
+        collation: nb_NO.UTF8
+        cascadingDelete: false
+        name: supstonad-db-15-dev
+        databases:
+          - name: supstonad
+            envVarPrefix: DB
+        flags:
+          - name: max_connections
+            value: "100"
   observability:
     autoInstrumentation:
       enabled: true
@@ -30,6 +43,8 @@ spec:
     inbound:
       rules:
         - application: su-se-framover
+          namespace: supstonad
+          cluster: dev-gcp
         - application: "frikorttjenester"
           namespace: "teamfrikort"
           permissions:
@@ -42,8 +57,30 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
+          namespace: nom
+        - application: su-pdfgen
+          namespace: supstonad
+          cluster: dev-gcp
+        - application: kabal-api
+          namespace: klage
+          cluster: dev-gcp
         - application: kodeverk-dev
           namespace: team-rocket
+          cluster: dev-gcp
+        - application: kodeverk-api
+          namespace: team-rocket
+          cluster: dev-gcp
+      external:
+        - host: pdl-api.dev-fss-pub.nais.io
+        - host: sigrun-q2.dev.adeo.no
+        - host: saf-q2.dev-fss-pub.nais.io
+        - host: dokdistfordeling.dev-fss-pub.nais.io
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: oppgave.dev-fss-pub.nais.io
+        - host: b27apvl220.preprod.local
+          ports:
+            - port: 1413
   image: {{ image }}
   liveness:
     path: /isalive
@@ -60,11 +97,10 @@ spec:
     limits:
       memory: 4Gi
     requests:
-      memory: 1Gi
+      memory: 2Gi
       cpu: 1000m
   ingresses:
     - https://su-se-bakover.intern.dev.nav.no
-  webproxy: true
   prometheus:
     enabled: true
     path: /metrics
@@ -73,11 +109,9 @@ spec:
   leaderElection: true
   kafka:
     pool: nav-dev
-  vault:
-    enabled: true
-    paths:
-      - mountPath: /var/run/secrets/nais.io/srvuser
-        kvPath: /serviceuser/data/dev/srvsupstonad
+  envFrom:
+      #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
+    - secret: supstonad-servicerbruker
   env:
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
@@ -87,22 +121,20 @@ spec:
       value: "0ba009c4-d148-4a51-b501-4b1cf906889d"
     - name: AZURE_GROUP_DRIFT
       value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
-    - name: VAULT_MOUNTPATH
-      value: "postgresql/preprod-fss/"
     - name: DATABASE_NAME
       value: "supstonad-db-15-dev"
-    - name: DATABASE_JDBC_URL
-      value: "jdbc:postgresql://b27dbvl030.preprod.local:5432/supstonad-db-15-dev"
+    - name: PDFGEN_URL
+      value: "http://su-pdfgen"
     - name: DOKARKIV_URL
-      value: "http://dokarkiv.teamdokumenthandtering.svc.nais.local"
+      value: "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1"
     - name: DOKARKIV_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
     - name: OPPGAVE_URL
-      value: "http://oppgave.oppgavehandtering.svc.nais.local"
+      value: "https://oppgave.dev-fss-pub.nais.io"
     - name: OPPGAVE_CLIENT_ID
-      value: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
+      value: "dev-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
-      value: "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local"
+      value: "https://dokdistfordeling.dev-fss-pub.nais.io/rest/v1"
     - name: DOKDIST_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
@@ -110,7 +142,9 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "https://skjermede-personer-pip.nais.preprod.local"
+      value: "https://skjermede-personer-pip.intern.dev.nav.no"
+    - name: AZURE_SCOPE_SKJERMEDE_PIP
+      value: "api://dev-gcp.nom.skjermede-personer-pip/.default"
     - name: MQ_QUEUE_MANAGER
       value: "MQLS02"
     - name: MQ_PORT
@@ -121,22 +155,20 @@ spec:
       value: "Q1_SU_SE_BAKOVER"
     - name: MQ_SEND_QUEUE_UTBETALING
       value: "QA.Q1_231.OB04_OPPDRAG_XML"
-    - name: PDFGEN_URL
-      value: "http://su-pdfgen.supstonad.svc.nais.local"
     - name: MQ_REPLY_TO
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
     - name: PDL_URL
-      value: "http://pdl-api.default.svc.nais.local"
+      value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL
-      value: "https://kabal-api.intern.dev.nav.no"
+      value: "http://kabal-api.klage"
     - name: KABAL_CLIENT_ID
       value: "api://dev-gcp.klage.kabal-api"
     - name: SAF_URL
-      value: "https://saf.dev.intern.nav.no"
+      value: "https://saf-q2.dev-fss-pub.nais.io"
     - name: SAF_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
@@ -144,11 +176,11 @@ spec:
     - name: TILBAKEKREVING_URL
       value: "https://cics-q1.adeo.no/oppdrag/K231CW80"
     - name: SKATTEETATEN_URL
-      value: "https://sigrun-ske.dev.adeo.no"
+      value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
     - name: SKATT_CLIENT_ID
       value: "api://dev-fss.team-inntekt.sigrun-q4"
     - name: KRR_URL
-      value: "https://digdir-krr-proxy.intern.dev.nav.no"
+      value: "http://digdir-krr-proxy.team-rocket"
     - name: KRR_APP_ID
       value: "api://dev-gcp.team-rocket.digdir-krr-proxy"
     - name: INSTITUSJONSOPPHOLD_TOPIC

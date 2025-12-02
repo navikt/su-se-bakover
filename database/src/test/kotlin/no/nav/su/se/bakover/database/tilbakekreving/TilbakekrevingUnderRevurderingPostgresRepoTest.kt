@@ -10,88 +10,87 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagEndringXml
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.presentation.consumer.KravgrunnlagDtoMapper
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class TilbakekrevingUnderRevurderingPostgresRepoTest {
+@ExtendWith(DbExtension::class)
+internal class TilbakekrevingUnderRevurderingPostgresRepoTest(private val dataSource: DataSource) {
 
     @Test
     fun `kan lagre og hente uten behov for tilbakekrevingsbehandling`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
+        val testDataHelper = TestDataHelper(dataSource)
 
-            val (_, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
-            val revurdering = vedtak.behandling
-            (testDataHelper.revurderingRepo.hent(revurdering.id) as IverksattRevurdering.Innvilget).sendtTilbakekrevingsvedtak shouldBe null
-        }
+        val (_, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
+        val revurdering = vedtak.behandling
+        (testDataHelper.revurderingRepo.hent(revurdering.id) as IverksattRevurdering.Innvilget).sendtTilbakekrevingsvedtak shouldBe null
     }
 
     @Test
     fun `kan hente tilbakekrevingsbehandlinger`() {
-        withMigratedDb { dataSource ->
-            // Får da feilutbetalingen for januar
-            val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
-            val testDataHelper = TestDataHelper(dataSource, clock = clock)
-            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertOpphørt(
-                revurderingsperiode = januar(2021),
-            )
+        // Får da feilutbetalingen for januar
+        val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
+        val testDataHelper = TestDataHelper(dataSource, clock = clock)
+        val (_, revurdering) = testDataHelper.persisterRevurderingSimulertOpphørt(
+            revurderingsperiode = januar(2021),
+        )
 
-            testDataHelper.revurderingRepo.lagre(revurdering)
+        testDataHelper.revurderingRepo.lagre(revurdering)
 
-            val tilbakekrevingRepo = TilbakekrevingUnderRevurderingPostgresRepo(
-                råttKravgrunnlagMapper = KravgrunnlagDtoMapper::toKravgrunnlag,
-            )
-            val id = UUID.randomUUID()
-            testDataHelper.sessionFactory.withSession { session ->
-                //language=PostgreSQL
-                """INSERT INTO revurdering_tilbakekreving
+        val tilbakekrevingRepo = TilbakekrevingUnderRevurderingPostgresRepo(
+            råttKravgrunnlagMapper = KravgrunnlagDtoMapper::toKravgrunnlag,
+        )
+        val id = UUID.randomUUID()
+        testDataHelper.sessionFactory.withSession { session ->
+            //language=PostgreSQL
+            """INSERT INTO revurdering_tilbakekreving
                    (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, avgjørelse, tilstand, kravgrunnlag, kravgrunnlagMottatt, tilbakekrevingsvedtakForsendelse)
                    VALUES (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, 'tilbakekrev', 'sendt_tilbakekrevingsvedtak', :kravgrunnlag, :kravgrunnlagMottatt, :tilbakekrevingsvedtakForsendelse)
-                """.trimIndent().insert(
-                    mapOf(
-                        "id" to id,
-                        "opprettet" to fixedTidspunkt,
-                        "sakId" to revurdering.sakId,
-                        "revurderingId" to revurdering.id.value,
-                        "fraOgMed" to revurdering.periode.fraOgMed,
-                        "tilOgMed" to revurdering.periode.tilOgMed,
-                        "kravgrunnlag" to kravgrunnlagEndringXml,
-                        "kravgrunnlagMottatt" to fixedTidspunkt,
-                        "tilbakekrevingsvedtakForsendelse" to """
+            """.trimIndent().insert(
+                mapOf(
+                    "id" to id,
+                    "opprettet" to fixedTidspunkt,
+                    "sakId" to revurdering.sakId,
+                    "revurderingId" to revurdering.id.value,
+                    "fraOgMed" to revurdering.periode.fraOgMed,
+                    "tilOgMed" to revurdering.periode.tilOgMed,
+                    "kravgrunnlag" to kravgrunnlagEndringXml,
+                    "kravgrunnlagMottatt" to fixedTidspunkt,
+                    "tilbakekrevingsvedtakForsendelse" to """
                         {
                             "requestXml": "requestXml",
                             "requestSendt": "$fixedTidspunkt",
                             "responseXml": "responseXml"
                         }
-                        """.trimIndent(),
+                    """.trimIndent(),
 
-                    ),
-                    session,
-                )
-                val actual = tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurderingId = revurdering.id,
-                    session = session,
-                )!!
-                actual shouldBe HistoriskSendtTilbakekrevingsvedtak(
-                    id = id,
-                    opprettet = fixedTidspunkt,
-                    sakId = revurdering.sakId,
-                    revurderingId = revurdering.id,
-                    periode = revurdering.periode,
-                    kravgrunnlag = actual.kravgrunnlag,
-                    kravgrunnlagMottatt = fixedTidspunkt,
-                    tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
-                        requestXml = "requestXml",
-                        responseXml = "responseXml",
-                        tidspunkt = fixedTidspunkt,
-                    ),
-                    avgjørelse = HistoriskSendtTilbakekrevingsvedtak.AvgjørelseTilbakekrevingUnderRevurdering.Tilbakekrev,
-                )
-            }
+                ),
+                session,
+            )
+            val actual = tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                revurderingId = revurdering.id,
+                session = session,
+            )!!
+            actual shouldBe HistoriskSendtTilbakekrevingsvedtak(
+                id = id,
+                opprettet = fixedTidspunkt,
+                sakId = revurdering.sakId,
+                revurderingId = revurdering.id,
+                periode = revurdering.periode,
+                kravgrunnlag = actual.kravgrunnlag,
+                kravgrunnlagMottatt = fixedTidspunkt,
+                tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
+                    requestXml = "requestXml",
+                    responseXml = "responseXml",
+                    tidspunkt = fixedTidspunkt,
+                ),
+                avgjørelse = HistoriskSendtTilbakekrevingsvedtak.AvgjørelseTilbakekrevingUnderRevurdering.Tilbakekrev,
+            )
         }
     }
 }

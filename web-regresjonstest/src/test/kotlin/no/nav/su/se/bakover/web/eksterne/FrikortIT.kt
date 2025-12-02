@@ -9,8 +9,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.roller.Eksternrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -245,15 +245,14 @@ internal class FrikortIT {
 }
 
 private fun hentAktiveFnr(
-    brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     client: HttpClient,
 ): String {
     return runBlocking {
         no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Get,
             "/frikort/",
-            listOf(brukerrolle),
             client = client,
+            externalRoles = listOf(Eksternrolle.FRIKORT.rolle),
         ).apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
@@ -264,15 +263,14 @@ private fun hentAktiveFnr(
 }
 
 private fun hentAlle(
-    brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     client: HttpClient,
 ): String {
     return runBlocking {
         no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Get,
             "/frikort/alle",
-            listOf(brukerrolle),
             client = client,
+            externalRoles = listOf(Eksternrolle.FRIKORT.rolle),
         ).apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK

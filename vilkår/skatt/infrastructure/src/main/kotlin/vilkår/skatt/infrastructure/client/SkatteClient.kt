@@ -42,7 +42,7 @@ import java.time.Year
  */
 class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
-    private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraMdc() },
+    private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraCoroutineContext() },
     private val azureAd: AzureAd,
 ) : Skatteoppslag {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
