@@ -10,6 +10,7 @@ import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
+import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import no.nav.su.se.bakover.datapakker.saksstatistikk.SakStatistikkRepo.hentData
@@ -46,21 +47,6 @@ fun main() {
     logger.info("Slutter jobb Saksstatistikk")
 }
 
-fun writeToBigQuery(data: List<SakStatistikk>) {
-    val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
-    val project: String = System.getenv("GCP_PROJECT")
-
-    val bq = createBigQueryClient(jsonKey, project)
-
-    val table = "saksstatistikk"
-    val csv = data.toCsv()
-
-    logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
-    val job = writeCsvToBigQueryTable(bq, project, table, csv)
-
-    logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
-}
-
 private fun createBigQueryClient(jsonKey: InputStream, project: String): BigQuery {
     val credentials = GoogleCredentials.fromStream(jsonKey)
     return BigQueryOptions
@@ -84,6 +70,8 @@ private fun writeCsvToBigQueryTable(
 
     val dataset = "statistikk"
     val tableId = TableId.of(project, dataset, tableName)
+
+    log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
 
     val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
         .setFormatOptions(FormatOptions.csv())
@@ -110,4 +98,19 @@ private fun writeCsvToBigQueryTable(
     job.waitFor()
 
     return job
+}
+
+fun writeToBigQuery(data: List<SakStatistikk>) {
+    val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
+    val project: String = System.getenv("GCP_PROJECT")
+
+    val bq = createBigQueryClient(jsonKey, project)
+
+    val table = "saksstatistikk"
+    val csv = data.toCsv()
+    logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
+
+    val job = writeCsvToBigQueryTable(bq, project, table, csv)
+
+    logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
 }
