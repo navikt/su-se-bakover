@@ -56,6 +56,7 @@ internal class DistribuerDokumentServiceTest {
         fødsel = Person.Fødsel.MedFødselsår(
             år = Year.of(1956),
         ),
+        kontaktinfo = { null },
     )
     private val distribusjonstype = Distribusjonstype.VIKTIG
     private val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID

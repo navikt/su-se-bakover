@@ -49,12 +49,14 @@ data class PersonOppslagStub(
         ),
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         skjermet = false,
-        kontaktinfo = Person.Kontaktinfo(
-            epostadresse = "mail@epost.com",
-            mobiltelefonnummer = "90909090",
-            språk = "nb",
-            kanKontaktesDigitalt = true,
-        ),
+        kontaktinfo = {
+            Person.Kontaktinfo(
+                epostadresse = "mail@epost.com",
+                mobiltelefonnummer = "90909090",
+                språk = "nb",
+                kanKontaktesDigitalt = true,
+            )
+        },
         vergemål = null,
         dødsdato = null,
     )
