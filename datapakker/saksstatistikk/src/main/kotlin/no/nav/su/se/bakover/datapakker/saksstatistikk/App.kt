@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.datapakker.saksstatistikk
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.Job
@@ -40,6 +41,7 @@ fun main() {
         // hentData(dataSource = it, fom = LocalDate.of(2025, 10, 1), tom = LocalDate.now().plusDays(1))
     }
 
+    logger.info("Hentet ${data.size} rader fra databasen")
     writeToBigQuery(data)
     logger.info("Slutter jobb Saksstatistikk")
 }
@@ -52,6 +54,8 @@ fun writeToBigQuery(data: List<SakStatistikk>) {
 
     val table = "saksstatistikk"
     val csv = data.toCsv()
+
+    logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
     val job = writeCsvToBigQueryTable(bq, project, table, csv)
 
     logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
@@ -85,7 +89,11 @@ private fun writeCsvToBigQueryTable(
         .setFormatOptions(FormatOptions.csv())
         .build()
 
-    val writer = bigQuery.writer(jobId, writeConfig)
+    val writer = try {
+        bigQuery.writer(jobId, writeConfig)
+    } catch (e: BigQueryException) {
+        throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
+    }
 
     try {
         writer.use { channel ->
