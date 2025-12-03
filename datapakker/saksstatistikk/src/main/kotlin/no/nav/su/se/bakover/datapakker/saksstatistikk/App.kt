@@ -35,30 +35,15 @@ fun main() {
         logger.info("Startet database med url: $databaseUrl")
 
         // Default:
-        // hentData(it, LocalDate.now())
+        hentData(it, LocalDate.now())
 
         // Endres manuelt ved uthenting tilbake i tid
-        hentData(dataSource = it, fom = LocalDate.of(2025, 11, 10), tom = LocalDate.now().plusDays(1))
+        // hentData(dataSource = it, fom = LocalDate.of(2025, 11, 10), tom = LocalDate.now().plusDays(1))
     }
 
     logger.info("Hentet ${data.size} rader fra databasen")
     writeToBigQuery(data)
     logger.info("Slutter jobb Saksstatistikk")
-}
-
-fun writeToBigQuery(data: List<SakStatistikk>) {
-    val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
-    val project: String = System.getenv("GCP_PROJECT")
-
-    val bq = createBigQueryClient(jsonKey, project)
-
-    val table = "saksstatistikk"
-    val csv = data.toCsv()
-
-    logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
-    val job = writeCsvToBigQueryTable(bq, project, table, csv)
-
-    logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
 }
 
 private fun createBigQueryClient(jsonKey: InputStream, project: String): BigQuery {
@@ -85,6 +70,8 @@ private fun writeCsvToBigQueryTable(
     val dataset = "statistikk"
     val tableId = TableId.of(project, dataset, tableName)
 
+    logger.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
+
     val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
         .setFormatOptions(FormatOptions.csv())
         .build()
@@ -110,4 +97,19 @@ private fun writeCsvToBigQueryTable(
     job.waitFor()
 
     return job
+}
+
+fun writeToBigQuery(data: List<SakStatistikk>) {
+    val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
+    val project: String = System.getenv("GCP_PROJECT")
+
+    val bq = createBigQueryClient(jsonKey, project)
+
+    val table = "saksstatistikk"
+    val csv = data.toCsv()
+    logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
+
+    val job = writeCsvToBigQueryTable(bq, project, table, csv)
+
+    logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
 }
