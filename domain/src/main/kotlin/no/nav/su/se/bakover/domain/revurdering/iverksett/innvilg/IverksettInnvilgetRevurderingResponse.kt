@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -69,13 +68,10 @@ data class IverksettInnvilgetRevurderingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                val sakStatistikkEvents = nonEmptyListOf<StatistikkEvent>(
-                    StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
-                )
-                statistikkObservers().notify(sakStatistikkEvents, tx)
-                sakStatistikkEvents.filterIsInstance<StatistikkEvent.Behandling>().forEach { sakStatistikkEvent ->
-                    lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
-                }
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak)
+
+                statistikkObservers().notify(sakStatistikkEvent, tx)
+                lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
                 vedtak.behandling
             }
         }.mapLeft {
