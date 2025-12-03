@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
@@ -19,7 +18,6 @@ interface IverksettRevurderingResponse<out T : Revurderingsvedtak> {
     val sak: Sak
     val vedtak: T
     val utbetaling: Utbetaling.SimulertUtbetaling
-    val statistikkhendelser: List<StatistikkEvent>
 
     /**
      * @param annullerKontrollsamtale er kun relevant ved opphør.

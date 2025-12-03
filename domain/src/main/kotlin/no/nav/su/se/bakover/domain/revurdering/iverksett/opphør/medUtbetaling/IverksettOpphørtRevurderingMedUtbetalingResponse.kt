@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -33,10 +31,6 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
     override val utbetaling: Utbetaling.SimulertUtbetaling,
     val clock: Clock,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
-    override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
-        StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak),
-    )
-
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,

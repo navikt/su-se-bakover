@@ -6,7 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
-import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
@@ -179,35 +178,20 @@ class RevurderingServiceImpl(
                 tidspunkt = tidspunkt,
                 command = command,
             )
-            RevurderingContext(
-                revurdering,
-                StatistikkEvent.Behandling.Revurdering.Opprettet(
-                    revurdering,
-                    opprettresult.gjeldendeVedtak.behandling.id.value,
-                ),
-                opprettresult.klageId,
-            )
-        }.map { revurderingContext ->
+            revurdering to opprettresult.klageId
+        }.map { (revurdering, klageId) ->
             sessionFactory.withTransactionContext { tx ->
-                revurderingContext.klageId?.let { klageId ->
-                    klageRepo.knyttMotOmgjøring(klageId, revurderingContext.revurdering.id.value, tx)
+                klageId?.let { klageId ->
+                    klageRepo.knyttMotOmgjøring(klageId, revurdering.id.value, tx)
                 }
-                revurderingRepo.lagre(revurderingContext.revurdering, tx)
-                val sakStatistikkEvent = revurderingContext.statistikkHendelse
-                if (sakStatistikkEvent is StatistikkEvent.Behandling) {
-                    observers.notify(sakStatistikkEvent, tx)
-                    sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
-                }
+                revurderingRepo.lagre(revurdering, tx)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering)
+                observers.notify(sakStatistikkEvent, tx)
+                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
             }
-            revurderingContext.revurdering
+            revurdering
         }
     }
-
-    private data class RevurderingContext(
-        val revurdering: OpprettetRevurdering,
-        val statistikkHendelse: StatistikkEvent,
-        val klageId: KlageId?,
-    )
 
     override fun returnerRevurdering(
         request: RevurderingService.ReturnerRevurderingRequest,

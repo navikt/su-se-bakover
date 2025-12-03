@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
@@ -34,10 +33,6 @@ data class IverksettInnvilgetRevurderingResponse(
     val clock: Clock,
 
 ) : IverksettRevurderingResponse<VedtakInnvilgetRevurdering> {
-    override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
-        StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
-    )
-
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
@@ -74,7 +69,9 @@ data class IverksettInnvilgetRevurderingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                val sakStatistikkEvents = statistikkhendelser
+                val sakStatistikkEvents = nonEmptyListOf<StatistikkEvent>(
+                    StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
+                )
                 statistikkObservers().notify(sakStatistikkEvents, tx)
                 sakStatistikkEvents.filterIsInstance<StatistikkEvent.Behandling>().forEach { sakStatistikkEvent ->
                     lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
