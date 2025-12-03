@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import toBehandlingsstatistikkOverordnet
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimulerStansFeilet
@@ -52,6 +54,7 @@ class StansYtelseServiceImpl(
     private val sakService: SakService,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) : StansYtelseService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -150,7 +153,9 @@ class StansYtelseServiceImpl(
             transactionContext = transactionContext,
         )
 
-        observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering), transactionContext)
+        val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)
+        observers.notify(sakStatistikkEvent, transactionContext)
+        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), transactionContext)
         return simulertRevurdering
     }
 
@@ -283,7 +288,9 @@ class StansYtelseServiceImpl(
                 val utbetalingsrequest = stansUtbetaling.sendUtbetaling().getOrElse {
                     throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                 }
-                observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak), transactionContext)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Iverksatt(vedtak)
+                observers.notify(sakStatistikkEvent, transactionContext)
+                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), transactionContext)
                 IverksettStansAvYtelseITransaksjonResponse(
                     revurdering = iverksattRevurdering,
                     vedtak = vedtak,

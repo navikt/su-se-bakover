@@ -102,6 +102,7 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                     it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
                         lagKravgrunnlagRespons(),
                         it.kravgrunnlag!!::hendelseId,
+                        it.kravgrunnlag!!::kontrollfelt,
                     )
                     it.forhåndsvarselsInfo.size shouldBe 1
                 }

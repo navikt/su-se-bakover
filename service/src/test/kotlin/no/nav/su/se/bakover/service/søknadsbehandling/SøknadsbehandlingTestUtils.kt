@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -31,6 +32,7 @@ internal fun createSøknadsbehandlingService(
     satsFactory: SatsFactory = satsFactoryTestPåDato(),
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     skatteService: SkatteService = mock(),
+    sakStatistikkRepo: SakStatistikkRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadsbehandlingRepo = søknadsbehandlingRepo,
     utbetalingService = utbetalingService,
@@ -43,6 +45,7 @@ internal fun createSøknadsbehandlingService(
     satsFactory = satsFactory,
     sessionFactory = sessionFactory,
     skatteService = skatteService,
+    sakStatistikkRepo = sakStatistikkRepo,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -58,6 +61,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
     val sessionFactory: TestSessionFactory = TestSessionFactory(),
     val skatteService: SkatteService = mock(),
+    val sakStatistikkRepo: SakStatistikkRepo = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -71,6 +75,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         satsFactory = satsFactory,
         sessionFactory = sessionFactory,
         skatteService = skatteService,
+        sakStatistikkRepo = sakStatistikkRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

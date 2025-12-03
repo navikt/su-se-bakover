@@ -162,6 +162,7 @@ data object SharedRegressionTestData {
                 formuegrenserFactory = formuegrenserFactoryIDag,
                 applicationConfig = applicationConfig(),
                 dbMetrics = dbMetricsStub,
+                sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
             )
         },
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),

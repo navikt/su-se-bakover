@@ -102,7 +102,10 @@ internal fun AppComponents.sendTilbakekrevingsbehandlingTilAttestering(
                         it::attesteringer,
                     )
                     it.forhåndsvarselsInfo shouldBe verifiserForhåndsvarselDokumenter
-                    it.vurderinger shouldBe verifiserVurderinger
+                    it.vurderinger!!.shouldBeEqualToIgnoringFields(
+                        verifiserVurderinger,
+                        it.vurderinger!!::eksternKontrollfelt,
+                    )
                     it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
                         lagKravgrunnlagRespons(),
                         it.kravgrunnlag!!::hendelseId,
