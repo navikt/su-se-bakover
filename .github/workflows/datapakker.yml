@@ -30,7 +30,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build and push image soknad
         uses: ./.github/actions/build-and-push-image
         with:
@@ -47,7 +47,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build and push image fritekstAvslag
         uses: ./.github/actions/build-and-push-image
         with:
@@ -65,7 +65,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build and push image stønadstatistikk
         uses: ./.github/actions/build-and-push-image
         with:
@@ -82,7 +82,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build and push image saksstatistikk
         uses: ./.github/actions/build-and-push-image
         with:
