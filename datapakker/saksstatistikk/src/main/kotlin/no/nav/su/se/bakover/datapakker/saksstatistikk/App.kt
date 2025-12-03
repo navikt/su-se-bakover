@@ -10,7 +10,6 @@ import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
-import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.database.Postgres
 import no.nav.su.se.bakover.database.VaultPostgres
 import no.nav.su.se.bakover.datapakker.saksstatistikk.SakStatistikkRepo.hentData
@@ -36,10 +35,10 @@ fun main() {
         logger.info("Startet database med url: $databaseUrl")
 
         // Default:
-        // hentData(it, LocalDate.now())
+        hentData(it, LocalDate.now())
 
         // Endres manuelt ved uthenting tilbake i tid
-        hentData(dataSource = it, fom = LocalDate.of(2025, 11, 10), tom = LocalDate.now().plusDays(1))
+        // hentData(dataSource = it, fom = LocalDate.of(2025, 11, 10), tom = LocalDate.now().plusDays(1))
     }
 
     logger.info("Hentet ${data.size} rader fra databasen")
@@ -71,7 +70,7 @@ private fun writeCsvToBigQueryTable(
     val dataset = "statistikk"
     val tableId = TableId.of(project, dataset, tableName)
 
-    log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
+    logger.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
 
     val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
         .setFormatOptions(FormatOptions.csv())
