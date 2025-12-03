@@ -66,7 +66,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v5
-      - name: Build and push image fritekstAvslag
+      - name: Build and push image stønadstatistikk
         uses: ./.github/actions/build-and-push-image
         with:
           gradle-arguments: ":datapakker:stoenadstatistikk:build"
@@ -83,7 +83,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v5
-      - name: Build and push image fritekstAvslag
+      - name: Build and push image saksstatistikk
         uses: ./.github/actions/build-and-push-image
         with:
           gradle-arguments: ":datapakker:saksstatistikk:build"
