@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.underkjenn
+package no.nav.su.se.bakover.web.routes.tilbakekreving.underkjenn
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -22,14 +22,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.underkjennelse.KunneIkkeUnderkjenne
 import tilbakekreving.domain.underkjennelse.UnderkjennAttesteringsgrunnTilbakekreving
 import tilbakekreving.domain.underkjennelse.UnderkjennTilbakekrevingsbehandlingCommand
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 import java.util.UUID
 
 private data class Body(

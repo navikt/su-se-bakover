@@ -1,13 +1,11 @@
-package tilbakekreving.presentation.api.forhåndsvarsel
+package no.nav.su.se.bakover.web.routes.tilbakekreving.vedtaksbrev
 
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.KunneIkkeLageDokument
-import io.ktor.http.ContentType
+import dokument.domain.brev.Brevvalg
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.CorrelationId
@@ -25,18 +23,19 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
+import no.nav.su.se.bakover.web.routes.tilbakekreving.manglerBrukkerroller
+import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand
-import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsviseForhåndsvarsel
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
-import tilbakekreving.presentation.api.common.manglerBrukkerroller
+import tilbakekreving.domain.vedtaksbrev.KunneIkkeOppdatereVedtaksbrev
+import tilbakekreving.domain.vedtaksbrev.OppdaterVedtaksbrevCommand
+import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-private data class ForhåndsvisBody(
+private data class BrevtekstBody(
     val versjon: Long,
-    val fritekst: String?,
+    val brevtekst: String?,
 ) {
     fun toCommand(
         sakId: UUID,
@@ -44,31 +43,44 @@ private data class ForhåndsvisBody(
         utførtAv: NavIdentBruker.Saksbehandler,
         correlationId: CorrelationId,
         brukerroller: List<Brukerrolle>,
-    ): Either<Resultat, ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand> {
+    ): Either<Resultat, OppdaterVedtaksbrevCommand> {
         val validatedBrukerroller = Either.catch { brukerroller.toNonEmptyList() }.getOrElse {
             return manglerBrukkerroller.left()
         }
-
-        return ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand(
+        val brevvalg = when (brevtekst) {
+            null -> Brevvalg.SaksbehandlersValg.SkalIkkeSendeBrev()
+            else -> {
+                if (brevtekst.isBlank()) {
+                    return HttpStatusCode.BadRequest.errorJson(
+                        message = "Må fylle ut minst et tegn i fritekstfeltet",
+                        code = "mangler_fritekst",
+                    ).left()
+                }
+                Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst(
+                    fritekst = brevtekst,
+                )
+            }
+        }
+        return OppdaterVedtaksbrevCommand(
             sakId = sakId,
             behandlingId = TilbakekrevingsbehandlingId(value = behandlingsId),
+            brevvalg = brevvalg,
             utførtAv = utførtAv,
             correlationId = correlationId,
             brukerroller = validatedBrukerroller,
             klientensSisteSaksversjon = Hendelsesversjon(value = versjon),
-            fritekst = fritekst,
         ).right()
     }
 }
 
-internal fun Route.visForhåndsvarselTilbakekrevingsbrev(
-    service: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
+internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
+    brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService,
 ) {
-    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/forhandsvarsel/forhandsvis") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/brevtekst") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
-                    call.withBody<ForhåndsvisBody> { body ->
+                    call.withBody<BrevtekstBody> { body ->
                         body.toCommand(
                             sakId = sakId,
                             behandlingsId = tilbakekrevingId,
@@ -78,10 +90,11 @@ internal fun Route.visForhåndsvarselTilbakekrevingsbrev(
                         ).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
-                                service.forhåndsvisBrev(it).fold(
-                                    { call.svar(it.tilResultat()) },
-                                    { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
-                                )
+                                brevTilbakekrevingsbehandlingService.lagreBrevtekst(it)
+                                    .fold(
+                                        { call.svar(it.tilResultat()) },
+                                        { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
+                                    )
                             },
                         )
                     }
@@ -91,19 +104,7 @@ internal fun Route.visForhåndsvarselTilbakekrevingsbrev(
     }
 }
 
-internal fun KunneIkkeForhåndsviseForhåndsvarsel.tilResultat(): Resultat = when (this) {
-    is KunneIkkeForhåndsviseForhåndsvarsel.IkkeTilgang -> ikkeTilgangTilSak
-
-    // dobbel-impl av [forhådsvarsleTilbakekrevingRoute]
-    is KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering -> when (this.kunneIkkeLageDokument) {
-        is KunneIkkeLageDokument.FeilVedHentingAvInformasjon -> HttpStatusCode.InternalServerError.errorJson(
-            "Feil ved henting av personinformasjon",
-            "feil_ved_henting_av_personInformasjon",
-        )
-
-        is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
-    }
-
-    KunneIkkeForhåndsviseForhåndsvarsel.UlikVersjon -> Feilresponser.utdatertVersjon
-    KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+internal fun KunneIkkeOppdatereVedtaksbrev.tilResultat(): Resultat = when (this) {
+    is KunneIkkeOppdatereVedtaksbrev.IkkeTilgang -> ikkeTilgangTilSak
+    KunneIkkeOppdatereVedtaksbrev.UlikVersjon -> Feilresponser.utdatertVersjon
 }

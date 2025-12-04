@@ -1,6 +1,19 @@
-package tilbakekreving.presentation.api
+package no.nav.su.se.bakover.web.routes.tilbakekreving
 
 import io.ktor.server.routing.Route
+import no.nav.su.se.bakover.web.routes.tilbakekreving.avslutt.avbrytTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.visForhåndsvarselTilbakekrevingsbrev
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.iverksett.iverksettTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.annullerKravgrunnlagRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.oppdaterKravgrunnlagRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.notat.notatTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.opprett.opprettTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.tilAttestering.tilAttesteringTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.underkjenn.underkjennTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vedtaksbrev.vedtaksbrevTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.vurderTilbakekrevingsbehandlingRoute
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
@@ -15,19 +28,6 @@ import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbe
 import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
-import tilbakekreving.presentation.api.avslutt.avbrytTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
-import tilbakekreving.presentation.api.forhåndsvarsel.visForhåndsvarselTilbakekrevingsbrev
-import tilbakekreving.presentation.api.forhåndsvarsel.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute
-import tilbakekreving.presentation.api.iverksett.iverksettTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.kravgrunnlag.annullerKravgrunnlagRoute
-import tilbakekreving.presentation.api.kravgrunnlag.oppdaterKravgrunnlagRoute
-import tilbakekreving.presentation.api.notat.notatTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.opprett.opprettTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.tilAttestering.tilAttesteringTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.underkjenn.underkjennTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.vedtaksbrev.vedtaksbrevTilbakekrevingsbehandlingRoute
-import tilbakekreving.presentation.api.vurder.vurderTilbakekrevingsbehandlingRoute
 
 internal const val TILBAKEKREVING_PATH = "saker/{sakId}/tilbakekreving"
 
@@ -50,7 +50,7 @@ fun Route.tilbakekrevingRoutes(
     this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
     this.vurderTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
     this.vedtaksbrevTilbakekrevingsbehandlingRoute(brevTilbakekrevingsbehandlingService)
-    this.vedtaksbrevTilbakekrevingsbehandlingRoute(forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService)
+    this.vedtaksbrevTilbakekrevingsbehandlingRoute(forhåndsvisVedtaksbrevService = forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService)
     this.forhåndsvarsleTilbakekrevingRoute(forhåndsvarsleTilbakekrevingsbehandlingService)
     this.visForhåndsvarselTilbakekrevingsbrev(forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService)
     this.tilAttesteringTilbakekrevingsbehandlingRoute(tilbakekrevingsbehandlingTilAttesteringService)

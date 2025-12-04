@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.forhåndsvarsel
+package no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -13,11 +13,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
 import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeHenteUtsendtForhåndsvarsel
 import tilbakekreving.domain.forhåndsvarsel.VisUtsendtForhåndsvarselbrevCommand
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import java.util.UUID
 
 internal fun Route.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute(
