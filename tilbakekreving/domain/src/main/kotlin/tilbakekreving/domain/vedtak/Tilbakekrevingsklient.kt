@@ -1,6 +1,7 @@
 package tilbakekreving.domain.vedtak
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
@@ -15,6 +16,7 @@ interface Tilbakekrevingsklient {
     fun sendTilbakekrevingsvedtak(
         vurderingerMedKrav: VurderingerMedKrav,
         attestertAv: NavIdentBruker.Attestant,
+        sakstype: Sakstype,
     ): Either<KunneIkkeSendeTilbakekrevingsvedtak, RåTilbakekrevingsvedtakForsendelse>
 
     fun annullerKravgrunnlag(
