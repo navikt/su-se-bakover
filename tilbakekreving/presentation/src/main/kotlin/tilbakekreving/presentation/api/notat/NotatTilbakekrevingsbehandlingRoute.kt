@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -39,7 +40,8 @@ internal fun Route.notatTilbakekrevingsbehandlingRoute(
                         val notat = try {
                             body.notat?.toNonBlankString()
                         } catch (e: IllegalArgumentException) {
-                            call.svar(HttpStatusCode.BadRequest.errorJson(message = "Kan ikke være blankt notet", "notat_mangler_innhold"))
+                            log.info("Blankt notat mottat, avviser request")
+                            call.svar(HttpStatusCode.BadRequest.errorJson(message = "Kan ikke være blankt notat", "notat_mangler_innhold"))
                             return@withBody
                         }
                         notatTilbakekrevingsbehandlingService.lagreNotat(
