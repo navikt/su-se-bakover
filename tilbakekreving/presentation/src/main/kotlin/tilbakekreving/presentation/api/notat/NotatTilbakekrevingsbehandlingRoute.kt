@@ -39,7 +39,7 @@ internal fun Route.notatTilbakekrevingsbehandlingRoute(
                     call.withBody<Body> { body ->
                         val notat = try {
                             body.notat?.toNonBlankString()
-                        } catch (e: IllegalArgumentException) {
+                        } catch (_: IllegalArgumentException) {
                             log.info("Blankt notat mottat, avviser request")
                             call.svar(HttpStatusCode.BadRequest.errorJson(message = "Kan ikke være blankt notat", "notat_mangler_innhold"))
                             return@withBody
