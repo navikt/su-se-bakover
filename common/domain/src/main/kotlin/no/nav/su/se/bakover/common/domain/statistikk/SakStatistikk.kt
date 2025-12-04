@@ -51,16 +51,16 @@ data class SakStatistikk(
 )
 
 enum class BehandlingMetode {
-    Manuell,
-    Automatisk,
+    MANUELL,
+    AUTOMATISK,
     ;
 
     companion object {
         fun erAutomatiskHvisSystembruker(saksbehandler: NavIdentBruker.Saksbehandler) =
             if (saksbehandler.navIdent == NavIdentBruker.Saksbehandler.systembruker().navIdent) {
-                Automatisk
+                AUTOMATISK
             } else {
-                Manuell
+                MANUELL
             }
     }
 }
