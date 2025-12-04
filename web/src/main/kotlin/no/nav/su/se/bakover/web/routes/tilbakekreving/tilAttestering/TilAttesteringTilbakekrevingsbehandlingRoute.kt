@@ -1,43 +1,46 @@
-package tilbakekreving.presentation.api.kravgrunnlag
+package no.nav.su.se.bakover.web.routes.tilbakekreving.tilAttestering
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
-import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import tilbakekreving.application.service.kravgrunnlag.OppdaterKravgrunnlagService
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlagetHarEndretSeg
+import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
-import tilbakekreving.domain.kravgrunnlag.KunneIkkeOppdatereKravgrunnlag
-import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
+import tilbakekreving.domain.tilAttestering.KunneIkkeSendeTilAttestering
+import tilbakekreving.domain.tilAttestering.TilbakekrevingsbehandlingTilAttesteringCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 
-private data class Body(val versjon: Long)
+private data class Body(
+    val versjon: Long,
+)
 
-internal fun Route.oppdaterKravgrunnlagRoute(
-    oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
+internal fun Route.tilAttesteringTilbakekrevingsbehandlingRoute(
+    service: TilbakekrevingsbehandlingTilAttesteringService,
 ) {
-    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/oppdaterKravgrunnlag") {
+    post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                call.withTilbakekrevingId { tilbakekrevingId ->
+                call.withTilbakekrevingId { id ->
                     call.withBody<Body> { body ->
-                        oppdaterKravgrunnlagService.oppdater(
-                            command = OppdaterKravgrunnlagCommand(
+                        service.tilAttestering(
+                            command = TilbakekrevingsbehandlingTilAttesteringCommand(
                                 sakId = sakId,
-                                behandlingId = TilbakekrevingsbehandlingId(tilbakekrevingId),
-                                oppdatertAv = call.suUserContext.saksbehandler,
+                                tilbakekrevingsbehandlingId = TilbakekrevingsbehandlingId(id),
+                                utførtAv = call.suUserContext.saksbehandler,
                                 correlationId = call.correlationId,
                                 brukerroller = call.suUserContext.roller.toNonEmptyList(),
                                 klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
@@ -53,10 +56,8 @@ internal fun Route.oppdaterKravgrunnlagRoute(
     }
 }
 
-internal fun KunneIkkeOppdatereKravgrunnlag.tilResultat(): Resultat = when (this) {
-    KunneIkkeOppdatereKravgrunnlag.FantIkkeUteståendeKravgrunnlag -> HttpStatusCode.InternalServerError.errorJson(
-        "Fant ikke utestående kravgrunnlag på sak",
-        "fant_ikke_utestående_kravgrunnlag_på_sak",
-    )
-    is KunneIkkeOppdatereKravgrunnlag.IkkeTilgang -> ikkeTilgangTilSak
+private fun KunneIkkeSendeTilAttestering.tilResultat(): Resultat = when (this) {
+    is KunneIkkeSendeTilAttestering.IkkeTilgang -> ikkeTilgangTilSak
+    is KunneIkkeSendeTilAttestering.KravgrunnlagetHarEndretSeg -> kravgrunnlagetHarEndretSeg
+    KunneIkkeSendeTilAttestering.UlikVersjon -> Feilresponser.utdatertVersjon
 }

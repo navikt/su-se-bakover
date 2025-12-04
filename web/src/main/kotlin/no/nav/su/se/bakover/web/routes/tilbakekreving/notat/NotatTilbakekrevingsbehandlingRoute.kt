@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.notat
+package no.nav.su.se.bakover.web.routes.tilbakekreving.notat
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -16,13 +16,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.notat.KunneIkkeOppdatereNotat
 import tilbakekreving.domain.notat.OppdaterNotatCommand
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 
 private data class Body(
     val versjon: Long,
