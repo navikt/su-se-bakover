@@ -68,6 +68,7 @@ fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAnnuller(
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "AVBRUTT",
+    behandlingResultat = "AVBRUTT",
     ansvarligBeslutter = this.avsluttetAv.navIdent,
 )
 

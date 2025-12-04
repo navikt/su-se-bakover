@@ -251,6 +251,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Avsluttet.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    behandlingResultat = BehandlingResultat.Avbrutt.toString(),
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
