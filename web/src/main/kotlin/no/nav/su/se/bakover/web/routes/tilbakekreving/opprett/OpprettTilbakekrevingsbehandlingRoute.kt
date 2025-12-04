@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.opprett
+package no.nav.su.se.bakover.web.routes.tilbakekreving.opprett
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -14,14 +14,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ingenUteståendeKravgrunnlag
 import person.domain.KunneIkkeHentePerson
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprettelse.KunneIkkeOppretteTilbakekrevingsbehandling
 import tilbakekreving.domain.opprettelse.OpprettTilbakekrevingsbehandlingCommand
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
-import tilbakekreving.presentation.api.common.ingenUteståendeKravgrunnlag
 import java.util.UUID
 
 data class OpprettTilbakekrevingRequest(

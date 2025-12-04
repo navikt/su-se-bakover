@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.vedtaksbrev
+package no.nav.su.se.bakover.web.routes.tilbakekreving.vedtaksbrev
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -15,12 +15,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.vedtaksbrev.ForhåndsvisVedtaksbrevCommand
 import tilbakekreving.domain.vedtaksbrev.KunneIkkeForhåndsviseVedtaksbrev
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 
 internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService,
