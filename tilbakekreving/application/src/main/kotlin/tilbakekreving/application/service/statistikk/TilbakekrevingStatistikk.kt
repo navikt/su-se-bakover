@@ -144,7 +144,7 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
         opprettetAv = opprettetAv.navIdent,
         saksbehandler = opprettetAv.navIdent,
         ansvarligBeslutter = ansvarligBeslutter,
-        behandlingMetode = BehandlingMetode.MANUELL,
+        behandlingMetode = BehandlingMetode.Manuell,
         tilbakekrevBeløp = tilbakekrevBeløp,
         funksjonellPeriodeFom = kravgrunnlag?.periode?.fraOgMed,
         funksjonellPeriodeTom = kravgrunnlag?.periode?.tilOgMed,

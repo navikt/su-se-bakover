@@ -130,7 +130,7 @@ fun List<SakStatistikk>.toCsv(): String = buildString {
                 sakStatistikk.sakYtelse,
                 sakStatistikk.sakUtland,
                 sakStatistikk.behandlingType,
-                sakStatistikk.behandlingMetode,
+                sakStatistikk.behandlingMetode.uppercase(),
                 sakStatistikk.mottattTid,
                 sakStatistikk.registrertTid,
                 sakStatistikk.ferdigbehandletTid.orEmpty(),

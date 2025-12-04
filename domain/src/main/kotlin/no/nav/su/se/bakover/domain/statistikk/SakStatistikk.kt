@@ -155,7 +155,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.MANUELL
+                        BehandlingMetode.Manuell
                     },
 
                 )
@@ -172,7 +172,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.MANUELL
+                        BehandlingMetode.Manuell
                     },
                 )
 
@@ -226,7 +226,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.MANUELL
+                        BehandlingMetode.Manuell
                     },
                 )
 
@@ -255,7 +255,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.MANUELL
+                        BehandlingMetode.Manuell
                     },
                 )
             }
@@ -423,7 +423,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
     behandlingResultat: String? = null,
     resultatBegrunnelse: String? = null,
     ansvarligBeslutter: String? = null,
-    behandlingMetode: BehandlingMetode = BehandlingMetode.MANUELL,
+    behandlingMetode: BehandlingMetode = BehandlingMetode.Manuell,
 
 ): SakStatistikk {
     return SakStatistikk(
