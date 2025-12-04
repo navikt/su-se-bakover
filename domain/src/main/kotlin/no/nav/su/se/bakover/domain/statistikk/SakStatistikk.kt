@@ -218,6 +218,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
                     saktype = revurdering.sakstype,
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    ferdigbehandletTid = vedtak.opprettet,
                     behandlingResultat = BehandlingResultat.Innvilget.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent
@@ -239,6 +240,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Opphør.toString(),
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    ferdigbehandletTid = vedtak.opprettet,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Avsluttet -> this.toBehandlingsstatistikkGenerell(
@@ -293,6 +295,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Stanset.toString(),
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    ferdigbehandletTid = vedtak.opprettet,
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                 )
             }
@@ -331,6 +334,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Gjenopptatt.toString(),
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    ferdigbehandletTid = vedtak.opprettet,
                 )
             }
         }
@@ -366,6 +370,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Avslag.toString(),
                     resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
+                    ferdigbehandletTid = vedtak.opprettet,
                 )
 
                 is StatistikkEvent.Behandling.Klage.Oversendt -> this.toBehandlingsstatistikkGenerell(
@@ -394,6 +399,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     },
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
                     saksbehandler = klage.saksbehandler.navIdent,
+                    ferdigbehandletTid = klage.datoklageferdigstilt,
                 )
             }
         }
