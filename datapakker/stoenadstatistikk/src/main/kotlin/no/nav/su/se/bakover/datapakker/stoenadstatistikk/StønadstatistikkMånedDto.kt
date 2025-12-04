@@ -60,7 +60,7 @@ import java.util.UUID
  * @property kapitalinntekt
  * @property kapitalinntektEps
  * @property kontantstotte
- * @property kontantstotteEpu
+ * @property kontantstotteEps
  * @property kvalifiseringsstonad
  * @property kvalifiseringsstonadEps
  * @property navYtelserTilLivsopphold
@@ -158,7 +158,7 @@ data class StønadstatistikkMånedDto(
     val kapitalinntektEps: Int?,
 
     val kontantstotte: Int?,
-    val kontantstotteEpu: Int?,
+    val kontantstotteEps: Int?,
 
     val kvalifiseringsstonad: Int?,
     val kvalifiseringsstonadEps: Int?,
@@ -278,7 +278,7 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.kapitalinntekt?.toString().orEmpty(),
                     dto.kapitalinntektEps?.toString().orEmpty(),
                     dto.kontantstotte?.toString().orEmpty(),
-                    dto.kontantstotteEpu?.toString().orEmpty(),
+                    dto.kontantstotteEps?.toString().orEmpty(),
                     dto.kvalifiseringsstonad?.toString().orEmpty(),
                     dto.kvalifiseringsstonadEps?.toString().orEmpty(),
                     dto.navYtelserTilLivsopphold?.toString().orEmpty(),
