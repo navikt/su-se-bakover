@@ -1,6 +1,9 @@
 package satser.domain.minsteårligytelseforuføretrygdede
 
 import no.nav.su.se.bakover.common.domain.Faktor
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import java.math.BigDecimal
@@ -12,6 +15,15 @@ data class MinsteÅrligYtelseForUføretrygdedeForMåned(
     val ikrafttredelse: LocalDate,
     val virkningstidspunkt: LocalDate,
     val måned: Måned,
-) {
+    override val benyttetRegel: Regelspesifisering = when (satsKategori) {
+        Satskategori.ORDINÆR -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_ORDINÆR.benyttGrunnlag(
+            faktor.value.toString(),
+        )
+
+        Satskategori.HØY -> RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag(
+            faktor.value.toString(),
+        )
+    },
+) : RegelspesifisertBeregning {
     val faktorSomBigDecimal: BigDecimal = faktor.toBigDecimal()
 }

@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
 import beregning.domain.BeregningFactory
-import beregning.domain.BeregningForMåned
 import beregning.domain.Beregningsgrunnlag
 import beregning.domain.Beregningsperiode
 import beregning.domain.utledBeregningsstrategi
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import satser.domain.SatsFactory
-import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -29,7 +27,6 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
-import java.time.LocalDate
 
 /**
  * forventet inntekt 1 000 000
@@ -118,22 +115,5 @@ fun forventetInntekt0FradragForMåned(
         månedsbeløp = 0.0,
         måned = måned,
         tilhører = FradragTilhører.BRUKER,
-    )
-}
-
-fun beregningForMåned(
-    måned: Måned,
-    fradrag: List<FradragForMåned>,
-    beregningsDag: LocalDate,
-    fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned = satsFactoryTestPåDato(beregningsDag).høyUføre(måned),
-    sumYtelse: Int,
-    sumFradrag: Double,
-): BeregningForMåned {
-    return BeregningForMåned(
-        måned = måned,
-        fradrag = fradrag,
-        fullSupplerendeStønadForMåned = fullSupplerendeStønadForMåned,
-        sumYtelse = sumYtelse,
-        sumFradrag = sumFradrag,
     )
 }

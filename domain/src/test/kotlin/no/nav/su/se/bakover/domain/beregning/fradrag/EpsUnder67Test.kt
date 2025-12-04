@@ -40,11 +40,11 @@ internal class EpsUnder67Test {
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
-            it[januar(2020)]!! shouldContainAll listOf(
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedArbeidsinntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype == ForventetInntekt } }
+            it.values.forEach { it.verdi.none { it.fradragstype == ForventetInntekt } }
         }
     }
 
@@ -65,11 +65,11 @@ internal class EpsUnder67Test {
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
-            it[januar(2020)]!! shouldContainAll listOf(
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedForventetInntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype == Arbeidsinntekt } }
+            it.values.forEach { it.verdi.none { it.fradragstype == Arbeidsinntekt } }
         }
     }
 
@@ -93,12 +93,12 @@ internal class EpsUnder67Test {
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
-            it[januar(2020)]!! shouldBe listOf(
+            it[januar(2020)]!!.verdi shouldBe listOf(
                 expectedBrukerInntekt,
                 expectedEpsInntekt,
             )
-            it.values.forEach { it.any { it.tilhører == BRUKER } shouldBe true }
-            it.values.forEach { it.any { it.tilhører == EPS } shouldBe true }
+            it.values.forEach { it.verdi.any { it.tilhører == BRUKER } shouldBe true }
+            it.values.forEach { it.verdi.any { it.tilhører == EPS } shouldBe true }
         }
     }
 
@@ -125,7 +125,7 @@ internal class EpsUnder67Test {
         ).let { fradrag ->
             fradrag.size shouldBe 12
             fradrag.values.forEach { alleFradrag ->
-                alleFradrag.filter { it.tilhører == EPS }.let { epsFradrag ->
+                alleFradrag.verdi.filter { it.tilhører == EPS }.let { epsFradrag ->
                     epsFradrag shouldHaveSize 1
                     epsFradrag.all { it.fradragstype == BeregnetFradragEPS } shouldBe true
                 }
@@ -145,7 +145,7 @@ internal class EpsUnder67Test {
             beregningsperiode = periode,
         ).let {
             it shouldHaveSize 8
-            it.values.sumOf { it.sumOf { it.månedsbeløp } }
+            it.values.sumOf { it.verdi.sumOf { it.månedsbeløp } }
         } shouldBe 8 * 5000
     }
 }

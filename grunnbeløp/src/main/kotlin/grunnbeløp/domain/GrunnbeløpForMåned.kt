@@ -1,6 +1,9 @@
 package grunnbeløp.domain
 
 import no.nav.su.se.bakover.common.domain.extensions.avrund
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.math.BigDecimal
@@ -12,7 +15,11 @@ data class GrunnbeløpForMåned(
     val ikrafttredelse: LocalDate,
     val virkningstidspunkt: LocalDate,
     val omregningsfaktor: BigDecimal,
-) {
+    override val benyttetRegel: Regelspesifisering = RegelspesifisertGrunnlag.GRUNNLAG_GRUNNBELØP.benyttGrunnlag(
+        grunnbeløpPerÅr.toString(),
+    ),
+) : RegelspesifisertBeregning {
+
     init {
         require(grunnbeløpPerÅr >= 0)
         require(virkningstidspunkt.isEqualOrBefore(måned.fraOgMed)) {

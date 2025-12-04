@@ -2,7 +2,11 @@ package satser.domain
 
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -16,6 +20,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import satser.domain.garantipensjon.GarantipensjonForMåned
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import java.math.BigDecimal
 
 internal class GarantipensjonFactoryTest {
@@ -71,10 +76,45 @@ internal class GarantipensjonFactoryTest {
                 ikrafttredelse = 4.september(2020),
                 virkningstidspunkt = 1.mai(2020),
             ),
-            toProsentAvHøyForMåned = BigDecimal("320.2083333333333333333333333333333"),
+            toProsentAvHøyForMåned = createToProsentAvHøyForMånedAlder(BigDecimal("320.2083333333333333333333333333333")),
         )
-        satsFactoryTestPåDato().ordinærAlder(mai(2020)) shouldBe expected(mai(2020))
-        satsFactoryTestPåDato().ordinærAlder(juli(2020)) shouldBe expected(juli(2020))
+
+        val mai = satsFactoryTestPåDato().ordinærAlder(mai(2020))
+
+        mai shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
+            )
+            expected(mai(2020))
+        }
+        mai.toProsentAvHøyForMåned shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
+            )
+            expected(mai(2020)).toProsentAvHøyForMåned
+        }
+
+        val juli = satsFactoryTestPåDato().ordinærAlder(juli(2020))
+        juli shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
+            )
+            expected(juli(2020))
+        }
+        juli.toProsentAvHøyForMåned shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                Regelspesifisering.Beregning::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                Regelspesifisering.Grunnlag::verdi,
+            )
+            expected(juli(2020)).toProsentAvHøyForMåned
+        }
     }
 
     @Test
@@ -112,3 +152,23 @@ internal class GarantipensjonFactoryTest {
         satsFactoryTestPåDato(påDato = 1.januar(2021)).høyAlder(mai(2022)).satsPerÅr.intValueExact() shouldBe 192125
     }
 }
+
+fun createToProsentAvHøyForMåned(
+    verdi: BigDecimal,
+) = ToProsentAvHøyForMåned.Uføre(
+    verdi = verdi,
+    benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(
+        verdi = verdi.toString(),
+        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_UFØRE_FAKTOR_HØY.benyttGrunnlag("")),
+    ),
+)
+
+fun createToProsentAvHøyForMånedAlder(
+    verdi: BigDecimal,
+) = ToProsentAvHøyForMåned.Alder(
+    verdi = verdi,
+    benyttetRegel = Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_ALDER.benyttRegelspesifisering(
+        verdi = verdi.toString(),
+        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_GARANTIPENSJON_HØY.benyttGrunnlag("")),
+    ),
+)

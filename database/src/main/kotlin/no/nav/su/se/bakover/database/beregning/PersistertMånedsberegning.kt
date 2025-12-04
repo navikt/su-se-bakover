@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.database.beregning
 
 import beregning.domain.BeregningForMåned
+import beregning.domain.BeregningForMånedRegelspesifisert
 import beregning.domain.Merknader
-import beregning.domain.Månedsberegning
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.MånedJson
 import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
@@ -26,6 +30,7 @@ internal data class PersistertMånedsberegning(
     val periode: MånedJson,
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),
+    val benyttetRegel: RegelspesifiseringJson?,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -35,7 +40,7 @@ internal data class PersistertMånedsberegning(
         sakstype: Sakstype,
         saksnummer: Saksnummer,
         erAvbrutt: Boolean?,
-    ): BeregningForMåned {
+    ): BeregningForMånedRegelspesifisert {
         val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
@@ -85,23 +90,103 @@ internal data class PersistertMånedsberegning(
             merknader = Merknader.Beregningsmerknad(merknader.mapNotNull { it.toDomain() }.toMutableList()),
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-        )
+        ).let {
+            BeregningForMånedRegelspesifisert(
+                verdi = it,
+                benyttetRegel = benyttetRegel?.toDomain() ?: Regelspesifisering.BeregnetUtenSpesifisering,
+            )
+        }
     }
 }
 
 /** Database-representasjon til serialisering */
-internal fun Månedsberegning.toJson(): PersistertMånedsberegning {
-    return PersistertMånedsberegning(
-        sumYtelse = getSumYtelse(),
-        sumFradrag = getSumFradrag(),
-        benyttetGrunnbeløp = getBenyttetGrunnbeløp(),
-        sats = getSats(),
-        satsbeløp = getSatsbeløp(),
-        fradrag = getFradrag().map { it.toJson() },
-        periode = måned.toJson(),
-        fribeløpForEps = getFribeløpForEps(),
-        merknader = getMerknader().toSnapshot(),
-    )
+internal fun BeregningForMånedRegelspesifisert.toJson(): PersistertMånedsberegning {
+    return with(verdi) {
+        PersistertMånedsberegning(
+            sumYtelse = getSumYtelse(),
+            sumFradrag = getSumFradrag(),
+            benyttetGrunnbeløp = getBenyttetGrunnbeløp(),
+            sats = getSats(),
+            satsbeløp = getSatsbeløp(),
+            fradrag = getFradrag().map { it.toJson() },
+            periode = måned.toJson(),
+            fribeløpForEps = getFribeløpForEps(),
+            merknader = getMerknader().toSnapshot(),
+            benyttetRegel = benyttetRegel.toJson(),
+        )
+    }
+}
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type",
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = RegelspesifiseringJson.Beregning::class, name = "Beregning"),
+    JsonSubTypes.Type(value = RegelspesifiseringJson.Grunnlag::class, name = "Grunnlag"),
+)
+sealed interface RegelspesifiseringJson {
+
+    fun toDomain(): Regelspesifisering
+
+    data class Beregning(
+        val kode: String,
+        val versjon: String,
+        val benyttetTidspunkt: Tidspunkt,
+        val verdi: String,
+        val avhengigeRegler: List<RegelspesifiseringJson>,
+    ) : RegelspesifiseringJson {
+        override fun toDomain() = Regelspesifisering.Beregning(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
+            avhengigeRegler = avhengigeRegler.map {
+                it.toDomain()
+            },
+        )
+    }
+
+    data class Grunnlag(
+        val kode: String,
+        val versjon: String,
+        val benyttetTidspunkt: Tidspunkt,
+        val verdi: String,
+        val kilde: String,
+    ) : RegelspesifiseringJson {
+        override fun toDomain() = Regelspesifisering.Grunnlag(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
+            kilde = kilde,
+        )
+    }
+}
+
+internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
+    return when (this) {
+        is Regelspesifisering.Beregning -> RegelspesifiseringJson.Beregning(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
+            avhengigeRegler = avhengigeRegler.map {
+                it.toJson()
+            },
+        )
+
+        is Regelspesifisering.Grunnlag -> RegelspesifiseringJson.Grunnlag(
+            kode = kode,
+            versjon = versjon,
+            benyttetTidspunkt = benyttetTidspunkt,
+            verdi = verdi,
+            kilde = kilde,
+        )
+
+        Regelspesifisering.BeregnetUtenSpesifisering -> throw IllegalStateException("Denne tilstanden skal kun være for beregnigner som ble gjort før regelspesifisering ble innført. Den skal aldri brukes på nye beregninger.")
+    }
 }
 
 private fun Double.isEqualToTwoDecimals(other: Double): Boolean {

@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.database.regulering
 
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import grunnbeløp.domain.GrunnbeløpForMåned
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
@@ -32,7 +34,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import satser.domain.Satskategori
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeForMåned
+import satser.domain.supplerendestønad.BeregnSats
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
+import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
@@ -232,25 +236,36 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         hentRegulering shouldBe regulering
         val beregning = hentRegulering!!.beregning as BeregningMedFradragBeregnetMånedsvis
         beregning.getMånedsberegninger().zip((mai(2021)..desember(2021)).måneder()) { a, b ->
-            a.fullSupplerendeStønadForMåned shouldBe FullSupplerendeStønadForMåned.Uføre(
-                måned = b,
-                satskategori = Satskategori.HØY,
-                grunnbeløp = GrunnbeløpForMåned(
+            a.fullSupplerendeStønadForMåned shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    ToProsentAvHøyForMåned.Uføre::benyttetRegel,
+                    GrunnbeløpForMåned::benyttetRegel,
+                    MinsteÅrligYtelseForUføretrygdedeForMåned::benyttetRegel,
+                    BeregnSats.Uføre::benyttetRegel,
+                )
+                FullSupplerendeStønadForMåned.Uføre(
                     måned = b,
-                    grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 4.september(2020),
-                    virkningstidspunkt = 1.mai(2020),
-                    omregningsfaktor = BigDecimal(1.014951),
-                ),
-                minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                    faktor = Faktor(value = 2.48),
-                    satsKategori = Satskategori.HØY,
-                    ikrafttredelse = 1.januar(2015),
-                    virkningstidspunkt = 1.januar(2015),
-                    måned = b,
-                ),
-                toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
-            )
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = b,
+                        grunnbeløpPerÅr = 101351,
+                        ikrafttredelse = 4.september(2020),
+                        virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(value = 2.48),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.januar(2015),
+                        virkningstidspunkt = 1.januar(2015),
+                        måned = b,
+                    ),
+                    toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Uføre(
+                        BigDecimal("418.9174666666666666666666666666667"),
+                        Regelspesifiseringer.REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE.benyttRegelspesifisering(""),
+                    ),
+                )
+            }
         }
     }
 }

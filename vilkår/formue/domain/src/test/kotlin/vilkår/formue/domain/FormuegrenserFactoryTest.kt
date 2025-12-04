@@ -2,9 +2,11 @@ package vilkår.formue.domain
 
 import grunnbeløp.domain.GrunnbeløpFactory
 import grunnbeløp.domain.GrunnbeløpForMåned
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.domain.Knekkpunkt
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
@@ -30,93 +32,123 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `januar 2021`() {
-            formuegrense.forMåned(januar(2021)) shouldBe FormuegrenseForMåned(
-                grunnbeløpForMåned = GrunnbeløpForMåned(
-                    måned = januar(2021),
-                    grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 4.september(2020),
-                    virkningstidspunkt = 1.mai(2020),
-                    omregningsfaktor = BigDecimal(1.014951),
-                ),
-                faktor = Faktor(0.5),
-            ).also {
-                it.virkningstidspunkt shouldBe 1.mai(2020)
-                it.formuegrense shouldBe BigDecimal("50675.5")
-                it.formuegrenseMedToDesimaler shouldBe 50675.50
+            formuegrense.forMåned(januar(2021)) shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                )
+                FormuegrenseForMåned(
+                    grunnbeløpForMåned = GrunnbeløpForMåned(
+                        måned = januar(2021),
+                        grunnbeløpPerÅr = 101351,
+                        ikrafttredelse = 4.september(2020),
+                        virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
+                    ),
+                    faktor = Faktor(0.5),
+                ).also {
+                    it.virkningstidspunkt shouldBe 1.mai(2020)
+                    it.formuegrense shouldBe BigDecimal("50675.5")
+                    it.formuegrenseMedToDesimaler shouldBe 50675.50
+                }
             }
         }
 
         @Test
         fun `februar 2021`() {
-            formuegrense.forMåned(februar(2021)) shouldBe FormuegrenseForMåned(
-                grunnbeløpForMåned = GrunnbeløpForMåned(
-                    måned = februar(2021),
-                    grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 4.september(2020),
-                    virkningstidspunkt = 1.mai(2020),
-                    omregningsfaktor = BigDecimal(1.014951),
-                ),
-                faktor = Faktor(0.5),
-            )
+            formuegrense.forMåned(februar(2021)) shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                )
+                FormuegrenseForMåned(
+                    grunnbeløpForMåned = GrunnbeløpForMåned(
+                        måned = februar(2021),
+                        grunnbeløpPerÅr = 101351,
+                        ikrafttredelse = 4.september(2020),
+                        virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
+                    ),
+                    faktor = Faktor(0.5),
+                )
+            }
         }
 
         @Test
         fun `mars 2021`() {
-            formuegrense.forMåned(mars(2021)) shouldBe FormuegrenseForMåned(
-                grunnbeløpForMåned = GrunnbeløpForMåned(
-                    måned = mars(2021),
-                    grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 4.september(2020),
-                    virkningstidspunkt = 1.mai(2020),
-                    omregningsfaktor = BigDecimal(1.014951),
-                ),
-                faktor = Faktor(0.5),
-            )
+            formuegrense.forMåned(mars(2021)) shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                )
+                FormuegrenseForMåned(
+                    grunnbeløpForMåned = GrunnbeløpForMåned(
+                        måned = mars(2021),
+                        grunnbeløpPerÅr = 101351,
+                        ikrafttredelse = 4.september(2020),
+                        virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
+                    ),
+                    faktor = Faktor(0.5),
+                )
+            }
         }
 
         @Test
         fun `april 2021`() {
-            formuegrense.forMåned(april(2021)) shouldBe FormuegrenseForMåned(
-                grunnbeløpForMåned = GrunnbeløpForMåned(
-                    måned = april(2021),
-                    grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 4.september(2020),
-                    virkningstidspunkt = 1.mai(2020),
-                    omregningsfaktor = BigDecimal(1.014951),
-                ),
-                faktor = Faktor(0.5),
-            )
+            formuegrense.forMåned(april(2021)) shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                )
+                FormuegrenseForMåned(
+                    grunnbeløpForMåned = GrunnbeløpForMåned(
+                        måned = april(2021),
+                        grunnbeløpPerÅr = 101351,
+                        ikrafttredelse = 4.september(2020),
+                        virkningstidspunkt = 1.mai(2020),
+                        omregningsfaktor = BigDecimal(1.014951),
+                    ),
+                    faktor = Faktor(0.5),
+                )
+            }
         }
 
         @Test
         fun `mai 2021`() {
-            formuegrense.forMåned(mai(2021)) shouldBe FormuegrenseForMåned(
-                grunnbeløpForMåned = GrunnbeløpForMåned(
-                    måned = mai(2021),
-                    grunnbeløpPerÅr = 106399,
-                    ikrafttredelse = 21.mai(2021),
-                    virkningstidspunkt = 1.mai(2021),
-                    omregningsfaktor = BigDecimal(1.049807),
-                ),
-                faktor = Faktor(0.5),
-            ).also {
-                it.virkningstidspunkt shouldBe 1.mai(2021)
-                it.formuegrense shouldBe BigDecimal("53199.5")
+            formuegrense.forMåned(mai(2021)) shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                )
+                FormuegrenseForMåned(
+                    grunnbeløpForMåned = GrunnbeløpForMåned(
+                        måned = mai(2021),
+                        grunnbeløpPerÅr = 106399,
+                        ikrafttredelse = 21.mai(2021),
+                        virkningstidspunkt = 1.mai(2021),
+                        omregningsfaktor = BigDecimal(1.049807),
+                    ),
+                    faktor = Faktor(0.5),
+                ).also {
+                    it.virkningstidspunkt shouldBe 1.mai(2021)
+                    it.formuegrense shouldBe BigDecimal("53199.5")
+                }
             }
         }
 
         @Test
         fun `mai 2022`() {
-            formuegrense.forMåned(mai(2022)) shouldBe FormuegrenseForMåned(
-                grunnbeløpForMåned = GrunnbeløpForMåned(
-                    måned = mai(2022),
-                    grunnbeløpPerÅr = 111477,
-                    ikrafttredelse = 20.mai(2022),
-                    virkningstidspunkt = 1.mai(2022),
-                    omregningsfaktor = BigDecimal(1.047726),
-                ),
-                faktor = Faktor(0.5),
-            )
+            formuegrense.forMåned(mai(2022)) shouldBeEqualUsingFields {
+                excludedProperties = setOf(
+                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
+                )
+                FormuegrenseForMåned(
+                    grunnbeløpForMåned = GrunnbeløpForMåned(
+                        måned = mai(2022),
+                        grunnbeløpPerÅr = 111477,
+                        ikrafttredelse = 20.mai(2022),
+                        virkningstidspunkt = 1.mai(2022),
+                        omregningsfaktor = BigDecimal(1.047726),
+                    ),
+                    faktor = Faktor(0.5),
+                )
+            }
         }
     }
 

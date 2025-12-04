@@ -33,6 +33,14 @@ private data class PersistertBeregning(
         saksnummer: Saksnummer,
         erAvbrutt: Boolean?,
     ): BeregningMedFradragBeregnetMånedsvis {
+        val månedsberegninger = månedsberegninger.map {
+            it.toMånedsberegning(
+                satsFactory = satsFactory.gjeldende(opprettet),
+                sakstype = sakstype,
+                saksnummer = saksnummer,
+                erAvbrutt = erAvbrutt,
+            )
+        }.toNonEmptyList()
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
@@ -41,14 +49,7 @@ private data class PersistertBeregning(
             begrunnelse = begrunnelse,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            månedsberegninger = månedsberegninger.map {
-                it.toMånedsberegning(
-                    satsFactory = satsFactory.gjeldende(opprettet),
-                    sakstype = sakstype,
-                    saksnummer = saksnummer,
-                    erAvbrutt = erAvbrutt,
-                )
-            }.toNonEmptyList(),
+            månedsberegninger = månedsberegninger,
         )
     }
 }
@@ -68,7 +69,7 @@ internal fun Beregning.serialiser(): String {
     return PersistertBeregning(
         id = getId(),
         opprettet = getOpprettet(),
-        månedsberegninger = getMånedsberegninger().map { it.toJson() },
+        månedsberegninger = getMånedsberegningerMedRegel().map { it.toJson() },
         fradrag = getFradrag().map { it.toJson() },
         sumYtelse = getSumYtelse(),
         sumFradrag = getSumFradrag(),

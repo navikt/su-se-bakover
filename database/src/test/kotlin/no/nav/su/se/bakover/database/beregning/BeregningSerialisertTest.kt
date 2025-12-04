@@ -43,6 +43,9 @@ internal class BeregningSerialisertTest {
             periode = mai(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato), Sakstype.UFØRE),
         )
+
+        val benyttetRegler = serialize(actualBeregning.getMånedsberegningerMedRegel().single().benyttetRegel.toJson())
+
         //language=json
         val expectedJson = """
             {
@@ -88,7 +91,8 @@ internal class BeregningSerialisertTest {
                     {
                       "type": "BeløpErNull"
                     }
-                  ]
+                  ],
+                  "benyttetRegel": $benyttetRegler 
                 }
               ],
               "fradrag": [

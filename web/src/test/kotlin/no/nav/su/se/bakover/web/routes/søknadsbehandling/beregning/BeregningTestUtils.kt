@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import beregning.domain.Beregning
+import beregning.domain.BeregningForMånedRegelspesifisert
 import beregning.domain.Merknad
 import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,6 +25,7 @@ internal data object TestBeregning : Beregning {
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(ZoneOffset.UTC)
     override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
+    override fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert> = emptyList()
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
