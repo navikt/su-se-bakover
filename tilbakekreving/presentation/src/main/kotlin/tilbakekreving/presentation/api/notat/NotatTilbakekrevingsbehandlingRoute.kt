@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.domain.NonBlankString.Companion.toNonBlankStr
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -35,12 +37,19 @@ internal fun Route.notatTilbakekrevingsbehandlingRoute(
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
                     call.withBody<Body> { body ->
+                        val notat = try {
+                            body.notat?.toNonBlankString()
+                        } catch (_: IllegalArgumentException) {
+                            log.info("Blankt notat mottat, avviser request")
+                            call.svar(HttpStatusCode.BadRequest.errorJson(message = "Kan ikke være blankt notat", "notat_mangler_innhold"))
+                            return@withBody
+                        }
                         notatTilbakekrevingsbehandlingService.lagreNotat(
                             command = OppdaterNotatCommand(
                                 sakId = sakId,
                                 correlationId = call.correlationId,
                                 brukerroller = call.suUserContext.roller,
-                                notat = body.notat?.toNonBlankString(),
+                                notat = notat,
                                 behandlingId = TilbakekrevingsbehandlingId(tilbakekrevingId),
                                 utførtAv = call.suUserContext.saksbehandler,
                                 klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
