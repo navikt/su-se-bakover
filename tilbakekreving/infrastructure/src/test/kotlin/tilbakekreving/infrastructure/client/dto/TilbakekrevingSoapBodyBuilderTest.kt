@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.test.vurderingerMedKrav
 import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
 import org.junit.jupiter.api.Test
 import tilbakekreving.infrastructure.client.buildTilbakekrevingSoapRequest
+import økonomi.domain.Fagområde
 
 internal class TilbakekrevingSoapBodyBuilderTest {
     @Test
@@ -53,6 +54,7 @@ internal class TilbakekrevingSoapBodyBuilderTest {
         buildTilbakekrevingSoapRequest(
             vurderingerMedKrav = vurderingerMedKrav,
             attestertAv = attestant,
+            fagområde = Fagområde.SUUFORE,
         ).getOrFail().shouldBeSimilarXmlTo(expected, true)
     }
 }

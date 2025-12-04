@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
@@ -38,6 +39,7 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+                sakstype = Sakstype.UFØRE,
             ) shouldBe KunneIkkeSendeTilbakekrevingsvedtak.FeilStatusFraOppdrag.left()
         }
     }
@@ -57,6 +59,7 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+                sakstype = Sakstype.UFØRE,
             ) shouldBe KunneIkkeSendeTilbakekrevingsvedtak.AlvorlighetsgradFeil.left()
         }
     }
@@ -77,6 +80,7 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+                sakstype = Sakstype.UFØRE,
             ).getOrFail().shouldBeEqualToIgnoringFields(
                 RåTilbakekrevingsvedtakForsendelse(
                     requestXml = "ignore-me",
