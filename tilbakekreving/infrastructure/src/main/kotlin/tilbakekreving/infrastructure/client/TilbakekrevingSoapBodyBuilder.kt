@@ -15,6 +15,7 @@ import tilbakekreving.infrastructure.client.dto.Skyld
 import tilbakekreving.infrastructure.client.dto.TilbakekrevingsHjemmel
 import tilbakekreving.infrastructure.client.dto.Tilbakekrevingsresultat
 import tilbakekreving.infrastructure.client.dto.TilbakekrevingsÅrsak
+import økonomi.domain.Fagområde
 import kotlin.math.max
 
 private val log = LoggerFactory.getLogger("tilbakekreving.infrastructure.client.buildTilbakekrevingSoapRequest")
@@ -26,6 +27,7 @@ private val log = LoggerFactory.getLogger("tilbakekreving.infrastructure.client.
 internal fun buildTilbakekrevingSoapRequest(
     vurderingerMedKrav: VurderingerMedKrav,
     attestertAv: NavIdentBruker.Attestant,
+    fagområde: Fagområde,
 ): Either<KunneIkkeSendeTilbakekrevingsvedtak, String> {
     return Either.catch {
         // TODO jah: Vurder om vi skal legge til datoVedtakFagsystem istedenfor å få dagens dato.
@@ -52,7 +54,7 @@ internal fun buildTilbakekrevingSoapRequest(
         <ns3:renterBeregnes>N</ns3:renterBeregnes>
         <ns3:belopRenter>0.00</ns3:belopRenter>
         <ns3:tilbakekrevingsbelop>
-          <ns3:kodeKlasse>SUUFORE</ns3:kodeKlasse>
+          <ns3:kodeKlasse>${fagområde.name}</ns3:kodeKlasse>
           <ns3:belopOpprUtbet>${periode.bruttoTidligereUtbetalt.toStringWithDecimals(2)}</ns3:belopOpprUtbet>
           <ns3:belopNy>${periode.bruttoNyUtbetaling.toStringWithDecimals(2)}</ns3:belopNy>
           <ns3:belopTilbakekreves>${periode.bruttoSkalTilbakekreve.toStringWithDecimals(2)}</ns3:belopTilbakekreves>

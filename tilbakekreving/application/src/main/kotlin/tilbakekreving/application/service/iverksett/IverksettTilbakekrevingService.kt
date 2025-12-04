@@ -78,6 +78,7 @@ class IverksettTilbakekrevingService(
             val tilbakekrevingsvedtakForsendelse = tilbakekrevingsklient.sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = iverksattBehandling.vurderingerMedKrav,
                 attestertAv = command.utførtAv,
+                sakstype = sak.type,
             ).getOrElse {
                 return KunneIkkeIverksette.KunneIkkeSendeTilbakekrevingsvedtak.left()
             }
