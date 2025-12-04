@@ -309,7 +309,7 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.underMinstenivåEps?.toString().orEmpty(),
                     dto.annet?.toString().orEmpty(),
                     dto.annetEps?.toString().orEmpty(),
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm")).toString(),
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm")),
                 ).joinToString(",") { escapeCsv(it) },
             )
         }
