@@ -165,7 +165,7 @@ class BeregningFactory(val clock: Clock) {
                             benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
                                 verdi = ny.verdi.toString(),
                                 avhengigeRegler = listOf(
-                                    RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                                    RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                                     ny.benyttetRegel,
                                     sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
                                     beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,

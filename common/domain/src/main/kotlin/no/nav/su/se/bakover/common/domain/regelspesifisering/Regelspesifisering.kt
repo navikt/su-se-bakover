@@ -36,7 +36,7 @@ enum class RegelspesifisertGrunnlag(
     val kode: String,
     val versjon: String,
 ) {
-    GRUNNLAG_BOTILSTAND("GRUNNLAG-BOTILSTAND", "1"),
+    GRUNNLAG_BOSITUASJON("GRUNNLAG-BOSITUASJON", "1"),
     GRUNNLAG_FRADRAG("GRUNNLAG-FRADRAG", "1"),
     GRUNNLAG_GRUNNBELØP("GRUNNLAG-GRUNNBELØP", "1"),
     GRUNNLAG_UFØRE_FAKTOR_ORDINÆR("GRUNNLAG-UFØRE-FAKTOR-ORDINÆR", "1"),
@@ -48,7 +48,7 @@ enum class RegelspesifisertGrunnlag(
     fun benyttGrunnlag(
         verdi: String,
         kilde: String = when (this) {
-            GRUNNLAG_BOTILSTAND,
+            GRUNNLAG_BOSITUASJON,
             GRUNNLAG_FRADRAG,
             -> "Saksbehandler"
 
