@@ -24,24 +24,24 @@ class SakStatistikkRepoImpl(
                 sessionContext.withSession { session ->
                     """
                     INSERT INTO sak_statistikk (
-                        hendelse_tid, teknisk_tid, sak_id, saksnummer, behandling_id, relatert_behandling_id,
+                        funksjonell_tid, teknisk_tid, sak_id, saksnummer, behandling_id, relatert_behandling_id,
                         sak_ytelse, sak_utland, behandling_type, behandling_metode, mottatt_tid, registrert_tid,
                         ferdigbehandlet_tid, utbetalt_tid, behandling_status, behandling_resultat, behandling_begrunnelse,
                         behandling_aarsak, opprettet_av, saksbehandler, ansvarlig_beslutter, ansvarlig_enhet,
-                        vedtakslosning_navn, funksjonell_periode_fom, funksjonell_periode_tom,
+                        funksjonell_periode_fom, funksjonell_periode_tom,
                         tilbakekrev_beloep, aktorid                   
                     ) VALUES (
-                        :hendelse_tid, :teknisk_tid, :sak_id, :saksnummer, :behandling_id, :relatert_behandling_id,
+                        :funksjonell_tid, :teknisk_tid, :sak_id, :saksnummer, :behandling_id, :relatert_behandling_id,
                         :sak_ytelse, :sak_utland, :behandling_type, :behandling_metode, :mottatt_tid, :registrert_tid,
                         :ferdigbehandlet_tid, :utbetalt_tid, :behandling_status, :behandling_resultat,
                         :behandling_begrunnelse,:behandling_aarsak, :opprettet_av, :saksbehandler, :ansvarlig_beslutter,
-                        :ansvarlig_enhet, :vedtakslosning_navn,:funksjonell_periode_fom, :funksjonell_periode_tom,
+                        :ansvarlig_enhet, :funksjonell_periode_fom, :funksjonell_periode_tom,
                         :tilbakekrev_beloep, :aktorid                   
                     )
                     """.trimIndent()
                         .insert(
                             mapOf(
-                                "hendelse_tid" to sakStatistikk.hendelseTid,
+                                "funksjonell_tid" to sakStatistikk.funksjonellTid,
                                 "teknisk_tid" to sakStatistikk.tekniskTid,
                                 "sak_id" to sakStatistikk.sakId,
                                 "saksnummer" to sakStatistikk.saksnummer,
@@ -64,7 +64,6 @@ class SakStatistikkRepoImpl(
                                 "saksbehandler" to sakStatistikk.saksbehandler,
                                 "ansvarlig_beslutter" to sakStatistikk.ansvarligBeslutter,
                                 "ansvarlig_enhet" to sakStatistikk.ansvarligEnhet,
-                                "vedtakslosning_navn" to sakStatistikk.vedtaksløsningNavn,
                                 "funksjonell_periode_fom" to sakStatistikk.funksjonellPeriodeFom,
                                 "funksjonell_periode_tom" to sakStatistikk.funksjonellPeriodeTom,
                                 "tilbakekrev_beloep" to sakStatistikk.tilbakekrevBeløp,
@@ -86,7 +85,7 @@ class SakStatistikkRepoImpl(
                 session = session,
             ) { row ->
                 SakStatistikk(
-                    hendelseTid = row.tidspunkt("hendelse_tid"),
+                    funksjonellTid = row.tidspunkt("funksjonell_tid"),
                     tekniskTid = row.tidspunkt("teknisk_tid"),
                     sakId = row.uuid("sak_id"),
                     saksnummer = row.long("saksnummer"),
@@ -109,7 +108,6 @@ class SakStatistikkRepoImpl(
                     saksbehandler = row.stringOrNull("saksbehandler"),
                     ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
                     ansvarligEnhet = row.string("ansvarlig_enhet"),
-                    vedtaksløsningNavn = row.string("vedtakslosning_navn"),
                     funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
                     funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
                     tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),

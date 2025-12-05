@@ -68,6 +68,7 @@ fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAnnuller(
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
     behandlingStatus = "AVBRUTT",
+    behandlingResultat = "AVBRUTT",
     ansvarligBeslutter = this.avsluttetAv.navIdent,
 )
 
@@ -121,7 +122,7 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
     tilbakekrevBeløp: Long? = null,
 ): SakStatistikk {
     return SakStatistikk(
-        hendelseTid = opprettet,
+        funksjonellTid = opprettet,
         tekniskTid = generellSakStatistikk.tekniskTid,
         sakId = sakId,
         saksnummer = saksnummer.nummer,

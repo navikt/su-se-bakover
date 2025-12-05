@@ -11,7 +11,7 @@ import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SakStatistikk(
-    val hendelseTid: Tidspunkt,
+    val funksjonellTid: Tidspunkt,
     val tekniskTid: Tidspunkt,
     val sakId: UUID,
     @param:JsonSerialize(using = ToStringSerializer::class)
@@ -41,8 +41,6 @@ data class SakStatistikk(
     // Attestant
     val ansvarligBeslutter: String? = null,
     val ansvarligEnhet: String = "4815",
-
-    val vedtaksløsningNavn: String = "SU-App",
 
     // Tilbakekreving
     val funksjonellPeriodeFom: LocalDate? = null,
