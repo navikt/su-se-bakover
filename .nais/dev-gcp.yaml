@@ -65,6 +65,7 @@ spec:
       rules:
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
+          cluster: dev-gcp
         - application: su-pdfgen
           namespace: supstonad
           cluster: dev-gcp
