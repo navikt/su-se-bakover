@@ -39,7 +39,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
 
     private fun lageSakStatistikkAlleVerdier(): SakStatistikk {
         return SakStatistikk(
-            hendelseTid = Tidspunkt.now(tikkendeKlokke),
+            funksjonellTid = Tidspunkt.now(tikkendeKlokke),
             tekniskTid = Tidspunkt.now(tikkendeKlokke),
             sakId = UUID.randomUUID(),
             saksnummer = 123L,
@@ -62,7 +62,6 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
             saksbehandler = "saksbehandler",
             ansvarligBeslutter = "ansvarlig_beslutter",
             ansvarligEnhet = "ansvarlig_enhet",
-            vedtaksløsningNavn = "vedtaksløsningNavn",
             funksjonellPeriodeFom = LocalDate.now(),
             funksjonellPeriodeTom = LocalDate.now(),
             tilbakekrevBeløp = 12L,
@@ -70,7 +69,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
     }
     private fun lageSakStatistikkNullVerdier(): SakStatistikk {
         return SakStatistikk(
-            hendelseTid = Tidspunkt.now(tikkendeKlokke),
+            funksjonellTid = Tidspunkt.now(tikkendeKlokke),
             tekniskTid = Tidspunkt.now(tikkendeKlokke),
             sakId = UUID.randomUUID(),
             saksnummer = 123L,
@@ -85,7 +84,6 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
             behandlingStatus = "status",
             opprettetAv = "opprettet_av",
             ansvarligEnhet = "ansvarlig_enhet",
-            vedtaksløsningNavn = "vedtaksløsningNavn",
         )
     }
 }
