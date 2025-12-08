@@ -48,9 +48,9 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: su-se-framover
-          namespace: supstonad
-          cluster: dev-gcp
+        - application: "su-se-framover"
+          namespace: "supstonad"
+          cluster: "dev-gcp"
         - application: "frikorttjenester"
           namespace: "teamfrikort"
           permissions:
