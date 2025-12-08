@@ -440,7 +440,7 @@ private fun naisJobberOgConsumers(
 
         DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(4),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
@@ -453,7 +453,7 @@ private fun naisJobberOgConsumers(
             oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
             genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(4),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
         ),
 
