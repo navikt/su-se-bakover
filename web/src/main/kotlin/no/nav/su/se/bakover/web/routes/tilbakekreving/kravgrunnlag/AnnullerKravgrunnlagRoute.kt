@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.kravgrunnlag
+package no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -16,14 +16,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import tilbakekreving.application.service.kravgrunnlag.AnnullerKravgrunnlagService
 import tilbakekreving.application.service.kravgrunnlag.KunneIkkeAnnullereKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.AnnullerKravgrunnlagCommand
-import tilbakekreving.presentation.api.TILBAKEKREVING_PATH
 import tilbakekreving.presentation.api.common.KravgrunnlagJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
-import tilbakekreving.presentation.api.common.ikkeTilgangTilSak
 
 internal fun Route.annullerKravgrunnlagRoute(
     service: AnnullerKravgrunnlagService,

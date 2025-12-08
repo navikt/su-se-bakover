@@ -1,4 +1,4 @@
-package tilbakekreving.presentation.api.common
+package no.nav.su.se.bakover.web.routes.tilbakekreving
 
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
