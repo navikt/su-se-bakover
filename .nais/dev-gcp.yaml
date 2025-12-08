@@ -166,7 +166,7 @@ spec:
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
     - name: PDL_URL
-      value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
+      value: "https://pdl-api.dev-fss-pub.nais.io"
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL
