@@ -1,6 +1,7 @@
 package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.math.BigDecimal
 
@@ -15,6 +16,7 @@ data class FradragForPeriode(
     override val periode: Periode,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
     override val tilhører: FradragTilhører,
+    override val benyttetRegel: Regelspesifisering.Beregning? = null,
 ) : Fradrag {
 
     init {

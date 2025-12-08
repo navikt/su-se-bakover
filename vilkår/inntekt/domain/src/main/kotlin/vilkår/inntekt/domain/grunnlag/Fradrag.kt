@@ -1,6 +1,7 @@
 package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.KopierbarForSnitt
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import java.math.BigDecimal
 
@@ -14,6 +15,8 @@ sealed interface Fradrag :
     val månedsbeløp: Double
     val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?
     val tilhører: FradragTilhører
+
+    val benyttetRegel: Regelspesifisering.Beregning?
 
     fun tilhørerBruker(): Boolean {
         return tilhører == FradragTilhører.BRUKER

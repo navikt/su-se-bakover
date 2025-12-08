@@ -18,6 +18,7 @@ enum class Regelspesifiseringer(
     REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE("REGEL-TO-PROSENT-AV-HØY-SATS-UFØRE", "1"),
     REGEL_TO_PROSENT_AV_HØY_SATS_ALDER("REGEL-TO-PROSENT-AV-HØY-SATS-ALDER", "1"),
     REGEL_MÅNEDSBEREGNING("REGEL-MÅNEDSBEREGNING", "1"),
+    REGEL_FRADRAG_MED_UFØRE("REGEL-FRADRAG-MED-UFØRE", "1"),
     ;
 
     fun benyttRegelspesifisering(
@@ -77,7 +78,7 @@ sealed class Regelspesifisering {
     data class Beregning(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt,
+        val benyttetTidspunkt: Tidspunkt?,
         val verdi: String,
         val avhengigeRegler: List<Regelspesifisering>,
     ) : Regelspesifisering()

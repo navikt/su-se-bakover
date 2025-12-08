@@ -41,12 +41,9 @@ data class Beregningsgrunnlag private constructor(
         ): Either<UgyldigBeregningsgrunnlag, Beregningsgrunnlag> {
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
                 uføregrunnlag.map {
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.ForventetInntekt,
-                        månedsbeløp = it.forventetInntekt / 12.0,
+                    FradragFactory.nyUføreFradrag(
+                        forventetInntekt = it.forventetInntekt,
                         periode = it.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
                     )
                 }.ifEmpty {
                     // TODO jah: Dette er egentlig bare en snarvei for testene som går ut over typesikkerheten.
