@@ -113,7 +113,7 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "http://skjermede-personer-pip.nom"
+      value: "http://skjermede-personer-pip.nom.svc.nais.local"
     - name: SKJERMING_CLIENT_ID
       value: "api://dev-fss.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER

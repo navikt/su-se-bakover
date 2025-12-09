@@ -106,7 +106,7 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts.adeo.no/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "http://skjermede-personer-pip.nom"
+      value: "http://skjermede-personer-pip.nom.svc.nais.local"
     - name: SKJERMING_CLIENT_ID
       value: "api://prod-fss.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
