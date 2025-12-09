@@ -105,7 +105,7 @@ spec:
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
     - name: SKJERMING_CLIENT_ID
-      value: "api://dev-gcp.nom.skjermede-personer-pip"
+      value: "api://prod-fss.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MPLS02"
     - name: MQ_PORT
