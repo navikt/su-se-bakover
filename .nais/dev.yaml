@@ -44,6 +44,9 @@ spec:
       rules:
         - application: kodeverk-dev
           namespace: team-rocket
+        - application: skjermede-personer-pip
+          namespace: nom
+          cluster: dev-fss
   image: {{ image }}
   liveness:
     path: /isalive
