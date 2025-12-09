@@ -140,7 +140,7 @@ spec:
     - name: OPPGAVE_URL
       value: "https://oppgave.dev-fss-pub.nais.io"
     - name: OPPGAVE_CLIENT_ID
-      value: "dev-fss.oppgavehandtering.oppgave"
+      value: "api://dev-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
       value: "https://dokdistfordeling.dev-fss-pub.nais.io/rest/v1"
     - name: DOKDIST_CLIENT_ID
