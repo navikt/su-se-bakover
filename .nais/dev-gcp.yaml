@@ -72,6 +72,9 @@ spec:
         - application: kabal-api
           namespace: klage
           cluster: dev-gcp
+        - application: digdir-krr-proxy
+          namespace: team-rocket
+          cluster: dev-gcp
         - application: kodeverk-dev
           namespace: team-rocket
           cluster: dev-gcp
