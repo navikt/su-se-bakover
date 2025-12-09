@@ -151,8 +151,8 @@ spec:
       value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
-    - name: AZURE_SCOPE_SKJERMEDE_PIP
-      value: "api://dev-gcp.nom.skjermede-personer-pip/.default"
+    - name: SKJERMING_CLIENT_ID
+      value: "api://dev-gcp.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MQLS02"
     - name: MQ_PORT

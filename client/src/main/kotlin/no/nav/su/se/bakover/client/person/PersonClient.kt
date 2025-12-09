@@ -138,7 +138,7 @@ internal class PersonClient(
             }
         },
         adressebeskyttelse = pdlData.adressebeskyttelse,
-        skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),
+        skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr, token),
         kontaktinfo = kontaktinfo(pdlData.ident.fnr),
         vergemål = pdlData.vergemålEllerFremtidsfullmakt,
         dødsdato = pdlData.dødsdato,

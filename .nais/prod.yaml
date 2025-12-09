@@ -104,6 +104,8 @@ spec:
       value: "https://sts.adeo.no/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "https://skjermede-personer-pip.nais.adeo.no"
+    - name: SKJERMING_CLIENT_ID
+      value: "api://dev-gcp.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MPLS02"
     - name: MQ_PORT
