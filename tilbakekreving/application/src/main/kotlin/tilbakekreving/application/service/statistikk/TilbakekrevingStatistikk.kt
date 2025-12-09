@@ -122,7 +122,7 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
     tilbakekrevBeløp: Long? = null,
 ): SakStatistikk {
     return SakStatistikk(
-        funksjonellTid = opprettet,
+        funksjonellTid = generellSakStatistikk.tekniskTid,
         tekniskTid = generellSakStatistikk.tekniskTid,
         sakId = sakId,
         saksnummer = saksnummer.nummer,
