@@ -3,7 +3,6 @@ package grunnbeløp.domain
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Knekkpunkt
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -26,9 +25,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `april 2017`() {
         juni22.forMåned(april(2017)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = april(2017),
                 grunnbeløpPerÅr = 92576,
@@ -44,9 +40,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `mai 2017`() {
         juni22.forMåned(mai(2017)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2017),
                 grunnbeløpPerÅr = 93634,
@@ -62,9 +55,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `april 2018`() {
         juni22.forMåned(april(2018)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = april(2018),
                 grunnbeløpPerÅr = 93634,
@@ -78,9 +68,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `mai 2018`() {
         juni22.forMåned(mai(2018)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2018),
                 grunnbeløpPerÅr = 96883,
@@ -94,9 +81,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `april 2019`() {
         juni22.forMåned(april(2019)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = april(2019),
                 grunnbeløpPerÅr = 96883,
@@ -110,9 +94,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `mai 2019`() {
         juni22.forMåned(mai(2019)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2019),
                 grunnbeløpPerÅr = 99858,
@@ -126,9 +107,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `april 2020`() {
         juni22.forMåned(april(2020)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = april(2020),
                 grunnbeløpPerÅr = 99858,
@@ -142,9 +120,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `mai 2020`() {
         juni22.forMåned(mai(2020)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2020),
                 grunnbeløpPerÅr = 101351,
@@ -158,9 +133,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `april 2021`() {
         juni22.forMåned(april(2021)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = april(2021),
                 grunnbeløpPerÅr = 101351,
@@ -174,9 +146,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `mai 2021`() {
         juni22.forMåned(mai(2021)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2021),
                 grunnbeløpPerÅr = 106399,
@@ -190,9 +159,6 @@ internal class GrunnbeløpFactoryTest {
     @Test
     fun `april 2022`() {
         juni22.forMåned(april(2022)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = april(2022),
                 grunnbeløpPerÅr = 106399,
@@ -210,9 +176,6 @@ internal class GrunnbeløpFactoryTest {
             knekkpunkt = Knekkpunkt(1.januar(2020)),
             grunnbeløpsendringer = grunnbeløpsendringer,
         ).forMåned(mai(2022)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2022),
                 grunnbeløpPerÅr = 99858,
@@ -226,9 +189,6 @@ internal class GrunnbeløpFactoryTest {
             knekkpunkt = Knekkpunkt(1.januar(2021)),
             grunnbeløpsendringer = grunnbeløpsendringer,
         ).forMåned(mai(2022)) shouldBeEqualUsingFields {
-            excludedProperties = setOf(
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
-            )
             GrunnbeløpForMåned(
                 måned = mai(2022),
                 grunnbeløpPerÅr = 101351,

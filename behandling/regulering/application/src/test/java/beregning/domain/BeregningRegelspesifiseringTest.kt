@@ -922,9 +922,7 @@ internal fun månedsBeregning(
 internal fun sammenlignRegel(forventet: Regelspesifisering, faktisk: Regelspesifisering) {
     forventet shouldBeEqualUsingFields {
         excludedProperties = setOf(
-            Regelspesifisering.Beregning::benyttetTidspunkt,
             Regelspesifisering.Beregning::verdi,
-            Regelspesifisering.Grunnlag::benyttetTidspunkt,
             Regelspesifisering.Grunnlag::verdi,
         )
         faktisk

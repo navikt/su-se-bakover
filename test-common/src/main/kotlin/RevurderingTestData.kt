@@ -548,13 +548,20 @@ fun lagFradragsgrunnlag(
     return Fradragsgrunnlag.tryCreate(
         id = id,
         opprettet = opprettet,
-        fradrag = FradragFactory.nyFradragsperiode(
-            fradragstype = type,
-            månedsbeløp = månedsbeløp,
-            periode = periode,
-            utenlandskInntekt = utenlandskInntekt,
-            tilhører = tilhører,
-        ),
+        fradrag = if (type == Fradragstype.ForventetInntekt) {
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = månedsbeløp.toInt() * 12,
+                periode = periode,
+            )
+        } else {
+            FradragFactory.nyFradragsperiode(
+                fradragstype = type,
+                månedsbeløp = månedsbeløp,
+                periode = periode,
+                utenlandskInntekt = utenlandskInntekt,
+                tilhører = tilhører,
+            )
+        },
     ).getOrFail()
 }
 

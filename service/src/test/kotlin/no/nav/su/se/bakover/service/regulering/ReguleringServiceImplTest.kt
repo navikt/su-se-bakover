@@ -342,12 +342,9 @@ internal class ReguleringServiceImplTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 0.0,
+                FradragFactory.nyUføreFradrag(
+                    forventetInntekt = 0,
                     periode = periodeMaiDes,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
                 ),
             )
         }

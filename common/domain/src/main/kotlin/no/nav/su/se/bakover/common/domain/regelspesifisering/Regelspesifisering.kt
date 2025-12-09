@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.common.domain.regelspesifisering
 
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import java.time.Clock
-
 enum class Regelspesifiseringer(
     val kode: String,
     val versjon: String,
@@ -27,7 +24,6 @@ enum class Regelspesifiseringer(
     ) = Regelspesifisering.Beregning(
         kode = this.kode,
         versjon = this.versjon,
-        benyttetTidspunkt = Tidspunkt.now(Clock.systemUTC()),
         avhengigeRegler = avhengigeRegler,
         verdi = verdi,
     )
@@ -63,7 +59,6 @@ enum class RegelspesifisertGrunnlag(
     ) = Regelspesifisering.Grunnlag(
         kode,
         versjon,
-        Tidspunkt.now(Clock.systemUTC()),
         verdi,
         kilde,
     )
@@ -78,7 +73,6 @@ sealed class Regelspesifisering {
     data class Beregning(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt?,
         val verdi: String,
         val avhengigeRegler: List<Regelspesifisering>,
     ) : Regelspesifisering()
@@ -86,7 +80,6 @@ sealed class Regelspesifisering {
     data class Grunnlag(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt,
         val verdi: String,
         val kilde: String,
     ) : Regelspesifisering()

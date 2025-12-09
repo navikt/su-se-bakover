@@ -15,6 +15,7 @@ private val sakSchema: JsonSchema = SchemaValidator.createSchema("/statistikk/sa
 
 internal fun StatistikkEvent.SakOpprettet.toBehandlingsstatistikk(
     aktørId: AktørId,
+
     gitCommit: GitCommit?,
 ): Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding> {
     return SaksstatistikkDto(

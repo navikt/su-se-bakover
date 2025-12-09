@@ -83,16 +83,12 @@ internal class GarantipensjonFactoryTest {
 
         mai shouldBeEqualUsingFields {
             excludedProperties = setOf(
-                Regelspesifisering.Beregning::benyttetTidspunkt,
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::verdi,
             )
             expected(mai(2020))
         }
         mai.toProsentAvHøyForMåned shouldBeEqualUsingFields {
             excludedProperties = setOf(
-                Regelspesifisering.Beregning::benyttetTidspunkt,
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::verdi,
             )
             expected(mai(2020)).toProsentAvHøyForMåned
@@ -101,16 +97,12 @@ internal class GarantipensjonFactoryTest {
         val juli = satsFactoryTestPåDato().ordinærAlder(juli(2020))
         juli shouldBeEqualUsingFields {
             excludedProperties = setOf(
-                Regelspesifisering.Beregning::benyttetTidspunkt,
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::verdi,
             )
             expected(juli(2020))
         }
         juli.toProsentAvHøyForMåned shouldBeEqualUsingFields {
             excludedProperties = setOf(
-                Regelspesifisering.Beregning::benyttetTidspunkt,
-                Regelspesifisering.Grunnlag::benyttetTidspunkt,
                 Regelspesifisering.Grunnlag::verdi,
             )
             expected(juli(2020)).toProsentAvHøyForMåned
