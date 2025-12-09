@@ -302,8 +302,8 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = SkjermingConfig(
-                    url = "mocked",
-                    clientId = "mocked",
+                    url = "skjermingUrl",
+                    clientId = "skjermingClientId",
                 )
             }
         }
