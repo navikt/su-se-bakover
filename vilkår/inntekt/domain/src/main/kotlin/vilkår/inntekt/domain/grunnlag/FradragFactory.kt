@@ -1,6 +1,7 @@
 package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 
@@ -62,7 +63,9 @@ data object FradragFactory {
             benyttetRegel = Regelspesifiseringer.REGEL_FRADRAG_MED_UFØRE.benyttRegelspesifisering(
                 verdi = månedsbeløp.toString(),
                 avhengigeRegler = listOf(
-                    // TODO bjg
+                    RegelspesifisertGrunnlag.GRUNNLAG_UFØRETRYGD.benyttGrunnlag(
+                        verdi = forventetInntekt.toString(),
+                    ),
                 ),
             ),
         )

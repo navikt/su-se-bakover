@@ -40,6 +40,7 @@ enum class RegelspesifisertGrunnlag(
     GRUNNLAG_UFØRE_FAKTOR_HØY("GRUNNLAG-UFØRE-FAKTOR-HØY", "1"),
     GRUNNLAG_GARANTIPENSJON_ORDINÆR("GRUNNLAG-GARANTPIPENSJON-ORDINÆR", "1"),
     GRUNNLAG_GARANTIPENSJON_HØY("GRUNNLAG-GARANTPIPENSJON-HØY", "1"),
+    GRUNNLAG_UFØRETRYGD("GRUNNLAG-UFØRETRYGD", "1"),
     ;
 
     fun benyttGrunnlag(
@@ -47,6 +48,7 @@ enum class RegelspesifisertGrunnlag(
         kilde: String = when (this) {
             GRUNNLAG_BOSITUASJON,
             GRUNNLAG_FRADRAG,
+            GRUNNLAG_UFØRETRYGD,
             -> "Saksbehandler"
 
             GRUNNLAG_UFØRE_FAKTOR_ORDINÆR,
