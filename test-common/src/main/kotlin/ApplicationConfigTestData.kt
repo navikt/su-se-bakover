@@ -72,7 +72,6 @@ fun applicationConfig() = ApplicationConfig(
         ),
         pdfgenUrl = "pdfgenUrl",
         stsSamlUrl = "stsSamlUrl",
-        skjermingUrl = "skjermingUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
             url = "krrUrl",
@@ -101,6 +100,10 @@ fun applicationConfig() = ApplicationConfig(
         kodeverkConfig = ApplicationConfig.ClientsConfig.KodeverkConfig(
             url = "kodeverkUrl",
             clientId = "kodeverkClientId",
+        ),
+        skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
+            url = "skjermingUrl",
+            clientId = "skjermingClientId",
         ),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

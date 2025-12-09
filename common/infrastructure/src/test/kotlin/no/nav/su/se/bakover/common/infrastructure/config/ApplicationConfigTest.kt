@@ -101,7 +101,10 @@ class ApplicationConfigTest {
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
             stsSamlUrl = "stsSamlUrl",
-            skjermingUrl = "skjermingUrl",
+            skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
+                url = "skjermingUrl",
+                clientId = "skjermingClientId",
+            ),
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                 appId = "krrId",
                 url = "krrUrl",
@@ -196,6 +199,7 @@ class ApplicationConfigTest {
                 "DOKARKIV_CLIENT_ID" to "dokArkivClientId",
                 "GANDALF_URL" to "stsSamlUrl",
                 "SKJERMING_URL" to "skjermingUrl",
+                "SKJERMING_CLIENT_ID" to "skjermingClientId",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
                 "PDL_CLIENT_ID" to "pdlClientId",
                 "KABAL_URL" to "kabalUrl",
@@ -281,7 +285,10 @@ class ApplicationConfigTest {
                     ),
                     pdfgenUrl = "mocked",
                     stsSamlUrl = "mocked",
-                    skjermingUrl = "mocked",
+                    skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
+                        url = "skjermingUrl",
+                        clientId = "skjermingClientId",
+                    ),
                     kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                         appId = "mocked",
                         url = "mocked",

@@ -48,9 +48,9 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: su-se-framover
-          namespace: supstonad
-          cluster: dev-gcp
+        - application: "su-se-framover"
+          namespace: "supstonad"
+          cluster: "dev-gcp"
         - application: "frikorttjenester"
           namespace: "teamfrikort"
           permissions:
@@ -65,6 +65,7 @@ spec:
       rules:
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
+          cluster: dev-gcp
         - application: su-pdfgen
           namespace: supstonad
           cluster: dev-gcp
@@ -78,6 +79,7 @@ spec:
           namespace: team-rocket
           cluster: dev-gcp
       external:
+        - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
         - host: pdl-api.dev-fss-pub.nais.io
         - host: sigrun-q2.dev.adeo.no
         - host: saf-q2.dev-fss-pub.nais.io
@@ -148,9 +150,9 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "https://skjermede-personer-pip.intern.dev.nav.no"
-    - name: AZURE_SCOPE_SKJERMEDE_PIP
-      value: "api://dev-gcp.nom.skjermede-personer-pip/.default"
+      value: "http://skjermede-personer-pip.nom"
+    - name: SKJERMING_CLIENT_ID
+      value: "api://dev-gcp.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MQLS02"
     - name: MQ_PORT
@@ -166,7 +168,7 @@ spec:
     - name: MQ_SEND_QUEUE_AVSTEMMING
       value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
     - name: PDL_URL
-      value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
+      value: "https://pdl-api.dev-fss-pub.nais.io"
     - name: PDL_CLIENT_ID
       value: "api://dev-fss.pdl.pdl-api"
     - name: KABAL_URL

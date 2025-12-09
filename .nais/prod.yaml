@@ -35,6 +35,9 @@ spec:
       rules:
         - application: kodeverk
           namespace: team-rocket
+        - application: skjermede-personer-pip
+          namespace: nom
+          cluster: prod-gcp
   image: {{ image }}
   liveness:
     path: /isalive
@@ -103,7 +106,9 @@ spec:
     - name: STS_URL_SOAP
       value: "https://sts.adeo.no/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
-      value: "https://skjermede-personer-pip.nais.adeo.no"
+      value: "https://skjermede-personer-pip.intern.nav.no"
+    - name: SKJERMING_CLIENT_ID
+      value: "api://prod-fss.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MPLS02"
     - name: MQ_PORT

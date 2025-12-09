@@ -228,7 +228,6 @@ data class ApplicationConfig(
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
         val stsSamlUrl: String,
-        val skjermingUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
@@ -236,6 +235,7 @@ data class ApplicationConfig(
         val dokArkivConfig: DokArkivConfig,
         val dokDistConfig: DokDistConfig,
         val kodeverkConfig: KodeverkConfig,
+        val skjermingConfig: SkjermingConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -245,7 +245,6 @@ data class ApplicationConfig(
                 stsSamlUrl = getEnvironmentVariableOrThrow(
                     "GANDALF_URL",
                 ),
-                skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
@@ -253,6 +252,7 @@ data class ApplicationConfig(
                 dokArkivConfig = DokArkivConfig.createFromEnvironmentVariables(),
                 dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
                 kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
+                skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -263,7 +263,6 @@ data class ApplicationConfig(
                     "GANDALF_URL",
                     "mocked",
                 ),
-                skjermingUrl = "mocked",
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
@@ -271,6 +270,7 @@ data class ApplicationConfig(
                 dokArkivConfig = DokArkivConfig.createLocalConfig(),
                 dokDistConfig = DokDistConfig.createLocalConfig(),
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
+                skjermingConfig = SkjermingConfig.createLocalConfig(),
             )
         }
 
@@ -287,6 +287,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = KontaktOgReservasjonsregisterConfig(
                     appId = "mocked",
                     url = "mocked",
+                )
+            }
+        }
+
+        data class SkjermingConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SkjermingConfig(
+                    url = getEnvironmentVariableOrThrow("SKJERMING_URL"),
+                    clientId = getEnvironmentVariableOrThrow("SKJERMING_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = SkjermingConfig(
+                    url = "skjermingUrl",
+                    clientId = "skjermingClientId",
                 )
             }
         }
