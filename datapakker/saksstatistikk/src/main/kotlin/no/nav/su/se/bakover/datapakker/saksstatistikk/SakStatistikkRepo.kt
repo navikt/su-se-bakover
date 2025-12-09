@@ -124,7 +124,7 @@ fun List<SakStatistikk>.toCsv(): String = buildString {
                 sakStatistikk.sakId.toString(),
                 sakStatistikk.saksnummer.toString(),
                 sakStatistikk.behandlingId.toString(),
-                sakStatistikk.relatertBehandlingId.toString(),
+                sakStatistikk.relatertBehandlingId?.toString().orEmpty(),
                 sakStatistikk.aktorId,
                 sakStatistikk.sakYtelse,
                 sakStatistikk.sakUtland,
