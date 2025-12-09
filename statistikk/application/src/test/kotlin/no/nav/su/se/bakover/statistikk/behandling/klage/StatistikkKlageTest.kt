@@ -33,6 +33,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
 import java.time.Instant
+import java.util.UUID
 
 internal class StatistikkKlageTest {
 
@@ -41,7 +42,7 @@ internal class StatistikkKlageTest {
         val klage = opprettetKlage().second
 
         assert(
-            statistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(klage),
+            statistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(klage, UUID.randomUUID()),
             behandlingStatus = BehandlingStatus.Registrert.value,
             behandlingStatusBeskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",
             funksjonellTid = klage.opprettet,

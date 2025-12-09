@@ -59,21 +59,23 @@ import java.util.UUID
 
 internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
 
+data class OpprettKlageRequest(val journalpostId: String, val datoKlageMottatt: LocalDate, val relatertBehandlingId: String)
+
 internal fun Route.klageRoutes(
     klageService: KlageService,
     clock: Clock,
 ) {
     post(KLAGE_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val journalpostId: String, val datoKlageMottatt: LocalDate)
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
+                call.withBody<OpprettKlageRequest> { body ->
                     val resultat = klageService.opprett(
                         NyKlageRequest(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,
                             journalpostId = JournalpostId(body.journalpostId),
                             datoKlageMottatt = body.datoKlageMottatt,
+                            relatertBehandlingId = UUID.fromString(body.relatertBehandlingId),
                             clock = clock,
                         ),
                     ).map {

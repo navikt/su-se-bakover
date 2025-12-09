@@ -187,7 +187,10 @@ sealed interface StatistikkEvent {
         sealed interface Klage : Behandling {
             val klage: no.nav.su.se.bakover.domain.klage.Klage
 
-            data class Opprettet(override val klage: OpprettetKlage) : Klage
+            data class Opprettet(
+                override val klage: OpprettetKlage,
+                val relatertId: UUID,
+            ) : Klage
             data class Oversendt(override val klage: OversendtKlage) : Klage
             data class FerdigstiltOmgjøring(override val klage: FerdigstiltOmgjortKlage) : Klage
             data class Avvist(

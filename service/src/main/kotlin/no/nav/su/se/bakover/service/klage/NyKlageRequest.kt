@@ -20,6 +20,7 @@ data class NyKlageRequest(
     val sakId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val journalpostId: JournalpostId,
+    val relatertBehandlingId: UUID,
     private val datoKlageMottatt: LocalDate,
     private val clock: Clock,
 ) {

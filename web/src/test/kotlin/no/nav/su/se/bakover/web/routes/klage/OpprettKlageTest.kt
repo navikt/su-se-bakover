@@ -24,16 +24,17 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
 import java.util.UUID
 
 internal class OpprettKlageTest {
-    //language=JSON
-    private val validBody = """
-        {
-            "journalpostId": "1",
-             "datoKlageMottatt": "2021-01-01"
-        }
-    """.trimIndent()
+    private val validBody = serialize(
+        OpprettKlageRequest(
+            journalpostId = "1",
+            datoKlageMottatt = LocalDate.of(2020, 1, 1),
+            relatertBehandlingId = UUID.randomUUID().toString(),
+        ),
+    )
     private val sakId = UUID.randomUUID()
     private val uri = "$SAK_PATH/$sakId/klager"
 

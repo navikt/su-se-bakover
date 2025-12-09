@@ -50,6 +50,7 @@ internal class OpprettKlageTest {
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             datoKlageMottatt = 1.januar(2021),
+            relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
@@ -84,13 +85,30 @@ internal class OpprettKlageTest {
             journalpostId = avsluttetKlage.journalpostId,
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             datoKlageMottatt = 1.januar(2021),
+            relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
         )
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
 
-        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, any())
-        verify(observerMock).handle(argThat { it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(nyKlage) }, any())
+        verify(observerMock).handle(
+            argThat {
+                it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(
+                    nyKlage,
+                    request.relatertBehandlingId,
+                )
+            },
+            any(),
+        )
+        verify(observerMock).handle(
+            argThat {
+                it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(
+                    nyKlage,
+                    request.relatertBehandlingId,
+                )
+            },
+            any(),
+        )
         nyKlage.shouldBeTypeOf<OpprettetKlage>()
         nyKlage.journalpostId shouldBe avsluttetKlage.journalpostId
     }
@@ -110,6 +128,7 @@ internal class OpprettKlageTest {
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             datoKlageMottatt = 1.januar(2021),
+            relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
@@ -150,6 +169,7 @@ internal class OpprettKlageTest {
             journalpostId = JournalpostId("j2"),
             saksbehandler = saksbehandler,
             datoKlageMottatt = 1.januar(2021),
+            relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
@@ -183,6 +203,7 @@ internal class OpprettKlageTest {
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             datoKlageMottatt = LocalDate.now(fixedClock).plusDays(1),
+            relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.UgyldigMottattDato.left()
@@ -216,6 +237,7 @@ internal class OpprettKlageTest {
             journalpostId = JournalpostId("1"),
             saksbehandler = saksbehandler,
             datoKlageMottatt = 1.januar(2021),
+            relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
         )
         var expectedKlage: OpprettetKlage?
@@ -233,8 +255,14 @@ internal class OpprettKlageTest {
                 sakstype = sak.type,
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, any())
-            verify(observerMock).handle(argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it) shouldBe expected }, any())
+            verify(observerMock).handle(
+                argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId) shouldBe expected },
+                any(),
+            )
+            verify(observerMock).handle(
+                argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId) shouldBe expected },
+                any(),
+            )
         }
 
         verify(mocks.sakServiceMock).hentSak(sak.id)
