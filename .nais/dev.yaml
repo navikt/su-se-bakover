@@ -46,7 +46,7 @@ spec:
           namespace: team-rocket
         - application: skjermede-personer-pip
           namespace: nom
-          cluster: dev-fss
+          cluster: dev-gcp
   image: {{ image }}
   liveness:
     path: /isalive
