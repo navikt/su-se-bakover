@@ -6,7 +6,6 @@ import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.domain.Knekkpunkt
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
@@ -33,9 +32,6 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `januar 2021`() {
             formuegrense.forMåned(januar(2021)) shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 FormuegrenseForMåned(
                     grunnbeløpForMåned = GrunnbeløpForMåned(
                         måned = januar(2021),
@@ -56,9 +52,6 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `februar 2021`() {
             formuegrense.forMåned(februar(2021)) shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 FormuegrenseForMåned(
                     grunnbeløpForMåned = GrunnbeløpForMåned(
                         måned = februar(2021),
@@ -75,9 +68,6 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `mars 2021`() {
             formuegrense.forMåned(mars(2021)) shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 FormuegrenseForMåned(
                     grunnbeløpForMåned = GrunnbeløpForMåned(
                         måned = mars(2021),
@@ -94,9 +84,6 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `april 2021`() {
             formuegrense.forMåned(april(2021)) shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 FormuegrenseForMåned(
                     grunnbeløpForMåned = GrunnbeløpForMåned(
                         måned = april(2021),
@@ -113,9 +100,6 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `mai 2021`() {
             formuegrense.forMåned(mai(2021)) shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 FormuegrenseForMåned(
                     grunnbeløpForMåned = GrunnbeløpForMåned(
                         måned = mai(2021),
@@ -135,9 +119,6 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `mai 2022`() {
             formuegrense.forMåned(mai(2022)) shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 FormuegrenseForMåned(
                     grunnbeløpForMåned = GrunnbeløpForMåned(
                         måned = mai(2022),

@@ -1,6 +1,7 @@
 package vilkår.inntekt.domain.grunnlag
 
 import no.nav.su.se.bakover.common.CopyArgs
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.tilMåned
@@ -17,6 +18,7 @@ data class FradragForMåned(
     val måned: Måned,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
     override val tilhører: FradragTilhører,
+    override val benyttetRegel: Regelspesifisering.Beregning? = null,
 ) : Fradrag {
 
     init {

@@ -43,8 +43,8 @@ internal class BeregningSerialisertTest {
             periode = mai(2021),
             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato), Sakstype.UFØRE),
         )
-
         val benyttetRegler = serialize(actualBeregning.getMånedsberegningerMedRegel().single().benyttetRegel.toJson())
+        val benyttetRegelFradrag = serialize(actualBeregning.getFradrag().first().benyttetRegel!!.toJson())
 
         //language=json
         val expectedJson = """
@@ -68,7 +68,8 @@ internal class BeregningSerialisertTest {
                         "fraOgMed": "2021-05-01",
                         "tilOgMed": "2021-05-31"
                       },
-                      "tilhører": "BRUKER"
+                      "tilhører": "BRUKER",
+                      "benyttetRegel": null
                     },
                     {
                       "fradragstype": "Annet",
@@ -79,7 +80,8 @@ internal class BeregningSerialisertTest {
                         "fraOgMed": "2021-05-01",
                         "tilOgMed": "2021-05-31"
                       },
-                      "tilhører": "BRUKER"
+                      "tilhører": "BRUKER",
+                      "benyttetRegel": null
                     }
                   ],
                   "periode": {
@@ -105,7 +107,8 @@ internal class BeregningSerialisertTest {
                     "fraOgMed": "2021-05-01",
                     "tilOgMed": "2021-05-31"
                   },
-                  "tilhører": "BRUKER"
+                  "tilhører": "BRUKER",
+                  "benyttetRegel": $benyttetRegelFradrag
                 },
                 {
                   "fradragstype": "Annet",
@@ -116,7 +119,8 @@ internal class BeregningSerialisertTest {
                     "fraOgMed": "2021-05-01",
                     "tilOgMed": "2021-05-31"
                   },
-                  "tilhører": "BRUKER"
+                  "tilhører": "BRUKER",
+                  "benyttetRegel": null
                 }
               ],
               "sumYtelse": 0,
@@ -185,12 +189,9 @@ internal class BeregningSerialisertTest {
             id = UUID.randomUUID(),
             opprettet = opprettet,
             fradrag = listOf(
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 55000.0,
-                    utenlandskInntekt = null,
+                FradragFactory.nyUføreFradrag(
+                    forventetInntekt = 660000,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Annet("vant på flaxlodd"),

@@ -72,7 +72,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     avhengigeRegler = listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -133,7 +133,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -200,7 +200,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -275,7 +275,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -350,7 +350,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -408,7 +408,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     avhengigeRegler = listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -462,7 +462,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -522,7 +522,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -590,7 +590,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -658,7 +658,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -716,7 +716,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     avhengigeRegler = listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -777,7 +777,7 @@ class BeregningRegelspesifiseringTest {
                 val forventet = beregning(
                     Regelspesifiseringer.REGEL_MÅNEDSBEREGNING,
                     avhengigeRegler = listOf(
-                        RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(strategi.satsgrunn().name),
                         forventetSatsMinusFradrag,
                         beregning(
                             Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT,
@@ -922,9 +922,7 @@ internal fun månedsBeregning(
 internal fun sammenlignRegel(forventet: Regelspesifisering, faktisk: Regelspesifisering) {
     forventet shouldBeEqualUsingFields {
         excludedProperties = setOf(
-            Regelspesifisering.Beregning::benyttetTidspunkt,
             Regelspesifisering.Beregning::verdi,
-            Regelspesifisering.Grunnlag::benyttetTidspunkt,
             Regelspesifisering.Grunnlag::verdi,
         )
         faktisk

@@ -59,12 +59,9 @@ internal class BeregningsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 10_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 120_000,
                 periode = beregningsperiode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
         )
     }
@@ -99,12 +96,9 @@ internal class BeregningsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 10_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 120_000,
                 periode = beregningsperiode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
         )
     }
@@ -124,12 +118,9 @@ internal class BeregningsgrunnlagTest {
             ),
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 0.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 0,
                 periode = beregningsperiode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
         )
     }
@@ -243,19 +234,13 @@ internal class BeregningsgrunnlagTest {
             ),
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 1_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 12_000,
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 2_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 24_000,
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
         )
     }
@@ -333,26 +318,17 @@ internal class BeregningsgrunnlagTest {
             ),
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 1_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 12_000,
                 periode = januar(2021),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 2_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 24_000,
                 periode = Periode.create(1.februar(2021), 31.juli(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.ForventetInntekt,
-                månedsbeløp = 4_000.0,
+            FradragFactory.nyUføreFradrag(
+                forventetInntekt = 48_000,
                 periode = Periode.create(1.august(2021), 31.desember(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
             ),
         )
     }

@@ -54,8 +54,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
             satsFactoryTestPåDato(påDato = 23.mai(2025)).ordinærAlder(mai(2025)).let {
                 it shouldBeEqualUsingFields {
                     excludedProperties = setOf(
-                        Regelspesifisering.Beregning::benyttetTidspunkt,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                         Regelspesifisering.Grunnlag::verdi,
                     )
                     FullSupplerendeStønadForMåned.Alder(
@@ -88,8 +86,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
             satsFactoryTestPåDato(påDato = 23.mai(2025)).høyAlder(mai(2025)).let {
                 it shouldBeEqualUsingFields {
                     excludedProperties = setOf(
-                        Regelspesifisering.Beregning::benyttetTidspunkt,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                         Regelspesifisering.Grunnlag::verdi,
                     )
                     FullSupplerendeStønadForMåned.Alder(
@@ -156,7 +152,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = januar(2021),
@@ -197,7 +192,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = januar(2021),
@@ -238,7 +232,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2021),
@@ -279,7 +272,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2021),
@@ -320,7 +312,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2022),
@@ -361,7 +352,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2022),
@@ -402,7 +392,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2023),
@@ -443,7 +432,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2023),
@@ -484,7 +472,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2024),
@@ -525,7 +512,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2024),
@@ -566,7 +552,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = juli(2024),
@@ -607,7 +592,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = juli(2024),
@@ -648,7 +632,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2025),
@@ -689,7 +672,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                     )
                     FullSupplerendeStønadForMåned.Uføre(
                         måned = mai(2025),
@@ -768,7 +750,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         excludedProperties = setOf(
                             FullSupplerendeStønadForMåned.Uføre::sats,
                             ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                            Regelspesifisering.Grunnlag::benyttetTidspunkt,
                         )
                         FullSupplerendeStønadForMåned.Uføre(
                             måned = mai(2022),
@@ -809,9 +790,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
             val forMåned = mai(2021)
 
             satsFactoryTest.gjeldende(etterDato).høyUføre(forMåned).grunnbeløp shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 GrunnbeløpForMåned(
                     måned = mai(2021),
                     grunnbeløpPerÅr = 106399,
@@ -823,9 +801,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
             val gammelMai = satsFactoryTest.gjeldende(førDate).høyUføre(forMåned).grunnbeløp
 
             gammelMai shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 GrunnbeløpForMåned(
                     måned = mai(2021),
                     grunnbeløpPerÅr = 101351,
@@ -837,9 +812,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
 
             satsFactoryTest.gjeldende(LocalDate.now(fixedClock))
                 .høyUføre(forMåned).grunnbeløp shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 gammelMai
             }
         }
@@ -869,9 +841,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
             satsFactoryTest.gjeldende(19.mai(2022)) shouldBeSameInstanceAs factoryMai21TilMai22
 
             factoryMai19TilSeptember20.høyUføre(januar(2022)).grunnbeløp shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 GrunnbeløpForMåned(
                     måned = januar(2022),
                     grunnbeløpPerÅr = 99858,
@@ -881,9 +850,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 )
             }
             factorySeptember20TilMai21.høyUføre(januar(2022)).grunnbeløp shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 GrunnbeløpForMåned(
                     måned = januar(2022),
                     grunnbeløpPerÅr = 101351,
@@ -893,9 +859,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 )
             }
             factoryMai21TilMai22.høyUføre(januar(2022)).grunnbeløp shouldBeEqualUsingFields {
-                excludedProperties = setOf(
-                    Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                )
                 GrunnbeløpForMåned(
                     måned = januar(2022),
                     grunnbeløpPerÅr = 106399,
@@ -964,8 +927,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 val høyAlder = it.høyAlder(januar(2022))
                 høyAlder shouldBeEqualUsingFields {
                     excludedProperties = setOf(
-                        Regelspesifisering.Beregning::benyttetTidspunkt,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                         Regelspesifisering.Grunnlag::verdi,
                     )
                     FullSupplerendeStønadForMåned.Alder(
@@ -984,9 +945,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     )
                 }
                 it.grunnbeløp(januar(2022)) shouldBeEqualUsingFields {
-                    excludedProperties = setOf(
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
-                    )
                     GrunnbeløpForMåned(
                         måned = januar(2022),
                         grunnbeløpPerÅr = 20,
@@ -1000,7 +958,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     excludedProperties = setOf(
                         FullSupplerendeStønadForMåned.Uføre::sats,
                         ToProsentAvHøyForMåned.Uføre::benyttetRegel,
-                        Regelspesifisering.Grunnlag::benyttetTidspunkt,
                         Regelspesifisering.Grunnlag::verdi,
                     )
                     FullSupplerendeStønadForMåned.Uføre(

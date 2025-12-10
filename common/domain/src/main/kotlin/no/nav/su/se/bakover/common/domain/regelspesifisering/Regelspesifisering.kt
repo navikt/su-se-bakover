@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.common.domain.regelspesifisering
 
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import java.time.Clock
-
 enum class Regelspesifiseringer(
     val kode: String,
     val versjon: String,
@@ -18,6 +15,7 @@ enum class Regelspesifiseringer(
     REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE("REGEL-TO-PROSENT-AV-HØY-SATS-UFØRE", "1"),
     REGEL_TO_PROSENT_AV_HØY_SATS_ALDER("REGEL-TO-PROSENT-AV-HØY-SATS-ALDER", "1"),
     REGEL_MÅNEDSBEREGNING("REGEL-MÅNEDSBEREGNING", "1"),
+    REGEL_FRADRAG_MED_UFØRE("REGEL-FRADRAG-MED-UFØRE", "1"),
     ;
 
     fun benyttRegelspesifisering(
@@ -26,7 +24,6 @@ enum class Regelspesifiseringer(
     ) = Regelspesifisering.Beregning(
         kode = this.kode,
         versjon = this.versjon,
-        benyttetTidspunkt = Tidspunkt.now(Clock.systemUTC()),
         avhengigeRegler = avhengigeRegler,
         verdi = verdi,
     )
@@ -36,20 +33,22 @@ enum class RegelspesifisertGrunnlag(
     val kode: String,
     val versjon: String,
 ) {
-    GRUNNLAG_BOTILSTAND("GRUNNLAG-BOTILSTAND", "1"),
+    GRUNNLAG_BOSITUASJON("GRUNNLAG-BOSITUASJON", "1"),
     GRUNNLAG_FRADRAG("GRUNNLAG-FRADRAG", "1"),
     GRUNNLAG_GRUNNBELØP("GRUNNLAG-GRUNNBELØP", "1"),
     GRUNNLAG_UFØRE_FAKTOR_ORDINÆR("GRUNNLAG-UFØRE-FAKTOR-ORDINÆR", "1"),
     GRUNNLAG_UFØRE_FAKTOR_HØY("GRUNNLAG-UFØRE-FAKTOR-HØY", "1"),
     GRUNNLAG_GARANTIPENSJON_ORDINÆR("GRUNNLAG-GARANTPIPENSJON-ORDINÆR", "1"),
     GRUNNLAG_GARANTIPENSJON_HØY("GRUNNLAG-GARANTPIPENSJON-HØY", "1"),
+    GRUNNLAG_UFØRETRYGD("GRUNNLAG-UFØRETRYGD", "1"),
     ;
 
     fun benyttGrunnlag(
         verdi: String,
         kilde: String = when (this) {
-            GRUNNLAG_BOTILSTAND,
+            GRUNNLAG_BOSITUASJON,
             GRUNNLAG_FRADRAG,
+            GRUNNLAG_UFØRETRYGD,
             -> "Saksbehandler"
 
             GRUNNLAG_UFØRE_FAKTOR_ORDINÆR,
@@ -62,7 +61,6 @@ enum class RegelspesifisertGrunnlag(
     ) = Regelspesifisering.Grunnlag(
         kode,
         versjon,
-        Tidspunkt.now(Clock.systemUTC()),
         verdi,
         kilde,
     )
@@ -77,7 +75,6 @@ sealed class Regelspesifisering {
     data class Beregning(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt,
         val verdi: String,
         val avhengigeRegler: List<Regelspesifisering>,
     ) : Regelspesifisering()
@@ -85,7 +82,6 @@ sealed class Regelspesifisering {
     data class Grunnlag(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt,
         val verdi: String,
         val kilde: String,
     ) : Regelspesifisering()

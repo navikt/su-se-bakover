@@ -21,6 +21,7 @@ internal data class PersistertFradrag(
     val utenlandskInntekt: UtenlandskInntekt?,
     val periode: PeriodeJson,
     val tilhører: FradragTilhører,
+    val benyttetRegel: RegelspesifiseringJson.Beregning? = null,
 ) {
     fun toFradragForMåned(): FradragForMåned {
         return FradragForMåned(
@@ -29,6 +30,7 @@ internal data class PersistertFradrag(
             måned = periode.tilMåned(),
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører,
+            benyttetRegel = benyttetRegel?.toDomain(),
         )
     }
 
@@ -39,6 +41,7 @@ internal data class PersistertFradrag(
             periode = periode.toPeriode(),
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører,
+            benyttetRegel = benyttetRegel?.toDomain(),
         )
     }
 }
@@ -55,5 +58,6 @@ internal fun Fradrag.toJson(): PersistertFradrag {
         utenlandskInntekt = utenlandskInntekt,
         periode = periode.toJson(),
         tilhører = tilhører,
+        benyttetRegel = benyttetRegel?.toJson(),
     )
 }

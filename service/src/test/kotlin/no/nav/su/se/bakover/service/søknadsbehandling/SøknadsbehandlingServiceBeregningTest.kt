@@ -87,12 +87,9 @@ class SøknadsbehandlingServiceBeregningTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
-                    FradragFactory.nyFradragsperiode(
-                        fradragstype = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 0.0,
+                    FradragFactory.nyUføreFradrag(
+                        forventetInntekt = 0,
                         periode = vilkårsvurdert.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
                     ),
                 )
                 beregning.getBegrunnelse() shouldBe "koko"

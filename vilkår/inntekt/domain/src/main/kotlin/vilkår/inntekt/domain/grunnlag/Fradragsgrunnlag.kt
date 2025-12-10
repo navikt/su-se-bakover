@@ -13,6 +13,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
@@ -30,6 +31,7 @@ data class Fradragsgrunnlag private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     val fradrag: Fradrag,
+    override val benyttetRegel: Regelspesifisering.Beregning? = null,
 ) : Grunnlag,
     Fradrag by fradrag,
     KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {

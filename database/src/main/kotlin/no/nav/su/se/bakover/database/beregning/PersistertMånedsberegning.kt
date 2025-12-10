@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.MånedJson
 import no.nav.su.se.bakover.common.infrastructure.MånedJson.Companion.toJson
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
@@ -133,14 +132,12 @@ sealed interface RegelspesifiseringJson {
     data class Beregning(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt,
         val verdi: String,
         val avhengigeRegler: List<RegelspesifiseringJson>,
     ) : RegelspesifiseringJson {
         override fun toDomain() = Regelspesifisering.Beregning(
             kode = kode,
             versjon = versjon,
-            benyttetTidspunkt = benyttetTidspunkt,
             verdi = verdi,
             avhengigeRegler = avhengigeRegler.map {
                 it.toDomain()
@@ -151,14 +148,12 @@ sealed interface RegelspesifiseringJson {
     data class Grunnlag(
         val kode: String,
         val versjon: String,
-        val benyttetTidspunkt: Tidspunkt,
         val verdi: String,
         val kilde: String,
     ) : RegelspesifiseringJson {
         override fun toDomain() = Regelspesifisering.Grunnlag(
             kode = kode,
             versjon = versjon,
-            benyttetTidspunkt = benyttetTidspunkt,
             verdi = verdi,
             kilde = kilde,
         )
@@ -167,20 +162,11 @@ sealed interface RegelspesifiseringJson {
 
 internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
     return when (this) {
-        is Regelspesifisering.Beregning -> RegelspesifiseringJson.Beregning(
-            kode = kode,
-            versjon = versjon,
-            benyttetTidspunkt = benyttetTidspunkt,
-            verdi = verdi,
-            avhengigeRegler = avhengigeRegler.map {
-                it.toJson()
-            },
-        )
+        is Regelspesifisering.Beregning -> this.toJson()
 
         is Regelspesifisering.Grunnlag -> RegelspesifiseringJson.Grunnlag(
             kode = kode,
             versjon = versjon,
-            benyttetTidspunkt = benyttetTidspunkt,
             verdi = verdi,
             kilde = kilde,
         )
@@ -188,6 +174,15 @@ internal fun Regelspesifisering.toJson(): RegelspesifiseringJson {
         Regelspesifisering.BeregnetUtenSpesifisering -> throw IllegalStateException("Denne tilstanden skal kun være for beregnigner som ble gjort før regelspesifisering ble innført. Den skal aldri brukes på nye beregninger.")
     }
 }
+
+internal fun Regelspesifisering.Beregning.toJson() = RegelspesifiseringJson.Beregning(
+    kode = kode,
+    versjon = versjon,
+    verdi = verdi,
+    avhengigeRegler = avhengigeRegler.map {
+        it.toJson()
+    },
+)
 
 private fun Double.isEqualToTwoDecimals(other: Double): Boolean {
     return this.toBigDecimal().setScale(2, RoundingMode.HALF_UP) == other.toBigDecimal()
