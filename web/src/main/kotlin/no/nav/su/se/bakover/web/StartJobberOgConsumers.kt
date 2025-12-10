@@ -394,6 +394,18 @@ private fun naisJobberOgConsumers(
                     29.september(2025),
                     30.oktober(2025),
                     21.november(2025),
+                    7.januar(2026),
+                    3.februar(2026),
+                    3.mars(2026),
+                    31.mars(2026),
+                    27.april(2026),
+                    2.juni(2026),
+                    30.juni(2026),
+                    3.august(2026),
+                    1.september(2026),
+                    1.oktober(2026),
+                    3.november(2026),
+                    24.november(2026),
                 )
             } else {
                 emptySet()
