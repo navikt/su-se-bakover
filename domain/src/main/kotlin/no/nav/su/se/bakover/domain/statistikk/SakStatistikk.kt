@@ -133,10 +133,15 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandling = søknadsbehandling,
                     behandlingType = Behandlingstype.SOKNAD,
                     saktype = søknadsbehandling.sakstype,
-                    behandlingStatus = BehandlingStatus.Avsluttet.toString(), // TODO hvis avvist med vedtak skal det være iverksatt.. Men bør den ha annen hendelse enn Lukket?
                     behandlingResultat = søknadsbehandling.søknad.toBehandlingResultat().toString(),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ansvarligBeslutter = lukketAv.navIdent,
+                    behandlingStatus = if (avslagTidligSøknad) {
+                        BehandlingStatus.Iverksatt.toString()
+                    } else {
+                        BehandlingStatus.Avsluttet.toString()
+                    },
+                    ferdigbehandletTid = søknadsbehandling.avsluttetTidspunkt,
                 )
             }
         }
@@ -157,7 +162,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingMetode.Manuell
                     },
-
+                    relatertId = relatertId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -197,6 +202,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingResultat = BehandlingResultat.Innvilget.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
+                    ansvarligBeslutter = revurdering.hentAttestantSomUnderkjente()?.navIdent,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør -> this.toBehandlingsstatistikkGenerell(
@@ -209,6 +215,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Opphør.toString(),
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    ansvarligBeslutter = revurdering.hentAttestantSomUnderkjente()?.navIdent,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -257,6 +264,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingMetode.Manuell
                     },
+                    ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                 )
             }
         }
@@ -285,6 +293,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Avbrutt.toString(),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
+                    ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                 )
 
                 is StatistikkEvent.Behandling.Stans.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -324,6 +333,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Avbrutt.toString(),
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                 )
 
                 is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -360,6 +370,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Avsluttet.toString(),
                     behandlingResultat = BehandlingResultat.Avbrutt.toString(),
                     saksbehandler = klage.saksbehandler.navIdent,
+                    ferdigbehandletTid = klage.avsluttetTidspunkt,
                 )
 
                 is StatistikkEvent.Behandling.Klage.Avvist -> this.toBehandlingsstatistikkGenerell(
