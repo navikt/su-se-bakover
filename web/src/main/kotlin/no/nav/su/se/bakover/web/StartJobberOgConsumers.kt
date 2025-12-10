@@ -394,6 +394,7 @@ private fun naisJobberOgConsumers(
                     29.september(2025),
                     30.oktober(2025),
                     21.november(2025),
+                    // ----2026
                     7.januar(2026),
                     3.februar(2026),
                     3.mars(2026),
