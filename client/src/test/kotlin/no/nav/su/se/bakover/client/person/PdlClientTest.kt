@@ -1,5 +1,15 @@
 package no.nav.su.se.bakover.client.person
 
+import Bostedsadresse
+import Kontaktadresse
+import Matrikkeladresse
+import Oppholdsadresse
+import PostadresseIFrittFormat
+import Postboksadresse
+import UkjentBosted
+import UtenlandskAdresse
+import UtenlandskAdresseIFrittFormat
+import Vegadresse
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -11,6 +21,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -56,37 +67,26 @@ internal class PdlClientTest {
     @Test
     fun `hent aktørid inneholder errors`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val errorResponseJson =
-                """
-          {
-              "errors": [
-                {
-                  "message": "Ikke autentisert",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
-                  "path": [
-                    "hentIdenter"
-                  ],
-                  "extensions": {
-                    "code": "unauthenticated",
-                    "classification": "ExecutionAborted"
-                  }
-                }
-              ],
-              "data": {
-                "hentIdenter": null
-              },
-              "extensions": {"etAllerAnnetMap":  "her får vi noe warnings i et eller annent format som vi logger"}
-            }
-                """.trimIndent()
+            val errorResponse = PdlResponse(
+                data = IdentResponseData(
+                    hentIdenter = null,
+                ),
+                errors = listOf(
+                    PdlError(
+                        message = "Ikke autentisert",
+                        path = listOf("hentIdenter"),
+                        extensions = PdlErrorExtension(
+                            code = "unauthenticated",
+                        ),
+                    ),
+                ),
+                extensions = mapOf(
+                    "etAllerAnnetMap" to "her får vi noe warnings i et eller annent format som vi logger",
+                ),
+            ).let { serialize(it) }
             stubFor(
                 wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
-                    .willReturn(WireMock.ok(errorResponseJson)),
+                    .willReturn(WireMock.ok(errorResponse)),
             )
 
             val client = PdlClient(
@@ -124,29 +124,28 @@ internal class PdlClientTest {
     @Test
     fun `hent aktørid OK`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              },
-              "extensions": null
+            val suksessResponseJson = PdlResponse(
+                data = IdentResponseData(
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let {
+                serialize(it)
             }
-                """.trimIndent()
             val azureAdMock = mock<AzureAd> {
                 on { getSystemToken(any()) } doReturn "etOnBehalfOfToken"
             }
@@ -171,28 +170,26 @@ internal class PdlClientTest {
     @Test
     fun `hent aktørid OK med kun on behalf of token`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = IdentResponseData(
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
             val azureAdMock = mock<AzureAd> {
                 on { getSystemToken(any()) } doReturn "etOnBehalfOfToken"
             }
@@ -217,33 +214,23 @@ internal class PdlClientTest {
     @Test
     fun `hent person inneholder kjent feil`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val errorResponseJson =
-                """
-          {
-              "errors": [
-                {
-                  "message": "Ikke autentisert",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
-                  "path": [
-                    "hentPerson"
-                  ],
-                  "extensions": {
-                    "code": "not_found",
-                    "classification": "ExecutionAborted"
-                  }
-                }
-              ],
-              "data": {
-                "hentPerson": null
-              }
-            }
-                """.trimIndent()
+            val errorResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    hentPerson = null,
+                    hentIdenter = null,
+                ),
+                errors = listOf(
+                    PdlError(
+                        message = "Ikke autentisert",
+                        path = listOf("hentPerson"),
+                        extensions = PdlErrorExtension(
+                            code = "not_found",
+                        ),
+                    ),
+                ),
+                extensions = null,
+            ).let { serialize(it) }
+
             val azureAdMock = mock<AzureAd> {
                 on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
             }
@@ -291,109 +278,156 @@ internal class PdlClientTest {
     fun `hent person OK og fjerner duplikate adresser`() {
         val token = "etOnBehalfOfToken"
         startedWireMockServerWithCorrelationId(token = token) {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [
-                    {
-                      "fornavn": "NYDELIG",
-                      "mellomnavn": null,
-                      "etternavn": "KRONJUVEL",
-                      "metadata": {
-                        "master": "Freg",
-                        "historisk": false
-                      }
-                    }
-                  ],
-                  "telefonnummer": [],
-                  "bostedsadresse": [
-                    {
-                      "vegadresse": {
-                        "husnummer": "42",
-                        "husbokstav": null,
-                        "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": "5427",
-                        "postnummer": "9190",
-                        "bruksenhetsnummer": null
-                      }
-                    }
-                  ],
-                  "kontaktadresse": [
-                    {
-                      "vegadresse": {
-                        "husnummer": "42",
-                        "husbokstav": null,
-                        "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": null,
-                        "postnummer": "9190",
-                        "bruksenhetsnummer": null
-                      }
-                    }
-                  ],
-                  "oppholdsadresse": [
-                    {
-                      "vegadresse": {
-                        "husnummer": "42",
-                        "husbokstav": null,
-                        "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": "5427",
-                        "postnummer": "9190",
-                        "bruksenhetsnummer": null
-                      }
-                    }
-                  ],
-                  "statsborgerskap": [
-                    {
-                      "land": "SYR",
-                      "gyldigFraOgMed": null,
-                      "gyldigTilOgMed": null
-                    },
-                    {
-                      "land": "SYR",
-                      "gyldigFraOgMed": null,
-                      "gyldigTilOgMed": null
-                    }
-                  ],
-                  "sivilstand": [
-                      {
-                      "type": "GIFT",
-                      "relatertVedSivilstand": "12345678901"
-                      }
-                  ],
-                  "foedselsdato": [
-                  {
-                    "foedselsdato": "2021-12-21",
-                    "foedselsaar": 2021
-                  }
-      ],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "doedsfall": [
-                    {
-                      "doedsdato": "2021-12-21"
-                    }
-                  ]
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = listOf(
+                            Bostedsadresse(
+                                vegadresse = Vegadresse(
+                                    husnummer = "42",
+                                    husbokstav = null,
+                                    adressenavn = "SANDTAKVEIEN",
+                                    kommunenummer = "5427",
+                                    postnummer = "9190",
+                                    bruksenhetsnummer = null,
+                                ),
+                                ukjentBosted = UkjentBosted(
+                                    bostedskommune = "oslo",
+                                ),
+                                matrikkeladresse = Matrikkeladresse(
+                                    matrikkelId = null,
+                                    bruksenhetsnummer = "34",
+                                    tilleggsnavn = "BLABLA",
+                                    postnummer = "9190",
+                                    kommunenummer = "5427",
+                                ),
+                            ),
+                        ),
+                        kontaktadresse = listOf(
+                            Kontaktadresse(
+                                vegadresse = Vegadresse(
+                                    husnummer = "42",
+                                    husbokstav = null,
+                                    adressenavn = "SANDTAKVEIEN",
+                                    kommunenummer = "5427",
+                                    postnummer = "9190",
+                                    bruksenhetsnummer = null,
+                                ),
+                                postadresseIFrittFormat = PostadresseIFrittFormat(
+                                    adresselinje1 = "HER ER POSTLINJE 1",
+                                    adresselinje2 = "OG POSTLINJE 2",
+                                    adresselinje3 = "POSTLINJE 3",
+                                    postnummer = "9190",
+                                ),
+                                postboksadresse = Postboksadresse(
+                                    postbokseier = "POSTBOKS EIER",
+                                    postboks = "POSTBOKS 123",
+                                    postnummer = "9190",
+                                ),
+                                utenlandskAdresse = UtenlandskAdresse(
+                                    adressenavnNummer = "ADDRESS NAME NUMBER",
+                                    bygningEtasjeLeilighet = "BUILDING FLOOR APARTMENT",
+                                    postboksNummerNavn = "PO BOX NUMBER NAME",
+                                    postkode = "CITY OR PLACE NAME",
+                                    bySted = "POST CODE",
+                                    regionDistriktOmraade = "REGION DISTRICT AREA",
+                                    landkode = "LAND CODE",
+                                ),
+                                utenlandskAdresseIFrittFormat = UtenlandskAdresseIFrittFormat(
+                                    adresselinje1 = "FOREIGN ADDRESS LINE 1",
+                                    adresselinje2 = "FOREIGN ADDRESS LINE 2",
+                                    adresselinje3 = "FOREIGN ADDRESS LINE 3",
+                                    postkode = "POST CODE",
+                                    byEllerStedsnavn = "CITY OR PLACE NAME",
+                                    landkode = "LAND CODE",
+                                ),
+                            ),
+                        ),
+                        oppholdsadresse = listOf(
+                            Oppholdsadresse(
+                                vegadresse = Vegadresse(
+                                    husnummer = "42",
+                                    husbokstav = null,
+                                    adressenavn = "SANDTAKVEIEN",
+                                    kommunenummer = "5427",
+                                    postnummer = "9190",
+                                    bruksenhetsnummer = null,
+                                ),
+                                matrikkeladresse = Matrikkeladresse(
+                                    matrikkelId = null,
+                                    bruksenhetsnummer = "34",
+                                    tilleggsnavn = "BLABLA",
+                                    postnummer = "9190",
+                                    kommunenummer = "5427",
+                                ),
+                                utenlandskAdresse = UtenlandskAdresse(
+                                    adressenavnNummer = "ADDRESS NAME NUMBER",
+                                    bygningEtasjeLeilighet = "BUILDING FLOOR APARTMENT",
+                                    postboksNummerNavn = "PO BOX NUMBER NAME",
+                                    postkode = "CITY OR PLACE NAME",
+                                    bySted = "POST CODE",
+                                    regionDistriktOmraade = "REGION DISTRICT AREA",
+                                    landkode = "LAND CODE",
+                                ),
+                            ),
+                        ),
+                        statsborgerskap = listOf(
+                            Statsborgerskap(
+                                land = "SYR",
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
+                            ),
+                        ),
+                        sivilstand = listOf(
+                            SivilstandResponse(
+                                type = SivilstandTyper.GIFT,
+                                relatertVedSivilstand = "12345678901",
+                            ),
+                        ),
+                        foedselsdato = listOf(
+                            Fødselsdato(
+                                foedselsdato = LocalDate.of(2021, 12, 21),
+                                foedselsaar = 2021,
+                            ),
+                        ),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = listOf(
+                            Doedsfall(
+                                doedsdato = LocalDate.of(2021, 12, 21),
+                            ),
+                        ),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
             val azureAdMock = mock<AzureAd> {
                 on { onBehalfOfToken(any(), any()) } doReturn token
             }
@@ -424,108 +458,113 @@ internal class PdlClientTest {
     @Test
     fun `hent person OK og viser alle ulike adresser, the sequel`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [
-                    {
-                      "fornavn": "NYDELIG",
-                      "mellomnavn": null,
-                      "etternavn": "KRONJUVEL",
-                      "metadata": {
-                        "master": "Freg",
-                        "historisk": false
-                      }
-                    }
-                  ],
-                  "telefonnummer": [],
-                  "bostedsadresse": [
-                    {
-                      "vegadresse": {
-                        "husnummer": "42",
-                        "husbokstav": null,
-                        "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": "5427",
-                        "postnummer": "9190",
-                        "bruksenhetsnummer": null
-                      }
-                    }
-                  ],
-                  "kontaktadresse": [
-                    {
-                      "vegadresse": null,
-                      "postadresseIFrittFormat": {
-                        "adresselinje1": "HER ER POSTLINJE 1",
-                        "adresselinje2": "OG POSTLINJE 2",
-                        "adresselinje3": null,
-                        "postnummer": "9190"
-                      },
-                      "postboksadresse": null,
-                      "utenlandskAdresse": null,
-                      "utenlandskAdresseIFrittFormat": null
-                    }
-                  ],
-                  "oppholdsadresse": [
-                    {
-                    "vegadresse": {
-                      "husnummer": "42",
-                      "husbokstav": null,
-                      "adressenavn": "SANDTAKVEIEN",
-                      "kommunenummer": "5427",
-                      "postnummer": "9190",
-                      "bruksenhetsnummer": null
-                    },
-                      "matrikkeladresse": null,
-                      "utenlandskAdresse": null
-                    }
-                  ],
-                  "statsborgerskap": [
-                    {
-                      "land": "SYR",
-                      "gyldigFraOgMed": null,
-                      "gyldigTilOgMed": null
-                    },
-                    {
-                      "land": "SYR",
-                      "gyldigFraOgMed": null,
-                      "gyldigTilOgMed": null
-                    }
-                  ],
-                  "sivilstand": [
-                      {
-                      "type": "GIFT",
-                      "relatertVedSivilstand": "12345678901"
-                      }
-                  ],
-                  "foedselsdato": [],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "doedsfall": [
-                    {
-                      "doedsdato": "2021-12-21"
-                    }
-                  ]
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = listOf(
+                            Bostedsadresse(
+                                vegadresse = Vegadresse(
+                                    husnummer = "42",
+                                    husbokstav = null,
+                                    adressenavn = "SANDTAKVEIEN",
+                                    kommunenummer = "5427",
+                                    postnummer = "9190",
+                                    bruksenhetsnummer = null,
+                                ),
+                                ukjentBosted = UkjentBosted(
+                                    bostedskommune = "oslo",
+                                ),
+                                matrikkeladresse = Matrikkeladresse(
+                                    matrikkelId = null,
+                                    bruksenhetsnummer = "34",
+                                    tilleggsnavn = "BLABLA",
+                                    postnummer = "9190",
+                                    kommunenummer = "5427",
+                                ),
+                            ),
+                        ),
+                        kontaktadresse = listOf(
+                            Kontaktadresse(
+                                vegadresse = null,
+                                postadresseIFrittFormat = PostadresseIFrittFormat(
+                                    adresselinje1 = "HER ER POSTLINJE 1",
+                                    adresselinje2 = "OG POSTLINJE 2",
+                                    adresselinje3 = null,
+                                    postnummer = "9190",
+                                ),
+                                postboksadresse = null,
+                                utenlandskAdresse = null,
+                                utenlandskAdresseIFrittFormat = null,
+                            ),
+                        ),
+                        oppholdsadresse = listOf(
+                            Oppholdsadresse(
+                                vegadresse = Vegadresse(
+                                    husnummer = "42",
+                                    husbokstav = null,
+                                    adressenavn = "SANDTAKVEIEN",
+                                    kommunenummer = "5427",
+                                    postnummer = "9190",
+                                    bruksenhetsnummer = null,
+                                ),
+                                matrikkeladresse = null,
+                                utenlandskAdresse = null,
+                            ),
+                        ),
+                        statsborgerskap = listOf(
+                            Statsborgerskap(
+                                land = "SYR",
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
+                            ),
+                        ),
+                        sivilstand = listOf(
+                            SivilstandResponse(
+                                type = SivilstandTyper.GIFT,
+                                relatertVedSivilstand = "12345678901",
+                            ),
+                        ),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = listOf(
+                            Doedsfall(
+                                doedsdato = LocalDate.of(2021, 12, 21),
+                            ),
+                        ),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let {
+                serialize(it)
             }
-                """.trimIndent()
             val azureAdMock = mock<AzureAd> {
                 on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
             }
@@ -570,103 +609,104 @@ internal class PdlClientTest {
     @Test
     fun `hent person OK og viser alle ulike adresser`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [
-                    {
-                      "fornavn": "NYDELIG",
-                      "mellomnavn": null,
-                      "etternavn": "KRONJUVEL",
-                      "metadata": {
-                        "master": "Freg",
-                        "historisk": false
-                      }
-                    }
-                  ],
-                  "telefonnummer": [],
-                  "bostedsadresse": [
-                    {
-                      "vegadresse": {
-                        "husnummer": "42",
-                        "husbokstav": null,
-                        "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": "5427",
-                        "postnummer": "9190",
-                        "bruksenhetsnummer": null
-                      }
-                    }
-                  ],
-                  "kontaktadresse": [
-                    {
-                      "vegadresse": null,
-                      "postadresseIFrittFormat": {
-                        "adresselinje1": "HER ER POSTLINJE 1",
-                        "adresselinje2": "OG POSTLINJE 2",
-                        "adresselinje3": null,
-                        "postnummer": "9190"
-                      },
-                      "postboksadresse": null,
-                      "utenlandskAdresse": null,
-                      "utenlandskAdresseIFrittFormat": null
-                    }
-                  ],
-                  "oppholdsadresse": [
-                    {
-                      "vegadresse": null,
-                      "matrikkeladresse": {
-                        "matrikkelId": 5,
-                        "bruksenhetsnummer": "H0606",
-                        "tilleggsnavn": "Storgården",
-                        "postnummer": "9190",
-                        "kommunenummer": "5427"
-                      },
-                      "utenlandskAdresse": null
-                    }
-                  ],
-                  "statsborgerskap": [
-                    {
-                      "land": "SYR",
-                      "gyldigFraOgMed": null,
-                      "gyldigTilOgMed": null
-                    },
-                    {
-                      "land": "SYR",
-                      "gyldigFraOgMed": null,
-                      "gyldigTilOgMed": null
-                    }
-                  ],
-                  "sivilstand": [
-                      {
-                      "type": "GIFT",
-                      "relatertVedSivilstand": "12345678901"
-                      }
-                  ],
-                  "foedselsdato": [],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "doedsfall": []
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = listOf(
+                            Bostedsadresse(
+                                vegadresse = Vegadresse(
+                                    husnummer = "42",
+                                    husbokstav = null,
+                                    adressenavn = "SANDTAKVEIEN",
+                                    kommunenummer = "5427",
+                                    postnummer = "9190",
+                                    bruksenhetsnummer = null,
+                                ),
+                                ukjentBosted = null,
+                                matrikkeladresse = null,
+                            ),
+                        ),
+                        kontaktadresse = listOf(
+                            Kontaktadresse(
+                                vegadresse = null,
+                                postadresseIFrittFormat = PostadresseIFrittFormat(
+                                    adresselinje1 = "HER ER POSTLINJE 1",
+                                    adresselinje2 = "OG POSTLINJE 2",
+                                    adresselinje3 = null,
+                                    postnummer = "9190",
+                                ),
+                                postboksadresse = null,
+                                utenlandskAdresse = null,
+                                utenlandskAdresseIFrittFormat = null,
+                            ),
+                        ),
+                        oppholdsadresse = listOf(
+                            Oppholdsadresse(
+                                vegadresse = null,
+                                matrikkeladresse = Matrikkeladresse(
+                                    matrikkelId = 5,
+                                    bruksenhetsnummer = "H0606",
+                                    tilleggsnavn = "Storgården",
+                                    postnummer = "9190",
+                                    kommunenummer = "5427",
+                                ),
+                                utenlandskAdresse = null,
+                            ),
+                        ),
+                        statsborgerskap = listOf(
+                            Statsborgerskap(
+                                land = "SYR",
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
+                            ),
+                            Statsborgerskap(
+                                land = "SYR",
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
+                            ),
+                        ),
+                        sivilstand = listOf(
+                            SivilstandResponse(
+                                type = SivilstandTyper.GIFT,
+                                relatertVedSivilstand = "12345678901",
+                            ),
+                        ),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = emptyList(),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
+
             val azureAdMock = mock<AzureAd> {
                 on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
             }
@@ -720,49 +760,49 @@ internal class PdlClientTest {
     @Test
     fun `hent person OK, men med tomme verdier`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [{
-                "fornavn": "NYDELIG",
-                "mellomnavn": null,
-                "etternavn": "KRONJUVEL",
-                "metadata": {
-                  "master": "Freg",
-                        "historisk": false
-                 }
-                }],
-                  "telefonnummer": [],
-                  "bostedsadresse": [],
-                  "kontaktadresse": [],
-                  "oppholdsadresse": [],
-                  "statsborgerskap": [],
-                  "foedselsdato": [],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "sivilstand": [],
-                  "doedsfall": []
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = emptyList(),
+                        kontaktadresse = emptyList(),
+                        oppholdsadresse = emptyList(),
+                        statsborgerskap = emptyList(),
+                        sivilstand = emptyList(),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = emptyList(),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
             stubFor(
                 wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                     .willReturn(WireMock.ok(suksessResponseJson)),
@@ -786,49 +826,49 @@ internal class PdlClientTest {
     @Test
     fun `hent person OK med on behalf of token`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [{
-                "fornavn": "NYDELIG",
-                "mellomnavn": null,
-                "etternavn": "KRONJUVEL",
-                "metadata": {
-                  "master": "Freg",
-                        "historisk": false
-                 }
-                }],
-                  "telefonnummer": [],
-                  "bostedsadresse": [],
-                  "kontaktadresse": [],
-                  "oppholdsadresse": [],
-                  "statsborgerskap": [],
-                  "foedselsdato": [],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "sivilstand": [],
-                  "doedsfall": []
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = emptyList(),
+                        kontaktadresse = emptyList(),
+                        oppholdsadresse = emptyList(),
+                        statsborgerskap = emptyList(),
+                        sivilstand = emptyList(),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = emptyList(),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
 
             val azureAdMock = mock<AzureAd> {
                 on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
@@ -860,41 +900,39 @@ internal class PdlClientTest {
     @Test
     fun `hent person OK for systembruker`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [],
-                  "telefonnummer": [],
-                  "bostedsadresse": [],
-                  "kontaktadresse": [],
-                  "oppholdsadresse": [],
-                  "statsborgerskap": [],
-                  "foedselsdato": [],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "sivilstand": [],
-                  "doedsfall": []
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = emptyList(),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = emptyList(),
+                        kontaktadresse = emptyList(),
+                        oppholdsadresse = emptyList(),
+                        statsborgerskap = emptyList(),
+                        sivilstand = emptyList(),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = emptyList(),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
             stubFor(
                 wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                     .willReturn(WireMock.ok(suksessResponseJson)),
@@ -913,56 +951,56 @@ internal class PdlClientTest {
     @Test
     fun `henter første dødsdato som ikke er null`() {
         startedWireMockServerWithCorrelationId {
-            //language=JSON
-            val suksessResponseJson =
-                """
-            {
-              "data": {
-                "hentPerson": {
-                  "navn": [{
-                "fornavn": "NYDELIG",
-                "mellomnavn": null,
-                "etternavn": "KRONJUVEL",
-                "metadata": {
-                  "master": "Freg",
-                        "historisk": false
-                 }
-                }],
-                  "telefonnummer": [],
-                  "bostedsadresse": [],
-                  "kontaktadresse": [],
-                  "oppholdsadresse": [],
-                  "statsborgerskap": [],
-                  "foedselsdato": [],
-                  "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": [],
-                  "sivilstand": [],
-                  "doedsfall": [
-                    {
-                      "doedsdato": null
-                    },
-                     {
-                      "doedsdato": "2021-12-21"
-                     }
-                  ]
-                },
-                "hentIdenter": {
-                  "identer": [
-                    {
-                      "ident": "07028820547",
-                      "gruppe": "FOLKEREGISTERIDENT",
-                      "historisk": false
-                    },
-                    {
-                      "ident": "2751637578706",
-                      "gruppe": "AKTORID",
-                      "historisk": false
-                    }
-                  ]
-                }
-              }
-            }
-                """.trimIndent()
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = emptyList(),
+                        kontaktadresse = emptyList(),
+                        oppholdsadresse = emptyList(),
+                        statsborgerskap = emptyList(),
+                        sivilstand = emptyList(),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = listOf(
+                            Doedsfall(
+                                doedsdato = null,
+                            ),
+                            Doedsfall(
+                                doedsdato = LocalDate.of(2021, 12, 21),
+                            ),
+                        ),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
             stubFor(
                 wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
                     .willReturn(WireMock.ok(suksessResponseJson)),
