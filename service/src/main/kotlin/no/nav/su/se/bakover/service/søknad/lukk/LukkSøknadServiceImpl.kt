@@ -67,7 +67,9 @@ class LukkSøknadServiceImpl(
                 }
                 søknadService.persisterSøknad(it.søknad, tx)
                 søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler)
+
+                val avvistForTidligSøknad = command is LukkSøknadCommand.MedBrev.AvvistSøknad
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler, avvistForTidligSøknad)
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
                 oppgaveService.lukkOppgave(
