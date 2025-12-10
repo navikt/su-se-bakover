@@ -258,7 +258,6 @@ internal class OppdaterHttpClientTest {
         status: String = "FERDIGSTILT",
         erObo: Boolean = true,
     ): String {
-        val endretAvEnhetsnr = if (erObo) "\"4815\"" else "null"
         //language=json
         return """
             {
@@ -266,7 +265,7 @@ internal class OppdaterHttpClientTest {
               "beskrivelse": "$beskrivelse",
               "status": "$status",
               "tilordnetRessurs": "Z123456",
-              "endretAvEnhetsnr": $endretAvEnhetsnr
+              "endretAvEnhetsnr": "4815"
             }
         """.trimIndent()
     }
