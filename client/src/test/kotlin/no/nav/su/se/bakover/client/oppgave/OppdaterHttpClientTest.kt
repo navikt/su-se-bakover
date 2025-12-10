@@ -25,6 +25,11 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
+/*
+    Testene er en smule lite lesbart og prøve å mimicke oppgave på en litt rar måte.
+    Men siden vi tidligere bare konkatenerte tekster i beskrivelsesfeltet vil det bli rart
+    siden vi skal bruke kommentar attributtet for nye endringer mens beskrivelsen skal være det opprinnelige inneholdet.
+ */
 internal class OppdaterHttpClientTest {
 
     private val søknadId = UUID.randomUUID()
