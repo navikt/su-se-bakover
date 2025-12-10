@@ -161,7 +161,7 @@ internal class OppdaterOppgaveHttpClient(
                         response = it.body(),
                         beskrivelse = data.beskrivelse,
                         tilordnetRessurs = tilordnetRessurs,
-                        tildeltEnhetsnr = if (tilordnetRessurs == null) null else ENHET_ÅLESUND,
+                        tildeltEnhetsnr = ENHET_ÅLESUND,
                     ).right()
                 } else {
                     when (it.statusCode()) {
