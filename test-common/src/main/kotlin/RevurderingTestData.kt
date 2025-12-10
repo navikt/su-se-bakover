@@ -550,7 +550,7 @@ fun lagFradragsgrunnlag(
         opprettet = opprettet,
         fradrag = if (type == Fradragstype.ForventetInntekt) {
             FradragFactory.nyUføreFradrag(
-                forventetInntekt = månedsbeløp.toInt() * 12,
+                forventetInntekt = (månedsbeløp * 12).toInt(),
                 periode = periode,
             )
         } else {
