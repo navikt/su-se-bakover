@@ -28,10 +28,6 @@ fun applicationConfig() = ApplicationConfig(
             drift = "testAzureGroupDrift",
         ),
     ),
-    frikort = ApplicationConfig.FrikortConfig(
-        serviceUsername = listOf("frikort"),
-        useStubForSts = true,
-    ),
     oppdrag = ApplicationConfig.OppdragConfig(
         mqQueueManager = "testMqQueueManager",
         mqPort = -22,
@@ -62,6 +58,8 @@ fun applicationConfig() = ApplicationConfig(
     ),
     database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",
+        username = "user",
+        password = "pwd",
     ),
     clientsConfig = ApplicationConfig.ClientsConfig(
         oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -73,9 +71,7 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "pdlClientId",
         ),
         pdfgenUrl = "pdfgenUrl",
-        stsUrl = "stsUrl",
         stsSamlUrl = "stsSamlUrl",
-        skjermingUrl = "skjermingUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
             url = "krrUrl",
@@ -104,6 +100,10 @@ fun applicationConfig() = ApplicationConfig(
         kodeverkConfig = ApplicationConfig.ClientsConfig.KodeverkConfig(
             url = "kodeverkUrl",
             clientId = "kodeverkClientId",
+        ),
+        skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
+            url = "skjermingUrl",
+            clientId = "skjermingClientId",
         ),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

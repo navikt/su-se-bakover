@@ -12,6 +12,8 @@ internal class PostgresTest {
         Postgres(
             ApplicationConfig.DatabaseConfig.StaticCredentials(
                 jdbcUrl = "postgresql://localhost",
+                username = "user",
+                password = "pwd",
             ),
         ).build().shouldBeTypeOf<NonVaultPostgres>()
 
@@ -40,6 +42,8 @@ internal class PostgresTest {
             Postgres(
                 ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "postgresql://localhost",
+                    username = "user",
+                    password = "pwd",
                 ),
             ).build()
         }

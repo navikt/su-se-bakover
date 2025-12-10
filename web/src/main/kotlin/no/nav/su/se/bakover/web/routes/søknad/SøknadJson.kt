@@ -40,7 +40,7 @@ internal fun Søknad.Journalført.MedOppgave.Lukket.toLukketJson() = LukketJson(
     tidspunkt = DateTimeFormatter.ISO_INSTANT.format(lukketTidspunkt),
     saksbehandler = lukketAv.toString(),
     type = when (this) {
-        is Søknad.Journalført.MedOppgave.Lukket.Avvist -> "AVVIST"
+        is Søknad.Journalført.MedOppgave.Lukket.Avvist -> "AVSLAG"
         is Søknad.Journalført.MedOppgave.Lukket.Bortfalt -> "BORTFALT"
         is Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker -> "TRUKKET"
     },

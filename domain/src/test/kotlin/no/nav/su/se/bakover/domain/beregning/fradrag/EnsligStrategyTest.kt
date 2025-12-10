@@ -31,11 +31,11 @@ internal class EnsligStrategyTest {
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
-            it[januar(2020)]!! shouldContainAll listOf(
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedArbeidsinntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype == ForventetInntekt } }
+            it.values.forEach { it.verdi.none { it.fradragstype == ForventetInntekt } }
         }
     }
 
@@ -56,11 +56,11 @@ internal class EnsligStrategyTest {
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
-            it[januar(2020)]!! shouldContainAll listOf(
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedForventetInntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype == Arbeidsinntekt } }
+            it.values.forEach { it.verdi.none { it.fradragstype == Arbeidsinntekt } }
         }
     }
 
@@ -75,7 +75,7 @@ internal class EnsligStrategyTest {
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode,
         ).let {
-            it.values.forEach { it.none { it.tilhører == FradragTilhører.EPS } }
+            it.values.forEach { it.verdi.none { it.tilhører == FradragTilhører.EPS } }
         }
     }
 
@@ -94,9 +94,9 @@ internal class EnsligStrategyTest {
             fradrag = listOf(arbeidsinntektJanuar, forventetInntekt, arbeidsinntektJuni),
             beregningsperiode = år(2020),
         ).let {
-            it[januar(2020)]!! shouldBe (listOf(expectedInntektJanuar))
-            it[juni(2020)]!! shouldBe (listOf(expectedInntektJuni))
-            it.values.forEach { it shouldHaveSize 1 }
+            it[januar(2020)]!!.verdi shouldBe (listOf(expectedInntektJanuar))
+            it[juni(2020)]!!.verdi shouldBe (listOf(expectedInntektJuni))
+            it.values.forEach { it.verdi shouldHaveSize 1 }
         }
     }
 }

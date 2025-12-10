@@ -2,6 +2,10 @@ package beregning.domain
 
 import beregning.domain.fradrag.FradragStrategy
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -29,7 +33,7 @@ class BeregningFactory(val clock: Clock) {
             måned: Måned,
             fradrag: List<Fradrag>,
             strategy: BeregningStrategy,
-        ): BeregningForMåned {
+        ): BeregningForMånedRegelspesifisert {
             return MånedsberegningFactory.ny(
                 måned = måned,
                 strategy = strategy,
@@ -42,35 +46,77 @@ class BeregningFactory(val clock: Clock) {
          * filtrert vekk eventuell sosialstønad for EPS. Etter at fradragene har vært gjennom [FradragStrategy.beregnFradrag]
          * vil alle EPS sine fradrag være bakt sammen til et element av typen [Fradragstype.BeregnetFradragEPS]
          */
-        fun sumYtelseUtenSosialstønad(måned: Måned, strategy: BeregningStrategy): Int {
+        fun ytelseUtenSosialstønad(måned: Måned, strategy: BeregningStrategy): BeregningForMånedRegelspesifisert {
             return beregnMåned(
                 måned = måned,
                 fradrag = fradrag.utenSosialstønad(),
                 strategy = strategy,
-            ).getSumYtelse()
+            )
         }
 
-        fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
-            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
+        fun BeregningForMånedRegelspesifisert.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): BeregningUnderToProsent =
+            with(verdi) {
+                val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
+                val toProsentAvHøyDouble = toProsentAvHøy.verdi.toDouble()
 
-            // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
-            if (getSumYtelse() >= toProsentAvHøy) return false
+                // Hvis ytelsen er 2% eller mer av høy sats fører ikke sosialstønad til at vi havner under 2%
+                return if (getSumYtelse() >= toProsentAvHøyDouble) {
+                    val verdi = false
+                    BeregningUnderToProsent(
+                        verdi = verdi,
+                        benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
+                            verdi = verdi.toString(),
+                            avhengigeRegler = listOf(
+                                benyttetRegel,
+                                toProsentAvHøy.benyttetRegel,
+                            ),
+                        ),
+                    )
+                } else {
+                    // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
+                    val ytelseUten = ytelseUtenSosialstønad(måned = måned, strategy = strategy)
+                    val verdi = ytelseUten.verdi.getSumYtelse() >= toProsentAvHøyDouble
+                    BeregningUnderToProsent(
+                        verdi = verdi,
+                        benyttetRegel = Regelspesifiseringer.REGEL_SOSIALSTØNAD_UNDER_2_PROSENT.benyttRegelspesifisering(
+                            verdi = verdi.toString(),
+                            avhengigeRegler = listOf(
+                                benyttetRegel,
+                                ytelseUten.benyttetRegel,
+                                toProsentAvHøy.benyttetRegel,
+                            ),
+                        ),
+                    )
+                }
+            }
 
-            // hvis sum uten sosialstønad gjør at vi havner over 2% er det sosialstønad som har skylda
-            return sumYtelseUtenSosialstønad(måned = måned, strategy = strategy) >= toProsentAvHøy
-        }
+        fun BeregningForMånedRegelspesifisert.beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): BeregningUnderToProsent =
+            with(verdi) {
+                val toProsentAvHøyForMåned = fullSupplerendeStønadForMåned.toProsentAvHøyForMåned
+                val verdi = getSumYtelse() > 0 && getSumYtelse() < toProsentAvHøyForMåned.verdi.toDouble()
+                return BeregningUnderToProsent(
+                    verdi = verdi,
+                    benyttetRegel = Regelspesifiseringer.REGEL_MINDRE_ENN_2_PROSENT.benyttRegelspesifisering(
+                        verdi = verdi.toString(),
+                        avhengigeRegler = listOf(
+                            benyttetRegel,
+                            toProsentAvHøyForMåned.benyttetRegel,
+                        ),
+                    ),
+                )
+            }
 
-        fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
+        fun BeregningForMånedRegelspesifisert.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.UnderMinstenivå,
-                månedsbeløp = getSumYtelse().toDouble(),
-                periode = måned,
+                månedsbeløp = verdi.getSumYtelse().toDouble(),
+                periode = verdi.måned,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
         )
 
-        fun beregn(): Map<Måned, Månedsberegning> {
+        fun beregn(): Map<Måned, BeregningForMånedRegelspesifisert> {
             val månedTilStrategi: Map<Måned, BeregningStrategy> = beregningsperioder
                 .fold<Beregningsperiode, Map<Måned, BeregningStrategy>>(emptyMap()) { acc, beregningsperiode ->
                     acc + beregningsperiode.månedsoversikt()
@@ -82,37 +128,56 @@ class BeregningFactory(val clock: Clock) {
                     fradrag = fradrag,
                     strategy = strategi,
                 ).let { månedsberegning ->
+
+                    val sosialstønadFørerTilBeløpUnderToProsentAvHøySats =
+                        månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategi)
+                    val beløpStørreEnn0MenMindreEnnToProsentAvHøySats =
+                        månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats()
+
                     when {
-                        månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategi) -> {
-                            månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+                        sosialstønadFørerTilBeløpUnderToProsentAvHøySats.verdi -> {
+                            månedsberegning.verdi.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
                             månedsberegning
                         }
 
-                        månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats() -> {
+                        beløpStørreEnn0MenMindreEnnToProsentAvHøySats.verdi -> {
                             beregnMåned(
                                 måned = måned,
                                 fradrag = fradrag + månedsberegning.lagFradragForBeløpUnderMinstegrense(),
                                 strategy = strategi,
                             ).let {
-                                it.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
+                                it.verdi.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
                                 it
                             }
                         }
 
-                        månedsberegning.getSumYtelse() == 0 -> {
-                            månedsberegning.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
+                        månedsberegning.verdi.getSumYtelse() == 0 -> {
+                            månedsberegning.verdi.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
                             månedsberegning
                         }
 
                         else -> {
                             månedsberegning
                         }
+                    }.let { ny ->
+                        BeregningForMånedRegelspesifisert(
+                            verdi = ny.verdi,
+                            benyttetRegel = Regelspesifiseringer.REGEL_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                                verdi = ny.verdi.toString(),
+                                avhengigeRegler = listOf(
+                                    RegelspesifisertGrunnlag.GRUNNLAG_BOTILSTAND.benyttGrunnlag(strategi.satsgrunn().name),
+                                    ny.benyttetRegel,
+                                    sosialstønadFørerTilBeløpUnderToProsentAvHøySats.benyttetRegel,
+                                    beløpStørreEnn0MenMindreEnnToProsentAvHøySats.benyttetRegel,
+                                ),
+                            ),
+                        )
                     }
                 }
             }
         }
 
-        val månedTilMånedsberegning: Map<Måned, Månedsberegning> = beregn()
+        val månedTilMånedsberegning: Map<Måned, BeregningForMånedRegelspesifisert> = beregn()
 
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
@@ -121,10 +186,15 @@ class BeregningFactory(val clock: Clock) {
             fradrag = fradrag,
             begrunnelse = begrunnelse,
             sumYtelse = månedTilMånedsberegning.values
-                .sumOf { it.getSumYtelse() },
+                .sumOf { it.verdi.getSumYtelse() },
             sumFradrag = månedTilMånedsberegning.values
-                .sumOf { it.getSumFradrag() },
+                .sumOf { it.verdi.getSumFradrag() },
             månedsberegninger = månedTilMånedsberegning.values.toList().toNonEmptyList(),
         )
     }
 }
+
+data class BeregningUnderToProsent(
+    val verdi: Boolean,
+    override val benyttetRegel: Regelspesifisering,
+) : RegelspesifisertBeregning

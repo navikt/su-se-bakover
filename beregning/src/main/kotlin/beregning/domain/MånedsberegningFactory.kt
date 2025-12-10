@@ -1,10 +1,9 @@
 package beregning.domain
 
-import no.nav.su.se.bakover.common.domain.extensions.limitedUpwardsTo
 import no.nav.su.se.bakover.common.domain.extensions.positiveOrZero
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import vilkår.inntekt.domain.grunnlag.Fradrag
-import vilkår.inntekt.domain.grunnlag.sum
 import kotlin.math.roundToInt
 
 data object MånedsberegningFactory {
@@ -19,24 +18,36 @@ data object MånedsberegningFactory {
         måned: Måned,
         strategy: BeregningStrategy,
         fradrag: List<Fradrag>,
-    ): BeregningForMåned {
+    ): BeregningForMånedRegelspesifisert {
         val ytelseFørFradrag = strategy.beregn(måned)
-        val fradragForMåned = strategy.beregnFradrag(måned, fradrag)
-        val fribeløpForEps = strategy.beregnFribeløpEPS(måned)
-
         val satsbeløp: Double = ytelseFørFradrag.satsForMånedAsDouble
-        val sumFradrag = fradragForMåned.sum().limitedUpwardsTo(satsbeløp)
+
+        val beregnetFradrag = strategy.beregnFradrag(måned, fradrag, satsbeløp)
+        val sumFradrag = beregnetFradrag.sumFradrag
+
         val sumYtelse: Int = (satsbeløp - sumFradrag)
             .positiveOrZero()
             .roundToInt()
 
-        return BeregningForMåned(
+        // TODO fribeløp bergnes på nytt her, men kun for visningsformål. Bør egentlig finne fribeløp som er benyttet i faktisk beregning
+        val fribeløpForEps = strategy.beregnFribeløpEPS(måned)
+        val verdi = BeregningForMåned(
             måned = måned,
             fullSupplerendeStønadForMåned = ytelseFørFradrag,
-            fradrag = fradragForMåned,
+            fradrag = beregnetFradrag.fradragForMåned.verdi,
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
+        )
+        return BeregningForMånedRegelspesifisert(
+            verdi = verdi,
+            benyttetRegel = Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.benyttRegelspesifisering(
+                verdi = verdi.toString(),
+                avhengigeRegler = listOf(
+                    ytelseFørFradrag.sats.benyttetRegel,
+                    beregnetFradrag.benyttetRegel,
+                ),
+            ),
         )
     }
 }

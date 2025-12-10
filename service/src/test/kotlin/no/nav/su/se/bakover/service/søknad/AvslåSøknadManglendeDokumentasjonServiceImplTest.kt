@@ -212,6 +212,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                             distribueringsadresse = null,
                         ),
                         oppgaveSomSkalLukkes = expectedSøknadsbehandling.oppgaveId,
+                        clock = fixedClock,
                     )
                 },
             )
@@ -349,6 +350,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                             distribueringsadresse = null,
                         ),
                         oppgaveSomSkalLukkes = expectedSøknadsbehandling.oppgaveId,
+                        clock = fixedClock,
                     )
                 },
             )

@@ -53,13 +53,12 @@ internal class ServiceBuilderTest {
                 hendelsekonsumenterRepo = mock(),
                 dokumentHendelseRepo = mock(),
                 mock(),
-                mock(),
+                sakStatistikkRepo = mock(),
                 mock(),
             ),
             clients = Clients(
                 oauth = mock(),
                 personOppslag = mock(),
-                tokenOppslag = mock(),
                 pdfGenerator = mock(),
                 journalførClients = JournalførClients(
                     skattedokumentUtenforSak = mock(),
@@ -86,6 +85,7 @@ internal class ServiceBuilderTest {
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,
+            sakStatistikkRepo = mock(),
         ).let {
             listOf(
                 (it.sak as SakServiceImpl).getObservers().singleOrNull(),

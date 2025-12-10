@@ -65,6 +65,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                         ),
                     vedtak = vedtak,
                     utbetaling = simulertUtbetaling,
+                    clock = clock,
                 )
             }
         }

@@ -74,7 +74,7 @@ internal class SøknadRoutesKtTest {
                 setBody(
                     serialize(
                         LukketJson.AvvistJson(
-                            type = LukketJson.LukketType.AVVIST,
+                            type = LukketJson.LukketType.AVSLAG,
                             brevConfig = LukketJson.AvvistJson.BrevConfigJson(
                                 brevtype = LukketJson.BrevType.FRITEKST,
                                 null,

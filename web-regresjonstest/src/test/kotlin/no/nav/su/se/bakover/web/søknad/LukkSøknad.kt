@@ -27,7 +27,7 @@ internal fun AppComponents.lukkSøknad(
             setBody(
                 //language=json
                 """{
-                    "type": "AVVIST",
+                    "type": "AVSLAG",
                     "brevConfig": null
                 }
                 """.trimIndent(),

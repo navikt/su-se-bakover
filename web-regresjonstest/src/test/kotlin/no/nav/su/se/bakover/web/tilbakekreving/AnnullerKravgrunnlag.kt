@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.AnnullertKravgrunnlagJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
-import tilbakekreving.presentation.api.kravgrunnlag.AnnullertKravgrunnlagJson
 
 internal data class AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon(
     val behandlingsId: String,

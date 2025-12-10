@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.dokument.application.DokumentServices
 import no.nav.su.se.bakover.dokument.application.consumer.DistribuerDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.application.consumer.JournalførDokumentHendelserKonsument
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
+import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.test.applicationConfig
@@ -141,6 +142,7 @@ class AppComponents private constructor(
                             formuegrenserFactory = formuegrenserFactoryIDag,
                             applicationConfig = applicationConfig(),
                             dbMetrics = dbMetricsStub,
+                            sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
                         )
                     }
                 },
@@ -166,7 +168,7 @@ class AppComponents private constructor(
                     TilgangstyringService(personService)
                 },
                 dokumentKomponenterBuilder = { databaseRepos, services, clients ->
-                    val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
+                    val repos = DokumentRepos(
                         clock = clockParam,
                         sessionFactory = databaseRepos.sessionFactory,
                         hendelseRepo = databaseRepos.hendelseRepo,
@@ -238,6 +240,7 @@ internal fun withKomptestApplication(
                 formuegrenserFactory = formuegrenserFactoryIDag,
                 applicationConfig = applicationConfig,
                 dbMetrics = dbMetricsStub,
+                sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
             )
         }
     },
@@ -262,7 +265,7 @@ internal fun withKomptestApplication(
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->
-        val repos = no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos(
+        val repos = DokumentRepos(
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             hendelseRepo = databaseRepos.hendelseRepo,

@@ -50,7 +50,9 @@ fun opprettetKlage(
     oppgaveId: OppgaveId = oppgaveIdKlage,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 15.januar(2021),
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(
+        sakId = sakId,
+    ).first,
 ): Pair<Sak, OpprettetKlage> {
     require(sakMedVedtak.vedtakListe.isNotEmpty())
     require(opprettet.toLocalDate(ZoneId.of("UTC")) >= datoKlageMottatt)
@@ -95,7 +97,9 @@ fun påbegyntVilkårsvurdertKlage(
     erUnderskrevet: SvarMedBegrunnelse? = null,
     fremsattRettsligKlageinteresse: SvarMedBegrunnelse? = null,
     begrunnelse: String? = null,
-    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(sakId = sakId).first,
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget(
+        sakId = sakId,
+    ).first,
 ): Pair<Sak, VilkårsvurdertKlage.Påbegynt> {
     return opprettetKlage(
         id = id,

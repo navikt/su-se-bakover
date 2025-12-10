@@ -104,8 +104,15 @@ object VurderTilbakekrevingsbehandling {
                         it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
                             lagKravgrunnlagRespons(),
                             it.kravgrunnlag!!::hendelseId,
+                            it.kravgrunnlag!!::kontrollfelt,
+
                         )
-                        it.vurderinger!! shouldBe expectedVurderinger
+                        it.vurderinger!!.shouldBeEqualToIgnoringFields(
+                            expectedVurderinger!!,
+                            it.kravgrunnlag!!::kontrollfelt,
+                            it.vurderinger!!::eksternKontrollfelt,
+                        )
+
                         it.attesteringer shouldBe expectedAttesteringer
                     }
                 }

@@ -46,6 +46,7 @@ import java.util.UUID
  * - [IverksattAvvistKlage] -> ingen
  * - [FerdigstiltOmgjortKlage] -> ingen (krever at den er [VurdertKlage.BekreftetBehandlesIVedtaksinstans])
  */
+
 sealed interface Klage :
     Klagefelter,
     BehandlingMedAttestering {

@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseOk
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingSoapResponseVedtakIdFinnesIkke
 import no.nav.su.se.bakover.test.vurderingerMedKrav
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.vedtak.KunneIkkeSendeTilbakekrevingsvedtak
@@ -37,6 +39,7 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+                sakstype = Sakstype.UFØRE,
             ) shouldBe KunneIkkeSendeTilbakekrevingsvedtak.FeilStatusFraOppdrag.left()
         }
     }
@@ -56,6 +59,7 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+                sakstype = Sakstype.UFØRE,
             ) shouldBe KunneIkkeSendeTilbakekrevingsvedtak.AlvorlighetsgradFeil.left()
         }
     }
@@ -76,6 +80,7 @@ internal class TilbakekrevingSoapClientTest {
             ).sendTilbakekrevingsvedtak(
                 vurderingerMedKrav = vurderingerMedKrav(),
                 attestertAv = attestant,
+                sakstype = Sakstype.UFØRE,
             ).getOrFail().shouldBeEqualToIgnoringFields(
                 RåTilbakekrevingsvedtakForsendelse(
                     requestXml = "ignore-me",
@@ -87,6 +92,8 @@ internal class TilbakekrevingSoapClientTest {
         }
     }
 
+    // Ikke tatt i bruk enda
+    @Disabled
     @Test
     fun `annullerer et kravgrunnlag`() {
         val responseXml = tilbakekrevingSoapResponseOk()

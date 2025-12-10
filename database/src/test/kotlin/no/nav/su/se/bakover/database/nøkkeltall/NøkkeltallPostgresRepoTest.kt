@@ -7,260 +7,251 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import nøkkeltall.domain.Nøkkeltall
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class NøkkeltallPostgresRepoTest {
+@ExtendWith(DbExtension::class)
+internal class NøkkeltallPostgresRepoTest(private val dataSource: DataSource) {
     @Test
     fun `null søknader`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 0,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 0,
-                løpendeSaker = 0,
-            )
+        val testDataHelper = TestDataHelper(dataSource)
+        val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 0,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 0,
+            løpendeSaker = 0,
+        )
 
-            // Smoketest
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 0,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 0,
-                løpendeSaker = 0,
-            )
-        }
+        // Smoketest
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 0,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 0,
+            løpendeSaker = 0,
+        )
     }
 
     @Test
     fun `to søknader knyttet til en sak`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = nySak.id, fnr = nySak.fnr)
+        val testDataHelper = TestDataHelper(dataSource)
+        val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = nySak.id, fnr = nySak.fnr)
 
-            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 2,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 2,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 2,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 1,
-                løpendeSaker = 0,
-            )
+        val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 2,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 2,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 2,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 1,
+            løpendeSaker = 0,
+        )
 
-            // Smoketest
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 0,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 0,
-                løpendeSaker = 0,
-            )
-        }
+        // Smoketest
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 0,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 0,
+            løpendeSaker = 0,
+        )
     }
 
     @Test
     fun `en avslått og en innvilget søknad i to forskjellige saker`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
-            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
+        testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+        val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
 
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 2,
-                    iverksatteAvslag = 1,
-                    iverksatteInnvilget = 1,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 2,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 2,
-                løpendeSaker = 1,
-            )
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 2,
+                iverksatteAvslag = 1,
+                iverksatteInnvilget = 1,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 2,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 2,
+            løpendeSaker = 1,
+        )
 
-            // Smoketest
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 0,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 0,
-                løpendeSaker = 0,
-            )
-        }
+        // Smoketest
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 0,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 0,
+            løpendeSaker = 0,
+        )
     }
 
     @Test
     fun `en bruker med mange lukket søknader`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
-            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
-            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
+        val testDataHelper = TestDataHelper(dataSource)
+        val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+        val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
+        testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
+        testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
 
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 4,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 1,
-                    påbegynt = 0,
-                    lukket = 3,
-                    digitalsøknader = 4,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 1,
-                løpendeSaker = 0,
-            )
-            // Smoketest
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 0,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 0,
-                løpendeSaker = 0,
-            )
-        }
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 4,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 1,
+                påbegynt = 0,
+                lukket = 3,
+                digitalsøknader = 4,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 1,
+            løpendeSaker = 0,
+        )
+        // Smoketest
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 0,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 0,
+            løpendeSaker = 0,
+        )
     }
 
     @Test
     fun `en bruker som sendt in en papirsøknad uføre og en annen med alder`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val fnrUføre = Fnr.generer()
-            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
-                fnr = fnrUføre,
-                søknadInnhold = søknadinnholdUføre(
-                    personopplysninger = FnrWrapper(fnrUføre),
-                    forNav = ForNav.Papirsøknad(
-                        mottaksdatoForSøknad = fixedLocalDate,
-                        grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
-                        annenGrunn = null,
-                    ),
+        val testDataHelper = TestDataHelper(dataSource)
+        val fnrUføre = Fnr.generer()
+        val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+        testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
+            fnr = fnrUføre,
+            søknadInnhold = søknadinnholdUføre(
+                personopplysninger = FnrWrapper(fnrUføre),
+                forNav = ForNav.Papirsøknad(
+                    mottaksdatoForSøknad = fixedLocalDate,
+                    grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
+                    annenGrunn = null,
                 ),
-            )
+            ),
+        )
 
-            val fnrAlder = Fnr.generer()
-            testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
-                fnr = fnrAlder,
-                søknadInnhold = søknadsinnholdAlder(
-                    personopplysninger = FnrWrapper(fnrAlder),
-                    forNav = ForNav.Papirsøknad(
-                        mottaksdatoForSøknad = fixedLocalDate,
-                        grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
-                        annenGrunn = null,
-                    ),
+        val fnrAlder = Fnr.generer()
+        testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
+            fnr = fnrAlder,
+            søknadInnhold = søknadsinnholdAlder(
+                personopplysninger = FnrWrapper(fnrAlder),
+                forNav = ForNav.Papirsøknad(
+                    mottaksdatoForSøknad = fixedLocalDate,
+                    grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
+                    annenGrunn = null,
                 ),
-            )
+            ),
+        )
 
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 1,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 1,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 1,
-                ),
-                antallUnikePersoner = 1,
-                løpendeSaker = 0,
-            )
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 1,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 1,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 1,
+            ),
+            antallUnikePersoner = 1,
+            løpendeSaker = 0,
+        )
 
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 1,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 1,
-                    påbegynt = 0,
-                    lukket = 0,
-                    digitalsøknader = 0,
-                    papirsøknader = 1,
-                ),
-                antallUnikePersoner = 1,
-                løpendeSaker = 0,
-            )
-        }
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.ALDER) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 1,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 1,
+                påbegynt = 0,
+                lukket = 0,
+                digitalsøknader = 0,
+                papirsøknader = 1,
+            ),
+            antallUnikePersoner = 1,
+            løpendeSaker = 0,
+        )
     }
 
     @Test
     fun `en behandling som ble påbegynt og lukket, telles ikke som påbegynt`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            testDataHelper.persisterSøknadsbehandlingAvsluttet()
+        val testDataHelper = TestDataHelper(dataSource)
+        val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+        testDataHelper.persisterSøknadsbehandlingAvsluttet()
 
-            nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
-                søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 1,
-                    iverksatteAvslag = 0,
-                    iverksatteInnvilget = 0,
-                    ikkePåbegynt = 0,
-                    påbegynt = 0,
-                    lukket = 1,
-                    digitalsøknader = 1,
-                    papirsøknader = 0,
-                ),
-                antallUnikePersoner = 1,
-                løpendeSaker = 0,
-            )
-        }
+        nøkkeltallRepo.hentNøkkeltallForSakstype(Sakstype.UFØRE) shouldBe Nøkkeltall(
+            søknader = Nøkkeltall.Søknader(
+                totaltAntall = 1,
+                iverksatteAvslag = 0,
+                iverksatteInnvilget = 0,
+                ikkePåbegynt = 0,
+                påbegynt = 0,
+                lukket = 1,
+                digitalsøknader = 1,
+                papirsøknader = 0,
+            ),
+            antallUnikePersoner = 1,
+            løpendeSaker = 0,
+        )
     }
 }

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -748,6 +749,7 @@ private data class ServiceAndMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val dokumentRepo: DokumentRepo = mock {},
     val skattDokumentService: SkattDokumentService = mock {},
+    val sakStatistikkRepo: SakStatistikkRepo = mock {},
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
@@ -761,6 +763,7 @@ private data class ServiceAndMocks(
         brevService = brevService,
         skattDokumentService = skattDokumentService,
         satsFactory = satsFactoryTestPåDato(),
+        sakStatistikkRepo = sakStatistikkRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

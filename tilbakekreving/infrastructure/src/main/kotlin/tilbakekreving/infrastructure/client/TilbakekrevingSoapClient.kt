@@ -9,10 +9,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.soap.buildSoapEnvelope
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
@@ -57,6 +59,7 @@ class TilbakekrevingSoapClient(
     override fun sendTilbakekrevingsvedtak(
         vurderingerMedKrav: VurderingerMedKrav,
         attestertAv: NavIdentBruker.Attestant,
+        sakstype: Sakstype,
     ): Either<KunneIkkeSendeTilbakekrevingsvedtak, RåTilbakekrevingsvedtakForsendelse> {
         val saksnummer = vurderingerMedKrav.saksnummer
 
@@ -64,6 +67,7 @@ class TilbakekrevingSoapClient(
             val soapBody = buildTilbakekrevingSoapRequest(
                 vurderingerMedKrav = vurderingerMedKrav,
                 attestertAv = attestertAv,
+                fagområde = sakstype.toFagområde(),
             ).getOrElse { return it.left() }
 
             val assertion = getSamlToken(saksnummer, soapBody).getOrElse { return it.left() }

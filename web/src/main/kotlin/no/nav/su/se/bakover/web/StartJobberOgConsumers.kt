@@ -321,7 +321,7 @@ private fun naisJobberOgConsumers(
         StønadstatistikkJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
-            periode = Duration.of(1, ChronoUnit.DAYS),
+            periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
@@ -394,6 +394,19 @@ private fun naisJobberOgConsumers(
                     29.september(2025),
                     30.oktober(2025),
                     21.november(2025),
+                    // ----2026
+                    7.januar(2026),
+                    3.februar(2026),
+                    3.mars(2026),
+                    31.mars(2026),
+                    27.april(2026),
+                    2.juni(2026),
+                    30.juni(2026),
+                    3.august(2026),
+                    1.september(2026),
+                    1.oktober(2026),
+                    3.november(2026),
+                    24.november(2026),
                 )
             } else {
                 emptySet()
@@ -440,7 +453,7 @@ private fun naisJobberOgConsumers(
 
         DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(4),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
@@ -453,7 +466,7 @@ private fun naisJobberOgConsumers(
             oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
             genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(4),
+            intervall = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
         ),
 
@@ -497,7 +510,7 @@ private fun naisJobberOgConsumers(
         },
         KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
-            globalJmsContext = jmsConfig.jmsContext,
+            globalJmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
         ),
         PersonhendelseConsumer(

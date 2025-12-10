@@ -131,13 +131,6 @@ override fun jwkConfig(): JSONObject {
 }
 ```
 
-Legg disse i .env
-
-```shell
-USE_STUB_FOR_STS=false
-STS_URL=https://security-token-service.dev.adeo.no
-```
-
 #### Uten innlogging i Azure (default)
 
 Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres

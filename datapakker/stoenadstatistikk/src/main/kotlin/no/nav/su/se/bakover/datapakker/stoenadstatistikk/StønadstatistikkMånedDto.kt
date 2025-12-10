@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.datapakker.stoenadstatistikk
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /**
@@ -58,7 +60,7 @@ import java.util.UUID
  * @property kapitalinntekt
  * @property kapitalinntektEps
  * @property kontantstotte
- * @property kontantstotteEpu
+ * @property kontantstotteEps
  * @property kvalifiseringsstonad
  * @property kvalifiseringsstonadEps
  * @property navYtelserTilLivsopphold
@@ -156,7 +158,7 @@ data class StønadstatistikkMånedDto(
     val kapitalinntektEps: Int?,
 
     val kontantstotte: Int?,
-    val kontantstotteEpu: Int?,
+    val kontantstotteEps: Int?,
 
     val kvalifiseringsstonad: Int?,
     val kvalifiseringsstonadEps: Int?,
@@ -222,7 +224,7 @@ Rekkefølge i BQ:
        "supplerendestonad", "supplerendestonadeps", "sykepenger", "sykepengereps", "tiltakspenger",
        "tiltakspengereps", "ventestonad", "ventestonadeps", "uforetrygd", "uforetrygdeps", "forventetinntekt",
        "forventetinntekteps", "avkortingutenlandsopphold", "avkortingutenlandsoppholdeps",
-       "underminsteniva", "underminstenivaeps", "annet", "anneteps",
+       "underminsteniva", "underminstenivaeps", "annet", "anneteps", "lastetdato"
  */
 fun List<StønadstatistikkMånedDto>.toCSV(): String {
     return buildString {
@@ -276,7 +278,7 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.kapitalinntekt?.toString().orEmpty(),
                     dto.kapitalinntektEps?.toString().orEmpty(),
                     dto.kontantstotte?.toString().orEmpty(),
-                    dto.kontantstotteEpu?.toString().orEmpty(),
+                    dto.kontantstotteEps?.toString().orEmpty(),
                     dto.kvalifiseringsstonad?.toString().orEmpty(),
                     dto.kvalifiseringsstonadEps?.toString().orEmpty(),
                     dto.navYtelserTilLivsopphold?.toString().orEmpty(),
@@ -307,6 +309,7 @@ fun List<StønadstatistikkMånedDto>.toCSV(): String {
                     dto.underMinstenivåEps?.toString().orEmpty(),
                     dto.annet?.toString().orEmpty(),
                     dto.annetEps?.toString().orEmpty(),
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm")),
                 ).joinToString(",") { escapeCsv(it) },
             )
         }

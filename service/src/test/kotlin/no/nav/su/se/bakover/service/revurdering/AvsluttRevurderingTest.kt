@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
@@ -344,6 +345,7 @@ internal class AvsluttRevurderingTest {
         sessionFactory: SessionFactory = TestSessionFactory(),
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
         klageRepo: KlageRepo = mock(),
+        sakStatistikkRepo: SakStatistikkRepo = mock(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -359,5 +361,6 @@ internal class AvsluttRevurderingTest {
             sakService = sakService,
             satsFactory = satsFactory,
             klageRepo = klageRepo,
+            sakStatistikkRepo = sakStatistikkRepo,
         )
 }

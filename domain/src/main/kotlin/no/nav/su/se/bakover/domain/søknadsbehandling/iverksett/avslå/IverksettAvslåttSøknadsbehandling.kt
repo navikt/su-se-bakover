@@ -59,6 +59,7 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
         dokument = dokument,
         vedtak = vedtak,
         oppgaveSomSkalLukkes = søknadsbehandling.oppgaveId,
+        clock = clock,
     ).right()
 }
 

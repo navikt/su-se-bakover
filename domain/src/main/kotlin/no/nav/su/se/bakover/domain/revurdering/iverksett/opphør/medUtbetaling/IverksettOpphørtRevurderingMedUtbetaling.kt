@@ -60,6 +60,7 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
                         ),
                     vedtak = vedtak,
                     utbetaling = simulertUtbetaling,
+                    clock = clock,
                 )
             }
         }

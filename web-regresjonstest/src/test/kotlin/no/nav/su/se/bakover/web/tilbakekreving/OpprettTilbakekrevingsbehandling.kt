@@ -18,10 +18,10 @@ import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.routes.tilbakekreving.opprett.OpprettTilbakekrevingRequest
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
-import tilbakekreving.presentation.api.opprett.OpprettTilbakekrevingRequest
 import java.util.UUID
 
 /**

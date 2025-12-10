@@ -17,10 +17,13 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
+
+fun isGCP() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("gcp")
 
 internal data object EnvironmentConfig {
     private val env by lazy {
@@ -34,6 +37,7 @@ internal data object EnvironmentConfig {
         return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
     }
 
+    // TODO: se over bruken her
     fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
         return env[environmentVariableName] ?: default
     }
@@ -47,6 +51,10 @@ internal data object EnvironmentConfig {
     }
 }
 
+interface EnvEnum {
+    fun key(): String
+}
+
 data class ApplicationConfig(
     val runtimeEnvironment: RuntimeEnvironment,
     val naisCluster: NaisCluster?,
@@ -55,7 +63,6 @@ data class ApplicationConfig(
     val pdfgenLocal: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
-    val frikort: FrikortConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
@@ -72,23 +79,6 @@ data class ApplicationConfig(
     enum class NaisCluster {
         Dev,
         Prod,
-    }
-
-    data class FrikortConfig(
-        val serviceUsername: List<String>,
-        val useStubForSts: Boolean,
-    ) {
-        companion object {
-            fun createFromEnvironmentVariables() = FrikortConfig(
-                serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME").split(","),
-                useStubForSts = false,
-            )
-
-            fun createLocalConfig() = FrikortConfig(
-                serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort").split(","),
-                useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true",
-            )
-        }
     }
 
     data class OppdragConfig(
@@ -176,6 +166,19 @@ data class ApplicationConfig(
     }
 
     sealed interface DatabaseConfig {
+
+        enum class DatabaseConfigEnvs : EnvEnum {
+            DB_JDBC_URL,
+            DB_HOST,
+            DB_USERNAME,
+            DB_PASSWORD,
+            DB_PORT,
+            DB_DATABASE,
+            ;
+
+            override fun key() = name
+        }
+
         val jdbcUrl: String
 
         data class RotatingCredentials(
@@ -186,23 +189,36 @@ data class ApplicationConfig(
 
         data class StaticCredentials(
             override val jdbcUrl: String,
-        ) : DatabaseConfig {
-            val username = "user"
-            val password = "pwd"
-        }
+            val username: String,
+            val password: String,
+        ) : DatabaseConfig
 
         companion object {
-            fun createFromEnvironmentVariables() = RotatingCredentials(
-                databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
-                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
-                vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
-            )
+            fun createFromEnvironmentVariables(isGCP: Boolean): DatabaseConfig {
+                // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
+                return when (isGCP) {
+                    true -> StaticCredentials(
+                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
+                        getEnvironmentVariableOrThrow(
+                            DatabaseConfigEnvs.DB_USERNAME.key(),
+                        ),
+                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
+                    )
+                    false -> RotatingCredentials(
+                        databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
+                        jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
+                        vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
+                    )
+                }
+            }
 
             fun createLocalConfig() = StaticCredentials(
                 jdbcUrl = getEnvironmentVariableOrDefault(
                     "DATABASE_JDBC_URL",
                     "jdbc:postgresql://localhost:5432/supstonad-db-local",
                 ),
+                username = "user",
+                password = "pwd",
             )
         }
     }
@@ -211,9 +227,7 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val stsUrl: String,
         val stsSamlUrl: String,
-        val skjermingUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
@@ -221,19 +235,16 @@ data class ApplicationConfig(
         val dokArkivConfig: DokArkivConfig,
         val dokDistConfig: DokDistConfig,
         val kodeverkConfig: KodeverkConfig,
+        val skjermingConfig: SkjermingConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                stsUrl = getEnvironmentVariableOrThrow(
-                    "STS_URL",
-                ),
                 stsSamlUrl = getEnvironmentVariableOrThrow(
                     "GANDALF_URL",
                 ),
-                skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
@@ -241,21 +252,17 @@ data class ApplicationConfig(
                 dokArkivConfig = DokArkivConfig.createFromEnvironmentVariables(),
                 dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
                 kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
+                skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
                 pdfgenUrl = "mocked",
-                stsUrl = getEnvironmentVariableOrDefault(
-                    "STS_URL",
-                    "mocked",
-                ),
                 stsSamlUrl = getEnvironmentVariableOrDefault(
                     "GANDALF_URL",
                     "mocked",
                 ),
-                skjermingUrl = "mocked",
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
@@ -263,6 +270,7 @@ data class ApplicationConfig(
                 dokArkivConfig = DokArkivConfig.createLocalConfig(),
                 dokDistConfig = DokDistConfig.createLocalConfig(),
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
+                skjermingConfig = SkjermingConfig.createLocalConfig(),
             )
         }
 
@@ -279,6 +287,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = KontaktOgReservasjonsregisterConfig(
                     appId = "mocked",
                     url = "mocked",
+                )
+            }
+        }
+
+        data class SkjermingConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SkjermingConfig(
+                    url = getEnvironmentVariableOrThrow("SKJERMING_URL"),
+                    clientId = getEnvironmentVariableOrThrow("SKJERMING_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = SkjermingConfig(
+                    url = "skjermingUrl",
+                    clientId = "skjermingClientId",
                 )
             }
         }
@@ -306,7 +331,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = PdlConfig(
-                    url = getEnvironmentVariableOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+                    url = getEnvironmentVariableOrThrow("PDL_URL"),
                     clientId = getEnvironmentVariableOrThrow("PDL_CLIENT_ID"),
                 )
 
@@ -323,7 +348,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = KabalConfig(
-                    url = getEnvironmentVariableOrDefault("KABAL_URL", "https://kabal-api.dev.intern.nav.no"),
+                    url = getEnvironmentVariableOrThrow("KABAL_URL"),
                     clientId = getEnvironmentVariableOrDefault("KABAL_CLIENT_ID", "api://dev-gcp.klage.kabal-api"),
                 )
 
@@ -340,7 +365,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = SafConfig(
-                    url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf.dev.intern.nav.no"),
+                    url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf-q2.dev-fss-pub.nais.io"),
                     clientId = getEnvironmentVariableOrDefault(
                         "SAF_CLIENT_ID",
                         "api:////dev-fss.teamdokumenthandtering.saf/.default",
@@ -534,11 +559,10 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
-            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
+            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(isGCP()),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
-            frikort = FrikortConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
-            database = DatabaseConfig.createFromEnvironmentVariables(),
+            database = DatabaseConfig.createFromEnvironmentVariables(isGCP()),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
@@ -553,7 +577,6 @@ data class ApplicationConfig(
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(::getEnvironmentVariableOrDefault),
-            frikort = FrikortConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
@@ -576,6 +599,7 @@ data class ApplicationConfig(
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
         fun isProd() = naisCluster() == NaisCluster.Prod
+
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
 

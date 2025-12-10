@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjeno
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -434,6 +435,9 @@ internal class GjenopptakAvYtelseServiceTest {
         val vedtakService: VedtakService = defaultMock(),
         val sakService: SakService = defaultMock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
+        val sakStatistikkRepo: SakStatistikkRepo = mock {
+            on { lagreSakStatistikk(any(), any()) }.then {}
+        },
         val observer: StatistikkEventObserver = mock(),
     ) {
         val revurderingService = GjenopptaYtelseServiceImpl(
@@ -443,6 +447,7 @@ internal class GjenopptakAvYtelseServiceTest {
             vedtakService = vedtakService,
             sakService = sakService,
             sessionFactory = sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         ).apply { addObserver(observer) }
 
         fun all() = listOf(

@@ -71,4 +71,5 @@ dependencies {
     api(rootProject.libs.wiremock) {
         exclude(group = "junit")
     }
+    implementation(rootProject.libs.junit.jupiter)
 }

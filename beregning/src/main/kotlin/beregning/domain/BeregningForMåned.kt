@@ -1,5 +1,7 @@
 package beregning.domain
 
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import satser.domain.Satskategori
 import satser.domain.supplerendestønad.FullSupplerendeStønadForMåned
@@ -40,6 +42,7 @@ data class BeregningForMåned(
         is FullSupplerendeStønadForMåned.Alder -> {
             null
         }
+
         is FullSupplerendeStønadForMåned.Uføre -> {
             fullSupplerendeStønadForMåned.grunnbeløp.grunnbeløpPerÅr
         }
@@ -59,8 +62,9 @@ data class BeregningForMåned(
     fun leggTilMerknad(merknad: Merknad.Beregning) {
         merknader.leggTil(merknad)
     }
-
-    fun beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): Boolean {
-        return getSumYtelse() > 0 && getSumYtelse() < fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
-    }
 }
+
+data class BeregningForMånedRegelspesifisert(
+    val verdi: BeregningForMåned,
+    override val benyttetRegel: Regelspesifisering,
+) : RegelspesifisertBeregning

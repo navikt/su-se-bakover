@@ -39,11 +39,13 @@ class Postgres(
     }
 }
 
-abstract class AbstractDatasource(private val jdbcUrl: String) {
+val defaultConnectionPoolSizeForApp = 15
+
+abstract class AbstractDatasource(private val jdbcUrl: String, val maximumPoolSizeOverride: Int = defaultConnectionPoolSizeForApp) {
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
-        maximumPoolSize = 5
-        connectionTimeout = 2.seconds.inWholeMilliseconds
+        maximumPoolSize = maximumPoolSizeOverride
+        connectionTimeout = 3.seconds.inWholeMilliseconds
         maxLifetime = 30.minutes.inWholeMilliseconds
     }
 
@@ -63,7 +65,8 @@ class VaultPostgres(
     jdbcUrl: String,
     private val vaultMountPath: String,
     private val databaseName: String,
-) : AbstractDatasource(jdbcUrl) {
+    maximumPoolSize: Int = defaultConnectionPoolSizeForApp,
+) : AbstractDatasource(jdbcUrl, maximumPoolSizeOverride = maximumPoolSize) {
     override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
         hikariConfig,
         vaultMountPath,

@@ -32,7 +32,7 @@ object SakStatistikkRepo {
             ) { row ->
                 SakStatistikk(
                     id = row.int("id_sekvens").toBigInteger(),
-                    hendelseTid = row.string("hendelse_tid"),
+                    funksjonellTid = row.string("funksjonell_tid"),
                     tekniskTid = row.string("teknisk_tid"),
                     sakId = row.uuid("sak_id"),
                     saksnummer = row.long("saksnummer"),
@@ -55,7 +55,6 @@ object SakStatistikkRepo {
                     saksbehandler = row.stringOrNull("saksbehandler"),
                     ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
                     ansvarligEnhet = row.string("ansvarlig_enhet"),
-                    vedtaksløsningNavn = row.string("vedtakslosning_navn"),
                     funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
                     funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
                     tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),
@@ -76,7 +75,7 @@ object SakStatistikkRepo {
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SakStatistikk(
     val id: BigInteger,
-    val hendelseTid: String,
+    val funksjonellTid: String,
     val tekniskTid: String,
     val sakId: UUID,
     @param:JsonSerialize(using = ToStringSerializer::class)
@@ -107,7 +106,7 @@ data class SakStatistikk(
     val ansvarligBeslutter: String? = null,
     val ansvarligEnhet: String = "4815",
 
-    val vedtaksløsningNavn: String = "SU-App",
+    val fagsystemNavn: String = "SU-App",
 
     // Tilbakekreving
     val funksjonellPeriodeFom: LocalDate? = null,
@@ -120,7 +119,7 @@ fun List<SakStatistikk>.toCsv(): String = buildString {
         appendLine(
             listOf(
                 sakStatistikk.id.toString(),
-                sakStatistikk.hendelseTid,
+                sakStatistikk.funksjonellTid,
                 sakStatistikk.tekniskTid,
                 sakStatistikk.sakId.toString(),
                 sakStatistikk.saksnummer.toString(),
@@ -130,7 +129,7 @@ fun List<SakStatistikk>.toCsv(): String = buildString {
                 sakStatistikk.sakYtelse,
                 sakStatistikk.sakUtland,
                 sakStatistikk.behandlingType,
-                sakStatistikk.behandlingMetode,
+                sakStatistikk.behandlingMetode.uppercase(),
                 sakStatistikk.mottattTid,
                 sakStatistikk.registrertTid,
                 sakStatistikk.ferdigbehandletTid.orEmpty(),
@@ -143,7 +142,7 @@ fun List<SakStatistikk>.toCsv(): String = buildString {
                 sakStatistikk.saksbehandler.orEmpty(),
                 sakStatistikk.ansvarligBeslutter.orEmpty(),
                 sakStatistikk.ansvarligEnhet,
-                sakStatistikk.vedtaksløsningNavn,
+                sakStatistikk.fagsystemNavn,
                 sakStatistikk.funksjonellPeriodeFom?.toString().orEmpty(),
                 sakStatistikk.funksjonellPeriodeTom?.toString().orEmpty(),
                 sakStatistikk.tilbakekrevBeløp?.toString().orEmpty(),

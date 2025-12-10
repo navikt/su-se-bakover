@@ -1,0 +1,64 @@
+package no.nav.su.se.bakover.web.routes.tilbakekreving
+
+import io.ktor.server.routing.Route
+import no.nav.su.se.bakover.web.routes.tilbakekreving.avslutt.avbrytTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.forhåndsvarsleTilbakekrevingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.visForhåndsvarselTilbakekrevingsbrev
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.iverksett.iverksettTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.annullerKravgrunnlagRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.oppdaterKravgrunnlagRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.notat.notatTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.opprett.opprettTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.tilAttestering.tilAttesteringTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.underkjenn.underkjennTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vedtaksbrev.vedtaksbrevTilbakekrevingsbehandlingRoute
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.vurderTilbakekrevingsbehandlingRoute
+import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
+import tilbakekreving.application.service.iverksett.IverksettTilbakekrevingService
+import tilbakekreving.application.service.kravgrunnlag.AnnullerKravgrunnlagService
+import tilbakekreving.application.service.kravgrunnlag.OppdaterKravgrunnlagService
+import tilbakekreving.application.service.notat.NotatTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.tilAttestering.TilbakekrevingsbehandlingTilAttesteringService
+import tilbakekreving.application.service.underkjenn.UnderkjennTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.BrevTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService
+import tilbakekreving.application.service.vurder.MånedsvurderingerTilbakekrevingsbehandlingService
+
+internal const val TILBAKEKREVING_PATH = "saker/{sakId}/tilbakekreving"
+
+fun Route.tilbakekrevingRoutes(
+    opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService,
+    månedsvurderingerTilbakekrevingsbehandlingService: MånedsvurderingerTilbakekrevingsbehandlingService,
+    brevTilbakekrevingsbehandlingService: BrevTilbakekrevingsbehandlingService,
+    forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService: ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService,
+    forhåndsvarsleTilbakekrevingsbehandlingService: ForhåndsvarsleTilbakekrevingsbehandlingService,
+    forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
+    visUtsendtForhåndsvarselbrevForTilbakekrevingService: VisUtsendtForhåndsvarselbrevForTilbakekrevingService,
+    tilbakekrevingsbehandlingTilAttesteringService: TilbakekrevingsbehandlingTilAttesteringService,
+    underkjennTilbakekrevingsbehandlingService: UnderkjennTilbakekrevingsbehandlingService,
+    iverksettTilbakekrevingService: IverksettTilbakekrevingService,
+    avbrytTilbakekrevingsbehandlingService: AvbrytTilbakekrevingsbehandlingService,
+    oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
+    notatTilbakekrevingsbehandlingService: NotatTilbakekrevingsbehandlingService,
+    annullerKravgrunnlagService: AnnullerKravgrunnlagService,
+) {
+    this.opprettTilbakekrevingsbehandlingRoute(opprettTilbakekrevingsbehandlingService)
+    this.vurderTilbakekrevingsbehandlingRoute(månedsvurderingerTilbakekrevingsbehandlingService)
+    this.vedtaksbrevTilbakekrevingsbehandlingRoute(brevTilbakekrevingsbehandlingService)
+    this.vedtaksbrevTilbakekrevingsbehandlingRoute(forhåndsvisVedtaksbrevService = forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService)
+    this.forhåndsvarsleTilbakekrevingRoute(forhåndsvarsleTilbakekrevingsbehandlingService)
+    this.visForhåndsvarselTilbakekrevingsbrev(forhåndsvisForhåndsvarselTilbakekrevingsbehandlingService)
+    this.tilAttesteringTilbakekrevingsbehandlingRoute(tilbakekrevingsbehandlingTilAttesteringService)
+    this.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute(visUtsendtForhåndsvarselbrevForTilbakekrevingService)
+    this.underkjennTilbakekrevingsbehandlingRoute(underkjennTilbakekrevingsbehandlingService)
+    this.iverksettTilbakekrevingsbehandlingRoute(iverksettTilbakekrevingService)
+    this.avbrytTilbakekrevingsbehandlingRoute(avbrytTilbakekrevingsbehandlingService)
+    this.oppdaterKravgrunnlagRoute(oppdaterKravgrunnlagService)
+    this.notatTilbakekrevingsbehandlingRoute(notatTilbakekrevingsbehandlingService)
+    this.annullerKravgrunnlagRoute(annullerKravgrunnlagService)
+}

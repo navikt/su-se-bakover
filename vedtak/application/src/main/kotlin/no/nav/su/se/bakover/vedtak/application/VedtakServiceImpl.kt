@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -35,6 +36,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.innvilgetFraOgMedMåned
 import org.slf4j.LoggerFactory
+import toBehandlingsstatistikkOverordnet
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -50,6 +52,7 @@ class VedtakServiceImpl(
     private val klageRepo: KlageRepo,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) : VedtakService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -224,14 +227,16 @@ class VedtakServiceImpl(
                         klageRepo.knyttMotOmgjøring(relatertId, søknadsbehandling.id.value, tx)
                     }
                 }
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(
+                    søknadsbehandling,
+                    saksbehandler,
+                    relatertId = vedtak.behandling.id.value,
+                )
                 observers.notify(
-                    StatistikkEvent.Behandling.Søknad.OpprettetOmgjøring(
-                        søknadsbehandling,
-                        saksbehandler,
-                        relatertId = vedtak.behandling.id.value,
-                    ),
+                    sakStatistikkEvent,
                     tx,
                 )
+                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
             }
             søknadsbehandling
         }.mapLeft {

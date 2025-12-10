@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.common.infrastructure.auth.TokenOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -163,6 +162,7 @@ data object SharedRegressionTestData {
                 formuegrenserFactory = formuegrenserFactoryIDag,
                 applicationConfig = applicationConfig(),
                 dbMetrics = dbMetricsStub,
+                sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
             )
         },
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
@@ -189,7 +189,6 @@ data class TestClientsBuilder(
     private val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = personOppslag,
-        tokenOppslag = TokenOppslagStub,
         pdfGenerator = PdfGeneratorStub,
         journalførClients = JournalførClients(
             skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakFakeClient(journalpostIdGenerator),

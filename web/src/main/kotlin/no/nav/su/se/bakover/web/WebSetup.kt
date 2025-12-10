@@ -1,28 +1,34 @@
 package no.nav.su.se.bakover.web
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
 import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.calllogging.processingTimeMillis
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
+import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
-import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -65,7 +71,7 @@ internal fun Application.setupKtor(
     installMetrics(suMetrics.prometheusMeterRegistry)
     naisRoutes(suMetrics.prometheusMeterRegistry)
 
-    configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
+    configureAuthentication(clients.oauth, applicationConfig)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(ContentNegotiation) {
@@ -73,7 +79,7 @@ internal fun Application.setupKtor(
     }
 
     setupKtorCallId()
-    setupKtorCallLogging()
+    setupKtorCallLogging(azureGroupMapper)
 
     install(XForwardedHeaders)
     setupKtorRoutes(
@@ -92,18 +98,62 @@ internal fun Application.setupKtor(
     )
 }
 
-private fun Application.setupKtorCallLogging() {
+const val BRUKER = "USER"
+const val TOKENTYPE = "TOKENTYPE"
+const val ROLLER = "ROLES"
+const val TIME_USED = "TIMEUSED_MS"
+
+private fun ApplicationCall.getJwtToken(): DecodedJWT? {
+    val header = request.header(HttpHeaders.Authorization) ?: return null
+    val raw = header.substringAfterLast("Bearer ").trim()
+    return runCatching { JWT.decode(raw) }.getOrNull()
+}
+
+val EXCEPTIONATTRIBUTE_KEY = AttributeKey<Throwable>("exception_key")
+
+private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
         level = Level.INFO
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
 
+            call.attributes.getOrNull(AttributeKey<Throwable>(EXCEPTIONATTRIBUTE_KEY.name))?.let { ex ->
+                call.application.log.error(
+                    "Request ${call.request.httpMethod} ${call.request.path()} failed with exception",
+                    ex,
+                )
+            }
             return@filter true
         }
-        callIdMdc(CORRELATION_ID_HEADER)
 
-        mdc("Authorization") { it.authHeader() }
+        callIdMdc(CORRELATION_ID_HEADER)
+        // Skulle egentlig benyttet idtype ihht https://docs.nais.io/auth/entra-id/reference/?h=azp_name#claims
+        // Men jeg ser at den ikke er med i tokenet så vi sjekker bare på navident
+        mdc(TOKENTYPE) { call ->
+            call.getJwtToken()?.let { token ->
+                val claims = token.claims
+                val user = claims["NAVident"]?.asString()
+                if (user == null) "MASKINBRUKER" else "PERSONBRUKER"
+            }
+        }
+        mdc(TIME_USED) { call ->
+            call.processingTimeMillis().toString()
+        }
+        mdc(BRUKER) { call ->
+            call.getJwtToken()?.let { token ->
+                val claims = token.claims
+                val user = claims["NAVident"]?.asString() ?: claims["azp_name"]?.asString() ?: "Ukjent"
+                user
+            }
+        }
+        // Merk denne vil ikke logge sensitive roller da de ikke finnes i azureGroupMapper
+        mdc(ROLLER) { call ->
+            call.getJwtToken()?.let { token ->
+                token.claims["groups"]?.asList(String::class.java)?.mapNotNull { azureGroupMapper.fromAzureGroup(it) }?.joinToString(",") ?: ""
+            }
+        }
+
         disableDefaultColors()
     }
 }
@@ -117,7 +167,7 @@ private fun Application.setupKtorCallId() {
 }
 
 private fun Application.setupKtorExceptionHandling(
-    log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.setupKtorExceptionHandling"),
+    log: Logger = LoggerFactory.getLogger("no.nav.su.se.bakover.web.Application.StatusPages"),
 ) {
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
@@ -158,7 +208,8 @@ private fun Application.setupKtorExceptionHandling(
             )
         }
         exception<Throwable> { call, cause ->
-            log.error("Got Throwable with message=${cause.message}", cause)
+            call.attributes.put(AttributeKey(EXCEPTIONATTRIBUTE_KEY.name), cause)
+            log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             call.svar(Feilresponser.ukjentFeil)
         }
     }

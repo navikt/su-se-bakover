@@ -24,6 +24,7 @@ interface Månedsberegning : PeriodisertInformasjon {
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
     val måned: Måned
+
     val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned
 
     /**

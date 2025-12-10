@@ -62,6 +62,7 @@ class VedtakServiceFrikortTest {
             mock(),
             mock(),
             mock(),
+            mock(),
         )
         val result = service.hentAlleSakerMedInnvilgetVedtak()
 

@@ -184,8 +184,8 @@ internal class StatistikkKlageTest {
             statistikkEvent = StatistikkEvent.Behandling.Klage.Avvist(vedtak),
             behandlingStatus = BehandlingStatus.Iverksatt.value,
             behandlingStatusBeskrivelse = "Behandlingen har blitt iverksatt.",
-            resultat = BehandlingResultat.Avvist.value,
-            resultatBeskrivelse = "Avvist pga. bl.a. formkrav. En spesifisering av [AVBRUTT].",
+            resultat = BehandlingResultat.Avslag.value,
+            resultatBeskrivelse = "Søknaden blir lukket med status avslag.",
             resultatBegrunnelse = "IKKE_INNENFOR_FRISTEN",
             beslutter = "attestant",
             avsluttet = true,
@@ -214,7 +214,6 @@ internal class StatistikkKlageTest {
             personService = mock(),
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
-            sakStatistikkRepo = mock(),
         ).statistikkService.handle(statistikkEvent)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe "supstonad.aapen-su-behandling-statistikk-v1" },

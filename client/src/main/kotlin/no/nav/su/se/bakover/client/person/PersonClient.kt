@@ -35,7 +35,7 @@ internal class PersonClient(
     private val config: PersonClientConfig,
     private val pdlClient: PdlClient = PdlClient(config.pdlClientConfig),
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
-        JwtToken.BrukerToken.fraMdc()
+        JwtToken.BrukerToken.fraCoroutineContext()
     },
     private val suMetrics: SuMetrics,
     private val personCache: Cache<FnrCacheKey, Person> = newCache(
@@ -138,7 +138,7 @@ internal class PersonClient(
             }
         },
         adressebeskyttelse = pdlData.adressebeskyttelse,
-        skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),
+        skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr, token),
         kontaktinfo = kontaktinfo(pdlData.ident.fnr),
         vergemål = pdlData.vergemålEllerFremtidsfullmakt,
         dødsdato = pdlData.dødsdato,

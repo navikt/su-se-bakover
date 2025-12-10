@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.getOrElse
-import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -16,10 +15,12 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import org.slf4j.LoggerFactory
+import toBehandlingsstatistikkOverordnet
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import java.time.Clock
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger("IverksettInnvilgetRevurderingResponse")
@@ -28,18 +29,16 @@ data class IverksettInnvilgetRevurderingResponse(
     override val sak: Sak,
     override val vedtak: VedtakInnvilgetRevurdering,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
+    val clock: Clock,
 
 ) : IverksettRevurderingResponse<VedtakInnvilgetRevurdering> {
-    override val statistikkhendelser: Nel<StatistikkEvent> = nonEmptyListOf(
-        StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak),
-    )
-
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         lagreVedtak: (vedtak: VedtakInnvilgetRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
+        lagreSakstatistikk: (SakStatistikk, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -69,8 +68,10 @@ data class IverksettInnvilgetRevurderingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                statistikkObservers().notify(statistikkhendelser, tx)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak)
 
+                statistikkObservers().notify(sakStatistikkEvent, tx)
+                lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
                 vedtak.behandling
             }
         }.mapLeft {

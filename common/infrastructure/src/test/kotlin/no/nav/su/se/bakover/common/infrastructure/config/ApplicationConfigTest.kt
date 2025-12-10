@@ -62,10 +62,6 @@ class ApplicationConfigTest {
                 drift = "drift",
             ),
         ),
-        frikort = ApplicationConfig.FrikortConfig(
-            serviceUsername = listOf("frikort"),
-            useStubForSts = false,
-        ),
         oppdrag = ApplicationConfig.OppdragConfig(
             mqQueueManager = "oppdragMqQueueManager",
             mqPort = 77665,
@@ -104,9 +100,11 @@ class ApplicationConfigTest {
                 clientId = "pdlClientId",
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
-            stsUrl = "stsUrl",
             stsSamlUrl = "stsSamlUrl",
-            skjermingUrl = "skjermingUrl",
+            skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
+                url = "skjermingUrl",
+                clientId = "skjermingClientId",
+            ),
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                 appId = "krrId",
                 url = "krrUrl",
@@ -181,7 +179,6 @@ class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
-                "FRIKORT_SERVICE_USERNAME" to "frikort",
                 "MQ_QUEUE_MANAGER" to "oppdragMqQueueManager",
                 "MQ_PORT" to "77665",
                 "MQ_HOSTNAME" to "mqHostname",
@@ -200,9 +197,9 @@ class ApplicationConfigTest {
                 "DOKDIST_CLIENT_ID" to "dokDistClientId",
                 "DOKARKIV_URL" to "dokArkivUrl",
                 "DOKARKIV_CLIENT_ID" to "dokArkivClientId",
-                "STS_URL" to "stsUrl",
                 "GANDALF_URL" to "stsSamlUrl",
                 "SKJERMING_URL" to "skjermingUrl",
+                "SKJERMING_CLIENT_ID" to "skjermingClientId",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
                 "PDL_CLIENT_ID" to "pdlClientId",
                 "KABAL_URL" to "kabalUrl",
@@ -221,6 +218,7 @@ class ApplicationConfigTest {
                 "INSTITUSJONSOPPHOLD_TOPIC" to "INSTITUSJONSOPPHOLD_TOPIC",
                 "KODEVERK_URL" to "kodeverkUrl",
                 "KODEVERK_CLIENT_ID" to "kodeverkClientId",
+                "PDL_URL" to "http://pdl-api.default.svc.nais.local",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -248,10 +246,6 @@ class ApplicationConfigTest {
                     username = "unused",
                     password = "unused",
                 ),
-                frikort = ApplicationConfig.FrikortConfig(
-                    serviceUsername = listOf("frikort"),
-                    useStubForSts = true,
-                ),
                 oppdrag = ApplicationConfig.OppdragConfig(
                     mqQueueManager = "unused",
                     mqPort = -1,
@@ -277,6 +271,8 @@ class ApplicationConfigTest {
                 ),
                 database = ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "jdbc:postgresql://localhost:5432/supstonad-db-local",
+                    username = "user",
+                    password = "pwd",
                 ),
                 clientsConfig = ApplicationConfig.ClientsConfig(
                     oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -288,9 +284,11 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     pdfgenUrl = "mocked",
-                    stsUrl = "mocked",
                     stsSamlUrl = "mocked",
-                    skjermingUrl = "mocked",
+                    skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
+                        url = "skjermingUrl",
+                        clientId = "skjermingClientId",
+                    ),
                     kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                         appId = "mocked",
                         url = "mocked",

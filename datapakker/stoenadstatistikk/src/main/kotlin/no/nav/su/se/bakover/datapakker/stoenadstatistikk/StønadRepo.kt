@@ -77,7 +77,7 @@ fun hentData(dataSource: DataSource, måned: YearMonth): List<StønadstatistikkM
                         kapitalinntekt = intOrNull("kapitalinntekt"),
                         kapitalinntektEps = intOrNull("kapitalinntektEps"),
                         kontantstotte = intOrNull("kontantstotte"),
-                        kontantstotteEpu = intOrNull("kontantstotteEps"),
+                        kontantstotteEps = intOrNull("kontantstotteEps"),
                         kvalifiseringsstonad = intOrNull("kvalifiseringsstonad"),
                         kvalifiseringsstonadEps = intOrNull("kvalifiseringsstonadEps"),
                         navYtelserTilLivsopphold = intOrNull("navYtelserTilLivsopphold"),

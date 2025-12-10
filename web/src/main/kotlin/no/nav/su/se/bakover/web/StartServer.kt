@@ -67,6 +67,7 @@ val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagP�
 /**
  * @param disableConsumersAndJobs Kun for testene.
  */
+
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     suMetrics: SuMetrics = SuMetrics(),
@@ -114,6 +115,7 @@ fun Application.susebakover(
             formuegrenserFactory = formuegrenserFactoryIDag,
             applicationConfig = applicationConfig,
             dbMetrics = dbMetrics,
+            sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
         )
     },
     tilbakekrevingskomponenter: (

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test.tilbakekreving
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -19,6 +20,7 @@ data class TilbakekrevingsklientStub(
     override fun sendTilbakekrevingsvedtak(
         vurderingerMedKrav: VurderingerMedKrav,
         attestertAv: NavIdentBruker.Attestant,
+        sakstype: Sakstype,
     ): Either<KunneIkkeSendeTilbakekrevingsvedtak, RåTilbakekrevingsvedtakForsendelse> {
         return RåTilbakekrevingsvedtakForsendelse(
             requestXml = "{\"requestJson\": \"stubbed\"}",

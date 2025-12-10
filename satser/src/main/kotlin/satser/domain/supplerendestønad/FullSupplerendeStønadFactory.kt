@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDupl
 import satser.domain.Satskategori
 import satser.domain.garantipensjon.GarantipensjonFactory
 import satser.domain.minsteårligytelseforuføretrygdede.MinsteÅrligYtelseForUføretrygdedeFactory
-import java.math.BigDecimal
-import java.math.MathContext
 
 sealed interface FullSupplerendeStønadFactory {
     val satskategori: Satskategori
@@ -26,11 +24,6 @@ sealed interface FullSupplerendeStønadFactory {
     val senesteTilgjengeligeMåned: Måned
 
     val måneder: NonEmptyList<Måned>
-
-    companion object {
-        protected val TO_PROSENT = BigDecimal("0.02")
-        protected val MÅNEDER_PER_ÅR = BigDecimal("12")
-    }
 
     fun månedTilFullSupplerendeStønadForUføre(
         grunnbeløpFactory: GrunnbeløpFactory,
@@ -53,10 +46,10 @@ sealed interface FullSupplerendeStønadFactory {
                 satskategori = satskategori,
                 grunnbeløp = grunnbeløp,
                 minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
-                toProsentAvHøyForMåned = grunnbeløp.grunnbeløpPerÅr.toBigDecimal()
-                    .multiply(minsteÅrligYtelseForUføretrygdedeHøy.faktorSomBigDecimal)
-                    .multiply(TO_PROSENT)
-                    .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Uføre.create(
+                    grunnbeløp,
+                    minsteÅrligYtelseForUføretrygdedeHøy,
+                ),
             )
         }
     }
@@ -130,13 +123,9 @@ sealed interface FullSupplerendeStønadFactory {
                         måned = måned,
                         satskategori = Satskategori.ORDINÆR,
                         garantipensjonForMåned = garantipensjonForMåned,
-                        toProsentAvHøyForMåned = garantipensjonFactory.forMåned(
-                            måned,
-                            Satskategori.HØY,
-                        ).garantipensjonPerÅr
-                            .toBigDecimal()
-                            .multiply(TO_PROSENT)
-                            .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                        toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Alder.create(
+                            garantipensjonFactory.forMåned(måned, Satskategori.HØY),
+                        ),
                     )
                 }
 
@@ -229,9 +218,7 @@ sealed interface FullSupplerendeStønadFactory {
                         måned = måned,
                         satskategori = Satskategori.HØY,
                         garantipensjonForMåned = garantipensjonForMåned,
-                        toProsentAvHøyForMåned = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
-                            .multiply(TO_PROSENT)
-                            .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
+                        toProsentAvHøyForMåned = ToProsentAvHøyForMåned.Alder.create(garantipensjonForMåned),
                     )
                 }
 

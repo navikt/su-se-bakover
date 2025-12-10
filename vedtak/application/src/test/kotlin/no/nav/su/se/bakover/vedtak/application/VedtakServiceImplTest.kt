@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -98,6 +99,7 @@ class VedtakServiceImplTest {
         private val clock: Clock = enUkeEtterFixedClock,
         private val klageRepo: KlageRepo = mock(),
         private val sessionFactory: SessionFactory = TestSessionFactory(),
+        private val sakStatistikkRepo: SakStatistikkRepo = mock(),
     ) {
         fun testableService() = VedtakServiceImpl(
             vedtakRepo = vedtakRepo,
@@ -107,6 +109,7 @@ class VedtakServiceImplTest {
             clock = clock,
             klageRepo = klageRepo,
             sessionFactory = sessionFactory,
+            sakStatistikkRepo = sakStatistikkRepo,
         )
 
         fun verifyNoMoreInteractions() {

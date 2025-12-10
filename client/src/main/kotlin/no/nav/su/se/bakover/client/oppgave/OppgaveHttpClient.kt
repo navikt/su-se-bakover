@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -30,7 +31,6 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -153,7 +153,7 @@ internal class OppgaveHttpClient(
 
     private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
         return Either.catch {
-            exchange.onBehalfOfToken(MDC.get("Authorization"), connectionConfig.clientId)
+            exchange.onBehalfOfToken(JwtToken.BrukerToken.fraCoroutineContext().value, connectionConfig.clientId)
         }.mapLeft { throwable ->
             log.error(
                 "Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}",

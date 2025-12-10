@@ -27,6 +27,7 @@ import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
+import java.util.Date
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
@@ -55,6 +56,7 @@ internal fun Application.testSusebakoverWithMockedDb(
             formuegrenserFactory = formuegrenserFactory,
             applicationConfig = applicationConfig(),
             dbMetrics = dbMetricsStub,
+            sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
         )
     },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
@@ -107,12 +109,46 @@ suspend fun ApplicationTestBuilder.formdataRequest(
     }
 }
 
+suspend fun ApplicationTestBuilder.customizeableJwtRequest(
+    method: HttpMethod,
+    uri: String,
+    subject: String? = null,
+    roller: List<Brukerrolle>? = null,
+    navIdent: String? = null,
+    navn: String? = null,
+    audience: String? = null,
+    expiresAt: Date = Date(Long.MAX_VALUE),
+    externalRoles: List<String>? = null,
+    setup: HttpRequestBuilder.() -> Unit = {},
+): HttpResponse {
+    return this.client.request(uri) {
+        this.method = method
+        this.headers {
+            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            append(
+                HttpHeaders.Authorization,
+                jwtStub.createCustomJwtToken(
+                    subject = subject,
+                    roller = roller,
+                    navIdent = navIdent,
+                    navn = navn,
+                    audience = audience,
+                    expiresAt = expiresAt,
+                    externalRoles = externalRoles,
+                ).asBearerToken(),
+            )
+        }
+        setup()
+    }
+}
+
 suspend fun ApplicationTestBuilder.defaultRequest(
     method: HttpMethod,
     uri: String,
     roller: List<Brukerrolle> = emptyList(),
     navIdent: String,
     jwtSubject: String = "serviceUserTestUsername",
+    externalRoles: List<String>? = null,
     setup: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
     return this.client.request(uri) {
@@ -125,6 +161,7 @@ suspend fun ApplicationTestBuilder.defaultRequest(
                     roller = roller,
                     navIdent = navIdent,
                     subject = jwtSubject,
+                    externalRoles = externalRoles,
                 ).asBearerToken(),
             )
         }
