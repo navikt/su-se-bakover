@@ -139,7 +139,7 @@ class KlageServiceImpl(
         ).also {
             sessionFactory.withTransactionContext { tx ->
                 klageRepo.lagre(it, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId)
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
             }

@@ -59,24 +59,36 @@ import java.util.UUID
 
 internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
 
+data class OpprettKlageRequest(
+    val journalpostId: String,
+    val datoKlageMottatt: LocalDate,
+    val relatertBehandlingId: String,
+)
+
 internal fun Route.klageRoutes(
     klageService: KlageService,
     clock: Clock,
 ) {
     post(KLAGE_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val journalpostId: String, val datoKlageMottatt: LocalDate)
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
-                    val resultat = klageService.opprett(
-                        NyKlageRequest(
-                            sakId = sakId,
-                            saksbehandler = call.suUserContext.saksbehandler,
-                            journalpostId = JournalpostId(body.journalpostId),
-                            datoKlageMottatt = body.datoKlageMottatt,
-                            clock = clock,
-                        ),
-                    ).map {
+                call.withBody<OpprettKlageRequest> { body ->
+                    val request = NyKlageRequest.tryCreate(
+                        sakId = sakId,
+                        saksbehandler = call.suUserContext.saksbehandler,
+                        journalpostId = JournalpostId(body.journalpostId),
+                        datoKlageMottatt = body.datoKlageMottatt,
+                        relatertBehandlingId = body.relatertBehandlingId,
+                        clock = clock,
+                    ).getOrElse {
+                        return@authorize call.svar(
+                            BadRequest.errorJson(
+                                "Ugyldig parameter '${OpprettKlageRequest::relatertBehandlingId.name}'",
+                                "ugyldig_parameter_$${OpprettKlageRequest::relatertBehandlingId.name}",
+                            ),
+                        )
+                    }
+                    val resultat = klageService.opprett(request).map {
                         call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
                     }.getOrElse {
@@ -163,7 +175,10 @@ internal fun Route.klageRoutes(
                 }.getOrElse {
                     return@getOrElse when (it) {
                         KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                            it.fra,
+                            it.til,
+                        )
                     }
                 }
                 call.svar(resultat)
@@ -186,7 +201,10 @@ internal fun Route.klageRoutes(
                     }.mapLeft {
                         val error = when (it) {
                             KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                it.fra,
+                                it.til,
+                            )
                         }
                         call.svar(error)
                     }
@@ -272,10 +290,18 @@ internal fun Route.klageRoutes(
                                 )
                             },
                             oppretthold = body.oppretthold?.let { oppretthold ->
-                                KlageVurderingerRequest.SkalTilKabal(hjemler = oppretthold.hjemler, klagenotat = oppretthold.klagenotat, erOppretthold = true)
+                                KlageVurderingerRequest.SkalTilKabal(
+                                    hjemler = oppretthold.hjemler,
+                                    klagenotat = oppretthold.klagenotat,
+                                    erOppretthold = true,
+                                )
                             },
                             delvisomgjøring_ka = body.delvisomgjøringKa?.let { delvisOmgjøring ->
-                                KlageVurderingerRequest.SkalTilKabal(hjemler = delvisOmgjøring.hjemler, klagenotat = delvisOmgjøring.klagenotat, erOppretthold = false)
+                                KlageVurderingerRequest.SkalTilKabal(
+                                    hjemler = delvisOmgjøring.hjemler,
+                                    klagenotat = delvisOmgjøring.klagenotat,
+                                    erOppretthold = false,
+                                )
                             },
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),
@@ -304,7 +330,10 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                it.fra,
+                                it.til,
+                            )
                         },
                     )
                 }
@@ -325,7 +354,11 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                it.fra,
+                                it.til,
+                            )
+
                             KunneIkkeSendeKlageTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         },
                     )
@@ -344,7 +377,11 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                it.fra,
+                                it.til,
+                            )
+
                             KunneIkkeFerdigstilleOmgjøringsKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         },
                     )
@@ -400,7 +437,11 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                    it.fra,
+                                    it.til,
+                                )
+
                                 KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
                                     "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
@@ -441,7 +482,11 @@ internal fun Route.klageRoutes(
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.tilResultat()
-                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                            it.fra,
+                            it.til,
+                        )
+
                         KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage -> InternalServerError.errorJson(
                             "Feil ved lagrinng av brev/klagen",
                             "feil_ved_lagring_av_brev_og_klage",
@@ -471,7 +516,10 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(it.fra, it.til)
+                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                    it.fra,
+                                    it.til,
+                                )
                             },
                         )
                     }
