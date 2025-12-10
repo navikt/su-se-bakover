@@ -7,7 +7,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.isSuccess
-import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
 import no.nav.su.se.bakover.domain.oppgave.OboToken
@@ -104,11 +102,6 @@ internal class OppdaterOppgaveHttpClient(
         token: Token,
         data: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> {
-        val internalBeskrivelse =
-            "--- ${
-                Tidspunkt.now(clock).toOppgaveFormat()
-            } - ${data.beskrivelse} ---"
-
         val tilordnetRessurs = when (val t = data.tilordnetRessurs) {
             is OppdaterOppgaveInfo.TilordnetRessurs.IkkeTilordneRessurs -> null
             is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> t.navIdent
@@ -120,9 +113,8 @@ internal class OppdaterOppgaveHttpClient(
                 is OboToken -> ENHET_ÅLESUND
             }
             val requestOppgave = EndreOppgaveRequest(
-                beskrivelse = oppgave.beskrivelse?.let {
-                    internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
-                } ?: internalBeskrivelse,
+                beskrivelse = if (oppgave.beskrivelse == null) data.beskrivelse else null,
+                kommentar = if (oppgave.beskrivelse == null) null else Kommentar(data.beskrivelse),
                 status = data.status ?: oppgave.status,
                 oppgavetype = data.oppgavetype?.value ?: oppgave.oppgavetype,
                 tilordnetRessurs = tilordnetRessurs,
@@ -207,9 +199,14 @@ internal class OppdaterOppgaveHttpClient(
 }
 
 private data class EndreOppgaveRequest(
-    val beskrivelse: String,
+    val beskrivelse: String?,
+    val kommentar: Kommentar? = null,
     val oppgavetype: String,
     val status: String,
     val tilordnetRessurs: String?,
     val endretAvEnhetsnr: String?,
+)
+
+private data class Kommentar(
+    val tekst: String,
 )
