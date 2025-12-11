@@ -47,6 +47,8 @@ spec:
         - application: skjermede-personer-pip
           namespace: nom
           cluster: dev-gcp
+        - application: logging
+          namespace: nais-system
   image: {{ image }}
   liveness:
     path: /isalive
