@@ -96,7 +96,7 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, tilordnetRessurs = saksbehandler, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
-            val response = createResponse(beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
             stubOppgave(expectedSaksbehandlingRequest, response)
 
             val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
@@ -135,7 +135,7 @@ internal class OppgaveHttpClientTest {
                 clock = fixedClock,
             )
             val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
-            val response = createResponse(beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -170,7 +170,7 @@ internal class OppgaveHttpClientTest {
                 sakstype = sakstype,
             )
             val expectedAttesteringRequest = createOppgaveRequest(journalpostId = null, oppgavetype = oppgave.oppgavetype.value, behandlingstema = sakstype.toBehandlingstema(), saksreferanse = saksnummer.toString(), beskrivelse = oppgave.beskrivelse)
-            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
             stubOppgave(expectedAttesteringRequest, response)
 
             val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
@@ -229,7 +229,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -275,7 +275,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -321,7 +321,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstema = sakstype.toBehandlingstema(),
             )
 
-            val response = createResponse(
+            val response = hentOppgaveResponse(
                 beskrivelse = oppgave.beskrivelse,
                 oppgavetype = oppgave.oppgavetype.value,
                 behandlingstype = "ae0028",
@@ -390,7 +390,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedAttesteringRequest, response)
 
@@ -435,7 +435,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0058",
                 behandlingstema = sakstype.toBehandlingstema(),
             )
-            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedAttesteringRequest, response)
 
@@ -481,7 +481,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstema = sakstype.toBehandlingstema(),
             )
 
-            val response = createResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
+            val response = hentOppgaveResponse(oppgavetype = oppgave.oppgavetype.value, beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedAttesteringRequest, response)
 
@@ -542,7 +542,7 @@ internal class OppgaveHttpClientTest {
         )
     }
 
-    private fun createResponse(
+    private fun hentOppgaveResponse(
         tilordnetResurs: Saksbehandler? = null,
         beskrivelse: String,
         oppgavetype: String = "BEH_SAK",
