@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
@@ -24,6 +25,11 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
+/*
+    Testene er en smule lite lesbart og prøve å mimicke oppgave på en litt rar måte.
+    Men siden vi tidligere bare konkatenerte tekster i beskrivelsesfeltet vil det bli rart
+    siden vi skal bruke kommentar attributtet for nye endringer mens beskrivelsen skal være det opprinnelige inneholdet.
+ */
 internal class OppdaterHttpClientTest {
 
     private val søknadId = UUID.randomUUID()
@@ -69,14 +75,15 @@ internal class OppdaterHttpClientTest {
                 OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
             ).getOrFail()
 
-            val expectedBody = createJsonPatchRequestedBody()
+            val beskrivelse = "Lukket av SU-app (Supplerende Stønad)"
+            val expectedBody = createJsonPatchRequestedBody(beskrivelse = beskrivelse)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedBody,
                 response = patchResponse,
-                beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+                beskrivelse = beskrivelse,
                 tilordnetRessurs = "Z123456",
             )
 
@@ -115,14 +122,15 @@ internal class OppdaterHttpClientTest {
                 OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
             ).getOrFail()
 
-            val expectedBody = createJsonPatchRequestedBody(erObo = false)
+            val beskrivelse = "Lukket av SU-app (Supplerende Stønad)"
+            val expectedBody = createJsonPatchRequestedBody(erObo = false, beskrivelse = beskrivelse)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedBody,
                 response = patchResponse,
-                beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+                beskrivelse = beskrivelse,
                 tilordnetRessurs = "Z123456",
             )
 
@@ -142,7 +150,7 @@ internal class OppdaterHttpClientTest {
     fun `Legger til lukket beskrivelse på starten av beskrivelse`() {
         startedWireMockServerWithCorrelationId {
             val patchResponse =
-                createJsonPatchResponse("--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding")
+                createJsonPatchResponse("\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding")
             stubFor(
                 get.willReturn(
                     aResponse().withBody(createJsonGetResponse("--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\\nforrige melding"))
@@ -166,15 +174,13 @@ internal class OppdaterHttpClientTest {
                 tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
             ).getOrFail()
 
-            val expectedBody =
-                createJsonPatchRequestedBody("""--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding""")
-
+            val expectedBody = createJsonPatchRequestedBody(kommentar = "Lukket av SU-app (Supplerende Stønad)")
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
                 request = expectedBody,
-                response = patchResponse,
                 beskrivelse = "Lukket av SU-app (Supplerende Stønad)",
+                response = patchResponse,
                 tilordnetRessurs = "Z123456",
             )
 
@@ -193,7 +199,7 @@ internal class OppdaterHttpClientTest {
     @Test
     fun `oppdaterer eksisterende oppgave med ny beskrivelse`() {
         startedWireMockServerWithCorrelationId {
-            val patchResponse = createJsonPatchResponse("--- 01.01.2021 02:02 - en beskrivelse ---", "AAPNET")
+            val patchResponse = createJsonPatchResponse("en beskrivelse", "AAPNET")
 
             stubFor(
                 get
@@ -228,8 +234,8 @@ internal class OppdaterHttpClientTest {
             ).getOrFail()
 
             val expectedBody = createJsonPatchRequestedBody(
-                """--- 01.01.2021 02:02 - en beskrivelse ---\n\nDette er den orginale beskrivelsen""",
-                "AAPNET",
+                kommentar = "en beskrivelse",
+                status = "AAPNET",
             )
 
             val expected = nyOppgaveHttpKallResponse(
@@ -253,26 +259,38 @@ internal class OppdaterHttpClientTest {
         }
     }
 
+    private data class EndreOppgaveRequest(
+        val beskrivelse: String?,
+        val kommentar: Kommentar? = null,
+        val oppgavetype: String,
+        val status: String,
+        val tilordnetRessurs: String?,
+        val endretAvEnhetsnr: String?,
+    )
+
+    private data class Kommentar(
+        val tekst: String,
+    )
+
     private fun createJsonPatchRequestedBody(
-        beskrivelse: String = "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---",
+        beskrivelse: String? = null,
         status: String = "FERDIGSTILT",
-        erObo: Boolean = true,
+        erObo: Boolean = false,
+        kommentar: String? = null,
     ): String {
-        val endretAvEnhetsnr = if (erObo) "\"4815\"" else "null"
-        //language=json
-        return """
-            {
-              "oppgavetype": "BEH_SAK",
-              "beskrivelse": "$beskrivelse",
-              "status": "$status",
-              "tilordnetRessurs": "Z123456",
-              "endretAvEnhetsnr": $endretAvEnhetsnr
-            }
-        """.trimIndent()
+        val request = EndreOppgaveRequest(
+            beskrivelse = beskrivelse,
+            status = status,
+            oppgavetype = "BEH_SAK",
+            tilordnetRessurs = if (erObo) null else "Z123456",
+            endretAvEnhetsnr = "4815",
+            kommentar = kommentar?.let { Kommentar(tekst = it) },
+        )
+        return serialize(request)
     }
 
     private fun createJsonPatchResponse(
-        beskrivelse: String = "--- 01.01.2021 02:02 - Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId",
+        beskrivelse: String = "Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId",
         status: String = "FERDIGSTILT",
     ): String {
         //language=json

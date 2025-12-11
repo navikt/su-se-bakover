@@ -173,7 +173,7 @@ class OppdaterOppgaveForTilbakekrevingshendelserKonsument(
                 is IverksattHendelse,
                 is OppdatertKravgrunnlagPåTilbakekrevingHendelse,
                 is NotatTilbakekrevingsbehandlingHendelse,
-                -> throw IllegalStateException("Oppdater oppgave under tilbakekrevingsbehandling: Uforventet hendelse ${tilbakekrevingsbehandlingHendelse::class.simpleName}. Sak: $sakId, tilbakekrevingsbehandlinghendelseId: ${tilbakekrevingsbehandlingHendelse.id}")
+                -> throw IllegalStateException("Oppdater oppgave under tilbakekrevingsbehandling: Uventet hendelse ${tilbakekrevingsbehandlingHendelse::class.simpleName}. Sak: $sakId, tilbakekrevingsbehandlinghendelseId: ${tilbakekrevingsbehandlingHendelse.id}")
             }
 
             return@mapOneIndexed seriensOppgaveHendelser.whenever(
