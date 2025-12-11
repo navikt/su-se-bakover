@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -23,6 +24,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.UUID
 
 /*
@@ -56,9 +59,9 @@ internal class OppdaterHttpClientTest {
     @Test
     fun `lukker en oppgave med en oppgaveId`() {
         startedWireMockServerWithCorrelationId {
-            val patchResponse = createJsonPatchResponse()
+            val patchResponse = patchResponseForOppdaterOppgave()
 
-            stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
+            stubFor(get.willReturn(aResponse().withBody(getResponseForHentOppgave()).withStatus(200)))
             stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
             val oathMock = mock<AzureAd> { on { onBehalfOfToken(any(), any()) } doReturn "token" }
@@ -76,7 +79,7 @@ internal class OppdaterHttpClientTest {
             ).getOrFail()
 
             val beskrivelse = "Lukket av SU-app (Supplerende Stønad)"
-            val expectedBody = createJsonPatchRequestedBody(beskrivelse = beskrivelse)
+            val expectedBody = patchRequestedBodyOppdaterOppgave(beskrivelse = beskrivelse)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
@@ -103,8 +106,8 @@ internal class OppdaterHttpClientTest {
     @Test
     fun `lukker en oppgave med en oppgaveId for en systembruker`() {
         startedWireMockServerWithCorrelationId {
-            val patchResponse = createJsonPatchResponse()
-            stubFor(get.willReturn(aResponse().withBody(createJsonGetResponse()).withStatus(200)))
+            val patchResponse = patchResponseForOppdaterOppgave()
+            stubFor(get.willReturn(aResponse().withBody(getResponseForHentOppgave()).withStatus(200)))
             stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
             val oathMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" }
@@ -123,7 +126,7 @@ internal class OppdaterHttpClientTest {
             ).getOrFail()
 
             val beskrivelse = "Lukket av SU-app (Supplerende Stønad)"
-            val expectedBody = createJsonPatchRequestedBody(erObo = false, beskrivelse = beskrivelse)
+            val expectedBody = patchRequestedBodyOppdaterOppgave(erObo = false, beskrivelse = beskrivelse)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
@@ -150,10 +153,10 @@ internal class OppdaterHttpClientTest {
     fun `Legger til lukket beskrivelse på starten av beskrivelse`() {
         startedWireMockServerWithCorrelationId {
             val patchResponse =
-                createJsonPatchResponse("\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding")
+                patchResponseForOppdaterOppgave("\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding")
             stubFor(
                 get.willReturn(
-                    aResponse().withBody(createJsonGetResponse("--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\\nforrige melding"))
+                    aResponse().withBody(getResponseForHentOppgave("--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\\nforrige melding"))
                         .withStatus(200),
                 ),
             )
@@ -174,7 +177,7 @@ internal class OppdaterHttpClientTest {
                 tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent("Z123456"),
             ).getOrFail()
 
-            val expectedBody = createJsonPatchRequestedBody(kommentar = "Lukket av SU-app (Supplerende Stønad)")
+            val expectedBody = patchRequestedBodyOppdaterOppgave(kommentar = "Lukket av SU-app (Supplerende Stønad)")
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
@@ -199,13 +202,13 @@ internal class OppdaterHttpClientTest {
     @Test
     fun `oppdaterer eksisterende oppgave med ny beskrivelse`() {
         startedWireMockServerWithCorrelationId {
-            val patchResponse = createJsonPatchResponse("en beskrivelse", "AAPNET")
+            val patchResponse = patchResponseForOppdaterOppgave("en beskrivelse")
 
             stubFor(
                 get
                     .willReturn(
                         aResponse()
-                            .withBody(createJsonGetResponse("Dette er den orginale beskrivelsen"))
+                            .withBody(getResponseForHentOppgave("Dette er den orginale beskrivelsen"))
                             .withStatus(200),
                     ),
             )
@@ -233,7 +236,7 @@ internal class OppdaterHttpClientTest {
                 ),
             ).getOrFail()
 
-            val expectedBody = createJsonPatchRequestedBody(
+            val expectedBody = patchRequestedBodyOppdaterOppgave(
                 kommentar = "en beskrivelse",
                 status = "AAPNET",
             )
@@ -272,7 +275,7 @@ internal class OppdaterHttpClientTest {
         val tekst: String,
     )
 
-    private fun createJsonPatchRequestedBody(
+    private fun patchRequestedBodyOppdaterOppgave(
         beskrivelse: String? = null,
         status: String = "FERDIGSTILT",
         erObo: Boolean = false,
@@ -289,48 +292,46 @@ internal class OppdaterHttpClientTest {
         return serialize(request)
     }
 
-    private fun createJsonPatchResponse(
+    private fun patchResponseForOppdaterOppgave(
         beskrivelse: String = "Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId",
-        status: String = "FERDIGSTILT",
     ): String {
-        //language=json
-        return """
-                {
-                  "id": $oppgaveId,
-                  "versjon": ${versjon + 1},
-                  "beskrivelse": "$beskrivelse",
-                  "status": "$status",
-                  "tilordnetRessurs": "Z123456"
-                }
-        """.trimIndent()
+        val response = OppgaveHttpKallResponse(
+            oppgaveId = OppgaveId(oppgaveId.toString()),
+            beskrivelse = beskrivelse,
+            tilordnetRessurs = "Z123456",
+            oppgavetype = Oppgavetype.BEHANDLE_SAK,
+            request = "",
+            response = "",
+            tildeltEnhetsnr = "4815",
+        )
+        return serialize(response)
     }
 
-    private fun createJsonGetResponse(beskrivelse: String? = null): String {
-        //language=json
-        return """
-                {
-                  "id": $oppgaveId,
-                  "tildeltEnhetsnr": "1234",
-                  "endretAvEnhetsnr": "1234",
-                  "opprettetAvEnhetsnr": "1234",
-                  "aktoerId": "1000012345678",
-                  "saksreferanse": "$søknadId",
-                  "tilordnetRessurs": "Z123456",
-                  "tema": "SUP",
-                  "beskrivelse": ${beskrivelse?.let { "\"$it\"" }},
-                  "oppgavetype": "BEH_SAK",
-                  "behandlingstype": "ae0034",
-                  "versjon": $versjon,
-                  "opprettetAv": "supstonad",
-                  "endretAv": "supstonad",
-                  "prioritet": "NORM",
-                  "status": "AAPNET",
-                  "metadata": {},
-                  "fristFerdigstillelse": "2019-01-04",
-                  "aktivDato": "2019-01-04",
-                  "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
-                  "endretTidspunkt": "2019-08-25T11:45:38+02:00"
-                }
-        """.trimIndent()
+    private fun getResponseForHentOppgave(beskrivelse: String? = null): String {
+        val response = OppgaveResponse(
+            id = oppgaveId,
+            tildeltEnhetsnr = "1234",
+            journalpostId = null,
+            saksreferanse = søknadId.toString(),
+            aktoerId = "1000012345678",
+            beskrivelse = beskrivelse,
+            tema = "SUP",
+            behandlingstema = null,
+            oppgavetype = "BEH_SAK",
+            tilordnetRessurs = "Z123456",
+            behandlingstype = "ae0034",
+            versjon = versjon,
+            opprettetAv = "supstonad",
+            prioritet = "NORM",
+            status = "AAPNET",
+            metadata = emptyMap<String, Any>(),
+            fristFerdigstillelse = LocalDate.parse("2019-01-04"),
+            aktivDato = LocalDate.parse("2019-01-04"),
+            opprettetTidspunkt = ZonedDateTime.parse("2019-01-04T09:53:39.329+02:02"),
+            ferdigstiltTidspunkt = null,
+            endretAv = "supstonad",
+        )
+
+        return serialize(response)
     }
 }
