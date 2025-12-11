@@ -106,7 +106,7 @@ internal class OppdaterHttpClientTest {
     @Test
     fun `lukker en oppgave med en oppgaveId for en systembruker`() {
         startedWireMockServerWithCorrelationId {
-            val patchResponse = patchResponseForOppdaterOppgave()
+            val patchResponse = patchResponseForOppdaterOppgave(erObo = true)
             stubFor(get.willReturn(aResponse().withBody(getResponseForHentOppgave()).withStatus(200)))
             stubFor(patch.willReturn(aResponse().withBody(patchResponse).withStatus(200)))
 
@@ -126,7 +126,7 @@ internal class OppdaterHttpClientTest {
             ).getOrFail()
 
             val beskrivelse = "Lukket av SU-app (Supplerende Stønad)"
-            val expectedBody = patchRequestedBodyOppdaterOppgave(erObo = false, beskrivelse = beskrivelse)
+            val expectedBody = patchRequestedBodyOppdaterOppgave(erObo = true, beskrivelse = beskrivelse)
 
             val expected = nyOppgaveHttpKallResponse(
                 oppgaveId = OppgaveId(oppgaveId.toString()),
@@ -285,8 +285,8 @@ internal class OppdaterHttpClientTest {
             beskrivelse = beskrivelse,
             status = status,
             oppgavetype = "BEH_SAK",
-            tilordnetRessurs = if (erObo) null else "Z123456",
-            endretAvEnhetsnr = "4815",
+            tilordnetRessurs = "Z123456",
+            endretAvEnhetsnr = if (erObo) null else "4815",
             kommentar = kommentar?.let { Kommentar(tekst = it) },
         )
         return serialize(request)
@@ -294,15 +294,16 @@ internal class OppdaterHttpClientTest {
 
     private fun patchResponseForOppdaterOppgave(
         beskrivelse: String = "Lukket av SU-app (Supplerende Stønad) ---\nSøknadId : $søknadId",
+        erObo: Boolean = false,
     ): String {
         val response = OppgaveHttpKallResponse(
             oppgaveId = OppgaveId(oppgaveId.toString()),
             beskrivelse = beskrivelse,
-            tilordnetRessurs = "Z123456",
+            tilordnetRessurs = if (erObo) null else "Z123456",
+            tildeltEnhetsnr = if (erObo) null else "4815",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
             request = "",
             response = "",
-            tildeltEnhetsnr = "4815",
         )
         return serialize(response)
     }
