@@ -299,7 +299,7 @@ internal class OppdaterHttpClientTest {
         val response = OppgaveHttpKallResponse(
             oppgaveId = OppgaveId(oppgaveId.toString()),
             beskrivelse = beskrivelse,
-            tilordnetRessurs = if (erObo) null else "Z123456",
+            tilordnetRessurs = "Z123456",
             tildeltEnhetsnr = if (erObo) null else "4815",
             oppgavetype = Oppgavetype.BEHANDLE_SAK,
             request = "",
