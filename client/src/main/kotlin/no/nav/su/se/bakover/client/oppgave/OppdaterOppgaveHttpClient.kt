@@ -109,7 +109,7 @@ internal class OppdaterOppgaveHttpClient(
         }
         return Either.catch {
             val endretAvEnhetsnr = when (token) {
-                is SystembrukerToken -> ENHET_ÅLESUND
+                is SystembrukerToken -> null
                 is OboToken -> ENHET_ÅLESUND
             }
             val requestOppgave = EndreOppgaveRequest(
