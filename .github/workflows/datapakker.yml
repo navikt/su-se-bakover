@@ -153,6 +153,18 @@ jobs:
       cluster: prod-fss
       resource: datapakker/stoenadstatistikk/.nais/prod.yaml
 
+  deploy_to_prod_saksstatistikk:
+    name: Deploy to prod saksstatistikk
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    needs: push_image_saksstatistikk
+    with:
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-datapakker-saksstatistikk-job:${{ github.sha }}
+      cluster: prod-fss
+      resource: datapakker/saksstatistikk/.nais/prod.yaml
+
   deploy_to_prod_soknad:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_prod == 'true' || github.ref == 'refs/heads/master' }}
     name: Deploy to prod
