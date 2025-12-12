@@ -102,10 +102,15 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                 }
 
         val behandlingId = forhåndsvarsleHendelse.id
-        val behandling = (sak.behandlinger.tilbakekrevinger.hent(behandlingId) as? KanForhåndsvarsle)
+        val hentetBehandling = sak.behandlinger.tilbakekrevinger.hent(behandlingId) ?: return Unit.also {
+            log.error(
+                "Feil under generering av forhåndsvarseldokument: Fant ikke behandling $behandlingId for sak $sakId og hendelse $hendelseId",
+            )
+        }
+        val behandling = (hentetBehandling as? KanForhåndsvarsle)
             ?: return Unit.also {
                 log.error(
-                    "Feil under generering av forhåndsvarseldokument: Fant ikke behandling $behandlingId, eller var ikke i KanForhåndsvarsle tilstand, for sak $sakId og hendelse $hendelseId",
+                    "Feil under generering av forhåndsvarseldokument: Behandling: $behandlingId, var ikke i KanForhåndsvarsle tilstand, tilstand: ${hentetBehandling.javaClass.simpleName} for sak $sakId og hendelse $hendelseId",
                 )
             }
 
