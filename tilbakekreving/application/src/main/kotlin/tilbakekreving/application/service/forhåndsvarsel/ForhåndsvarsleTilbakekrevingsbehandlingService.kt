@@ -26,6 +26,7 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    // TODO: kan vi gjøre hele prosessen her så man slipper å belage seg på jobbnen?
     fun forhåndsvarsle(
         command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
     ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {

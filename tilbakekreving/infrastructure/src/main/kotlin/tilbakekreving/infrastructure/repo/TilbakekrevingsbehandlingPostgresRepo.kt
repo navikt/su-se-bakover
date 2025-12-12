@@ -158,7 +158,13 @@ class TilbakekrevingsbehandlingPostgresRepo(
             resultater.let { (tilbakekrevingsHendelser, sak) ->
                 val saksnummer = sak.first
                 val fnr = sak.second
-                val flatMappedHendelser = tilbakekrevingsHendelser.map { it.toTilbakekrevingsbehandlingHendelse() }
+                val flatMappedHendelser = tilbakekrevingsHendelser
+                    .map { it.toTilbakekrevingsbehandlingHendelse() }
+                    .sortedWith(
+                        compareBy(
+                            { it.tidligereHendelseId != null },
+                        ),
+                    )
 
                 TilbakekrevingsbehandlingHendelser.create(
                     sakId = sakId,
@@ -189,7 +195,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
     }
 }
 
-private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
+fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
     when (this.type) {
         OpprettetTilbakekrevingsbehandlingHendelsestype -> this.mapToOpprettetTilbakekrevingsbehandlingHendelse()
 
