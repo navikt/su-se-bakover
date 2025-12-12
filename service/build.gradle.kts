@@ -46,6 +46,9 @@ dependencies {
     implementation(project(":økonomi:domain"))
     implementation(project(":økonomi:application"))
 
+    implementation(platform(rootProject.libs.google.cloud.bom))
+    implementation(rootProject.libs.google.cloud.bigquery)
+
     testImplementation(project(":test-common"))
     testImplementation(project(":vilkår:utenlandsopphold:domain"))
 }
