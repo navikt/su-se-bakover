@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -35,7 +36,7 @@ fun mapSimuleringResponse(
     soapResponse: String,
     clock: Clock,
     log: Logger = defaultLog,
-    sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
+    sikkerLogg: SikkerLogg = no.nav.su.se.bakover.common.sikkerLogg,
 ): Either<SimuleringFeilet.TekniskFeil, Simulering> {
     return Either.catch {
         val response = soapResponse.deserializeSimulerBeregningResponse()

@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
@@ -27,7 +28,7 @@ class KlageinstanshendelseConsumer(
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(KlageinstanshendelseConsumer::class.java),
-    private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
+    private val sikkerLogg: SikkerLogg = no.nav.su.se.bakover.common.sikkerLogg,
 ) : StoppableConsumer {
 
     override val consumerName = topicName

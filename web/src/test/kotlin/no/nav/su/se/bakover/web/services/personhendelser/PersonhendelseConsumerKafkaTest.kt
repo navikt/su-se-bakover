@@ -10,6 +10,7 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.kontaktadresse.Kontaktadresse
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
+import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.person.Fnr
@@ -69,7 +70,7 @@ internal class PersonhendelseConsumerKafkaTest {
             // Don't spam logs running tests
             log = NOPLogger.NOP_LOGGER,
             // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER,
+            sikkerLogg = SikkerLogg.NOP,
             clock = fixedClock,
         )
         kafkaConsumer.lastComittedShouldBe(6)
@@ -116,7 +117,7 @@ internal class PersonhendelseConsumerKafkaTest {
             // Don't spam logs running tests
             log = NOPLogger.NOP_LOGGER,
             // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER,
+            sikkerLogg = SikkerLogg.NOP,
             clock = fixedClock,
         )
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.

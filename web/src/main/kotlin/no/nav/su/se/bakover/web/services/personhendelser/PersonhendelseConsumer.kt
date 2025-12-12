@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.infrastructure.consumer.StoppableConsumer
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationIdSuspend
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -36,7 +37,7 @@ class PersonhendelseConsumer(
     // Vi ønsker ikke holde tråden i live for lenge ved en avslutting av applikasjonen.
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val log: Logger = LoggerFactory.getLogger(PersonhendelseConsumer::class.java),
-    private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
+    private val sikkerLogg: SikkerLogg = no.nav.su.se.bakover.common.sikkerLogg,
     private val clock: Clock,
 ) : StoppableConsumer {
 

@@ -7,6 +7,7 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Beløp
 import no.nav.su.se.bakover.common.MånedBeløp
 import no.nav.su.se.bakover.common.Månedsbeløp
+import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.februar
@@ -841,7 +842,7 @@ internal class SimuleringResponseMapperTest {
             }
         }
         val logMock = mock<Logger>()
-        val sikkerLoggMock = mock<Logger>()
+        val sikkerLoggMock = mock<SikkerLogg.NOP>()
         mapSimuleringResponse(
             saksnummer = no.nav.su.se.bakover.test.saksnummer,
             fnr = no.nav.su.se.bakover.test.fnr,
