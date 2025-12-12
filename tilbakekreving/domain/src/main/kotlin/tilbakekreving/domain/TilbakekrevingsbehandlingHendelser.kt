@@ -95,6 +95,10 @@ data class TilbakekrevingsbehandlingHendelser private constructor(
         }
     }
 
+    /*
+        Sekvensen her gjør at man lager behandlingen for hendelsesiden for tk basert på forrige hendelsesid
+        Den vil da også styre egenskapene til hendelsen
+     */
     private fun toCurrentState(): Tilbakekrevingsbehandlinger {
         return this.fold(mapOf<HendelseId, Tilbakekrevingsbehandling>()) { acc, hendelse ->
             val hendelseId = hendelse.hendelseId
