@@ -47,6 +47,9 @@ class AvbrytTilbakekrevingsbehandlingService(
             it as? KanEndres
                 ?: throw IllegalStateException("Kunne ikke avbryte tilbakekrevingsbehandling ${command.behandlingsId}, behandlingen er ikke i tilstanden KanEndres. Command: $command")
         }
+        /*
+        TODO: her må det komme en sperre at dersom det finnes uprosesserte hendelser for sakiden må man vente til de er ferdig evt annullere de her SOSTKGEDDON
+         */
 
         return behandling.avbryt(
             nesteVersjon = sak.versjon.inc(),

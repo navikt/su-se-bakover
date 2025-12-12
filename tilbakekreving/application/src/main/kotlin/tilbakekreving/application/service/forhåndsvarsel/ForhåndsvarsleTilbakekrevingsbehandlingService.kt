@@ -26,7 +26,10 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    // TODO: kan vi gjøre hele prosessen her så man slipper å belage seg på jobbnen?
+    /*
+     * TODO: SOSTKGEDDON her burde vi bare kjøre gjennom dokumentgenerering hele veien ellers feil og ikke overlate det til [GenererDokumentForForhåndsvarselTilbakekrevingKonsument]
+     *  Det bidrar bare til race conditions hvis TK behandlingen er i ikke forhåndsvarsle state , det KREVES senere for å få lov til å generere dokument
+     */
     fun forhåndsvarsle(
         command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
     ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {

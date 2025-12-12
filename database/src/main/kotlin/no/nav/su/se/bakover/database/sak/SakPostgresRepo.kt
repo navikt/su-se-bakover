@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
-import org.slf4j.LoggerFactory
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
@@ -58,8 +57,6 @@ internal class SakPostgresRepo(
     private val hendelseRepo: HendelseRepo,
     behandlingssammendragKravgrunnlagOgTilbakekrevingRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
 ) : SakRepo {
-
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
         dbMetrics = dbMetrics,
@@ -407,8 +404,6 @@ internal class SakPostgresRepo(
         return sessionContext.withSession { session ->
             val sakId = UUID.fromString(string("id"))
             val tilbakekrevingsbehandlingHendelser = tilbakekrevingRepo.hentForSak(sakId, sessionContext)
-            log.info("tilbakekrevingsbehandlingHendelser: ${serialize(tilbakekrevingsbehandlingHendelser)}")
-            log.info("tilbakekrevingsbehandlingHendelser currenstate: ${serialize(tilbakekrevingsbehandlingHendelser.currentState)}")
             Sak(
                 id = sakId,
                 saksnummer = Saksnummer(long("saksnummer")),
