@@ -32,6 +32,7 @@ fun main() {
         vaultMountPath = System.getenv("VAULT_MOUNTPATH"),
         databaseName = System.getenv("DATABASE_NAME"),
         maximumPoolSize = 1,
+        // maximumPoolSize = 1, bare for å teste
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
 
