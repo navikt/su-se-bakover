@@ -195,7 +195,7 @@ class TilbakekrevingsbehandlingPostgresRepo(
     }
 }
 
-fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
+private fun PersistertHendelse.toTilbakekrevingsbehandlingHendelse(): TilbakekrevingsbehandlingHendelse =
     when (this.type) {
         OpprettetTilbakekrevingsbehandlingHendelsestype -> this.mapToOpprettetTilbakekrevingsbehandlingHendelse()
 
