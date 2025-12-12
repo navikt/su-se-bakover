@@ -12,7 +12,7 @@ spec:
         tier: db-g1-small
         collation: nb_NO.UTF8
         cascadingDelete: false
-        name: supstonad-db-15-dev
+        name: supstonad-db-15-dev-2
         databases:
           - name: supstonad
             envVarPrefix: DB
@@ -133,7 +133,7 @@ spec:
     - name: AZURE_GROUP_DRIFT
       value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
     - name: DATABASE_NAME
-      value: "supstonad-db-15-dev"
+      value: "supstonad-db-15-dev-2"
     - name: PDFGEN_URL
       value: "http://su-pdfgen"
     - name: DOKARKIV_URL
