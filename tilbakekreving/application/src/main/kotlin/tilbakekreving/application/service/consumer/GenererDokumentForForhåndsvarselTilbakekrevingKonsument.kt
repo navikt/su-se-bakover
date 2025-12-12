@@ -73,6 +73,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                 log.error("Feil under generering av forhåndsvarseldokumenter: Kunne ikke hente sak $sakId")
                 return
             }
+
         hendelsesIder.mapOneIndexed { index, hendelseId ->
             genererDokumentForSakOgHendelse(sak, hendelseId, correlationId, sak.versjon.inc(index))
         }
@@ -85,8 +86,9 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         nesteVersjon: Hendelsesversjon,
     ) {
         val sakId = sak.id
-
-        tilbakekrevingsbehandlingRepo.hentForSak(sakId).hentDokumenterForHendelseId(hendelseId).let {
+        // TODO: her henter vi de samme hendelsene igjen... burde fint gå ann å gjøre dette på begge typer. Slitsomt med flere sannheter
+        val tkbehandlingerFrarepo = tilbakekrevingsbehandlingRepo.hentForSak(sakId)
+        tkbehandlingerFrarepo.hentDokumenterForHendelseId(hendelseId).let {
             if (it != null) {
                 return Unit.also {
                     hendelsekonsumenterRepo.lagre(hendelseId, konsumentId)
