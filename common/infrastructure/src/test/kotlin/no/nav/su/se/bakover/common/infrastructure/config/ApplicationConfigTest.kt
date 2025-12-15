@@ -134,6 +134,7 @@ class ApplicationConfigTest {
                 url = "kodeverkUrl",
                 clientId = "kodeverkClientId",
             ),
+            suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -318,6 +319,7 @@ class ApplicationConfigTest {
                         url = "mocked",
                         clientId = "mocked",
                     ),
+                    suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

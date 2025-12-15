@@ -31,4 +31,5 @@ fun mockedClients() = Clients(
     klageClient = mock(),
     queryJournalpostClient = mock(),
     skatteOppslag = mock(),
+    suProxyClient = mock(),
 )

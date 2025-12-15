@@ -105,6 +105,7 @@ fun applicationConfig() = ApplicationConfig(
             url = "skjermingUrl",
             clientId = "skjermingClientId",
         ),
+        suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

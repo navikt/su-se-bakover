@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
+import no.nav.su.se.bakover.web.services.FssProxyJob
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -132,6 +133,7 @@ fun startJobberOgConsumers(
             journalførDokumentSkattService = journalførDokumentSkattService,
             jmsConfig = jmsConfig,
             tilbakekrevingskomponenter = tilbakekrevingskomponenter,
+            clients = clients,
         )
 
         ApplicationConfig.RuntimeEnvironment.Local ->
@@ -292,6 +294,7 @@ private fun naisJobberOgConsumers(
     journalførDokumentSkattService: JournalførSkattDokumentService,
     jmsConfig: JmsConfig,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    clients: Clients,
 ): JobberOgConsumers {
     val isProd = applicationConfig.naisCluster == NaisCluster.Prod
 
@@ -317,6 +320,12 @@ private fun naisJobberOgConsumers(
         } else {
             null
         },
+        FssProxyJob.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
+            isProd = isProd,
+            client = clients.suProxyClient,
+        ),
 
         StønadstatistikkJob.startJob(
             clock = clock,

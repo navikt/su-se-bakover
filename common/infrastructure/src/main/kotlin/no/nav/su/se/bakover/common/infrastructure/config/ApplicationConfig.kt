@@ -236,6 +236,7 @@ data class ApplicationConfig(
         val dokDistConfig: DokDistConfig,
         val kodeverkConfig: KodeverkConfig,
         val skjermingConfig: SkjermingConfig,
+        val suProxyConfig: SuProxyConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -253,6 +254,7 @@ data class ApplicationConfig(
                 dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
                 kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
                 skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
+                suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -271,6 +273,7 @@ data class ApplicationConfig(
                 dokDistConfig = DokDistConfig.createLocalConfig(),
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
                 skjermingConfig = SkjermingConfig.createLocalConfig(),
+                suProxyConfig = SuProxyConfig.createLocalConfig(),
             )
         }
 
@@ -287,6 +290,22 @@ data class ApplicationConfig(
                 fun createLocalConfig() = KontaktOgReservasjonsregisterConfig(
                     appId = "mocked",
                     url = "mocked",
+                )
+            }
+        }
+
+        data class SuProxyConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SuProxyConfig(
+                    url = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_URL"),
+                    clientId = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_CLIENT_ID"),
+                )
+                fun createLocalConfig() = SuProxyConfig(
+                    url = "SUPSTONAD_PROXY_URL",
+                    clientId = "SUPSTONAD_PROXY_CLIENT_ID",
                 )
             }
         }

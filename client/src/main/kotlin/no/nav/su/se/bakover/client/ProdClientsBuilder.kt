@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
+import no.nav.su.se.bakover.client.proxy.SUProxyClientImpl
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
@@ -143,6 +144,7 @@ data class ProdClientsBuilder(
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
                 azureAd = oAuth,
             ),
+            suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = oAuth),
         )
     }
 }
