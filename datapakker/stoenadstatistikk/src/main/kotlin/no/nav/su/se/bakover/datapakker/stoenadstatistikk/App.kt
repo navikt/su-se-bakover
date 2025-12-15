@@ -31,7 +31,7 @@ fun main() {
         jdbcUrl = databaseUrl,
         vaultMountPath = System.getenv("VAULT_MOUNTPATH"),
         databaseName = System.getenv("DATABASE_NAME"),
-        // maximumPoolSize = 1, bare for å teste
+        maximumPoolSize = 3,
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
         hentData(it, YearMonth.now().minusMonths(1))
