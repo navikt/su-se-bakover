@@ -16,9 +16,11 @@ private fun <T> String.hentListe(
     return session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 }
 
-fun hentData(dataSource: DataSource, måned: YearMonth): List<StønadstatistikkMånedDto> {
-    return dataSource.connection.use {
-        val session = sessionOf(dataSource)
+fun hentData(
+    dataSource: DataSource,
+    måned: YearMonth,
+): List<StønadstatistikkMånedDto> {
+    return sessionOf(dataSource).use { session ->
         """
         SELECT *
         FROM stoenad_maaned_statistikk
@@ -29,9 +31,8 @@ fun hentData(dataSource: DataSource, måned: YearMonth): List<StønadstatistikkM
                 session = session,
             ) { row ->
                 with(row) {
-                    val id = uuid("id")
                     StønadstatistikkMånedDto(
-                        id = id,
+                        id = uuid("id"),
                         måned = måned,
                         funksjonellTid = string("funksjonell_tid"),
                         tekniskTid = string("teknisk_tid"),
