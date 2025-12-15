@@ -128,6 +128,10 @@ spec:
       #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicerbruker
   env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen-q2.dev-fss-pub.nais.io/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
     - name: SUPSTONAD_PROXY_URL
       value: "https://supstonad-proxy.dev-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID
