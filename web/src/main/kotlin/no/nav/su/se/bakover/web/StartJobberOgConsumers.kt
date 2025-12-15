@@ -328,7 +328,7 @@ private fun naisJobberOgConsumers(
         ),
 
         Pesysjobb.startJob(
-            clock = clock,
+            isProd = isProd,
             initialDelay = initialDelay.next(),
             periode = Duration.of(2, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
