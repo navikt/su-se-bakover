@@ -47,6 +47,9 @@ spec:
         - application: skjermede-personer-pip
           namespace: nom
           cluster: dev-gcp
+        - application: pensjon-pen-q2
+          namespace: pensjon-q2
+          cluster: dev-fss
   image: {{ image }}
   liveness:
     path: /isalive
@@ -82,6 +85,10 @@ spec:
       - mountPath: /var/run/secrets/nais.io/srvuser
         kvPath: /serviceuser/data/dev/srvsupstonad
   env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen-q2.dev.adeo.no/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
     - name: AZURE_GROUP_VEILEDER

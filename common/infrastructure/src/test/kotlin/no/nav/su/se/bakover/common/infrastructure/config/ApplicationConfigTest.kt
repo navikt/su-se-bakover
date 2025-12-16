@@ -135,6 +135,7 @@ class ApplicationConfigTest {
                 clientId = "kodeverkClientId",
             ),
             suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
+            pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -220,6 +221,10 @@ class ApplicationConfigTest {
                 "KODEVERK_URL" to "kodeverkUrl",
                 "KODEVERK_CLIENT_ID" to "kodeverkClientId",
                 "PDL_URL" to "http://pdl-api.default.svc.nais.local",
+                "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
+                "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
+                "PESYS_URL" to "PESYS_URL",
+                "PESYS_CLIENT_ID" to "PESYS_CLIENT_ID",
                 "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
                 "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
             ),
@@ -322,6 +327,7 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
+                    pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
