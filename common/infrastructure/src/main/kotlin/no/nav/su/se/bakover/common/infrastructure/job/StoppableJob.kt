@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.common.infrastructure.job
 
 import arrow.core.Either
 import io.opentelemetry.api.GlobalOpenTelemetry
-import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanKind
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
@@ -100,7 +99,7 @@ fun wrapJobWithOtel(
         .startSpan()
 
     try {
-        Span.current().makeCurrent().use {
+        span.makeCurrent().use {
             job(correlationId)
         }
     } catch (ex: Exception) {
