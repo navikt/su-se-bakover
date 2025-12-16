@@ -213,6 +213,7 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         queryJournalpostClient = QueryJournalpostClientStub,
         skatteOppslag = SkatteClientStub(clock),
+        suProxyClient = mock(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

@@ -79,6 +79,7 @@ internal class ServiceBuilderTest {
                 klageClient = mock(),
                 queryJournalpostClient = mock(),
                 skatteOppslag = mock(),
+                suProxyClient = mock(),
             ),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),
