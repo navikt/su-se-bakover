@@ -63,6 +63,9 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: supstonad-proxy
+          namespace: supstonad
+          cluster: dev-fss
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
           cluster: dev-gcp
@@ -84,6 +87,7 @@ spec:
           namespace: team-rocket
           cluster: dev-gcp
       external:
+        - host: supstonad-proxy.dev-fss-pub.nais.io
         - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
         - host: pdl-api.dev-fss-pub.nais.io
         - host: sigrun-q2.dev.adeo.no
@@ -126,6 +130,10 @@ spec:
       #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicerbruker
   env:
+    - name: SUPSTONAD_PROXY_URL
+      value: "https://supstonad-proxy.dev-fss-pub.nais.io"
+    - name: SUPSTONAD_PROXY_CLIENT_ID
+      value: "api://dev-fss.supstonad.supstonad-proxy"
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
     - name: AZURE_GROUP_VEILEDER

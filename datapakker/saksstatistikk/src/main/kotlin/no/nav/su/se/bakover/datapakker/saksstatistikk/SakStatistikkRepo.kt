@@ -18,11 +18,10 @@ object SakStatistikkRepo {
         hentData(dataSource, dag, dag.plusDays(1))
 
     fun hentData(dataSource: DataSource, fom: LocalDate, tom: LocalDate): List<SakStatistikk> {
-        return dataSource.connection.use {
-            val session = sessionOf(dataSource)
+        return sessionOf(dataSource).use { session ->
             """
                 SELECT * FROM sak_statistikk
-                WHERE hendelse_tid > :fom and hendelse_tid < :tom 
+                WHERE funksjonell_tid > :fom and funksjonell_tid < :tom 
             """.trimIndent().hentListe(
                 params = mapOf(
                     "fom" to fom,

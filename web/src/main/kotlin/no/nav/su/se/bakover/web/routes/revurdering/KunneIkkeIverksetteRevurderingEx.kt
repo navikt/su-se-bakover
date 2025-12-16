@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -17,6 +19,10 @@ internal fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
             is KunneIkkeIverksetteRevurdering.Saksfeil.DetHarKommetNyeOverlappendeVedtak -> Feilresponser.detHarKommetNyeOverlappendeVedtak
             is KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet -> this.underliggende.tilResultat()
             is KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeGenerereDokument -> this.feil.tilResultat()
+            is KunneIkkeIverksetteRevurdering.Saksfeil.BeregningManglerRegelspesifisering -> HttpStatusCode.BadRequest.errorJson(
+                message = "Behandling har beregning som mangler regelspesifisert beregning. Returner behandling og utfør beregning på nytt",
+                code = "beregning_mangler_regelspesifisering",
+            )
         }
     }
 

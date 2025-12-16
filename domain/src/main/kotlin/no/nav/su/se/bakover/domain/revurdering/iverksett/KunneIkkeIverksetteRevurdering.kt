@@ -26,5 +26,7 @@ sealed interface KunneIkkeIverksetteRevurdering {
         data object DetHarKommetNyeOverlappendeVedtak : Saksfeil
 
         data class KunneIkkeGenerereDokument(val feil: KunneIkkeLageDokument) : Saksfeil
+
+        data object BeregningManglerRegelspesifisering : Saksfeil
     }
 }

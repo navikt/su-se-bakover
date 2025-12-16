@@ -36,10 +36,10 @@ fun main() {
         logger.info("Startet database med url: $databaseUrl")
 
         // Default:
-        hentData(it, LocalDate.now())
+        // hentData(it, LocalDate.now())
 
         // Endres manuelt ved uthenting tilbake i tid
-        // hentData(dataSource = it, fom = LocalDate.of(2025, 11, 10), tom = LocalDate.now().plusDays(1))
+        hentData(dataSource = it, fom = LocalDate.of(2025, 10, 6), tom = LocalDate.now().plusDays(1))
     }
 
     logger.info("Hentet ${data.size} rader fra databasen")
@@ -68,7 +68,7 @@ private fun writeCsvToBigQueryTable(
         .setJob(UUID.randomUUID().toString())
         .build()
 
-    val dataset = "statistikk"
+    val dataset = "saksstatistikk"
     val tableId = TableId.of(project, dataset, tableName)
 
     logger.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
