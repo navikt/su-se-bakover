@@ -98,5 +98,9 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
             message = "Behandlingen er i feil tilstand, sjekk om den allerede er attestert.",
             "feil_tilstand_behandling",
         )
+        is KunneIkkeIverksetteSøknadsbehandling.BeregningManglerRegelspesifisering -> HttpStatusCode.BadRequest.errorJson(
+            message = "Behandling har beregning som mangler regelspesifisert beregning. Returner behandling og utfør beregning på nytt",
+            code = "beregning_mangler_regelspesifisering",
+        )
     }
 }
