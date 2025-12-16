@@ -41,6 +41,8 @@ class PesysHttpClient(
     override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDto> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
+        val body = serialize(fnrList.map(Fnr::toString))
+        log.info("Request body mot Pesys: $body")
         val (request, response, result) =
             "${url}$alderUri?fom=$dato"
                 .httpPost()
@@ -48,7 +50,7 @@ class PesysHttpClient(
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .header(CORRELATION_ID_HEADER, correlationId)
-                .body(serialize(fnrList.map(Fnr::toString)))
+                .body(body)
                 .responseString()
 
         return result.fold(
