@@ -24,6 +24,7 @@ class PesysJobServiceImpl(
             "14445014177",
             "24415045545",
         ).map { Fnr(it) }
+
         client.hentVedtakForPersonPaaDatoAlder(hardkodetFnrs, LocalDate.now())
         log.info("Hentet data fra Pesys klient på dato ${LocalDate.now()}")
     }
