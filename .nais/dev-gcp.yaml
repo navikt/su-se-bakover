@@ -33,6 +33,7 @@ spec:
       destinations:
         - id: elastic
         - id: loki
+        - id: team_logs
   azure:
     application:
       enabled: true
