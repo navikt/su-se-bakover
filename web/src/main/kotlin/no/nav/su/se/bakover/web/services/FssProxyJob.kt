@@ -26,7 +26,10 @@ internal class FssProxyJob(
                 runJobCheck = emptyList(),
             ) {
                 log.info("Kjører $jobName")
-                if (isGCP() && !isProd) {
+                if (isGCP()) {
+                    log.info("Pinger proxy-fss")
+                    client.ping()
+                    log.info("Pinget proxy-fss")
                 }
                 log.info("Jobb $jobName er fullført")
             }.let { FssProxyJob(it) }
