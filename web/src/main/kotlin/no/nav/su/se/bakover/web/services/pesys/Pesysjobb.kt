@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.services.pesys
 
-import no.nav.su.se.bakover.common.infrastructure.config.isGCP
+import no.nav.su.se.bakover.common.infrastructure.config.isDevFss
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
@@ -16,7 +16,6 @@ internal class Pesysjobb(
             periode: Duration,
             runCheckFactory: RunCheckFactory,
             pesysjobb: PesysJobService,
-            isProd: Boolean,
         ): Pesysjobb {
             val log = LoggerFactory.getLogger(Pesysjobb::class.java)
             val jobName = Pesysjobb::class.simpleName!!
@@ -27,8 +26,7 @@ internal class Pesysjobb(
                 intervall = periode,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
-                log.info("isgcp${isGCP()} isprod$isProd")
-                if (!isGCP() && !isProd) {
+                if (isDevFss()) {
                     log.info("Kjører $jobName")
                     pesysjobb.hentDatafraPesys()
                 } else {
