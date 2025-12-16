@@ -41,12 +41,15 @@ class PesysHttpClient(
     override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDto> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
-        val (request, response, result) = "${url}$alderUri".httpPost(listOf(Pair("fom", dato)))
-            .authentication().bearer(azureAd.getSystemToken(clientId))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header(CORRELATION_ID_HEADER, correlationId)
-            .body(serialize(fnrList.map(Fnr::toString))).responseString()
+        val (request, response, result) =
+            "${url}$alderUri?fom=$dato"
+                .httpPost()
+                .authentication().bearer(azureAd.getSystemToken(clientId))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header(CORRELATION_ID_HEADER, correlationId)
+                .body(serialize(fnrList.map(Fnr::toString)))
+                .responseString()
 
         return result.fold(
             { json ->
