@@ -2,8 +2,7 @@
 <included>
     <include resource="logback-json-config.xml"/>
     <include resource="logback-audit-config.xml"/>
-    <include resource="logback-secure-config.xml"/>
-    <include resource="logback-secure-teamslogs-config.xml"/>
+    <include resource="logback-secure-teamlogs-config.xml"/>
 
     <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
         <appender-ref ref="STDOUT_JSON" />
@@ -17,5 +16,6 @@
     <root level="INFO">
         <appender-ref ref="OTEL"/>
         <appender-ref ref="STDOUT_JSON"/>
+        <appender-ref ref="team-logs"/>
     </root>
 </included>
