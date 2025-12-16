@@ -26,7 +26,7 @@ class PesysclientStub : PesysClient {
         fnrList: List<Fnr>,
         dato: LocalDate,
     ): Either<ClientError, ResponseDto> {
-        TODO("Not yet implemented")
+        return ResponseDto(emptyList()).right()
     }
 }
 

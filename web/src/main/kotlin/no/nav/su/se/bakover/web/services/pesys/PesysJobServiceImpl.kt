@@ -15,7 +15,8 @@ class PesysJobServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentDatafraPesys() {
-        log.info("Henter data fra pesys for hardkodet services")
+        log.info("Henter data fra pesys for hardkodet fnrer")
+        // TODO: Dette er testdata fra Dolly
         val hardkodetFnrs = listOf(
             "22503904369",
             "01416304056",
@@ -25,7 +26,10 @@ class PesysJobServiceImpl(
             "24415045545",
         ).map { Fnr(it) }
 
-        client.hentVedtakForPersonPaaDatoAlder(hardkodetFnrs, LocalDate.now())
-        log.info("Hentet data fra Pesys klient på dato ${LocalDate.now()}")
+        // TODO: Denne skal brukes senere
+        val result = client.hentVedtakForPersonPaaDatoAlder(hardkodetFnrs, LocalDate.now())
+        result.map { result ->
+            log.info("Hentet data fra Pesys klient på dato ${LocalDate.now()} antall vedtak ${result.resultat.size}")
+        }
     }
 }
