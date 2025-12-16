@@ -5,10 +5,10 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.ConsoleAppender
-import ch.qos.logback.core.rolling.RollingFileAppender
 import com.papertrailapp.logback.Syslog4jAppender
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import net.logstash.logback.appender.LogstashTcpSocketAppender
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
@@ -18,11 +18,11 @@ import org.slf4j.LoggerFactory
 class LoggingTest {
 
     @Test
-    fun `produksjon`() {
+    fun `gcp`() {
         konfigurerLogback("logback.xml")
         getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<Syslog4jAppender<ILoggingEvent>>()
-        getLogger("sikkerLogg").getAppender("secureAppender") shouldBe beOfType<RollingFileAppender<ILoggingEvent>>()
+        getLogger("team-logs-logger").getAppender("team-logs") shouldBe beOfType<LogstashTcpSocketAppender>()
         getLogger("ROOT").getAppender("STDOUT") shouldBe null
     }
 
@@ -36,10 +36,11 @@ class LoggingTest {
     }
 
     @Test
-    fun `test`() {
+    fun `tester`() {
         konfigurerLogback("logback-test.xml")
         getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe null
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
+        // getLogger("team-logs-logger").getAppender("team-logs") shouldBe beOfType<LogstashTcpSocketAppender>() TODO bjg
         getLogger("sikkerLogg").getAppender("secureAppender") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
         getLogger("ROOT").getAppender("STDOUT") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
     }
