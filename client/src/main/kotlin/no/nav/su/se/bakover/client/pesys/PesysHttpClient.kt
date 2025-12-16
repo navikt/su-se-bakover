@@ -43,7 +43,7 @@ class PesysHttpClient(
 
         val body = serialize(fnrList.map(Fnr::toString))
         log.info("Request body mot Pesys: $body")
-        val fullUrl = "${url}$alderUri?fom=$dato"
+        val fullUrl = "$url$alderUri?fom=$dato"
         log.info("url: $fullUrl")
         val (request, response, result) =
             fullUrl
