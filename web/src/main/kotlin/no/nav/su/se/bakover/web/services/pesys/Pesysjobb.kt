@@ -27,9 +27,12 @@ internal class Pesysjobb(
                 intervall = periode,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
-                log.info("Kjører $jobName")
+                log.info("isgcp${isGCP()} isprod$isProd")
                 if (!isGCP() && !isProd) {
+                    log.info("Kjører $jobName")
                     pesysjobb.hentDatafraPesys()
+                } else {
+                    log.info("Kjører ikke $jobName")
                 }
                 log.info("Jobb $jobName er fullført")
             }.let { Pesysjobb(it) }
