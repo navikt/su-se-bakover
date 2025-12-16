@@ -78,6 +78,9 @@ dependencies {
     implementation(project(":økonomi:infrastructure"))
     implementation(project(":økonomi:presentation"))
 
+    implementation(rootProject.libs.kittinunf.fuel)
+    implementation(rootProject.libs.kittinunf.fuel.gson)
+
     testImplementation(project(":test-common"))
 
     testImplementation(rootProject.libs.awaitility)

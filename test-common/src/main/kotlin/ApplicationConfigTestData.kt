@@ -105,6 +105,8 @@ fun applicationConfig() = ApplicationConfig(
             url = "skjermingUrl",
             clientId = "skjermingClientId",
         ),
+        pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
+        suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
         suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

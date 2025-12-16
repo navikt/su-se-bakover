@@ -236,6 +236,8 @@ data class ApplicationConfig(
         val dokDistConfig: DokDistConfig,
         val kodeverkConfig: KodeverkConfig,
         val skjermingConfig: SkjermingConfig,
+        val pesysConfig: PesysConfig,
+        val suProxyConfig: SuProxyConfig,
         val suProxyConfig: SuProxyConfig,
     ) {
         companion object {
@@ -255,6 +257,8 @@ data class ApplicationConfig(
                 kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
                 skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
                 suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
+                suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
+                pesysConfig = PesysConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -273,6 +277,8 @@ data class ApplicationConfig(
                 dokDistConfig = DokDistConfig.createLocalConfig(),
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
                 skjermingConfig = SkjermingConfig.createLocalConfig(),
+                pesysConfig = PesysConfig.createLocalConfig(),
+                suProxyConfig = SuProxyConfig.createLocalConfig(),
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
             )
         }
@@ -438,6 +444,22 @@ data class ApplicationConfig(
                     apiBaseUrl = "mocked",
                     clientId = "mocked",
                     consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
+                )
+            }
+        }
+
+        data class PesysConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = PesysConfig(
+                    url = getEnvironmentVariableOrThrow("PESYS_URL"),
+                    clientId = getEnvironmentVariableOrThrow("PESYS_CLIENT_ID"),
+                )
+                fun createLocalConfig() = PesysConfig(
+                    url = "PESYS_URL",
+                    clientId = "PESYS_CLIENT_ID",
                 )
             }
         }

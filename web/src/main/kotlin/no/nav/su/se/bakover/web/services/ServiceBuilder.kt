@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
+import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.UtbetalingServiceImpl
@@ -346,6 +347,7 @@ data object ServiceBuilder {
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
                 vedtakRepo = databaseRepos.vedtakRepo,
             ),
+            pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
         )
     }
 }

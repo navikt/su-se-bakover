@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
+import no.nav.su.se.bakover.client.pesys.PesysHttpClient
 import no.nav.su.se.bakover.client.proxy.SUProxyClientImpl
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
@@ -44,7 +45,7 @@ data class ProdClientsBuilder(
     override fun build(applicationConfig: ApplicationConfig): Clients {
         val clientsConfig = applicationConfig.clientsConfig
         val azureConfig = applicationConfig.azure
-        val oAuth = AzureClient(
+        val azureAd = AzureClient(
             thisClientId = azureConfig.clientId,
             thisClientSecret = azureConfig.clientSecret,
             wellknownUrl = azureConfig.wellKnownUrl,
@@ -53,16 +54,16 @@ data class ProdClientsBuilder(
             baseUrl = clientsConfig.kodeverkConfig.url,
             consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             kodeverkClientId = clientsConfig.kodeverkConfig.clientId,
-            azureAd = oAuth,
+            azureAd = azureAd,
         )
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,
-            azure = oAuth,
+            azure = azureAd,
         )
-        val skjermingClient = SkjermingClient(skjermingUrl = clientsConfig.skjermingConfig.url, skjermingClientId = clientsConfig.skjermingConfig.clientId, azureAd = oAuth)
+        val skjermingClient = SkjermingClient(skjermingUrl = clientsConfig.skjermingConfig.url, skjermingClientId = clientsConfig.skjermingConfig.clientId, azureAd = azureAd)
         val pdlClientConfig = PdlClientConfig(
             vars = clientsConfig.pdlConfig,
-            azureAd = oAuth,
+            azureAd = azureAd,
         )
         val personOppslag = PersonClient(
             PersonClientConfig(
@@ -75,22 +76,22 @@ data class ProdClientsBuilder(
         )
         val klageClient = KabalHttpClient(
             kabalConfig = applicationConfig.clientsConfig.kabalConfig,
-            exchange = oAuth,
+            exchange = azureAd,
         )
         val journalpostClient = QueryJournalpostHttpClient(
             safConfig = applicationConfig.clientsConfig.safConfig,
-            azureAd = oAuth,
+            azureAd = azureAd,
             suMetrics = suMetrics,
         )
 
         return Clients(
-            oauth = oAuth,
+            oauth = azureAd,
             personOppslag = personOppslag,
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
                 val client = JournalførHttpClient(
                     dokArkivConfig = applicationConfig.clientsConfig.dokArkivConfig,
-                    azureAd = oAuth,
+                    azureAd = azureAd,
                 )
                 JournalførClients(
                     skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakHttpClient(
@@ -105,7 +106,7 @@ data class ProdClientsBuilder(
             },
             oppgaveClient = OppgaveHttpClient(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
-                exchange = oAuth,
+                exchange = azureAd,
                 clock = clock,
             ),
             kodeverk = kodeverk,
@@ -125,7 +126,7 @@ data class ProdClientsBuilder(
                     )
                 },
             ),
-            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistConfig, azureAd = oAuth),
+            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistConfig, azureAd = azureAd),
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(
@@ -134,7 +135,7 @@ data class ProdClientsBuilder(
                     jmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
                 ),
             ),
-            identClient = MicrosoftGraphApiClient(oAuth),
+            identClient = MicrosoftGraphApiClient(azureAd),
             kontaktOgReservasjonsregister = kontaktOgReservasjonsregisterClient,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
@@ -142,9 +143,14 @@ data class ProdClientsBuilder(
             queryJournalpostClient = journalpostClient,
             skatteOppslag = SkatteClient(
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
-                azureAd = oAuth,
+                azureAd = azureAd,
             ),
-            suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = oAuth),
+            pesysklient = PesysHttpClient(
+                azureAd = azureAd,
+                url = applicationConfig.clientsConfig.pesysConfig.url,
+                clientId = applicationConfig.clientsConfig.pesysConfig.clientId,
+            ),
+            suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
         )
     }
 }

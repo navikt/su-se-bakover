@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
 import no.nav.su.se.bakover.web.services.statistikk.StønadstatistikkJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -324,6 +325,14 @@ private fun naisJobberOgConsumers(
             initialDelay = Duration.of(1, ChronoUnit.SECONDS),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             client = clients.suProxyClient,
+        ),
+
+        Pesysjobb.startJob(
+            clock = clock,
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(2, ChronoUnit.HOURS),
+            runCheckFactory = runCheckFactory,
+            pesysjobb = services.pesysJobService,
         ),
 
         StønadstatistikkJob.startJob(

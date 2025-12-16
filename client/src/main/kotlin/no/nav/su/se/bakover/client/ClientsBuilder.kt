@@ -6,6 +6,8 @@ import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
+import no.nav.su.se.bakover.client.pesys.PesysClient
+import no.nav.su.se.bakover.client.proxy.SUProxyClient
 import no.nav.su.se.bakover.client.proxy.SUProxyClient
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
@@ -45,6 +47,8 @@ data class Clients(
     val klageClient: KlageClient,
     val queryJournalpostClient: QueryJournalpostClient,
     val skatteOppslag: Skatteoppslag,
+    val pesysklient: PesysClient,
+    val suProxyClient: SUProxyClient,
     val suProxyClient: SUProxyClient,
 )
 
