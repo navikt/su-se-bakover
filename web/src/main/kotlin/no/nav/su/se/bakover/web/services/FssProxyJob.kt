@@ -13,7 +13,6 @@ internal class FssProxyJob(
         fun startJob(
             initialDelay: Duration,
             periode: Duration,
-            isProd: Boolean,
             client: SUProxyClient,
         ): FssProxyJob {
             val log = org.slf4j.LoggerFactory.getLogger(FssProxyJob::class.java)

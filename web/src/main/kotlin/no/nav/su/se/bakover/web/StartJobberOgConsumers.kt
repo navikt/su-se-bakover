@@ -321,9 +321,8 @@ private fun naisJobberOgConsumers(
             null
         },
         FssProxyJob.startJob(
-            initialDelay = initialDelay.next(),
-            periode = Duration.of(5, ChronoUnit.MINUTES),
-            isProd = isProd,
+            initialDelay = Duration.of(1, ChronoUnit.SECONDS),
+            periode = Duration.of(1, ChronoUnit.MINUTES),
             client = clients.suProxyClient,
         ),
 
