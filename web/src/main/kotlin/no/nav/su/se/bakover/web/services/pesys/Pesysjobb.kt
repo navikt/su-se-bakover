@@ -26,6 +26,7 @@ internal class Pesysjobb(
                 intervall = periode,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
+                log.info("Kan kjøre pesysjobb ${isDevFssOrGcp()}")
                 if (isDevFssOrGcp()) {
                     log.info("Kjører $jobName")
                     pesysjobb.hentDatafraPesys()
