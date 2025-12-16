@@ -23,8 +23,12 @@ import java.time.Duration
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-fun isGCP() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("gcp")
-fun isDevFss() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("dev-fss")
+fun isGCP(): Boolean = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("gcp")
+fun isDevFss(): Boolean = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("dev-fss")
+fun isDevFssOrGcp(): Boolean {
+    val runningEnv = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly()
+    return runningEnv.contains("dev-fss") || runningEnv.contains("dev-gcp")
+}
 
 internal data object EnvironmentConfig {
     private val env by lazy {
