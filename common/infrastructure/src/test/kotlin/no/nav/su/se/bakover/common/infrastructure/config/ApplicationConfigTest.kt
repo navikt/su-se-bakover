@@ -220,6 +220,8 @@ class ApplicationConfigTest {
                 "KODEVERK_URL" to "kodeverkUrl",
                 "KODEVERK_CLIENT_ID" to "kodeverkClientId",
                 "PDL_URL" to "http://pdl-api.default.svc.nais.local",
+                "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
+                "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
