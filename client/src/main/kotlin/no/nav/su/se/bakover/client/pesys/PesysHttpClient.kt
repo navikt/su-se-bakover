@@ -46,7 +46,7 @@ class PesysHttpClient(
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header(CORRELATION_ID_HEADER, correlationId)
-            .body(serialize(fnrList)).responseString()
+            .body(serialize(fnrList.map(Fnr::toString))).responseString()
 
         return result.fold(
             { json ->
