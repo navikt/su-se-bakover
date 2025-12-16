@@ -243,7 +243,6 @@ data class ApplicationConfig(
         val skjermingConfig: SkjermingConfig,
         val pesysConfig: PesysConfig,
         val suProxyConfig: SuProxyConfig,
-        val suProxyConfig: SuProxyConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -261,7 +260,6 @@ data class ApplicationConfig(
                 dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
                 kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
                 skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
-                suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
                 suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
                 pesysConfig = PesysConfig.createFromEnvironmentVariables(),
             )
@@ -283,7 +281,6 @@ data class ApplicationConfig(
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
                 skjermingConfig = SkjermingConfig.createLocalConfig(),
                 pesysConfig = PesysConfig.createLocalConfig(),
-                suProxyConfig = SuProxyConfig.createLocalConfig(),
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
             )
         }

@@ -33,5 +33,4 @@ fun mockedClients() = Clients(
     skatteOppslag = mock(),
     pesysklient = mock(),
     suProxyClient = mock(),
-    suProxyClient = mock(),
 )

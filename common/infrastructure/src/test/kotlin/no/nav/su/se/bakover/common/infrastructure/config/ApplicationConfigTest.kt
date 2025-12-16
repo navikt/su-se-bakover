@@ -136,7 +136,6 @@ class ApplicationConfigTest {
             ),
             suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
             pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
-            suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -329,7 +328,6 @@ class ApplicationConfigTest {
                     ),
                     suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
                     pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
-                    suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
