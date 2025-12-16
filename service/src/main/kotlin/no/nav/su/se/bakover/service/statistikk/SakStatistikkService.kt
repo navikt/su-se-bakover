@@ -22,15 +22,17 @@ import java.util.UUID
 
 private const val LOCATION = "europe-north1"
 
-class SakStatistikkService(
+interface SakStatistikkService {
+    fun lastTilBigQuery(fom: LocalDate = LocalDate.now())
+}
+
+class SakStatistikkServiceImpl(
     val repo: SakStatistikkRepo,
-) {
+) : SakStatistikkService {
     private val logger = LoggerFactory.getLogger(SakStatistikkService::class.java)
 
     // TODO Hvordan connecte til BQ i GCP??
-    fun lastTilBigQuery(
-        fom: LocalDate = LocalDate.now(),
-    ) {
+    override fun lastTilBigQuery(fom: LocalDate) {
         val data = hentSaksstatistikk(fom)
 
         logger.info("Hentet ${data.size} rader fra databasen")
