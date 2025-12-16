@@ -54,7 +54,6 @@ class PesysHttpClient(
 
         return result.fold(
             { json ->
-                log.info("json: $json")
                 try {
                     deserialize<ResponseDto>(json).right()
                 } catch (e: Exception) {
@@ -65,9 +64,12 @@ class PesysHttpClient(
             },
             { error ->
                 log.error("HTTP error from Pesys", error)
+                val body = response.body().toByteArray().toString(Charsets.UTF_8)
                 ClientError(
                     httpStatus = error.response.statusCode,
-                    message = error.message ?: "Ukjent feil ved henting av vedtak fra Pesys",
+                    message = body.ifBlank {
+                        error.message ?: "Ukjent feil ved henting av vedtak fra Pesys"
+                    },
                 ).left()
             },
         )
