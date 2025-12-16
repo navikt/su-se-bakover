@@ -111,7 +111,7 @@ internal fun BeregningForMånedRegelspesifisert.toJson(): PersistertMånedsbereg
             periode = måned.toJson(),
             fribeløpForEps = getFribeløpForEps(),
             merknader = getMerknader().toSnapshot(),
-            benyttetRegel = benyttetRegel.toJson(),
+            benyttetRegel = benyttetRegel.toJsonNullable(),
         )
     }
 }
@@ -157,6 +157,14 @@ sealed interface RegelspesifiseringJson {
             verdi = verdi,
             kilde = kilde,
         )
+    }
+}
+
+// TODO Kan fjernes når det ikke lenger finnes behandlinger under attestering uten benyttet regel
+internal fun Regelspesifisering.toJsonNullable(): RegelspesifiseringJson? {
+    return when (this) {
+        is Regelspesifisering.BeregnetUtenSpesifisering -> null
+        else -> toJson()
     }
 }
 
