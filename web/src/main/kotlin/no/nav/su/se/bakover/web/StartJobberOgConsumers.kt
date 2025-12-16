@@ -330,7 +330,6 @@ private fun naisJobberOgConsumers(
         Pesysjobb.startJob(
             initialDelay = Duration.ofSeconds(1),
             periode = Duration.of(20, ChronoUnit.MINUTES),
-            runCheckFactory = runCheckFactory,
             pesysjobb = services.pesysJobService,
         ),
 

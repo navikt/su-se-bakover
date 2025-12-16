@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.services.pesys
 
 import no.nav.su.se.bakover.common.infrastructure.config.isDevFssOrGcp
-import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
 import org.slf4j.LoggerFactory
@@ -14,7 +13,6 @@ internal class Pesysjobb(
         fun startJob(
             initialDelay: Duration,
             periode: Duration,
-            runCheckFactory: RunCheckFactory,
             pesysjobb: PesysJobService,
         ): Pesysjobb {
             val log = LoggerFactory.getLogger(Pesysjobb::class.java)
@@ -24,7 +22,7 @@ internal class Pesysjobb(
                 log = log,
                 initialDelay = initialDelay,
                 intervall = periode,
-                runJobCheck = listOf(runCheckFactory.leaderPod()),
+                runJobCheck = listOf(),
             ) {
                 log.info("Kan kjøre pesysjobb ${isDevFssOrGcp()}")
                 if (isDevFssOrGcp()) {
