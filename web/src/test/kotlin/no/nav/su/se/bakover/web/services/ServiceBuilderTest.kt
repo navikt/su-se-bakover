@@ -57,7 +57,7 @@ internal class ServiceBuilderTest {
                 mock(),
             ),
             clients = Clients(
-                oauth = mock(),
+                azureAd = mock(),
                 personOppslag = mock(),
                 pdfGenerator = mock(),
                 journalførClients = JournalførClients(

@@ -37,6 +37,7 @@ private fun mapError(code: SimuleringErrorCode): SimuleringFeilet =
         SimuleringErrorCode.TEKNISK_FEIL ->
             SimuleringFeilet.TekniskFeil
     }
+
 enum class SimuleringErrorCode {
     UTENFOR_APNINGSTID,
     PERSON_FINNES_IKKE_I_TPS,
@@ -45,6 +46,7 @@ enum class SimuleringErrorCode {
     FUNKSJONELL_FEIL,
     TEKNISK_FEIL,
 }
+
 data class SimuleringErrorDto(
     val code: SimuleringErrorCode,
 )

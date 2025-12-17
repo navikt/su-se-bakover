@@ -9,7 +9,7 @@ import org.mockito.Mockito.mock
  * oath og tokenOppslag bruker stubs pga. ktor auth setup
  */
 fun mockedClients() = Clients(
-    oauth = AzureClientStub,
+    azureAd = AzureClientStub,
     personOppslag = mock(),
     pdfGenerator = mock(),
     journalførClients = JournalførClients(

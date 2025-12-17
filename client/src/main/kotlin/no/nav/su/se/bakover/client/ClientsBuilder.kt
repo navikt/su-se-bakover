@@ -29,7 +29,7 @@ interface ClientsBuilder {
 }
 
 data class Clients(
-    val oauth: AzureAd,
+    val azureAd: AzureAd,
     val personOppslag: PersonOppslag,
     val pdfGenerator: PdfGenerator,
     val journalførClients: JournalførClients,

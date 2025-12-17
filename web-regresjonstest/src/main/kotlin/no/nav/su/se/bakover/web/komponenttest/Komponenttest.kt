@@ -4,6 +4,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.dokument.application.DokumentServices
@@ -262,6 +263,8 @@ internal fun withKomptestApplication(
             samlTokenProvider = FakeSamlTokenProvider(),
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
+            azureAd = AzureClientStub,
+            suProxyConfig = applicationConfig.clientsConfig.suProxyConfig,
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->

@@ -65,6 +65,7 @@ data class ProdClientsBuilder(
                 clock = clock,
             )
         }
+
     override fun build(applicationConfig: ApplicationConfig): Clients {
         val clientsConfig = applicationConfig.clientsConfig
         val azureConfig = applicationConfig.azure
@@ -108,7 +109,7 @@ data class ProdClientsBuilder(
         )
 
         return Clients(
-            oauth = azureAd,
+            azureAd = azureAd,
             personOppslag = personOppslag,
             pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
             journalførClients = run {
