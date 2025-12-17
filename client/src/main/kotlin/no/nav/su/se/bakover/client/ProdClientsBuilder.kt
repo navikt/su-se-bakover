@@ -55,7 +55,7 @@ data class ProdClientsBuilder(
         if (isGCP()) {
             SimuerlingProxyClientGcp(
                 config = applicationConfig.clientsConfig.suProxyConfig,
-                azure = azure,
+                azureAd = azure,
             )
         } else {
             SimuleringSoapClient(
