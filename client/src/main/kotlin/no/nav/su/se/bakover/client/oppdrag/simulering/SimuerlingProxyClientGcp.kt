@@ -94,10 +94,18 @@ class SimuerlingProxyClientGcp(
                 val feil = when (response.statusCode) {
                     500 -> {
                         log.error("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage}")
-                        val dto = jacksonObjectMapper()
-                            .readValue(response.data, SimuleringErrorDto::class.java)
+                        try {
+                            val dto = jacksonObjectMapper()
+                                .readValue(response.data, SimuleringErrorDto::class.java)
 
-                        mapError(dto.code)
+                            mapError(dto.code)
+                        } catch (e: Exception) {
+                            log.error(
+                                "Kunne ikke parse SimuleringErrorDto fra response. Returnerer TekniskFeil",
+                                e,
+                            )
+                            SimuleringFeilet.TekniskFeil
+                        }
                     }
                     else -> {
                         log.error("Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage}")
