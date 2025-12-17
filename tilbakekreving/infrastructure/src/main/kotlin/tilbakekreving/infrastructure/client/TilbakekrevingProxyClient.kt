@@ -35,7 +35,7 @@ enum class TilbakekrevingErrorCode {
     UkjentFeil,
 }
 
-private fun mapErrorSend(code: TilbakekrevingErrorCode): KunneIkkeSendeTilbakekrevingsvedtak =
+internal fun mapErrorSend(code: TilbakekrevingErrorCode): KunneIkkeSendeTilbakekrevingsvedtak =
     when (code) {
         TilbakekrevingErrorCode.FeilStatusFraOppdrag -> KunneIkkeSendeTilbakekrevingsvedtak.FeilStatusFraOppdrag
         TilbakekrevingErrorCode.KlarteIkkeHenteSamlToken -> KunneIkkeSendeTilbakekrevingsvedtak.KlarteIkkeHenteSamlToken
@@ -43,7 +43,7 @@ private fun mapErrorSend(code: TilbakekrevingErrorCode): KunneIkkeSendeTilbakekr
         TilbakekrevingErrorCode.UkjentFeil -> KunneIkkeSendeTilbakekrevingsvedtak.UkjentFeil
     }
 
-private fun mapErrorAnnuller(code: TilbakekrevingErrorCode): KunneIkkeAnnullerePåbegynteVedtak =
+internal fun mapErrorAnnuller(code: TilbakekrevingErrorCode): KunneIkkeAnnullerePåbegynteVedtak =
     when (code) {
         TilbakekrevingErrorCode.FeilStatusFraOppdrag -> KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
         TilbakekrevingErrorCode.KlarteIkkeHenteSamlToken -> KunneIkkeAnnullerePåbegynteVedtak.FeilVedGenereringAvToken
@@ -156,7 +156,7 @@ class TilbakekrevingProxyClient(
         val saksnummer = kravgrunnlagSomSkalAnnulleres.saksnummer
 
         val token = bearerToken()
-        val (_, response, result) = "${config.url}/tilbakekreving/vedtak"
+        val (_, response, result) = "${config.url}/tilbakekreving/annuller"
             .httpPost()
             .authentication().bearer(token)
             .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
