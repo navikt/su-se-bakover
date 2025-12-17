@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
-import no.nav.su.se.bakover.client.oppdrag.simulering.SimuerlingProxyClientGcp
+import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringProxyClientGcp
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
@@ -53,7 +53,7 @@ data class ProdClientsBuilder(
         clock: Clock,
     ): SimuleringClient =
         if (isGCP()) {
-            SimuerlingProxyClientGcp(
+            SimuleringProxyClientGcp(
                 config = applicationConfig.clientsConfig.suProxyConfig,
                 azureAd = azure,
                 clock = clock,

@@ -49,7 +49,7 @@ data class SimuleringErrorDto(
     val code: SimuleringErrorCode,
 )
 
-class SimuerlingProxyClientGcp(
+class SimuleringProxyClientGcp(
     private val config: SuProxyConfig,
     private val azureAd: AzureAd,
     private val clock: Clock,

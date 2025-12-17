@@ -12,8 +12,8 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
-import no.nav.su.se.bakover.client.oppdrag.simulering.SimuerlingProxyClientGcp
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringErrorCode
+import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringProxyClientGcp
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -41,10 +41,10 @@ class SimuleringProxyClientGcpTest {
         on { getSystemToken(any()) } doReturn "system-token"
     }
 
-    private fun createClient(baseUrl: String, azureAd: AzureAd = mockAzureAd()): SimuerlingProxyClientGcp {
+    private fun createClient(baseUrl: String, azureAd: AzureAd = mockAzureAd()): SimuleringProxyClientGcp {
         val config = SuProxyConfig(url = baseUrl, clientId = "proxyclient")
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2022)))
-        return SimuerlingProxyClientGcp(
+        return SimuleringProxyClientGcp(
             azureAd = azureAd,
             config = config,
             clock = clock,
