@@ -307,13 +307,14 @@ data class ApplicationConfig(
             val clientId: String,
         ) {
             companion object {
-                fun createFromEnvironmentVariables() {
-                    if (isGCP()) {
+                fun createFromEnvironmentVariables(): SuProxyConfig {
+                    return if (isGCP()) {
                         SuProxyConfig(
                             url = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_URL"),
                             clientId = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_CLIENT_ID"),
                         )
                     } else {
+                        log.warn("Proxy klient kjører med Lokal config")
                         createLocalConfig()
                     }
                 }
@@ -462,7 +463,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = PesysConfig(
-                    url = getEnvironmentVariableOrThrow("PESYS_URL"),
+                    url = getEnvironmentVariableOrThrow("PESYS_UcomRL"),
                     clientId = getEnvironmentVariableOrThrow("PESYS_CLIENT_ID"),
                 )
                 fun createLocalConfig() = PesysConfig(
