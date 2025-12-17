@@ -16,7 +16,6 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
-import java.time.Clock
 
 private fun mapError(code: SimuleringErrorCode): SimuleringFeilet =
     when (code) {
@@ -53,7 +52,6 @@ data class SimuleringErrorDto(
 class SimuerlingProxyClientGcp(
     private val config: SuProxyConfig,
     private val azure: AzureAd,
-    private val clock: Clock,
 ) : SimuleringClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
