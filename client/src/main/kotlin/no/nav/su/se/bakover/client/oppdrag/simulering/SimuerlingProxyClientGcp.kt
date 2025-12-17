@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
@@ -51,17 +52,27 @@ data class SimuleringErrorDto(
 
 class SimuerlingProxyClientGcp(
     private val config: SuProxyConfig,
-    private val azure: AzureAd,
+    private val azureAd: AzureAd,
 ) : SimuleringClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private fun bearerToken(): String {
+        val brukerToken = JwtToken.BrukerToken.fraCoroutineContextOrNull()
+
+        return if (brukerToken != null) {
+            azureAd.onBehalfOfToken(brukerToken.value, config.clientId)
+        } else {
+            azureAd.getSystemToken(config.clientId)
+        }
+    }
+
     override fun simulerUtbetaling(utbetalingForSimulering: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Simulering> {
         val soapBody = buildXmlRequestBody(utbetalingForSimulering)
-
+        val token = bearerToken()
         val (_, response, result) =
             "${config.url}/simulerberegning"
                 .httpPost()
-                .authentication().bearer(azure.getSystemToken(config.clientId)) // TODO obo her
+                .authentication().bearer(token)
                 .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
                 .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
