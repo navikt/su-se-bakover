@@ -463,7 +463,7 @@ data class ApplicationConfig(
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = PesysConfig(
-                    url = getEnvironmentVariableOrThrow("PESYS_UcomRL"),
+                    url = getEnvironmentVariableOrThrow("PESYS_URL"),
                     clientId = getEnvironmentVariableOrThrow("PESYS_CLIENT_ID"),
                 )
                 fun createLocalConfig() = PesysConfig(
