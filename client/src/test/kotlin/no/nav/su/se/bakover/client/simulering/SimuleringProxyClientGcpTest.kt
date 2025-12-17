@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import økonomi.domain.avstemming.Avstemmingsnøkkel
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
@@ -40,9 +41,9 @@ class SimuleringProxyClientGcpTest {
         on { onBehalfOfToken(any(), any()) } doReturn "obo-token"
         on { getSystemToken(any()) } doReturn "system-token"
     }
-
+    val clientId = "proxyclient"
     private fun createClient(baseUrl: String, azureAd: AzureAd = mockAzureAd()): SimuleringProxyClientGcp {
-        val config = SuProxyConfig(url = baseUrl, clientId = "proxyclient")
+        val config = SuProxyConfig(url = baseUrl, clientId = clientId)
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2022)))
         return SimuleringProxyClientGcp(
             azureAd = azureAd,
@@ -91,8 +92,9 @@ class SimuleringProxyClientGcpTest {
         """.trimIndent()
 
     @Test
-    fun `Kan kalle simulering proxy og deserialisere svar`() {
-        startedWireMockServerWithCorrelationId {
+    fun `Kan kalle simulering proxy og deserialisere svar med OBO token`() {
+        val brukertoken = "usertoken"
+        startedWireMockServerWithCorrelationId(token = brukertoken) {
             stubFor(
                 post(urlPathEqualTo("/simulerberegning"))
                     .withHeader("Authorization", matching("Bearer .*"))
@@ -105,8 +107,34 @@ class SimuleringProxyClientGcpTest {
                     ),
             )
 
-            val result = createClient(baseUrl(), azureAd = mockAzureAd()).simulerUtbetaling(utbetaling)
+            val azureAd = mockAzureAd()
+            val result = createClient(baseUrl(), azureAd = azureAd).simulerUtbetaling(utbetaling)
             result.shouldBeRight()
+            org.mockito.kotlin.verify(azureAd, times(1)).onBehalfOfToken(brukertoken, clientId)
+            org.mockito.kotlin.verify(azureAd, times(0)).getSystemToken(any())
+        }
+    }
+
+    @Test
+    fun `Kan kalle simulering proxy og deserialisere svar med Systemtoken token`() {
+        startedWireMockServerWithCorrelationId(token = null) {
+            stubFor(
+                post(urlPathEqualTo("/simulerberegning"))
+                    .withHeader("Authorization", matching("Bearer .*"))
+                    .withHeader("Content-Type", containing("application/xml"))
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(validSimuleringResponse()),
+                    ),
+            )
+
+            val azureAd = mockAzureAd()
+            val result = createClient(baseUrl(), azureAd = azureAd).simulerUtbetaling(utbetaling)
+            result.shouldBeRight()
+            org.mockito.kotlin.verify(azureAd, times(0)).onBehalfOfToken(any(), any())
+            org.mockito.kotlin.verify(azureAd, times(1)).getSystemToken(clientId)
         }
     }
 
