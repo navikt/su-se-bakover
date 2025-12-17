@@ -59,7 +59,14 @@ class TilbakekrevingProxyClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private fun bearerToken(): String {
-        val brukerToken = JwtToken.BrukerToken.fraCoroutineContextOrNull() ?: throw IllegalStateException("Må være person som prøver handlingen")
+        val brukerToken = JwtToken.BrukerToken.fraCoroutineContextOrNull()
+            ?: throw IllegalStateException(
+                "Må være person som prøver handlingen ikke systembruker",
+            ).also {
+                log.error(
+                    "Mangler brukerToken i coroutine context ved kall til TilbakekrevingProxyClient.bearerToken",
+                )
+            }
         return azureAd.onBehalfOfToken(brukerToken.value, config.clientId)
     }
 
@@ -126,7 +133,7 @@ class TilbakekrevingProxyClient(
                         }
                     }
                     else -> {
-                        log.error("Feil ved simulering saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        log.error("Feil ved send tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
                         KunneIkkeSendeTilbakekrevingsvedtak.UkjentFeil
                     }
                 }
@@ -180,7 +187,7 @@ class TilbakekrevingProxyClient(
             failure = {
                 val feil = when (response.statusCode) {
                     500 -> {
-                        log.error("500: Feil ved send tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        log.error("500: Feil ved annuller tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
                         try {
                             val dto = jacksonObjectMapper()
                                 .readValue(response.data, TilbakekrevingErrorDto::class.java)
@@ -188,14 +195,14 @@ class TilbakekrevingProxyClient(
                             mapErrorAnnuller(dto.code)
                         } catch (e: Exception) {
                             log.error(
-                                "Kunne ikke parse Tilbakekrevingerrordto fra response. Returnerer TekniskFeil",
+                                "annuller Kunne ikke parse Tilbakekrevingerrordto fra response. Returnerer TekniskFeil",
                                 e,
                             )
                             KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
                         }
                     }
                     else -> {
-                        log.error("Feil ved simulering saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        log.error("Feil ved annuller tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
                         KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
                     }
                 }
