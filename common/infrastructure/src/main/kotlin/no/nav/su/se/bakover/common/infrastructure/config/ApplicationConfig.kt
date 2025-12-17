@@ -307,10 +307,16 @@ data class ApplicationConfig(
             val clientId: String,
         ) {
             companion object {
-                fun createFromEnvironmentVariables() = SuProxyConfig(
-                    url = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_URL"),
-                    clientId = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_CLIENT_ID"),
-                )
+                fun createFromEnvironmentVariables() {
+                    if (isGCP()) {
+                        SuProxyConfig(
+                            url = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_URL"),
+                            clientId = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_CLIENT_ID"),
+                        )
+                    } else {
+                        createLocalConfig()
+                    }
+                }
                 fun createLocalConfig() = SuProxyConfig(
                     url = "SUPSTONAD_PROXY_URL",
                     clientId = "SUPSTONAD_PROXY_CLIENT_ID",
