@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.Either
-import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
@@ -17,6 +15,7 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
+import java.time.Clock
 
 private fun mapError(code: SimuleringErrorCode): SimuleringFeilet =
     when (code) {
@@ -53,6 +52,7 @@ data class SimuleringErrorDto(
 class SimuerlingProxyClientGcp(
     private val config: SuProxyConfig,
     private val azureAd: AzureAd,
+    private val clock: Clock,
 ) : SimuleringClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -67,7 +67,7 @@ class SimuerlingProxyClientGcp(
     }
 
     override fun simulerUtbetaling(utbetalingForSimulering: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Simulering> {
-        val soapBody = buildXmlRequestBody(utbetalingForSimulering)
+        val soapRequest = buildXmlRequestBody(utbetalingForSimulering)
         val token = bearerToken()
         val (_, response, result) =
             "${config.url}/simulerberegning"
@@ -76,12 +76,19 @@ class SimuerlingProxyClientGcp(
                 .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
                 .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
-                .body(soapBody)
+                .body(soapRequest)
                 .responseString()
 
         return result.fold(
-            success = { body ->
-                deserialize<Simulering>(body).right()
+            success = { soapResponse ->
+                mapSimuleringResponse(
+                    saksnummer = utbetalingForSimulering.saksnummer,
+                    fnr = utbetalingForSimulering.fnr,
+                    simuleringsperiode = utbetalingForSimulering.periode,
+                    soapRequest = soapRequest,
+                    soapResponse = soapResponse,
+                    clock = clock,
+                )
             },
             failure = {
                 val feil = when (response.statusCode) {
