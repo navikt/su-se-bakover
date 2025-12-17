@@ -173,18 +173,17 @@ class TilbakekrevingSoapClient(
                 soapResponse,
                 saksnummer,
                 log = log,
-            )
-                .map {
-                    mapKontrollertResponse(
-                        saksnummer,
-                        soapResponse,
-                        soapRequest,
-                        log = log,
-                        clock = clock,
-                    )
-                }.mapLeft {
-                    KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
-                }
+            ).map {
+                mapKontrollertResponse(
+                    saksnummer,
+                    soapResponse,
+                    soapRequest,
+                    log = log,
+                    clock = clock,
+                )
+            }.mapLeft {
+                KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
+            }
         }.mapLeft { throwable ->
             log.error(
                 "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer $saksnummer og eksternKravgrunnlagId ${kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId}. Se sikkerlogg for detaljer.",

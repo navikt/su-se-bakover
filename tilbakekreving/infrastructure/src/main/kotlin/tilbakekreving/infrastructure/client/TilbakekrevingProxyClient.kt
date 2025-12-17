@@ -3,7 +3,6 @@ package tilbakekreving.infrastructure.client
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -37,12 +35,20 @@ enum class TilbakekrevingErrorCode {
     UkjentFeil,
 }
 
-private fun mapError(code: TilbakekrevingErrorCode): KunneIkkeSendeTilbakekrevingsvedtak =
+private fun mapErrorSend(code: TilbakekrevingErrorCode): KunneIkkeSendeTilbakekrevingsvedtak =
     when (code) {
         TilbakekrevingErrorCode.FeilStatusFraOppdrag -> KunneIkkeSendeTilbakekrevingsvedtak.FeilStatusFraOppdrag
         TilbakekrevingErrorCode.KlarteIkkeHenteSamlToken -> KunneIkkeSendeTilbakekrevingsvedtak.KlarteIkkeHenteSamlToken
         TilbakekrevingErrorCode.NullRespons -> KunneIkkeSendeTilbakekrevingsvedtak.UkjentFeil
         TilbakekrevingErrorCode.UkjentFeil -> KunneIkkeSendeTilbakekrevingsvedtak.UkjentFeil
+    }
+
+private fun mapErrorAnnuller(code: TilbakekrevingErrorCode): KunneIkkeAnnullerePåbegynteVedtak =
+    when (code) {
+        TilbakekrevingErrorCode.FeilStatusFraOppdrag -> KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
+        TilbakekrevingErrorCode.KlarteIkkeHenteSamlToken -> KunneIkkeAnnullerePåbegynteVedtak.FeilVedGenereringAvToken
+        TilbakekrevingErrorCode.NullRespons -> KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
+        TilbakekrevingErrorCode.UkjentFeil -> KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
     }
 
 class TilbakekrevingProxyClient(
@@ -110,7 +116,7 @@ class TilbakekrevingProxyClient(
                             val dto = jacksonObjectMapper()
                                 .readValue(response.data, TilbakekrevingErrorDto::class.java)
 
-                            mapError(dto.code)
+                            mapErrorSend(dto.code)
                         } catch (e: Exception) {
                             log.error(
                                 "Kunne ikke parse Tilbakekrevingerrordto fra response. Returnerer TekniskFeil",
@@ -135,10 +141,66 @@ class TilbakekrevingProxyClient(
     override fun annullerKravgrunnlag(
         annullertAv: NavIdentBruker.Saksbehandler,
         kravgrunnlagSomSkalAnnulleres: Kravgrunnlag,
-    ): Either<KunneIkkeAnnullerePåbegynteVedtak, RåTilbakekrevingsvedtakForsendelse> =
-        RåTilbakekrevingsvedtakForsendelse(
-            requestXml = "{\"requestJson\": \"stubbed\"}",
-            tidspunkt = Tidspunkt.now(clock),
-            responseXml = "{\"responseJson\": \"stubbed\"}",
-        ).right()
+    ): Either<KunneIkkeAnnullerePåbegynteVedtak, RåTilbakekrevingsvedtakForsendelse> {
+        val soapRequest = buildTilbakekrevingAnnulleringSoapRequest(
+            eksternVedtakId = kravgrunnlagSomSkalAnnulleres.eksternVedtakId,
+            saksbehandletAv = annullertAv.navIdent,
+        )
+        val saksnummer = kravgrunnlagSomSkalAnnulleres.saksnummer
+
+        val token = bearerToken()
+        val (_, response, result) = "${config.url}/tilbakekreving/vedtak"
+            .httpPost()
+            .authentication().bearer(token)
+            .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
+            .header(HttpHeaders.Accept, ContentType.Application.Xml.toString())
+            .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
+            .body(soapRequest)
+            .responseString()
+
+        return result.fold(
+            success = { soapResponse ->
+                kontrollerResponse(
+                    soapRequest,
+                    soapResponse,
+                    saksnummer,
+                    log = log,
+                ).map {
+                    mapKontrollertResponse(
+                        saksnummer,
+                        soapResponse,
+                        soapRequest,
+                        log = log,
+                        clock = clock,
+                    )
+                }.mapLeft {
+                    KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
+                }
+            },
+            failure = {
+                val feil = when (response.statusCode) {
+                    500 -> {
+                        log.error("500: Feil ved send tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        try {
+                            val dto = jacksonObjectMapper()
+                                .readValue(response.data, TilbakekrevingErrorDto::class.java)
+
+                            mapErrorAnnuller(dto.code)
+                        } catch (e: Exception) {
+                            log.error(
+                                "Kunne ikke parse Tilbakekrevingerrordto fra response. Returnerer TekniskFeil",
+                                e,
+                            )
+                            KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
+                        }
+                    }
+                    else -> {
+                        log.error("Feil ved simulering saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
+                    }
+                }
+                Either.Left(feil)
+            },
+        )
+    }
 }
