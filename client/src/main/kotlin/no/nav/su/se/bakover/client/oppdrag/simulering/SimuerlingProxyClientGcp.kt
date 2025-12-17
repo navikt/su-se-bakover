@@ -74,7 +74,7 @@ class SimuerlingProxyClientGcp(
                 .httpPost()
                 .authentication().bearer(token)
                 .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
-                .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                .header(HttpHeaders.Accept, ContentType.Application.Xml.toString())
                 .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
                 .body(soapRequest)
                 .responseString()
