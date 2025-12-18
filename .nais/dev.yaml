@@ -14,6 +14,7 @@ spec:
       destinations:
         - id: elastic
         - id: loki
+        - id: team_logs
   azure:
     application:
       enabled: true
@@ -47,6 +48,8 @@ spec:
         - application: skjermede-personer-pip
           namespace: nom
           cluster: dev-gcp
+        - application: logging
+          namespace: nais-system
         - application: pensjon-pen-q2
           namespace: pensjon-q2
           cluster: dev-fss

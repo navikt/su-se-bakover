@@ -33,6 +33,7 @@ spec:
       destinations:
         - id: elastic
         - id: loki
+        - id: team_logs
   azure:
     application:
       enabled: true
@@ -75,6 +76,8 @@ spec:
         - application: su-pdfgen
           namespace: supstonad
           cluster: dev-gcp
+        - application: logging
+          namespace: nais-system
         - application: kabal-api
           namespace: klage
           cluster: dev-gcp
