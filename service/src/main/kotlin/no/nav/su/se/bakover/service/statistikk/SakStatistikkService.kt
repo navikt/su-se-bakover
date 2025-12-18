@@ -25,7 +25,7 @@ interface SakStatistikkService {
 
 // https://docs.nais.io/workloads/application/reference/application-spec/#gcpbigquerydatasets
 class SakStatistikkServiceImpl(
-    val repo: SakStatistikkRepo,
+    private val repo: SakStatistikkRepo,
 ) : SakStatistikkService {
     private val logger = LoggerFactory.getLogger(SakStatistikkService::class.java)
 

@@ -33,6 +33,7 @@ internal fun Route.sakStatistikkRoutes(
                             "STATISTIKK_BIGQUERY_KUN_GCP",
                         ),
                     )
+                    return@withBody
                 }
                 CoroutineScope(Dispatchers.IO).launch {
                     service.lastTilBigQuery(it.fraOgMed)
