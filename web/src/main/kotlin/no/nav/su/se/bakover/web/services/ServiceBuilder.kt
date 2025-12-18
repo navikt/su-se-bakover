@@ -350,7 +350,7 @@ data object ServiceBuilder {
                 vedtakRepo = databaseRepos.vedtakRepo,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
-            sakstatistikkService = SakStatistikkServiceImpl(databaseRepos.sakStatistikkRepo),
+            sakstatistikkService = sakStatistikkService,
         )
     }
 }
