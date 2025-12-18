@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
@@ -59,6 +60,7 @@ data object ServiceBuilder {
             personOppslag = clients.personOppslag,
             personRepo = databaseRepos.person,
         )
+        val sakStatistikkService = SakStatistikkServiceImpl(databaseRepos.sakStatistikkRepo)
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
@@ -348,6 +350,7 @@ data object ServiceBuilder {
                 vedtakRepo = databaseRepos.vedtakRepo,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
+            sakstatistikkService = SakStatistikkServiceImpl(databaseRepos.sakStatistikkRepo),
         )
     }
 }

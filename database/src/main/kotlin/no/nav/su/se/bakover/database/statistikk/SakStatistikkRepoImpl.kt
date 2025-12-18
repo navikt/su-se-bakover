@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.statistikk
 
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikkTilBiquery
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
+import java.time.LocalDate
 import java.util.UUID
 
 class SakStatistikkRepoImpl(
@@ -75,6 +77,7 @@ class SakStatistikkRepoImpl(
         }
     }
 
+    // TODO: byttes ut hvis man skal teste sekvensnr genererring
     override fun hentSakStatistikk(sakId: UUID): List<SakStatistikk> {
         return sessionFactory.withSession { session ->
             """
@@ -105,6 +108,51 @@ class SakStatistikkRepoImpl(
                     resultatBegrunnelse = row.stringOrNull("behandling_begrunnelse"),
                     behandlingAarsak = row.stringOrNull("behandling_aarsak"),
                     opprettetAv = row.string("opprettet_av"),
+                    saksbehandler = row.stringOrNull("saksbehandler"),
+                    ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
+                    ansvarligEnhet = row.string("ansvarlig_enhet"),
+                    funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
+                    funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
+                    tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),
+                )
+            }
+        }
+    }
+
+    override fun hentSakStatistikk(fom: LocalDate, tom: LocalDate): List<SakStatistikkTilBiquery> {
+        return sessionFactory.withSession { session ->
+            """
+                SELECT * FROM sak_statistikk
+                WHERE hendelse_tid > :fom and hendelse_tid < :tom 
+            """.trimIndent().hentListe(
+                params = mapOf(
+                    "fom" to fom,
+                    "tom" to tom,
+                ),
+                session = session,
+            ) { row ->
+                SakStatistikkTilBiquery(
+                    id = row.int("id_sekvens").toBigInteger(),
+                    funksjonellTid = row.string("funksjonell_tid"),
+                    tekniskTid = row.string("teknisk_tid"),
+                    sakId = row.uuid("sak_id"),
+                    saksnummer = row.long("saksnummer"),
+                    behandlingId = row.uuid("behandling_id"),
+                    relatertBehandlingId = row.uuidOrNull("relatert_behandling_id"),
+                    aktorId = row.string("aktorid"),
+                    sakYtelse = row.string("sak_ytelse"),
+                    sakUtland = row.string("sak_utland"),
+                    behandlingType = row.string("behandling_type"),
+                    behandlingMetode = row.string("behandling_metode"),
+                    mottattTid = row.string("mottatt_tid"),
+                    registrertTid = row.string("registrert_tid"),
+                    ferdigbehandletTid = row.stringOrNull("ferdigbehandlet_tid"),
+                    utbetaltTid = row.localDateOrNull("utbetalt_tid"),
+                    behandlingStatus = row.string("behandling_status"),
+                    behandlingResultat = row.stringOrNull("behandling_resultat"),
+                    resultatBegrunnelse = row.stringOrNull("behandling_begrunnelse"),
+                    behandlingAarsak = row.stringOrNull("behandling_aarsak"),
+                    opprettetAv = row.stringOrNull("opprettet_av"),
                     saksbehandler = row.stringOrNull("saksbehandler"),
                     ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
                     ansvarligEnhet = row.string("ansvarlig_enhet"),

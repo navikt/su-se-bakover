@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -55,5 +56,6 @@ data class Services(
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,
+    val sakstatistikkService: SakStatistikkService,
     val pesysJobService: PesysJobService,
 )
