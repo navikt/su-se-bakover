@@ -1,0 +1,41 @@
+package no.nav.su.se.bakover.web.services.statistikk
+
+import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
+import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
+import org.slf4j.LoggerFactory
+import java.time.Duration
+import java.time.LocalDate
+import java.util.Date
+
+/*
+Overfører data til bigquery hver natt for sakstatistikk
+ */
+internal class SakstatistikkTilBQ(
+    private val stoppableJob: StoppableJob,
+) : StoppableJob by stoppableJob {
+    companion object {
+
+        fun startJob(
+            starttidspunkt: Date,
+            runCheckFactory: RunCheckFactory,
+            periode: Duration,
+            sakStatistikkService: SakStatistikkService,
+        ): SakstatistikkTilBQ {
+            val log = LoggerFactory.getLogger(SakstatistikkTilBQ::class.java)
+            val jobName = SakstatistikkTilBQ::class.simpleName!!
+            return startStoppableJob(
+                jobName = jobName,
+                startAt = starttidspunkt,
+                log = log,
+                runJobCheck = listOf(runCheckFactory.leaderPod()),
+                intervall = periode,
+            ) {
+                log.info("Kjører $jobName")
+                sakStatistikkService.lastTilBigQuery(LocalDate.now())
+                log.info("Jobb $jobName er fullført")
+            }.let { SakstatistikkTilBQ(it) }
+        }
+    }
+}
