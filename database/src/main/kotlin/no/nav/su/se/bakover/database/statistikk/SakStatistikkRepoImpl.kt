@@ -77,6 +77,7 @@ class SakStatistikkRepoImpl(
         }
     }
 
+    // TODO: byttes ut hvis man skal teste sekvensnr genererring
     override fun hentSakStatistikk(sakId: UUID): List<SakStatistikk> {
         return sessionFactory.withSession { session ->
             """
