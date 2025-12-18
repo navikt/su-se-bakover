@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import java.math.BigInteger
 import java.time.LocalDate
 import java.util.UUID
 
@@ -64,3 +65,45 @@ enum class BehandlingMetode {
             }
     }
 }
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class SakStatistikkTilBiquery(
+    val id: BigInteger,
+    val funksjonellTid: String,
+    val tekniskTid: String,
+    val sakId: UUID,
+    @param:JsonSerialize(using = ToStringSerializer::class)
+    val saksnummer: Long,
+    val behandlingId: UUID,
+    val relatertBehandlingId: UUID? = null,
+    val aktorId: String,
+
+    val sakYtelse: String,
+    val sakUtland: String = "NASJONAL",
+    val behandlingType: String,
+
+    val behandlingMetode: String,
+
+    val mottattTid: String,
+    val registrertTid: String,
+    val ferdigbehandletTid: String? = null,
+    val utbetaltTid: LocalDate? = null,
+
+    val behandlingStatus: String,
+    val behandlingResultat: String? = null,
+    val resultatBegrunnelse: String? = null,
+    val behandlingAarsak: String? = null,
+
+    val opprettetAv: String?,
+    val saksbehandler: String? = null,
+    // Attestant
+    val ansvarligBeslutter: String? = null,
+    val ansvarligEnhet: String = "4815",
+
+    val fagsystemNavn: String = "SU-App",
+
+    // Tilbakekreving
+    val funksjonellPeriodeFom: LocalDate? = null,
+    val funksjonellPeriodeTom: LocalDate? = null,
+    val tilbakekrevBeløp: Long? = null,
+)

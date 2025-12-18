@@ -11,6 +11,7 @@ import behandling.klage.domain.UprosessertKlageinstanshendelse
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
+import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
@@ -218,6 +219,7 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -550,7 +552,11 @@ open class AccessCheckProxy(
                     return services.fritekstService.lagreFritekst(fritekst)
                 }
 
-                override fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit> {
+                override fun slettFritekst(
+                    referanseId: UUID,
+                    type: FritekstType,
+                    sakId: UUID,
+                ): Either<FritekstFeil, Unit> {
                     harTilgang(referanseId = referanseId, type = type, sakId = sakId)
                     return services.fritekstService.slettFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
@@ -793,7 +799,7 @@ open class AccessCheckProxy(
                     override fun leggTilBosituasjongrunnlag(
                         request: LeggTilBosituasjonerCommand,
                         saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
+                    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
                         assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
@@ -1459,6 +1465,11 @@ open class AccessCheckProxy(
             pesysJobService = object : PesysJobService {
                 override fun hentDatafraPesys() {
                     TODO("Not yet implemented")
+                }
+            },
+            sakstatistikkService = object : SakStatistikkService {
+                override fun lastTilBigQuery(fom: LocalDate) {
+                    services.sakstatistikkService.lastTilBigQuery(fom)
                 }
             },
         )
