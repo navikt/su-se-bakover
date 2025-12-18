@@ -6,13 +6,11 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import java.math.BigInteger
 import java.time.LocalDate
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SakStatistikk(
-    val id: BigInteger,
     val funksjonellTid: Tidspunkt,
     val tekniskTid: Tidspunkt,
     val sakId: UUID,
