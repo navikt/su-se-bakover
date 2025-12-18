@@ -16,6 +16,7 @@ sealed class SikkerLogg {
     data object NOP : SikkerLogg()
 
     class Logg : SikkerLogg() {
+
         private val teamslog: Logger = LoggerFactory.getLogger("team-logs-logger")
 
         private val marker = MarkerFactory.getMarker("TEAM_LOGS")
