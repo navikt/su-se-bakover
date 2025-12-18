@@ -76,7 +76,7 @@ class SakStatistikkServiceImpl(
             .setJob(UUID.randomUUID().toString())
             .build()
 
-        val dataset = "saksstatistikk"
+        val dataset = "statistikk"
         val tableId = TableId.of(project, dataset, tableName)
 
         logger.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
