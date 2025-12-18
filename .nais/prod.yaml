@@ -80,7 +80,7 @@ spec:
         kvPath: /serviceuser/data/prod/srvsupstonad
   env:
     - name: PESYS_URL
-      value: "https://pensjon-pen.nais.adeo.no"
+      value: "https://pensjon-pen.nais.adeo.no/pen/api/"
     - name: PESYS_CLIENT_ID
       value: "api://prod-fss.pensjondeployer.pensjon-pen"
     - name: AZURE_GROUP_ATTESTANT
