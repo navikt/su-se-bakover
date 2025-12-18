@@ -7,6 +7,7 @@ import arrow.core.flatten
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.ktor.util.logging.Logger
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -96,9 +97,20 @@ class TilbakekrevingSoapClient(
                 return KunneIkkeSendeTilbakekrevingsvedtak.FeilStatusFraOppdrag.left()
             }
 
-            kontrollerResponse(soapRequest, soapResponse, saksnummer)
+            kontrollerResponse(
+                soapRequest,
+                soapResponse,
+                saksnummer,
+                log = log,
+            )
                 .map {
-                    mapKontrollertResponse(saksnummer, soapResponse, soapRequest)
+                    mapKontrollertResponse(
+                        saksnummer,
+                        soapResponse,
+                        soapRequest,
+                        clock = clock,
+                        log = log,
+                    )
                 }
         }.mapLeft { throwable ->
             log.error(
@@ -156,12 +168,22 @@ class TilbakekrevingSoapClient(
                 return KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag.left()
             }
 
-            kontrollerResponse(soapRequest, soapResponse, saksnummer)
-                .map {
-                    mapKontrollertResponse(saksnummer, soapResponse, soapRequest)
-                }.mapLeft {
-                    KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
-                }
+            kontrollerResponse(
+                soapRequest,
+                soapResponse,
+                saksnummer,
+                log = log,
+            ).map {
+                mapKontrollertResponse(
+                    saksnummer,
+                    soapResponse,
+                    soapRequest,
+                    log = log,
+                    clock = clock,
+                )
+            }.mapLeft {
+                KunneIkkeAnnullerePåbegynteVedtak.FeilStatusFraOppdrag
+            }
         }.mapLeft { throwable ->
             log.error(
                 "SOAP kall mot tilbakekrevingskomponenten feilet for saksnummer $saksnummer og eksternKravgrunnlagId ${kravgrunnlagSomSkalAnnulleres.eksternKravgrunnlagId}. Se sikkerlogg for detaljer.",
@@ -189,106 +211,116 @@ class TilbakekrevingSoapClient(
             return KunneIkkeSendeTilbakekrevingsvedtak.KlarteIkkeHenteSamlToken.left()
         }.toString().right()
     }
+}
 
-    /**
-     * Dersom vi får en alvorlighetsgrad som ikke er OK, så skal vi logge dette og returnere en feil.
-     * I andre tilfeller antar vi at alt er OK, men logger error der noe må følges opp manuelt.
-     */
-    private fun kontrollerResponse(
-        request: String,
-        response: String?,
-        saksnummer: Saksnummer,
-    ): Either<KunneIkkeSendeTilbakekrevingsvedtak, Unit> {
-        val deserialisert = response?.deserializeTilbakekrevingsvedtakResponse(request) ?: run {
-            log.error("Fikk null-response ved sending av tilbakekrevingsvedtak. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer, se sikkerlogg for detaljer.")
-            sikkerLogg.error("Fikk null-response ved sending av tilbakekrevingsvedtak. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Request: $request.")
-            return Unit.right()
-        }
-        return deserialisert.fold(
-            {
-                // Vi logger i funksjonen. Dersom vi ikke klarer deserialisere antar vi at det har gått OK. Men det må følges opp manuelt.
-                Unit.right()
-            },
-            { result ->
-                when (val a = result.mmel.alvorlighetsgrad) {
-                    null -> {
-                        log.error(
-                            "Mottok ikke mmel.alvorlighetsgrad. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Se sikkerlogg for detaljer.",
-                            RuntimeException("Legger på stacktrace for enklere debug"),
-                        )
-                        sikkerLogg.error(
-                            "Mottok ikke mmel.alvorlighetsgrad. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Response $response. Request: $request.",
-                        )
-                        Unit.right()
-                    }
-
-                    else -> Alvorlighetsgrad.fromString(a).fold(
-                        {
-                            log.error(
-                                "Feil ved sending av tilbakekrevingsvedtak: Ukjent alvorlighetsgrad: $a. Antar det var OK. Må følges opp manuelt. Se sikkerlogg for detaljer.",
-                                RuntimeException("Trigger stacktrace"),
-                            )
-                            sikkerLogg.error("Feil ved sending av tilbakekrevingsvedtak: Ukjent alvorlighetsgrad: $a. Antar det var OK. Må følges opp manuelt. Response: $response, Request: $request.")
-                            Unit.right()
-                        },
-                        { alvorlighetsgrad ->
-                            kontrollerAlvorlighetsgrad(alvorlighetsgrad, saksnummer, response, request)
-                        },
+/**
+ * Dersom vi får en alvorlighetsgrad som ikke er OK, så skal vi logge dette og returnere en feil.
+ * I andre tilfeller antar vi at alt er OK, men logger error der noe må følges opp manuelt.
+ */
+internal fun kontrollerResponse(
+    request: String,
+    response: String?,
+    saksnummer: Saksnummer,
+    log: Logger,
+): Either<KunneIkkeSendeTilbakekrevingsvedtak, Unit> {
+    val deserialisert = response?.deserializeTilbakekrevingsvedtakResponse(request) ?: run {
+        log.error("Fikk null-response ved sending av tilbakekrevingsvedtak. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer, se sikkerlogg for detaljer.")
+        sikkerLogg.error("Fikk null-response ved sending av tilbakekrevingsvedtak. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Request: $request.")
+        return Unit.right()
+    }
+    return deserialisert.fold(
+        {
+            // Vi logger i funksjonen. Dersom vi ikke klarer deserialisere antar vi at det har gått OK. Men det må følges opp manuelt.
+            Unit.right()
+        },
+        { result ->
+            when (val a = result.mmel.alvorlighetsgrad) {
+                null -> {
+                    log.error(
+                        "Mottok ikke mmel.alvorlighetsgrad. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Se sikkerlogg for detaljer.",
+                        RuntimeException("Legger på stacktrace for enklere debug"),
                     )
+                    sikkerLogg.error(
+                        "Mottok ikke mmel.alvorlighetsgrad. Antar det var OK. Må følges opp manuelt. Saksnummer $saksnummer. Response $response. Request: $request.",
+                    )
+                    Unit.right()
                 }
-            },
-        )
-    }
 
-    private fun mapKontrollertResponse(
-        saksnummer: Saksnummer,
-        soapResponse: String?,
-        soapRequest: String,
-    ): RåTilbakekrevingsvedtakForsendelse {
-        log.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.")
-        sikkerLogg.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Response: $soapResponse, Request: $soapRequest.")
-
-        return RåTilbakekrevingsvedtakForsendelse(
-            requestXml = soapRequest,
-            tidspunkt = Tidspunkt.now(clock),
-            responseXml = soapResponse
-                ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
-        )
-    }
-
-    private fun kontrollerAlvorlighetsgrad(
-        alvorlighetsgrad: Alvorlighetsgrad,
-        saksnummer: Saksnummer,
-        response: String,
-        request: String,
-    ): Either<KunneIkkeSendeTilbakekrevingsvedtak, Unit> {
-        return when (alvorlighetsgrad) {
-            Alvorlighetsgrad.OK -> Unit.right()
-
-            Alvorlighetsgrad.OK_MED_VARSEL,
-            -> {
-                log.error(
-                    "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Se sikkerlogg for detaljer, og request.",
-                    RuntimeException("Legger på stacktrace for enklere debug"),
+                else -> Alvorlighetsgrad.fromString(a).fold(
+                    {
+                        log.error(
+                            "Feil ved sending av tilbakekrevingsvedtak: Ukjent alvorlighetsgrad: $a. Antar det var OK. Må følges opp manuelt. Se sikkerlogg for detaljer.",
+                            RuntimeException("Trigger stacktrace"),
+                        )
+                        sikkerLogg.error("Feil ved sending av tilbakekrevingsvedtak: Ukjent alvorlighetsgrad: $a. Antar det var OK. Må følges opp manuelt. Response: $response, Request: $request.")
+                        Unit.right()
+                    },
+                    { alvorlighetsgrad ->
+                        kontrollerAlvorlighetsgrad(
+                            alvorlighetsgrad,
+                            saksnummer,
+                            response,
+                            request,
+                            log = log,
+                        )
+                    },
                 )
-                sikkerLogg.error(
-                    "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Den er fremdeles sendt OK. Saksnummer $saksnummer. Response $response. Request: $request. ",
-                )
-                Unit.right()
             }
+        },
+    )
+}
 
-            Alvorlighetsgrad.ALVORLIG_FEIL,
-            Alvorlighetsgrad.SQL_FEIL,
-            -> {
-                log.error(
-                    "Fikk $alvorlighetsgrad fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Se sikkerlogg for detaljer.",
-                    RuntimeException("Legger på stacktrace for enklere debug"),
-                )
-                sikkerLogg.error(
-                    "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Response $response. Request: $request.",
-                )
-                KunneIkkeSendeTilbakekrevingsvedtak.AlvorlighetsgradFeil.left()
-            }
+internal fun mapKontrollertResponse(
+    saksnummer: Saksnummer,
+    soapResponse: String?,
+    soapRequest: String,
+    clock: Clock,
+    log: Logger,
+): RåTilbakekrevingsvedtakForsendelse {
+    log.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Se sikkerlogg for detaljer.")
+    sikkerLogg.info("SOAP kall mot tilbakekrevingskomponenten OK for saksnummer $saksnummer. Response: $soapResponse, Request: $soapRequest.")
+
+    return RåTilbakekrevingsvedtakForsendelse(
+        requestXml = soapRequest,
+        tidspunkt = Tidspunkt.now(clock),
+        responseXml = soapResponse
+            ?: "soapResponse var null - dette er sannsynligvis en teksnisk feil, f.eks. ved at http-body er lest mer enn 1 gang.",
+    )
+}
+
+internal fun kontrollerAlvorlighetsgrad(
+    alvorlighetsgrad: Alvorlighetsgrad,
+    saksnummer: Saksnummer,
+    response: String,
+    request: String,
+    log: Logger,
+): Either<KunneIkkeSendeTilbakekrevingsvedtak, Unit> {
+    return when (alvorlighetsgrad) {
+        Alvorlighetsgrad.OK -> Unit.right()
+
+        Alvorlighetsgrad.OK_MED_VARSEL,
+        -> {
+            log.error(
+                "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Se sikkerlogg for detaljer, og request.",
+                RuntimeException("Legger på stacktrace for enklere debug"),
+            )
+            sikkerLogg.error(
+                "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Den er fremdeles sendt OK. Saksnummer $saksnummer. Response $response. Request: $request. ",
+            )
+            Unit.right()
+        }
+
+        Alvorlighetsgrad.ALVORLIG_FEIL,
+        Alvorlighetsgrad.SQL_FEIL,
+        -> {
+            log.error(
+                "Fikk $alvorlighetsgrad fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Se sikkerlogg for detaljer.",
+                RuntimeException("Legger på stacktrace for enklere debug"),
+            )
+            sikkerLogg.error(
+                "Fikk et varsel fra tilbakekrevingskomponenten når vi vedtok en tilbakekreving. Saksnummer $saksnummer. Response $response. Request: $request.",
+            )
+            KunneIkkeSendeTilbakekrevingsvedtak.AlvorlighetsgradFeil.left()
         }
     }
 }

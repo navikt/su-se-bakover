@@ -151,6 +151,8 @@ fun Application.susebakover(
             samlTokenProvider = samlTokenProvider,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
+            azureAd = clients.azureAd,
+            suProxyConfig = applicationConfig.clientsConfig.suProxyConfig,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {

@@ -56,7 +56,7 @@ class StubClientsBuilder(
             applicationConfig.azure.wellKnownUrl,
         )
         return Clients(
-            oauth = oauth,
+            azureAd = oauth,
             personOppslag = PersonOppslagStub().also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")

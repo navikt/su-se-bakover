@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":hendelse:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":oppgave:domain"))
+    implementation(rootProject.libs.kittinunf.fuel)
 
     testImplementation(project(":test-common"))
     testImplementation(project(":satser"))
