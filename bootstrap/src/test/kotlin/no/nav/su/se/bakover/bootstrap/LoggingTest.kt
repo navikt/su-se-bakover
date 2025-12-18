@@ -8,6 +8,7 @@ import ch.qos.logback.core.ConsoleAppender
 import com.papertrailapp.logback.Syslog4jAppender
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import net.logstash.logback.appender.LogstashTcpSocketAppender
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
@@ -21,7 +22,7 @@ class LoggingTest {
         konfigurerLogback("logback.xml")
         getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<Syslog4jAppender<ILoggingEvent>>()
-        // getLogger("team-logs-logger").getAppender("team-logs") shouldBe beOfType<LogstashTcpSocketAppender>()
+        getLogger("team-logs-logger").getAppender("team-logs") shouldBe beOfType<LogstashTcpSocketAppender>()
         getLogger("ROOT").getAppender("STDOUT") shouldBe null
     }
 
