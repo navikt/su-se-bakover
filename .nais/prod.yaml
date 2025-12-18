@@ -79,6 +79,10 @@ spec:
       - mountPath: /var/run/secrets/nais.io/srvuser
         kvPath: /serviceuser/data/prod/srvsupstonad
   env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen.nais.adeo.no/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://prod-fss.pensjondeployer.pensjon-pen"
     - name: AZURE_GROUP_ATTESTANT
       value: "b64af061-f7c4-4d05-907f-b457e23da339"
     - name: AZURE_GROUP_VEILEDER
