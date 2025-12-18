@@ -268,6 +268,7 @@ open class AccessCheckProxy(
     private val personRepo: PersonRepo,
     private val services: Services,
 ) {
+    // TODO: må finne en måte å definere services uten at de må i accessproxy ikke alle services skal være i en route
     fun proxy(): Services {
         return Services(
             avstemming = object : AvstemmingService {
@@ -1464,6 +1465,7 @@ open class AccessCheckProxy(
 
             pesysJobService = object : PesysJobService {
                 override fun hentDatafraPesys() {
+                    // Blir aldri kalt fra en route.
                     TODO("Not yet implemented")
                 }
             },
