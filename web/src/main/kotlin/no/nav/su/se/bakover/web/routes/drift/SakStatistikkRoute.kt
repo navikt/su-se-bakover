@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.web.routes.drift
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -35,7 +34,7 @@ internal fun Route.sakStatistikkRoutes(
                     )
                     return@withBody
                 }
-                CoroutineScope(Dispatchers.IO).launch {
+                withContext(Dispatchers.IO) {
                     service.lastTilBigQuery(it.fraOgMed)
                 }
                 call.svar(Resultat.okJson())
