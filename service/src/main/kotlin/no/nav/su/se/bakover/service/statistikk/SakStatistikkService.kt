@@ -20,7 +20,7 @@ import java.util.UUID
 private const val LOCATION = "europe-north1"
 
 interface SakStatistikkService {
-    fun lastTilBigQuery(fom: LocalDate = LocalDate.now())
+    fun lastTilBigQuery(fom: LocalDate)
 }
 
 // https://docs.nais.io/workloads/application/reference/application-spec/#gcpbigquerydatasets
