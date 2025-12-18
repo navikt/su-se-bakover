@@ -7,6 +7,15 @@ metadata:
     team: supstonad
 spec:
   gcp:
+    bigQueryDatasets:
+      - name: avslagsvedtak
+        permission: READWRITE
+      - name: saksstatistikk
+        permission: READWRITE
+      - name: soknad
+        permission: READWRITE
+      - name: statistikk
+        permission: READWRITE
     sqlInstances:
       - type: POSTGRES_17
         tier: db-g1-small

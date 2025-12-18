@@ -13,9 +13,6 @@ import com.google.cloud.bigquery.WriteChannelConfiguration
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
 import java.nio.channels.Channels
 import java.time.LocalDate
 import java.util.UUID
@@ -26,12 +23,12 @@ interface SakStatistikkService {
     fun lastTilBigQuery(fom: LocalDate = LocalDate.now())
 }
 
+// https://docs.nais.io/workloads/application/reference/application-spec/#gcpbigquerydatasets
 class SakStatistikkServiceImpl(
     val repo: SakStatistikkRepo,
 ) : SakStatistikkService {
     private val logger = LoggerFactory.getLogger(SakStatistikkService::class.java)
 
-    // TODO Hvordan connecte til BQ i GCP??
     override fun lastTilBigQuery(fom: LocalDate) {
         val data = hentSaksstatistikk(fom)
 
@@ -44,10 +41,13 @@ class SakStatistikkServiceImpl(
         repo.hentSakStatistikk(fom, tom = LocalDate.now().plusDays(1))
 
     private fun writeToBigQuery(data: List<SakStatistikk>) {
-        val jsonKey: InputStream = FileInputStream(File(System.getenv("BIGQUERY_CREDENTIALS")))
-        val project: String = System.getenv("GCP_PROJECT")
+        /*
+            https://docs.nais.io/persistence/bigquery/how-to/connect/?h=bigquery
+            defaulty inject basert på yaml filens referanses
+         */
+        val project: String = System.getenv("GCP_TEAM_PROJECT_ID")
 
-        val bq = createBigQueryClient(jsonKey, project)
+        val bq = createBigQueryClient(project)
 
         val table = "saksstatistikk"
         val csv = data.toCsv()
@@ -57,16 +57,13 @@ class SakStatistikkServiceImpl(
 
         logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
     }
-
-    private fun createBigQueryClient(jsonKey: InputStream, project: String): BigQuery {
-        val credentials = GoogleCredentials.fromStream(jsonKey)
-        return BigQueryOptions
-            .newBuilder()
-            .setCredentials(credentials)
+    private fun createBigQueryClient(project: String): BigQuery =
+        BigQueryOptions.newBuilder()
+            .setCredentials(GoogleCredentials.getApplicationDefault())
             .setLocation(LOCATION)
             .setProjectId(project)
-            .build().service
-    }
+            .build()
+            .service
 
     private fun writeCsvToBigQueryTable(
         bigQuery: BigQuery,
