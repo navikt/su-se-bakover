@@ -16,6 +16,11 @@ sealed interface JwtToken {
                     ?: throw IllegalStateException("TokenContext not set, sjekk AuthTokenContextPlugin og at install(AuthTokenContextPlugin) er kjørt på dine routes")
                 return BrukerToken(token)
             }
+
+            fun fraCoroutineContextOrNull(): BrukerToken? {
+                val token = Kontekst.get()?.token
+                return token?.let { BrukerToken(it) }
+            }
         }
 
         override fun toString() = value

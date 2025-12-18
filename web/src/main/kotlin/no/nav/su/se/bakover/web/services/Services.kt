@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import person.domain.PersonService
 import vilkår.skatt.application.SkatteService
 import økonomi.application.utbetaling.UtbetalingService
@@ -54,4 +55,5 @@ data class Services(
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,
+    val pesysJobService: PesysJobService,
 )

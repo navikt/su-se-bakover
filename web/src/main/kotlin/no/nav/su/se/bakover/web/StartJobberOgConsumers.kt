@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
+import no.nav.su.se.bakover.web.services.FssProxyJob
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
 import no.nav.su.se.bakover.web.services.statistikk.StønadstatistikkJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -132,6 +134,7 @@ fun startJobberOgConsumers(
             journalførDokumentSkattService = journalførDokumentSkattService,
             jmsConfig = jmsConfig,
             tilbakekrevingskomponenter = tilbakekrevingskomponenter,
+            clients = clients,
         )
 
         ApplicationConfig.RuntimeEnvironment.Local ->
@@ -292,6 +295,7 @@ private fun naisJobberOgConsumers(
     journalførDokumentSkattService: JournalførSkattDokumentService,
     jmsConfig: JmsConfig,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    clients: Clients,
 ): JobberOgConsumers {
     val isProd = applicationConfig.naisCluster == NaisCluster.Prod
 
@@ -317,6 +321,18 @@ private fun naisJobberOgConsumers(
         } else {
             null
         },
+        FssProxyJob.startJob(
+            initialDelay = Duration.of(1, ChronoUnit.SECONDS),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
+            client = clients.suProxyClient,
+        ),
+
+        Pesysjobb.startJob(
+            initialDelay = Duration.ofSeconds(1),
+            periode = Duration.of(1, ChronoUnit.HOURS),
+            pesysjobb = services.pesysJobService,
+            runJobCheck = runCheckFactory,
+        ),
 
         StønadstatistikkJob.startJob(
             clock = clock,

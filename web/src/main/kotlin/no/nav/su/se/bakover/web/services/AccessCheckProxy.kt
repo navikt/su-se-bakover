@@ -230,6 +230,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -1452,6 +1453,12 @@ open class AccessCheckProxy(
             stønadStatistikkJobService = object : StønadStatistikkJobService {
                 override fun lagMånedligStønadstatistikk(clock: Clock) {
                     services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
+                }
+            },
+
+            pesysJobService = object : PesysJobService {
+                override fun hentDatafraPesys() {
+                    TODO("Not yet implemented")
                 }
             },
         )

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedok
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
+import no.nav.su.se.bakover.client.proxy.SuProxyClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
@@ -61,6 +62,8 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         queryJournalpostClient = QueryJournalpostClientStub,
         skatteOppslag = SkatteClientStub(clock),
+        pesysklient = mock(),
+        suProxyClient = SuProxyClientStub(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

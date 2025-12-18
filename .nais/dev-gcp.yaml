@@ -64,6 +64,9 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: pensjon-pen-q2
+          namespace: pensjon-q2
+          cluster: dev-fss
         - application: supstonad-proxy
           namespace: supstonad
           cluster: dev-fss
@@ -88,6 +91,7 @@ spec:
           namespace: team-rocket
           cluster: dev-gcp
       external:
+        - host: pensjon-pen-q2.dev-fss-pub.nais.io
         - host: supstonad-proxy.dev-fss-pub.nais.io
         - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
         - host: pdl-api.dev-fss-pub.nais.io
@@ -131,6 +135,10 @@ spec:
       #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicerbruker
   env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen-q2.dev-fss-pub.nais.io/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
     - name: SUPSTONAD_PROXY_URL
       value: "https://supstonad-proxy.dev-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID

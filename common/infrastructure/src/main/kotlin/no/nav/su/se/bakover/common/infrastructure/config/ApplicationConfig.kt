@@ -23,7 +23,12 @@ import java.time.Duration
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-fun isGCP() = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("gcp")
+fun isGCP(): Boolean = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("gcp")
+fun isDevFss(): Boolean = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly().contains("dev-fss")
+fun isDevFssOrDevGcp(): Boolean {
+    val runningEnv = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly()
+    return runningEnv.contains("dev-fss") || runningEnv.contains("dev-gcp")
+}
 
 internal data object EnvironmentConfig {
     private val env by lazy {
@@ -236,6 +241,8 @@ data class ApplicationConfig(
         val dokDistConfig: DokDistConfig,
         val kodeverkConfig: KodeverkConfig,
         val skjermingConfig: SkjermingConfig,
+        val pesysConfig: PesysConfig,
+        val suProxyConfig: SuProxyConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -253,6 +260,8 @@ data class ApplicationConfig(
                 dokDistConfig = DokDistConfig.createFromEnvironmentVariables(),
                 kodeverkConfig = KodeverkConfig.createFromEnvironmentVariables(),
                 skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
+                suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
+                pesysConfig = PesysConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -271,6 +280,8 @@ data class ApplicationConfig(
                 dokDistConfig = DokDistConfig.createLocalConfig(),
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
                 skjermingConfig = SkjermingConfig.createLocalConfig(),
+                pesysConfig = PesysConfig.createLocalConfig(),
+                suProxyConfig = SuProxyConfig.createLocalConfig(),
             )
         }
 
@@ -287,6 +298,29 @@ data class ApplicationConfig(
                 fun createLocalConfig() = KontaktOgReservasjonsregisterConfig(
                     appId = "mocked",
                     url = "mocked",
+                )
+            }
+        }
+
+        data class SuProxyConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables(): SuProxyConfig {
+                    return if (isGCP()) {
+                        SuProxyConfig(
+                            url = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_URL"),
+                            clientId = getEnvironmentVariableOrThrow("SUPSTONAD_PROXY_CLIENT_ID"),
+                        )
+                    } else {
+                        log.warn("Proxy klient kjører med Lokal config")
+                        createLocalConfig()
+                    }
+                }
+                fun createLocalConfig() = SuProxyConfig(
+                    url = "SUPSTONAD_PROXY_URL",
+                    clientId = "SUPSTONAD_PROXY_CLIENT_ID",
                 )
             }
         }
@@ -419,6 +453,22 @@ data class ApplicationConfig(
                     apiBaseUrl = "mocked",
                     clientId = "mocked",
                     consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
+                )
+            }
+        }
+
+        data class PesysConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = PesysConfig(
+                    url = getEnvironmentVariableOrThrow("PESYS_URL"),
+                    clientId = getEnvironmentVariableOrThrow("PESYS_CLIENT_ID"),
+                )
+                fun createLocalConfig() = PesysConfig(
+                    url = "PESYS_URL",
+                    clientId = "PESYS_CLIENT_ID",
                 )
             }
         }
