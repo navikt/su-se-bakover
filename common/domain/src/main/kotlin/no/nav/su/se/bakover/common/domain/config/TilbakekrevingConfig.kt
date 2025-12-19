@@ -14,7 +14,6 @@ data class TilbakekrevingConfig(
 
     data class Soap(
         val url: String,
-        val stsSoapUrl: String,
     ) {
         // Tillater extension functions.
         companion object

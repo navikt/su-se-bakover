@@ -125,12 +125,10 @@ data class ApplicationConfig(
 
         data class SimuleringConfig(
             val url: String,
-            val stsSoapUrl: String,
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = SimuleringConfig(
                     url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
-                    stsSoapUrl = getEnvironmentVariableOrThrow("STS_URL_SOAP"),
                 )
             }
         }
@@ -159,11 +157,10 @@ data class ApplicationConfig(
                 avstemming = AvstemmingConfig(mqSendQueue = "unused"),
                 simulering = SimuleringConfig(
                     url = "unused",
-                    stsSoapUrl = "unused",
                 ),
                 tilbakekreving = TilbakekrevingConfig(
                     mq = TilbakekrevingConfig.Mq("unused"),
-                    soap = TilbakekrevingConfig.Soap("unused", "unused"),
+                    soap = TilbakekrevingConfig.Soap("unused"),
                     serviceUserConfig = ServiceUserConfig("unused", "unused"),
                 ),
             )
@@ -232,7 +229,7 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val stsSamlUrl: String,
+        val gandalfSamlUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
@@ -249,7 +246,7 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                stsSamlUrl = getEnvironmentVariableOrThrow(
+                gandalfSamlUrl = getEnvironmentVariableOrThrow(
                     "GANDALF_URL",
                 ),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
@@ -268,7 +265,7 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
                 pdfgenUrl = "mocked",
-                stsSamlUrl = getEnvironmentVariableOrDefault(
+                gandalfSamlUrl = getEnvironmentVariableOrDefault(
                     "GANDALF_URL",
                     "mocked",
                 ),

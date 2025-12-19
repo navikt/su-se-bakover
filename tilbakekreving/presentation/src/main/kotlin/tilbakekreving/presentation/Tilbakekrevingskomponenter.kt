@@ -61,7 +61,7 @@ class Tilbakekrevingskomponenter(
             )
             val clients = TilbakekrevingClients.create(
                 baseUrl = tilbakekrevingConfig.soap.url,
-                samlTokenProvider = samlTokenProvider,
+                samlTokenProvider = samlTokenProvider, // er dette en egen en? nei
                 clock = clock,
                 suProxyConfig = suProxyConfig,
                 azureAd = azureAd,
