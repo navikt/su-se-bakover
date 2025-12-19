@@ -60,7 +60,7 @@ class Tilbakekrevingskomponenter(
                 dbMetrics = dbMetrics,
             )
             val clients = TilbakekrevingClients.create(
-                baseUrl = tilbakekrevingConfig.soap.url,
+                soapEndpointTK = tilbakekrevingConfig.soap.url,
                 samlTokenProvider = samlTokenProvider,
                 clock = clock,
                 suProxyConfig = suProxyConfig,

@@ -120,8 +120,6 @@ spec:
       value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
       value: "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding"
-    - name: STS_URL_SOAP
-      value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "https://skjermede-personer-pip.intern.dev.nav.no"
     - name: SKJERMING_CLIENT_ID

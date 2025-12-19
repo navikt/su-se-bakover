@@ -40,7 +40,7 @@ private const val ANNULLER_ACTION =
     "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/kravgrunnlagAnnulerRequest"
 
 class TilbakekrevingSoapClient(
-    private val baseUrl: String,
+    private val soapEndpointTK: String,
     private val samlTokenProvider: SamlTokenProvider,
     private val clock: Clock,
 ) : Tilbakekrevingsklient {
@@ -76,11 +76,11 @@ class TilbakekrevingSoapClient(
             val soapRequest = buildSoapEnvelope(
                 action = TILBAKEKREV_ACTION,
                 messageId = UUID.randomUUID().toString(),
-                serviceUrl = baseUrl,
+                serviceUrl = soapEndpointTK,
                 assertion = assertion,
                 body = soapBody,
             )
-            val httpRequest = HttpRequest.newBuilder(URI(baseUrl))
+            val httpRequest = HttpRequest.newBuilder(URI(soapEndpointTK))
                 .header("SOAPAction", TILBAKEKREV_ACTION)
                 .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                 .build()
@@ -146,11 +146,11 @@ class TilbakekrevingSoapClient(
             val soapRequest = buildSoapEnvelope(
                 action = ANNULLER_ACTION,
                 messageId = UUID.randomUUID().toString(),
-                serviceUrl = baseUrl,
+                serviceUrl = soapEndpointTK,
                 assertion = assertion,
                 body = soapBody,
             )
-            val httpRequest = HttpRequest.newBuilder(URI(baseUrl))
+            val httpRequest = HttpRequest.newBuilder(URI(soapEndpointTK))
                 .header("SOAPAction", ANNULLER_ACTION)
                 .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                 .build()

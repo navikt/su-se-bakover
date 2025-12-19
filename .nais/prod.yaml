@@ -113,8 +113,6 @@ spec:
       value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
       value: "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding"
-    - name: STS_URL_SOAP
-      value: "https://sts.adeo.no/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "https://skjermede-personer-pip.intern.nav.no"
     - name: SKJERMING_CLIENT_ID

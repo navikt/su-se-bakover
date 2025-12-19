@@ -12,7 +12,7 @@ class TilbakekrevingClients(
 ) {
     companion object {
         fun create(
-            baseUrl: String,
+            soapEndpointTK: String,
             samlTokenProvider: SamlTokenProvider,
             clock: Clock,
             suProxyConfig: SuProxyConfig,
@@ -26,7 +26,7 @@ class TilbakekrevingClients(
                 )
             } else {
                 TilbakekrevingSoapClient(
-                    baseUrl = baseUrl,
+                    soapEndpointTK = soapEndpointTK,
                     samlTokenProvider = samlTokenProvider,
                     clock = clock,
                 )
