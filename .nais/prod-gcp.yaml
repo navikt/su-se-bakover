@@ -100,19 +100,19 @@ spec:
         - application: kodeverk-api
           namespace: team-rocket
           cluster: prod-gcp
-    external:
-      - host: pensjon-pen.prod-fss-pub.nais.io
-      - host: supstonad-proxy.prod-fss-pub.nais.io
-      - host: pdl-api.prod-fss-pub.nais.io
-      - host: saf.prod-fss-pub.nais.io
-      - host: inst2.prod-fss-pub.nais.io
-      - host: dokdistfordeling.prod-fss-pub.nais.io
-      - host: oppgave.prod-fss-pub.nais.io
-      - host: team-inntekt-proxy.prod-fss-pub.nais.io
-      - host: kodeverk-api.nav.no
-      - host: mpls02.adeo.no
-        ports:
-          - port: 1414
+      external:
+        - host: pensjon-pen.prod-fss-pub.nais.io
+        - host: supstonad-proxy.prod-fss-pub.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io
+        - host: saf.prod-fss-pub.nais.io
+        - host: inst2.prod-fss-pub.nais.io
+        - host: dokdistfordeling.prod-fss-pub.nais.io
+        - host: oppgave.prod-fss-pub.nais.io
+        - host: team-inntekt-proxy.prod-fss-pub.nais.io
+        - host: kodeverk-api.nav.no
+        - host: mpls02.adeo.no
+          ports:
+            - port: 1414
   image: {{ image }}
   liveness:
     path: /isalive
