@@ -97,9 +97,6 @@ spec:
         - application: digdir-krr-proxy
           namespace: team-rocket
           cluster: prod-gcp
-        - application: kodeverk-prod
-          namespace: team-rocket
-          cluster: prod-gcp
         - application: kodeverk-api
           namespace: team-rocket
           cluster: prod-gcp
@@ -143,7 +140,7 @@ spec:
     enabled: true
   leaderElection: true
   kafka:
-    pool: nav-dev
+    pool: nav-prod
   envFrom:
     #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicebruker
