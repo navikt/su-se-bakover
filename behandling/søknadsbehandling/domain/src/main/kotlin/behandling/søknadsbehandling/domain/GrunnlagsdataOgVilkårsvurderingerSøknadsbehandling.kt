@@ -157,7 +157,7 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
     fun oppdaterFormuevilkår(
         vilkår: FormueVilkår.Vurdert,
         behandlingId: BehandlingsId,
-    ): GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling {
+    ): Either<Konsistensproblem.BosituasjonOgFormue, GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling> {
         // TODO jah: Dette er sjekker som alltid bør gjøres før man får en instans av denne typen.
         //  både for ctor og copy (kun init som kan garantere dette).
         //  Vi har aldri støttet hull, så vi vil ikke ha det i databasen.
@@ -171,35 +171,19 @@ data class GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
         // TODO jah: Konsistenssjekken gjøres også av LeggTilFormuegrunnlagRequest.toDomain() så det bør være trygt å kaste her.
         //  felles sjekker bør gjøres i init og tryCreate, konsistenssjekkene bør gjøres i denne fila for det som går på tvers av grunnlagsdata og vilkårsvurderinger.
         //  Mens behandlingene bør sjekke mot sin periode og evt. andre ting som kun angår de.
-        BosituasjonOgFormue(
+        val konsistensResultat = BosituasjonOgFormue(
             bosituasjon = grunnlagsdata.bosituasjon,
             formue = vilkår.grunnlag,
-        ).resultat.onLeft { alleFeil ->
-            alleFeil.forEach { konsistensproblem ->
-                when (konsistensproblem) {
-                    Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode,
-                    Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
-                    Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
-                    is Konsistensproblem.BosituasjonOgFormue.UgyldigFormue,
-                    -> throw IllegalArgumentException(
-                        "Konsistenssjekk mellom bosituasjon og formue feilet: $konsistensproblem behandlingId: $behandlingId",
-                    )
+        ).resultat
 
-                    is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> konsistensproblem.feil.forEach {
-                        when (it) {
-                            Konsistensproblem.Bosituasjon.Mangler,
-                            Konsistensproblem.Bosituasjon.Overlapp,
-                            -> throw IllegalArgumentException(
-                                "Konsistenssjekk mellom bosituasjon og formue feilet: $it behandlingId: $behandlingId",
-                            )
-
-                            Konsistensproblem.Bosituasjon.Ufullstendig -> throw IllegalStateException("Bosituasjon kan ikke være ufullstendig. behandlingId: $behandlingId")
-                        }
-                    }
-                }
-            }
+        // Map all consistency errors into Left
+        return konsistensResultat.mapLeft { alleFeil ->
+            // You could just return the first one, or wrap them all in a custom error type
+            // Here I’ll return the first for simplicity
+            alleFeil.first()
+        }.map {
+            // Success: return the updated value
+            oppdaterVilkår(vilkår)
         }
-
-        return oppdaterVilkår(vilkår)
     }
 }

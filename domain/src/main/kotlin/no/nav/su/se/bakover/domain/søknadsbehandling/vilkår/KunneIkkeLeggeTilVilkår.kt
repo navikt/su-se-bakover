@@ -45,6 +45,10 @@ sealed interface KunneIkkeLeggeTilVilkår {
         data class KunneIkkeMappeTilDomenet(
             val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet,
         ) : KunneIkkeLeggeTilFormuevilkår
+
+        data class FormueBosituasjonKonsistensfeil(
+            val feil: String,
+        ) : KunneIkkeLeggeTilFormuevilkår
     }
 
     sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkår : KunneIkkeLeggeTilVilkår {
