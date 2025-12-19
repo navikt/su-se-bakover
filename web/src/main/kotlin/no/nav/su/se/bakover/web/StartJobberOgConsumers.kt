@@ -335,6 +335,13 @@ private fun naisJobberOgConsumers(
             runJobCheck = runCheckFactory,
         ),
 
+        SakstatistikkTilBQ.startJob(
+            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            sakStatistikkService = services.sakstatistikkService,
+        ),
+
         StønadstatistikkJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
@@ -353,12 +360,6 @@ private fun naisJobberOgConsumers(
             ),
         ),
 
-        SakstatistikkTilBQ.startJob(
-            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
-            periode = Duration.of(1, ChronoUnit.DAYS),
-            runCheckFactory = runCheckFactory,
-            sakStatistikkService = services.sakstatistikkService,
-        ),
         DistribuerDokumentJob.startJob(
             initialDelay = initialDelay.next(),
             periode = Duration.of(5, ChronoUnit.MINUTES),
