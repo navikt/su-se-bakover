@@ -148,7 +148,7 @@ spec:
     - name: PESYS_URL
       value: "https://pensjon-pen.prod-fss-pub.nais.io/pen/api/"
     - name: PESYS_CLIENT_ID
-      value: "api://prod-fss.pensjon-q2.pensjon-pen-q2"
+      value: "api://prod-fss.pensjondeployer.pensjon-pen"
     - name: SUPSTONAD_PROXY_URL
       value: "https://supstonad-proxy.dev-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID
