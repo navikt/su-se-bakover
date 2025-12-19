@@ -18,10 +18,19 @@ spec:
         permission: READWRITE
     sqlInstances:
       - type: POSTGRES_17
-        tier: db-g1-small
+        tier: db-custom-1-3840
         collation: nb_NO.UTF8
+        diskAutoresize: true
+        diskSize: 20
+        diskType: SSD
+        highAvailability: true
+        pointInTimeRecovery: true
+        autoBackupHour: 1
+        maintenance:
+          day: 7
+          hour: 2
         cascadingDelete: false
-        name: supstonad-db-15-dev
+        name: supstonad-db-15-prod
         databases:
           - name: supstonad
             envVarPrefix: DB
@@ -60,58 +69,53 @@ spec:
       rules:
         - application: "su-se-framover"
           namespace: "supstonad"
-          cluster: "dev-gcp"
+          cluster: "prod-gcp"
         - application: "frikorttjenester"
-          namespace: "teamfrikort"
-          permissions:
-            roles:
-              - frikort
-        - application: "frikorttjenester-q2"
           namespace: "teamfrikort"
           permissions:
             roles:
               - frikort
     outbound:
       rules:
-        - application: pensjon-pen-q2
-          namespace: pensjon-q2
-          cluster: dev-fss
+        - application: pensjon-pen
+          namespace: pensjondeployer
+          cluster: prod-fss
         - application: supstonad-proxy
           namespace: supstonad
-          cluster: dev-fss
+          cluster: prod-fss
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
-          cluster: dev-gcp
+          cluster: prod-gcp
         - application: su-pdfgen
           namespace: supstonad
-          cluster: dev-gcp
+          cluster: prod-gcp
         - application: logging
           namespace: nais-system
         - application: kabal-api
           namespace: klage
-          cluster: dev-gcp
+          cluster: prod-gcp
         - application: digdir-krr-proxy
           namespace: team-rocket
-          cluster: dev-gcp
+          cluster: prod-gcp
         - application: kodeverk-dev
           namespace: team-rocket
-          cluster: dev-gcp
+          cluster: prod-gcp
         - application: kodeverk-api
           namespace: team-rocket
-          cluster: dev-gcp
-      external:
-        - host: pensjon-pen-q2.dev-fss-pub.nais.io
-        - host: supstonad-proxy.dev-fss-pub.nais.io
-        - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
-        - host: pdl-api.dev-fss-pub.nais.io
-        - host: sigrun-q2.dev.adeo.no
-        - host: saf-q2.dev-fss-pub.nais.io
-        - host: dokdistfordeling.dev-fss-pub.nais.io
-        - host: dokarkiv-q2.dev-fss-pub.nais.io
-        - host: oppgave.dev-fss-pub.nais.io
-        - host: b27apvl220.preprod.local
-          ports:
-            - port: 1413
+          cluster: prod-gcp
+    external:
+      - host: pensjon-pen.prod-fss-pub.nais.io
+      - host: supstonad-proxy.prod-fss-pub.nais.io
+      - host: pdl-api.prod-fss-pub.nais.io
+      - host: saf.prod-fss-pub.nais.io
+      - host: inst2.prod-fss-pub.nais.io
+      - host: dokdistfordeling.prod-fss-pub.nais.io
+      - host: oppgave.prod-fss-pub.nais.io
+      - host: team-inntekt-proxy.prod-fss-pub.nais.io
+      - host: kodeverk-api.nav.no
+      - host: mpls02.adeo.no
+        ports:
+          - port: 1414
   image: {{ image }}
   liveness:
     path: /isalive
@@ -141,17 +145,17 @@ spec:
   kafka:
     pool: nav-dev
   envFrom:
-      #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
+    #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicerbruker
   env:
     - name: PESYS_URL
-      value: "https://pensjon-pen-q2.dev-fss-pub.nais.io/pen/api/"
+      value: "https://pensjon-pen.prod-fss-pub.nais.io/pen/api/"
     - name: PESYS_CLIENT_ID
-      value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
+      value: "api://prod-fss.pensjon-q2.pensjon-pen-q2"
     - name: SUPSTONAD_PROXY_URL
       value: "https://supstonad-proxy.dev-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID
-      value: "api://dev-fss.supstonad.supstonad-proxy"
+      value: "api://prod-fss.supstonad.supstonad-proxy"
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
     - name: AZURE_GROUP_VEILEDER
@@ -161,72 +165,72 @@ spec:
     - name: AZURE_GROUP_DRIFT
       value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
     - name: DATABASE_NAME
-      value: "supstonad-db-15-dev"
+      value: "supstonad-db-15-prod"
     - name: PDFGEN_URL
       value: "http://su-pdfgen"
     - name: DOKARKIV_URL
-      value: "https://dokarkiv-q2.dev-fss-pub.nais.io"
+      value: "https://inst2.prod-fss-pub.nais.io"
     - name: DOKARKIV_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
+      value: "api://prod-fss.teamdokumenthandtering.dokarkiv"
     - name: OPPGAVE_URL
-      value: "https://oppgave.dev-fss-pub.nais.io"
+      value: "https://oppgave.prod-fss-pub.nais.io"
     - name: OPPGAVE_CLIENT_ID
-      value: "api://dev-fss.oppgavehandtering.oppgave"
+      value: "api://prod-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
-      value: "https://dokdistfordeling.dev-fss-pub.nais.io/rest/v1"
+      value: "https://dokdistfordeling.prod-fss-pub.nais.io/rest/v1"
     - name: DOKDIST_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
-    - name: SIMULERING_URL
-      value: "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding"
-    - name: STS_URL_SOAP
-      value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
+      value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
+    - name: SIMULERING_URL # todo rm
+      value: "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding"
+    - name: STS_URL_SOAP #todo rm
+      value: "https://sts.adeo.no/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
     - name: SKJERMING_CLIENT_ID
-      value: "api://dev-gcp.nom.skjermede-personer-pip"
+      value: "api://prod-gcp.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MQLS02"
     - name: MQ_PORT
-      value: "1413"
+      value: "1414"
     - name: MQ_HOSTNAME
-      value: "b27apvl220.preprod.local"
+      value: "mpls02.adeo.no"
     - name: MQ_CHANNEL
-      value: "Q1_SU_SE_BAKOVER"
+      value: "P_SU_SE_BAKOVER"
     - name: MQ_SEND_QUEUE_UTBETALING
-      value: "QA.Q1_231.OB04_OPPDRAG_XML"
+      value: "QA.P231.OB04_OPPDRAG_XML"
     - name: MQ_REPLY_TO
-      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
+      value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
-      value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
+      value: "queue:///QA.P234.OB29_AVSTEMMING_XML?targetClient=1"
     - name: PDL_URL
-      value: "https://pdl-api.dev-fss-pub.nais.io"
+      value: "https://pdl-api.prod-fss-pub.nais.io"
     - name: PDL_CLIENT_ID
-      value: "api://dev-fss.pdl.pdl-api"
+      value: "api://prod-fss.pdl.pdl-api"
     - name: KABAL_URL
       value: "http://kabal-api.klage"
     - name: KABAL_CLIENT_ID
-      value: "api://dev-gcp.klage.kabal-api"
+      value: "api://prod-gcp.klage.kabal-api"
     - name: SAF_URL
-      value: "https://saf-q2.dev-fss-pub.nais.io"
+      value: "https://saf.prod-fss-pub.nais.io"
     - name: SAF_CLIENT_ID
-      value: "api://dev-fss.teamdokumenthandtering.saf"
+      value: "api://prod-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
-      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
-    - name: TILBAKEKREVING_URL
-      value: "https://cics-q1.adeo.no/oppdrag/K231CW80"
+      value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
+    - name: TILBAKEKREVING_URL # todo rm
+      value: "https://cics.adeo.no/oppdrag/K231CW80"
     - name: SKATTEETATEN_URL
-      value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
+      value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/sigrun"
     - name: SKATT_CLIENT_ID
-      value: "api://dev-fss.team-inntekt.sigrun-q2"
+      value: "api://prod-fss.team-inntekt.sigrun"
     - name: KRR_URL
       value: "http://digdir-krr-proxy.team-rocket"
     - name: KRR_APP_ID
-      value: "api://dev-gcp.team-rocket.digdir-krr-proxy"
+      value: "api://prod-gcp.team-rocket.digdir-krr-proxy"
     - name: INSTITUSJONSOPPHOLD_TOPIC
-      value: "team-rocket.institusjon-opphold-hendelser-q2"
+      value: "team-rocket.institusjon-opphold-hendelser"
     - name: KODEVERK_URL
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
-      value: "api://dev-gcp.team-rocket.kodeverk-api"
-    - name: GANDALF_URL
-      value: "https://security-token-service.nais.preprod.local"
+      value: "api://prod-gcp.team-rocket.kodeverk-api"
+    - name: GANDALF_URL # todo rm
+      value: "https://security-token-service.nais.adeo.no"
