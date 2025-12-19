@@ -186,7 +186,7 @@ spec:
     - name: SKJERMING_CLIENT_ID
       value: "api://prod-gcp.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
-      value: "MQLS02"
+      value: "MPLS02"
     - name: MQ_PORT
       value: "1414"
     - name: MQ_HOSTNAME
