@@ -148,4 +148,9 @@ internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.tilResultat
         fra = this.fra,
         til = this.til,
     )
+
+    is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.FormueBosituasjonKonsistensfeil -> HttpStatusCode.BadRequest.errorJson(
+        "Feil med formue eller bosituasjon, feil:  ${this.feil}",
+        "feil_med_formue_eller_bosituasjon",
+    )
 }
