@@ -146,7 +146,7 @@ spec:
     pool: nav-dev
   envFrom:
     #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
-    - secret: supstonad-servicerbruker
+    - secret: supstonad-servicebruker
   env:
     - name: PESYS_URL
       value: "https://pensjon-pen.prod-fss-pub.nais.io/pen/api/"
