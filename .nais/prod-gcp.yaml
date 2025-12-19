@@ -135,7 +135,7 @@ spec:
       memory: 2Gi
       cpu: 1000m
   ingresses:
-    - https://su-se-bakover.intern.dev.nav.no
+    - https://su-se-bakover-gcp.intern.nav.no # bytt til https://su-se-bakover.intern.nav.no etter migrering?
   prometheus:
     enabled: true
     path: /metrics
