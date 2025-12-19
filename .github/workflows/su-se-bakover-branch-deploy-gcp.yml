@@ -1,4 +1,4 @@
-name: Deploy branch to dev-gcp GCP [manual deploy]
+name: Deploy branch to GCP [manual deploy]
 # If you want to deploy a branch (feature branch or even redeploy master/main) to dev-gcp (preprod) we use Github actions workflow_dispatch
 # Goto https://github.com/navikt/su-se-bakover/actions/workflows/su-se-bakover-branch-deploy.yml choose a branch and deploy it
 # See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
