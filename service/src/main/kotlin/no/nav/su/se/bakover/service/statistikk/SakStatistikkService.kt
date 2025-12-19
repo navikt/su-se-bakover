@@ -23,6 +23,9 @@ interface SakStatistikkService {
     fun lastTilBigQuery(fom: LocalDate)
 }
 
+/*
+Skal inn i cron jobs og kjøre en gang hver natt 01:00
+ */
 // https://docs.nais.io/workloads/application/reference/application-spec/#gcpbigquerydatasets
 class SakStatistikkServiceImpl(
     private val repo: SakStatistikkRepo,
