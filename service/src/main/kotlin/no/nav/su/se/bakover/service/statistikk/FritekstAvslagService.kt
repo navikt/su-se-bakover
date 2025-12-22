@@ -24,23 +24,24 @@ private const val LOCATION = "europe-north1"
 class FritekstAvslagServiceImpl(
     private val fritekstAvslagRepo: FritekstAvslagRepo,
 ) : FritekstAvslagService {
-    val log = LoggerFactory.getLogger(FritekstAvslagServiceImpl::class.java)
+    private val log = LoggerFactory.getLogger(FritekstAvslagServiceImpl::class.java)
 
     private fun hentAntallAvslagsvedtakUtenFritekst(): List<AvslagsvedtakUtenFritekst> = fritekstAvslagRepo.hentAntallAvslagsvedtakUtenFritekst()
     override fun hentOgSendAvslagFritekstTilBigquery() {
         deleteAllAndWriteToBigQuery(hentAntallAvslagsvedtakUtenFritekst())
     }
 
-    fun deleteAllAndWriteToBigQuery(
+    val table = "antallAvslagsvedtakUtenFritekst"
+    val dataset = "avslagsvedtak"
+    private fun deleteAllAndWriteToBigQuery(
         antallAvslagsvedtakUtenFritekst: List<AvslagsvedtakUtenFritekst>,
     ) {
-        val table = "antallAvslagsvedtakUtenFritekst"
-        val dataset = "avslagsvedtak"
-        val project: String = System.getenv("GCP_TEAM_PROJECT_ID")
+        // Burde bli gjort ved startup env checks kanskje
+        val project: String = System.getenv("GCP_TEAM_PROJECT_ID") ?: throw IllegalStateException("Påkrevd miljøvariabel GCP_TEAM_PROJECT_ID er ikke satt")
 
         val bq = createBigQueryClient(project)
 
-        deleteAll(bq = bq, dataset = dataset, table = table)
+        deleteAll(bq = bq)
 
         val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
 
@@ -60,10 +61,8 @@ class FritekstAvslagServiceImpl(
         log.info("job statistikk: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
     }
 
-    fun deleteAll(
+    private fun deleteAll(
         bq: BigQuery,
-        dataset: String,
-        table: String,
     ) {
         val query = QueryJobConfiguration.newBuilder(
             "DELETE FROM `$dataset.$table` WHERE true",
@@ -82,6 +81,6 @@ class FritekstAvslagServiceImpl(
             .service
 }
 
-fun List<AvslagsvedtakUtenFritekst>.toCSV(): String = this.joinToString(separator = "\n") {
+private fun List<AvslagsvedtakUtenFritekst>.toCSV(): String = this.joinToString(separator = "\n") {
     "${it.antall},${it.yearMonth}"
 }
