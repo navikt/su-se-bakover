@@ -20,8 +20,6 @@ class StønadStatistikkTilBigQuery(
             val today = ZonedDateTime.now(zoneIdOslo).toLocalDate()
             if (today.dayOfMonth == 1) {
                 job()
-            } else {
-                // optional: log.skip("Not first of month")
             }
         }
 
@@ -46,6 +44,8 @@ class StønadStatistikkTilBigQuery(
                         log.info("Kjører $jobName")
                         stønadJobService.lastTilBigQuery(clock = clock)
                         log.info("Jobb $jobName er fullført")
+                    } else {
+                        log.info("Skipping job $jobName, not running on GCP")
                     }
                 }
             }.let { StønadStatistikkTilBigQuery(it) }
