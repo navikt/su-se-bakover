@@ -350,7 +350,9 @@ private fun naisJobberOgConsumers(
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
-
+        /*
+            Denne vil kjøre periodevis hver dag men jobben i seg selv kjøre bare om dagens dag er den første i måneden
+         */
         StønadStatistikkTilBigQuery.startJob(
             clock = clock,
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
