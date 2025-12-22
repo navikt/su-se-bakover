@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
 
-internal class StønadstatistikkJob(
+/**
+ * Denne lager statistikk for stønad hvis den ikke allerede finnes for den gitte måneden.
+ */
+internal class LagStønadstatistikkForMånedJob(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
@@ -19,9 +22,9 @@ internal class StønadstatistikkJob(
             periode: Duration,
             runCheckFactory: RunCheckFactory,
             stønadStatistikkJobService: StønadStatistikkJobService,
-        ): StønadstatistikkJob {
-            val log = LoggerFactory.getLogger(StønadstatistikkJob::class.java)
-            val jobName = StønadstatistikkJob::class.simpleName!!
+        ): LagStønadstatistikkForMånedJob {
+            val log = LoggerFactory.getLogger(LagStønadstatistikkForMånedJob::class.java)
+            val jobName = LagStønadstatistikkForMånedJob::class.simpleName!!
             return startStoppableJob(
                 jobName = jobName,
                 initialDelay = initialDelay,
@@ -32,7 +35,7 @@ internal class StønadstatistikkJob(
                 log.info("Kjører $jobName")
                 stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
                 log.info("Jobb $jobName er fullført")
-            }.let { StønadstatistikkJob(it) }
+            }.let { LagStønadstatistikkForMånedJob(it) }
         }
     }
 }
