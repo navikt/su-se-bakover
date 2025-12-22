@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.domain.extensions.next
-import no.nav.su.se.bakover.common.domain.extensions.nextFirstDateOfMonth
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.februar
@@ -337,13 +336,6 @@ private fun naisJobberOgConsumers(
             runJobCheck = runCheckFactory,
         ),
 
-        StønadStatistikkTilBigQuery.startJob(
-            clock = clock,
-            starttidspunkt = ZonedDateTime.now(zoneIdOslo).nextFirstDateOfMonth(),
-            periode = Duration.of(1, ChronoUnit.MONTHS),
-            runCheckFactory = runCheckFactory,
-            stønadJobService = services.stønadStatistikkJobService,
-        ),
         SakstatistikkTilBigQuery.startJob(
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),
@@ -357,6 +349,14 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
+        ),
+
+        StønadStatistikkTilBigQuery.startJob(
+            clock = clock,
+            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            stønadJobService = services.stønadStatistikkJobService,
         ),
 
         JournalførDokumentJob.startJob(
