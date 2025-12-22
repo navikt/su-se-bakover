@@ -36,27 +36,39 @@ class FritekstAvslagServiceImpl(
     private fun deleteAllAndWriteToBigQuery(
         antallAvslagsvedtakUtenFritekst: List<AvslagsvedtakUtenFritekst>,
     ) {
-        // Burde bli gjort ved startup env checks kanskje
+        // Burde bli gjort ved startup env checks
         val project: String = System.getenv("GCP_TEAM_PROJECT_ID") ?: throw IllegalStateException("Påkrevd miljøvariabel GCP_TEAM_PROJECT_ID er ikke satt")
 
-        val bq = createBigQueryClient(project)
+        val bqClient = createBigQueryClient(project)
 
-        deleteAll(bq = bq)
+        deleteAll(bq = bqClient)
 
-        val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
+        val jobId = JobId.newBuilder()
+            .setLocation(LOCATION)
+            .setJob(UUID.randomUUID().toString()).build()
 
-        val configuration = WriteChannelConfiguration.newBuilder(
-            TableId.of(project, dataset, table),
-        ).setFormatOptions(FormatOptions.csv()).build()
+        val writeConfig = WriteChannelConfiguration.newBuilder(TableId.of(project, dataset, table))
+            .setFormatOptions(FormatOptions.csv()).build()
         log.info("Skriver antall linjer til BigQuery-tabell: $table ${antallAvslagsvedtakUtenFritekst.size}")
-        val job = bq.writer(jobId, configuration).let {
-            it.use { channel ->
+
+        val writer = try {
+            bqClient.writer(jobId, writeConfig)
+        } catch (e: Exception) {
+            throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
+        }
+
+        try {
+            writer.use { channel ->
                 Channels.newOutputStream(channel).use { os ->
                     os.write(antallAvslagsvedtakUtenFritekst.toCSV().toByteArray())
                 }
             }
-            it.job.waitFor()
+        } catch (e: Exception) {
+            log.error("Failed to write CSV data to BigQuery stream: ${e.message}", e)
+            throw RuntimeException("Error during CSV write to BigQuery", e)
         }
+        val job = writer.job
+        job.waitFor()
 
         log.info("job statistikk: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
     }
