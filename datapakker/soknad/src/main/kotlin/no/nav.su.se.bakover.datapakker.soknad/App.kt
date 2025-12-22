@@ -34,17 +34,16 @@ fun main() {
         maximumPoolSize = 1,
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
-        it.use { hentSøknader(it) }
+        hentSøknader(it)
     }
 
     deleteAndWriteToBigQuery(søknader = søknader)
 }
 
 fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
-    return datasource.connection.let {
-        it.use {
-            it.prepareStatement(
-                """
+    return datasource.connection.use {
+        it.prepareStatement(
+            """
             select
                 id, 
                 opprettet, 
@@ -52,23 +51,22 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
                 (søknadinnhold -> 'forNav' ->> 'mottaksdatoForSøknad') as mottaksdato
              from 
                 søknad
-                """.trimIndent(),
-            ).executeQuery().let {
-                val mutableList = mutableListOf<DatapakkeSøknad>()
-                while (it.next()) {
-                    val opprettet = it.getTimestamp("opprettet").toInstant().toTidspunkt()
-                    mutableList.add(
-                        DatapakkeSøknad(
-                            id = UUID.fromString(it.getString("id")),
-                            opprettet = opprettet,
-                            type = DatapakkeSøknadstype.stringToSøknadstype(it.getString("type")),
-                            mottaksdato = it.getString("mottaksdato")?.let { LocalDate.parse(it) }
-                                ?: opprettet.toLocalDate(ZoneId.of("Europe/Oslo")),
-                        ),
-                    )
-                }
-                mutableList.toList()
+            """.trimIndent(),
+        ).executeQuery().let {
+            val mutableList = mutableListOf<DatapakkeSøknad>()
+            while (it.next()) {
+                val opprettet = it.getTimestamp("opprettet").toInstant().toTidspunkt()
+                mutableList.add(
+                    DatapakkeSøknad(
+                        id = UUID.fromString(it.getString("id")),
+                        opprettet = opprettet,
+                        type = DatapakkeSøknadstype.stringToSøknadstype(it.getString("type")),
+                        mottaksdato = it.getString("mottaksdato")?.let { LocalDate.parse(it) }
+                            ?: opprettet.toLocalDate(ZoneId.of("Europe/Oslo")),
+                    ),
+                )
             }
+            mutableList.toList()
         }
     }
 }
