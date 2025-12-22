@@ -40,7 +40,7 @@ class FritekstAvslagServiceImpl(
 
         val bq = createBigQueryClient(project)
 
-        deleteAll(bq)
+        deleteAll(bq = bq, dataset = dataset, table = table)
 
         val jobId = JobId.newBuilder().setLocation(LOCATION).setJob(UUID.randomUUID().toString()).build()
 
@@ -62,8 +62,8 @@ class FritekstAvslagServiceImpl(
 
     fun deleteAll(
         bq: BigQuery,
-        dataset: String = "avslagsvedtak",
-        table: String = "antallAvslagsvedtakUtenFritekst",
+        dataset: String,
+        table: String,
     ) {
         val query = QueryJobConfiguration.newBuilder(
             "DELETE FROM `$dataset.$table` WHERE true",
