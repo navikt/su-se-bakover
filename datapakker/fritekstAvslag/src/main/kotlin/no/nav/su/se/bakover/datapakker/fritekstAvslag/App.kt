@@ -49,19 +49,21 @@ fun hentAntallAvslagsvedtakUtenFritekst(datasource: DataSource): List<Avslagsved
                       and v.vedtaktype = 'AVSLAG'
                     group by grupperingsdato;
             """.trimIndent(),
-        ).executeQuery().let {
-            val result = mutableListOf<AvslagsvedtakUtenFritekst>()
+        ).use {
+            it.executeQuery().use {
+                val result = mutableListOf<AvslagsvedtakUtenFritekst>()
 
-            while (it.next()) {
-                result.add(
-                    AvslagsvedtakUtenFritekst(
-                        antall = it.getInt("count"),
-                        yearMonth = YearMonth.parse(it.getString("grupperingsdato")),
-                    ),
-                )
+                while (it.next()) {
+                    result.add(
+                        AvslagsvedtakUtenFritekst(
+                            antall = it.getInt("count"),
+                            yearMonth = YearMonth.parse(it.getString("grupperingsdato")),
+                        ),
+                    )
+                }
+
+                result.toList()
             }
-
-            result.toList()
         }
     }
 }

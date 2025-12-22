@@ -52,21 +52,23 @@ fun hentSøknader(datasource: DataSource): List<DatapakkeSøknad> {
              from 
                 søknad
             """.trimIndent(),
-        ).executeQuery().let {
-            val mutableList = mutableListOf<DatapakkeSøknad>()
-            while (it.next()) {
-                val opprettet = it.getTimestamp("opprettet").toInstant().toTidspunkt()
-                mutableList.add(
-                    DatapakkeSøknad(
-                        id = UUID.fromString(it.getString("id")),
-                        opprettet = opprettet,
-                        type = DatapakkeSøknadstype.stringToSøknadstype(it.getString("type")),
-                        mottaksdato = it.getString("mottaksdato")?.let { LocalDate.parse(it) }
-                            ?: opprettet.toLocalDate(ZoneId.of("Europe/Oslo")),
-                    ),
-                )
+        ).use {
+            it.executeQuery().use {
+                val mutableList = mutableListOf<DatapakkeSøknad>()
+                while (it.next()) {
+                    val opprettet = it.getTimestamp("opprettet").toInstant().toTidspunkt()
+                    mutableList.add(
+                        DatapakkeSøknad(
+                            id = UUID.fromString(it.getString("id")),
+                            opprettet = opprettet,
+                            type = DatapakkeSøknadstype.stringToSøknadstype(it.getString("type")),
+                            mottaksdato = it.getString("mottaksdato")?.let { LocalDate.parse(it) }
+                                ?: opprettet.toLocalDate(ZoneId.of("Europe/Oslo")),
+                        ),
+                    )
+                }
+                mutableList.toList()
             }
-            mutableList.toList()
         }
     }
 }
