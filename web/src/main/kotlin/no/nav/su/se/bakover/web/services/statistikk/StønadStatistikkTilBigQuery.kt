@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.statistikk
 
+import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
@@ -30,9 +31,11 @@ class StønadStatistikkTilBigQuery(
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
                 intervall = periode,
             ) {
-                log.info("Kjører $jobName")
-                stønadJobService.lastTilBigQuery(clock = clock)
-                log.info("Jobb $jobName er fullført")
+                if (isGCP()) {
+                    log.info("Kjører $jobName")
+                    stønadJobService.lastTilBigQuery(clock = clock)
+                    log.info("Jobb $jobName er fullført")
+                }
             }.let { StønadStatistikkTilBigQuery(it) }
         }
     }
