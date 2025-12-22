@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.domain.extensions.next
+import no.nav.su.se.bakover.common.domain.extensions.nextFirstDateOfMonth
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.februar
@@ -269,7 +270,7 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
-        `LagStønadstatistikkForMånedJob`.startJob(
+        LagStønadstatistikkForMånedJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(1, ChronoUnit.MINUTES),
@@ -338,7 +339,7 @@ private fun naisJobberOgConsumers(
 
         StønadStatistikkTilBigQuery.startJob(
             clock = clock,
-            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 1, 0)),
+            starttidspunkt = ZonedDateTime.now(zoneIdOslo).nextFirstDateOfMonth(),
             periode = Duration.of(1, ChronoUnit.MONTHS),
             runCheckFactory = runCheckFactory,
             stønadJobService = services.stønadStatistikkJobService,

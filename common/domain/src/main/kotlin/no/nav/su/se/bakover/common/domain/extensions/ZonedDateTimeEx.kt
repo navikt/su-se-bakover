@@ -22,3 +22,20 @@ fun ZonedDateTime.next(atTime: LocalTime): Date {
         )
     }
 }
+
+fun ZonedDateTime.nextFirstDateOfMonth(): Date {
+    val candidate = this
+        .withDayOfMonth(1)
+        .withHour(1)
+        .withMinute(1)
+        .withSecond(0)
+        .withNano(0)
+
+    val next = if (this >= candidate) {
+        candidate.plusMonths(1)
+    } else {
+        candidate
+    }
+
+    return Date.from(next.toInstant())
+}
