@@ -46,8 +46,9 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
-import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBQ
-import no.nav.su.se.bakover.web.services.statistikk.StønadstatistikkJob
+import no.nav.su.se.bakover.web.services.statistikk.`LagStønadstatistikkForMånedJob`
+import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
+import no.nav.su.se.bakover.web.services.statistikk.StønadStatistikkTilBigQuery
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
@@ -268,7 +269,7 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
-        StønadstatistikkJob.startJob(
+        `LagStønadstatistikkForMånedJob`.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(1, ChronoUnit.MINUTES),
@@ -335,14 +336,21 @@ private fun naisJobberOgConsumers(
             runJobCheck = runCheckFactory,
         ),
 
-        SakstatistikkTilBQ.startJob(
+        StønadStatistikkTilBigQuery.startJob(
+            clock = clock,
+            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 1, 0)),
+            periode = Duration.of(1, ChronoUnit.MONTHS),
+            runCheckFactory = runCheckFactory,
+            stønadJobService = services.stønadStatistikkJobService,
+        ),
+        SakstatistikkTilBigQuery.startJob(
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
             sakStatistikkService = services.sakstatistikkService,
         ),
 
-        StønadstatistikkJob.startJob(
+        LagStønadstatistikkForMånedJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(4, ChronoUnit.HOURS),

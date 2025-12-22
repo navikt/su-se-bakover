@@ -1456,10 +1456,14 @@ open class AccessCheckProxy(
                     return services.personhendelseService.dryRunPersonhendelser(fraOgMed, personhendelser)
                 }
             },
-
+            // TODO: RM det er jo en jobb aldri eksponert i en route
             stønadStatistikkJobService = object : StønadStatistikkJobService {
                 override fun lagMånedligStønadstatistikk(clock: Clock) {
                     services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
+                }
+
+                override fun lastTilBigQuery(clock: Clock) {
+                    services.stønadStatistikkJobService.lastTilBigQuery(clock)
                 }
             },
 

@@ -112,7 +112,7 @@ class SakStatistikkServiceImpl(
     }
 }
 
-fun List<SakStatistikkTilBiquery>.toCsv(): String = buildString {
+private fun List<SakStatistikkTilBiquery>.toCsv(): String = buildString {
     for (sakStatistikk in this@toCsv) {
         appendLine(
             listOf(

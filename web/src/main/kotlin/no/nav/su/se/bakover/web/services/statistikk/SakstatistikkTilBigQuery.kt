@@ -12,7 +12,7 @@ import java.util.Date
 /*
 Overfører data til bigquery hver natt for sakstatistikk
  */
-internal class SakstatistikkTilBQ(
+internal class SakstatistikkTilBigQuery(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
@@ -22,9 +22,9 @@ internal class SakstatistikkTilBQ(
             runCheckFactory: RunCheckFactory,
             periode: Duration,
             sakStatistikkService: SakStatistikkService,
-        ): SakstatistikkTilBQ {
-            val log = LoggerFactory.getLogger(SakstatistikkTilBQ::class.java)
-            val jobName = SakstatistikkTilBQ::class.simpleName!!
+        ): SakstatistikkTilBigQuery {
+            val log = LoggerFactory.getLogger(SakstatistikkTilBigQuery::class.java)
+            val jobName = SakstatistikkTilBigQuery::class.simpleName!!
             return startStoppableJob(
                 jobName = jobName,
                 startAt = starttidspunkt,
@@ -35,7 +35,7 @@ internal class SakstatistikkTilBQ(
                 log.info("Kjører $jobName")
                 sakStatistikkService.lastTilBigQuery(LocalDate.now())
                 log.info("Jobb $jobName er fullført")
-            }.let { SakstatistikkTilBQ(it) }
+            }.let { SakstatistikkTilBigQuery(it) }
         }
     }
 }
