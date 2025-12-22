@@ -36,4 +36,5 @@ fun mockedServices() = Services(
     stønadStatistikkJobService = mock(),
     sakstatistikkService = mock(),
     pesysJobService = mock(),
+    fritekstAvslagService = mock(),
 )
