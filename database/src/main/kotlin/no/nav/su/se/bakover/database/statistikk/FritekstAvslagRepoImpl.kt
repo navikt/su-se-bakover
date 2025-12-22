@@ -11,6 +11,7 @@ class FritekstAvslagRepoImpl(
 ) : FritekstAvslagRepo {
     override fun hentAntallAvslagsvedtakUtenFritekst(): List<AvslagsvedtakUtenFritekst> {
         return sessionFactory.withTransaction { tx ->
+            //language=SQL
             """
         SELECT count(d.generertdokumentjson) AS count,
                to_char(date_trunc('month', v.opprettet), 'YYYY-MM') AS grupperingsdato
