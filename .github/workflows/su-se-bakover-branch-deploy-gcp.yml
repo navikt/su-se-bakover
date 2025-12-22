@@ -65,7 +65,7 @@ jobs:
   deploy-to-prod:
     needs: build-test-push-image
     if: ${{ inputs.deploy_prod == true && github.ref == 'refs/heads/master' }}
-    name: Deploy to prod
+    name: Deploy to prod gcp
     permissions:
       contents: read
       id-token: write
