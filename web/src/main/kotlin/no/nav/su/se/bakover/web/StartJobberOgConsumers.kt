@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
+import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
 import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
 import no.nav.su.se.bakover.web.services.statistikk.StønadStatistikkTilBigQuery
@@ -341,6 +342,13 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
             sakStatistikkService = services.sakstatistikkService,
+        ),
+
+        FritekstAvslagJobb.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            fritekstAvslagService = services.fritekstAvslagService,
         ),
 
         LagStønadstatistikkForMånedJob.startJob(

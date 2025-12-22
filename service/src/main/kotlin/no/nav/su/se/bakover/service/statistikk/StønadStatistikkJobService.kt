@@ -127,7 +127,7 @@ class StønadStatistikkJobServiceImpl(
 
         val tableId = TableId.of(project, dataset, tableName)
 
-        no.nav.su.se.bakover.common.infrastructure.web.log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
+        log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
 
         val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
             .setFormatOptions(FormatOptions.csv())

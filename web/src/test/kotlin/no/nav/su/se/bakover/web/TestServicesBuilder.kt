@@ -97,5 +97,6 @@ data object TestServicesBuilder {
         stønadStatistikkJobService = mock(),
         sakstatistikkService = mock(),
         pesysJobService = mock(),
+        fritekstAvslagService = mock(),
     )
 }

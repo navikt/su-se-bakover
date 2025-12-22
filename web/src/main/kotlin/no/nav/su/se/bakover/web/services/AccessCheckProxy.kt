@@ -218,6 +218,7 @@ import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
@@ -1469,13 +1470,18 @@ open class AccessCheckProxy(
 
             pesysJobService = object : PesysJobService {
                 override fun hentDatafraPesys() {
-                    // Blir aldri kalt fra en route.
-                    TODO("Not yet implemented")
+                    throw RuntimeException("Skal ikke kalle pesys fra routes")
+                    // NO-OP
                 }
             },
             sakstatistikkService = object : SakStatistikkService {
                 override fun lastTilBigQuery(fom: LocalDate) {
                     services.sakstatistikkService.lastTilBigQuery(fom)
+                }
+            },
+            fritekstAvslagService = object : FritekstAvslagService {
+                override fun hentOgSendAvslagFritekstTilBigquery() {
+                    services.fritekstAvslagService.hentOgSendAvslagFritekstTilBigquery()
                 }
             },
         )
