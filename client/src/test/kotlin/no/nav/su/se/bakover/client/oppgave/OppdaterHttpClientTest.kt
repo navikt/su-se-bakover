@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
@@ -262,6 +263,7 @@ internal class OppdaterHttpClientTest {
         }
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private data class EndreOppgaveRequest(
         val beskrivelse: String?,
         val kommentar: Kommentar? = null,
