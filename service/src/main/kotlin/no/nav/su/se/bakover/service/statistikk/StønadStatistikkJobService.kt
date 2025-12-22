@@ -7,7 +7,6 @@ import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.BigQuery
-import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.FormatOptions
 import com.google.cloud.bigquery.Job
@@ -101,10 +100,11 @@ class StønadStatistikkJobServiceImpl(
         val stoenadCSV = data.toCSV()
         log.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
 
-        val jobStoenad = writeCsvToBigQueryTable(bigQuery = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
+        val jobStoenad = writeCsvToBigQueryTable(bigQueryClient = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
 
         log.info("Saksstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
     }
+
     private fun createBigQueryClient(project: String): BigQuery =
         BigQueryOptions.newBuilder()
             .setCredentials(GoogleCredentials.getApplicationDefault())
@@ -115,7 +115,7 @@ class StønadStatistikkJobServiceImpl(
 
     val dataset = "statistikk"
     private fun writeCsvToBigQueryTable(
-        bigQuery: BigQuery,
+        bigQueryClient: BigQuery,
         project: String,
         tableName: String,
         csvData: String,
@@ -134,8 +134,8 @@ class StønadStatistikkJobServiceImpl(
             .build()
 
         val writer = try {
-            bigQuery.writer(jobId, writeConfig)
-        } catch (e: BigQueryException) {
+            bigQueryClient.writer(jobId, writeConfig)
+        } catch (e: Exception) {
             throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
         }
 
