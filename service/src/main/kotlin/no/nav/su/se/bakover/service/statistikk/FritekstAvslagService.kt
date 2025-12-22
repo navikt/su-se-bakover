@@ -47,7 +47,7 @@ class FritekstAvslagServiceImpl(
         val configuration = WriteChannelConfiguration.newBuilder(
             TableId.of(project, dataset, table),
         ).setFormatOptions(FormatOptions.csv()).build()
-
+        log.info("Skriver antall linjer til BigQuery-tabell: $table ${antallAvslagsvedtakUtenFritekst.size}")
         val job = bq.writer(jobId, configuration).let {
             it.use { channel ->
                 Channels.newOutputStream(channel).use { os ->
