@@ -31,4 +31,5 @@ fun mockedDatabaseRepos() = DatabaseRepos(
     sakStatistikkRepo = mock(),
     fritekstRepo = mock(),
     fritekstAvslagRepo = mock(),
+    søknadStatistikkRepo = mock(),
 )

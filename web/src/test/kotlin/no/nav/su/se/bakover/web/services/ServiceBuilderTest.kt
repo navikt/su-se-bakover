@@ -56,6 +56,7 @@ internal class ServiceBuilderTest {
                 sakStatistikkRepo = mock(),
                 mock(),
                 mock(),
+                mock(),
             ),
             clients = Clients(
                 azureAd = mock(),

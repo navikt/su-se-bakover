@@ -98,5 +98,6 @@ data object TestServicesBuilder {
         sakstatistikkService = mock(),
         pesysJobService = mock(),
         fritekstAvslagService = mock(),
+        søknadStatistikkService = mock(),
     )
 }

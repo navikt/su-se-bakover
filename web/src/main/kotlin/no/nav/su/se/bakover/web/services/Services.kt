@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -61,4 +62,5 @@ data class Services(
     val sakstatistikkService: SakStatistikkService,
     val pesysJobService: PesysJobService,
     val fritekstAvslagService: FritekstAvslagService,
+    val søknadStatistikkService: SøknadStatistikkService,
 )

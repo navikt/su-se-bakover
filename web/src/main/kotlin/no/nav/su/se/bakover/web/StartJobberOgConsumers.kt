@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
 import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
 import no.nav.su.se.bakover.web.services.statistikk.StønadStatistikkTilBigQuery
+import no.nav.su.se.bakover.web.services.statistikk.SøknadStatistikk
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
@@ -324,6 +325,7 @@ private fun naisJobberOgConsumers(
         } else {
             null
         },
+
         FssProxyJob.startJob(
             initialDelay = Duration.of(1, ChronoUnit.SECONDS),
             periode = Duration.of(5, ChronoUnit.MINUTES),
@@ -342,6 +344,13 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
             sakStatistikkService = services.sakstatistikkService,
+        ),
+
+        SøknadStatistikk.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            søknadStatistikkService = services.søknadStatistikkService,
         ),
 
         FritekstAvslagJobb.startJob(

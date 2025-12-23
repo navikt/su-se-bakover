@@ -222,6 +222,7 @@ import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
@@ -1482,6 +1483,11 @@ open class AccessCheckProxy(
             fritekstAvslagService = object : FritekstAvslagService {
                 override fun hentOgSendAvslagFritekstTilBigquery() {
                     services.fritekstAvslagService.hentOgSendAvslagFritekstTilBigquery()
+                }
+            },
+            søknadStatistikkService = object : SøknadStatistikkService {
+                override fun hentogSendSøknadStatistikkTilBigquery() {
+                    services.søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
                 }
             },
         )
