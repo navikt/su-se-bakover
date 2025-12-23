@@ -13,19 +13,20 @@ class FritekstAvslagRepoImpl(
         return sessionFactory.withTransaction { tx ->
             //language=SQL
             """
-        SELECT count(d.generertdokumentjson) AS count,
-               to_char(date_trunc('month', v.opprettet), 'YYYY-MM') AS grupperingsdato
-        FROM vedtak v
-        JOIN dokument d ON v.id = d.vedtakid
-        WHERE length(trim(d.generertdokumentjson ->> 'fritekst')) < 1
-          AND v.vedtaktype = 'AVSLAG'
-        GROUP BY grupperingsdato
-        """.hentListe(session = tx) { row ->
-                AvslagsvedtakUtenFritekst(
-                    antall = row.long("count").toInt(),
-                    yearMonth = YearMonth.parse(row.string("grupperingsdato")),
-                )
-            }
+                SELECT count(d.generertdokumentjson) AS count,
+                       to_char(date_trunc('month', v.opprettet), 'YYYY-MM') AS grupperingsdato
+                FROM vedtak v
+                JOIN dokument d ON v.id = d.vedtakid
+                WHERE length(trim(d.generertdokumentjson ->> 'fritekst')) < 1
+                  AND v.vedtaktype = 'AVSLAG'
+                GROUP BY grupperingsdato
+            """.trimIndent()
+                .hentListe(session = tx) { row ->
+                    AvslagsvedtakUtenFritekst(
+                        antall = row.long("count").toInt(),
+                        yearMonth = YearMonth.parse(row.string("grupperingsdato")),
+                    )
+                }
         }
     }
 }

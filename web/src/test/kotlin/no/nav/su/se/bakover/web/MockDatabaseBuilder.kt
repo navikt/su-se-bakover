@@ -82,6 +82,7 @@ data object MockDatabaseBuilder {
             sakStatistikkRepo = sakStatistikkRepo,
             fritekstRepo = mock(),
             fritekstAvslagRepo = mock(),
+            søknadStatistikkRepo = mock(),
         )
     }
 }

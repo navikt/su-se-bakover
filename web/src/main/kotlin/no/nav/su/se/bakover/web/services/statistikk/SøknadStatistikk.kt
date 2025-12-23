@@ -4,22 +4,22 @@ import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
-import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-internal class FritekstAvslagJobb(
+class SøknadStatistikk(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
         fun startJob(
             runCheckFactory: RunCheckFactory,
-            fritekstAvslagService: FritekstAvslagService,
             initialDelay: Duration,
             periode: Duration,
-        ): FritekstAvslagJobb {
-            val log = LoggerFactory.getLogger(FritekstAvslagJobb::class.java)
-            val jobName = FritekstAvslagJobb::class.simpleName!!
+            søknadStatistikkService: SøknadStatistikkService,
+        ): SøknadStatistikk {
+            val log = LoggerFactory.getLogger(SøknadStatistikk::class.java)
+            val jobName = SøknadStatistikk::class.simpleName!!
             return startStoppableJob(
                 jobName = jobName,
                 initialDelay = initialDelay,
@@ -29,10 +29,10 @@ internal class FritekstAvslagJobb(
             ) {
                 if (isGCP()) {
                     log.info("Kjører $jobName")
-                    fritekstAvslagService.hentOgSendAvslagFritekstTilBigquery()
+                    søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
                     log.info("Jobb $jobName er fullført")
                 }
-            }.let { FritekstAvslagJobb(it) }
+            }.let { SøknadStatistikk(it) }
         }
     }
 }

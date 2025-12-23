@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
@@ -353,6 +354,7 @@ data object ServiceBuilder {
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
             sakstatistikkService = sakStatistikkService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
+            søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
         )
     }
 }
