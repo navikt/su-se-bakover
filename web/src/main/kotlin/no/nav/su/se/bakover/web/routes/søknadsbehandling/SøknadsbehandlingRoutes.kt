@@ -251,13 +251,11 @@ internal fun Route.søknadsbehandlingRoutes(
                             BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                                 søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                                 utførtAv = Attestant(call.suUserContext.navIdent),
-                                fritekst = body.fritekst,
                             )
                         } else {
                             BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler(
                                 søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                                 utførtAv = Saksbehandler(call.suUserContext.navIdent),
-                                fritekst = body.fritekst,
                             )
                         },
                     )

@@ -8,6 +8,7 @@ import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
+import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -18,6 +19,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -123,6 +126,7 @@ class SøknadsbehandlingServiceImpl(
     private val skatteService: SkatteService,
     private val sessionFactory: SessionFactory,
     private val sakStatistikkRepo: SakStatistikkRepo,
+    private val fritekstService: FritekstService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -479,8 +483,14 @@ class SøknadsbehandlingServiceImpl(
     override fun genererBrevutkast(
         command: BrevutkastForSøknadsbehandlingCommand,
     ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
+        val fritekst = fritekstService.hentFritekst(command.søknadsbehandlingId.value, FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING).getOrElse {
+            // TODO mer presis feilhåndtering
+            return KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
+        }
+
         return genererBrevutkastForSøknadsbehandling(
             command = command,
+            fritekst = fritekst.fritekst,
             hentSøknadsbehandling = søknadsbehandlingRepo::hent,
             lagDokument = brevService::lagDokument,
             satsFactory = satsFactory,

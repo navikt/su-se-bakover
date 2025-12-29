@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
@@ -389,6 +390,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val utbetalingService: UtbetalingService = mock(),
         val brevService: BrevService = mock(),
         val oppgaveService: OppgaveService = mock(),
+        val fritekstService: FritekstService = mock(),
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,

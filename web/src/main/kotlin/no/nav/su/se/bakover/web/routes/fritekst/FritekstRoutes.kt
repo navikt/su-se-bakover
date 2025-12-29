@@ -81,7 +81,10 @@ internal fun Route.fritekstRoutes(
                         call.svar(FeilResponser.ugyldigBody(it.årsak))
                     },
                     { mappetDomene ->
-                        val resultat = fritekstService.hentFritekst(mappetDomene).map {
+                        val resultat = fritekstService.hentFritekst(
+                            referanseId = mappetDomene.referanseId,
+                            type = mappetDomene.type,
+                        ).map {
                             Resultat.json(HttpStatusCode.OK, serialize(it))
                         }.getOrElse {
                             FeilResponser.fantIkkeFritekst

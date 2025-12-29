@@ -114,7 +114,7 @@ sealed interface SøknadsbehandlingTilAttestering :
             ).right()
         }
 
-        fun tilIverksatt(attestering: Attestering, fritekstEndringAttestering: String?): IverksattSøknadsbehandling.Innvilget {
+        fun tilIverksatt(attestering: Attestering, fritekst: String): IverksattSøknadsbehandling.Innvilget {
             return IverksattSøknadsbehandling.Innvilget(
                 id = id,
                 opprettet = opprettet,
@@ -128,7 +128,7 @@ sealed interface SøknadsbehandlingTilAttestering :
                 saksbehandler = saksbehandler,
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                fritekstTilBrev = fritekstEndringAttestering ?: fritekstTilBrev,
+                fritekstTilBrev = fritekst,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
@@ -146,10 +146,10 @@ sealed interface SøknadsbehandlingTilAttestering :
         override val beregning: Beregning?
         abstract override val aldersvurdering: Aldersvurdering
 
-        fun iverksett(attestering: Attestering.Iverksatt, fritekst: String?): IverksattSøknadsbehandling.Avslag {
+        fun iverksett(attestering: Attestering.Iverksatt, fritekst: String): IverksattSøknadsbehandling.Avslag {
             return when (this) {
-                is MedBeregning -> this.tilIverksatt(attestering, fritekst ?: fritekstTilBrev)
-                is UtenBeregning -> this.tilIverksatt(attestering, fritekst ?: fritekstTilBrev)
+                is MedBeregning -> this.tilIverksatt(attestering, fritekst)
+                is UtenBeregning -> this.tilIverksatt(attestering, fritekst)
             }
         }
 
@@ -221,7 +221,7 @@ sealed interface SøknadsbehandlingTilAttestering :
 
             fun tilIverksatt(
                 attestering: Attestering,
-                fritekstEndringAttestering: String?,
+                fritekst: String,
             ): IverksattSøknadsbehandling.Avslag.UtenBeregning {
                 return IverksattSøknadsbehandling.Avslag.UtenBeregning(
                     id = id,
@@ -234,13 +234,13 @@ sealed interface SøknadsbehandlingTilAttestering :
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                    fritekstTilBrev = fritekstEndringAttestering ?: fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    fritekstTilBrev = fritekst,
                 )
             }
         }
