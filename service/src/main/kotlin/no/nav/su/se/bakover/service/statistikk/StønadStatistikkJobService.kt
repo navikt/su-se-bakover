@@ -172,7 +172,12 @@ class StønadStatistikkJobServiceImpl(
         val vedtakMedMånedsbeløp = alleVedtak.filter {
             it !is VedtakAvslagVilkår && it !is VedtakAvslagBeregning
         }
-        vedtakMedMånedsbeløp.groupBy { it.behandling.sakId }.forEach {
+        vedtakMedMånedsbeløp.groupBy { it.behandling.sakId }.filter {
+            // Opphørsvedtak har en til og med lik opprinnelig vedtak, men stønadstatistikk er kun interessert i opphøret da det inntraff.
+            val siste = it.value.maxBy { it.opprettet }
+            val opphørtTidligereMåned = !(siste is Opphørsvedtak && siste.periode.fraOgMed < måned.atDay(1))
+            opphørtTidligereMåned
+        }.forEach {
             val siste = it.value.maxBy { it.opprettet }
             val behandling = siste.behandling as Stønadsbehandling
             val sak = behandling.sakinfo()
