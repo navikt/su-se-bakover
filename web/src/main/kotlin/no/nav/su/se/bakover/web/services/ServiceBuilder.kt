@@ -149,6 +149,7 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             skatteService = skatteServiceImpl,
             sakStatistikkRepo = sakStatistikkRepo,
+            fritekstService = fritekstService,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -272,6 +273,7 @@ data object ServiceBuilder {
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
             sakStatistikkRepo = sakStatistikkRepo,
+            fritekstService = fritekstService,
         ).apply {
             addObserver(statistikkEventObserver)
         }

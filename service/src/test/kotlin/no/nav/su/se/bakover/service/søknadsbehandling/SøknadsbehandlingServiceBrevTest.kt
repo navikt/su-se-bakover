@@ -9,6 +9,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
@@ -39,15 +42,25 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hent(any()) } doReturn tilAttesteringInnvilget
         }
 
+        val fritekstServiceMock = mock<FritekstService> {
+            on {
+                hentFritekst(any(), any())
+            } doReturn Fritekst(
+                referanseId = tilAttesteringInnvilget.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                fritekst = "",
+            ).right()
+        }
+
         SøknadsbehandlingServiceAndMocks(
             brevService = brevServiceMock,
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            fritekstService = fritekstServiceMock,
         ).let {
             it.søknadsbehandlingService.genererBrevutkast(
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
-                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
@@ -55,6 +68,10 @@ internal class SøknadsbehandlingServiceBrevTest {
 
             verify(it.brevService).lagDokument(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
+            verify(it.fritekstService).hentFritekst(
+                any(),
+                any(),
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -67,21 +84,34 @@ internal class SøknadsbehandlingServiceBrevTest {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
         }
+        val fritekstServiceMock = mock<FritekstService> {
+            on {
+                hentFritekst(any(), any())
+            } doReturn Fritekst(
+                referanseId = tilAttesteringInnvilget.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                fritekst = "",
+            ).right()
+        }
         SøknadsbehandlingServiceAndMocks(
             brevService = brevServiceMock,
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            fritekstService = fritekstServiceMock,
         ).let {
             it.søknadsbehandlingService.genererBrevutkast(
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
-                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
             verify(it.brevService).lagDokument(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
+            verify(it.fritekstService).hentFritekst(
+                any(),
+                any(),
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -96,19 +126,33 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hent(any()) } doReturn tilAttesteringInnvilget
         }
 
+        val fritekstServiceMock = mock<FritekstService> {
+            on {
+                hentFritekst(any(), any())
+            } doReturn Fritekst(
+                referanseId = tilAttesteringInnvilget.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                fritekst = "",
+            ).right()
+        }
+
         SøknadsbehandlingServiceAndMocks(
             brevService = brevServiceMock,
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            fritekstService = fritekstServiceMock,
         ).let {
             it.søknadsbehandlingService.genererBrevutkast(
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
-                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(underliggendeFeil).left()
             verify(it.brevService).lagDokument(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
+            verify(it.fritekstService).hentFritekst(
+                any(),
+                any(),
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -129,15 +173,24 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hent(any()) } doReturn tilAttesteringInnvilget
         }
 
+        val fritekstServiceMock = mock<FritekstService> {
+            on {
+                hentFritekst(any(), any())
+            } doReturn Fritekst(
+                referanseId = tilAttesteringInnvilget.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                fritekst = "",
+            ).right()
+        }
         SøknadsbehandlingServiceAndMocks(
             brevService = brevServiceMock,
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            fritekstService = fritekstServiceMock,
         ).let {
             it.søknadsbehandlingService.genererBrevutkast(
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = tilAttesteringInnvilget.id,
                     utførtAv = attestant,
-                    fritekst = "",
                 ),
             ) shouldBe Pair(generertDokument, tilAttesteringInnvilget.fnr).right()
             verify(it.brevService).lagDokument(
@@ -168,6 +221,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 anyOrNull(),
             )
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
+            verify(it.fritekstService).hentFritekst(any(), any())
             it.verifyNoMoreInteractions()
         }
     }
@@ -178,12 +232,20 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
                 on { hent(any()) } doReturn uavklart
             },
+            fritekstService = mock<FritekstService> {
+                on {
+                    hentFritekst(any(), any())
+                } doReturn Fritekst(
+                    referanseId = uavklart.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            },
         ).let {
             it.søknadsbehandlingService.genererBrevutkast(
                 BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                     søknadsbehandlingId = uavklart.id,
                     utførtAv = attestant,
-                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UgyldigTilstand(
                 fra = VilkårsvurdertSøknadsbehandling.Uavklart::class,

@@ -14,6 +14,7 @@ import satser.domain.SatsFactory
 
 fun genererBrevutkastForSøknadsbehandling(
     command: BrevutkastForSøknadsbehandlingCommand,
+    fritekst: String,
     hentSøknadsbehandling: (SøknadsbehandlingId) -> Søknadsbehandling?,
     lagDokument: (GenererDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     satsFactory: SatsFactory,
@@ -29,14 +30,14 @@ fun genererBrevutkastForSøknadsbehandling(
         is BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler -> søknadsbehandling.lagBrevutkastCommandForSaksbehandler(
             satsFactory = satsFactory,
             utførtAv = command.utførtAv,
-            fritekst = command.fritekst,
+            fritekst = fritekst,
 
         )
 
         is BrevutkastForSøknadsbehandlingCommand.ForAttestant -> søknadsbehandling.lagBrevutkastCommandForAttestant(
             satsFactory = satsFactory,
             utførtAv = command.utførtAv,
-            fritekst = command.fritekst,
+            fritekst = fritekst,
         )
     }.let {
         // Merk at siden vi ikke skal lagre dokumentet, så trenger vi ikke å legge til metadata.
