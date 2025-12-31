@@ -63,11 +63,13 @@ class TilbakekrevingsbehandlingTilAttesteringService(
         ).let { hendelse ->
             sessionFactory.withTransactionContext { tx ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse, command.defaultHendelseMetadata(), tx)
+                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(hendelse.id.value)
                 sakStatistikkRepo.lagreSakStatistikk(
                     behandling.toTilbakeStatistikkTilAttestering(
                         GenerellSakStatistikk.create(
                             clock = clock,
                             sak = sak,
+                            relatertId = førsteLinje?.relatertBehandlingId,
                         ),
                     ),
                     tx,

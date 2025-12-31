@@ -163,4 +163,9 @@ class SakStatistikkRepoImpl(
             }
         }
     }
+
+    override fun hentInitiellBehandlingsstatistikk(behandlingsid: UUID): SakStatistikk? {
+        // TODO("Not yet implemented")
+        return null
+    }
 }

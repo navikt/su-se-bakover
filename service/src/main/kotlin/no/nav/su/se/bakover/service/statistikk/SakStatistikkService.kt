@@ -11,7 +11,7 @@ class SakStatistikkService(
     private val clock: Clock,
 ) {
     fun lagre(sakId: UUID, hendelse: StatistikkEvent.Behandling) {
-        val førsteLinje = sakStatistikkRepo.hentSakStatistikk(sakId).minByOrNull { it.funksjonellTid }
+        val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(sakId)
         val statistikk = hendelse.toBehandlingsstatistikkOverordnet(clock, førsteLinje)
         sakStatistikkRepo.lagreSakStatistikk(statistikk)
     }
