@@ -360,6 +360,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Registrert.toString(),
                     opprettetAv = klage.saksbehandler.navIdent,
                     saksbehandler = klage.saksbehandler.navIdent,
+                    relatertId = relatertId,
                 )
 
                 is StatistikkEvent.Behandling.Klage.Avsluttet -> this.toBehandlingsstatistikkGenerell(

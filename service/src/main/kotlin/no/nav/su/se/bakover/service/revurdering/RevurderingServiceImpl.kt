@@ -185,7 +185,8 @@ class RevurderingServiceImpl(
                     klageRepo.knyttMotOmgjøring(klageId, revurdering.id.value, tx)
                 }
                 revurderingRepo.lagre(revurdering, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering)
+                val relatertId = klageId?.value ?: sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, relatertId)
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
             }

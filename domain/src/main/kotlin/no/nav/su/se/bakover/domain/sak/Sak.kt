@@ -321,6 +321,9 @@ data class Sak(
 
     fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> = søknadsbehandlinger.filter { it.erÅpen() }
 
+    fun hentSisteInnvilgedeSøknadsbehandling(): Søknadsbehandling? =
+        søknadsbehandlinger.filter { it.erIverksatt }.maxByOrNull { it.opprettet }
+
     fun harÅpenSøknadsbehandling(): Boolean = hentÅpneSøknadsbehandlinger().isNotEmpty()
 
     fun harÅpenStansbehandling(): Boolean = revurderinger
