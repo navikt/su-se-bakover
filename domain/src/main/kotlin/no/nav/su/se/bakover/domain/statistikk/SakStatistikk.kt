@@ -151,7 +151,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingStatus.Avsluttet.toString()
                     },
-                    resultatBegrunnelse = if (avslagTidligSøknad) "Avlsag på grunn av for tidlig søknad" else "",
+                    resultatBegrunnelse = if (avslagTidligSøknad) "Avslag på grunn av for tidlig søknad" else "",
                     ferdigbehandletTid = søknadsbehandling.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
                 )
@@ -267,7 +267,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Opphør.toString(),
-                    ansvarligBeslutter = revurdering.hentAttestantSomUnderkjente()?.navIdent,
+                    ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent,
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
@@ -322,6 +322,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Stans.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -336,6 +337,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     ferdigbehandletTid = vedtak.opprettet,
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                     opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
             }
         }
@@ -364,6 +366,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -377,6 +380,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
                     opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
             }
         }

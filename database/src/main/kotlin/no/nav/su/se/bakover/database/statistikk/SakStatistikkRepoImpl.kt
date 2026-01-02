@@ -117,7 +117,7 @@ class SakStatistikkRepoImpl(
                 SELECT * FROM sak_statistikk
                 WHERE behandling_id = :behandling_id
                 """.trimIndent().hentListe(
-                    params = mapOf("behandling_id" to behandlingsid),
+                    params = mapOf("behandling_id" to behandlingsid.value),
                     session = session,
                 ) { it.toSakStatistikk() }
             }

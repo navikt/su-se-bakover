@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -215,7 +215,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         private val søknadsbehandlingService: SøknadsbehandlingService = mock(
             defaultAnswer = { fail("Forventes ikke brukt.") },
         )
-        private val sakStatistikkRepo: SakStatistikkRepo = mock()
+        private val sakStatistikkService: SakStatistikkService = mock()
 
         val lukkSøknadService = LukkSøknadServiceImpl(
             clock = fixedClock,
@@ -225,7 +225,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             sessionFactory = sessionFactory,
-            sakStatistikkService = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
         val allMocks = listOf(
