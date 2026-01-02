@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -35,10 +34,10 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
-import toBehandlingsstatistikkOverordnet
 import java.time.Clock
 import java.util.UUID
 
@@ -53,7 +52,7 @@ class SøknadServiceImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
+    private val sakStatistikkService: SakStatistikkService,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -154,7 +153,7 @@ class SøknadServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                    sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 }
             }
         }

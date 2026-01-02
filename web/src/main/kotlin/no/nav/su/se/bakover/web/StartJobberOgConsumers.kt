@@ -343,7 +343,7 @@ private fun naisJobberOgConsumers(
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
-            sakStatistikkService = services.sakstatistikkService,
+            sakStatistikkBigQueryService = services.sakstatistikkBigQueryService,
         ),
 
         SøknadStatistikk.startJob(

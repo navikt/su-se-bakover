@@ -55,15 +55,14 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentVedtakForId
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
-import toBehandlingsstatistikkOverordnet
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -78,7 +77,7 @@ class KlageServiceImpl(
     private val oppgaveService: OppgaveService,
     private val queryJournalpostClient: QueryJournalpostClient,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
-    private val sakStatistikkRepo: SakStatistikkRepo,
+    private val sakStatistikkService: SakStatistikkService,
     val clock: Clock,
 ) : KlageService {
 
@@ -141,7 +140,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(it, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
         }.right()
     }
@@ -284,7 +283,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(it, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring(it)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 oppgaveService.lukkOppgave(
                     it.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
@@ -373,7 +372,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(oversendtKlage, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 klageClient.sendTilKlageinstans(
                     klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
@@ -434,7 +433,7 @@ class KlageServiceImpl(
                 brevService.lagreDokument(dokument, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Avvist(vedtak)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
         } catch (_: Exception) {
             return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()
@@ -514,7 +513,7 @@ class KlageServiceImpl(
                 klageRepo.lagre(it, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Avsluttet(it)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 oppgaveService.lukkOppgave(
                     it.oppgaveId,
                     OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),

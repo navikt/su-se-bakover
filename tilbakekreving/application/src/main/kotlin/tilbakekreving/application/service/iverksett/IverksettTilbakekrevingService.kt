@@ -95,11 +95,13 @@ class IverksettTilbakekrevingService(
                     ),
                     tx,
                 )
+                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(hendelse.id, tx)
                 sakStatistikkRepo.lagreSakStatistikk(
                     iverksattBehandling.toTilbakeStatistikkIverksatt(
                         generellSakStatistikk = GenerellSakStatistikk.create(
                             clock = clock,
                             sak = sak,
+                            relatertId = førsteLinje?.relatertBehandlingId,
                         ),
                         ferdigbehandletTid = hendelse.hendelsestidspunkt,
                     ),

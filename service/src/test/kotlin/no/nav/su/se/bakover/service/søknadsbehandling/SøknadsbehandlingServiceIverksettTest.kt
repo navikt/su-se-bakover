@@ -763,7 +763,7 @@ private data class ServiceAndMocks(
         brevService = brevService,
         skattDokumentService = skattDokumentService,
         satsFactory = satsFactoryTestPåDato(),
-        sakStatistikkRepo = sakStatistikkRepo,
+        sakStatistikkService = sakStatistikkRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

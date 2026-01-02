@@ -23,16 +23,15 @@ import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import toBehandlingsstatistikkOverordnet
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
@@ -47,7 +46,7 @@ class GjenopptaYtelseServiceImpl(
     private val vedtakService: VedtakService,
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
+    private val sakStatistikkService: SakStatistikkService,
 ) : GjenopptaYtelseService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -147,7 +146,7 @@ class GjenopptaYtelseServiceImpl(
                 revurderingRepo.lagre(simulertRevurdering.first, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering.first)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
 
             return simulertRevurdering.right()
@@ -255,7 +254,7 @@ class GjenopptaYtelseServiceImpl(
                         )
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                         gjenopptak.sendUtbetaling().getOrElse {
                             throw IverksettTransactionException(
                                 """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",

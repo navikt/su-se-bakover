@@ -225,7 +225,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             sessionFactory = sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkRepo,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
         val allMocks = listOf(

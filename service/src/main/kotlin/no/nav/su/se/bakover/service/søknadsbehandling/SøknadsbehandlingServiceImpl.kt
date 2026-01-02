@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPe
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentSisteInnvilgetSøknadsbehandlingGrunnlagFiltrerVekkSøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -92,10 +91,10 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
-import toBehandlingsstatistikkOverordnet
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon.Companion.harEPS
 import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import vilkår.formue.domain.FormuegrenserFactory
@@ -122,7 +121,7 @@ class SøknadsbehandlingServiceImpl(
     private val satsFactory: SatsFactory,
     private val skatteService: SkatteService,
     private val sessionFactory: SessionFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
+    private val sakStatistikkService: SakStatistikkService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -204,7 +203,7 @@ class SøknadsbehandlingServiceImpl(
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, saksbehandler)
 
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
             Pair(sak, uavklartSøknadsbehandling)
         }
@@ -309,7 +308,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
 
                     is SøknadsbehandlingTilAttestering.Innvilget -> {
@@ -318,7 +317,7 @@ class SøknadsbehandlingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
                 }
             }
@@ -455,20 +454,14 @@ class SøknadsbehandlingServiceImpl(
                 when (underkjent) {
                     is UnderkjentSøknadsbehandling.Avslag -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(underkjent)
-                        observers.notify(
-                            sakStatistikkEvent,
-                            tx,
-                        )
-                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                        observers.notify(sakStatistikkEvent, tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
 
                     is UnderkjentSøknadsbehandling.Innvilget -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(underkjent)
-                        observers.notify(
-                            sakStatistikkEvent,
-                            tx,
-                        )
-                        sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                        observers.notify(sakStatistikkEvent, tx)
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
                 }
             }

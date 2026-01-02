@@ -115,11 +115,13 @@ class AnnullerKravgrunnlagService(
                     )
                 }
                 avbruttBehandling?.let {
+                    val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(it.id, tx)
                     sakStatistikkRepo.lagreSakStatistikk(
                         it.toTilbakeStatistikkAnnuller(
                             GenerellSakStatistikk.create(
                                 clock = clock,
                                 sak = sak,
+                                relatertId = førsteLinje?.relatertBehandlingId,
                             ),
                         ),
                         tx,

@@ -160,7 +160,7 @@ internal fun Application.setupKtorRoutes(
                     økonomiRoutes(resendUtbetalingService)
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
                     fritekstRoutes(services.fritekstService)
-                    sakStatistikkRoutes(services.sakstatistikkService)
+                    sakStatistikkRoutes(services.sakstatistikkBigQueryService)
                 }
             }
         }

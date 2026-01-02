@@ -12,12 +12,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import java.time.LocalDate
 
 // TODO: mulig vi skal slå sammen alle jobber til denne routen
 internal fun Route.sakStatistikkRoutes(
-    service: SakStatistikkService,
+    service: SakStatistikkBigQueryService,
 ) {
     post("$DRIFT_PATH/statistikk/sak") {
         data class Body(

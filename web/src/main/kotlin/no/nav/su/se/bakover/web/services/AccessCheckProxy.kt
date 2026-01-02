@@ -220,7 +220,7 @@ import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
-import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -1475,9 +1475,9 @@ open class AccessCheckProxy(
                     // NO-OP
                 }
             },
-            sakstatistikkService = object : SakStatistikkService {
+            sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
                 override fun lastTilBigQuery(fom: LocalDate) {
-                    services.sakstatistikkService.lastTilBigQuery(fom)
+                    services.sakstatistikkBigQueryService.lastTilBigQuery(fom)
                 }
             },
             fritekstAvslagService = object : FritekstAvslagService {

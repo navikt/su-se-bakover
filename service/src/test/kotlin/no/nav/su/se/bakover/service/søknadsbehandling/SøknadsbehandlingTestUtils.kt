@@ -45,7 +45,7 @@ internal fun createSøknadsbehandlingService(
     satsFactory = satsFactory,
     sessionFactory = sessionFactory,
     skatteService = skatteService,
-    sakStatistikkRepo = sakStatistikkRepo,
+    sakStatistikkService = sakStatistikkRepo,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -75,7 +75,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         satsFactory = satsFactory,
         sessionFactory = sessionFactory,
         skatteService = skatteService,
-        sakStatistikkRepo = sakStatistikkRepo,
+        sakStatistikkService = sakStatistikkRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

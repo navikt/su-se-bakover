@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -20,9 +19,9 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
-import toBehandlingsstatistikkOverordnet
 import java.time.Clock
 import java.util.UUID
 
@@ -34,7 +33,7 @@ class LukkSøknadServiceImpl(
     private val oppgaveService: OppgaveService,
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val sessionFactory: SessionFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
+    private val sakStatistikkService: SakStatistikkService,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -71,7 +70,7 @@ class LukkSøknadServiceImpl(
                 val avvistForTidligSøknad = command is LukkSøknadCommand.MedBrev.AvvistSøknad
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler, avvistForTidligSøknad)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 oppgaveService.lukkOppgave(
                     oppgaveId = it.søknad.oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),

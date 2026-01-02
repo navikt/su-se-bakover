@@ -361,6 +361,6 @@ internal class AvsluttRevurderingTest {
             sakService = sakService,
             satsFactory = satsFactory,
             klageRepo = klageRepo,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkRepo,
         )
 }

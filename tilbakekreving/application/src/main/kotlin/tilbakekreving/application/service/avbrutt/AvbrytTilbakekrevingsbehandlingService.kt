@@ -56,11 +56,13 @@ class AvbrytTilbakekrevingsbehandlingService(
         ).let { (hendelse, avbruttBehandling) ->
             sessionFactory.withTransactionContext { tx ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse, command.defaultHendelseMetadata(), tx)
+                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(avbruttBehandling.id, tx)
                 sakStatistikkRepo.lagreSakStatistikk(
                     avbruttBehandling.toTilbakeStatistikkAvbryt(
                         GenerellSakStatistikk.create(
                             clock = clock,
                             sak = sak,
+                            relatertId = førsteLinje?.relatertBehandlingId,
                         ),
                     ),
                     tx,

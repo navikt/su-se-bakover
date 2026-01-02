@@ -5,7 +5,6 @@ import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import satser.domain.SatsFactory
@@ -35,7 +35,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val brevService: BrevService,
     private val skattDokumentService: SkattDokumentService,
     private val satsFactory: SatsFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
+    private val sakStatistikkService: SakStatistikkService,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -74,7 +74,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
             lagreSakstatistikk = { statistikk, tx ->
-                sakStatistikkRepo.lagreSakStatistikk(statistikk, tx)
+                sakStatistikkService.lagre(statistikk, tx)
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
     }
