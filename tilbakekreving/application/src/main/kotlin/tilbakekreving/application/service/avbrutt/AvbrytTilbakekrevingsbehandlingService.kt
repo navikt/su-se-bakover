@@ -25,7 +25,7 @@ class AvbrytTilbakekrevingsbehandlingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    private val sakStatistikkService: SakStatistikkRepo,
+    private val sakStatistikkRepo: SakStatistikkRepo,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -56,8 +56,8 @@ class AvbrytTilbakekrevingsbehandlingService(
         ).let { (hendelse, avbruttBehandling) ->
             sessionFactory.withTransactionContext { tx ->
                 tilbakekrevingsbehandlingRepo.lagre(hendelse, command.defaultHendelseMetadata(), tx)
-                val førsteLinje = sakStatistikkService.hentInitiellBehandlingsstatistikk(avbruttBehandling.id, tx)
-                sakStatistikkService.lagreSakStatistikk(
+                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(avbruttBehandling.id, tx)
+                sakStatistikkRepo.lagreSakStatistikk(
                     avbruttBehandling.toTilbakeStatistikkAvbryt(
                         GenerellSakStatistikk.create(
                             clock = clock,

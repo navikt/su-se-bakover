@@ -187,7 +187,7 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     clock = clock,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-                    sakStatistikkService = sakStatistikkRepo,
+                    sakStatistikkRepo = sakStatistikkRepo,
                 ),
                 lukkOppgaveForTilbakekrevingshendelserKonsument = LukkOppgaveForTilbakekrevingshendelserKonsument(
                     sakService = sakService,
