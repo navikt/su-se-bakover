@@ -232,11 +232,9 @@ class VedtakServiceImpl(
                     saksbehandler,
                     relatertId = vedtak.behandling.id.value,
                 )
-                observers.notify(
-                    sakStatistikkEvent,
-                    tx,
-                )
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                observers.notify(sakStatistikkEvent, tx)
+                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(søknadsbehandling.id, tx)
+                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock, førsteLinje), tx)
             }
             søknadsbehandling
         }.mapLeft {

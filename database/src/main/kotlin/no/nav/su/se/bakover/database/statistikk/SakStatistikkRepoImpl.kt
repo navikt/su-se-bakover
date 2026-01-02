@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.statistikk
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikkTilBiquery
@@ -106,17 +107,22 @@ class SakStatistikkRepoImpl(
         }
     }
 
-    override fun hentInitiellBehandlingsstatistikk(behandlingsid: UUID): SakStatistikk? {
-        val hendelserForBehandling = sessionFactory.withSession { session ->
-            """
+    override fun hentInitiellBehandlingsstatistikk(
+        behandlingsid: BehandlingsId,
+        sessionContext: SessionContext?,
+    ): SakStatistikk? {
+        val hendelserForBehandling = sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                """
                 SELECT * FROM sak_statistikk
                 WHERE behandling_id = :behandling_id
-            """.trimIndent().hentListe(
-                params = mapOf("behandling_id" to behandlingsid),
-                session = session,
-            ) { it.toSakStatistikk() }
+                """.trimIndent().hentListe(
+                    params = mapOf("behandling_id" to behandlingsid),
+                    session = session,
+                ) { it.toSakStatistikk() }
+            }
         }
-        return hendelserForBehandling.minBy { it.funksjonellTid }
+        return hendelserForBehandling.minByOrNull { it.funksjonellTid }
     }
 
     private fun Row.toSakStatistikk() = SakStatistikk(

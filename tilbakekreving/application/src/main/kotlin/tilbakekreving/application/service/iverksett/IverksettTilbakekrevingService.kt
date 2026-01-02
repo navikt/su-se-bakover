@@ -95,7 +95,7 @@ class IverksettTilbakekrevingService(
                     ),
                     tx,
                 )
-                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(hendelse.id.value)
+                val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(hendelse.id, tx)
                 sakStatistikkRepo.lagreSakStatistikk(
                     iverksattBehandling.toTilbakeStatistikkIverksatt(
                         generellSakStatistikk = GenerellSakStatistikk.create(

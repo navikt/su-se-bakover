@@ -409,7 +409,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             sessionFactory = sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkRepo,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
         fun lukkSøknad(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =

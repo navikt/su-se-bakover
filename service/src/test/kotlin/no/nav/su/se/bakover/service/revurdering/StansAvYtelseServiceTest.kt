@@ -432,7 +432,7 @@ internal class StansAvYtelseServiceTest {
             sakService = sakService,
             clock = clock,
             sessionFactory = sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkRepo,
         ).apply { addObserver(observer) }
 
         fun all() = listOf(

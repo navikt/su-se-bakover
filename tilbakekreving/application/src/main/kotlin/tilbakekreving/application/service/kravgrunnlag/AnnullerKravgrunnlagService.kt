@@ -115,7 +115,7 @@ class AnnullerKravgrunnlagService(
                     )
                 }
                 avbruttBehandling?.let {
-                    val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(it.id.value)
+                    val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(it.id, tx)
                     sakStatistikkRepo.lagreSakStatistikk(
                         it.toTilbakeStatistikkAnnuller(
                             GenerellSakStatistikk.create(
