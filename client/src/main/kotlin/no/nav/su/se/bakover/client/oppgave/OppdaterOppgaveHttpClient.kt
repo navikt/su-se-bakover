@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
@@ -107,9 +108,10 @@ internal class OppdaterOppgaveHttpClient(
             is OppdaterOppgaveInfo.TilordnetRessurs.NavIdent -> t.navIdent
             is OppdaterOppgaveInfo.TilordnetRessurs.Uendret -> oppgave.tilordnetRessurs
         }
+
         return Either.catch {
             val endretAvEnhetsnr = when (token) {
-                is SystembrukerToken -> ENHET_ÅLESUND
+                is SystembrukerToken -> null
                 is OboToken -> ENHET_ÅLESUND
             }
             val requestOppgave = EndreOppgaveRequest(
@@ -198,6 +200,7 @@ internal class OppdaterOppgaveHttpClient(
     }
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 private data class EndreOppgaveRequest(
     val beskrivelse: String?,
     val kommentar: Kommentar? = null,

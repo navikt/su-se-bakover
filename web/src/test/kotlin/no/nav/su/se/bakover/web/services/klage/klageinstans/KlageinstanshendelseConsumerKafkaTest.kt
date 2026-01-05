@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.klage.klageinstans
 import behandling.klage.domain.UprosessertKlageinstanshendelse
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -53,7 +54,7 @@ internal class KlageinstanshendelseConsumerKafkaTest {
             // Don't spam logs running tests
             log = NOPLogger.NOP_LOGGER,
             // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER,
+            sikkerLogg = SikkerLogg.NOP,
         )
         val hendelser = argumentCaptor<UprosessertKlageinstanshendelse>()
         kafkaConsumer.lastComittedOffsetShouldBe(3)
@@ -128,7 +129,7 @@ internal class KlageinstanshendelseConsumerKafkaTest {
             // Don't spam logs running tests
             log = NOPLogger.NOP_LOGGER,
             // Don't spam logs running tests
-            sikkerLogg = NOPLogger.NOP_LOGGER,
+            sikkerLogg = SikkerLogg.NOP,
         )
         // Venter først akkurat til vi har fått et kall til klageinstanshendelseService (som forventet)
         verify(klageinstanshendelseService, timeout(1000)).lagre(any())

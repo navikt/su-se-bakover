@@ -4,9 +4,9 @@ import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
@@ -35,6 +35,7 @@ internal fun createSøknadsbehandlingService(
     skatteService: SkatteService = mock(),
     sakStatistikkRepo: SakStatistikkRepo = mock(),
     fritekstService: FritekstService = mock(),
+    sakStatistikkService: SakStatistikkService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadsbehandlingRepo = søknadsbehandlingRepo,
     utbetalingService = utbetalingService,
@@ -49,6 +50,7 @@ internal fun createSøknadsbehandlingService(
     skatteService = skatteService,
     sakStatistikkRepo = sakStatistikkRepo,
     fritekstService = fritekstService,
+    sakStatistikkService = sakStatistikkService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -65,7 +67,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
     val sessionFactory: TestSessionFactory = TestSessionFactory(),
     val skatteService: SkatteService = mock(),
-    val sakStatistikkRepo: SakStatistikkRepo = mock(),
+    val sakStatistikkService: SakStatistikkService = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -81,6 +83,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         skatteService = skatteService,
         sakStatistikkRepo = sakStatistikkRepo,
         fritekstService = fritekstService,
+        sakStatistikkService = sakStatistikkService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

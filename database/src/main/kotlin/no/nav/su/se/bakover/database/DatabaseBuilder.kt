@@ -46,8 +46,10 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
 import no.nav.su.se.bakover.database.skatt.SkattPostgresRepo
+import no.nav.su.se.bakover.database.statistikk.FritekstAvslagRepoImpl
 import no.nav.su.se.bakover.database.statistikk.SakStatistikkRepoImpl
 import no.nav.su.se.bakover.database.statistikk.StønadStatistikkRepoImpl
+import no.nav.su.se.bakover.database.statistikk.SøknadStatistikkRepoImpl
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -355,6 +357,8 @@ data object DatabaseBuilder {
                 sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
             ),
+            fritekstAvslagRepo = FritekstAvslagRepoImpl(sessionFactory = sessionFactory),
+            søknadStatistikkRepo = SøknadStatistikkRepoImpl(sessionFactory = sessionFactory),
         )
     }
 }

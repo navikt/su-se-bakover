@@ -103,6 +103,8 @@ fun Application.runApplicationWithMocks(
             samlTokenProvider = FakeSamlTokenProvider(),
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
+            azureAd = clients.azureAd,
+            suProxyConfig = applicationConfig.clientsConfig.suProxyConfig,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = mock(),

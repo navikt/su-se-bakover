@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import org.slf4j.LoggerFactory
-import toBehandlingsstatistikkOverordnet
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
@@ -38,7 +36,7 @@ data class IverksettInnvilgetRevurderingResponse(
         lagreVedtak: (vedtak: VedtakInnvilgetRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
-        lagreSakstatistikk: (SakStatistikk, TransactionContext) -> Unit,
+        lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -71,7 +69,7 @@ data class IverksettInnvilgetRevurderingResponse(
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak)
 
                 statistikkObservers().notify(sakStatistikkEvent, tx)
-                lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                lagreSakstatistikk(sakStatistikkEvent, tx)
                 vedtak.behandling
             }
         }.mapLeft {

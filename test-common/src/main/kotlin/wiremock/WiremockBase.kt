@@ -11,17 +11,21 @@ import no.nav.su.se.bakover.common.infrastructure.mdc.putInMdcIfMissing
 
 /**
  * Starts a new WireMock server on a random port and sets the MDC variable 'X-Correlation-ID' to "correlationId".
+ * Hvis token her er null antar man at det er en systembruker da kun personbruker token ligger på konteksten
  */
-fun startedWireMockServerWithCorrelationId(token: String = "Bearer token", block: WireMockServer.() -> Unit) {
+fun startedWireMockServerWithCorrelationId(token: String? = "Bearer token", block: WireMockServer.() -> Unit) {
     runBlocking {
         val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
         server.start()
         putInMdcIfMissing("X-Correlation-ID", "correlationId")
 
-        val tokenContextElement = Kontekst.asContextElement(TokenContext(token))
-
         try {
-            withContext(tokenContextElement) {
+            if (token != null) {
+                val tokenContextElement = Kontekst.asContextElement(TokenContext(token))
+                withContext(tokenContextElement) {
+                    block(server)
+                }
+            } else {
                 block(server)
             }
         } finally {

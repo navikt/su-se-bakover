@@ -7,6 +7,15 @@ metadata:
     team: supstonad
 spec:
   gcp:
+    bigQueryDatasets:
+      - name: avslagsvedtak
+        permission: READWRITE
+      - name: saksstatistikk
+        permission: READWRITE
+      - name: soknad
+        permission: READWRITE
+      - name: statistikk
+        permission: READWRITE
     sqlInstances:
       - type: POSTGRES_17
         tier: db-g1-small
@@ -33,6 +42,7 @@ spec:
       destinations:
         - id: elastic
         - id: loki
+        - id: team_logs
   azure:
     application:
       enabled: true
@@ -63,12 +73,20 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: pensjon-pen-q2
+          namespace: pensjon-q2
+          cluster: dev-fss
+        - application: supstonad-proxy
+          namespace: supstonad
+          cluster: dev-fss
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
           cluster: dev-gcp
         - application: su-pdfgen
           namespace: supstonad
           cluster: dev-gcp
+        - application: logging
+          namespace: nais-system
         - application: kabal-api
           namespace: klage
           cluster: dev-gcp
@@ -82,6 +100,8 @@ spec:
           namespace: team-rocket
           cluster: dev-gcp
       external:
+        - host: pensjon-pen-q2.dev-fss-pub.nais.io
+        - host: supstonad-proxy.dev-fss-pub.nais.io
         - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
         - host: pdl-api.dev-fss-pub.nais.io
         - host: sigrun-q2.dev.adeo.no
@@ -124,6 +144,14 @@ spec:
       #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicerbruker
   env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen-q2.dev-fss-pub.nais.io/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
+    - name: SUPSTONAD_PROXY_URL
+      value: "https://supstonad-proxy.dev-fss-pub.nais.io"
+    - name: SUPSTONAD_PROXY_CLIENT_ID
+      value: "api://dev-fss.supstonad.supstonad-proxy"
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
     - name: AZURE_GROUP_VEILEDER
@@ -150,8 +178,6 @@ spec:
       value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
       value: "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding"
-    - name: STS_URL_SOAP
-      value: "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
     - name: SKJERMING_CLIENT_ID
@@ -189,7 +215,7 @@ spec:
     - name: SKATTEETATEN_URL
       value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
     - name: SKATT_CLIENT_ID
-      value: "api://dev-fss.team-inntekt.sigrun-q4"
+      value: "api://dev-fss.team-inntekt.sigrun-q2"
     - name: KRR_URL
       value: "http://digdir-krr-proxy.team-rocket"
     - name: KRR_APP_ID

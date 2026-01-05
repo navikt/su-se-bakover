@@ -95,6 +95,34 @@ internal class StønadStatistikkIT {
         }
     }
 
+    @Test
+    fun `skal kun hente opphør hvis opphøret er på angitt dato`() {
+        withMigratedDb { dataSource ->
+            val mai = YearMonth.of(2025, 5)
+            val juni = YearMonth.of(2025, 6)
+            val juli = YearMonth.of(2025, 7)
+
+            val testDataHelper = TestDataHelper(dataSource)
+
+            val sakId = 2123L
+            val vedtakEn = lagVedtakInnvilget(sakId, mai, juli)
+            val vedtakTo = lagVedtakOpphør(sakId, juni, juli)
+            val vedtakRepo =
+                mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juli)) } doReturn listOf(vedtakEn, vedtakTo) }
+
+            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+            val service = StønadStatistikkJobServiceImpl(
+                stønadStatistikkRepo = stønadStatistikkRepo,
+                vedtakRepo = vedtakRepo,
+            )
+
+            service.lagMånedligStønadstatistikk(fixedClock, juli)
+            val result = stønadStatistikkRepo.hentMånedStatistikk(juli)
+
+            result.size shouldBe 0
+        }
+    }
+
     companion object {
         private fun lagVedtakInnvilget(
             saksnummer: Long,

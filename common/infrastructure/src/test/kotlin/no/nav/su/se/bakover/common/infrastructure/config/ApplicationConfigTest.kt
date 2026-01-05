@@ -74,11 +74,10 @@ class ApplicationConfigTest {
             avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqSendQueue"),
             simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
                 url = "simuleringUrl",
-                stsSoapUrl = "stsSoapUrl",
             ),
             tilbakekreving = TilbakekrevingConfig(
                 mq = TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
-                soap = TilbakekrevingConfig.Soap("tilbakekrevingUrl", "stsSoapUrl"),
+                soap = TilbakekrevingConfig.Soap("tilbakekrevingUrl"),
                 serviceUserConfig = ServiceUserConfig(
                     username = "username",
                     password = "password",
@@ -100,7 +99,7 @@ class ApplicationConfigTest {
                 clientId = "pdlClientId",
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
-            stsSamlUrl = "stsSamlUrl",
+            gandalfSamlUrl = "stsSamlUrl",
             skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                 url = "skjermingUrl",
                 clientId = "skjermingClientId",
@@ -134,6 +133,8 @@ class ApplicationConfigTest {
                 url = "kodeverkUrl",
                 clientId = "kodeverkClientId",
             ),
+            suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
+            pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -187,7 +188,6 @@ class ApplicationConfigTest {
                 "MQ_REPLY_TO" to "utbetalingMqReplyTo",
                 "MQ_SEND_QUEUE_AVSTEMMING" to "avstemmingMqSendQueue",
                 "SIMULERING_URL" to "simuleringUrl",
-                "STS_URL_SOAP" to "stsSoapUrl",
                 "DATABASE_NAME" to "databaseName",
                 "DATABASE_JDBC_URL" to "jdbcUrl",
                 "VAULT_MOUNTPATH" to "vaultMountPath",
@@ -219,6 +219,12 @@ class ApplicationConfigTest {
                 "KODEVERK_URL" to "kodeverkUrl",
                 "KODEVERK_CLIENT_ID" to "kodeverkClientId",
                 "PDL_URL" to "http://pdl-api.default.svc.nais.local",
+                "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
+                "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
+                "PESYS_URL" to "PESYS_URL",
+                "PESYS_CLIENT_ID" to "PESYS_CLIENT_ID",
+                "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
+                "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -258,11 +264,10 @@ class ApplicationConfigTest {
                     avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "unused"),
                     simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
                         url = "unused",
-                        stsSoapUrl = "unused",
                     ),
                     tilbakekreving = TilbakekrevingConfig(
                         mq = TilbakekrevingConfig.Mq("unused"),
-                        soap = TilbakekrevingConfig.Soap("unused", "unused"),
+                        soap = TilbakekrevingConfig.Soap("unused"),
                         serviceUserConfig = ServiceUserConfig(
                             username = "unused",
                             password = "unused",
@@ -284,7 +289,7 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     pdfgenUrl = "mocked",
-                    stsSamlUrl = "mocked",
+                    gandalfSamlUrl = "mocked",
                     skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                         url = "skjermingUrl",
                         clientId = "skjermingClientId",
@@ -318,6 +323,8 @@ class ApplicationConfigTest {
                         url = "mocked",
                         clientId = "mocked",
                     ),
+                    suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
+                    pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

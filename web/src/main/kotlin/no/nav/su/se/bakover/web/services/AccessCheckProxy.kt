@@ -11,6 +11,7 @@ import behandling.klage.domain.UprosessertKlageinstanshendelse
 import behandling.revurdering.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
 import behandling.revurdering.domain.bosituasjon.LeggTilBosituasjonerForRevurderingCommand
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
+import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
@@ -217,8 +218,11 @@ import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
@@ -230,6 +234,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -265,6 +270,7 @@ open class AccessCheckProxy(
     private val personRepo: PersonRepo,
     private val services: Services,
 ) {
+    // TODO: må finne en måte å definere services uten at de må i accessproxy ikke alle services skal være i en route
     fun proxy(): Services {
         return Services(
             avstemming = object : AvstemmingService {
@@ -556,7 +562,11 @@ open class AccessCheckProxy(
                     return services.fritekstService.lagreFritekst(fritekst)
                 }
 
-                override fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit> {
+                override fun slettFritekst(
+                    referanseId: UUID,
+                    type: FritekstType,
+                    sakId: UUID,
+                ): Either<FritekstFeil, Unit> {
                     harTilgang(referanseId = referanseId, type = type, sakId = sakId)
                     return services.fritekstService.slettFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
@@ -799,7 +809,7 @@ open class AccessCheckProxy(
                     override fun leggTilBosituasjongrunnlag(
                         request: LeggTilBosituasjonerCommand,
                         saksbehandler: NavIdentBruker.Saksbehandler,
-                    ): Either<behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
+                    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, VilkårsvurdertSøknadsbehandling> {
                         assertHarTilgangTilSøknadsbehandling(request.behandlingId as SøknadsbehandlingId)
                         return service.leggTilBosituasjongrunnlag(request, saksbehandler)
                     }
@@ -1455,10 +1465,36 @@ open class AccessCheckProxy(
                     return services.personhendelseService.dryRunPersonhendelser(fraOgMed, personhendelser)
                 }
             },
-
+            // TODO: RM det er jo en jobb aldri eksponert i en route
             stønadStatistikkJobService = object : StønadStatistikkJobService {
                 override fun lagMånedligStønadstatistikk(clock: Clock) {
                     services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
+                }
+
+                override fun lastTilBigQuery(clock: Clock) {
+                    services.stønadStatistikkJobService.lastTilBigQuery(clock)
+                }
+            },
+
+            pesysJobService = object : PesysJobService {
+                override fun hentDatafraPesys() {
+                    throw RuntimeException("Skal ikke kalle pesys fra routes")
+                    // NO-OP
+                }
+            },
+            sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
+                override fun lastTilBigQuery(fom: LocalDate) {
+                    services.sakstatistikkBigQueryService.lastTilBigQuery(fom)
+                }
+            },
+            fritekstAvslagService = object : FritekstAvslagService {
+                override fun hentOgSendAvslagFritekstTilBigquery() {
+                    services.fritekstAvslagService.hentOgSendAvslagFritekstTilBigquery()
+                }
+            },
+            søknadStatistikkService = object : SøknadStatistikkService {
+                override fun hentogSendSøknadStatistikkTilBigquery() {
+                    services.søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
                 }
             },
         )

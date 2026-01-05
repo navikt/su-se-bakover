@@ -15,18 +15,23 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import person.domain.PersonService
 import vilkår.skatt.application.SkatteService
 import økonomi.application.utbetaling.UtbetalingService
 
+// Interface som definerer type service?
 data class Services(
     val avstemming: AvstemmingService,
     val utbetaling: UtbetalingService,
@@ -54,4 +59,8 @@ data class Services(
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,
+    val sakstatistikkBigQueryService: SakStatistikkBigQueryService,
+    val pesysJobService: PesysJobService,
+    val fritekstAvslagService: FritekstAvslagService,
+    val søknadStatistikkService: SøknadStatistikkService,
 )

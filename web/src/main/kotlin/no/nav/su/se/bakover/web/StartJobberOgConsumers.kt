@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
+import no.nav.su.se.bakover.web.services.FssProxyJob
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -44,7 +45,12 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
-import no.nav.su.se.bakover.web.services.statistikk.StønadstatistikkJob
+import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
+import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
+import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
+import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
+import no.nav.su.se.bakover.web.services.statistikk.StønadStatistikkTilBigQuery
+import no.nav.su.se.bakover.web.services.statistikk.SøknadStatistikk
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
@@ -132,6 +138,7 @@ fun startJobberOgConsumers(
             journalførDokumentSkattService = journalførDokumentSkattService,
             jmsConfig = jmsConfig,
             tilbakekrevingskomponenter = tilbakekrevingskomponenter,
+            clients = clients,
         )
 
         ApplicationConfig.RuntimeEnvironment.Local ->
@@ -264,7 +271,7 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
-        StønadstatistikkJob.startJob(
+        LagStønadstatistikkForMånedJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(1, ChronoUnit.MINUTES),
@@ -292,6 +299,7 @@ private fun naisJobberOgConsumers(
     journalførDokumentSkattService: JournalførSkattDokumentService,
     jmsConfig: JmsConfig,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
+    clients: Clients,
 ): JobberOgConsumers {
     val isProd = applicationConfig.naisCluster == NaisCluster.Prod
 
@@ -318,12 +326,56 @@ private fun naisJobberOgConsumers(
             null
         },
 
-        StønadstatistikkJob.startJob(
+        FssProxyJob.startJob(
+            initialDelay = Duration.of(1, ChronoUnit.SECONDS),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
+            client = clients.suProxyClient,
+        ),
+
+        Pesysjobb.startJob(
+            initialDelay = Duration.ofSeconds(1),
+            periode = Duration.of(1, ChronoUnit.HOURS),
+            pesysjobb = services.pesysJobService,
+            runJobCheck = runCheckFactory,
+        ),
+
+        SakstatistikkTilBigQuery.startJob(
+            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            sakStatistikkBigQueryService = services.sakstatistikkBigQueryService,
+        ),
+
+        SøknadStatistikk.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            søknadStatistikkService = services.søknadStatistikkService,
+        ),
+
+        FritekstAvslagJobb.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            fritekstAvslagService = services.fritekstAvslagService,
+        ),
+
+        LagStønadstatistikkForMånedJob.startJob(
             clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
+        ),
+        /*
+            Denne vil kjøre periodevis hver dag men jobben i seg selv kjøre bare om dagens dag er den første i måneden
+         */
+        StønadStatistikkTilBigQuery.startJob(
+            clock = clock,
+            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
+            periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
+            stønadJobService = services.stønadStatistikkJobService,
         ),
 
         JournalførDokumentJob.startJob(

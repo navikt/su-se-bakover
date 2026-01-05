@@ -95,5 +95,9 @@ data object TestServicesBuilder {
         resendStatistikkhendelserService = resendStatistikkhendelserService,
         personhendelseService = personhendelseService,
         stønadStatistikkJobService = mock(),
+        sakstatistikkBigQueryService = mock(),
+        pesysJobService = mock(),
+        fritekstAvslagService = mock(),
+        søknadStatistikkService = mock(),
     )
 }

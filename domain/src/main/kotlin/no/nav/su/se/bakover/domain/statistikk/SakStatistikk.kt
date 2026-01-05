@@ -29,6 +29,7 @@ fun Sakstype.toYtelseType() = when (this) {
 
 fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
     clock: Clock,
+    førsteLinje: SakStatistikk? = null,
 ): SakStatistikk {
     return when (this) {
         is StatistikkEvent.Behandling.Søknad -> {
@@ -54,7 +55,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     opprettetAv = søknadsbehandling.saksbehandler?.navIdent
                         ?: NavIdentBruker.Saksbehandler.systembruker().navIdent,
                     saksbehandler = søknadsbehandling.saksbehandler?.navIdent,
-                    behandlingAarsak = "Omgjøring etter avvist søknad",
+                    behandlingAarsak = "OMGJORING_ETTER_AVVIST",
                     relatertId = relatertId,
                 )
 
@@ -67,6 +68,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Innvilget.toString(),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     utbetaltTid = søknadsbehandling.stønadsperiode.periode.fraOgMed,
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag -> this.toBehandlingsstatistikkGenerell(
@@ -78,6 +80,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Avslag.toString(),
                     resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -88,6 +91,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Underkjent.toString(),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     behandlingResultat = BehandlingResultat.Innvilget.toString(),
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomUnderkjente()?.navIdent,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.Underkjent.Avslag -> this.toBehandlingsstatistikkGenerell(
@@ -98,6 +103,9 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Underkjent.toString(),
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    ansvarligBeslutter = søknadsbehandling.hentAttestantSomUnderkjente()?.navIdent,
+                    behandlingResultat = BehandlingResultat.Avslag.toString(),
                 )
 
                 is StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -112,6 +120,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
                         ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag -> this.toBehandlingsstatistikkGenerell(
@@ -126,6 +135,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     resultatBegrunnelse = utledAvslagsgrunner(this.søknadsbehandling.avslagsgrunner),
                     ansvarligBeslutter = søknadsbehandling.hentAttestantSomIverksatte()?.navIdent
                         ?: throw IllegalStateException("Et inverksatt avslag kan ikke mangle attestant"),
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
 
                 is StatistikkEvent.Behandling.Søknad.Lukket -> this.toBehandlingsstatistikkGenerell(
@@ -141,7 +151,9 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingStatus.Avsluttet.toString()
                     },
+                    resultatBegrunnelse = if (avslagTidligSøknad) "Avslag på grunn av for tidlig søknad" else "",
                     ferdigbehandletTid = søknadsbehandling.avsluttetTidspunkt,
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
             }
         }
@@ -179,6 +191,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingMetode.Manuell
                     },
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør -> this.toBehandlingsstatistikkGenerell(
@@ -191,6 +205,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -203,6 +219,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Innvilget.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     ansvarligBeslutter = revurdering.hentAttestantSomUnderkjente()?.navIdent,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør -> this.toBehandlingsstatistikkGenerell(
@@ -216,6 +234,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ansvarligBeslutter = revurdering.hentAttestantSomUnderkjente()?.navIdent,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget -> this.toBehandlingsstatistikkGenerell(
@@ -235,6 +255,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingMetode.Manuell
                     },
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt -> this.toBehandlingsstatistikkGenerell(
@@ -245,9 +267,12 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
                     behandlingResultat = BehandlingResultat.Opphør.toString(),
+                    ansvarligBeslutter = revurdering.hentAttestantSomIverksatte()?.navIdent,
                     resultatBegrunnelse = listUtOpphørsgrunner(this.revurdering.utledOpphørsgrunner(clock)),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Revurdering.Avsluttet -> this.toBehandlingsstatistikkGenerell(
@@ -265,6 +290,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                         BehandlingMetode.Manuell
                     },
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
             }
         }
@@ -294,6 +321,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
 
                 is StatistikkEvent.Behandling.Stans.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -307,6 +335,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
             }
         }
@@ -334,6 +363,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Avbrutt.toString(),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
 
                 is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -346,6 +376,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Gjenopptatt.toString(),
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
+                    opprettetAv = førsteLinje?.opprettetAv,
                 )
             }
         }
@@ -360,6 +391,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingStatus = BehandlingStatus.Registrert.toString(),
                     opprettetAv = klage.saksbehandler.navIdent,
                     saksbehandler = klage.saksbehandler.navIdent,
+                    relatertId = relatertId,
                 )
 
                 is StatistikkEvent.Behandling.Klage.Avsluttet -> this.toBehandlingsstatistikkGenerell(
@@ -371,6 +403,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingResultat = BehandlingResultat.Avbrutt.toString(),
                     saksbehandler = klage.saksbehandler.navIdent,
                     ferdigbehandletTid = klage.avsluttetTidspunkt,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Klage.Avvist -> this.toBehandlingsstatistikkGenerell(
@@ -383,6 +417,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Klage.Oversendt -> this.toBehandlingsstatistikkGenerell(
@@ -397,6 +433,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     },
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.hjemler.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Klage.FerdigstiltOmgjøring -> this.toBehandlingsstatistikkGenerell(
@@ -412,6 +450,8 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     resultatBegrunnelse = this.klage.vurderinger.vedtaksvurdering.årsak.name.uppercase(),
                     saksbehandler = klage.saksbehandler.navIdent,
                     ferdigbehandletTid = klage.datoklageferdigstilt,
+                    opprettetAv = førsteLinje?.opprettetAv,
+                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
             }
         }
@@ -488,6 +528,7 @@ internal fun FormkravTilKlage?.toResultatBegrunnelse(): String? {
         if (this.erUnderskrevet?.svar == FormkravTilKlage.Svarord.NEI) "IKKE_UNDERSKREVET" else null,
     ).mapNotNull { it }.joinToString(",").ifEmpty { null }
 }
+
 internal fun Klagehjemler.toResultatBegrunnelse(): String {
     return this.sorted().joinToString(",") { it.toJsonformat() }
 }

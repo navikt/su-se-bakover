@@ -89,7 +89,7 @@ fun Application.susebakover(
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     samlTokenProvider: SamlTokenProvider = StsSamlClient(
-        baseUrl = applicationConfig.clientsConfig.stsSamlUrl,
+        baseUrl = applicationConfig.clientsConfig.gandalfSamlUrl,
         serviceUser = applicationConfig.serviceUser,
         clock = clock,
     ),
@@ -151,6 +151,8 @@ fun Application.susebakover(
             samlTokenProvider = samlTokenProvider,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
+            azureAd = clients.azureAd,
+            suProxyConfig = applicationConfig.clientsConfig.suProxyConfig,
         )
     },
     dokumentkomponenter: Dokumentkomponenter = run {

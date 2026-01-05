@@ -10,6 +10,10 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
+    logging:
+      destinations:
+        - id: loki
+        - id: team_logs
   azure:
     application:
       enabled: true
@@ -38,6 +42,8 @@ spec:
         - application: skjermede-personer-pip
           namespace: nom
           cluster: prod-gcp
+        - application: logging
+          namespace: nais-system
   image: {{ image }}
   liveness:
     path: /isalive
@@ -73,6 +79,10 @@ spec:
       - mountPath: /var/run/secrets/nais.io/srvuser
         kvPath: /serviceuser/data/prod/srvsupstonad
   env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen.nais.adeo.no/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://prod-fss.pensjondeployer.pensjon-pen"
     - name: AZURE_GROUP_ATTESTANT
       value: "b64af061-f7c4-4d05-907f-b457e23da339"
     - name: AZURE_GROUP_VEILEDER
@@ -103,12 +113,10 @@ spec:
       value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
       value: "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding"
-    - name: STS_URL_SOAP
-      value: "https://sts.adeo.no/SecurityTokenServiceProvider/"
     - name: SKJERMING_URL
       value: "https://skjermede-personer-pip.intern.nav.no"
     - name: SKJERMING_CLIENT_ID
-      value: "api://prod-fss.nom.skjermede-personer-pip"
+      value: "api://prod-gcp.nom.skjermede-personer-pip"
     - name: MQ_QUEUE_MANAGER
       value: "MPLS02"
     - name: MQ_PORT

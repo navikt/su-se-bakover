@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.common.infrastructure.job
 
 import arrow.core.Either
+import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.api.trace.SpanKind
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -37,6 +39,7 @@ fun startStoppableJob(
     job: (CorrelationId) -> Unit,
 ): StoppableJob {
     log.info("Starter skeduleringsjobb '$jobName'. Intervall: hvert ${intervall.toMinutes()}. minutt. Initial delay: ${initialDelay.toMinutes()} minutt(er)")
+
     return startStoppableJob(
         jobName = jobName,
         log = log,
@@ -85,6 +88,29 @@ fun startStoppableJob(
     }
 }
 
+private val tracer = GlobalOpenTelemetry.getTracer("no.nav.su.se.bakover.jobs")
+fun wrapJobWithOtel(
+    jobName: String,
+    log: Logger,
+    job: (CorrelationId) -> Unit,
+): (CorrelationId) -> Unit = { correlationId ->
+    val span = tracer.spanBuilder(jobName)
+        .setSpanKind(SpanKind.INTERNAL)
+        .startSpan()
+
+    try {
+        span.makeCurrent().use {
+            job(correlationId)
+        }
+    } catch (ex: Exception) {
+        span.recordException(ex)
+        span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR, ex.message ?: "Ukjent feil")
+        log.error("Skeduleringsjobb '$jobName' feilet", ex)
+    } finally {
+        span.end()
+    }
+}
+
 private fun startStoppableJob(
     jobName: String,
     log: Logger,
@@ -92,11 +118,12 @@ private fun startStoppableJob(
     job: (CorrelationId) -> Unit,
     scheduleJob: (TimerTask.() -> Unit) -> Timer,
 ): StoppableJob {
+    val jobWithSpan = wrapJobWithOtel(jobName, log, job)
     return scheduleJob {
         Either.catch {
             runJobCheck.shouldRun().ifTrue {
                 log.debug("Kjører skeduleringsjobb '$jobName'.")
-                withCorrelationId { job(it) }
+                withCorrelationId { jobWithSpan(it) }
                 log.debug("Fullførte skeduleringsjobb '$jobName'.")
             }
                 ?: log.debug("Skeduleringsjobb '$jobName' kjører ikke pga. startKriterier i runJobCheck. Eksempelvis er vi ikke leader pod.")

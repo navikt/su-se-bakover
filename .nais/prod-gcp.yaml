@@ -1,0 +1,231 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: su-se-bakover
+  namespace: supstonad
+  labels:
+    team: supstonad
+spec:
+  gcp:
+    bigQueryDatasets:
+      - name: avslagsvedtak
+        permission: READWRITE
+      - name: saksstatistikk
+        permission: READWRITE
+      - name: soknad
+        permission: READWRITE
+      - name: statistikk
+        permission: READWRITE
+    sqlInstances:
+      - type: POSTGRES_17
+        tier: db-custom-1-3840
+        collation: nb_NO.UTF8
+        diskAutoresize: true
+        diskSize: 20
+        diskType: SSD
+        highAvailability: true
+        pointInTimeRecovery: true
+        autoBackupHour: 1
+        maintenance:
+          day: 7
+          hour: 2
+        cascadingDelete: false
+        name: supstonad-db-15-prod
+        databases:
+          - name: supstonad
+            envVarPrefix: DB
+        flags:
+          - name: max_connections
+            value: "100"
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+        - id: team_logs
+  azure:
+    application:
+      enabled: true
+      tenant: nav.no
+      claims:
+        extra:
+          - "NAVident"
+        groups:
+          - id: "d75164fa-39e6-4149-956e-8404bc9080b6" # 0000-GA-SU-UFOR-ATTESTANT
+          - id: "0ba009c4-d148-4a51-b501-4b1cf906889d" # 0000-GA-SU-UFOR-SAKSBEHANDLER
+          - id: "062d4814-8538-4f3a-bcb9-32821af7909a" # 0000-GA-SU-UFOR-VEILEDER
+          - id: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b" # 0000-GA-SU-UFOR-DRIFT
+  accessPolicy:
+    inbound:
+      rules:
+        - application: "su-se-framover"
+          namespace: "supstonad"
+          cluster: "prod-gcp"
+        - application: "frikorttjenester"
+          namespace: "teamfrikort"
+          permissions:
+            roles:
+              - frikort
+    outbound:
+      rules:
+        - application: pensjon-pen
+          namespace: pensjondeployer
+          cluster: prod-fss
+        - application: supstonad-proxy
+          namespace: supstonad
+          cluster: prod-fss
+        - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
+          namespace: nom
+          cluster: prod-gcp
+        - application: su-pdfgen
+          namespace: supstonad
+          cluster: prod-gcp
+        - application: logging
+          namespace: nais-system
+        - application: kabal-api
+          namespace: klage
+          cluster: prod-gcp
+        - application: digdir-krr-proxy
+          namespace: team-rocket
+          cluster: prod-gcp
+        - application: kodeverk-api
+          namespace: team-rocket
+          cluster: prod-gcp
+      external:
+        - host: pensjon-pen.prod-fss-pub.nais.io
+        - host: supstonad-proxy.prod-fss-pub.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io
+        - host: saf.prod-fss-pub.nais.io
+        - host: inst2.prod-fss-pub.nais.io
+        - host: dokdistfordeling.prod-fss-pub.nais.io
+        - host: oppgave.prod-fss-pub.nais.io
+        - host: team-inntekt-proxy.prod-fss-pub.nais.io
+        - host: kodeverk-api.nav.no
+        - host: mpls02.adeo.no
+          ports:
+            - port: 1414
+  image: {{ image }}
+  liveness:
+    path: /isalive
+    initialDelay: 25
+    timeout: 10
+  readiness:
+    path: /isready
+    initialDelay: 25
+    timeout: 10
+  replicas:
+    min: 0
+    max: 0
+  resources:
+    limits:
+      memory: 4Gi
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+  ingresses:
+    - https://su-se-bakover-gcp.intern.nav.no # bytt til https://su-se-bakover.intern.nav.no etter migrering?
+  prometheus:
+    enabled: true
+    path: /metrics
+  secureLogs:
+    enabled: true
+  leaderElection: true
+  kafka:
+    pool: nav-prod
+  envFrom:
+    #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
+    - secret: supstonad-servicebruker
+  env:
+    - name: PESYS_URL
+      value: "https://pensjon-pen.prod-fss-pub.nais.io/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://prod-fss.pensjondeployer.pensjon-pen"
+    - name: SUPSTONAD_PROXY_URL
+      value: "https://supstonad-proxy.prod-fss-pub.nais.io"
+    - name: SUPSTONAD_PROXY_CLIENT_ID
+      value: "api://prod-fss.supstonad.supstonad-proxy"
+    - name: AZURE_GROUP_ATTESTANT
+      value: "d75164fa-39e6-4149-956e-8404bc9080b6"
+    - name: AZURE_GROUP_VEILEDER
+      value: "062d4814-8538-4f3a-bcb9-32821af7909a"
+    - name: AZURE_GROUP_SAKSBEHANDLER
+      value: "0ba009c4-d148-4a51-b501-4b1cf906889d"
+    - name: AZURE_GROUP_DRIFT
+      value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
+    - name: DATABASE_NAME
+      value: "supstonad-db-15-prod"
+    - name: PDFGEN_URL
+      value: "http://su-pdfgen"
+    - name: DOKARKIV_URL
+      value: "https://inst2.prod-fss-pub.nais.io"
+    - name: DOKARKIV_CLIENT_ID
+      value: "api://prod-fss.teamdokumenthandtering.dokarkiv"
+    - name: OPPGAVE_URL
+      value: "https://oppgave.prod-fss-pub.nais.io"
+    - name: OPPGAVE_CLIENT_ID
+      value: "api://prod-fss.oppgavehandtering.oppgave"
+    - name: DOKDIST_URL
+      value: "https://dokdistfordeling.prod-fss-pub.nais.io/rest/v1"
+    - name: DOKDIST_CLIENT_ID
+      value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
+    - name: SIMULERING_URL # todo rm
+      value: "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding"
+    - name: SKJERMING_URL
+      value: "http://skjermede-personer-pip.nom"
+    - name: SKJERMING_CLIENT_ID
+      value: "api://prod-gcp.nom.skjermede-personer-pip"
+    - name: MQ_QUEUE_MANAGER
+      value: "MPLS02"
+    - name: MQ_PORT
+      value: "1414"
+    - name: MQ_HOSTNAME
+      value: "mpls02.adeo.no"
+    - name: MQ_CHANNEL
+      value: "P_SU_SE_BAKOVER"
+    - name: MQ_SEND_QUEUE_UTBETALING
+      value: "QA.P231.OB04_OPPDRAG_XML"
+    - name: MQ_REPLY_TO
+      value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
+    - name: MQ_SEND_QUEUE_AVSTEMMING
+      value: "queue:///QA.P234.OB29_AVSTEMMING_XML?targetClient=1"
+    - name: PDL_URL
+      value: "https://pdl-api.prod-fss-pub.nais.io"
+    - name: PDL_CLIENT_ID
+      value: "api://prod-fss.pdl.pdl-api"
+    - name: KABAL_URL
+      value: "http://kabal-api.klage"
+    - name: KABAL_CLIENT_ID
+      value: "api://prod-gcp.klage.kabal-api"
+    - name: SAF_URL
+      value: "https://saf.prod-fss-pub.nais.io"
+    - name: SAF_CLIENT_ID
+      value: "api://prod-fss.teamdokumenthandtering.saf"
+    - name: MQ_TILBAKEKREVING_MOTTAK
+      value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
+    - name: TILBAKEKREVING_URL # todo rm
+      value: "https://cics.adeo.no/oppdrag/K231CW80"
+    - name: SKATTEETATEN_URL
+      value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/sigrun"
+    - name: SKATT_CLIENT_ID
+      value: "api://prod-fss.team-inntekt.sigrun"
+    - name: KRR_URL
+      value: "http://digdir-krr-proxy.team-rocket"
+    - name: KRR_APP_ID
+      value: "api://prod-gcp.team-rocket.digdir-krr-proxy"
+    - name: INSTITUSJONSOPPHOLD_TOPIC
+      value: "team-rocket.institusjon-opphold-hendelser"
+    - name: KODEVERK_URL
+      value: "http://kodeverk-api.team-rocket"
+    - name: KODEVERK_CLIENT_ID
+      value: "api://prod-gcp.team-rocket.kodeverk-api"
+    - name: GANDALF_URL # todo rm
+      value: "https://security-token-service.nais.adeo.no"

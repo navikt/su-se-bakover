@@ -81,14 +81,14 @@ internal class MicrosoftGraphApiClient(
             .mapLeft { error ->
                 val errorMessage = error.response.body().asString("application/json")
                 val statusCode = error.response.statusCode
-                log.error("Kall til Microsoft Graph API feilet med kode $statusCode, melding: $errorMessage, request-parametre: ${req.parameters}")
+                log.error("Kall til Microsoft Graph API feilet med kode $statusCode, melding: $errorMessage, request-parametre: ${req.parameters}", error)
                 KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet
             }
             .flatMap { res ->
                 Either.catch {
                     deserialize<T>(res)
-                }.mapLeft {
-                    log.error("Deserialisering av respons fra Microsoft Graph API feilet: $it, request-parametre: ${req.parameters}, response-string: $res")
+                }.mapLeft { error ->
+                    log.error("Deserialisering av respons fra Microsoft Graph API feilet: $error, request-parametre: ${req.parameters}, response-string: $res", error)
                     KunneIkkeHenteNavnForNavIdent.DeserialiseringAvResponsFeilet
                 }
             }

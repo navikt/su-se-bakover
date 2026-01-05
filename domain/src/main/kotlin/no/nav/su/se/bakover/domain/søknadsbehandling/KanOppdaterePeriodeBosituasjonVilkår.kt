@@ -118,13 +118,21 @@ sealed interface KanOppdaterePeriodeBosituasjonVilkår :
         }
 
         // TODO jah: Er det mulig å kalle vilkårsvurder(...) direkte her?
-        return VilkårsvurdertSøknadsbehandling.opprett(
-            forrigeTilstand = this,
-            saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår, request.behandlingId),
-            tidspunkt = request.tidspunkt,
-            handling = SøknadsbehandlingsHandling.OppdatertFormue,
-        ).right()
+        return grunnlagsdataOgVilkårsvurderinger
+            .oppdaterFormuevilkår(vilkår, request.behandlingId)
+            .mapLeft { feilStr ->
+                val feilstring = feilStr.javaClass.simpleName + " erGyldigTilstand ${feilStr.erGyldigTilstand()}"
+                KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.FormueBosituasjonKonsistensfeil(feilstring)
+            }
+            .map { oppdaterteGrunnlagsdata ->
+                VilkårsvurdertSøknadsbehandling.opprett(
+                    forrigeTilstand = this,
+                    saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
+                    grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdata,
+                    tidspunkt = request.tidspunkt,
+                    handling = SøknadsbehandlingsHandling.OppdatertFormue,
+                )
+            }
     }
 
     /**

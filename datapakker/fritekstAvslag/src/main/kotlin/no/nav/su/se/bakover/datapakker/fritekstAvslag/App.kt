@@ -32,25 +32,25 @@ fun main() {
         maximumPoolSize = 1,
     ).getDatasource(Postgres.Role.ReadOnly).let {
         logger.info("Startet database med url: $databaseUrl")
-        it.use { hentAntallAvslagsvedtakUtenFritekst(it) }
+        hentAntallAvslagsvedtakUtenFritekst(it)
     }
 
     deleteAllAndWriteToBigQuery(antallAvslagsvedtakUtenFritekst = antallAvslagsvedtakUtenFritekst)
 }
 
 fun hentAntallAvslagsvedtakUtenFritekst(datasource: DataSource): List<AvslagsvedtakUtenFritekst> {
-    return datasource.connection.let {
-        it.use {
-            it.prepareStatement(
-                """
+    return datasource.connection.use {
+        it.prepareStatement(
+            """
                     select count(d.generertdokumentjson), to_char(date_trunc('month', v.opprettet), 'YYYY-MM') as grupperingsdato
                     from vedtak v
                              join dokument d on v.id = d.vedtakid
                     where length(trim(d.generertdokumentjson ->> 'fritekst')) < 1
                       and v.vedtaktype = 'AVSLAG'
                     group by grupperingsdato;
-                """.trimIndent(),
-            ).executeQuery().let {
+            """.trimIndent(),
+        ).use {
+            it.executeQuery().use {
                 val result = mutableListOf<AvslagsvedtakUtenFritekst>()
 
                 while (it.next()) {

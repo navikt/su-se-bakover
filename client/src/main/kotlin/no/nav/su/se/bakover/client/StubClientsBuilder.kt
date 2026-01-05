@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
+import no.nav.su.se.bakover.client.pesys.PesysclientStub
+import no.nav.su.se.bakover.client.proxy.SuProxyClientStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
@@ -54,7 +56,7 @@ class StubClientsBuilder(
             applicationConfig.azure.wellKnownUrl,
         )
         return Clients(
-            oauth = oauth,
+            azureAd = oauth,
             personOppslag = PersonOppslagStub().also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
@@ -87,6 +89,8 @@ class StubClientsBuilder(
             klageClient = KlageClientStub.also { log.warn("********** Using stub for ${KlageClientStub::class.java} **********") },
             queryJournalpostClient = QueryJournalpostClientStub.also { log.warn("********** Using stub for ${QueryJournalpostClientStub::class.java} **********") },
             skatteOppslag = SkatteClientStub(clock).also { log.warn("********** Using stub for ${SkatteClient::class.java} **********") },
+            suProxyClient = SuProxyClientStub(),
+            pesysklient = PesysclientStub(),
         )
     }
 }

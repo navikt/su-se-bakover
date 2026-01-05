@@ -83,7 +83,6 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkk
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Avsluttet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -108,12 +107,12 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.SatsFactory
-import toBehandlingsstatistikkOverordnet
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.slåSammen
 import økonomi.application.utbetaling.UtbetalingService
@@ -137,6 +136,7 @@ class RevurderingServiceImpl(
     private val satsFactory: SatsFactory,
     private val sakStatistikkRepo: SakStatistikkRepo,
     private val fritekstService: FritekstService,
+    private val sakStatistikkService: SakStatistikkService,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -188,9 +188,10 @@ class RevurderingServiceImpl(
                     klageRepo.knyttMotOmgjøring(klageId, revurdering.id.value, tx)
                 }
                 revurderingRepo.lagre(revurdering, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering)
+                val relatertId = klageId?.value ?: sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, relatertId)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkRepo.lagreSakStatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
             revurdering
         }
@@ -895,7 +896,7 @@ class RevurderingServiceImpl(
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(tilAttestering, tx)
             observers.notify(statistikkhendelse, tx)
-            sakStatistikkRepo.lagreSakStatistikk(statistikkhendelse.toBehandlingsstatistikkOverordnet(clock), tx)
+            sakStatistikkService.lagre(statistikkhendelse, tx)
         }
         return tilAttestering.right()
     }
@@ -991,8 +992,8 @@ class RevurderingServiceImpl(
                 annullerKontrollsamtale = { sakId, tx ->
                     annullerKontrollsamtaleService.annuller(sakId, tx)
                 },
-                lagreSakstatistikk = { statistikk, tx ->
-                    sakStatistikkRepo.lagreSakStatistikk(statistikk, tx)
+                lagreSakstatistikk = { statistikkHendelse, tx ->
+                    sakStatistikkService.lagre(statistikkHendelse, tx)
                 },
             ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
@@ -1028,10 +1029,7 @@ class RevurderingServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkRepo.lagreSakStatistikk(
-                        sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock),
-                        tx,
-                    )
+                    sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 }
 
                 is UnderkjentRevurdering.Opphørt -> {
@@ -1040,10 +1038,7 @@ class RevurderingServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkRepo.lagreSakStatistikk(
-                        sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock),
-                        tx,
-                    )
+                    sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 }
             }
         }
@@ -1159,10 +1154,7 @@ class RevurderingServiceImpl(
                         revurderingRepo.lagre(avsluttetRevurdering, tx)
                         val statistikkEvent = Avsluttet(avsluttetRevurdering, saksbehandler)
                         observers.notify(statistikkEvent, tx)
-                        sakStatistikkRepo.lagreSakStatistikk(
-                            statistikkEvent.toBehandlingsstatistikkOverordnet(clock),
-                            tx,
-                        )
+                        sakStatistikkService.lagre(statistikkEvent, tx)
                     }
                 }
             avsluttetRevurdering.right()
@@ -1176,28 +1168,19 @@ class RevurderingServiceImpl(
                             sakStatistikkEvent,
                             tx,
                         )
-                        sakStatistikkRepo.lagreSakStatistikk(
-                            sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock),
-                            tx,
-                        )
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
 
                     is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkRepo.lagreSakStatistikk(
-                            sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock),
-                            tx,
-                        )
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
 
                     is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
                         val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering)
                         observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkRepo.lagreSakStatistikk(
-                            sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock),
-                            tx,
-                        )
+                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
                 }
             }

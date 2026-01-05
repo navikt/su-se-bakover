@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
@@ -399,7 +399,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
         private val søknadService: SøknadService = mock()
         private val søknadsbehandlingService: SøknadsbehandlingService = mock()
-        private val sakStatistikkRepo: SakStatistikkRepo = mock()
+        private val sakStatistikkService: SakStatistikkService = mock()
 
         private val lukkSøknadService = LukkSøknadServiceImpl(
             clock = fixedClock,
@@ -409,7 +409,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             oppgaveService = oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             sessionFactory = sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(lukkSøknadServiceObserver) }
 
         fun lukkSøknad(): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> =

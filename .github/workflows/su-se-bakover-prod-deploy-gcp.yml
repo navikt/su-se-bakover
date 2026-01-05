@@ -11,6 +11,8 @@ permissions: {}
 jobs:
   deploy_to_prod:
     name: Deploy to prod
+    #temp disable denne, kjører uansett on types in array er unspecified som er skummelt
+    if: ${{ inputs.deploy_prod == true && github.ref == 'refs/heads/master' }}
     permissions:
       contents: read
       id-token: write

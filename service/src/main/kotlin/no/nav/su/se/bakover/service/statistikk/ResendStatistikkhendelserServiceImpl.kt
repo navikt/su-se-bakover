@@ -25,6 +25,7 @@ import kotlin.reflect.KClass
 
 /**
  * Har som ansvar og resende hendelser som ikke har blitt sendt til statistikk.
+ *
  */
 class ResendStatistikkhendelserServiceImpl(
     private val vedtakService: VedtakService,

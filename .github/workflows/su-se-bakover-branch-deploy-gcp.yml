@@ -1,8 +1,15 @@
-name: Deploy branch to dev-gcp GCP [manual deploy]
+name: Deploy branch to GCP [manual deploy]
 # If you want to deploy a branch (feature branch or even redeploy master/main) to dev-gcp (preprod) we use Github actions workflow_dispatch
 # Goto https://github.com/navikt/su-se-bakover/actions/workflows/su-se-bakover-branch-deploy.yml choose a branch and deploy it
 # See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_prod:
+        description: 'Deploy to production'
+        type: boolean
+        required: false
+        default: false
 
 permissions: {}
 
@@ -54,3 +61,16 @@ jobs:
       cluster: dev-gcp
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
       resource: .nais/dev-gcp.yaml
+
+  deploy-to-prod:
+    needs: build-test-push-image
+    if: ${{ inputs.deploy_prod == true && github.ref == 'refs/heads/master' }}
+    name: Deploy to prod gcp
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    with:
+      cluster: prod-gcp
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
+      resource: .nais/prod-gcp.yaml

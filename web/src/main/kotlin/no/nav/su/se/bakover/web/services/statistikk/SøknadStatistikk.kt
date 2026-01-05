@@ -1,27 +1,25 @@
 package no.nav.su.se.bakover.web.services.statistikk
 
+import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
-import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import org.slf4j.LoggerFactory
-import java.time.Clock
 import java.time.Duration
 
-internal class StønadstatistikkJob(
+class SøknadStatistikk(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
-
         fun startJob(
-            clock: Clock,
+            runCheckFactory: RunCheckFactory,
             initialDelay: Duration,
             periode: Duration,
-            runCheckFactory: RunCheckFactory,
-            stønadStatistikkJobService: StønadStatistikkJobService,
-        ): StønadstatistikkJob {
-            val log = LoggerFactory.getLogger(StønadstatistikkJob::class.java)
-            val jobName = StønadstatistikkJob::class.simpleName!!
+            søknadStatistikkService: SøknadStatistikkService,
+        ): SøknadStatistikk {
+            val log = LoggerFactory.getLogger(SøknadStatistikk::class.java)
+            val jobName = SøknadStatistikk::class.simpleName!!
             return startStoppableJob(
                 jobName = jobName,
                 initialDelay = initialDelay,
@@ -29,10 +27,12 @@ internal class StønadstatistikkJob(
                 log = log,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
-                log.info("Kjører $jobName")
-                stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
-                log.info("Jobb $jobName er fullført")
-            }.let { StønadstatistikkJob(it) }
+                if (isGCP()) {
+                    log.info("Kjører $jobName")
+                    søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
+                    log.info("Jobb $jobName er fullført")
+                }
+            }.let { SøknadStatistikk(it) }
         }
     }
 }

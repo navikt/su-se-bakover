@@ -8,6 +8,7 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -42,6 +43,9 @@ fun Sak.iverksettSøknadsbehandling(
     fritekst: String,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out IverksattSøknadsbehandling>> {
     val søknadsbehandling = hentSøknadsbehandlingEllerKast(command).getOrElse { return it.left() }
+    if (søknadsbehandling.beregning?.getMånedsberegningerMedRegel()?.any { it.benyttetRegel is Regelspesifisering.BeregnetUtenSpesifisering } == true) {
+        return KunneIkkeIverksetteSøknadsbehandling.BeregningManglerRegelspesifisering.left()
+    }
 
     validerTotrinnskontroll(command, søknadsbehandling).onLeft {
         return it.left()

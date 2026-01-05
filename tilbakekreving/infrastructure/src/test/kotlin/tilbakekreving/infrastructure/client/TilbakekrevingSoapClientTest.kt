@@ -33,7 +33,7 @@ internal class TilbakekrevingSoapClientTest {
                 ),
             )
             TilbakekrevingSoapClient(
-                baseUrl = "${this.baseUrl()}/a",
+                soapEndpointTK = "${this.baseUrl()}/a",
                 samlTokenProvider = FakeSamlTokenProvider(),
                 clock = fixedClock,
             ).sendTilbakekrevingsvedtak(
@@ -53,7 +53,7 @@ internal class TilbakekrevingSoapClientTest {
                 ),
             )
             TilbakekrevingSoapClient(
-                baseUrl = "${this.baseUrl()}/b",
+                soapEndpointTK = "${this.baseUrl()}/b",
                 samlTokenProvider = FakeSamlTokenProvider(),
                 clock = fixedClock,
             ).sendTilbakekrevingsvedtak(
@@ -74,7 +74,7 @@ internal class TilbakekrevingSoapClientTest {
                 ),
             )
             TilbakekrevingSoapClient(
-                baseUrl = "${this.baseUrl()}/c",
+                soapEndpointTK = "${this.baseUrl()}/c",
                 samlTokenProvider = FakeSamlTokenProvider(),
                 clock = fixedClock,
             ).sendTilbakekrevingsvedtak(
@@ -101,7 +101,7 @@ internal class TilbakekrevingSoapClientTest {
         startedWireMockServerWithCorrelationId {
             stubFor(wiremockBuilder("/c", "http://okonomi.nav.no/tilbakekrevingService/TilbakekrevingPortType/kravgrunnlagAnnulerRequest").willReturn(WireMock.okXml(responseXml)))
             TilbakekrevingSoapClient(
-                baseUrl = "${this.baseUrl()}/c",
+                soapEndpointTK = "${this.baseUrl()}/c",
                 samlTokenProvider = FakeSamlTokenProvider(),
                 clock = fixedClock,
             ).annullerKravgrunnlag(

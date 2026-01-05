@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.either
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -23,6 +24,9 @@ fun Sak.iverksettRevurdering(
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {
     return either {
         val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
+        if (revurdering.beregning.getMånedsberegningerMedRegel().any { it.benyttetRegel is Regelspesifisering.BeregnetUtenSpesifisering }) {
+            return KunneIkkeIverksetteRevurdering.Saksfeil.BeregningManglerRegelspesifisering.left()
+        }
         when (revurdering) {
             is RevurderingTilAttestering.Innvilget -> iverksettInnvilgetRevurdering(
                 revurdering = revurdering,

@@ -27,8 +27,12 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
+import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
@@ -38,6 +42,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
+import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.UtbetalingServiceImpl
@@ -58,6 +63,8 @@ data object ServiceBuilder {
             personOppslag = clients.personOppslag,
             personRepo = databaseRepos.person,
         )
+        val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
+        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(databaseRepos.sakStatistikkRepo)
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
@@ -104,7 +111,7 @@ data object ServiceBuilder {
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkService,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -145,6 +152,7 @@ data object ServiceBuilder {
             skatteService = skatteServiceImpl,
             sakStatistikkRepo = sakStatistikkRepo,
             fritekstService = fritekstService,
+            sakStatistikkService = sakStatistikkService,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -177,7 +185,7 @@ data object ServiceBuilder {
             sakService = sakService,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val kontrollsamtaleSetup = KontrollsamtaleSetup.create(
@@ -213,6 +221,7 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             sakStatistikkRepo = sakStatistikkRepo,
             fritekstService = fritekstService,
+            sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
@@ -222,7 +231,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sakService = sakService,
             sessionFactory = databaseRepos.sessionFactory,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val reguleringService = ReguleringServiceImpl(
@@ -248,7 +257,7 @@ data object ServiceBuilder {
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
-            sakStatistikkRepo = sakStatistikkRepo,
+            sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
@@ -271,6 +280,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             sakStatistikkRepo = sakStatistikkRepo,
             fritekstService = fritekstService,
+            sakStatistikkService = sakStatistikkService,
         ).apply {
             addObserver(statistikkEventObserver)
         }
@@ -293,7 +303,7 @@ data object ServiceBuilder {
                 søknadsbehandlingService = søknadsbehandlingService,
                 sakService = sakService,
                 sessionFactory = databaseRepos.sessionFactory,
-                sakStatistikkRepo = sakStatistikkRepo,
+                sakStatistikkService = sakStatistikkService,
             ).apply {
                 addObserver(statistikkEventObserver)
             },
@@ -350,6 +360,10 @@ data object ServiceBuilder {
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
                 vedtakRepo = databaseRepos.vedtakRepo,
             ),
+            pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
+            sakstatistikkBigQueryService = sakStatistikkBigQueryService,
+            fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
+            søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
         )
     }
 }

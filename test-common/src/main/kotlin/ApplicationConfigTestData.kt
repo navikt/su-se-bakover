@@ -40,7 +40,6 @@ fun applicationConfig() = ApplicationConfig(
         avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqTestSendQueue"),
         simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
             url = "simuleringTestUrl",
-            stsSoapUrl = "simuleringStsTestSoapUrl",
         ),
         tilbakekreving = TilbakekrevingConfig(
             mq = TilbakekrevingConfig.Mq(
@@ -48,7 +47,6 @@ fun applicationConfig() = ApplicationConfig(
             ),
             soap = TilbakekrevingConfig.Soap(
                 url = "tilbakekrevingUrl",
-                stsSoapUrl = "stsSoapUrl",
             ),
             serviceUserConfig = ServiceUserConfig(
                 username = "tilbakekrevingServiceUserTestUsername",
@@ -71,7 +69,7 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "pdlClientId",
         ),
         pdfgenUrl = "pdfgenUrl",
-        stsSamlUrl = "stsSamlUrl",
+        gandalfSamlUrl = "stsSamlUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
             url = "krrUrl",
@@ -105,6 +103,8 @@ fun applicationConfig() = ApplicationConfig(
             url = "skjermingUrl",
             clientId = "skjermingClientId",
         ),
+        pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
+        suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

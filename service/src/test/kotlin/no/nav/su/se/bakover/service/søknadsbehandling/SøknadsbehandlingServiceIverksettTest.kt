@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -42,6 +41,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrolls
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -923,6 +923,7 @@ private data class ServiceAndMocks(
     val skattDokumentService: SkattDokumentService = mock {},
     val sakStatistikkRepo: SakStatistikkRepo = mock {},
     val fritekstService: FritekstService = mock {},
+    val sakStatistikkService: SakStatistikkService = mock {},
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
@@ -938,6 +939,7 @@ private data class ServiceAndMocks(
         satsFactory = satsFactoryTestPåDato(),
         sakStatistikkRepo = sakStatistikkRepo,
         fritekstService = fritekstService,
+        sakStatistikkService = sakStatistikkService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

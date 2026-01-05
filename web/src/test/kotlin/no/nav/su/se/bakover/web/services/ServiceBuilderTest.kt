@@ -55,9 +55,11 @@ internal class ServiceBuilderTest {
                 mock(),
                 sakStatistikkRepo = mock(),
                 mock(),
+                mock(),
+                mock(),
             ),
             clients = Clients(
-                oauth = mock(),
+                azureAd = mock(),
                 personOppslag = mock(),
                 pdfGenerator = mock(),
                 journalførClients = JournalførClients(
@@ -79,6 +81,8 @@ internal class ServiceBuilderTest {
                 klageClient = mock(),
                 queryJournalpostClient = mock(),
                 skatteOppslag = mock(),
+                pesysklient = mock(),
+                suProxyClient = mock(),
             ),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),
