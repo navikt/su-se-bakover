@@ -284,12 +284,12 @@ class StansYtelseServiceImpl(
                     tx = transactionContext,
                 )
 
-                val utbetalingsrequest = stansUtbetaling.sendUtbetaling().getOrElse {
-                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
-                }
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Iverksatt(vedtak)
                 observers.notify(sakStatistikkEvent, transactionContext)
                 sakStatistikkService.lagre(sakStatistikkEvent, transactionContext)
+                val utbetalingsrequest = stansUtbetaling.sendUtbetaling().getOrElse {
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
+                }
                 IverksettStansAvYtelseITransaksjonResponse(
                     revurdering = iverksattRevurdering,
                     vedtak = vedtak,
