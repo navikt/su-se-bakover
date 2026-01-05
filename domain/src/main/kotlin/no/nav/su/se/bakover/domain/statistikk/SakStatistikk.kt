@@ -322,7 +322,6 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
-                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Stans.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -337,7 +336,6 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     ferdigbehandletTid = vedtak.opprettet,
                     behandlingMetode = BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler),
                     opprettetAv = førsteLinje?.opprettetAv,
-                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
             }
         }
@@ -366,7 +364,6 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
-                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
 
                 is StatistikkEvent.Behandling.Gjenoppta.Iverksatt -> this.toBehandlingsstatistikkGenerell(
@@ -380,7 +377,6 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
                     opprettetAv = førsteLinje?.opprettetAv,
-                    relatertId = førsteLinje?.relatertBehandlingId,
                 )
             }
         }
