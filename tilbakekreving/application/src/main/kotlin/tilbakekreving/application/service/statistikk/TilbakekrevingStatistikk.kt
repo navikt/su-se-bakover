@@ -21,10 +21,9 @@ fun OpprettetTilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
     behandlingStatus = "OPPRETTET",
 )
 
-// TODO bjg - statistikk for nye hendelser
-
 fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkTilAttestering(
     generellSakStatistikk: GenerellSakStatistikk,
+    førsteLinje: SakStatistikk? = null,
 ): SakStatistikk {
     val behandlingResultat = utledResultat(vurderingerMedKrav)
     return toTilbakeStatistikk(
@@ -36,6 +35,7 @@ fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkTilAttestering(
         } else {
             null
         },
+
     )
 }
 
@@ -103,7 +103,7 @@ data class GenerellSakStatistikk(
         fun create(
             clock: Clock,
             sak: Sak,
-            relatertId: UUID? = null,
+            relatertId: UUID?,
         ) = GenerellSakStatistikk(
             sakType = sak.type,
             tekniskTid = Tidspunkt.now(clock),

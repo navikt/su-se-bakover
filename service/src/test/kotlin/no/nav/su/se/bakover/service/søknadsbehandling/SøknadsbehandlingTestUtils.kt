@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
@@ -32,7 +32,7 @@ internal fun createSøknadsbehandlingService(
     satsFactory: SatsFactory = satsFactoryTestPåDato(),
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     skatteService: SkatteService = mock(),
-    sakStatistikkRepo: SakStatistikkRepo = mock(),
+    sakStatistikkService: SakStatistikkService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadsbehandlingRepo = søknadsbehandlingRepo,
     utbetalingService = utbetalingService,
@@ -45,7 +45,7 @@ internal fun createSøknadsbehandlingService(
     satsFactory = satsFactory,
     sessionFactory = sessionFactory,
     skatteService = skatteService,
-    sakStatistikkRepo = sakStatistikkRepo,
+    sakStatistikkService = sakStatistikkService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -61,7 +61,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
     val sessionFactory: TestSessionFactory = TestSessionFactory(),
     val skatteService: SkatteService = mock(),
-    val sakStatistikkRepo: SakStatistikkRepo = mock(),
+    val sakStatistikkService: SakStatistikkService = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -75,7 +75,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         satsFactory = satsFactory,
         sessionFactory = sessionFactory,
         skatteService = skatteService,
-        sakStatistikkRepo = sakStatistikkRepo,
+        sakStatistikkService = sakStatistikkService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

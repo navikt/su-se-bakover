@@ -6,7 +6,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 import arrow.core.Either
 import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import org.slf4j.LoggerFactory
-import toBehandlingsstatistikkOverordnet
 import vedtak.domain.Vedtak
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
@@ -53,7 +51,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
-        lagreSakstatistikk: (SakStatistikk, TransactionContext) -> Unit,
+        lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,
     ) {
         sessionFactory.withTransactionContext { tx ->
@@ -69,7 +67,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
             genererOgLagreSkattedokument(vedtak, tx)
             val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak)
             statistikkObservers.notify(sakStatistikkEvent, tx)
-            lagreSakstatistikk(sakStatistikkEvent.toBehandlingsstatistikkOverordnet(clock), tx)
+            lagreSakstatistikk(sakStatistikkEvent, tx)
         }
         log.info("Iverksatt avslag for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
         lukkOppgave(

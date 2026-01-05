@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.database.statistikk
 
+import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikkTilBiquery
@@ -86,36 +88,7 @@ class SakStatistikkRepoImpl(
             """.trimIndent().hentListe(
                 params = mapOf("sak_id" to sakId),
                 session = session,
-            ) { row ->
-                SakStatistikk(
-                    funksjonellTid = row.tidspunkt("funksjonell_tid"),
-                    tekniskTid = row.tidspunkt("teknisk_tid"),
-                    sakId = row.uuid("sak_id"),
-                    saksnummer = row.long("saksnummer"),
-                    behandlingId = row.uuid("behandling_id"),
-                    relatertBehandlingId = row.uuidOrNull("relatert_behandling_id"),
-                    aktorId = Fnr(row.string("aktorid")),
-                    sakYtelse = row.string("sak_ytelse"),
-                    sakUtland = row.string("sak_utland"),
-                    behandlingType = row.string("behandling_type"),
-                    behandlingMetode = BehandlingMetode.valueOf(row.string("behandling_metode")),
-                    mottattTid = row.tidspunkt("mottatt_tid"),
-                    registrertTid = row.tidspunkt("registrert_tid"),
-                    ferdigbehandletTid = row.tidspunktOrNull("ferdigbehandlet_tid"),
-                    utbetaltTid = row.localDateOrNull("utbetalt_tid"),
-                    behandlingStatus = row.string("behandling_status"),
-                    behandlingResultat = row.stringOrNull("behandling_resultat"),
-                    resultatBegrunnelse = row.stringOrNull("behandling_begrunnelse"),
-                    behandlingAarsak = row.stringOrNull("behandling_aarsak"),
-                    opprettetAv = row.string("opprettet_av"),
-                    saksbehandler = row.stringOrNull("saksbehandler"),
-                    ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
-                    ansvarligEnhet = row.string("ansvarlig_enhet"),
-                    funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
-                    funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
-                    tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),
-                )
-            }
+            ) { it.toSakStatistikk() }
         }
     }
 
@@ -130,37 +103,84 @@ class SakStatistikkRepoImpl(
                     "tom" to tom,
                 ),
                 session = session,
-            ) { row ->
-                SakStatistikkTilBiquery(
-                    id = row.int("id_sekvens").toBigInteger(),
-                    funksjonellTid = row.string("funksjonell_tid"),
-                    tekniskTid = row.string("teknisk_tid"),
-                    sakId = row.uuid("sak_id"),
-                    saksnummer = row.long("saksnummer"),
-                    behandlingId = row.uuid("behandling_id"),
-                    relatertBehandlingId = row.uuidOrNull("relatert_behandling_id"),
-                    aktorId = row.string("aktorid"),
-                    sakYtelse = row.string("sak_ytelse"),
-                    sakUtland = row.string("sak_utland"),
-                    behandlingType = row.string("behandling_type"),
-                    behandlingMetode = row.string("behandling_metode"),
-                    mottattTid = row.string("mottatt_tid"),
-                    registrertTid = row.string("registrert_tid"),
-                    ferdigbehandletTid = row.stringOrNull("ferdigbehandlet_tid"),
-                    utbetaltTid = row.localDateOrNull("utbetalt_tid"),
-                    behandlingStatus = row.string("behandling_status"),
-                    behandlingResultat = row.stringOrNull("behandling_resultat"),
-                    resultatBegrunnelse = row.stringOrNull("behandling_begrunnelse"),
-                    behandlingAarsak = row.stringOrNull("behandling_aarsak"),
-                    opprettetAv = row.stringOrNull("opprettet_av"),
-                    saksbehandler = row.stringOrNull("saksbehandler"),
-                    ansvarligBeslutter = row.stringOrNull("ansvarlig_beslutter"),
-                    ansvarligEnhet = row.string("ansvarlig_enhet"),
-                    funksjonellPeriodeFom = row.localDateOrNull("funksjonell_periode_fom"),
-                    funksjonellPeriodeTom = row.localDateOrNull("funksjonell_periode_tom"),
-                    tilbakekrevBeløp = row.longOrNull("tilbakekrev_beloep"),
-                )
-            }
+            ) { it.toSakStatistikkTilBiquery() }
         }
     }
+
+    override fun hentInitiellBehandlingsstatistikk(
+        behandlingsid: BehandlingsId,
+        sessionContext: SessionContext?,
+    ): SakStatistikk? {
+        val hendelserForBehandling = sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                """
+                SELECT * FROM sak_statistikk
+                WHERE behandling_id = :behandling_id
+                """.trimIndent().hentListe(
+                    params = mapOf("behandling_id" to behandlingsid.value),
+                    session = session,
+                ) { it.toSakStatistikk() }
+            }
+        }
+        return hendelserForBehandling.minByOrNull { it.funksjonellTid }
+    }
+
+    private fun Row.toSakStatistikk() = SakStatistikk(
+        funksjonellTid = tidspunkt("funksjonell_tid"),
+        tekniskTid = tidspunkt("teknisk_tid"),
+        sakId = uuid("sak_id"),
+        saksnummer = long("saksnummer"),
+        behandlingId = uuid("behandling_id"),
+        relatertBehandlingId = uuidOrNull("relatert_behandling_id"),
+        aktorId = Fnr(string("aktorid")),
+        sakYtelse = string("sak_ytelse"),
+        sakUtland = string("sak_utland"),
+        behandlingType = string("behandling_type"),
+        behandlingMetode = BehandlingMetode.valueOf(string("behandling_metode")),
+        mottattTid = tidspunkt("mottatt_tid"),
+        registrertTid = tidspunkt("registrert_tid"),
+        ferdigbehandletTid = tidspunktOrNull("ferdigbehandlet_tid"),
+        utbetaltTid = localDateOrNull("utbetalt_tid"),
+        behandlingStatus = string("behandling_status"),
+        behandlingResultat = stringOrNull("behandling_resultat"),
+        resultatBegrunnelse = stringOrNull("behandling_begrunnelse"),
+        behandlingAarsak = stringOrNull("behandling_aarsak"),
+        opprettetAv = string("opprettet_av"),
+        saksbehandler = stringOrNull("saksbehandler"),
+        ansvarligBeslutter = stringOrNull("ansvarlig_beslutter"),
+        ansvarligEnhet = string("ansvarlig_enhet"),
+        funksjonellPeriodeFom = localDateOrNull("funksjonell_periode_fom"),
+        funksjonellPeriodeTom = localDateOrNull("funksjonell_periode_tom"),
+        tilbakekrevBeløp = longOrNull("tilbakekrev_beloep"),
+    )
+
+    private fun Row.toSakStatistikkTilBiquery() = SakStatistikkTilBiquery(
+        id = int("id_sekvens").toBigInteger(),
+        funksjonellTid = string("funksjonell_tid"),
+        tekniskTid = string("teknisk_tid"),
+        sakId = uuid("sak_id"),
+        saksnummer = long("saksnummer"),
+        behandlingId = uuid("behandling_id"),
+        relatertBehandlingId = uuidOrNull("relatert_behandling_id"),
+        aktorId = string("aktorid"),
+        sakYtelse = string("sak_ytelse"),
+        sakUtland = string("sak_utland"),
+        behandlingType = string("behandling_type"),
+        behandlingMetode = string("behandling_metode"),
+        mottattTid = string("mottatt_tid"),
+        registrertTid = string("registrert_tid"),
+        ferdigbehandletTid = stringOrNull("ferdigbehandlet_tid"),
+        utbetaltTid = localDateOrNull("utbetalt_tid"),
+        behandlingStatus = string("behandling_status"),
+        behandlingResultat = stringOrNull("behandling_resultat"),
+        resultatBegrunnelse = stringOrNull("behandling_begrunnelse"),
+        behandlingAarsak = stringOrNull("behandling_aarsak"),
+        opprettetAv = stringOrNull("opprettet_av"),
+        saksbehandler = stringOrNull("saksbehandler"),
+        ansvarligBeslutter = stringOrNull("ansvarlig_beslutter"),
+        ansvarligEnhet = string("ansvarlig_enhet"),
+        funksjonellPeriodeFom = localDateOrNull("funksjonell_periode_fom"),
+        funksjonellPeriodeTom = localDateOrNull("funksjonell_periode_tom"),
+        tilbakekrevBeløp = longOrNull("tilbakekrev_beloep"),
+    )
 }

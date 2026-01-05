@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.defaultMock
@@ -39,7 +39,7 @@ internal data class RevurderingServiceMocks(
     val klageRepo: KlageRepo = mock(),
     val clock: Clock = TikkendeKlokke(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
-    val sakStatistikkRepo: SakStatistikkRepo = mock(),
+    val sakStatistikkService: SakStatistikkService = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -54,7 +54,7 @@ internal data class RevurderingServiceMocks(
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         sakService = sakService,
         satsFactory = satsFactory,
-        sakStatistikkRepo = sakStatistikkRepo,
+        sakStatistikkService = sakStatistikkService,
         klageRepo = klageRepo,
     ).apply { addObserver(observer) }
 

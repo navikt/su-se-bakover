@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
@@ -31,8 +31,8 @@ internal data class SøknadServiceOgMocks(
     val oppgaveService: OppgaveService = defaultMock(),
     val clock: Clock = fixedClock,
     val sessionFactory: SessionFactory = TestSessionFactory(),
-    val sakStatistikkRepo: SakStatistikkRepo = mock {
-        on { lagreSakStatistikk(any(), any()) }.then {}
+    val sakStatistikkService: SakStatistikkService = mock {
+        on { lagre(any(), any()) }.then {}
     },
 ) {
     val service = SøknadServiceImpl(
@@ -46,7 +46,7 @@ internal data class SøknadServiceOgMocks(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         clock = fixedClock,
         sessionFactory = sessionFactory,
-        sakStatistikkRepo = sakStatistikkRepo,
+        sakStatistikkService = sakStatistikkService,
     )
 
     fun allMocks() = listOf(
