@@ -19,40 +19,43 @@ import java.time.Clock
 fun Revurdering.lagDokumentKommando(
     satsFactory: SatsFactory,
     clock: Clock,
+    fritekst: String,
 ): GenererDokumentCommand {
     return when (this) {
         is OpprettetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for opprettet revurdering ${this.id}")
         is BeregnetRevurdering -> throw IllegalArgumentException("Kan ikke lage brevutkast for beregnet revurdering ${this.id}")
-        is SimulertRevurdering.Innvilget -> lagKommando(satsFactory)
-        is SimulertRevurdering.Opphørt -> opphør(satsFactory, clock)
-        is RevurderingTilAttestering.Innvilget -> lagKommando(satsFactory)
-        is RevurderingTilAttestering.Opphørt -> opphør(satsFactory, clock)
-        is IverksattRevurdering.Innvilget -> lagKommando(satsFactory)
-        is IverksattRevurdering.Opphørt -> opphør(satsFactory, clock)
-        is UnderkjentRevurdering.Innvilget -> lagKommando(satsFactory)
-        is UnderkjentRevurdering.Opphørt -> opphør(satsFactory, clock)
+        is SimulertRevurdering.Innvilget -> lagKommando(satsFactory, fritekst)
+        is SimulertRevurdering.Opphørt -> opphør(satsFactory, clock, fritekst)
+        is RevurderingTilAttestering.Innvilget -> lagKommando(satsFactory, fritekst)
+        is RevurderingTilAttestering.Opphørt -> opphør(satsFactory, clock, fritekst)
+        is IverksattRevurdering.Innvilget -> lagKommando(satsFactory, fritekst)
+        is IverksattRevurdering.Opphørt -> opphør(satsFactory, clock, fritekst)
+        is UnderkjentRevurdering.Innvilget -> lagKommando(satsFactory, fritekst)
+        is UnderkjentRevurdering.Opphørt -> opphør(satsFactory, clock, fritekst)
         is AvsluttetRevurdering -> AvsluttRevurderingDokumentCommand(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
             sakstype = this.sakstype,
             saksbehandler = saksbehandler,
-            fritekst = this.brevvalg.fritekst,
+            fritekst = fritekst,
         )
     }
 }
 
-private fun Revurdering.lagKommando(satsFactory: SatsFactory): IverksettRevurderingDokumentCommand {
+private fun Revurdering.lagKommando(satsFactory: SatsFactory, fritekst: String): IverksettRevurderingDokumentCommand {
     return lagRevurderingInntektDokumentKommando(
         revurdering = this,
         // TODO jah: Dette kan løses med et ekstra interface på revurderingstypene. Da kan vi fjerne null sjekken.
         beregning = this.beregning!!,
         satsFactory = satsFactory,
+        fritekst = fritekst,
     )
 }
 
 private fun Revurdering.opphør(
     satsFactory: SatsFactory,
     clock: Clock,
+    fritekst: String,
 ): IverksettRevurderingDokumentCommand {
     return lagRevurderingOpphørtDokumentKommando(
         revurdering = this,
@@ -60,5 +63,6 @@ private fun Revurdering.opphør(
         beregning = this.beregning!!,
         satsFactory = satsFactory,
         clock = clock,
+        fritekst = fritekst,
     )
 }

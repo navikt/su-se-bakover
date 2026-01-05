@@ -167,6 +167,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
             satsFactory = satsFactory,
+            fritekstService = fritekstService,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(
@@ -211,6 +212,7 @@ data object ServiceBuilder {
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
             klageRepo = databaseRepos.klageRepo,
             sakStatistikkRepo = sakStatistikkRepo,
+            fritekstService = fritekstService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(

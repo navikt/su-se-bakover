@@ -6,8 +6,8 @@ import arrow.core.right
 import java.util.UUID
 
 interface FritekstService {
-    // Denne brukes til tilgnagssjekk siden den har sakId
-    // fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst>
+    // Denne brukes i routes for å kunne gjennomføres med tilgangsjekk.
+    fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst>
     fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst>
     fun lagreFritekst(fritekst: FritekstDomain): Unit
     fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit>
@@ -22,6 +22,12 @@ interface FritekstRepo {
 class FritekstServiceImpl(
     private val repository: FritekstRepo,
 ) : FritekstService {
+    override fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst> {
+        return hentFritekst(
+            referanseId = hentDomain.referanseId,
+            type = hentDomain.type,
+        )
+    }
 
     override fun hentFritekst(referanseId: UUID, type: FritekstType): Either<FritekstFeil, Fritekst> {
         val fritekst = repository.hentFritekst(referanseId = referanseId, type = type)

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -346,6 +347,7 @@ internal class AvsluttRevurderingTest {
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
         klageRepo: KlageRepo = mock(),
         sakStatistikkRepo: SakStatistikkRepo = mock(),
+        fritekstService: FritekstService = mock(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -362,5 +364,6 @@ internal class AvsluttRevurderingTest {
             satsFactory = satsFactory,
             klageRepo = klageRepo,
             sakStatistikkRepo = sakStatistikkRepo,
+            fritekstService = fritekstService,
         )
 }

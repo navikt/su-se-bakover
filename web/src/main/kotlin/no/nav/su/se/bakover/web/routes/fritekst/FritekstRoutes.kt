@@ -82,8 +82,7 @@ internal fun Route.fritekstRoutes(
                     },
                     { mappetDomene ->
                         val resultat = fritekstService.hentFritekst(
-                            referanseId = mappetDomene.referanseId,
-                            type = mappetDomene.type,
+                            mappetDomene,
                         ).map {
                             Resultat.json(HttpStatusCode.OK, serialize(it))
                         }.getOrElse {

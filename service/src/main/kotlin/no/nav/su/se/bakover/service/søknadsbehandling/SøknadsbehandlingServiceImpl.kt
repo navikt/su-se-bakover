@@ -8,7 +8,6 @@ import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
-import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -483,14 +482,14 @@ class SøknadsbehandlingServiceImpl(
     override fun genererBrevutkast(
         command: BrevutkastForSøknadsbehandlingCommand,
     ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
-        val fritekst = fritekstService.hentFritekst(command.søknadsbehandlingId.value, FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING).getOrElse {
-            // TODO mer presis feilhåndtering
-            return KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
-        }
+        val fritekst = fritekstService.hentFritekst(
+            command.søknadsbehandlingId.value,
+            FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+        ).map { it.fritekst }.getOrElse { "" }
 
         return genererBrevutkastForSøknadsbehandling(
             command = command,
-            fritekst = fritekst.fritekst,
+            fritekst = fritekst,
             hentSøknadsbehandling = søknadsbehandlingRepo::hent,
             lagDokument = brevService::lagDokument,
             satsFactory = satsFactory,

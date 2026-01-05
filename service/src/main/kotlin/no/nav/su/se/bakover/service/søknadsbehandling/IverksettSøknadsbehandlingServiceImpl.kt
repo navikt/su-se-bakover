@@ -54,8 +54,7 @@ class IverksettSøknadsbehandlingServiceImpl(
         val fritekst = fritekstService.hentFritekst(
             referanseId = command.behandlingId.value,
             type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
-        ).getOrElse { null }?.fritekst
-
+        ).map { it.fritekst }.getOrElse { "" }
         return sakService.hentSakForSøknadsbehandling(command.behandlingId)
             .iverksettSøknadsbehandling(
                 command = command,
@@ -63,7 +62,7 @@ class IverksettSøknadsbehandlingServiceImpl(
                 clock = clock,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
                 satsFactory = satsFactory,
-                fritekst = fritekst ?: "",
+                fritekst = fritekst,
             )
             .map {
                 iverksett(it)

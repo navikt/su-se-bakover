@@ -789,7 +789,7 @@ class TestDataHelper(
             sak to vedtak
         },
     ): Pair<Sak, SimulertRevurdering.Innvilget> {
-        return persisterSimulertRevurdering().let { (sak, revurdering) ->
+        return persisterSimulertRevurdering(sakOgVedtak).let { (sak, revurdering) ->
             sak to revurdering as SimulertRevurdering.Innvilget
         }
     }

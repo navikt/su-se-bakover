@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -298,6 +299,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val vedtakService: VedtakService = mock(),
         val utbetalingRepo: UtbetalingRepo = mock(),
         val runTest: FerdigstillVedtakServiceMocks.() -> Unit,
+        val fritekstService: FritekstService = mock(),
     ) {
         val service = FerdigstillVedtakServiceImpl(
             brevService = brevService,
@@ -305,6 +307,7 @@ internal class FerdigstillVedtakServiceImplTest {
             vedtakService = vedtakService,
             clock = clock,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
+            fritekstService = fritekstService,
         )
 
         init {
