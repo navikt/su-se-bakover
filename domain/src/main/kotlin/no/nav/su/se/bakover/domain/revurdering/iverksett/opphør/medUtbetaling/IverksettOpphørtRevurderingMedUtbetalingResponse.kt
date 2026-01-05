@@ -60,6 +60,9 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                 annullerKontrollsamtale(sak.id, tx)
                 lagreRevurdering(vedtak.behandling, tx)
 
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak)
+                statistikkObservers().notify(sakStatistikkEvent, tx)
+                lagreSakstatistikk(sakStatistikkEvent, tx)
                 nyUtbetaling.sendUtbetaling()
                     .getOrElse { feil ->
                         throw IverksettTransactionException(
@@ -67,9 +70,6 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                         )
                     }
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak)
-                statistikkObservers().notify(sakStatistikkEvent, tx)
-                lagreSakstatistikk(sakStatistikkEvent, tx)
                 vedtak.behandling
             }
         }.mapLeft {

@@ -73,14 +73,14 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
 
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)
+            val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak)
+            statistikkObservers.notify(sakStatistikkEvent, tx)
+            lagreSakstatistikk(sakStatistikkEvent, tx)
             nyUtbetaling.sendUtbetaling().getOrElse { feil ->
                 throw RuntimeException(
                     "Kunne ikke innvilge søknadsbehandling ${søknadsbehandling.id}. Underliggende feil: $feil.",
                 )
             }
-            val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak)
-            statistikkObservers.notify(sakStatistikkEvent, tx)
-            lagreSakstatistikk(sakStatistikkEvent, tx)
         }
         log.info("Iverksatt innvilgelse for søknadsbehandling: ${søknadsbehandling.id}, vedtak: ${vedtak.id}")
     }
