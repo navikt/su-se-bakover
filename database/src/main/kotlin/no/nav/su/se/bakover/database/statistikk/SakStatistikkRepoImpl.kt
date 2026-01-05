@@ -145,7 +145,7 @@ class SakStatistikkRepoImpl(
         behandlingResultat = stringOrNull("behandling_resultat"),
         resultatBegrunnelse = stringOrNull("behandling_begrunnelse"),
         behandlingAarsak = stringOrNull("behandling_aarsak"),
-        opprettetAv = string("opprettet_av"),
+        opprettetAv = stringOrNull("opprettet_av"),
         saksbehandler = stringOrNull("saksbehandler"),
         ansvarligBeslutter = stringOrNull("ansvarlig_beslutter"),
         ansvarligEnhet = string("ansvarlig_enhet"),
