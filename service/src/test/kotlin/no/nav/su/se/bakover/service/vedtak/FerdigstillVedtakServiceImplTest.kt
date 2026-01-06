@@ -148,7 +148,6 @@ internal class FerdigstillVedtakServiceImplTest {
 
             verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId, null)
             verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato())), anyOrNull())
-            // verify(fritekstService).hentFritekst(vedtak.behandling.id.value, FritekstType.VEDTAKSBREV_REVURDERING)
         }
     }
 
