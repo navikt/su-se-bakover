@@ -53,7 +53,7 @@ data class SakStatistikk(
     // populeres ved persistering
     private val sekvensId: BigInteger? = null,
 ) {
-    fun getSeksvensId(): BigInteger = sekvensId
+    fun getSekvensId(): BigInteger = sekvensId
         ?: throw IllegalStateException("Sakstatistikk mangler seksvensid. Saksnummer=$saksnummer, behandling=$behandlingId")
 }
 

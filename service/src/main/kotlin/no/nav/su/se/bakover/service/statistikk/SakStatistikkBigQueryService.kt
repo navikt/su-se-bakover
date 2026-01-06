@@ -116,7 +116,7 @@ private fun List<SakStatistikk>.toCsv(): String = buildString {
     for (sakStatistikk in this@toCsv) {
         appendLine(
             listOf(
-                sakStatistikk.getSeksvensId().toString(),
+                sakStatistikk.getSekvensId().toString(),
                 sakStatistikk.funksjonellTid.toString(),
                 sakStatistikk.tekniskTid.toString(),
                 sakStatistikk.sakId.toString(),
