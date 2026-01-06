@@ -4,7 +4,6 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
-import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikkTilBiquery
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -79,7 +78,6 @@ class SakStatistikkRepoImpl(
         }
     }
 
-    // TODO: byttes ut hvis man skal teste sekvensnr genererring
     override fun hentSakStatistikk(sakId: UUID): List<SakStatistikk> {
         return sessionFactory.withSession { session ->
             """
@@ -92,7 +90,7 @@ class SakStatistikkRepoImpl(
         }
     }
 
-    override fun hentSakStatistikk(fom: LocalDate, tom: LocalDate): List<SakStatistikkTilBiquery> {
+    override fun hentSakStatistikk(fom: LocalDate, tom: LocalDate): List<SakStatistikk> {
         return sessionFactory.withSession { session ->
             """
                 SELECT * FROM sak_statistikk
@@ -103,7 +101,7 @@ class SakStatistikkRepoImpl(
                     "tom" to tom,
                 ),
                 session = session,
-            ) { it.toSakStatistikkTilBiquery() }
+            ) { it.toSakStatistikk() }
         }
     }
 
@@ -152,35 +150,6 @@ class SakStatistikkRepoImpl(
         funksjonellPeriodeFom = localDateOrNull("funksjonell_periode_fom"),
         funksjonellPeriodeTom = localDateOrNull("funksjonell_periode_tom"),
         tilbakekrevBeløp = longOrNull("tilbakekrev_beloep"),
-    )
-
-    private fun Row.toSakStatistikkTilBiquery() = SakStatistikkTilBiquery(
-        id = int("id_sekvens").toBigInteger(),
-        funksjonellTid = string("funksjonell_tid"),
-        tekniskTid = string("teknisk_tid"),
-        sakId = uuid("sak_id"),
-        saksnummer = long("saksnummer"),
-        behandlingId = uuid("behandling_id"),
-        relatertBehandlingId = uuidOrNull("relatert_behandling_id"),
-        aktorId = string("aktorid"),
-        sakYtelse = string("sak_ytelse"),
-        sakUtland = string("sak_utland"),
-        behandlingType = string("behandling_type"),
-        behandlingMetode = string("behandling_metode"),
-        mottattTid = string("mottatt_tid"),
-        registrertTid = string("registrert_tid"),
-        ferdigbehandletTid = stringOrNull("ferdigbehandlet_tid"),
-        utbetaltTid = localDateOrNull("utbetalt_tid"),
-        behandlingStatus = string("behandling_status"),
-        behandlingResultat = stringOrNull("behandling_resultat"),
-        resultatBegrunnelse = stringOrNull("behandling_begrunnelse"),
-        behandlingAarsak = stringOrNull("behandling_aarsak"),
-        opprettetAv = stringOrNull("opprettet_av"),
-        saksbehandler = stringOrNull("saksbehandler"),
-        ansvarligBeslutter = stringOrNull("ansvarlig_beslutter"),
-        ansvarligEnhet = string("ansvarlig_enhet"),
-        funksjonellPeriodeFom = localDateOrNull("funksjonell_periode_fom"),
-        funksjonellPeriodeTom = localDateOrNull("funksjonell_periode_tom"),
-        tilbakekrevBeløp = longOrNull("tilbakekrev_beloep"),
+        sekvensId = int("id_sekvens").toBigInteger(),
     )
 }

@@ -10,7 +10,7 @@ import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.bigquery.WriteChannelConfiguration
-import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikkTilBiquery
+import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
 import java.nio.channels.Channels
@@ -40,10 +40,10 @@ class SakStatistikkBigQueryServiceImpl(
         logger.info("Slutter jobb Saksstatistikk")
     }
 
-    private fun hentSaksstatistikk(fom: LocalDate): List<SakStatistikkTilBiquery> =
+    private fun hentSaksstatistikk(fom: LocalDate): List<SakStatistikk> =
         repo.hentSakStatistikk(fom, tom = LocalDate.now().plusDays(1))
 
-    private fun writeToBigQuery(data: List<SakStatistikkTilBiquery>) {
+    private fun writeToBigQuery(data: List<SakStatistikk>) {
         /*
             https://docs.nais.io/persistence/bigquery/how-to/connect/?h=bigquery
             defaulty inject basert på yaml filens referanses
@@ -112,25 +112,25 @@ class SakStatistikkBigQueryServiceImpl(
     }
 }
 
-private fun List<SakStatistikkTilBiquery>.toCsv(): String = buildString {
+private fun List<SakStatistikk>.toCsv(): String = buildString {
     for (sakStatistikk in this@toCsv) {
         appendLine(
             listOf(
-                sakStatistikk.id.toString(),
-                sakStatistikk.funksjonellTid,
-                sakStatistikk.tekniskTid,
+                sakStatistikk.getSeksvensId().toString(),
+                sakStatistikk.funksjonellTid.toString(),
+                sakStatistikk.tekniskTid.toString(),
                 sakStatistikk.sakId.toString(),
                 sakStatistikk.saksnummer.toString(),
                 sakStatistikk.behandlingId.toString(),
                 sakStatistikk.relatertBehandlingId?.toString().orEmpty(),
-                sakStatistikk.aktorId,
+                sakStatistikk.aktorId.toString(),
                 sakStatistikk.sakYtelse,
                 sakStatistikk.sakUtland,
                 sakStatistikk.behandlingType,
-                sakStatistikk.behandlingMetode,
-                sakStatistikk.mottattTid,
-                sakStatistikk.registrertTid,
-                sakStatistikk.ferdigbehandletTid.orEmpty(),
+                sakStatistikk.behandlingMetode.name,
+                sakStatistikk.mottattTid.toString(),
+                sakStatistikk.registrertTid.toString(),
+                sakStatistikk.ferdigbehandletTid?.toString().orEmpty(),
                 sakStatistikk.utbetaltTid?.toString().orEmpty(),
                 sakStatistikk.behandlingStatus,
                 sakStatistikk.behandlingResultat.orEmpty(),
