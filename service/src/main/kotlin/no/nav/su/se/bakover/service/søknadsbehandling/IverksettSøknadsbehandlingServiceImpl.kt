@@ -38,7 +38,6 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val brevService: BrevService,
     private val skattDokumentService: SkattDokumentService,
     private val satsFactory: SatsFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
 ) : IverksettSøknadsbehandlingService {

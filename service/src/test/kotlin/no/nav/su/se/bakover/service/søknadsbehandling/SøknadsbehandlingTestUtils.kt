@@ -33,7 +33,6 @@ internal fun createSøknadsbehandlingService(
     satsFactory: SatsFactory = satsFactoryTestPåDato(),
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     skatteService: SkatteService = mock(),
-    sakStatistikkRepo: SakStatistikkRepo = mock(),
     fritekstService: FritekstService = mock(),
     sakStatistikkService: SakStatistikkService = mock(),
 ) = SøknadsbehandlingServiceImpl(
@@ -48,7 +47,6 @@ internal fun createSøknadsbehandlingService(
     satsFactory = satsFactory,
     sessionFactory = sessionFactory,
     skatteService = skatteService,
-    sakStatistikkRepo = sakStatistikkRepo,
     fritekstService = fritekstService,
     sakStatistikkService = sakStatistikkService,
 ).apply { addObserver(observer) }
@@ -81,7 +79,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         satsFactory = satsFactory,
         sessionFactory = sessionFactory,
         skatteService = skatteService,
-        sakStatistikkRepo = sakStatistikkRepo,
         fritekstService = fritekstService,
         sakStatistikkService = sakStatistikkService,
     ).apply { addObserver(observer) }

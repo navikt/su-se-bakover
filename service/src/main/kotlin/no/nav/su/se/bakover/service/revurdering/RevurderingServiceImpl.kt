@@ -134,7 +134,6 @@ class RevurderingServiceImpl(
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
     private val satsFactory: SatsFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
 ) : RevurderingService {

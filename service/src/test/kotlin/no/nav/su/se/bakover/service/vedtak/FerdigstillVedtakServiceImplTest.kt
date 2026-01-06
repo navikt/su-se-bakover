@@ -12,7 +12,9 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -129,6 +131,13 @@ internal class FerdigstillVedtakServiceImplTest {
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
+            fritekstService = mock {
+                on { hentFritekst(any(), any()) } doReturn Fritekst(
+                    referanseId = vedtak.behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            },
         ) {
             val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
             val feil =
@@ -139,6 +148,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
             verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId, null)
             verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato())), anyOrNull())
+            // verify(fritekstService).hentFritekst(vedtak.behandling.id.value, FritekstType.VEDTAKSBREV_REVURDERING)
         }
     }
 
@@ -153,6 +163,13 @@ internal class FerdigstillVedtakServiceImplTest {
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any()) } doReturn Fritekst(
+                    referanseId = vedtak.behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
             },
         ) {
             val utbetaling =
@@ -193,6 +210,13 @@ internal class FerdigstillVedtakServiceImplTest {
                     tittel = "tittel1",
                     generertDokument = pdf,
                     generertDokumentJson = "brev",
+                ).right()
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any()) } doReturn Fritekst(
+                    referanseId = vedtak.behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
                 ).right()
             },
         ) {
@@ -298,8 +322,8 @@ internal class FerdigstillVedtakServiceImplTest {
         val brevService: BrevService = mock(),
         val vedtakService: VedtakService = mock(),
         val utbetalingRepo: UtbetalingRepo = mock(),
-        val runTest: FerdigstillVedtakServiceMocks.() -> Unit,
         val fritekstService: FritekstService = mock(),
+        val runTest: FerdigstillVedtakServiceMocks.() -> Unit,
     ) {
         val service = FerdigstillVedtakServiceImpl(
             brevService = brevService,

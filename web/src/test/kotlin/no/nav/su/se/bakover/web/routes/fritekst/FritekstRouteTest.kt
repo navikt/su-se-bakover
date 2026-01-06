@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
+import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -37,8 +38,11 @@ internal class FritekstRouteTest {
         val fritekstMockService = mock<FritekstService> {
             on {
                 hentFritekst(
-                    referanseId = referanseId,
-                    type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                    FritekstHentDomain(
+                        referanseId = referanseId,
+                        sakId = sakId,
+                        type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                    ),
                 )
             } doReturn fritekst.right()
         }
@@ -67,8 +71,11 @@ internal class FritekstRouteTest {
         val fritekstMockService = mock<FritekstService> {
             on {
                 hentFritekst(
-                    referanseId = referanseId,
-                    type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                    FritekstHentDomain(
+                        referanseId = referanseId,
+                        sakId = sakId,
+                        type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                    ),
                 )
             } doReturn FritekstFeil.FantIkkeFritekst.left()
         }

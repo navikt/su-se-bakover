@@ -123,7 +123,6 @@ class SøknadsbehandlingServiceImpl(
     private val satsFactory: SatsFactory,
     private val skatteService: SkatteService,
     private val sessionFactory: SessionFactory,
-    private val sakStatistikkRepo: SakStatistikkRepo,
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
 ) : SøknadsbehandlingService {

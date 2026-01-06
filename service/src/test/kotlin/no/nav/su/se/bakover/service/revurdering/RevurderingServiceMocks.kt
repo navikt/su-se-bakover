@@ -40,7 +40,6 @@ internal data class RevurderingServiceMocks(
     val klageRepo: KlageRepo = mock(),
     val clock: Clock = TikkendeKlokke(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),
-    val sakStatistikkRepo: SakStatistikkRepo = mock(),
     val fritekstService: FritekstService = defaultMock(),
     val sakStatistikkService: SakStatistikkService = mock(),
 ) {

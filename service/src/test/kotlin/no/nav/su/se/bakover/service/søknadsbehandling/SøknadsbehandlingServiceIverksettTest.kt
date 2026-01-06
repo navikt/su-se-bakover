@@ -921,7 +921,6 @@ private data class ServiceAndMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val dokumentRepo: DokumentRepo = mock {},
     val skattDokumentService: SkattDokumentService = mock {},
-    val sakStatistikkRepo: SakStatistikkRepo = mock {},
     val fritekstService: FritekstService = mock {},
     val sakStatistikkService: SakStatistikkService = mock {},
 ) {
@@ -937,7 +936,6 @@ private data class ServiceAndMocks(
         brevService = brevService,
         skattDokumentService = skattDokumentService,
         satsFactory = satsFactoryTestPåDato(),
-        sakStatistikkRepo = sakStatistikkRepo,
         fritekstService = fritekstService,
         sakStatistikkService = sakStatistikkService,
     ).apply { addObserver(observer) }
