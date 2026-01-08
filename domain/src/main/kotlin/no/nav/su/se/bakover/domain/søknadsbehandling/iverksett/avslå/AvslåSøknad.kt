@@ -62,7 +62,9 @@ fun Sak.avslåSøknad(
             }
         },
         {
-            if (it.single().saksbehandler == null) {
+            val søknadsbehandling = it.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
+                ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${it.size}")
+            if (søknadsbehandling.saksbehandler == null) {
                 return KunneIkkeAvslåSøknad.ManglerSaksbehandler.left()
             }
             Pair(this, it)
