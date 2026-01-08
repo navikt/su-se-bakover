@@ -9,6 +9,9 @@ import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tidslinje.KanPlasseresPåTidslinje
@@ -35,6 +38,7 @@ data class VurderingsperiodeFormue private constructor(
     override val vurdering: Vurdering,
     override val grunnlag: Formuegrunnlag,
     override val periode: Periode,
+    val benyttetRegel: Regelspesifisering.Beregning?,
 ) : Vurderingsperiode,
     KanPlasseresPåTidslinje<VurderingsperiodeFormue> {
 
@@ -127,6 +131,7 @@ data class VurderingsperiodeFormue private constructor(
             vurdering: Vurdering,
             grunnlag: Formuegrunnlag,
             periode: Periode,
+            benyttetRegel: Regelspesifisering.Beregning?,
         ): VurderingsperiodeFormue {
             return tryCreate(
                 id = id,
@@ -134,6 +139,7 @@ data class VurderingsperiodeFormue private constructor(
                 vurdering = vurdering,
                 grunnlag = grunnlag,
                 vurderingsperiode = periode,
+                benyttetRegel = benyttetRegel,
             ).getOrElse {
                 throw IllegalArgumentException(it.toString())
             }
@@ -145,6 +151,7 @@ data class VurderingsperiodeFormue private constructor(
             vurdering: Vurdering,
             grunnlag: Formuegrunnlag,
             vurderingsperiode: Periode,
+            benyttetRegel: Regelspesifisering.Beregning?,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeFormue> {
             grunnlag.let {
                 if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
@@ -156,6 +163,8 @@ data class VurderingsperiodeFormue private constructor(
                 vurdering = vurdering,
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
+                benyttetRegel = benyttetRegel,
+
             ).right()
         }
 
@@ -174,6 +183,7 @@ data class VurderingsperiodeFormue private constructor(
                 vurdering = Vurdering.Uavklart,
                 grunnlag = grunnlag,
                 periode = grunnlag.periode,
+                benyttetRegel = null,
             )
         }
 
@@ -185,19 +195,28 @@ data class VurderingsperiodeFormue private constructor(
             grunnlag: Formuegrunnlag,
             formuegrenserFactory: FormuegrenserFactory,
         ): VurderingsperiodeFormue {
+            val vurdering = if (grunnlag.periode.måneder().all {
+                    grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
+                }
+            ) {
+                Vurdering.Innvilget
+            } else {
+                Vurdering.Avslag
+            }
             return VurderingsperiodeFormue(
                 id = id,
                 opprettet = grunnlag.opprettet,
-                vurdering = if (grunnlag.periode.måneder().all {
-                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
-                    }
-                ) {
-                    Vurdering.Innvilget
-                } else {
-                    Vurdering.Avslag
-                },
+                vurdering = vurdering,
                 grunnlag = grunnlag,
                 periode = grunnlag.periode,
+                benyttetRegel = Regelspesifiseringer.REGEL_FORMUE_HALV_G.benyttRegelspesifisering(
+                    verdi = vurdering.toString(),
+                    avhengigeRegler = listOf(
+                        RegelspesifisertGrunnlag.GRUNNLAG_FORMUE.benyttGrunnlag(
+                            verdi = grunnlag.toString(),
+                        ),
+                    ),
+                ),
             )
         }
     }

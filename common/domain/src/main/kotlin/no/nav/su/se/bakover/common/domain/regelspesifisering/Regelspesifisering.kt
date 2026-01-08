@@ -4,6 +4,7 @@ enum class Regelspesifiseringer(
     val kode: String,
     val versjon: String,
 ) {
+    // Beregning
     REGEL_FRADRAG_EPS_OVER_FRIBELØP("REGEL-FRADRAG-EPS-OVER-FRIBELØP", "1"),
     REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET("REGEL-FRADRAG-MINUS-MINST-ARBEID-OG-FORVENTET", "1"),
     REGEL_SAMLET_FRADRAG("REGEL-SAMLET-FRADRAG", "1"),
@@ -15,7 +16,12 @@ enum class Regelspesifiseringer(
     REGEL_TO_PROSENT_AV_HØY_SATS_UFØRE("REGEL-TO-PROSENT-AV-HØY-SATS-UFØRE", "1"),
     REGEL_TO_PROSENT_AV_HØY_SATS_ALDER("REGEL-TO-PROSENT-AV-HØY-SATS-ALDER", "1"),
     REGEL_MÅNEDSBEREGNING("REGEL-MÅNEDSBEREGNING", "1"),
+
+    // Inntektsgrunnlag
     REGEL_FRADRAG_MED_UFØRE("REGEL-FRADRAG-MED-UFØRE", "1"),
+
+    // Vilkårsvurdering
+    REGEL_FORMUE_HALV_G("REGEL-FORMUE-AVRUNDING", "1"),
     ;
 
     fun benyttRegelspesifisering(
@@ -41,6 +47,7 @@ enum class RegelspesifisertGrunnlag(
     GRUNNLAG_GARANTIPENSJON_ORDINÆR("GRUNNLAG-GARANTPIPENSJON-ORDINÆR", "1"),
     GRUNNLAG_GARANTIPENSJON_HØY("GRUNNLAG-GARANTPIPENSJON-HØY", "1"),
     GRUNNLAG_UFØRETRYGD("GRUNNLAG-UFØRETRYGD", "1"),
+    GRUNNLAG_FORMUE("GRUNNLAG-FORMUE", "1"),
     ;
 
     fun benyttGrunnlag(
@@ -49,6 +56,7 @@ enum class RegelspesifisertGrunnlag(
             GRUNNLAG_BOSITUASJON,
             GRUNNLAG_FRADRAG,
             GRUNNLAG_UFØRETRYGD,
+            GRUNNLAG_FORMUE,
             -> "Saksbehandler"
 
             GRUNNLAG_UFØRE_FAKTOR_ORDINÆR,
