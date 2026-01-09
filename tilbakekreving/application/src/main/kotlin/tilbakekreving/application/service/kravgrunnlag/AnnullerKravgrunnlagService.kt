@@ -68,6 +68,9 @@ class AnnullerKravgrunnlagService(
         val behandling =
             tilbakekrevingsbehandlingHendelser.hentBehandlingForKravgrunnlag(uteståendeKravgrunnlagPåSak.hendelseId)
 
+        /*
+        TODO: her kan det hende man sender TK hendelser i evig loop hvis man annullerer før de ferdig. Burde ha en fail safe her... SOSTKGEDDON
+         */
         val (avbruttHendelse, avbruttBehandling) = behandling?.let { tilbakekrevingsbehandling ->
             (tilbakekrevingsbehandling as? KanAnnullere)?.annuller(
                 annulleringstidspunkt = Tidspunkt.now(clock),
