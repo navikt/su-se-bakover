@@ -622,7 +622,7 @@ class StønadStatistikkJobServiceImpl(
     }
 }
 
-object StønadBigQueryService {
+private object StønadBigQueryService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private const val LOCATION = "europe-north1"
