@@ -63,10 +63,7 @@ import kotlin.math.roundToInt
 
 interface StønadStatistikkJobService {
     fun lagMånedligStønadstatistikk(clock: Clock)
-    fun lastTilBigQuery(clock: Clock)
 }
-
-private const val LOCATION = "europe-north1"
 
 class StønadStatistikkJobServiceImpl(
     private val stønadStatistikkRepo: StønadStatistikkRepo,
@@ -75,92 +72,13 @@ class StønadStatistikkJobServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lastTilBigQuery(clock: Clock) {
-        val måned = YearMonth.now(clock).minusMonths(1)
-        val data = stønadStatistikkRepo.hentMånedStatistikk(måned)
-        val harKjørt = data.isNotEmpty()
-        if (harKjørt) {
-            log.info("Hentet ${data.size} rader fra databasen, overfører for måned $måned")
-            writeToBigQuery(data)
-            log.info("Slutter jobb Stønadstatistikk")
-        } else {
-            log.error("Statistikk er ikke produsert for måned $måned kan ikke oversendes bigquery")
-        }
-    }
-    private fun writeToBigQuery(data: List<StønadstatistikkMåned>) {
-        /*
-            https://docs.nais.io/persistence/bigquery/how-to/connect/?h=bigquery
-            defaulty inject basert på yaml filens referanses
-         */
-        val project: String = System.getenv("GCP_TEAM_PROJECT_ID")
-
-        val bq = createBigQueryClient(project)
-
-        val stoenadtable = "stoenadstatistikk"
-        val stoenadCSV = data.toCSV()
-        log.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
-
-        val jobStoenad = writeCsvToBigQueryTable(bigQueryClient = bq, project = project, tableName = stoenadtable, csvData = stoenadCSV)
-
-        log.info("Saksstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
-    }
-
-    private fun createBigQueryClient(project: String): BigQuery =
-        BigQueryOptions.newBuilder()
-            .setCredentials(GoogleCredentials.getApplicationDefault())
-            .setLocation(LOCATION)
-            .setProjectId(project)
-            .build()
-            .service
-
-    val dataset = "statistikk"
-    private fun writeCsvToBigQueryTable(
-        bigQueryClient: BigQuery,
-        project: String,
-        tableName: String,
-        csvData: String,
-    ): Job {
-        val jobId = JobId.newBuilder()
-            .setLocation(LOCATION)
-            .setJob(UUID.randomUUID().toString())
-            .build()
-
-        val tableId = TableId.of(project, dataset, tableName)
-
-        log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
-
-        val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
-            .setFormatOptions(FormatOptions.csv())
-            .build()
-
-        val writer = try {
-            bigQueryClient.writer(jobId, writeConfig)
-        } catch (e: Exception) {
-            throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
-        }
-
-        try {
-            writer.use { channel ->
-                Channels.newOutputStream(channel).use { os ->
-                    os.write(csvData.toByteArray())
-                }
-            }
-        } catch (e: Exception) {
-            log.error("Failed to write CSV data to BigQuery stream: ${e.message}", e)
-            throw RuntimeException("Error during CSV write to BigQuery", e)
-        }
-
-        val job = writer.job
-        job.waitFor()
-
-        return job
-    }
-
     override fun lagMånedligStønadstatistikk(clock: Clock) {
         val måned = YearMonth.now(clock).minusMonths(1)
         val harKjørt = stønadStatistikkRepo.hentMånedStatistikk(måned).isNotEmpty()
         if (!harKjørt) {
             lagMånedligStønadstatistikk(clock, måned)
+            val månedstatistikk = stønadStatistikkRepo.hentMånedStatistikk(måned)
+            StønadBigQueryService.lastTilBigQuery(måned, månedstatistikk)
         }
     }
 
@@ -219,30 +137,31 @@ class StønadStatistikkJobServiceImpl(
         },
     )
 
-    private fun månedsbeløperBasertPåVedtak(clock: Clock, måned: YearMonth, siste: Vedtak, alleVedtak: List<Vedtak>) = when (siste) {
-        is VedtakInnvilgetRevurdering -> månedsbeløper(siste, siste.beregning)
-        is VedtakInnvilgetSøknadsbehandling -> månedsbeløper(siste, siste.beregning)
-        is VedtakInnvilgetRegulering -> månedsbeløper(siste, siste.beregning)
-        is VedtakGjenopptakAvYtelse -> {
-            val beregningSomGjenopptas = GjeldendeVedtaksdata(
-                periode = Måned.fra(måned),
-                vedtakListe = alleVedtak.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filter { it.beregning != null }.toNonEmptyListOrNull()
-                    ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt"),
-                clock = clock,
-            ).gjeldendeVedtakForMåned(Måned.fra(måned))?.beregning
-                ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt")
+    private fun månedsbeløperBasertPåVedtak(clock: Clock, måned: YearMonth, siste: Vedtak, alleVedtak: List<Vedtak>) =
+        when (siste) {
+            is VedtakInnvilgetRevurdering -> månedsbeløper(siste, siste.beregning)
+            is VedtakInnvilgetSøknadsbehandling -> månedsbeløper(siste, siste.beregning)
+            is VedtakInnvilgetRegulering -> månedsbeløper(siste, siste.beregning)
+            is VedtakGjenopptakAvYtelse -> {
+                val beregningSomGjenopptas = GjeldendeVedtaksdata(
+                    periode = Måned.fra(måned),
+                    vedtakListe = alleVedtak.filterIsInstance<VedtakSomKanRevurderes>()
+                        .filter { it.beregning != null }.toNonEmptyListOrNull()
+                        ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt"),
+                    clock = clock,
+                ).gjeldendeVedtakForMåned(Måned.fra(måned))?.beregning
+                    ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt")
 
-            månedsbeløper(siste, beregningSomGjenopptas)
+                månedsbeløper(siste, beregningSomGjenopptas)
+            }
+
+            is VedtakOpphørMedUtbetaling,
+            is Opphørsvedtak,
+            is VedtakStansAvYtelse,
+            -> emptyList()
+
+            else -> throw IllegalStateException("Ikke tatt høyde for ${siste::class.simpleName} ved generering av statistikk")
         }
-
-        is VedtakOpphørMedUtbetaling,
-        is Opphørsvedtak,
-        is VedtakStansAvYtelse,
-        -> emptyList()
-
-        else -> throw IllegalStateException("Ikke tatt høyde for ${siste::class.simpleName} ved generering av statistikk")
-    }
 
     private fun månedsbeløper(
         vedtak: VedtakEndringIYtelse,
@@ -700,6 +619,92 @@ class StønadStatistikkJobServiceImpl(
         return månedsbeløp?.fradrag?.singleOrNull {
             it.fradragstype == fradragstype.name && it.tilhører == tilhører.name
         }?.beløp?.toInt()
+    }
+}
+
+private object StønadBigQueryService {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    private const val LOCATION = "europe-north1"
+
+    fun lastTilBigQuery(måned: YearMonth, data: List<StønadstatistikkMåned>) {
+        log.info("Sender ${data.size} rader for stønadstatistikk fra databasen, overfører for måned $måned")
+        writeToBigQuery(data)
+        log.info("Slutter jobb Stønadstatistikk")
+    }
+
+    private fun writeToBigQuery(data: List<StønadstatistikkMåned>) {
+        /*
+            https://docs.nais.io/persistence/bigquery/how-to/connect/?h=bigquery
+            defaulty inject basert på yaml filens referanses
+         */
+        val project: String = System.getenv("GCP_TEAM_PROJECT_ID")
+
+        val bq = createBigQueryClient(project)
+
+        val stoenadtable = "stoenadstatistikk"
+        val stoenadCSV = data.toCSV()
+        log.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
+
+        val jobStoenad = writeCsvToBigQueryTable(
+            bigQueryClient = bq,
+            project = project,
+            tableName = stoenadtable,
+            csvData = stoenadCSV,
+        )
+
+        log.info("Saksstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
+    }
+
+    private fun createBigQueryClient(project: String): BigQuery =
+        BigQueryOptions.newBuilder()
+            .setCredentials(GoogleCredentials.getApplicationDefault())
+            .setLocation(LOCATION)
+            .setProjectId(project)
+            .build()
+            .service
+
+    val dataset = "statistikk"
+    private fun writeCsvToBigQueryTable(
+        bigQueryClient: BigQuery,
+        project: String,
+        tableName: String,
+        csvData: String,
+    ): Job {
+        val jobId = JobId.newBuilder()
+            .setLocation(LOCATION)
+            .setJob(UUID.randomUUID().toString())
+            .build()
+
+        val tableId = TableId.of(project, dataset, tableName)
+
+        log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
+
+        val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
+            .setFormatOptions(FormatOptions.csv())
+            .build()
+
+        val writer = try {
+            bigQueryClient.writer(jobId, writeConfig)
+        } catch (e: Exception) {
+            throw RuntimeException("BigQuery writer creation failed: ${e.message}", e)
+        }
+
+        try {
+            writer.use { channel ->
+                Channels.newOutputStream(channel).use { os ->
+                    os.write(csvData.toByteArray())
+                }
+            }
+        } catch (e: Exception) {
+            log.error("Failed to write CSV data to BigQuery stream: ${e.message}", e)
+            throw RuntimeException("Error during CSV write to BigQuery", e)
+        }
+
+        val job = writer.job
+        job.waitFor()
+
+        return job
     }
 }
 

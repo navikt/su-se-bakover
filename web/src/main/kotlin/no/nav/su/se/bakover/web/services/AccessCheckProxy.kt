@@ -1463,10 +1463,6 @@ open class AccessCheckProxy(
                 override fun lagMånedligStønadstatistikk(clock: Clock) {
                     services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
                 }
-
-                override fun lastTilBigQuery(clock: Clock) {
-                    services.stønadStatistikkJobService.lastTilBigQuery(clock)
-                }
             },
 
             pesysJobService = object : PesysJobService {

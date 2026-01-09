@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
 import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
 import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
-import no.nav.su.se.bakover.web.services.statistikk.StønadStatistikkTilBigQuery
 import no.nav.su.se.bakover.web.services.statistikk.SøknadStatistikk
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -366,16 +365,6 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
-        ),
-        /*
-            Denne vil kjøre periodevis hver dag men jobben i seg selv kjøre bare om dagens dag er den første i måneden
-         */
-        StønadStatistikkTilBigQuery.startJob(
-            clock = clock,
-            starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
-            periode = Duration.of(1, ChronoUnit.DAYS),
-            runCheckFactory = runCheckFactory,
-            stønadJobService = services.stønadStatistikkJobService,
         ),
 
         JournalførDokumentJob.startJob(
