@@ -21,7 +21,7 @@ enum class Regelspesifiseringer(
     REGEL_FRADRAG_MED_UFØRE("REGEL-FRADRAG-MED-UFØRE", "1"),
 
     // Vilkårsvurdering
-    REGEL_FORMUE_HALV_G("REGEL-FORMUE-AVRUNDING", "1"),
+    REGEL_FORMUE_HALV_G("REGEL-FORMUE-HALV-G", "1"),
     ;
 
     fun benyttRegelspesifisering(
