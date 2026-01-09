@@ -9,7 +9,6 @@ import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notifyUtenTransaction
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
@@ -57,30 +55,30 @@ fun Sak.avslåSøknad(
                 saksbehandler = command.saksbehandler,
             ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
                 // TODO: rart å ha side-effekter her inne
-                observers.notifyUtenTransaction(StatistikkEvent.Behandling.Søknad.Opprettet(it.second, NavIdentBruker.Saksbehandler.systembruker()))
-                Pair(it.first, listOf(it.second))
+                observers.notifyUtenTransaction(
+                    StatistikkEvent.Behandling.Søknad.Opprettet(
+                        it.second,
+                        NavIdentBruker.Saksbehandler.systembruker(),
+                    ),
+                )
+                Pair(it.first, it.second)
             }
         },
         {
-            val søknadsbehandling = it.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
-                ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${it.size}")
+            val søknadsbehandling = it.filterIsInstance<KanOppdaterePeriodeBosituasjonVilkår>().singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
+                ?: throw IllegalArgumentException("Fant ingen, eller flere åpne søknadsbehandlinger eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for søknad $søknadId. Antall behandlinger funnet ${it.size}")
             if (søknadsbehandling.saksbehandler == null) {
                 return KunneIkkeAvslåSøknad.ManglerSaksbehandler.left()
             }
-            Pair(this, it)
+            Pair(this, søknadsbehandling)
         },
-    ).let { (sak: Sak, behandlinger: List<Søknadsbehandling>) ->
-        behandlinger.filterIsInstance<KanOppdaterePeriodeBosituasjonVilkår>().whenever(
-            { throw IllegalArgumentException("Avslag: Fant ingen søknadsbehandling, eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for sak ${sak.id}, søknad ${command.søknadId}") },
-            {
-                avslå(
-                    sak = sak,
-                    søknadsbehandling = it.single(),
-                    request = command,
-                    clock = clock,
-                    formuegrenserFactory = formuegrenserFactory,
-                )
-            },
+    ).let { (sak: Sak, behandling: KanOppdaterePeriodeBosituasjonVilkår) ->
+        avslå(
+            sak = sak,
+            søknadsbehandling = behandling,
+            request = command,
+            clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         )
     }.let {
         it.getOrElse {
