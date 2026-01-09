@@ -30,7 +30,7 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     attestering: Attestering.Iverksatt,
     clock: Clock,
     satsFactory: SatsFactory,
-    fritekst: String?,
+    fritekst: String,
     genererPdf: (command: IverksettSøknadsbehandlingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattAvslåttSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })

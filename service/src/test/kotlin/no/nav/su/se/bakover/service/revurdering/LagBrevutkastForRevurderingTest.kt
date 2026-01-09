@@ -7,6 +7,9 @@ import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.test.argThat
@@ -45,6 +48,13 @@ internal class LagBrevutkastForRevurderingTest {
                     generertDokumentJson = "brev",
                 ).right()
             },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = revurderingId.value,
+                    type = FritekstType.VEDTAKSBREV_REVURDERING,
+                    fritekst = "",
+                ).right()
+            },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
@@ -69,6 +79,9 @@ internal class LagBrevutkastForRevurderingTest {
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -97,6 +110,9 @@ internal class LagBrevutkastForRevurderingTest {
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
+            },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
@@ -123,6 +139,9 @@ internal class LagBrevutkastForRevurderingTest {
             },
             brevService = mock {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -153,6 +172,9 @@ internal class LagBrevutkastForRevurderingTest {
                 brevService = mock {
                     on { lagDokument(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
                 },
+                fritekstService = mock {
+                    on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
+                },
             ).let {
                 it.revurderingService.lagBrevutkastForRevurdering(
                     revurderingId = revurderingId,
@@ -178,6 +200,9 @@ internal class LagBrevutkastForRevurderingTest {
                 },
                 brevService = mock {
                     on { lagDokument(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
+                },
+                fritekstService = mock {
+                    on { hentFritekst(any(), any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
                 },
             ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,

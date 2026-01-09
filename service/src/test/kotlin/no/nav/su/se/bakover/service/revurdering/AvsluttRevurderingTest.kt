@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -133,10 +136,19 @@ internal class AvsluttRevurderingTest {
             on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
 
+        val fritekstServiceMock = mock<FritekstService> {
+            on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                referanseId = simulert.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                fritekst = "medFritekst",
+            ).right()
+        }
+
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
+            fritekstService = fritekstServiceMock,
         )
 
         revurderingService.avsluttRevurdering(
@@ -345,6 +357,7 @@ internal class AvsluttRevurderingTest {
         sessionFactory: SessionFactory = TestSessionFactory(),
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
         klageRepo: KlageRepo = mock(),
+        fritekstService: FritekstService = mock(),
         sakStatistikkService: SakStatistikkService = mock(),
     ) =
         RevurderingServiceImpl(
@@ -361,6 +374,7 @@ internal class AvsluttRevurderingTest {
             sakService = sakService,
             satsFactory = satsFactory,
             klageRepo = klageRepo,
+            fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
         )
 }

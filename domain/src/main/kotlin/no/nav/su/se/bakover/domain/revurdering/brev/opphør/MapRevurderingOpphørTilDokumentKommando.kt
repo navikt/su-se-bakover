@@ -20,6 +20,7 @@ internal fun lagRevurderingOpphørtDokumentKommando(
     beregning: Beregning,
     satsFactory: SatsFactory,
     clock: Clock,
+    fritekst: String,
 ): IverksettRevurderingDokumentCommand.Opphør {
     require(revurdering.erOpphørt) {
         "Kan ikke lage opphørsbrev for en revurdering som ikke er opphørt. RevurderingId: ${revurdering.id}"
@@ -31,7 +32,7 @@ internal fun lagRevurderingOpphørtDokumentKommando(
         sakstype = revurdering.sakstype,
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
         beregning = beregning,
-        fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,
+        fritekst = fritekst,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.prøvHentSisteAttestant(),
         forventetInntektStørreEnn0 =

@@ -150,6 +150,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             sessionFactory = databaseRepos.sessionFactory,
             skatteService = skatteServiceImpl,
+            fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
         ).apply {
             addObserver(statistikkEventObserver)
@@ -173,6 +174,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
             satsFactory = satsFactory,
+            fritekstService = fritekstService,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(
@@ -216,6 +218,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
             klageRepo = databaseRepos.klageRepo,
+            fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
         ).apply { addObserver(statistikkEventObserver) }
 
@@ -273,6 +276,7 @@ data object ServiceBuilder {
             brevService = brevService,
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
+            fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
         ).apply {
             addObserver(statistikkEventObserver)

@@ -751,7 +751,6 @@ fun iverksattSøknadsbehandling(
             command = IverksettSøknadsbehandlingCommand(
                 behandlingId = tilAttestering.id,
                 attestering = attestering,
-                fritekstEndringAttestering = fritekstTilBrev,
             ),
             genererPdf = {
                 Dokument.UtenMetadata.Vedtak(
@@ -770,6 +769,7 @@ fun iverksattSøknadsbehandling(
             },
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),
+            fritekst = "",
         ).getOrFail().let { response ->
             /**
              * TODO

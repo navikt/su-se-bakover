@@ -17,6 +17,7 @@ internal fun lagRevurderingInntektDokumentKommando(
     revurdering: Revurdering,
     beregning: Beregning,
     satsFactory: SatsFactory,
+    fritekst: String,
 ): IverksettRevurderingDokumentCommand.Inntekt {
     return IverksettRevurderingDokumentCommand.Inntekt(
         fødselsnummer = revurdering.fnr,
@@ -25,7 +26,7 @@ internal fun lagRevurderingInntektDokumentKommando(
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.hentAttestantSomIverksatte(),
         beregning = beregning,
-        fritekst = revurdering.brevvalgRevurdering.skalSendeBrev().getOrNull()?.fritekst,
+        fritekst = fritekst,
         // TODO("flere_satser denne må endres til å støtte flere")
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
         forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()

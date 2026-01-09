@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import dokument.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -32,6 +33,7 @@ internal fun createSøknadsbehandlingService(
     satsFactory: SatsFactory = satsFactoryTestPåDato(),
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     skatteService: SkatteService = mock(),
+    fritekstService: FritekstService = mock(),
     sakStatistikkService: SakStatistikkService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -45,11 +47,13 @@ internal fun createSøknadsbehandlingService(
     satsFactory = satsFactory,
     sessionFactory = sessionFactory,
     skatteService = skatteService,
+    fritekstService = fritekstService,
     sakStatistikkService = sakStatistikkService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
     val søknadsbehandlingRepo: SøknadsbehandlingRepo = defaultMock(),
+    val fritekstService: FritekstService = defaultMock(),
     val utbetalingService: UtbetalingService = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
     val personService: PersonService = defaultMock(),
@@ -75,6 +79,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         satsFactory = satsFactory,
         sessionFactory = sessionFactory,
         skatteService = skatteService,
+        fritekstService = fritekstService,
         sakStatistikkService = sakStatistikkService,
     ).apply { addObserver(observer) }
 

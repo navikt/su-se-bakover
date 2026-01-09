@@ -550,6 +550,14 @@ open class AccessCheckProxy(
                     return services.fritekstService.hentFritekst(hentDomain = hentDomain)
                 }
 
+                override fun hentFritekst(
+                    referanseId: UUID,
+                    type: FritekstType,
+                    sessionContext: SessionContext?,
+                ): Either<FritekstFeil, Fritekst> {
+                    throw IllegalArgumentException("Denne metoden skal ikke benyttes til tilgangssjekk")
+                }
+
                 override fun lagreFritekst(fritekst: FritekstDomain) {
                     harTilgang(referanseId = fritekst.referanseId, type = fritekst.type, sakId = fritekst.sakId)
                     return services.fritekstService.lagreFritekst(fritekst)

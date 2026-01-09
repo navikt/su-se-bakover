@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
@@ -16,9 +17,9 @@ class FritekstPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) : FritekstRepo {
 
-    override fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst? =
+    override fun hentFritekst(referanseId: UUID, type: FritekstType, sessionContext: SessionContext?): Fritekst? =
         dbMetrics.timeQuery("hentFritekst") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                     select * from fritekst where referanse_id = :referanse_id  and type = :type
                 """.trimIndent().hent(
