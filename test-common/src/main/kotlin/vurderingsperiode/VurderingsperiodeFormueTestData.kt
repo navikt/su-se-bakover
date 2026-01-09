@@ -22,4 +22,5 @@ fun nyVurderingsperiodeFormue(
     vurdering = vurdering,
     periode = periode,
     grunnlag = grunnlag,
+    benyttetRegel = null,
 )

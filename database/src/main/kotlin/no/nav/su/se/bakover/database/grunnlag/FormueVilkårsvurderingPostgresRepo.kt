@@ -10,7 +10,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.database.beregning.toJson
 import vilkår.formue.domain.FormueVilkår
 import vilkår.formue.domain.VurderingsperiodeFormue
 
@@ -24,6 +26,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
             is FormueVilkår.IkkeVurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(behandlingId, emptyList(), tx)
             }
+
             is FormueVilkår.Vurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
                     behandlingId = behandlingId,
@@ -37,7 +40,11 @@ internal class FormueVilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: BehandlingsId, vurderingsperiode: VurderingsperiodeFormue, tx: TransactionalSession) {
+    private fun lagre(
+        behandlingId: BehandlingsId,
+        vurderingsperiode: VurderingsperiodeFormue,
+        tx: TransactionalSession,
+    ) {
         """
                 insert into vilkårsvurdering_formue
                 (
@@ -48,7 +55,8 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     vurdering,
                     resultat,
                     fraOgMed,
-                    tilOgMed
+                    tilOgMed,
+                    benyttet_regel
                 ) values
                 (
                     :id,
@@ -58,7 +66,8 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     :vurdering,
                     :resultat,
                     :fraOgMed,
-                    :tilOgMed
+                    :tilOgMed,
+                    :benyttetRegel
                 )
         """.trimIndent()
             .insert(
@@ -71,6 +80,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
+                    "benyttetRegel" to vurderingsperiode.benyttetRegel?.let { serialize(it.toJson()) },
                 ),
                 tx,
             )
@@ -105,6 +115,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                         true -> FormueVilkår.Vurdert.createFromVilkårsvurderinger(
                             vurderingsperioder = it.toNonEmptyList(),
                         )
+
                         false -> FormueVilkår.IkkeVurdert
                     }
                 }
@@ -124,6 +135,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                 formuegrunnlagPostgresRepo.hentFormuegrunnlag(it, session)!!
             },
             periode = periode,
+            benyttetRegel = null,
         )
     }
 }

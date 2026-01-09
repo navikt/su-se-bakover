@@ -60,6 +60,7 @@ internal class FormuevilkårJsonTest {
                         behandlingsPeriode = janDes,
                     ),
                     periode = janJun,
+                    benyttetRegel = null,
                 ),
                 VurderingsperiodeFormue.create(
                     id = UUID.fromString("2403e105-b3fc-435a-a38b-e0a76ef9a73c"),
@@ -83,6 +84,7 @@ internal class FormuevilkårJsonTest {
                         behandlingsPeriode = janDes,
                     ),
                     periode = julDes,
+                    benyttetRegel = null,
                 ),
             ),
         ).toJson(formuegrenserFactoryTestPåDato())

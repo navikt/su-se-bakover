@@ -3,6 +3,7 @@ package vilkår.formue.domain
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldHaveSize
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.tid.februar
@@ -48,25 +49,31 @@ internal class FormueVilkårTest {
 
         val actual = nonEmptyListOf(f1, f2, f3).slåSammenLikePerioder()
         actual.size shouldBe 2
-        actual.first() shouldBe lagFormueVurderingsperiode(
-            id = actual.first().id,
-            periodeInnenfor2021 = Periode.create(1.januar(2021), 28.februar(2021)),
-            grunnlagsId = actual.first().grunnlag.id,
+        actual.first().shouldBeEqualToIgnoringFields(
+            lagFormueVurderingsperiode(
+                id = actual.first().id,
+                periodeInnenfor2021 = Periode.create(1.januar(2021), 28.februar(2021)),
+                grunnlagsId = actual.first().grunnlag.id,
+            ),
+            VurderingsperiodeFormue::benyttetRegel,
         )
 
-        actual.last() shouldBe lagFormueVurderingsperiode(
-            id = actual.last().id,
-            periodeInnenfor2021 = mars(2021),
-            grunnlagsId = actual.last().grunnlag.id,
-            vurdering = Vurdering.Avslag,
-            grunnlag = Formuegrunnlag.create(
-                id = actual.last().grunnlag.id,
-                periode = mars(2021),
-                opprettet = fixedTidspunkt,
-                epsFormue = null,
-                søkersFormue = formueverdier(innskudd = 1000000),
-                behandlingsPeriode = år(2021),
+        actual.last().shouldBeEqualToIgnoringFields(
+            lagFormueVurderingsperiode(
+                id = actual.last().id,
+                periodeInnenfor2021 = mars(2021),
+                grunnlagsId = actual.last().grunnlag.id,
+                vurdering = Vurdering.Avslag,
+                grunnlag = Formuegrunnlag.create(
+                    id = actual.last().grunnlag.id,
+                    periode = mars(2021),
+                    opprettet = fixedTidspunkt,
+                    epsFormue = null,
+                    søkersFormue = formueverdier(innskudd = 1000000),
+                    behandlingsPeriode = år(2021),
+                ),
             ),
+            VurderingsperiodeFormue::benyttetRegel,
         )
     }
 

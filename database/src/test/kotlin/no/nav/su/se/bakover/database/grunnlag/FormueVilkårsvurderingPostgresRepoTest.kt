@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -90,10 +91,19 @@ internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: D
         dataSource.withTransaction { session ->
             repo.lagre(behandlingId, vilkår, session)
             repo.hent(behandlingId, session).let {
-                it shouldBe vilkår
+                it.shouldBeEqualToIgnoringFields(
+                    vilkår,
+                    FormueVilkår.Vurdert::vurderingsperioder,
+                )
                 it.erAvslag shouldBe false
                 it.erInnvilget shouldBe true
                 it.vurdering shouldBe Vurdering.Innvilget
+                (it as FormueVilkår.Vurdert).vurderingsperioder.forEachIndexed { i, vurdering ->
+                    vurdering.shouldBeEqualToIgnoringFields(
+                        vilkår.vurderingsperioder[i],
+                        VurderingsperiodeFormue::benyttetRegel,
+                    )
+                }
             }
         }
     }
@@ -110,10 +120,19 @@ internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: D
         dataSource.withTransaction { session ->
             repo.lagre(behandlingId, vilkår, session)
             repo.hent(behandlingId, session).let {
-                it shouldBe vilkår
+                it.shouldBeEqualToIgnoringFields(
+                    vilkår,
+                    FormueVilkår.Vurdert::vurderingsperioder,
+                )
                 it.erAvslag shouldBe false
                 it.erInnvilget shouldBe true
                 it.vurdering shouldBe Vurdering.Innvilget
+                (it as FormueVilkår.Vurdert).vurderingsperioder.forEachIndexed { i, vurdering ->
+                    vurdering.shouldBeEqualToIgnoringFields(
+                        vilkår.vurderingsperioder[i],
+                        VurderingsperiodeFormue::benyttetRegel,
+                    )
+                }
             }
         }
     }
@@ -144,10 +163,19 @@ internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: D
         dataSource.withTransaction { session ->
             repo.lagre(behandlingId, vilkår, session)
             repo.hent(behandlingId, session).let {
-                it shouldBe vilkår
+                it.shouldBeEqualToIgnoringFields(
+                    vilkår,
+                    FormueVilkår.Vurdert::vurderingsperioder,
+                )
                 it.erAvslag shouldBe true
                 it.erInnvilget shouldBe false
                 it.vurdering shouldBe Vurdering.Avslag
+                (it as FormueVilkår.Vurdert).vurderingsperioder.forEachIndexed { i, vurdering ->
+                    vurdering.shouldBeEqualToIgnoringFields(
+                        vilkår.vurderingsperioder[i],
+                        VurderingsperiodeFormue::benyttetRegel,
+                    )
+                }
             }
         }
     }
@@ -167,6 +195,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: D
                     vurdering = Vurdering.Uavklart,
                     grunnlag = formuegrunnlag(periode = periode, epsFormue = null),
                     periode = periode,
+                    benyttetRegel = null,
                 ),
             ),
         )
@@ -194,7 +223,19 @@ internal class FormueVilkårsvurderingPostgresRepoTest(private val dataSource: D
 
         dataSource.withTransaction { session ->
             formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, session)
-            formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+            formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session).let {
+                it.shouldBeEqualToIgnoringFields(
+                    vilkår,
+                    FormueVilkår.Vurdert::vurderingsperioder,
+                )
+                (it as FormueVilkår.Vurdert).vurderingsperioder.forEachIndexed { i, vurdering ->
+                    vurdering.shouldBeEqualToIgnoringFields(
+                        (vilkår as FormueVilkår.Vurdert).vurderingsperioder[i],
+                        VurderingsperiodeFormue::benyttetRegel,
+                    )
+                }
+            }
+
             formueVilkårsvurderingPostgresRepo.lagre(
                 søknadsbehandling.id,
                 formuevilkårIkkeVurdert(),
