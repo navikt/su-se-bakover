@@ -137,7 +137,7 @@ internal class AvsluttRevurderingTest {
         }
 
         val fritekstServiceMock = mock<FritekstService> {
-            on { hentFritekst(any(), any()) } doReturn Fritekst(
+            on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                 referanseId = simulert.id.value,
                 type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                 fritekst = "medFritekst",

@@ -553,6 +553,7 @@ open class AccessCheckProxy(
                 override fun hentFritekst(
                     referanseId: UUID,
                     type: FritekstType,
+                    sessionContext: SessionContext?,
                 ): Either<FritekstFeil, Fritekst> {
                     throw IllegalArgumentException("Denne metoden skal ikke benyttes til tilgangssjekk")
                 }

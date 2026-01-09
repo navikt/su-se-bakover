@@ -132,7 +132,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
             fritekstService = mock {
-                on { hentFritekst(any(), any()) } doReturn Fritekst(
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                     fritekst = "",
@@ -164,7 +164,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
             },
             fritekstService = mock {
-                on { hentFritekst(any(), any()) } doReturn Fritekst(
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                     fritekst = "",
@@ -212,7 +212,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).right()
             },
             fritekstService = mock {
-                on { hentFritekst(any(), any()) } doReturn Fritekst(
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                     fritekst = "",

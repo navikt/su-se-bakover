@@ -91,7 +91,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         fun `svarer med feil dersom vi ikke finner behandling`() {
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = SøknadsbehandlingId.generer().value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -121,7 +121,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = sakOgSøknadsbehandling.second.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -146,7 +146,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val sakOgSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = sakOgSøknadsbehandling.second.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -171,7 +171,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -207,7 +207,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -248,7 +248,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = avslagTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -283,7 +283,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = avslagTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -342,7 +342,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = avslagTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -398,7 +398,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 any(),
             )
-            verify(serviceAndMocks.fritekstService).hentFritekst(any(), any())
+            verify(serviceAndMocks.fritekstService).hentFritekst(any(), any(), anyOrNull())
             serviceAndMocks.verifyNoMoreInteractions()
         }
 
@@ -408,7 +408,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -441,7 +441,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -474,7 +474,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -512,7 +512,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -541,7 +541,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -610,7 +610,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 anyOrNull(),
             )
-            verify(serviceAndMocks.fritekstService).hentFritekst(any(), any())
+            verify(serviceAndMocks.fritekstService).hentFritekst(any(), any(), anyOrNull())
             serviceAndMocks.verifyNoMoreInteractions()
         }
 
@@ -619,7 +619,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -665,7 +665,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -693,7 +693,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -726,7 +726,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
 
                 fritekstService = mock {
-                    on { hentFritekst(any(), any()) } doReturn Fritekst(
+                    on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                         referanseId = innvilgetTilAttestering.id.value,
                         type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                         fritekst = "",
@@ -743,7 +743,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             }.message shouldBe "Mocking: Kan ikke lagre søkndsbehandling"
 
             verify(utbetalingMedCallback, never()).sendUtbetaling()
-            verify(serviceAndMocks.fritekstService).hentFritekst(any(), any())
+            verify(serviceAndMocks.fritekstService).hentFritekst(any(), any(), anyOrNull())
         }
 
         @Test
@@ -751,7 +751,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -802,7 +802,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>()
             val fritekstServiceMock = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = innvilgetTilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,

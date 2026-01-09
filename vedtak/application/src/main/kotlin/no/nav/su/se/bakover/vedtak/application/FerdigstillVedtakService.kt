@@ -155,6 +155,7 @@ class FerdigstillVedtakServiceImpl(
         val fritekst = fritekstService.hentFritekst(
             referanseId = vedtak.behandling.id.value,
             type = FritekstType.VEDTAKSBREV_REVURDERING,
+            sessionContext = transactionContext,
         ).map { it.fritekst }.getOrElse { "" }
 
         return brevService.lagDokument(

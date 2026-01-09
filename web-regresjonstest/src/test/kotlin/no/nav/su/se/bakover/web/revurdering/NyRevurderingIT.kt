@@ -115,7 +115,7 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-07-31"
                                         },
                                         "type":"ENDRING",
-                                        "dokumenttilstand": "IKKE_GENERERT_ENDA",
+                                        "dokumenttilstand": "GENERERT",
                                         "kanStarteNyBehandling": false,
                                         "skalSendeBrev": true
                                     },

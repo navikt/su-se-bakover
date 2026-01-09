@@ -44,7 +44,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         val fritekstServiceMock = mock<FritekstService> {
             on {
-                hentFritekst(any(), any())
+                hentFritekst(any(), any(), anyOrNull())
             } doReturn Fritekst(
                 referanseId = tilAttesteringInnvilget.id.value,
                 type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -71,6 +71,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             verify(it.fritekstService).hentFritekst(
                 any(),
                 any(),
+                anyOrNull(),
             )
             it.verifyNoMoreInteractions()
         }
@@ -86,7 +87,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
         val fritekstServiceMock = mock<FritekstService> {
             on {
-                hentFritekst(any(), any())
+                hentFritekst(any(), any(), anyOrNull())
             } doReturn Fritekst(
                 referanseId = tilAttesteringInnvilget.id.value,
                 type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -111,6 +112,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             verify(it.fritekstService).hentFritekst(
                 any(),
                 any(),
+                anyOrNull(),
             )
             it.verifyNoMoreInteractions()
         }
@@ -128,7 +130,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         val fritekstServiceMock = mock<FritekstService> {
             on {
-                hentFritekst(any(), any())
+                hentFritekst(any(), any(), anyOrNull())
             } doReturn Fritekst(
                 referanseId = tilAttesteringInnvilget.id.value,
                 type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -152,6 +154,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             verify(it.fritekstService).hentFritekst(
                 any(),
                 any(),
+                anyOrNull(),
             )
             it.verifyNoMoreInteractions()
         }
@@ -175,7 +178,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         val fritekstServiceMock = mock<FritekstService> {
             on {
-                hentFritekst(any(), any())
+                hentFritekst(any(), any(), anyOrNull())
             } doReturn Fritekst(
                 referanseId = tilAttesteringInnvilget.id.value,
                 type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -221,7 +224,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 anyOrNull(),
             )
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
-            verify(it.fritekstService).hentFritekst(any(), any())
+            verify(it.fritekstService).hentFritekst(any(), any(), anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }
@@ -234,7 +237,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             },
             fritekstService = mock<FritekstService> {
                 on {
-                    hentFritekst(any(), any())
+                    hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
                     referanseId = uavklart.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
