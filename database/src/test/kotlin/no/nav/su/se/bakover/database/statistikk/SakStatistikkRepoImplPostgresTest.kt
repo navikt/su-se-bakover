@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.math.BigInteger
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -27,12 +28,16 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
         repo.lagreSakStatistikk(sakstatistikk)
         val lagret = repo.hentSakStatistikk(sakstatistikk.sakId)
         lagret.size shouldBe 1
-        lagret.first() shouldBe sakstatistikk
+        lagret.first() shouldBe sakstatistikk.copy(
+            sekvensId = BigInteger.valueOf(1),
+        )
 
         val sakstatistikkMedNull = lageSakStatistikkNullVerdier()
         repo.lagreSakStatistikk(sakstatistikkMedNull)
         val lagretMedNull = repo.hentSakStatistikk(sakstatistikkMedNull.sakId)
-        lagretMedNull.first() shouldBe sakstatistikkMedNull
+        lagretMedNull.first() shouldBe sakstatistikkMedNull.copy(
+            sekvensId = BigInteger.valueOf(2),
+        )
     }
 
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)
@@ -67,6 +72,7 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
             tilbakekrevBeløp = 12L,
         )
     }
+
     private fun lageSakStatistikkNullVerdier(): SakStatistikk {
         return SakStatistikk(
             funksjonellTid = Tidspunkt.now(tikkendeKlokke),
