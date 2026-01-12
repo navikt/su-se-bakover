@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
@@ -41,6 +42,8 @@ class KlageinstanshendelseServiceImpl(
 
     override fun lagre(hendelse: UprosessertKlageinstanshendelse) {
         klageinstanshendelseRepo.lagre(hendelse)
+        log.info("Lagret klageinstanshendelse fra kabal for ${hendelse.id}")
+        sikkerLogg.info("Lagret klageinstanshendelse fra kabal for ${hendelse.id} verdi: ${hendelse.metadata.value}")
     }
 
     override fun håndterUtfallFraKlageinstans(
@@ -177,6 +180,27 @@ class KlageinstanshendelseServiceImpl(
                 journalpostIDer = hendelse.journalpostIDer,
                 clock = clock,
                 hendelsestype = "AnkebehandlingAvsluttet",
+                sakstype = sakstype,
+            )
+
+            is TolketKlageinstanshendelse.GjenopptaksbehandlingAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utfall = hendelse.utfall,
+                avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
+                journalpostIDer = hendelse.journalpostIDer,
+                clock = clock,
+                hendelsestype = "GjenopptaksbehandlingAvsluttet",
+                sakstype = sakstype,
+            )
+            is TolketKlageinstanshendelse.OmgjoeringskravbehandlingAvsluttet -> lagOppgaveConfigForKlageinstansAvsluttetHendelse(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utfall = hendelse.utfall,
+                avsluttetTidspunkt = hendelse.avsluttetTidspunkt,
+                journalpostIDer = hendelse.journalpostIDer,
+                clock = clock,
+                hendelsestype = "OmgjoeringskravbehandlingAvsluttet",
                 sakstype = sakstype,
             )
         }

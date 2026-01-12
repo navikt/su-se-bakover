@@ -24,6 +24,8 @@ import java.util.UUID
  * Vi deserialiserer feltene `type` og `detaljer` inn i et sealed interface vha. @JsonSubTypes og @JsonTypeInfo
  * Feltet `eventId` brukes kun til dedup ved lagring og trengs ikke her.
  * Feltet `kabalReferanse` brukes ikke av oss til noe, så det ignoreres.
+ *
+ * Steg 1:  Leser Kafka-JSON og mapper felt 1-til-1
  */
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -54,6 +56,14 @@ import java.util.UUID
     JsonSubTypes.Type(
         value = BehandlingFeilregistrertDto::class,
         name = "BEHANDLING_FEILREGISTRERT",
+    ),
+    JsonSubTypes.Type(
+        value = OmgjoeringskravbehandlingAvsluttetDto::class,
+        name = "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET",
+    ),
+    JsonSubTypes.Type(
+        value = GjenopptaksbehandlingAvsluttetDto::class,
+        name = "GJENOPPTAKSBEHANDLING_AVSLUTTET",
     ),
 )
 sealed interface KlageinstanshendelseDto {

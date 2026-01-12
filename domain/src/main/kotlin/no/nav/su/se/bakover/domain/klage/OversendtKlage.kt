@@ -110,6 +110,9 @@ data class OversendtKlage(
                 } else {
                     this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
                 }
+
+                is TolketKlageinstanshendelse.GjenopptaksbehandlingAvsluttet -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
+                is TolketKlageinstanshendelse.OmgjoeringskravbehandlingAvsluttet -> this.copy(klageinstanshendelser = oppdatertKlageinstanshendelser)
             }
         }
     }
