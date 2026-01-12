@@ -215,6 +215,9 @@ data class VurderingsperiodeFormue private constructor(
                         RegelspesifisertGrunnlag.GRUNNLAG_FORMUE.benyttGrunnlag(
                             verdi = grunnlag.toString(),
                         ),
+                        RegelspesifisertGrunnlag.GRUNNLAG_FORMUEGRENSE.benyttGrunnlag(
+                            verdi = formuegrenserFactory.toString(),
+                        ),
                     ),
                 ),
             )
