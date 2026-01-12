@@ -52,10 +52,7 @@ class LukkSøknadServiceImpl(
             throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
         }
         return sessionFactory.withTransactionContext { tx ->
-            sak.lukkSøknadOgSøknadsbehandling(
-                lukkSøknadCommand = command,
-                clock = clock,
-            ).let {
+            sak.lukkSøknadOgSøknadsbehandling(command).let {
                 it.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(
                         tx = tx,
@@ -68,7 +65,11 @@ class LukkSøknadServiceImpl(
                 søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
 
                 val avvistForTidligSøknad = command is LukkSøknadCommand.MedBrev.AvvistSøknad
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(it.søknadsbehandling, command.saksbehandler, avvistForTidligSøknad)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(
+                    it.søknadsbehandling,
+                    command.saksbehandler,
+                    avvistForTidligSøknad,
+                )
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)
                 oppgaveService.lukkOppgave(

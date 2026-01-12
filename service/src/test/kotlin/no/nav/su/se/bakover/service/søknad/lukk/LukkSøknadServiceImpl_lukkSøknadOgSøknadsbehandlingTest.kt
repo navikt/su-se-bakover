@@ -13,6 +13,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -30,25 +31,27 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.avvisSøknadMedBrev
 import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
+import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.søknad.nySakMedJournalførtSøknadUtenOppgave
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
-import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
 import no.nav.su.se.bakover.test.trekkSøknad
@@ -56,6 +59,7 @@ import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -93,12 +97,18 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
     @Test
     fun `kan ikke sette lukketDato tidligere enn da søknaden var opprettet`() {
+        val clock = fixedClockAt(1.februar(2021))
         val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave(
-            clock = fixedClockAt(1.februar(2021)),
+            clock = clock,
         )
+        val sakMedBehandling = sak.opprettNySøknadsbehandling(
+            søknadId = søknad.id,
+            clock = clock,
+            saksbehandler = NavIdentBruker.Saksbehandler("asdf"),
+        ).getOrFail().first
 
         ServiceOgMocks(
-            sak = sak,
+            sak = sakMedBehandling,
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(
                 søknadId = søknad.id,
@@ -139,29 +149,6 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
     }
 
     @Test
-    fun `iverksatt søknadsbehandling skal ikke bli lukket`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingIverksattInnvilget()
-        val søknad = sak.søknader.first()
-
-        ServiceOgMocks(
-            sak = sak,
-            søknadsbehandling = søknadsbehandling,
-            søknad = søknad,
-            lukkSøknadCommand = bortfallSøknad(
-                søknadId = søknad.id,
-            ),
-
-        ).let { serviceAndMocks ->
-            shouldThrow<IllegalStateException> {
-                serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Fant ingen, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
-
-            serviceAndMocks.verifyHentSakForSøknad()
-            serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
     fun `en søknad med lukket søknadsbehandling skal ikke kunne bli lukket igjen`() {
         val (sak, søknadsbehandling) = søknadsbehandlingTrukket()
         val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave
@@ -177,7 +164,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         ).let { serviceAndMocks ->
             shouldThrow<IllegalStateException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Fant ingen, eller flere åpne søknadsbehandlinger for søknad ${søknad.id}. Antall behandlinger funnet 1"
+            }.message shouldBe "Ingen åpen søknadsbehandling for søknad=${søknad.id}"
 
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
@@ -200,46 +187,10 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             lukkSøknadCommand = lukkSøknadCommand,
 
         ).let { serviceAndMocks ->
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<IllegalStateException> {
                 serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} for sak ${sak.id}, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: ErLukket"
+            }.message shouldBe "Ingen åpen søknadsbehandling for søknad=${søknad.id}"
 
-            serviceAndMocks.verifyHentSakForSøknad()
-            serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `skal ikke kunne lukke journalført søknad uten oppgave`() {
-        val (sak, søknad) = nySakMedJournalførtSøknadUtenOppgave()
-
-        ServiceOgMocks(
-            sak = sak,
-            søknad = søknad,
-            lukkSøknadCommand = trekkSøknad(søknad.id),
-
-        ).let { serviceAndMocks ->
-            shouldThrow<IllegalArgumentException> {
-                serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} for sak ${sak.id}, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: ManglerOppgave"
-
-            serviceAndMocks.verifyHentSakForSøknad()
-            serviceAndMocks.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `skal ikke kunne lukke søknad som mangler journalpost og oppgave`() {
-        val (sak, søknad) = nySakMedNySøknad()
-
-        ServiceOgMocks(
-            sak = sak,
-            søknad = søknad,
-            lukkSøknadCommand = trekkSøknad(søknad.id),
-        ).let { serviceAndMocks ->
-            shouldThrow<IllegalArgumentException> {
-                serviceAndMocks.lukkSøknad()
-            }.message shouldBe "Kunne ikke lukke søknad ${søknad.id} for sak ${sak.id}, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: ManglerOppgave"
             serviceAndMocks.verifyHentSakForSøknad()
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -273,15 +224,19 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
     }
 
-    /*
-    TODO midlertidig fjernet
     @Test
     fun `trekker en søknad uten mangler`() {
         val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val sakMedBehandling = sak.opprettNySøknadsbehandling(
+            søknadId = søknad.id,
+            clock = fixedClockAt(1.februar(2021)),
+            saksbehandler = NavIdentBruker.Saksbehandler("asdf"),
+        ).getOrFail()
 
         val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet")
         ServiceOgMocks(
-            sak = sak,
+            sak = sakMedBehandling.first,
+            søknadsbehandling = sakMedBehandling.second,
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
@@ -292,7 +247,6 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             serviceAndMocks.verifyAll(dokumentUtenMetadata = dokumentUtenMetadata)
         }
     }
-     */
 
     // TODO jah: Slett tilsvarende lukk søknad tester hvis den/de flyttes til regresjonslaget.
     @Test
@@ -312,15 +266,19 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
     }
 
-    /*
-    TODO midlertidig fjernet
     @Test
     fun `lukker avvist søknad med brev`() {
         val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val sakMedBehandling = sak.opprettNySøknadsbehandling(
+            søknadId = søknad.id,
+            clock = fixedClockAt(1.februar(2021)),
+            saksbehandler = NavIdentBruker.Saksbehandler("asdf"),
+        ).getOrFail()
 
         val dokumentUtenMetadata = dokumentUtenMetadataVedtak()
         ServiceOgMocks(
-            sak = sak,
+            sak = sakMedBehandling.first,
+            søknadsbehandling = sakMedBehandling.second,
             søknad = søknad,
             lukkSøknadCommand = avvisSøknadMedBrev(
                 søknadId = søknad.id,
@@ -331,22 +289,25 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
-            serviceAndMocks.verifyAll(dokumentUtenMetadata = dokumentUtenMetadata)
+            serviceAndMocks.verifyAll(dokumentUtenMetadata = dokumentUtenMetadata, avslagTidligSøknad = true)
         }
     }
-     */
 
-    /*
-    TODO midlertidig fjernet
     @Test
     fun `Lukker søknad selvom vi ikke klarte lukke oppgaven`() {
         val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val sakMedBehandling = sak.opprettNySøknadsbehandling(
+            søknadId = søknad.id,
+            clock = fixedClockAt(1.februar(2021)),
+            saksbehandler = NavIdentBruker.Saksbehandler("asdf"),
+        ).getOrFail()
 
         val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
             tittel = "Bekrefter at søknad er trukket",
         )
         ServiceOgMocks(
-            sak = sak,
+            sak = sakMedBehandling.first,
+            søknadsbehandling = sakMedBehandling.second,
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(
                 søknadId = søknad.id,
@@ -369,7 +330,6 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             )
         }
     }
-     */
 
     private class ServiceOgMocks(
         val sak: Sak? = null,
@@ -479,6 +439,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         fun verifyAll(
             includeBrev: Boolean = true,
             dokumentUtenMetadata: Dokument.UtenMetadata? = null,
+            avslagTidligSøknad: Boolean = false,
         ) {
             inOrder(*allMocks) {
                 verifyHentSakForSøknad()
@@ -493,7 +454,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                     verifyLagreDokument(dokumentUtenMetadata!!)
                 }
                 verifyLukkOppgave()
-                verifyStatistikkhendelse()
+                verifyStatistikkhendelse(avslagTidligSøknad)
             }
             verifyNoMoreInteractions()
         }
@@ -609,13 +570,15 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             )
         }
 
-        fun verifyStatistikkhendelse() {
+        fun verifyStatistikkhendelse(
+            avslagTidligSøknad: Boolean,
+        ) {
             verify(lukkSøknadServiceObserver).handle(
                 argThat {
                     it shouldBe StatistikkEvent.Behandling.Søknad.Lukket(
                         søknadsbehandling = expectedLukketSøknadsbehandling(),
                         lukketAv = saksbehandler,
-                        avslagTidligSøknad = false,
+                        avslagTidligSøknad = avslagTidligSøknad,
                     )
                 },
                 any(),

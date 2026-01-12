@@ -15,15 +15,11 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.statistikk.notifyUtenTransaction
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -44,44 +40,24 @@ fun Sak.avslåSøknad(
     genererPdf: (IverksettSøknadsbehandlingDokumentCommand.Avslag) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>,
-    observers: MutableList<StatistikkEventObserver> = mutableListOf(),
 ): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
     val søknadId = command.søknadId
-    return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
-        {
-            // TODO bjg - fjern kode når bekreftet ingen flere søknader uten behandling
-            this.opprettNySøknadsbehandling(
-                søknadId = command.søknadId,
-                clock = clock,
-                saksbehandler = command.saksbehandler,
-            ).getOrElse { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it).left() }.let {
-                // TODO: rart å ha side-effekter her inne
-                observers.notifyUtenTransaction(
-                    StatistikkEvent.Behandling.Søknad.Opprettet(
-                        it.second,
-                        NavIdentBruker.Saksbehandler.systembruker(),
-                    ),
-                )
-                Pair(it.first, it.second)
-            }
-        },
-        {
-            val søknadsbehandling = it.filterIsInstance<KanOppdaterePeriodeBosituasjonVilkår>().singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
-                ?: throw IllegalArgumentException("Fant ingen, eller flere åpne søknadsbehandlinger eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår for søknad $søknadId. Antall behandlinger funnet ${it.size}")
-            if (søknadsbehandling.saksbehandler == null) {
-                return KunneIkkeAvslåSøknad.ManglerSaksbehandler.left()
-            }
-            Pair(this, søknadsbehandling)
-        },
-    ).let { (sak: Sak, behandling: KanOppdaterePeriodeBosituasjonVilkår) ->
-        avslå(
-            sak = sak,
-            søknadsbehandling = behandling,
-            request = command,
-            clock = clock,
-            formuegrenserFactory = formuegrenserFactory,
-        )
-    }.let {
+    val søknadsbehandling = this.hentÅpenSøknadsbehandlingForSøknad(søknadId).getOrElse {
+        throw IllegalStateException("Ingen åpen søknadsbehandling for søknad=$søknadId")
+    }
+    if (søknadsbehandling !is KanOppdaterePeriodeBosituasjonVilkår) {
+        throw IllegalArgumentException("Kan ikke avslå søknadsbehandling da den ikke er av typen KanOppdaterePeriodeGrunnlagVilkår. Søknad=$søknadId, søknadsbehandling=${søknadsbehandling.id}")
+    }
+    if (søknadsbehandling.saksbehandler == null) {
+        return KunneIkkeAvslåSøknad.ManglerSaksbehandler.left()
+    }
+    return avslå(
+        sak = this,
+        søknadsbehandling = søknadsbehandling,
+        request = command,
+        clock = clock,
+        formuegrenserFactory = formuegrenserFactory,
+    ).let {
         it.getOrElse {
             return it.left()
         }.let { sakOgBehandling ->
