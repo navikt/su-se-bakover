@@ -77,6 +77,7 @@ class KlageinstanshendelseServiceImpl(
             log.error("Kunne ikke prosessere melding fra Klageinstans. Fant ikke klage med klageId: ${hendelse.klageId}")
             return klageinstanshendelseRepo.markerSomFeil(hendelse.id)
         }
+        log.info("Prosesser hendelse ${hendelse.id} for klage ${klage.id} saksnummer ${klage.saksnummer}")
 
         klage.leggTilNyKlageinstanshendelse(
             hendelse,
