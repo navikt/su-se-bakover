@@ -15,6 +15,59 @@ import java.util.UUID
 internal class KlageinstanshendelseDtoTest {
 
     @Test
+    fun `Kan deserialisere avsluttet omgjoeringskravbehandling`() {
+        val id = UUID.randomUUID()
+        val kildeReferanse = KlageId.generer()
+
+        KlageinstanshendelseDto.toDomain(
+            id = id,
+            opprettet = fixedTidspunkt,
+            json = klagebehandlingAvsluttetJson(
+                kildeReferanse = kildeReferanse.toString(),
+                type = "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET",
+                journalpostReferanser = listOf("123"),
+                avsluttetTidspunkt = "2021-01-01T02:02:03.456789",
+                detaljerKey = "omgjoeringskravbehandlingAvsluttet",
+            ),
+        ) shouldBe TolketKlageinstanshendelse.OmgjoeringskravbehandlingAvsluttet(
+            id = id,
+            opprettet = fixedTidspunkt,
+            avsluttetTidspunkt = fixedTidspunkt,
+            klageId = kildeReferanse,
+            utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
+            journalpostIDer = listOf(JournalpostId("123")),
+        ).right()
+    }
+
+    @Test
+    fun `Kan deserialisere avsluttet gjenopptaksbehandling`() {
+        val id = UUID.randomUUID()
+        val kildeReferanse = KlageId.generer()
+
+        KlageinstanshendelseDto.toDomain(
+            id = id,
+            opprettet = fixedTidspunkt,
+            json = klagebehandlingAvsluttetJson(
+                kildeReferanse = kildeReferanse.toString(),
+                type = "GJENOPPTAKSBEHANDLING_AVSLUTTET",
+                journalpostReferanser = listOf("123", "456"),
+                avsluttetTidspunkt = "2021-01-01T02:02:03.456789",
+                detaljerKey = "gjenopptaksbehandlingAvsluttet",
+            ),
+        ) shouldBe TolketKlageinstanshendelse.GjenopptaksbehandlingAvsluttet(
+            id = id,
+            opprettet = fixedTidspunkt,
+            avsluttetTidspunkt = fixedTidspunkt,
+            klageId = kildeReferanse,
+            utfall = AvsluttetKlageinstansUtfall.TilInformasjon.Stadfestelse,
+            journalpostIDer = listOf(
+                JournalpostId("123"),
+                JournalpostId("456"),
+            ),
+        ).right()
+    }
+
+    @Test
     fun `Kan deserialisere avsluttet klagebehandling`() {
         val id = UUID.randomUUID()
         val kildeReferanse = KlageId.generer()
@@ -28,6 +81,7 @@ internal class KlageinstanshendelseDtoTest {
                 journalpostReferanser = listOf("123", "456"),
                 // Legger på en time for emulere tidssonen Europe/Oslo i januar. Skal være 1 time etter UTC.
                 avsluttetTidspunkt = "2021-01-01T02:02:03.456789",
+                detaljerKey = "klagebehandlingAvsluttet",
             ),
         ) shouldBe TolketKlageinstanshendelse.KlagebehandlingAvsluttet(
             id = id,
@@ -72,6 +126,7 @@ internal class KlageinstanshendelseDtoTest {
                 type = "BEHANDLING_FEILREGISTRERT",
                 journalpostReferanser = listOf("123", "456"),
                 avsluttetTidspunkt = "2021-01-01T01:02:03.456789+01:00",
+                detaljerKey = "behandlingFeilregistrert",
             ),
         ) shouldBe KunneIkkeTolkeKlageinstanshendelse.BehandlingFeilregistrertStøttesIkke.left()
     }
@@ -82,6 +137,7 @@ internal class KlageinstanshendelseDtoTest {
         type: String,
         journalpostReferanser: List<String> = listOf("123", "456"),
         avsluttetTidspunkt: String,
+        detaljerKey: String,
     ) = //language=JSON
         """
             {
@@ -91,7 +147,7 @@ internal class KlageinstanshendelseDtoTest {
               "kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a",
               "type":"$type",
               "detaljer":{
-                "klagebehandlingAvsluttet":{
+                "$detaljerKey":{
                   "avsluttet":"$avsluttetTidspunkt",
                   "utfall":"STADFESTELSE",
                   "journalpostReferanser":[${journalpostReferanser.joinToString(",")}]
