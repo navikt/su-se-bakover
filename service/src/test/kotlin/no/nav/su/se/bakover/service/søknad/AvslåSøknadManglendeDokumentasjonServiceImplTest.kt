@@ -375,7 +375,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldContain "Avslag"
+        }.message shouldContain "Fant ingen, eller flere åpne søknadsbehandlinger eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår "
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }
