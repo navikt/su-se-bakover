@@ -6,12 +6,15 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 data class OmgjoeringskravbehandlingAvsluttetDto(
     override val kildeReferanse: String,
     val detaljer: DetaljerWrapper,
 ) : KlageinstanshendelseDto {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun toDomain(
         id: UUID,
@@ -28,6 +31,7 @@ data class OmgjoeringskravbehandlingAvsluttetDto(
                     .map { JournalpostId(it) },
             )
         }.mapLeft {
+            log.error("Kunne ikke tolke klageinstanshendelse.", it)
             KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier
         }
 
