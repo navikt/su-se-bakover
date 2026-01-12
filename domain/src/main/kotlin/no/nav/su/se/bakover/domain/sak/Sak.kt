@@ -411,6 +411,7 @@ data class Sak(
 
         val søknadensBehandlinger = hentSøknadsbehandlingForSøknad(søknadId).getOrNull()
         val (oppdatertSak, lukketBehandling) = if (søknadensBehandlinger == null) {
+            // TODO bjg - fjern kode når bekreftet ingen flere søknader uten behandling
             val nyOgLukket = this.opprettNySøknadsbehandling(
                 søknadId = søknadId,
                 clock = clock,

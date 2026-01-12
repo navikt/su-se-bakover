@@ -49,6 +49,7 @@ fun Sak.avslåSøknad(
     val søknadId = command.søknadId
     return this.hentSøknadsbehandlingForSøknad(søknadId).fold(
         {
+            // TODO bjg - fjern kode når bekreftet ingen flere søknader uten behandling
             this.opprettNySøknadsbehandling(
                 søknadId = command.søknadId,
                 clock = clock,
