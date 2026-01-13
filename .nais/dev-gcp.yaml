@@ -173,7 +173,7 @@ spec:
     - name: OPPGAVE_CLIENT_ID
       value: "api://dev-fss.oppgavehandtering.oppgave"
     - name: DOKDIST_URL
-      value: "https://dokdistfordeling.dev-fss-pub.nais.io/rest/v1"
+      value: "https://dokdistfordeling.dev-fss-pub.nais.io"
     - name: DOKDIST_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
     - name: SIMULERING_URL
