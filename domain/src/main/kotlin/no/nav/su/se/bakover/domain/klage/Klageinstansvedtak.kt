@@ -30,6 +30,9 @@ data class Klageinstanshendelser private constructor(
     }
 }
 
+/**
+ * Steg 2: oversetter fra teknisk til domene-språk
+ */
 sealed interface TolketKlageinstanshendelse {
 
     val id: UUID
@@ -39,6 +42,58 @@ sealed interface TolketKlageinstanshendelse {
     fun tilProsessert(oppgaveId: OppgaveId): ProsessertKlageinstanshendelse
 
     fun erAvsluttetMedRetur(): Boolean
+
+    data class OmgjoeringskravbehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        val avsluttetTidspunkt: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        val journalpostIDer: List<JournalpostId>,
+    ) : TolketKlageinstanshendelse {
+
+        override fun tilProsessert(
+            oppgaveId: OppgaveId,
+        ): ProsessertKlageinstanshendelse.OmgjoeringskravbehandlingAvsluttet {
+            return ProsessertKlageinstanshendelse.OmgjoeringskravbehandlingAvsluttet(
+                id = id,
+                opprettet = opprettet,
+                klageId = klageId,
+                utfall = utfall,
+                journalpostIDer = journalpostIDer,
+                oppgaveId = oppgaveId,
+            )
+        }
+
+        override fun erAvsluttetMedRetur() =
+            utfall is AvsluttetKlageinstansUtfall.Retur
+    }
+
+    data class GjenopptaksbehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        val avsluttetTidspunkt: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        val journalpostIDer: List<JournalpostId>,
+    ) : TolketKlageinstanshendelse {
+
+        override fun tilProsessert(
+            oppgaveId: OppgaveId,
+        ): ProsessertKlageinstanshendelse.GjenopptaksbehandlingAvsluttet {
+            return ProsessertKlageinstanshendelse.GjenopptaksbehandlingAvsluttet(
+                id = id,
+                opprettet = opprettet,
+                klageId = klageId,
+                utfall = utfall,
+                journalpostIDer = journalpostIDer,
+                oppgaveId = oppgaveId,
+            )
+        }
+
+        override fun erAvsluttetMedRetur() =
+            utfall is AvsluttetKlageinstansUtfall.Retur
+    }
 
     data class KlagebehandlingAvsluttet(
         override val id: UUID,
@@ -135,11 +190,35 @@ sealed interface TolketKlageinstanshendelse {
     }
 }
 
+/**
+ * Steg 3 ferdig tolket og prosessert
+ * Brukes til å gjøre noe konkret (oppgave, lagring, side effects) og har alltid oppgaveId
+ */
 sealed interface ProsessertKlageinstanshendelse {
     val id: UUID
     val opprettet: Tidspunkt
     val klageId: KlageId
     val oppgaveId: OppgaveId
+
+    data class OmgjoeringskravbehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        /** Dersom Klageinstansen har sendt ut et eller flere brev */
+        val journalpostIDer: List<JournalpostId>,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
+
+    data class GjenopptaksbehandlingAvsluttet(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val klageId: KlageId,
+        val utfall: AvsluttetKlageinstansUtfall,
+        /** Dersom Klageinstansen har sendt ut et eller flere brev */
+        val journalpostIDer: List<JournalpostId>,
+        override val oppgaveId: OppgaveId,
+    ) : ProsessertKlageinstanshendelse
 
     data class KlagebehandlingAvsluttet(
         override val id: UUID,
