@@ -60,10 +60,10 @@ spec:
         extra:
           - "NAVident"
         groups:
-          - id: "d75164fa-39e6-4149-956e-8404bc9080b6" # 0000-GA-SU-UFOR-ATTESTANT
-          - id: "0ba009c4-d148-4a51-b501-4b1cf906889d" # 0000-GA-SU-UFOR-SAKSBEHANDLER
-          - id: "062d4814-8538-4f3a-bcb9-32821af7909a" # 0000-GA-SU-UFOR-VEILEDER
-          - id: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b" # 0000-GA-SU-UFOR-DRIFT
+          - id: "b64af061-f7c4-4d05-907f-b457e23da339" # 0000-GA-SU-UFOR-ATTESTANT
+          - id: "654d28c0-b02b-4c50-86a0-896cf64e79f0" # 0000-GA-SU-UFOR-SAKSBEHANDLER
+          - id: "4b1ccffd-b1e1-41a7-9f3a-d4acb6d53b05" # 0000-GA-SU-UFOR-VEILEDER
+          - id: "6c5cb261-d91e-40a8-a925-458bfdd9d033" # 0000-GA-SU-UFOR-DRIFT
   accessPolicy:
     inbound:
       rules:
@@ -154,13 +154,13 @@ spec:
     - name: SUPSTONAD_PROXY_CLIENT_ID
       value: "api://prod-fss.supstonad.supstonad-proxy"
     - name: AZURE_GROUP_ATTESTANT
-      value: "d75164fa-39e6-4149-956e-8404bc9080b6"
+      value: "b64af061-f7c4-4d05-907f-b457e23da339"
     - name: AZURE_GROUP_VEILEDER
-      value: "062d4814-8538-4f3a-bcb9-32821af7909a"
+      value: "4b1ccffd-b1e1-41a7-9f3a-d4acb6d53b05"
     - name: AZURE_GROUP_SAKSBEHANDLER
-      value: "0ba009c4-d148-4a51-b501-4b1cf906889d"
+      value: "654d28c0-b02b-4c50-86a0-896cf64e79f0"
     - name: AZURE_GROUP_DRIFT
-      value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
+      value: "6c5cb261-d91e-40a8-a925-458bfdd9d033"
     - name: DATABASE_NAME
       value: "supstonad-db-15-prod"
     - name: PDFGEN_URL
