@@ -60,6 +60,8 @@ internal fun Application.configureAuthentication(
                         "jwt-auth su-se-framover: Valid audience not found in claims"
                     }
                     val allowedGroups = applicationConfig.azure.groups.asList()
+                    val rollerIMittToken = getGroupsFromJWT(applicationConfig, credentials)
+                    log.info("*********** Roller for bruker $rollerIMittToken")
                     require(getGroupsFromJWT(applicationConfig, credentials).any { allowedGroups.contains(it) }) {
                         "jwt-auth su-se-framover: Valid group not found in claims"
                     }
