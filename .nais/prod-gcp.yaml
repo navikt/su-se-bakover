@@ -110,6 +110,7 @@ spec:
         - host: oppgave.prod-fss-pub.nais.io
         - host: team-inntekt-proxy.prod-fss-pub.nais.io
         - host: kodeverk-api.nav.no
+        - host: dokarkiv.prod-fss-pub.nais.io
         - host: mpls02.adeo.no
           ports:
             - port: 1414
