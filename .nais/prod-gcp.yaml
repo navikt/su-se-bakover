@@ -166,7 +166,7 @@ spec:
     - name: PDFGEN_URL
       value: "http://su-pdfgen"
     - name: DOKARKIV_URL
-      value: "https://inst2.prod-fss-pub.nais.io"
+      value: "https://dokarkiv.prod-fss-pub.nais.io"
     - name: DOKARKIV_CLIENT_ID
       value: "api://prod-fss.teamdokumenthandtering.dokarkiv"
     - name: OPPGAVE_URL
