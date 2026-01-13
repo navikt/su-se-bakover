@@ -7,7 +7,7 @@ metadata:
   namespace: supstonad
 spec:
   # Run every first day of new month at 5:00
-  schedule: '00 5 1 * *'
+  #schedule: '00 5 1 * *'
   image: {{ image }}
   concurrencyPolicy: Replace
   vault:
