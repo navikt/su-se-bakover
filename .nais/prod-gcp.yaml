@@ -25,6 +25,7 @@ spec:
         diskType: SSD
         highAvailability: true
         pointInTimeRecovery: true
+        retainedBackups: 21
         autoBackupHour: 3
         maintenance:
           day: 7
