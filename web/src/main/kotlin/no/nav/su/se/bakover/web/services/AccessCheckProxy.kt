@@ -1472,8 +1472,8 @@ open class AccessCheckProxy(
                 }
             },
             sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
-                override fun lastTilBigQuery(fom: LocalDate) {
-                    services.sakstatistikkBigQueryService.lastTilBigQuery(fom)
+                override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
+                    services.sakstatistikkBigQueryService.lastTilBigQuery(fraOgMed, tilOgMed)
                 }
             },
             fritekstAvslagService = object : FritekstAvslagService {

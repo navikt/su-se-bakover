@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services.statistikk
 
-import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
@@ -11,7 +10,7 @@ import java.time.LocalDate
 import java.util.Date
 
 /*
-Overfører data til bigquery hver natt for sakstatistikk
+Overfører statistikk fra døgnet som var til bigquery hver natt for sakstatistikk
  */
 internal class SakstatistikkTilBigQuery(
     private val stoppableJob: StoppableJob,
@@ -33,11 +32,10 @@ internal class SakstatistikkTilBigQuery(
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
                 intervall = periode,
             ) {
-                if (isGCP()) {
-                    log.info("Kjører $jobName")
-                    sakStatistikkBigQueryService.lastTilBigQuery(LocalDate.now())
-                    log.info("Jobb $jobName er fullført")
-                }
+                log.info("Kjører $jobName")
+                val iGår = LocalDate.now().minusDays(1)
+                sakStatistikkBigQueryService.lastTilBigQuery(iGår)
+                log.info("Jobb $jobName er fullført")
             }.let { SakstatistikkTilBigQuery(it) }
         }
     }
