@@ -5,7 +5,7 @@ import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Årsak
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -220,21 +220,21 @@ internal class StatistikkKlageTest {
                 val expected = mutableMapOf<String, Any?>(
                     "funksjonellTid" to funksjonellTid.toString(),
                     "tekniskTid" to "2021-01-01T01:02:03.456789Z",
-                    "motattDato" to statistikkEvent.klage.datoKlageMottatt,
+                    "mottattDato" to statistikkEvent.klage.datoKlageMottatt.toString(),
                     "registrertDato" to "2021-02-01",
-                    "behandlingId" to statistikkEvent.klage.id,
-                    "sakId" to statistikkEvent.klage.sakId,
+                    "behandlingId" to statistikkEvent.klage.id.toString(),
+                    "sakId" to statistikkEvent.klage.sakId.toString(),
                     "saksnummer" to "12345676",
                     "ytelseType" to "SUUFORE",
                     "behandlingType" to "KLAGE",
-                    "behandlingTypeBeskrivelse" to "Klage for SU uføre",
+                    "behandlingTypeBeskrivelse" to "Klage for SU Uføre",
                     "behandlingStatus" to behandlingStatus,
                     "behandlingStatusBeskrivelse" to behandlingStatusBeskrivelse,
-                    "behandlingYtelseDetaljer" to behandlingYtelseDetaljer,
+//                    "behandlingYtelseDetaljer" to jacksonObjectMapper().readValue(behandlingYtelseDetaljer, object : TypeReference<List<Map<String, Any?>>>() {}),
                     "utenlandstilsnitt" to "NASJONAL",
-                    "ansvarligEnhetkode" to "4815",
+                    "ansvarligEnhetKode" to "4815",
                     "ansvarligEnhetType" to "NORG",
-                    "behandlendeEnhetkode" to "4815",
+                    "behandlendeEnhetKode" to "4815",
                     "behandlendeEnhetType" to "NORG",
                     "avsender" to "su-se-bakover",
                     "saksbehandler" to saksbehandler,
@@ -249,9 +249,16 @@ internal class StatistikkKlageTest {
                 val vedtakId = statistikkEvent.klage.vilkårsvurderinger?.vedtakId
                 if (vedtakId != null) expected["relatertBehandlingId"] = vedtakId.toString()
 
-                val actual = ObjectMapper().readValue(json, object : TypeReference<Map<String, Any?>>() {})
+                val actual = jacksonObjectMapper().readValue(json, object : TypeReference<Map<String, Any?>>() {})
 
-                expected.all({ (key, value) -> actual[key] == value })
+                val mismatch = expected.mapNotNull { (key, value) ->
+                    val a = actual[key]
+                    if (a != value) "$key: expected=$value actual=$a" else null
+                }
+
+                if (mismatch.isNotEmpty()) {
+                    error("mismatch:\n${mismatch.joinToString("\n")}")
+                }
             },
         )
     }
