@@ -1,6 +1,5 @@
-FROM ghcr.io/navikt/baseimages/temurin:21
+FROM eclipse-temurin:21-jre
 
-COPY init-scripts/* /init-scripts/
 COPY bootstrap/build/libs/*.jar ./
 
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 \
