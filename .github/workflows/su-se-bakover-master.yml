@@ -12,7 +12,6 @@ on:
       - '!.github/workflows/reusable*.yml'
       - '!.github/actions/**'
       - '.idea/**'
-      - 'datapakker/**'
       - 'local-db-scripts/**'
       - 'scripts/**'
       - '.editorconfig'
