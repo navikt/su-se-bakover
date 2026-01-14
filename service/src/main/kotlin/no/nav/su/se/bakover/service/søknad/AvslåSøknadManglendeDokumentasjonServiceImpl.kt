@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
@@ -40,16 +39,9 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
-
-    fun addObserver(observer: StatistikkEventObserver) {
-        observers.add(observer)
-    }
-
     override fun avslå(
         command: AvslagSøknadCmd,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
-        // TODO: Burde sende avsluttet event her til stat
         return lagAvslag(command).map {
             iverksettSøknadsbehandlingService.iverksett(it)
             it.sak
@@ -107,7 +99,6 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
                     it
                 }
             },
-            observers = observers,
         )
     }
 }

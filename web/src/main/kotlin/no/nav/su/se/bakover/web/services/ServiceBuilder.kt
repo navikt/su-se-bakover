@@ -319,9 +319,7 @@ data object ServiceBuilder {
                 utbetalingService = utbetalingService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
-            ).apply {
-                addObserver(statistikkEventObserver)
-            },
+            ),
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,

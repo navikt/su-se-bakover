@@ -39,14 +39,12 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
-import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIkkeOverlappendeStønadsperioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -334,10 +332,13 @@ data class Sak(
     fun harÅpenGjenopptaksbehandling(): Boolean = revurderinger
         .filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
 
-    fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, List<Søknadsbehandling>> {
-        return søknadsbehandlinger.filter { it.søknad.id == søknadId }.whenever(
-            { FantIkkeSøknadsbehandlingForSøknad.left() },
-            { it.right() },
+    fun hentÅpenSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeÅpenSøknadsbehandlingForSøknad, Søknadsbehandling> {
+        return søknadsbehandlinger.filter { it.søknad.id == søknadId && it.erÅpen() }.whenever(
+            { FantIkkeÅpenSøknadsbehandlingForSøknad.left() },
+            {
+                it.singleOrNull()?.right()
+                    ?: throw IllegalArgumentException("Flere åpne behandlinger for søknad $søknadId. Antall behandlinger funnet ${it.size}")
+            },
         )
     }
 
@@ -402,35 +403,16 @@ data class Sak(
      * @throws IllegalArgumentException dersom søknaden ikke er i tilstanden [Søknad.Journalført.MedOppgave.IkkeLukket]
      * @throws IllegalStateException dersom noe uventet skjer ved lukking av søknad/søknadsbehandling
      */
-    fun lukkSøknadOgSøknadsbehandling(
-        lukkSøknadCommand: LukkSøknadCommand,
-        clock: Clock,
-    ): LukkSøknadOgSøknadsbehandlingResponse {
+    fun lukkSøknadOgSøknadsbehandling(lukkSøknadCommand: LukkSøknadCommand): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
-        val saksbehandler = lukkSøknadCommand.saksbehandler
-
-        val søknadensBehandlinger = hentSøknadsbehandlingForSøknad(søknadId).getOrNull()
-        val (oppdatertSak, lukketBehandling) = if (søknadensBehandlinger == null) {
-            // TODO bjg - fjern kode når bekreftet ingen flere søknader uten behandling
-            val nyOgLukket = this.opprettNySøknadsbehandling(
-                søknadId = søknadId,
-                clock = clock,
-                saksbehandler = saksbehandler,
-            ).getOrElse {
-                throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} for sak $id, fikk ikke opprettet og lukket søknadsbehandling. Underliggende feil: $it")
-            }.second.lukkSøknadsbehandlingOgSøknad(lukkSøknadCommand).getOrElse {
-                throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
-            }
-            Pair(this.nySøknadsbehandling(nyOgLukket).leggTilSøknad(nyOgLukket.søknad), nyOgLukket)
-        } else {
-            val søknadsbehandling = søknadensBehandlinger.singleOrNull { it.søknad.id == søknadId && it.erÅpen() }
-                ?: throw IllegalStateException("Fant ingen, eller flere åpne søknadsbehandlinger for søknad $søknadId. Antall behandlinger funnet ${søknadensBehandlinger.size}")
-
-            val lukket = søknadsbehandling.lukkSøknadsbehandlingOgSøknad(lukkSøknadCommand).getOrElse {
-                throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
-            }
-            Pair(this.oppdaterSøknadsbehandling(lukket).leggTilSøknad(lukket.søknad), lukket)
+        val søknadsbehandling = hentÅpenSøknadsbehandlingForSøknad(søknadId).getOrElse {
+            throw IllegalStateException("Ingen åpen søknadsbehandling for søknad=$søknadId")
         }
+
+        val lukketBehandling = søknadsbehandling.lukkSøknadsbehandlingOgSøknad(lukkSøknadCommand).getOrElse {
+            throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
+        }
+        val oppdatertSak = this.oppdaterSøknadsbehandling(lukketBehandling).leggTilSøknad(lukketBehandling.søknad)
 
         val lagBrevRequest = lukketBehandling.søknad.lagGenererDokumentKommando(oppdatertSak.info())
         return LukkSøknadOgSøknadsbehandlingResponse(
@@ -469,7 +451,7 @@ data class Sak(
         data object IkkeLagBrevRequest
     }
 
-    data object FantIkkeSøknadsbehandlingForSøknad
+    data object FantIkkeÅpenSøknadsbehandlingForSøknad
 
     sealed interface KunneIkkeOppdatereStønadsperiode {
         data object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode

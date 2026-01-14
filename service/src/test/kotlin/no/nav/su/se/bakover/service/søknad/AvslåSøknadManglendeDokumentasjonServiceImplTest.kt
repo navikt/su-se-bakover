@@ -367,7 +367,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
             },
         )
-        assertThrows<IllegalArgumentException> {
+        assertThrows<IllegalStateException> {
             serviceAndMocks.service.avslå(
                 AvslagSøknadCmd(
                     søknadId,
@@ -375,7 +375,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "fritekstTilBrev",
                 ),
             )
-        }.message shouldContain "Fant ingen, eller flere åpne søknadsbehandlinger eller Søknadsbehandling var ikke av typen KanOppdaterePeriodeGrunnlagVilkår "
+        }.message shouldContain "Ingen åpen søknadsbehandling for søknad="
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
         serviceAndMocks.verifyNoMoreInteractions()
     }

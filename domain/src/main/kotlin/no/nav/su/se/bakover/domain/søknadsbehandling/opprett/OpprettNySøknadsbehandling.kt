@@ -46,7 +46,6 @@ fun Sak.opprettNySøknadsbehandling(
 
 /**
  * Begrensninger for opprettelse av ny søknadsbehandling:
- * - Kun én søknadsbehandling per søknad. På sikt kan denne begrensningen løses litt opp. Eksempelvis ved omgjøring etter klage eller eget tiltak.
  * - Søknaden må være journalført, oppgave må ha vært opprettet og søknaden kan ikke være lukket.
  *
  * Siden stønadsperioden velges etter man har opprettet søknadsbehandlingen, vil ikke stønadsperiodebegresningene gjelde for dette steget.

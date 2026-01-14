@@ -7,12 +7,6 @@ interface StatistikkEventObserver {
     fun handle(event: StatistikkEvent, sessionContext: SessionContext? = null)
 }
 
-fun List<StatistikkEventObserver>.notifyUtenTransaction(event: StatistikkEvent) {
-    this.forEach { observer ->
-        observer.handle(event, null)
-    }
-}
-
 fun List<StatistikkEventObserver>.notify(event: StatistikkEvent, sessionContext: SessionContext) {
     this.forEach { observer ->
         observer.handle(event, sessionContext)

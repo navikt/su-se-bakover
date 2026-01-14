@@ -138,8 +138,8 @@ class SøknadServiceImpl(
                 saksbehandlerEllerVeileder = identBruker,
             )
         }
-        val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
 
+        val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
         søknadMedOppgave?.let {
             sak.opprettNySøknadsbehandling(
                 søknad = it,
