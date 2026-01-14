@@ -98,8 +98,8 @@ class SakStatistikkRepoImpl(
             """.trimIndent().hentListe(
                 params = mapOf(
                     "fom" to fraOgMed,
-                    // 'til' døgnet etter = 'tilOgMed'
-                    // Feltet er timestamp i db og tilOgMed ville blitt midnatt og i praksis 'til' ikke 'tilOgMed'
+                    // Gjøres om fra "tilOgMed" til "til" + 1 fordi når en dato gjøres om til en timestamp settes det til kl 00:00:00.
+                    // Så <= blir akkurat det samme som < og "tilOgMed" blir faktisk ikke "tilOgMed"
                     "til" to tilOgMed.plusDays(1),
                 ),
                 session = session,
