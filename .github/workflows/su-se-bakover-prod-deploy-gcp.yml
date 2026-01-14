@@ -3,16 +3,13 @@ name: Deploy to prod automatically on published release - GCP
 
 on:
   release:
-    # skal være [published] men skrur ikke på enda
-    types: []
+    types: [published]
 
 permissions: {}
 
 jobs:
   deploy_to_prod:
     name: Deploy to prod
-    #temp disable denne, kjører uansett on types in array er unspecified som er skummelt
-    if: ${{ inputs.deploy_prod == true && github.ref == 'refs/heads/master' }}
     permissions:
       contents: read
       id-token: write
