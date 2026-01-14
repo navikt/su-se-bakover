@@ -36,7 +36,7 @@ internal fun Route.sakStatistikkRoutes(
                     return@withBody
                 }
                 withContext(Dispatchers.IO) {
-                    service.lastTilBigQuery(it.fraOgMed)
+                    service.lastTilBigQuery(it.fraOgMed, it.tilOgMed)
                 }
                 call.svar(Resultat.okJson())
             }
