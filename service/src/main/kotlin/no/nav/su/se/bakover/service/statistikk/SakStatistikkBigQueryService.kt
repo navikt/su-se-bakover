@@ -20,7 +20,10 @@ import java.util.UUID
 private const val LOCATION = "europe-north1"
 
 interface SakStatistikkBigQueryService {
-    fun lastTilBigQuery(fom: LocalDate)
+    fun lastTilBigQuery(
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate = fraOgMed,
+    )
 }
 
 /*
@@ -32,16 +35,13 @@ class SakStatistikkBigQueryServiceImpl(
 ) : SakStatistikkBigQueryService {
     private val logger = LoggerFactory.getLogger(SakStatistikkBigQueryService::class.java)
 
-    override fun lastTilBigQuery(fom: LocalDate) {
-        val data = hentSaksstatistikk(fom)
+    override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
+        val data = repo.hentSakStatistikk(fraOgMed, tilOgMed)
 
         logger.info("Hentet ${data.size} rader fra databasen")
         writeToBigQuery(data)
         logger.info("Slutter jobb Saksstatistikk")
     }
-
-    private fun hentSaksstatistikk(fom: LocalDate): List<SakStatistikk> =
-        repo.hentSakStatistikk(fom, tom = LocalDate.now().plusDays(1))
 
     private fun writeToBigQuery(data: List<SakStatistikk>) {
         /*
@@ -60,6 +60,7 @@ class SakStatistikkBigQueryServiceImpl(
 
         logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
     }
+
     private fun createBigQueryClient(project: String): BigQuery =
         BigQueryOptions.newBuilder()
             .setCredentials(GoogleCredentials.getApplicationDefault())

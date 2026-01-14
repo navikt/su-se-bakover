@@ -90,15 +90,17 @@ class SakStatistikkRepoImpl(
         }
     }
 
-    override fun hentSakStatistikk(fom: LocalDate, tom: LocalDate): List<SakStatistikk> {
+    override fun hentSakStatistikk(fraOgMed: LocalDate, tilOgMed: LocalDate): List<SakStatistikk> {
         return sessionFactory.withSession { session ->
             """
                 SELECT * FROM sak_statistikk
-                WHERE funksjonell_tid > :fom and funksjonell_tid < :tom 
+                WHERE funksjonell_tid > :fom and funksjonell_tid < :til 
             """.trimIndent().hentListe(
                 params = mapOf(
-                    "fom" to fom,
-                    "tom" to tom,
+                    "fom" to fraOgMed,
+                    // 'til' døgnet etter = 'tilOgMed'
+                    // Feltet er timestamp i db og tilOgMed ville blitt midnatt og i praksis 'til' ikke 'tilOgMed'
+                    "til" to tilOgMed.plusDays(1),
                 ),
                 session = session,
             ) { it.toSakStatistikk() }

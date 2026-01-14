@@ -22,6 +22,7 @@ internal fun Route.sakStatistikkRoutes(
     post("$DRIFT_PATH/statistikk/sak") {
         data class Body(
             val fraOgMed: LocalDate,
+            val tilOgMed: LocalDate,
         )
         authorize(Brukerrolle.Drift) {
             call.withBody<Body> {
