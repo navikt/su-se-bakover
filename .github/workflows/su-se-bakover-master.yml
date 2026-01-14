@@ -26,7 +26,6 @@ on:
       - '*.md'
 
 permissions: {}
-#TODO: GCP migrering, må ha automatisk deploy av backend ved merge til master her
 jobs:
   build-test-push-image:
     name: Build, test and push image
@@ -48,17 +47,17 @@ jobs:
     permissions:
       contents: 'write'
     uses: navikt/su-se-bakover/.github/workflows/reusable-submit-dependency-graph.yml@master
-  deploy-to-preprod:
+  deploy-to-dev-gcp:
     needs: build-test-push-image
-    name: Deploy to preprod
+    name: Deploy to dev gcp
     permissions:
       contents: read
       id-token: write
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
-      cluster: dev-fss
+      cluster: dev-gcp
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
-      resource: .nais/dev.yaml
+      resource: .nais/dev-gcp.yaml
 
   draft-release:
     name: Draft release
