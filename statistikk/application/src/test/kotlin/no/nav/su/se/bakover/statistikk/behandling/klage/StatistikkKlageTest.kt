@@ -4,6 +4,8 @@ import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Årsak
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -28,10 +30,6 @@ import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 import java.time.Instant
 import java.util.UUID
 
@@ -218,61 +216,49 @@ internal class StatistikkKlageTest {
         ).statistikkService.handle(statistikkEvent)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe "supstonad.aapen-su-behandling-statistikk-v1" },
-            argThat {
-                // language=JSON
-                JSONAssert.assertEquals(
-                    """
-                    {
-                       "funksjonellTid":"$funksjonellTid",
-                       "tekniskTid":"2021-01-01T01:02:03.456789Z",
-                       "mottattDato":${statistikkEvent.klage.datoKlageMottatt},
-                       "registrertDato":"2021-02-01",
-                       "behandlingId":${statistikkEvent.klage.id},
-                       "sakId":${statistikkEvent.klage.sakId},
-                       "saksnummer":"12345676",
-                       "ytelseType":"SUUFORE",
-                       "behandlingType":"KLAGE",
-                       "behandlingTypeBeskrivelse":"Klage for SU Uføre",
-                       "behandlingStatus":"$behandlingStatus",
-                       "behandlingStatusBeskrivelse":"$behandlingStatusBeskrivelse",
-                       "behandlingYtelseDetaljer": $behandlingYtelseDetaljer,
-                       "utenlandstilsnitt":"NASJONAL",
-                       "ansvarligEnhetKode":"4815",
-                       "ansvarligEnhetType":"NORG",
-                       "behandlendeEnhetKode":"4815",
-                       "behandlendeEnhetType":"NORG",
-                       "avsender":"su-se-bakover",
-                       "saksbehandler":"$saksbehandler",
-                       ${if (resultat != null) """"resultat":"$resultat",""" else ""}
-                       ${if (resultatBeskrivelse != null) """"resultatBeskrivelse":"$resultatBeskrivelse",""" else ""}
-                       ${if (resultatBegrunnelse != null) """"resultatBegrunnelse":"$resultatBegrunnelse",""" else ""}
-                       ${if (beslutter != null) """"beslutter":"$beslutter",""" else ""}
-                       "avsluttet": $avsluttet,
-                       "totrinnsbehandling": $totrinnsbehandling,
-                       ${
-                        when (val v = statistikkEvent.klage.vilkårsvurderinger?.vedtakId) {
-                            null -> ""
-                            else -> """"relatertBehandlingId":"$v","""
-                        }
-                    }
-                       "versjon":"87a3a5155bf00b4d6854efcc24e8b929549c9302"
-                    }
-                    """.trimIndent(),
-                    it,
-                    CustomComparator(
-                        JSONCompareMode.STRICT,
-                        Customization(
-                            "behandlingId",
-                        ) { _, _ -> true },
-                        Customization(
-                            "sakId",
-                        ) { _, _ -> true },
-                        Customization(
-                            "søknadId",
-                        ) { _, _ -> true },
-                    ),
-
+            argThat { json ->
+                val expected = mutableMapOf<String, Any?>(
+                    "funksjonellTid" to funksjonellTid.toString(),
+                    "tekniskTid" to "2021-01-01T01:02:03.456789Z",
+                    "mottattDato" to statistikkEvent.klage.datoKlageMottatt.toString(),
+                    "registrertDato" to "2021-02-01",
+                    "behandlingId" to statistikkEvent.klage.id.toString(),
+                    "sakId" to statistikkEvent.klage.sakId.toString(),
+                    "saksnummer" to "12345676",
+                    "ytelseType" to "SUUFORE",
+                    "behandlingType" to "KLAGE",
+                    "behandlingTypeBeskrivelse" to "Klage for SU Uføre",
+                    "behandlingStatus" to behandlingStatus,
+                    "behandlingStatusBeskrivelse" to behandlingStatusBeskrivelse,
+                    "behandlingYtelseDetaljer" to jacksonObjectMapper().readValue(behandlingYtelseDetaljer, object : TypeReference<List<Map<String, Any?>>>() {}),
+                    "utenlandstilsnitt" to "NASJONAL",
+                    "ansvarligEnhetKode" to "4815",
+                    "ansvarligEnhetType" to "NORG",
+                    "behandlendeEnhetKode" to "4815",
+                    "behandlendeEnhetType" to "NORG",
+                    "avsender" to "su-se-bakover",
+                    "saksbehandler" to saksbehandler,
+                    "avsluttet" to avsluttet,
+                    "totrinnsbehandling" to totrinnsbehandling,
+                    "versjon" to "87a3a5155bf00b4d6854efcc24e8b929549c9302",
                 )
+                if (resultat != null) expected["resultat"] = resultat
+                if (resultatBeskrivelse != null) expected["resultatBeskrivelse"] = resultatBeskrivelse
+                if (resultatBegrunnelse != null) expected["resultatBegrunnelse"] = resultatBegrunnelse
+                if (beslutter != null) expected["beslutter"] = beslutter
+                val vedtakId = statistikkEvent.klage.vilkårsvurderinger?.vedtakId
+                if (vedtakId != null) expected["relatertBehandlingId"] = vedtakId.toString()
+
+                val actual = jacksonObjectMapper().readValue(json, object : TypeReference<Map<String, Any?>>() {})
+
+                val mismatch = expected.mapNotNull { (key, value) ->
+                    val a = actual[key]
+                    if (a != value) "$key: expected=$value actual=$a" else null
+                }
+
+                if (mismatch.isNotEmpty()) {
+                    error("mismatch:\n${mismatch.joinToString("\n")}")
+                }
             },
         )
     }
