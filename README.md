@@ -312,7 +312,6 @@ Se også https://github.com/navikt/utvikling/blob/main/docs/teknisk/PostgreSQL.m
 11. Kopier skjema+data til ny base:
     `PGPASSWORD='<vault-db-passord>' psql -h <ny-db-host>> -p 5432 -U <vault-db-username> -d <ny-db> -f preprod.dump`
 12. Hvis det går bra, merge PRen og deploy. Replicas blir da resatt basert på nais.yml.
-13. Deploy su-datapakke-soknad. F.eks. ved å endre på den ./datapakker/README.md eller lignende.
 
 ## Migrerte data fra Infotrygd
 
