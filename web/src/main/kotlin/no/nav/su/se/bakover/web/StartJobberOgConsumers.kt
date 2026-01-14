@@ -285,6 +285,12 @@ private fun localJobberOgConsumers(
     )
 }
 
+/*
+    NB: Alle jobber som skal kjøre på et gitt tidspunkt kan ikke kjøre samtidig som vi tar backup av databasen da den er unavailable da.
+    se autoBackupHour: 3 i prod-gcp.yaml. Det betyr at backup kjører 03:00 om natten så IKKE skeduler jobber som trenger database connections
+    ZonedDateTime...next( brukes her for å spesifisere et tidspunkt.
+    Gjelder blant annet SakstatistikkTilBigQuery og GrensesnittsavstemingJob og KontrollsamtaleinnkallingJob
+ */
 private fun naisJobberOgConsumers(
     services: Services,
     databaseRepos: DatabaseRepos,
@@ -337,7 +343,6 @@ private fun naisJobberOgConsumers(
             pesysjobb = services.pesysJobService,
             runJobCheck = runCheckFactory,
         ),
-
         SakstatistikkTilBigQuery.startJob(
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),
