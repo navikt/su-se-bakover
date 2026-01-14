@@ -230,7 +230,7 @@ internal class StatistikkKlageTest {
                     "behandlingTypeBeskrivelse" to "Klage for SU Uføre",
                     "behandlingStatus" to behandlingStatus,
                     "behandlingStatusBeskrivelse" to behandlingStatusBeskrivelse,
-//                    "behandlingYtelseDetaljer" to jacksonObjectMapper().readValue(behandlingYtelseDetaljer, object : TypeReference<List<Map<String, Any?>>>() {}),
+                    "behandlingYtelseDetaljer" to jacksonObjectMapper().readValue(behandlingYtelseDetaljer, object : TypeReference<List<Map<String, Any?>>>() {}),
                     "utenlandstilsnitt" to "NASJONAL",
                     "ansvarligEnhetKode" to "4815",
                     "ansvarligEnhetType" to "NORG",
