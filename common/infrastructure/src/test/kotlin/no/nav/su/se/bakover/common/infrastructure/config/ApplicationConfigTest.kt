@@ -72,23 +72,15 @@ class ApplicationConfigTest {
                 mqReplyTo = "utbetalingMqReplyTo",
             ),
             avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqSendQueue"),
-            simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
-                url = "simuleringUrl",
-            ),
             tilbakekreving = TilbakekrevingConfig(
                 mq = TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
-                soap = TilbakekrevingConfig.Soap("tilbakekrevingUrl"),
                 serviceUserConfig = ServiceUserConfig(
                     username = "username",
                     password = "password",
                 ),
             ),
         ),
-        database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
-            databaseName = "databaseName",
-            jdbcUrl = "jdbcUrl",
-            vaultMountPath = "vaultMountPath",
-        ),
+        database = ApplicationConfig.DatabaseConfig.createLocalConfig(),
         clientsConfig = ApplicationConfig.ClientsConfig(
             oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                 clientId = "oppgaveClientId",
@@ -99,7 +91,6 @@ class ApplicationConfigTest {
                 clientId = "pdlClientId",
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
-            gandalfSamlUrl = "stsSamlUrl",
             skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                 url = "skjermingUrl",
                 clientId = "skjermingClientId",
@@ -187,17 +178,14 @@ class ApplicationConfigTest {
                 "MQ_SEND_QUEUE_UTBETALING" to "utbetalingMqSendQueue",
                 "MQ_REPLY_TO" to "utbetalingMqReplyTo",
                 "MQ_SEND_QUEUE_AVSTEMMING" to "avstemmingMqSendQueue",
-                "SIMULERING_URL" to "simuleringUrl",
                 "DATABASE_NAME" to "databaseName",
                 "DATABASE_JDBC_URL" to "jdbcUrl",
-                "VAULT_MOUNTPATH" to "vaultMountPath",
                 "OPPGAVE_CLIENT_ID" to "oppgaveClientId",
                 "OPPGAVE_URL" to "oppgaveUrl",
                 "DOKDIST_URL" to "dokDistUrl",
                 "DOKDIST_CLIENT_ID" to "dokDistClientId",
                 "DOKARKIV_URL" to "dokArkivUrl",
                 "DOKARKIV_CLIENT_ID" to "dokArkivClientId",
-                "GANDALF_URL" to "stsSamlUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "SKJERMING_CLIENT_ID" to "skjermingClientId",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
@@ -208,7 +196,6 @@ class ApplicationConfigTest {
                 "SAF_CLIENT_ID" to "safClientId",
                 "HOSTNAME" to "hostname",
                 "MQ_TILBAKEKREVING_MOTTAK" to "tilbakekrevingMottak",
-                "TILBAKEKREVING_URL" to "tilbakekrevingUrl",
                 "KRR_URL" to "krrUrl",
                 "KRR_APP_ID" to "krrId",
                 "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
@@ -225,6 +212,11 @@ class ApplicationConfigTest {
                 "PESYS_CLIENT_ID" to "PESYS_CLIENT_ID",
                 "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
                 "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
+                "serviceuser" to "username", // Disse ligger i en google secret
+                "serviceuserpw" to "password", // Disse ligger i en google secret
+                "DB_JDBC_URL" to "jdbc:postgresql://localhost:5432/supstonad-db-local",
+                "DB_USERNAME" to "user",
+                "DB_PASSWORD" to "pwd",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -262,12 +254,8 @@ class ApplicationConfigTest {
                         mqReplyTo = "unused",
                     ),
                     avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "unused"),
-                    simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
-                        url = "unused",
-                    ),
                     tilbakekreving = TilbakekrevingConfig(
                         mq = TilbakekrevingConfig.Mq("unused"),
-                        soap = TilbakekrevingConfig.Soap("unused"),
                         serviceUserConfig = ServiceUserConfig(
                             username = "unused",
                             password = "unused",
@@ -289,7 +277,6 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     pdfgenUrl = "mocked",
-                    gandalfSamlUrl = "mocked",
                     skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                         url = "skjermingUrl",
                         clientId = "skjermingClientId",

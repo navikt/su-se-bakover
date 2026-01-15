@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
@@ -88,15 +87,8 @@ data object DatabaseBuilder {
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
         when (databaseConfig) {
             is StaticCredentials -> {
-                // Lokalt ønsker vi ikke noe herjing med rolle; Docker-oppsettet sørger for at vi har riktige tilganger her.
                 Flyway(dataSource)
             }
-
-            is RotatingCredentials -> Flyway(
-                dataSource = dataSource,
-                // Pga roterende credentials i preprod/prod må tabeller opprettes/endres av samme rolle hver gang. Se https://github.com/navikt/utvikling/blob/master/PostgreSQL.md#hvordan-kj%C3%B8re-flyway-migreringerendre-p%C3%A5-databaseskjemaet
-                role = "${databaseConfig.databaseName}-${Postgres.Role.Admin}",
-            )
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringProxyClientGcp
-import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
@@ -25,9 +24,7 @@ import no.nav.su.se.bakover.client.proxy.SUProxyClientImpl
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
@@ -42,29 +39,19 @@ import java.time.Clock
 data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
-    private val samlTokenProvider: SamlTokenProvider,
     private val suMetrics: SuMetrics,
 ) : ClientsBuilder {
 
     fun createSimuleringClient(
         applicationConfig: ApplicationConfig,
-        samlTokenProvider: SamlTokenProvider,
         azure: AzureAd,
         clock: Clock,
     ): SimuleringClient =
-        if (isGCP()) {
-            SimuleringProxyClientGcp(
-                config = applicationConfig.clientsConfig.suProxyConfig,
-                azureAd = azure,
-                clock = clock,
-            )
-        } else {
-            SimuleringSoapClient(
-                baseUrl = applicationConfig.oppdrag.simulering.url,
-                samlTokenProvider = samlTokenProvider,
-                clock = clock,
-            )
-        }
+        SimuleringProxyClientGcp(
+            config = applicationConfig.clientsConfig.suProxyConfig,
+            azureAd = azure,
+            clock = clock,
+        )
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
         val clientsConfig = applicationConfig.clientsConfig
@@ -136,7 +123,6 @@ data class ProdClientsBuilder(
             kodeverk = kodeverk,
             simuleringClient = createSimuleringClient(
                 applicationConfig = applicationConfig,
-                samlTokenProvider = samlTokenProvider,
                 azure = azureAd,
                 clock = clock,
             ),

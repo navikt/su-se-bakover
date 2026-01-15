@@ -3,8 +3,6 @@ package tilbakekreving.presentation
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
-import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -44,9 +42,7 @@ class Tilbakekrevingskomponenter(
             brevService: BrevService,
             fritekstService: FritekstService,
             sakStatistikkRepo: SakStatistikkRepo,
-            tilbakekrevingConfig: TilbakekrevingConfig,
             dbMetrics: DbMetrics,
-            samlTokenProvider: SamlTokenProvider,
             tilgangstyringService: TilgangstyringService,
             azureAd: AzureAd,
             suProxyConfig: SuProxyConfig,
@@ -60,8 +56,6 @@ class Tilbakekrevingskomponenter(
                 dbMetrics = dbMetrics,
             )
             val clients = TilbakekrevingClients.create(
-                soapEndpointTK = tilbakekrevingConfig.soap.url,
-                samlTokenProvider = samlTokenProvider,
                 clock = clock,
                 suProxyConfig = suProxyConfig,
                 azureAd = azureAd,

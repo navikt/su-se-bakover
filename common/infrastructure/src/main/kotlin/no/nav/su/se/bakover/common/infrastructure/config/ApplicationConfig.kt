@@ -93,7 +93,6 @@ data class ApplicationConfig(
         val mqChannel: String,
         val utbetaling: UtbetalingConfig,
         val avstemming: AvstemmingConfig,
-        val simulering: SimuleringConfig,
         val tilbakekreving: TilbakekrevingConfig,
     ) {
         /**
@@ -123,16 +122,6 @@ data class ApplicationConfig(
             }
         }
 
-        data class SimuleringConfig(
-            val url: String,
-        ) {
-            companion object {
-                fun createFromEnvironmentVariables() = SimuleringConfig(
-                    url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
-                )
-            }
-        }
-
         companion object {
             fun createFromEnvironmentVariables() = OppdragConfig(
                 mqQueueManager = getEnvironmentVariableOrThrow("MQ_QUEUE_MANAGER"),
@@ -141,7 +130,6 @@ data class ApplicationConfig(
                 mqChannel = getEnvironmentVariableOrThrow("MQ_CHANNEL"),
                 utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
                 avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
-                simulering = SimuleringConfig.createFromEnvironmentVariables(),
                 tilbakekreving = TilbakekrevingConfig.createFromEnvironmentVariables(),
             )
 
@@ -155,12 +143,8 @@ data class ApplicationConfig(
                     mqReplyTo = "unused",
                 ),
                 avstemming = AvstemmingConfig(mqSendQueue = "unused"),
-                simulering = SimuleringConfig(
-                    url = "unused",
-                ),
                 tilbakekreving = TilbakekrevingConfig(
                     mq = TilbakekrevingConfig.Mq("unused"),
-                    soap = TilbakekrevingConfig.Soap("unused"),
                     serviceUserConfig = ServiceUserConfig("unused", "unused"),
                 ),
             )
@@ -183,12 +167,6 @@ data class ApplicationConfig(
 
         val jdbcUrl: String
 
-        data class RotatingCredentials(
-            val databaseName: String,
-            override val jdbcUrl: String,
-            val vaultMountPath: String,
-        ) : DatabaseConfig
-
         data class StaticCredentials(
             override val jdbcUrl: String,
             val username: String,
@@ -196,22 +174,15 @@ data class ApplicationConfig(
         ) : DatabaseConfig
 
         companion object {
-            fun createFromEnvironmentVariables(isGCP: Boolean): DatabaseConfig {
-                // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
-                return when (isGCP) {
-                    true -> StaticCredentials(
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
-                        getEnvironmentVariableOrThrow(
-                            DatabaseConfigEnvs.DB_USERNAME.key(),
-                        ),
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
-                    )
-                    false -> RotatingCredentials(
-                        databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
-                        jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
-                        vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
-                    )
-                }
+            // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
+            fun createFromEnvironmentVariables(): DatabaseConfig {
+                return StaticCredentials(
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
+                    getEnvironmentVariableOrThrow(
+                        DatabaseConfigEnvs.DB_USERNAME.key(),
+                    ),
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
+                )
             }
 
             fun createLocalConfig() = StaticCredentials(
@@ -229,7 +200,6 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val gandalfSamlUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
@@ -246,9 +216,6 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                gandalfSamlUrl = getEnvironmentVariableOrThrow(
-                    "GANDALF_URL",
-                ),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
@@ -265,10 +232,6 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
                 pdfgenUrl = "mocked",
-                gandalfSamlUrl = getEnvironmentVariableOrDefault(
-                    "GANDALF_URL",
-                    "mocked",
-                ),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
@@ -606,10 +569,10 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
-            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(isGCP()),
+            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
-            database = DatabaseConfig.createFromEnvironmentVariables(isGCP()),
+            database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),

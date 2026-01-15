@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.test.applicationConfig
-import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -258,9 +257,7 @@ internal fun withKomptestApplication(
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             brevService = services.brev,
             fritekstService = services.fritekstService,
-            tilbakekrevingConfig = applicationConfig.oppdrag.tilbakekreving,
             dbMetrics = dbMetricsStub,
-            samlTokenProvider = FakeSamlTokenProvider(),
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
             azureAd = AzureClientStub,
@@ -336,7 +333,7 @@ fun Application.testSusebakover(appComponents: AppComponents) {
         clients = appComponents.clients,
         services = appComponents.services,
         accessCheckProxy = appComponents.accessCheckProxy,
-        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ ->
+        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _ ->
             appComponents.tilbakekrevingskomponenter
         },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,

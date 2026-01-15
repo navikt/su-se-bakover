@@ -179,8 +179,6 @@ spec:
       value: "https://dokdistfordeling.prod-fss-pub.nais.io"
     - name: DOKDIST_CLIENT_ID
       value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
-    - name: SIMULERING_URL # todo rm
-      value: "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding"
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
     - name: SKJERMING_CLIENT_ID
@@ -213,8 +211,6 @@ spec:
       value: "api://prod-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
       value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
-    - name: TILBAKEKREVING_URL # todo rm
-      value: "https://cics.adeo.no/oppdrag/K231CW80"
     - name: SKATTEETATEN_URL
       value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/sigrun"
     - name: SKATT_CLIENT_ID
@@ -229,5 +225,3 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://prod-gcp.team-rocket.kodeverk-api"
-    - name: GANDALF_URL # todo rm
-      value: "https://security-token-service.nais.adeo.no"

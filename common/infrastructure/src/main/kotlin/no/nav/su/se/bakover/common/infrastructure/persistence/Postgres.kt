@@ -5,26 +5,19 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.database.Postgres.Role
 import no.nav.su.se.bakover.database.Postgres.Role.User
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import javax.sql.DataSource
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-// Understands how to create a data source from environment variables
 class Postgres(
     private val databaseConfig: ApplicationConfig.DatabaseConfig,
 ) {
     fun build(): AbstractDatasource {
         return when (databaseConfig) {
-            is ApplicationConfig.DatabaseConfig.StaticCredentials -> NonVaultPostgres(
+            is ApplicationConfig.DatabaseConfig.StaticCredentials -> PostgresDataSource(
                 jdbcUrl = databaseConfig.jdbcUrl,
                 username = databaseConfig.username,
                 password = databaseConfig.password,
-            )
-            is ApplicationConfig.DatabaseConfig.RotatingCredentials -> VaultPostgres(
-                jdbcUrl = databaseConfig.jdbcUrl,
-                vaultMountPath = databaseConfig.vaultMountPath,
-                databaseName = databaseConfig.databaseName,
             )
         }
     }
@@ -52,25 +45,11 @@ abstract class AbstractDatasource(private val jdbcUrl: String, val maximumPoolSi
     abstract fun getDatasource(role: Role = User): DataSource
 }
 
-class NonVaultPostgres(jdbcUrl: String, private val username: String, private val password: String) : AbstractDatasource(jdbcUrl) {
+class PostgresDataSource(jdbcUrl: String, private val username: String, private val password: String) : AbstractDatasource(jdbcUrl) {
     override fun getDatasource(role: Role) = HikariDataSource(
         hikariConfig.apply {
-            username = this@NonVaultPostgres.username
-            password = this@NonVaultPostgres.password
+            username = this@PostgresDataSource.username
+            password = this@PostgresDataSource.password
         },
-    )
-}
-
-class VaultPostgres(
-    jdbcUrl: String,
-    private val vaultMountPath: String,
-    private val databaseName: String,
-    maximumPoolSize: Int = defaultConnectionPoolSizeForApp,
-) : AbstractDatasource(jdbcUrl, maximumPoolSizeOverride = maximumPoolSize) {
-    override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
-        hikariConfig,
-        vaultMountPath,
-        "$databaseName-$role",
-
     )
 }
