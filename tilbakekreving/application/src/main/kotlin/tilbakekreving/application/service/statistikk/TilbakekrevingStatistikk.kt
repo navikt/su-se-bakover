@@ -23,7 +23,6 @@ fun OpprettetTilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
 
 fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkTilAttestering(
     generellSakStatistikk: GenerellSakStatistikk,
-    førsteLinje: SakStatistikk? = null, // TODO bjg anvend..
 ): SakStatistikk {
     val behandlingResultat = utledResultat(vurderingerMedKrav)
     return toTilbakeStatistikk(
