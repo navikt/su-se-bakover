@@ -38,9 +38,6 @@ fun applicationConfig() = ApplicationConfig(
             mqReplyTo = "testMqReplyTo",
         ),
         avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqTestSendQueue"),
-        simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
-            url = "simuleringTestUrl",
-        ),
         tilbakekreving = TilbakekrevingConfig(
             mq = TilbakekrevingConfig.Mq(
                 mottak = "tilbakekrevingMqTestSendQueue",
@@ -66,7 +63,6 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "pdlClientId",
         ),
         pdfgenUrl = "pdfgenUrl",
-        gandalfSamlUrl = "stsSamlUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
             url = "krrUrl",

@@ -179,8 +179,6 @@ spec:
       value: "https://dokdistfordeling.prod-fss-pub.nais.io"
     - name: DOKDIST_CLIENT_ID
       value: "api://prod-fss.teamdokumenthandtering.dokdistfordeling"
-    - name: SIMULERING_URL # todo rm
-      value: "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding"
     - name: SKJERMING_URL
       value: "http://skjermede-personer-pip.nom"
     - name: SKJERMING_CLIENT_ID

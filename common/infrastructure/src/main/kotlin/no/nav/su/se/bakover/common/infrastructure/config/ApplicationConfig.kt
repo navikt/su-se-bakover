@@ -93,7 +93,6 @@ data class ApplicationConfig(
         val mqChannel: String,
         val utbetaling: UtbetalingConfig,
         val avstemming: AvstemmingConfig,
-        val simulering: SimuleringConfig,
         val tilbakekreving: TilbakekrevingConfig,
     ) {
         /**
@@ -123,16 +122,6 @@ data class ApplicationConfig(
             }
         }
 
-        data class SimuleringConfig(
-            val url: String,
-        ) {
-            companion object {
-                fun createFromEnvironmentVariables() = SimuleringConfig(
-                    url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
-                )
-            }
-        }
-
         companion object {
             fun createFromEnvironmentVariables() = OppdragConfig(
                 mqQueueManager = getEnvironmentVariableOrThrow("MQ_QUEUE_MANAGER"),
@@ -141,7 +130,6 @@ data class ApplicationConfig(
                 mqChannel = getEnvironmentVariableOrThrow("MQ_CHANNEL"),
                 utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
                 avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
-                simulering = SimuleringConfig.createFromEnvironmentVariables(),
                 tilbakekreving = TilbakekrevingConfig.createFromEnvironmentVariables(),
             )
 
@@ -155,9 +143,6 @@ data class ApplicationConfig(
                     mqReplyTo = "unused",
                 ),
                 avstemming = AvstemmingConfig(mqSendQueue = "unused"),
-                simulering = SimuleringConfig(
-                    url = "unused",
-                ),
                 tilbakekreving = TilbakekrevingConfig(
                     mq = TilbakekrevingConfig.Mq("unused"),
                     serviceUserConfig = ServiceUserConfig("unused", "unused"),

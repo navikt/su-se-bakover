@@ -72,9 +72,6 @@ class ApplicationConfigTest {
                 mqReplyTo = "utbetalingMqReplyTo",
             ),
             avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqSendQueue"),
-            simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
-                url = "simuleringUrl",
-            ),
             tilbakekreving = TilbakekrevingConfig(
                 mq = TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
                 serviceUserConfig = ServiceUserConfig(
@@ -94,7 +91,6 @@ class ApplicationConfigTest {
                 clientId = "pdlClientId",
             ),
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
-            gandalfSamlUrl = "stsSamlUrl",
             skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                 url = "skjermingUrl",
                 clientId = "skjermingClientId",
@@ -182,7 +178,6 @@ class ApplicationConfigTest {
                 "MQ_SEND_QUEUE_UTBETALING" to "utbetalingMqSendQueue",
                 "MQ_REPLY_TO" to "utbetalingMqReplyTo",
                 "MQ_SEND_QUEUE_AVSTEMMING" to "avstemmingMqSendQueue",
-                "SIMULERING_URL" to "simuleringUrl",
                 "DATABASE_NAME" to "databaseName",
                 "DATABASE_JDBC_URL" to "jdbcUrl",
                 "OPPGAVE_CLIENT_ID" to "oppgaveClientId",
@@ -259,9 +254,6 @@ class ApplicationConfigTest {
                         mqReplyTo = "unused",
                     ),
                     avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "unused"),
-                    simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
-                        url = "unused",
-                    ),
                     tilbakekreving = TilbakekrevingConfig(
                         mq = TilbakekrevingConfig.Mq("unused"),
                         serviceUserConfig = ServiceUserConfig(
@@ -285,7 +277,6 @@ class ApplicationConfigTest {
                         clientId = "mocked",
                     ),
                     pdfgenUrl = "mocked",
-                    gandalfSamlUrl = "mocked",
                     skjermingConfig = ApplicationConfig.ClientsConfig.SkjermingConfig(
                         url = "skjermingUrl",
                         clientId = "skjermingClientId",
