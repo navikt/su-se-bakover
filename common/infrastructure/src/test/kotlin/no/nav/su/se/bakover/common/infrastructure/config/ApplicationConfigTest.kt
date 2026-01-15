@@ -218,6 +218,11 @@ class ApplicationConfigTest {
                 "PESYS_CLIENT_ID" to "PESYS_CLIENT_ID",
                 "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
                 "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
+                "serviceuser" to "username", // Disse ligger i en google secret
+                "serviceuserpw" to "password", // Disse ligger i en google secret
+                "DB_JDBC_URL" to "jdbc:postgresql://localhost:5432/supstonad-db-local",
+                "DB_USERNAME" to "user",
+                "DB_PASSWORD" to "pwd",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
