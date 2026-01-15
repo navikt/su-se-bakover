@@ -298,7 +298,6 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
 Se også https://github.com/navikt/utvikling/blob/main/docs/teknisk/PostgreSQL.md
 
 1. Lag en PR tilsvarende denne: https://github.com/navikt/database-iac/pull/511
-2. Lag en PR tilsvarende denne: https://github.com/navikt/vault-iac/pull/5270
 3. Sjekk at den nye databasen er satt opp og du kan logge inn med vault bruker. Påse at alle extensions er lagt til.
    E.g. `CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;`. Hvis ikke hør i #postgres i slack.
 4. Merk at vi ønsker plain sql siden vi skal gjøre endringer:

@@ -73,7 +73,6 @@ subprojects {
         implementation(rootProject.libs.flyway.core)
         implementation(rootProject.libs.flyway.database.postgresql)
         implementation(rootProject.libs.hikaricp)
-        implementation(rootProject.libs.vault.jdbc)
         implementation(rootProject.libs.postgresql) {
             exclude("org.apache.commons", "commons-compress")
         }

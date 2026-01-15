@@ -91,8 +91,6 @@ kotliquery = { group = "com.github.seratch", name = "kotliquery", version = "1.9
 
 hikaricp = { group = "com.zaxxer", name = "HikariCP", version = "6.3.0"}
 
-vault-jdbc = { group = "com.github.navikt", name = "vault-jdbc", version = "1.3.10"}
-
 postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.7"}
 
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1"}

@@ -84,11 +84,7 @@ class ApplicationConfigTest {
                 ),
             ),
         ),
-        database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
-            databaseName = "databaseName",
-            jdbcUrl = "jdbcUrl",
-            vaultMountPath = "vaultMountPath",
-        ),
+        database = ApplicationConfig.DatabaseConfig.createLocalConfig(),
         clientsConfig = ApplicationConfig.ClientsConfig(
             oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                 clientId = "oppgaveClientId",
@@ -190,7 +186,6 @@ class ApplicationConfigTest {
                 "SIMULERING_URL" to "simuleringUrl",
                 "DATABASE_NAME" to "databaseName",
                 "DATABASE_JDBC_URL" to "jdbcUrl",
-                "VAULT_MOUNTPATH" to "vaultMountPath",
                 "OPPGAVE_CLIENT_ID" to "oppgaveClientId",
                 "OPPGAVE_URL" to "oppgaveUrl",
                 "DOKDIST_URL" to "dokDistUrl",

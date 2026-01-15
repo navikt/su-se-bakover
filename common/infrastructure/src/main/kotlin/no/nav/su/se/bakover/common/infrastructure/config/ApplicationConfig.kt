@@ -183,12 +183,6 @@ data class ApplicationConfig(
 
         val jdbcUrl: String
 
-        data class RotatingCredentials(
-            val databaseName: String,
-            override val jdbcUrl: String,
-            val vaultMountPath: String,
-        ) : DatabaseConfig
-
         data class StaticCredentials(
             override val jdbcUrl: String,
             val username: String,
@@ -206,11 +200,9 @@ data class ApplicationConfig(
                         ),
                         getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
                     )
-                    false -> RotatingCredentials(
-                        databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
-                        jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
-                        vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
-                    )
+                    false -> {
+                        throw RuntimeException("Must ge gcp we dont support fss anymore")
+                    }
                 }
             }
 
