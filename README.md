@@ -234,15 +234,9 @@ prod: https://alertmanager.prod-gcp.nav.cloud.nais.io/#/alerts
 
 1. In `build.gradle.kts` and search for `jvmTarget = `
 2. In `.github/workflows/*.yml` and search for `java-version`
-3. In `Dockerfile` replace `FROM ghcr.io/navikt/baseimages/temurin:<version>`
+3. In `Dockerfile` replace `FROM eclipse-temurin:<version>-jre`
 
 ## Kubernetes
-
-#### Hvis du har brukt gamle måten før, kan du gjøre disse tingene:
-
-1. Fjern KUBECONFIG pathen i shellet ditt
-2. fjern kubeconfig-repoet `navikt/kubeconfig`
-
 #### Et par ting du må gjøre hvis du har lyst til å gjøre noe snacks i kubernetes.
 
 1. Du må ha nais-cli - https://docs.nais.io/cli/
