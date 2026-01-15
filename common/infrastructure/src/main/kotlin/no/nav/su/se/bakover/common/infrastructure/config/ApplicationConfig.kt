@@ -160,7 +160,6 @@ data class ApplicationConfig(
                 ),
                 tilbakekreving = TilbakekrevingConfig(
                     mq = TilbakekrevingConfig.Mq("unused"),
-                    soap = TilbakekrevingConfig.Soap("unused"),
                     serviceUserConfig = ServiceUserConfig("unused", "unused"),
                 ),
             )

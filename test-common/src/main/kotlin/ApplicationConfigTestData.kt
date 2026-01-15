@@ -45,9 +45,6 @@ fun applicationConfig() = ApplicationConfig(
             mq = TilbakekrevingConfig.Mq(
                 mottak = "tilbakekrevingMqTestSendQueue",
             ),
-            soap = TilbakekrevingConfig.Soap(
-                url = "tilbakekrevingUrl",
-            ),
             serviceUserConfig = ServiceUserConfig(
                 username = "tilbakekrevingServiceUserTestUsername",
                 password = "tilbakekrevingServiceUserTestPassword",

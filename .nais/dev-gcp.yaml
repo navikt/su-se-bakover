@@ -210,8 +210,6 @@ spec:
       value: "api://dev-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
-    - name: TILBAKEKREVING_URL
-      value: "https://cics-q1.adeo.no/oppdrag/K231CW80"
     - name: SKATTEETATEN_URL
       value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
     - name: SKATT_CLIENT_ID

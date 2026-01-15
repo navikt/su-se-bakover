@@ -77,7 +77,6 @@ class ApplicationConfigTest {
             ),
             tilbakekreving = TilbakekrevingConfig(
                 mq = TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
-                soap = TilbakekrevingConfig.Soap("tilbakekrevingUrl"),
                 serviceUserConfig = ServiceUserConfig(
                     username = "username",
                     password = "password",
@@ -203,7 +202,6 @@ class ApplicationConfigTest {
                 "SAF_CLIENT_ID" to "safClientId",
                 "HOSTNAME" to "hostname",
                 "MQ_TILBAKEKREVING_MOTTAK" to "tilbakekrevingMottak",
-                "TILBAKEKREVING_URL" to "tilbakekrevingUrl",
                 "KRR_URL" to "krrUrl",
                 "KRR_APP_ID" to "krrId",
                 "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
@@ -262,7 +260,6 @@ class ApplicationConfigTest {
                     ),
                     tilbakekreving = TilbakekrevingConfig(
                         mq = TilbakekrevingConfig.Mq("unused"),
-                        soap = TilbakekrevingConfig.Soap("unused"),
                         serviceUserConfig = ServiceUserConfig(
                             username = "unused",
                             password = "unused",
