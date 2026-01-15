@@ -190,20 +190,15 @@ data class ApplicationConfig(
         ) : DatabaseConfig
 
         companion object {
-            fun createFromEnvironmentVariables(isGCP: Boolean): DatabaseConfig {
-                // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
-                return when (isGCP) {
-                    true -> StaticCredentials(
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
-                        getEnvironmentVariableOrThrow(
-                            DatabaseConfigEnvs.DB_USERNAME.key(),
-                        ),
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
-                    )
-                    false -> {
-                        throw RuntimeException("Must ge gcp we dont support fss anymore")
-                    }
-                }
+            // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
+            fun createFromEnvironmentVariables(): DatabaseConfig {
+                return StaticCredentials(
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
+                    getEnvironmentVariableOrThrow(
+                        DatabaseConfigEnvs.DB_USERNAME.key(),
+                    ),
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
+                )
             }
 
             fun createLocalConfig() = StaticCredentials(
@@ -598,10 +593,10 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
-            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(isGCP()),
+            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
-            database = DatabaseConfig.createFromEnvironmentVariables(isGCP()),
+            database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),

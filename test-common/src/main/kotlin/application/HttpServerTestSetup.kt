@@ -21,7 +21,6 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -37,7 +36,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.test.applicationConfig
-import no.nav.su.se.bakover.test.auth.FakeSamlTokenProvider
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.jwt.asBearerToken
@@ -83,9 +81,8 @@ fun Application.runApplicationWithMocks(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         fritekstService: FritekstService,
-        tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, tilbakekrevingConfig, tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -98,9 +95,7 @@ fun Application.runApplicationWithMocks(
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
             fritekstService = fritekstService,
-            tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
-            samlTokenProvider = FakeSamlTokenProvider(),
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
             azureAd = clients.azureAd,

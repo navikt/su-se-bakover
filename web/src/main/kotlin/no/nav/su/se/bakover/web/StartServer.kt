@@ -11,9 +11,6 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
-import no.nav.su.se.bakover.client.sts.StsSamlClient
-import no.nav.su.se.bakover.common.domain.auth.SamlTokenProvider
-import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
@@ -88,11 +85,6 @@ fun Application.susebakover(
         råttKravgrunnlagMapper = mapRåttKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    samlTokenProvider: SamlTokenProvider = StsSamlClient(
-        baseUrl = applicationConfig.clientsConfig.gandalfSamlUrl,
-        serviceUser = applicationConfig.serviceUser,
-        clock = clock,
-    ),
     clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
         StubClientsBuilder(
             clock = clock,
@@ -102,7 +94,6 @@ fun Application.susebakover(
         ProdClientsBuilder(
             jmsConfig,
             clock = clock,
-            samlTokenProvider = samlTokenProvider,
             suMetrics = suMetrics,
         ).build(applicationConfig)
     },
@@ -131,9 +122,8 @@ fun Application.susebakover(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         fritekstService: FritekstService,
-        tilbakekrevingConfig: TilbakekrevingConfig,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, tilbakekrevingConfig, _tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -146,9 +136,7 @@ fun Application.susebakover(
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
             fritekstService = fritekstService,
-            tilbakekrevingConfig = tilbakekrevingConfig,
             dbMetrics = dbMetrics,
-            samlTokenProvider = samlTokenProvider,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
             azureAd = clients.azureAd,
@@ -216,7 +204,6 @@ fun Application.susebakover(
         databaseRepos.dokumentHendelseRepo,
         services.brev,
         services.fritekstService,
-        applicationConfig.oppdrag.tilbakekreving,
         tilgangstyringService,
     ).also {
         setupKtor(
