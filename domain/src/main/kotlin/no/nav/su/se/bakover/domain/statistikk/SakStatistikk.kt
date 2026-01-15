@@ -172,7 +172,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.Manuell
+                        BehandlingMetode.MANUELL
                     },
                     relatertId = relatertId,
                 )
@@ -189,7 +189,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.Manuell
+                        BehandlingMetode.MANUELL
                     },
                     opprettetAv = førsteLinje?.opprettetAv,
                     relatertId = førsteLinje?.relatertBehandlingId,
@@ -253,7 +253,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.Manuell
+                        BehandlingMetode.MANUELL
                     },
                     opprettetAv = førsteLinje?.opprettetAv,
                     relatertId = førsteLinje?.relatertBehandlingId,
@@ -287,7 +287,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
-                        BehandlingMetode.Manuell
+                        BehandlingMetode.MANUELL
                     },
                     ferdigbehandletTid = revurdering.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
@@ -474,7 +474,7 @@ private fun StatistikkEvent.Behandling.toBehandlingsstatistikkGenerell(
     behandlingResultat: String? = null,
     resultatBegrunnelse: String? = null,
     ansvarligBeslutter: String? = null,
-    behandlingMetode: BehandlingMetode = BehandlingMetode.Manuell,
+    behandlingMetode: BehandlingMetode = BehandlingMetode.MANUELL,
 
 ): SakStatistikk {
     return SakStatistikk(
