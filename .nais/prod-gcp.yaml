@@ -227,5 +227,3 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://prod-gcp.team-rocket.kodeverk-api"
-    - name: GANDALF_URL # todo rm
-      value: "https://security-token-service.nais.adeo.no"

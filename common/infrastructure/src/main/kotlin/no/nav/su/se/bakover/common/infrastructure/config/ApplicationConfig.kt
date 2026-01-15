@@ -215,7 +215,6 @@ data class ApplicationConfig(
         val oppgaveConfig: OppgaveConfig,
         val pdlConfig: PdlConfig,
         val pdfgenUrl: String,
-        val gandalfSamlUrl: String,
         val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
@@ -232,9 +231,6 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
                 pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
-                gandalfSamlUrl = getEnvironmentVariableOrThrow(
-                    "GANDALF_URL",
-                ),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
@@ -251,10 +247,6 @@ data class ApplicationConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
                 pdlConfig = PdlConfig.createLocalConfig(),
                 pdfgenUrl = "mocked",
-                gandalfSamlUrl = getEnvironmentVariableOrDefault(
-                    "GANDALF_URL",
-                    "mocked",
-                ),
                 kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),

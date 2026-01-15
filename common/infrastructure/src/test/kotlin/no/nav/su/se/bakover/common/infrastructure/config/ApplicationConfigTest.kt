@@ -191,7 +191,6 @@ class ApplicationConfigTest {
                 "DOKDIST_CLIENT_ID" to "dokDistClientId",
                 "DOKARKIV_URL" to "dokArkivUrl",
                 "DOKARKIV_CLIENT_ID" to "dokArkivClientId",
-                "GANDALF_URL" to "stsSamlUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "SKJERMING_CLIENT_ID" to "skjermingClientId",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
