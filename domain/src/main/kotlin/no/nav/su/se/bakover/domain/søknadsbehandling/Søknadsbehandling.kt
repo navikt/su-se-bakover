@@ -37,6 +37,7 @@ sealed interface Søknadsbehandling :
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
+    // TODO: Fritekst lagres nå i fritekst tabellen via FritekstService. Derfor bør denne fjernes herfra.
     val fritekstTilBrev: String
 
     val erIverksatt: Boolean get() = this is IverksattSøknadsbehandling.Avslag || this is IverksattSøknadsbehandling.Innvilget
