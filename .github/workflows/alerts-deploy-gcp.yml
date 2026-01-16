@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '../../alerts.yml'
+      - 'alerts.yml'
       - '.github/workflows/alerts-deploy-gcp.yml'
   workflow_dispatch:
 
