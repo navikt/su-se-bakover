@@ -201,9 +201,6 @@ Se https://doc.nais.io/observability/alerts.
 
 ### Experiment writing prometheus queries and view graphs
 
-kibana(legacy)
-preprod: https://prometheus.dev-fss.nais.io
-prod: https://prometheus.prod-fss.nais.io
 grafana/loki
 se https://nav-it.slack.com/archives/C05DXMSNSV8/p1750670214842229?thread_ts=1750670027.442119&cid=C05DXMSNSV8
 preprod: https://prometheus.dev-gcp.nav.cloud.nais.io/
@@ -211,8 +208,8 @@ prod: https://prometheus.prod-gcp.nav.cloud.nais.io/
 
 ### View ongoing alerts and manage silences
 
-preprod: https://alertmanager.dev-fss.nav.cloud.nais.io/#/alerts
-prod: https://alertmanager.prod-fss.nav.cloud.nais.io/#/alerts
+preprod: https://alertmanager.dev-gcp.nav.cloud.nais.io/#/alerts
+prod: https://alertmanager.prod-gcp.nav.cloud.nais.io/#/alerts
 
 ### Kubectl commands
 
@@ -252,9 +249,9 @@ prod: https://alertmanager.prod-fss.nav.cloud.nais.io/#/alerts
 2. Du må også ha gcloud-cli (kanskje?) - https://cloud.google.com/sdk/docs/install
 3. log inn i gcloud - `gcloud auth login --update-adc`
 4. Kjør `nais kubeconfig` - Dette vil hente ned alle Clusterene.
-    1. merk: Kjør `nais kubeconfig -io` for å hente on-prem clusters også (dev-fss/prod-fss)
+    1. merk: Kjør `nais kubeconfig -io` for å hente on-prem clusters også (dev-gcp/prod-gcp)
 5. Sett context du hr lyst til å bruke
-    1. for eksempel: `kubectl config use-context dev-fss`
+    1. for eksempel: `kubectl config use-context dev-gcp`
     2. Hvis du må sette namespace i tillegg: `kubectl config set-context --current --namespace=supstonad`
 6. Nå skal du kunne kjøre `kubectl get pods` og få listet alle podene våre
 
@@ -282,18 +279,12 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
 
 ## Koble til database i preprod/prod
 
-1. Via naisdevice (fungerer kun med nav image) eller via vmware
-2. Finner settings i `.nais/dev.yaml` og `.nais/prod.yaml`.
-3. Hent brukernavn/passord på https://vault.adeo.no/ui/vault/secrets (login med oidc). Åpne konsollen og velg ønsket
-   rolle:
-    1. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-readonly`
-    2. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-user`
-    3. `vault read postgresql/preprod-fss/creds/supstonad-db-15-dev-admin`
-    4. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-readonly`
-    5. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-user`
-    6. `vault read postgresql/prod-fss/creds/supstonad-db-15-prod-admin`
+1. Velg ønsket context `kubectx dev-gcp`
+2. `nais postgres prepare su-se-bakover` (kun første gang)
+3. `nais postgres grant su-se-bakover` (kun første gang)
+4. `nais postgres proxy su-se-bakover`
 
-## Migrere data fra/til postgres on-prem
+## Migrere data fra/til postgres on-prem (utdatert)
 
 Se også https://github.com/navikt/utvikling/blob/main/docs/teknisk/PostgreSQL.md
 
