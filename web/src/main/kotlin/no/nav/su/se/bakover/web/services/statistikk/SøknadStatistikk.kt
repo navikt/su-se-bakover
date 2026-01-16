@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services.statistikk
 
-import no.nav.su.se.bakover.common.infrastructure.config.isGCP
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
@@ -27,11 +26,9 @@ class SøknadStatistikk(
                 log = log,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
-                if (isGCP()) {
-                    log.info("Kjører $jobName")
-                    søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
-                    log.info("Jobb $jobName er fullført")
-                }
+                log.info("Kjører $jobName")
+                søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
+                log.info("Jobb $jobName er fullført")
             }.let { SøknadStatistikk(it) }
         }
     }

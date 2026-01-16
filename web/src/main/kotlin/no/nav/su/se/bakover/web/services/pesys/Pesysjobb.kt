@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.services.pesys
 
-import no.nav.su.se.bakover.common.infrastructure.config.isDevFssOrDevGcp
+import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
@@ -26,8 +26,8 @@ internal class Pesysjobb(
                 intervall = periode,
                 runJobCheck = listOf(runJobCheck.manTilFredag0600til2100()),
             ) {
-                log.info("Kan kjøre pesysjobb ${isDevFssOrDevGcp()}")
-                if (isDevFssOrDevGcp()) {
+                log.info("Kan kjøre pesysjobb ${isDev()}")
+                if (isDev()) {
                     log.info("Kjører $jobName")
                     pesysjobb.hentDatafraPesys()
                 } else {
