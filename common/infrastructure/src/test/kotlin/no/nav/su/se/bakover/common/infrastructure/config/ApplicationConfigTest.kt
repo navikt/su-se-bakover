@@ -161,7 +161,7 @@ class ApplicationConfigTest {
     fun `environment variables`() {
         withEnvironment(
             mapOf(
-                "NAIS_CLUSTER_NAME" to "prod-fss",
+                "NAIS_CLUSTER_NAME" to "prod-gcp",
                 "username" to "username",
                 "password" to "password",
                 "AZURE_APP_CLIENT_SECRET" to "clientSecret",
