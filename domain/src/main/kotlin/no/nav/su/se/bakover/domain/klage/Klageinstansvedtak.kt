@@ -200,6 +200,8 @@ sealed interface ProsessertKlageinstanshendelse {
     val klageId: KlageId
     val oppgaveId: OppgaveId
 
+    interface AvsluttetKaMedUtfall
+
     data class OmgjoeringskravbehandlingAvsluttet(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -208,7 +210,8 @@ sealed interface ProsessertKlageinstanshendelse {
         /** Dersom Klageinstansen har sendt ut et eller flere brev */
         val journalpostIDer: List<JournalpostId>,
         override val oppgaveId: OppgaveId,
-    ) : ProsessertKlageinstanshendelse
+    ) : ProsessertKlageinstanshendelse,
+        AvsluttetKaMedUtfall
 
     data class GjenopptaksbehandlingAvsluttet(
         override val id: UUID,
@@ -218,7 +221,8 @@ sealed interface ProsessertKlageinstanshendelse {
         /** Dersom Klageinstansen har sendt ut et eller flere brev */
         val journalpostIDer: List<JournalpostId>,
         override val oppgaveId: OppgaveId,
-    ) : ProsessertKlageinstanshendelse
+    ) : ProsessertKlageinstanshendelse,
+        AvsluttetKaMedUtfall
 
     data class KlagebehandlingAvsluttet(
         override val id: UUID,
@@ -228,7 +232,8 @@ sealed interface ProsessertKlageinstanshendelse {
         /** Dersom Klageinstansen har sendt ut et eller flere brev */
         val journalpostIDer: List<JournalpostId>,
         override val oppgaveId: OppgaveId,
-    ) : ProsessertKlageinstanshendelse
+    ) : ProsessertKlageinstanshendelse,
+        AvsluttetKaMedUtfall
 
     data class AnkebehandlingOpprettet(
         override val id: UUID,
@@ -246,7 +251,8 @@ sealed interface ProsessertKlageinstanshendelse {
         /** Dersom Klageinstansen har sendt ut et eller flere brev */
         val journalpostIDer: List<JournalpostId>,
         override val oppgaveId: OppgaveId,
-    ) : ProsessertKlageinstanshendelse
+    ) : ProsessertKlageinstanshendelse,
+        AvsluttetKaMedUtfall
 
     data class AnkeITrygderettenOpprettet(
         override val id: UUID,
@@ -264,7 +270,8 @@ sealed interface ProsessertKlageinstanshendelse {
         /** Dersom Klageinstansen har sendt ut et eller flere brev */
         val journalpostIDer: List<JournalpostId>,
         override val oppgaveId: OppgaveId,
-    ) : ProsessertKlageinstanshendelse
+    ) : ProsessertKlageinstanshendelse,
+        AvsluttetKaMedUtfall
 }
 
 /** Disse følger Kabal/klageinstansen. Merk at dette er kun avsluttet utfall og ikke oversendelsesutfall (e.g. til trygderetten) */

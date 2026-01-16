@@ -377,7 +377,7 @@ internal class KlagePostgresRepo(
             sessionContext.withSession { session ->
                 """
                     update klage set
-                    behandlingId=:behandlingId
+                    behandlingId = array_append(behandlingId, :behandlingId)
                     where id=:id
                 """.trimIndent()
                     .oppdatering(

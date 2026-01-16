@@ -162,11 +162,11 @@ class VedtakServiceImpl(
             return KunneIkkeStarteNySøknadsbehandling.ÅpenBehandlingFinnes.left()
         }
 
-        val omgjøringsårsak = cmd.omgjøringsårsakHent.getOrElse { it ->
+        val omgjøringsårsak = cmd.omgjøringsårsakHent.getOrElse {
             log.warn("Ugyldig revurderingsårsak for vedtak $vedtakId var ${cmd.omgjøringsårsak}. Saksnummer: ${sak.saksnummer}")
             return KunneIkkeStarteNySøknadsbehandling.UgyldigRevurderingsÅrsak.left()
         }
-        val omgjøringsgrunn = cmd.omgjøringsgrunnHent.getOrElse { it ->
+        val omgjøringsgrunn = cmd.omgjøringsgrunnHent.getOrElse {
             log.warn("Ugyldig omgjøingsgrunn for vedtak $vedtakId var ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
             return KunneIkkeStarteNySøknadsbehandling.MåHaGyldingOmgjøringsgrunn.left()
         }

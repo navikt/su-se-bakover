@@ -111,5 +111,14 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Omgjøringsgrunn er ulik mellom klage og revurdering",
             "ulik_omgjøringsgrunn",
         )
+
+        KunneIkkeOppretteRevurdering.IngenAvsluttedeKlageHendelserFraKA -> BadRequest.errorJson(
+            "Ingen hendelser fra Kabal er registrert av typen avsluttet",
+            "ingen_avsluttet_klagehendelser_fra_kabal",
+        )
+        KunneIkkeOppretteRevurdering.IngenKlageHendelserFraKA -> BadRequest.errorJson(
+            "Ingen hendelser fra Kabal er registrert av noen type",
+            "ingen_klagehendelser_fra_kabal_finnes",
+        )
     }
 }
