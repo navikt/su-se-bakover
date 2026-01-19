@@ -175,6 +175,7 @@ class VedtakServiceImpl(
             // Finnes ingen klage å knytte mot hvis det er etter eget tiltak
             vedtak.behandling.id
         } else {
+            // Antar her at man kun skal omgjøre lokalt ved opprettelse på avslag, se Sak.kanOppretteRevurdering for andre muligheter
             val klageId = cmd.klageId?.let {
                 runCatching { UUID.fromString(it) }.getOrNull()
             } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
