@@ -392,7 +392,7 @@ internal class OpprettRevurderingTest {
         @Nested
         inner class OMGJØRING_TRYGDERETTEN {
             @Test
-            fun `OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN - oversendt klage med AnkeITrygderettenAvsluttet KA hendelse gir klageId`() {
+            fun `OMGJØRING_TRYGDERETTEN - oversendt klage med AnkeITrygderettenAvsluttet KA hendelse gir klageId`() {
                 val klageId = KlageId.generer()
                 val klage = oversendtKlage(klageId = klageId).second
                 // Må være AnkeITrygderettenAvsluttet
@@ -425,7 +425,7 @@ internal class OpprettRevurderingTest {
             }
 
             @Test
-            fun `OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN - oversendt klage med opprettet KA hendelse gir IKKE klageId`() {
+            fun `OMGJØRING_TRYGDERETTEN - oversendt klage med opprettet KA hendelse gir IKKE klageId`() {
                 val klageId = KlageId.generer()
                 val klage = oversendtKlage(klageId = klageId).second
                 // Må være AnkeITrygderettenAvsluttet
@@ -456,7 +456,7 @@ internal class OpprettRevurderingTest {
             }
 
             @Test
-            fun `OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN - oversendt klage må ha hendelser`() {
+            fun `OMGJØRING_TRYGDERETTEN - oversendt klage må ha hendelser`() {
                 val klageId = KlageId.generer()
                 val klage = oversendtKlage(klageId = klageId).second
 
@@ -474,7 +474,7 @@ internal class OpprettRevurderingTest {
             }
 
             @Test
-            fun `OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN - oversendt klage må være oversendt `() {
+            fun `OMGJØRING_TRYGDERETTEN - oversendt klage må være oversendt `() {
                 val klage = påbegyntVurdertKlage().second
 
                 val årsak = Revurderingsårsak(
