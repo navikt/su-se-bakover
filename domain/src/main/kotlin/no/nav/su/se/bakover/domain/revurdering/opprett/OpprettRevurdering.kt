@@ -153,7 +153,7 @@ internal fun finnRelatertIdOmgjøringKlage(
                 }
                 else -> {
                     log.error("OMGJØRING_TRYGDERETTEN -> Klage ${klage.id} er ikke OversendtKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $sakId")
-                    KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt.left()
+                    KunneIkkeOppretteRevurdering.KlageErIkkeOversendt.left()
                 }
             }
         }
