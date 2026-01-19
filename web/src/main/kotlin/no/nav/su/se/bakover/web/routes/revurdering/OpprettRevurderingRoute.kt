@@ -120,5 +120,18 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Ingen hendelser fra Kabal er registrert av noen type",
             "ingen_klagehendelser_fra_kabal_finnes",
         )
+
+        KunneIkkeOppretteRevurdering.IngenTrygderettenAvsluttetHendelser -> BadRequest.errorJson(
+            "Ingen hendelser fra Kabal er registrert av typen avsluttetTrygderetten, vi trenger denne for å vite at KABAL har ferdigbehandlet hendelsen. Mener du dette er feil så si i fra.",
+            "ingen_klagehendelser_fra_kabal_avsluttetTrygderetten",
+        )
+        KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstiltOmgjortKlage -> BadRequest.errorJson(
+            "Klagen er ikke ferdigstilt for omgjøring i vedtaksenhet",
+            "klagen_er_ikke_ferdigstilt_for_omgjort_klage",
+        )
+        KunneIkkeOppretteRevurdering.KlageErIkkeOversendt -> BadRequest.errorJson(
+            "Klagen er ikke i oversendt tilstand, oversending kan ta litt tid.",
+            "klagen_er_ikke_oversendt",
+        )
     }
 }

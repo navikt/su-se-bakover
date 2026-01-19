@@ -32,4 +32,7 @@ sealed interface KunneIkkeOppretteRevurdering {
     data object KlageErIkkeFerdigstilt : KunneIkkeOppretteRevurdering
     data object IngenKlageHendelserFraKA : KunneIkkeOppretteRevurdering
     data object IngenAvsluttedeKlageHendelserFraKA : KunneIkkeOppretteRevurdering
+    data object IngenTrygderettenAvsluttetHendelser : KunneIkkeOppretteRevurdering
+    data object KlageErIkkeOversendt : KunneIkkeOppretteRevurdering
+    data object KlageErIkkeFerdigstiltOmgjortKlage : KunneIkkeOppretteRevurdering
 }
