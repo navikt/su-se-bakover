@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import statistikk.domain.StønadsklassifiseringDto
@@ -19,9 +20,9 @@ class StønadStatistikkRepoImpl(
     private val dbMetrics: DbMetrics,
 ) : StønadStatistikkRepo {
 
-    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned) {
+    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned, tx: TransactionContext?) {
         return dbMetrics.timeQuery("hentStatistikkForMåned") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 lagreMånedStatistikk(session, månedStatistikk)
             }
         }

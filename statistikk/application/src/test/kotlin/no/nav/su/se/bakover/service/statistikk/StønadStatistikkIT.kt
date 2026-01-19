@@ -46,6 +46,7 @@ internal class StønadStatistikkIT {
             val service = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = vedtakRepo,
+                sessionFactory = testDataHelper.sessionFactory,
                 clock = fixedClock,
             )
 
@@ -83,6 +84,7 @@ internal class StønadStatistikkIT {
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = vedtakRepo,
                 clock = fixedClock,
+                sessionFactory = testDataHelper.sessionFactory,
             )
 
             service.lagMånedligStønadstatistikk(juni)
@@ -120,6 +122,7 @@ internal class StønadStatistikkIT {
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = vedtakRepo,
                 clock = fixedClock,
+                sessionFactory = testDataHelper.sessionFactory,
             )
 
             service.lagMånedligStønadstatistikk(juli)
@@ -151,6 +154,7 @@ internal class StønadStatistikkIT {
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = testDataHelper.vedtakRepo,
                 clock = fixedClock,
+                sessionFactory = testDataHelper.sessionFactory,
             )
             service.lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
 
@@ -160,7 +164,6 @@ internal class StønadStatistikkIT {
             result.filter { it.måned == YearMonth.of(2024, 12) }.size shouldBe 3
             result.filter { it.måned == YearMonth.of(2025, 1) }.size shouldBe 3
             result.filter { it.måned == YearMonth.of(2025, 2) }.size shouldBe 2
-
         }
     }
 
@@ -181,6 +184,7 @@ internal class StønadStatistikkIT {
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = testDataHelper.vedtakRepo,
                 clock = fixedClock,
+                sessionFactory = testDataHelper.sessionFactory,
             ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
 
             val statistikkFørRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
@@ -199,6 +203,7 @@ internal class StønadStatistikkIT {
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = testDataHelper.vedtakRepo,
                 clock = revurderingTid,
+                sessionFactory = testDataHelper.sessionFactory,
             ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
             val statistikkEtterRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
             statistikkEtterRevurdering.size shouldBe 8

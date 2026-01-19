@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -61,6 +63,7 @@ interface StønadStatistikkJobService {
 class StønadStatistikkJobServiceImpl(
     private val stønadStatistikkRepo: StønadStatistikkRepo,
     private val vedtakRepo: VedtakRepo,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : StønadStatistikkJobService {
 
@@ -77,11 +80,12 @@ class StønadStatistikkJobServiceImpl(
     }
 
     override fun lagStatistikkForFlereMåneder(fraOgMed: YearMonth, tilOgMed: YearMonth) {
-        var måned = fraOgMed
-        while (!måned.isAfter(tilOgMed)) {
-            // TODO bjg transaksjon
-            lagMånedligStønadstatistikk(måned)
-            måned = måned.plusMonths(1)
+        sessionFactory.withTransactionContext { tx ->
+            var måned = fraOgMed
+            while (!måned.isAfter(tilOgMed)) {
+                lagMånedligStønadstatistikk(måned, tx)
+                måned = måned.plusMonths(1)
+            }
         }
     }
 
@@ -90,7 +94,7 @@ class StønadStatistikkJobServiceImpl(
         StønadBigQueryService.lastTilBigQuery(statistikk)
     }
 
-    fun lagMånedligStønadstatistikk(måned: YearMonth) {
+    fun lagMånedligStønadstatistikk(måned: YearMonth, tx: TransactionContext? = null) {
         val alleVedtak = vedtakRepo.hentVedtakForMåned(Måned.fra(måned))
         val vedtakMedMånedsbeløp = alleVedtak.filter {
             it !is VedtakAvslagVilkår && it !is VedtakAvslagBeregning
@@ -117,7 +121,7 @@ class StønadStatistikkJobServiceImpl(
                 behandling,
                 månedsbeløp,
             )
-            stønadStatistikkRepo.lagreMånedStatistikk(stønadstatistikk)
+            stønadStatistikkRepo.lagreMånedStatistikk(stønadstatistikk, tx)
         }
     }
 
