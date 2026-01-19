@@ -277,7 +277,7 @@ class KlageServiceImpl(
     ): Either<KunneIkkeFerdigstilleOmgjøringsKlage, FerdigstiltOmgjortKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage.left()
         val ferdigstiltTidspunkt = Tidspunkt.now(clock)
-
+        // TODO: burde sjekke at klagen er VurdertKlage.Utfylt
         return klage.ferdigstillOmgjøring(saksbehandler, ferdigstiltTidspunkt).onRight {
             sessionFactory.withTransactionContext { tx ->
                 klageRepo.lagre(it, tx)

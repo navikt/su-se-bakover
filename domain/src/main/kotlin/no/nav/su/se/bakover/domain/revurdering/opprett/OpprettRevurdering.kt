@@ -90,7 +90,7 @@ internal fun finnRelatertIdOmgjøringKlage(
     omgjøringsGrunn: String?,
 ): Either<KunneIkkeOppretteRevurdering, KlageId> {
     return when (revurderingsårsak.årsak) {
-        // startNySøknadsbehandlingForAvslag( skal ikke ha denne logikken?
+        // VedtakServiceImpl.startNySøknadsbehandlingForAvslag( skal ikke ha denne logikken
         Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> {
             when (klage) {
                 is OversendtKlage -> {
@@ -118,12 +118,12 @@ internal fun finnRelatertIdOmgjøringKlage(
             when (klage) {
                 is FerdigstiltOmgjortKlage -> {
                     if (klage.behandlingId != null) {
-                        log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av. Sakid: $sakId")
+                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av. Sakid: $sakId")
                         return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
                     }
                     val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
                     if (vedtaksvurdering.årsak.name != omgjøringsGrunn) {
-                        log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt $omgjøringsGrunn Sakid: $sakId")
+                        log.error("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt $omgjøringsGrunn Sakid: $sakId")
                         return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
                     }
                     log.info("Knytter omgjøring mot klage ${klage.id} for sakid $sakId")

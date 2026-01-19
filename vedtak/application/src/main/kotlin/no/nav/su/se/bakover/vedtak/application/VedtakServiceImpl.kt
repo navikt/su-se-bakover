@@ -180,7 +180,7 @@ class VedtakServiceImpl(
             } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
             val klage = klageRepo.hentKlage(KlageId(klageId))
                 ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
-            // TODO: skal vi basere oss på klagetype eller revurderingsårsak?
+
             when (klage) {
                 is FerdigstiltOmgjortKlage -> {
                     if (klage.behandlingId != null) {
@@ -190,13 +190,13 @@ class VedtakServiceImpl(
                     val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
 
                     if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                        log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
+                        log.error("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
                         return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                     }
                 }
 
                 else -> {
-                    log.warn("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Saksnummer: ${sak.saksnummer}")
+                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Saksnummer: ${sak.saksnummer}")
                     return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
                 }
             }

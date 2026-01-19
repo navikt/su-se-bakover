@@ -4,12 +4,15 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import behandling.klage.domain.KlageId
+import behandling.klage.domain.VurderingerTilKlage
+import behandling.klage.domain.VurderingerTilKlage.Vedtaksvurdering.Årsak
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -17,6 +20,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.finnRelatertIdOmgjøringKlage
@@ -36,6 +40,8 @@ import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -151,8 +157,10 @@ internal class OpprettRevurderingTest {
         oppdatertRevurdering.opprettet shouldBe opprettetRevurdering.opprettet
     }
 
-    internal class FinneRelatertIdTest {
-        internal class OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN {
+    @Nested
+    inner class FinneRelatertIdTest {
+        @Nested
+        inner class OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN {
             @Test
             fun `OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN - oversendt klage med opprettet KA hendelse gir IKKE klageId`() {
                 val klageId = KlageId.generer()
@@ -252,13 +260,137 @@ internal class OpprettRevurderingTest {
             }
         }
 
-        internal class OMGJØRING_KLAGE {
+        @Nested
+        inner class OMGJØRING_KLAGE {
             @Test
-            fun `OMGJØRING_KLAGE - oversendt klage med AnkeITrygderettenAvsluttet KA hendelse gir klageId`() {
+            fun `OMGJØRING_KLAGE - er ferdigstiltomgjørt base case`() {
+                val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+                    årsak = Årsak.FEIL_LOVANVENDELSE,
+                    begrunnelse = "test",
+                    erDelvisOmgjøring = false,
+                )
+                val sakstype = Sakstype.UFØRE
+
+                val klage = VurdertKlage.Bekreftet.createBekreftet(
+                    forrigeSteg = utfyltVurdertKlage(
+                        vedtaksvurdering = vedtaksvurdering,
+                    ).second,
+                    saksbehandler = saksbehandler,
+                    sakstype = sakstype,
+                )
+                val bekreftetKlageVedtaksinstans = when (klage) {
+                    is VurdertKlage.BekreftetBehandlesIVedtaksinstans -> klage
+                    is VurdertKlage.BekreftetTilOversending -> throw IllegalStateException("feil testdata")
+                }
+
+                val ferdigstiltOmgjøring = bekreftetKlageVedtaksinstans.ferdigstillOmgjøring(saksbehandler, Tidspunkt.now(fixedClock)).getOrFail()
+
+                val årsak = Revurderingsårsak(
+                    årsak = Revurderingsårsak.Årsak.OMGJØRING_KLAGE,
+                    begrunnelse = Revurderingsårsak.Begrunnelse.create("delvis medhold feks"),
+                )
+
+                finnRelatertIdOmgjøringKlage(
+                    klage = ferdigstiltOmgjøring,
+                    revurderingsårsak = årsak,
+                    sakId = UUID.randomUUID(),
+                    omgjøringsGrunn = Årsak.FEIL_LOVANVENDELSE.name,
+                ).shouldBeRight(ferdigstiltOmgjøring.id)
+            }
+
+            @Test
+            fun `OMGJØRING_KLAGE - er ferdigstiltomgjørt klagen er allerede tilknyttet annen`() {
+                val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+                    årsak = Årsak.FEIL_LOVANVENDELSE,
+                    begrunnelse = "test",
+                    erDelvisOmgjøring = false,
+                )
+                val sakstype = Sakstype.UFØRE
+
+                val klage = VurdertKlage.Bekreftet.createBekreftet(
+                    forrigeSteg = utfyltVurdertKlage(
+                        vedtaksvurdering = vedtaksvurdering,
+                    ).second,
+                    saksbehandler = saksbehandler,
+                    sakstype = sakstype,
+                )
+                val bekreftetKlageVedtaksinstans = when (klage) {
+                    is VurdertKlage.BekreftetBehandlesIVedtaksinstans -> klage
+                    is VurdertKlage.BekreftetTilOversending -> throw IllegalStateException("feil testdata")
+                }
+
+                val ferdigstiltOmgjøring = bekreftetKlageVedtaksinstans.ferdigstillOmgjøring(saksbehandler, Tidspunkt.now(fixedClock)).getOrFail()
+                val alleredeKnyttetKlage = ferdigstiltOmgjøring.copy(behandlingId = UUID.randomUUID())
+
+                val årsak = Revurderingsårsak(
+                    årsak = Revurderingsårsak.Årsak.OMGJØRING_KLAGE,
+                    begrunnelse = Revurderingsårsak.Begrunnelse.create("delvis medhold feks"),
+                )
+
+                finnRelatertIdOmgjøringKlage(
+                    klage = alleredeKnyttetKlage,
+                    revurderingsårsak = årsak,
+                    sakId = UUID.randomUUID(),
+                    omgjøringsGrunn = Årsak.FEIL_LOVANVENDELSE.name,
+                ).shouldBeLeft().let { it shouldBe KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling }
+            }
+
+            @Test
+            fun `OMGJØRING_KLAGE - er ferdigstiltomgjørt må ha riktig omgjøringsgrunn`() {
+                val vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+                    årsak = Årsak.FEIL_LOVANVENDELSE,
+                    begrunnelse = "test",
+                    erDelvisOmgjøring = false,
+                )
+                val sakstype = Sakstype.UFØRE
+
+                val klage = VurdertKlage.Bekreftet.createBekreftet(
+                    forrigeSteg = utfyltVurdertKlage(
+                        vedtaksvurdering = vedtaksvurdering,
+                    ).second,
+                    saksbehandler = saksbehandler,
+                    sakstype = sakstype,
+                )
+                val bekreftetKlageVedtaksinstans = when (klage) {
+                    is VurdertKlage.BekreftetBehandlesIVedtaksinstans -> klage
+                    is VurdertKlage.BekreftetTilOversending -> throw IllegalStateException("feil testdata")
+                }
+
+                val ferdigstiltOmgjøring = bekreftetKlageVedtaksinstans.ferdigstillOmgjøring(saksbehandler, Tidspunkt.now(fixedClock)).getOrFail()
+
+                val årsak = Revurderingsårsak(
+                    årsak = Revurderingsårsak.Årsak.OMGJØRING_KLAGE,
+                    begrunnelse = Revurderingsårsak.Begrunnelse.create("delvis medhold feks"),
+                )
+
+                finnRelatertIdOmgjøringKlage(
+                    klage = ferdigstiltOmgjøring,
+                    revurderingsårsak = årsak,
+                    sakId = UUID.randomUUID(),
+                    omgjøringsGrunn = Årsak.NYE_OPPLYSNINGER.name,
+                ).shouldBeLeft().let { it shouldBe KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn }
+            }
+
+            @Test
+            fun `OMGJØRING_KLAGE - klage må være ferdigstiltomgjort`() {
+                val årsak = Revurderingsårsak(
+                    årsak = Revurderingsårsak.Årsak.OMGJØRING_KLAGE,
+                    begrunnelse = Revurderingsårsak.Begrunnelse.create("delvis medhold feks"),
+                )
+                val klageId = KlageId.generer()
+
+                val klage = oversendtKlage(klageId = klageId).second
+                finnRelatertIdOmgjøringKlage(
+                    klage = klage,
+                    revurderingsårsak = årsak,
+                    sakId = UUID.randomUUID(),
+                    omgjøringsGrunn = Årsak.NYE_OPPLYSNINGER.name,
+                ).shouldBeLeft().let { it shouldBe KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstiltOmgjortKlage }
             }
         }
 
-        internal class OMGJØRING_TRYGDERETTEN {
+        @Nested
+        inner class OMGJØRING_TRYGDERETTEN {
             @Test
             fun `OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN - oversendt klage med AnkeITrygderettenAvsluttet KA hendelse gir klageId`() {
                 val klageId = KlageId.generer()
