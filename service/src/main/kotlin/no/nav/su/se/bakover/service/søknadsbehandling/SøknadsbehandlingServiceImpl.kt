@@ -286,7 +286,6 @@ class SøknadsbehandlingServiceImpl(
             }
         return søknadsbehandlingSomKanSendesTilAttestering.tilAttestering(
             saksbehandler = request.saksbehandler,
-            fritekstTilBrev = request.fritekstTilBrev,
             clock = clock,
         ).map { søknadsbehandlingTilAttestering ->
             oppgaveService.oppdaterOppgave(

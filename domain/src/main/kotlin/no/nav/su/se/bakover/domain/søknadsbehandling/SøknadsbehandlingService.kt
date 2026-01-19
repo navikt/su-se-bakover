@@ -185,7 +185,6 @@ interface SøknadsbehandlingService {
     data class SendTilAttesteringRequest(
         val behandlingId: SøknadsbehandlingId,
         val saksbehandler: NavIdentBruker.Saksbehandler,
-        val fritekstTilBrev: String,
     )
 
     data class UnderkjennRequest(

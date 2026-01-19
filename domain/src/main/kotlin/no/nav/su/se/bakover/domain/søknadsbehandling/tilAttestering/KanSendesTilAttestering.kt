@@ -11,7 +11,6 @@ import java.time.Clock
 sealed interface KanSendesTilAttestering : Søknadsbehandling {
     fun tilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String,
         clock: Clock,
     ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
 }

@@ -129,7 +129,6 @@ data class SimulertSøknadsbehandling(
 
     override fun tilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String,
         clock: Clock,
     ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Innvilget> {
         if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {

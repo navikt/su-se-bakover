@@ -206,7 +206,6 @@ sealed interface BeregnetSøknadsbehandling :
 
         override fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            fritekstTilBrev: String,
             clock: Clock,
         ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {

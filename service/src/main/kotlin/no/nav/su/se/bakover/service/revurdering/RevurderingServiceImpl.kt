@@ -846,8 +846,15 @@ class RevurderingServiceImpl(
             return it.left()
         }
         val brevvalg = revurdering.brevvalgRevurdering
-        if (!brevvalg.kanSendesTilAttestering()) {
-            return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+        if (brevvalg.skalSendeBrev().isRight()) {
+            val harFritekst = fritekstService.hentFritekst(
+                referanseId = revurdering.id.value,
+                type = FritekstType.VEDTAKSBREV_REVURDERING,
+            ).isRight()
+
+            if (!harFritekst) {
+                return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+            }
         }
 
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
