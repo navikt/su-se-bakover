@@ -261,8 +261,8 @@ import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
-import java.time.Clock
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -1460,8 +1460,16 @@ open class AccessCheckProxy(
             },
             // TODO: RM det er jo en jobb aldri eksponert i en route
             stønadStatistikkJobService = object : StønadStatistikkJobService {
-                override fun lagMånedligStønadstatistikk(clock: Clock) {
-                    services.stønadStatistikkJobService.lagMånedligStønadstatistikk(clock)
+                override fun lagMånedligStønadstatistikk() {
+                    services.stønadStatistikkJobService.lagMånedligStønadstatistikk()
+                }
+
+                override fun lagStatistikkForFlereMåneder(fraOgMed: YearMonth, tilOgMed: YearMonth) {
+                    services.stønadStatistikkJobService.lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+                }
+
+                override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
+                    services.stønadStatistikkJobService.sendMånederTilBQ(fraOgMed, tilOgMed)
                 }
             },
 

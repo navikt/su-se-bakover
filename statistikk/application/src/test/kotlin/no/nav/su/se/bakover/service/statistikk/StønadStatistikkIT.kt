@@ -43,9 +43,10 @@ internal class StønadStatistikkIT {
             val service = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = vedtakRepo,
+                clock = fixedClock,
             )
 
-            service.lagMånedligStønadstatistikk(fixedClock, juni)
+            service.lagMånedligStønadstatistikk(juni)
             val result = stønadStatistikkRepo.hentMånedStatistikk(juni)
 
             result.size shouldBe 1
@@ -78,9 +79,10 @@ internal class StønadStatistikkIT {
             val service = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = vedtakRepo,
+                clock = fixedClock,
             )
 
-            service.lagMånedligStønadstatistikk(fixedClock, juni)
+            service.lagMånedligStønadstatistikk(juni)
             val result = stønadStatistikkRepo.hentMånedStatistikk(juni)
 
             result.size shouldBe 1
@@ -114,12 +116,47 @@ internal class StønadStatistikkIT {
             val service = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = stønadStatistikkRepo,
                 vedtakRepo = vedtakRepo,
+                clock = fixedClock,
             )
 
-            service.lagMånedligStønadstatistikk(fixedClock, juli)
+            service.lagMånedligStønadstatistikk(juli)
             val result = stønadStatistikkRepo.hentMånedStatistikk(juli)
 
             result.size shouldBe 0
+        }
+    }
+
+    @Test
+    fun `skal lage og sende statistikk for tidligere måneder`() {
+        withMigratedDb { dataSource ->
+            val fraOgMed = YearMonth.of(2024, 11)
+            val tilOgMed = YearMonth.of(2025, 2)
+
+            val testDataHelper = TestDataHelper(dataSource)
+            val vedtakEn = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+                stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
+            )
+            val vedtakTo = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+                stønadsperiode = stønadsperiode(fraOgMed.plusMonths(1), tilOgMed),
+            )
+            val vedtakTre = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+                stønadsperiode = stønadsperiode(fraOgMed, tilOgMed.minusMonths(1)),
+            )
+            // val endring = testDataHelper.persisterRevurderingIverksattInnvilget()
+
+            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+            val service = StønadStatistikkJobServiceImpl(
+                stønadStatistikkRepo = stønadStatistikkRepo,
+                vedtakRepo = testDataHelper.vedtakRepo,
+                clock = fixedClock,
+            )
+            service.lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+
+            // TODO lage et et sett med månedstatistikk
+            // TODO Kjør same måneder på nytt
+            // noen måneder med nye vedtak og noen uten
+            // TODO verifiser at det er nye linjer for alle
+            // TODO verifiser vedtaksdatoer?
         }
     }
 
@@ -131,7 +168,7 @@ internal class StønadStatistikkIT {
         ): VedtakInnvilgetSøknadsbehandling {
             return vedtakSøknadsbehandlingIverksattInnvilget(
                 saksnummer = Saksnummer(saksnummer),
-                stønadsperiode = Stønadsperiode.Companion.create(Periode.create(fom.atDay(1), tom.atEndOfMonth())),
+                stønadsperiode = stønadsperiode(fom, tom),
             ).second
         }
 
@@ -140,7 +177,7 @@ internal class StønadStatistikkIT {
             tom: YearMonth,
         ): VedtakAvslagBeregning {
             return vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
-                stønadsperiode = Stønadsperiode.Companion.create(Periode.create(fom.atDay(1), tom.atEndOfMonth())),
+                stønadsperiode = stønadsperiode(fom, tom),
             ).second
         }
 
@@ -156,5 +193,8 @@ internal class StønadStatistikkIT {
                 revurderingsperiode = periode,
             ).second
         }
+
+        private fun stønadsperiode(fom: YearMonth, tom: YearMonth) =
+            Stønadsperiode.create(Periode.create(fom.atDay(1), tom.atEndOfMonth()))
     }
 }

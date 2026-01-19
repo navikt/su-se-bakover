@@ -350,6 +350,7 @@ data object ServiceBuilder {
             stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
                 vedtakRepo = databaseRepos.vedtakRepo,
+                clock = clock,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
             sakstatistikkBigQueryService = sakStatistikkBigQueryService,
