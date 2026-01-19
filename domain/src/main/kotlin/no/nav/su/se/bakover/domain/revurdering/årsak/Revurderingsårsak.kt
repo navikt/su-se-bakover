@@ -26,7 +26,7 @@ data class Revurderingsårsak(
          */
         OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN,
         OMGJØRING_EGET_TILTAK,
-        OMGJØRING_KLAGE, // i førsteinstans
+        OMGJØRING_KLAGE, // i førsteinstans, som betyr at man kun behandler klagen i vedtaksenheten Ålseund alstså su-se-bakover
         OMGJØRING_TRYGDERETTEN,
 
         /* Reservert for migrering */

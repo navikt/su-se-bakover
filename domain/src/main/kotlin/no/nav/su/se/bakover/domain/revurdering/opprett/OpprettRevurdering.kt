@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
@@ -40,12 +39,6 @@ fun Sak.kanOppretteRevurdering(
     }
 
     if (revurderingsårsak.årsak.erOmgjøring()) {
-        // TODO: gir denne mening fortsatt?
-        if (revurderingsårsak.årsak == Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN) {
-            if (this.klager.none { it.erÅpen() }) {
-                log.error("Fant ingen åpen klage for saksnummer ${this.saksnummer}, dette kan være fordi den er overført fra infotrygd hvis den gjelder alder. Ellers burde den finnes. Hør med fag.")
-            }
-        }
         if (!cmd.omgjøringsgrunnErGyldig()) {
             return KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn.left()
         }
@@ -65,41 +58,49 @@ fun Sak.kanOppretteRevurdering(
         val klageId = cmd.klageId?.let {
             runCatching { UUID.fromString(it) }.getOrNull()
         } ?: return KunneIkkeOppretteRevurdering.KlageUgyldigUUID.left()
-        val klage = this.hentKlage(KlageId(klageId)) ?: return KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning.left()
+        val klage =
+            this.hentKlage(KlageId(klageId)) ?: return KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning.left()
+        // TODO: skl vi basere oss på klagetype eller revurderingsårsak?
+        when (revurderingsårsak.årsak) {
+            // startNySøknadsbehandlingForAvslag( skal ikke ha denne logikken?
+            Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> {
+                when (klage) {
+                    is OversendtKlage -> klage.id
+                    else -> throw RuntimeException("OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> Klage ${klage.id} er ikke OversendtKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har oversendt klagen. Sakid: $id")
+                }
+            }
 
-        when (klage) {
-            is FerdigstiltOmgjortKlage -> {
-                if (klage.behandlingId != null) {
-                    log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av. Sakid: $id")
-                    return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
-                }
-                val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
-                if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                    log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn} Sakid: $id")
-                    return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
-                }
-            }
-            is OversendtKlage -> { // startNySøknadsbehandlingForAvslag( skal ikke ha denne logikken
-                if (klage.klageinstanshendelser.isNotEmpty()) {
-                    if (klage.klageinstanshendelser.any { it is ProsessertKlageinstanshendelse.AvsluttetKaMedUtfall }) {
-                        log.info("Fant hendelse fra KA på klage ${klage.id} som er avsluttet, får opprette omgjøring.")
-                    } else {
-                        log.error("Klage ${klage.id} er oversendt men har ingen avsluttede klagehendelser. Sakid: $id")
-                        return KunneIkkeOppretteRevurdering.IngenAvsluttedeKlageHendelserFraKA.left()
+            Årsak.OMGJØRING_KLAGE -> {
+                when (klage) {
+                    is FerdigstiltOmgjortKlage -> {
+                        if (klage.behandlingId != null) {
+                            log.warn("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av. Sakid: $id")
+                            return KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
+                        }
+                        val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
+                        if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
+                            log.warn("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn} Sakid: $id")
+                            return KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
+                        }
                     }
-                } else {
-                    log.error("Klage ${klage.id} er oversendt men har ingen klagehendelser. Sakid: $id")
-                    return KunneIkkeOppretteRevurdering.IngenKlageHendelserFraKA.left()
+                    else ->
+                        throw RuntimeException("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $id")
+                }
+                log.info("Knytter omgjøring mot klage ${klage.id} for saksnummer $saksnummer")
+                klage.id
+            }
+
+            Årsak.OMGJØRING_TRYGDERETTEN -> {
+                when (klage) {
+                    is OversendtKlage -> klage.id
+                    else -> throw RuntimeException("OMGJØRING_TRYGDERETTEN -> Klage ${klage.id} er ikke OversendtKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $id")
                 }
             }
-            else -> {
-                log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $id")
-                return KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt.left()
-            }
+
+            else -> throw RuntimeException("feil årsak $revurderingsårsak for sakid $id ved omgjøring")
         }
-        log.info("Knytter omgjøring mot klage ${klage.id} for saksnummer $saksnummer")
-        klage.id
     } else {
+        log.warn("Fant ingen id å knytte revurdering mot i sakid: $id årsak: ${revurderingsårsak.årsak} gjeldende vedtak: ${gjeldendeVedtak.id}")
         null
     }
 

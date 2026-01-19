@@ -180,7 +180,7 @@ class VedtakServiceImpl(
             } ?: return KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
             val klage = klageRepo.hentKlage(KlageId(klageId))
                 ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
-
+            // TODO: skal vi basere oss på klagetype eller revurderingsårsak?
             when (klage) {
                 is FerdigstiltOmgjortKlage -> {
                     if (klage.behandlingId != null) {
