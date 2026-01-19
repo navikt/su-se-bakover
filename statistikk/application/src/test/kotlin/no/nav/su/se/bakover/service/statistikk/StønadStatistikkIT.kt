@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.statistikk
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattOpphør
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 
 internal class StønadStatistikkIT {
 
@@ -127,22 +130,21 @@ internal class StønadStatistikkIT {
     }
 
     @Test
-    fun `skal lage og sende statistikk for tidligere måneder`() {
+    fun `skal lage statistikk flere måneder samtidig`() {
         withMigratedDb { dataSource ->
             val fraOgMed = YearMonth.of(2024, 11)
             val tilOgMed = YearMonth.of(2025, 2)
 
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtakEn = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
                 stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
             )
-            val vedtakTo = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
                 stønadsperiode = stønadsperiode(fraOgMed.plusMonths(1), tilOgMed),
             )
-            val vedtakTre = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
                 stønadsperiode = stønadsperiode(fraOgMed, tilOgMed.minusMonths(1)),
             )
-            // val endring = testDataHelper.persisterRevurderingIverksattInnvilget()
 
             val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
             val service = StønadStatistikkJobServiceImpl(
@@ -152,11 +154,59 @@ internal class StønadStatistikkIT {
             )
             service.lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
 
-            // TODO lage et et sett med månedstatistikk
-            // TODO Kjør same måneder på nytt
-            // noen måneder med nye vedtak og noen uten
-            // TODO verifiser at det er nye linjer for alle
-            // TODO verifiser vedtaksdatoer?
+            val result = testDataHelper.stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
+            result.size shouldBe 10 // fire for vedtak en og tre for vedtak to og tre
+            result.filter { it.måned == YearMonth.of(2024, 11) }.size shouldBe 2
+            result.filter { it.måned == YearMonth.of(2024, 12) }.size shouldBe 3
+            result.filter { it.måned == YearMonth.of(2025, 1) }.size shouldBe 3
+            result.filter { it.måned == YearMonth.of(2025, 2) }.size shouldBe 2
+
+        }
+    }
+
+    @Test
+    fun `skal lage statistikk etter revurderinger`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+
+            val fraOgMed = YearMonth.of(2024, 11)
+            val tilOgMed = YearMonth.of(2025, 2)
+
+            val (sak, søknadVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+                stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
+            )
+
+            StønadStatistikkJobServiceImpl(
+                stønadStatistikkRepo = stønadStatistikkRepo,
+                vedtakRepo = testDataHelper.vedtakRepo,
+                clock = fixedClock,
+            ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+
+            val statistikkFørRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
+            statistikkFørRevurdering.size shouldBe 4
+            statistikkFørRevurdering.forEach {
+                it.vedtaksdato shouldBe søknadVedtak.opprettet.toLocalDate(zoneIdOslo)
+            }
+
+            val revurderingTid = fixedClock.plus(10L, ChronoUnit.DAYS)
+            val (_, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering(
+                clock = revurderingTid,
+                stønadsperiode = stønadsperiode(fraOgMed.plusMonths(2), tilOgMed),
+                sakOgVedtak = sak to søknadVedtak,
+            )
+            StønadStatistikkJobServiceImpl(
+                stønadStatistikkRepo = stønadStatistikkRepo,
+                vedtakRepo = testDataHelper.vedtakRepo,
+                clock = revurderingTid,
+            ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+            val statistikkEtterRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
+            statistikkEtterRevurdering.size shouldBe 8
+            statistikkEtterRevurdering.filter { it.vedtaksdato == søknadVedtak.opprettet.toLocalDate(zoneIdOslo) }.let {
+                it.size shouldBe 6
+                it.groupBy { it.tekniskTid.toLocalDateTime(zoneIdOslo) }.keys.size shouldBe 2
+            }
+            statistikkEtterRevurdering.filter { it.vedtaksdato == revurderingVedtak.opprettet.toLocalDate(zoneIdOslo) }.size shouldBe 2
         }
     }
 
