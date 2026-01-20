@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.persistence
 
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Companion.isProd
+import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
 import org.flywaydb.core.api.output.MigrateResult
@@ -22,7 +24,16 @@ class Flyway(
                     MigrationVersion.fromVersion(version.toString())
                 },
             )
-            .dataSource(dataSource).let {
+            .dataSource(dataSource).apply {
+                val dblocationsMiljoe = mutableListOf("db/migration")
+                if (isDev()) {
+                    dblocationsMiljoe.add("db/dev")
+                }
+                if (isProd()) {
+                    dblocationsMiljoe.add("db/prod")
+                }
+                locations(*dblocationsMiljoe.toTypedArray())
+            }.let {
                 if (role == null) {
                     it
                 } else {
