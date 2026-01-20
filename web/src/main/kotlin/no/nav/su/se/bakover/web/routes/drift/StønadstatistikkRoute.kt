@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.web.routes.drift
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -23,12 +21,10 @@ internal fun Route.stønadstatistikkRoutes(
     post("$DRIFT_PATH/statistikk/stønad/lag") {
         authorize(Brukerrolle.Drift) {
             call.withBody<Body> {
-                withContext(Dispatchers.IO) {
-                    service.lagStatistikkForFlereMåneder(
-                        YearMonth.from(it.fraOgMed),
-                        YearMonth.from(it.tilOgMed),
-                    )
-                }
+                service.lagStatistikkForFlereMåneder(
+                    YearMonth.from(it.fraOgMed),
+                    YearMonth.from(it.tilOgMed),
+                )
                 call.svar(Resultat.okJson())
             }
         }
@@ -36,12 +32,10 @@ internal fun Route.stønadstatistikkRoutes(
     post("$DRIFT_PATH/statistikk/stønad/send") {
         authorize(Brukerrolle.Drift) {
             call.withBody<Body> {
-                withContext(Dispatchers.IO) {
-                    service.sendMånederTilBQ(
-                        YearMonth.from(it.fraOgMed),
-                        YearMonth.from(it.tilOgMed),
-                    )
-                }
+                service.sendMånederTilBQ(
+                    YearMonth.from(it.fraOgMed),
+                    YearMonth.from(it.tilOgMed),
+                )
                 call.svar(Resultat.okJson())
             }
         }

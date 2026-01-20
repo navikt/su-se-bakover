@@ -95,7 +95,7 @@ class StønadStatistikkJobServiceImpl(
     }
 
     fun lagMånedligStønadstatistikk(måned: YearMonth, tx: TransactionContext? = null) {
-        val alleVedtak = vedtakRepo.hentVedtakForMåned(Måned.fra(måned))
+        val alleVedtak = vedtakRepo.hentVedtakForMåned(Måned.fra(måned), tx)
         val vedtakMedMånedsbeløp = alleVedtak.filter {
             it !is VedtakAvslagVilkår && it !is VedtakAvslagBeregning
         }

@@ -162,8 +162,8 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentVedtakForMåned(måned: Måned): List<Vedtak> {
-        return sessionFactory.withSession { session ->
+    override fun hentVedtakForMåned(måned: Måned, tx: TransactionContext?): List<Vedtak> {
+        return sessionFactory.withSession(tx) { session ->
             """
             select
               v.*,
