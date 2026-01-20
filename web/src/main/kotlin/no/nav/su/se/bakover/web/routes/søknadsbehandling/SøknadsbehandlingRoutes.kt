@@ -83,7 +83,7 @@ internal fun Route.søknadsbehandlingRoutes(
     val log = LoggerFactory.getLogger(this::class.java)
 
     data class OppstartBehandlingBody(val soknadId: String)
-    data class WithFritekstBody(val fritekst: String, val underAttestering: Boolean = false)
+    data class VedtaksBody(val underAttestering: Boolean = false)
 
     post("$SAK_PATH/{sakId}/behandlinger") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -244,7 +244,7 @@ internal fun Route.søknadsbehandlingRoutes(
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/vedtaksutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<WithFritekstBody> { body ->
+                call.withBody<VedtaksBody> { body ->
                     lagBrevutkast(
                         call,
                         if (body.underAttestering) {
