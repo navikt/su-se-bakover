@@ -123,7 +123,7 @@ internal class SøknadsbehandlingSkattTest {
                 .let { it as BeregnetSøknadsbehandling.Innvilget }
                 .simuler(saksbehandler, fixedClock) { _, _ -> simuleringNy().right() }
                 .getOrFail()
-                .tilAttestering(saksbehandler, "", fixedClock)
+                .tilAttestering(saksbehandler, fixedClock)
                 .getOrFail()
                 .tilUnderkjent(
                     Attestering.Underkjent(

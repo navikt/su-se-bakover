@@ -56,7 +56,6 @@ class SøknadsbehandlingServiceAttesteringTest {
                 SøknadsbehandlingService.SendTilAttesteringRequest(
                     simulertBehandling.id,
                     saksbehandler,
-                    "",
                 ),
             )
         }.message shouldBe "Søknadsbehandling send til attestering: Fant ikke søknadsbehandling med id ${simulertBehandling.id}. Avbryter handlingen."
@@ -84,7 +83,6 @@ class SøknadsbehandlingServiceAttesteringTest {
             SøknadsbehandlingService.SendTilAttesteringRequest(
                 behandlingId = simulertBehandling.id,
                 saksbehandler = saksbehandler,
-                fritekstTilBrev = "",
             ),
         ).getOrFail()
 

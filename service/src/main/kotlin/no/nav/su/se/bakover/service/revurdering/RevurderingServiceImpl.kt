@@ -850,9 +850,9 @@ class RevurderingServiceImpl(
             val harFritekst = fritekstService.hentFritekst(
                 referanseId = revurdering.id.value,
                 type = FritekstType.VEDTAKSBREV_REVURDERING,
-            ).isRight()
+            ).getOrNull()?.fritekst.orEmpty()
 
-            if (!harFritekst) {
+            if (harFritekst.isBlank()) {
                 return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
             }
         }

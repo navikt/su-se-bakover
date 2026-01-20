@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanSendesTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -49,7 +48,6 @@ internal class TilAttesteringTest {
 
         simulertMedFeilutbetaling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).shouldBeLeft().shouldBeInstanceOf<KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger>()
 
@@ -64,7 +62,6 @@ internal class TilAttesteringTest {
 
         underkjentInnvilgetMedFeilutbetaling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).shouldBeLeft().shouldBeInstanceOf<KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger>()
     }
@@ -92,12 +89,10 @@ internal class TilAttesteringTest {
         val søknadsbehandling = vilkårsvurdertAvslag
         søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).getOrFail().let {
             it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
@@ -111,12 +106,10 @@ internal class TilAttesteringTest {
         val søknadsbehandling = beregnetAvslag
         søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).getOrFail().let {
             it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.MedBeregning>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
@@ -130,12 +123,10 @@ internal class TilAttesteringTest {
         val søknadsbehandling = simulert
         søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).getOrFail().let {
             it shouldBe beOfType<SøknadsbehandlingTilAttestering.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
@@ -149,12 +140,10 @@ internal class TilAttesteringTest {
         val søknadsbehandling = underkjentAvslagVilkår
         søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).getOrFail().let {
             it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
@@ -168,12 +157,10 @@ internal class TilAttesteringTest {
         val søknadsbehandling = underkjentAvslagBeregning
         søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).getOrFail().let {
             it shouldBe beOfType<SøknadsbehandlingTilAttestering.Avslag.MedBeregning>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),
@@ -187,12 +174,10 @@ internal class TilAttesteringTest {
         val søknadsbehandling = underkjentInnvilget
         søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
-            fritekstTilBrev = FRITEKST_TIL_BREV,
             clock = fixedClock,
         ).getOrFail().let {
             it shouldBe beOfType<SøknadsbehandlingTilAttestering.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.SendtTilAttestering),

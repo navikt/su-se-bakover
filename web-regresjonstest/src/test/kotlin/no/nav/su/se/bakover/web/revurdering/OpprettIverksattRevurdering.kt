@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.revurdering
 
 import io.ktor.client.HttpClient
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.web.revurdering.brevvalg.velgSendBrev
 import no.nav.su.se.bakover.web.revurdering.forhåndsvarsel.sendForhåndsvarsel
 import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
+import no.nav.su.se.bakover.web.revurdering.fritekst.lagreFritekst
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
@@ -104,6 +106,16 @@ internal fun opprettIverksattRevurdering(
             client = client,
         )
     },
+    lagreFritekst: (referanseId: String, sakId: String, type: FritekstType, fritekst: String) -> String = { referanseId, sakId, type, fritekst ->
+        lagreFritekst(
+            referanseId = referanseId,
+            sakId = sakId,
+            type = type,
+            fritekst = fritekst,
+            client = client,
+        )
+    },
+
     sendTilAttestering: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         sendTilAttestering(
             sakId = sakId,
@@ -147,6 +159,7 @@ internal fun opprettIverksattRevurdering(
             leggTilFradrag(sakid, revurderingId, fraogmed, tilogmed),
             beregnOgSimuler(sakid, revurderingId),
             leggTilIngenForhåndsvarsel(sakid, revurderingId),
+            lagreFritekst(revurderingId, sakid, FritekstType.VEDTAKSBREV_REVURDERING, "Dette er en fritekst for revurderingsvedtak"),
             leggTilBrevvalg(sakid, revurderingId),
             sendTilAttestering(sakid, revurderingId),
             iverksett(sakid, revurderingId),

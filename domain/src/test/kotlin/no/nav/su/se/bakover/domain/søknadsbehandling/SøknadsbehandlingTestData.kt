@@ -75,15 +75,15 @@ internal val simulert: SimulertSøknadsbehandling
 
 internal val tilAttesteringInnvilget: SøknadsbehandlingTilAttestering.Innvilget
     get() =
-        simulert.tilAttestering(saksbehandler, FRITEKST_TIL_BREV, fixedClock).getOrFail()
+        simulert.tilAttestering(saksbehandler, fixedClock).getOrFail()
 
 internal val tilAttesteringAvslagVilkår: SøknadsbehandlingTilAttestering.Avslag.UtenBeregning
     get() =
-        vilkårsvurdertAvslag.tilAttestering(saksbehandler, FRITEKST_TIL_BREV, fixedClock).getOrFail()
+        vilkårsvurdertAvslag.tilAttestering(saksbehandler, fixedClock).getOrFail()
 
 internal val tilAttesteringAvslagBeregning: SøknadsbehandlingTilAttestering.Avslag.MedBeregning
     get() =
-        beregnetAvslag.tilAttestering(saksbehandler, FRITEKST_TIL_BREV, fixedClock).getOrFail()
+        beregnetAvslag.tilAttestering(saksbehandler, fixedClock).getOrFail()
 
 internal val underkjentInnvilget: UnderkjentSøknadsbehandling.Innvilget
     get() =

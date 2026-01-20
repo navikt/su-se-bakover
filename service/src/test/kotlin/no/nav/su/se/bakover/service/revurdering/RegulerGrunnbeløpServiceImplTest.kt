@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -9,6 +10,8 @@ import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
@@ -189,6 +192,13 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            fritekstService = mock {
+                on { hentFritekst(referanseId = any(), type = any(), sessionContext = anyOrNull()) } doReturn Fritekst(
+                    referanseId = revurderingId.value,
+                    type = FritekstType.VEDTAKSBREV_REVURDERING,
+                    fritekst = "medFritekst",
+                ).right()
             },
 
         ).also {
