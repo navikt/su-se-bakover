@@ -40,6 +40,7 @@ fun Sak.iverksettSøknadsbehandling(
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     clock: Clock,
     satsFactory: SatsFactory,
+    fritekst: String,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out IverksattSøknadsbehandling>> {
     val søknadsbehandling = hentSøknadsbehandlingEllerKast(command).getOrElse { return it.left() }
     if (søknadsbehandling.beregning?.getMånedsberegningerMedRegel()?.any { it.benyttetRegel is Regelspesifisering.BeregnetUtenSpesifisering } == true) {
@@ -55,7 +56,7 @@ fun Sak.iverksettSøknadsbehandling(
             attestering = command.attestering,
             clock = clock,
             satsFactory = satsFactory,
-            fritekst = command.fritekstEndringAttestering,
+            fritekst = fritekst,
             simulerUtbetaling = simulerUtbetaling,
             genererPdf = genererPdf,
         )
@@ -65,8 +66,8 @@ fun Sak.iverksettSøknadsbehandling(
             attestering = command.attestering,
             clock = clock,
             satsFactory = satsFactory,
-            fritekst = command.fritekstEndringAttestering,
             genererPdf = genererPdf,
+            fritekst = fritekst,
         )
     }
 }

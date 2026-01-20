@@ -750,7 +750,6 @@ fun iverksattSøknadsbehandling(
             command = IverksettSøknadsbehandlingCommand(
                 behandlingId = tilAttestering.id,
                 attestering = attestering,
-                fritekstEndringAttestering = fritekstTilBrev,
             ),
             genererPdf = {
                 Dokument.UtenMetadata.Vedtak(
@@ -769,6 +768,7 @@ fun iverksattSøknadsbehandling(
             },
             clock = clock,
             satsFactory = satsFactoryTestPåDato(),
+            fritekst = "",
         ).getOrFail().let { response ->
             /**
              * TODO
@@ -849,7 +849,6 @@ fun tilAttesteringSøknadsbehandling(
             is VilkårsvurdertSøknadsbehandling.Avslag -> {
                 vilkårsvurdert.tilAttestering(
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = fritekstTilBrev,
                     clock = clock,
                 ).getOrFail().let {
                     sak.oppdaterSøknadsbehandling(it) to it
@@ -871,7 +870,6 @@ fun tilAttesteringSøknadsbehandling(
                         is BeregnetSøknadsbehandling.Avslag -> {
                             beregnet.tilAttestering(
                                 saksbehandler = saksbehandler,
-                                fritekstTilBrev = fritekstTilBrev,
                                 clock = clock,
                             ).getOrFail().let {
                                 sak.oppdaterSøknadsbehandling(it) to it
@@ -892,7 +890,6 @@ fun tilAttesteringSøknadsbehandling(
                             ).let { (sak, simulert) ->
                                 simulert.tilAttestering(
                                     saksbehandler = saksbehandler,
-                                    fritekstTilBrev = fritekstTilBrev,
                                     clock = clock,
                                 ).getOrFail().let {
                                     sak.oppdaterSøknadsbehandling(it) to it

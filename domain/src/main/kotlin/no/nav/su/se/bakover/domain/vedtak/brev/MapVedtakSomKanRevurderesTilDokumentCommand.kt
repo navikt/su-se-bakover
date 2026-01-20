@@ -16,6 +16,7 @@ import java.time.Clock
 fun VedtakSomKanRevurderes.lagDokumentKommando(
     clock: Clock,
     satsFactory: SatsFactory,
+    fritekst: String,
 ): GenererDokumentCommand {
     return when (this) {
         is VedtakOpphørUtenUtbetaling -> fail("Historisk vedtak. Skal ikke sende nye brev for VedtakOpphørUtenUtbetaling.")
@@ -23,6 +24,7 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
         is VedtakOpphørMedUtbetaling -> this.behandling.lagDokumentKommando(
             clock = clock,
             satsFactory = satsFactory,
+            fritekst = fritekst,
         )
 
         is VedtakInnvilgetRevurdering -> {
@@ -38,6 +40,7 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
             this.behandling.lagDokumentKommando(
                 satsFactory = satsFactory,
                 clock = clock,
+                fritekst = fritekst,
             )
         }
 

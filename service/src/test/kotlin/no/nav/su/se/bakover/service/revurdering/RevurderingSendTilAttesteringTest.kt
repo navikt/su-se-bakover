@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -47,6 +49,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import sun.java2d.cmm.ProfileDataVerifier.verify
 import vilkår.formue.domain.FormueVilkår
 
 internal class RevurderingSendTilAttesteringTest {
@@ -67,6 +70,13 @@ internal class RevurderingSendTilAttesteringTest {
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = revurderingId.value,
+                    type = FritekstType.VEDTAKSBREV_REVURDERING,
+                    fritekst = "medFritekst",
+                ).right()
             },
 
             observer = mock(),
@@ -152,6 +162,13 @@ internal class RevurderingSendTilAttesteringTest {
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = revurderingId.value,
+                    type = FritekstType.VEDTAKSBREV_REVURDERING,
+                    fritekst = "medFritekst",
+                ).right()
             },
 
         ).let { mocks ->
@@ -287,6 +304,16 @@ internal class RevurderingSendTilAttesteringTest {
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            oppgaveService = mock {
+                on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = revurderingId.value,
+                    type = FritekstType.VEDTAKSBREV_REVURDERING,
+                    fritekst = "",
+                ).right()
             },
 
         ).let { mocks ->

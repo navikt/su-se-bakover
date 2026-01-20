@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -35,6 +38,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val brevService: BrevService,
     private val skattDokumentService: SkattDokumentService,
     private val satsFactory: SatsFactory,
+    private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
 ) : IverksettSøknadsbehandlingService {
 
@@ -47,6 +51,10 @@ class IverksettSøknadsbehandlingServiceImpl(
     override fun iverksett(
         command: IverksettSøknadsbehandlingCommand,
     ): Either<KunneIkkeIverksetteSøknadsbehandling, Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak>> {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = command.behandlingId.value,
+            type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+        ).map { it.fritekst }.getOrElse { "" }
         return sakService.hentSakForSøknadsbehandling(command.behandlingId)
             .iverksettSøknadsbehandling(
                 command = command,
@@ -54,6 +62,7 @@ class IverksettSøknadsbehandlingServiceImpl(
                 clock = clock,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
                 satsFactory = satsFactory,
+                fritekst = fritekst,
             )
             .map {
                 iverksett(it)

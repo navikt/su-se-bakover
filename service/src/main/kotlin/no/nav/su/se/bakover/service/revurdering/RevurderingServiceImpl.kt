@@ -26,6 +26,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -132,6 +134,7 @@ class RevurderingServiceImpl(
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
     private val satsFactory: SatsFactory,
+    private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
 ) : RevurderingService {
 
@@ -843,8 +846,15 @@ class RevurderingServiceImpl(
             return it.left()
         }
         val brevvalg = revurdering.brevvalgRevurdering
-        if (!brevvalg.kanSendesTilAttestering()) {
-            return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+        if (brevvalg.skalSendeBrev().isRight()) {
+            val harFritekst = fritekstService.hentFritekst(
+                referanseId = revurdering.id.value,
+                type = FritekstType.VEDTAKSBREV_REVURDERING,
+            ).getOrNull()?.fritekst.orEmpty()
+
+            if (harFritekst.isBlank()) {
+                return KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+            }
         }
 
         val (tilAttestering, statistikkhendelse) = when (revurdering) {
@@ -957,9 +967,13 @@ class RevurderingServiceImpl(
     override fun lagBrevutkastForRevurdering(
         revurderingId: RevurderingId,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, PdfA> {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = revurderingId.value,
+            type = FritekstType.VEDTAKSBREV_REVURDERING,
+        ).map { it.fritekst }.getOrElse { "" }
         return hent(revurderingId).mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
             .flatMap { revurdering ->
-                brevService.lagDokument(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
+                brevService.lagDokument(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock, fritekst = fritekst))
                     .mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
                     }.map { it.generertDokument }
@@ -1119,7 +1133,17 @@ class RevurderingServiceImpl(
         }
 
         val resultat = if (avsluttetRevurdering is AvsluttetRevurdering && skalSendeAvslutningsbrev) {
-            brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock))
+            val fritekst = fritekstService.hentFritekst(
+                referanseId = revurdering.id.value,
+                type = FritekstType.VEDTAKSBREV_REVURDERING,
+            ).map { it.fritekst }.getOrElse { "" }
+            brevService.lagDokument(
+                avsluttetRevurdering.lagDokumentKommando(
+                    satsFactory = satsFactory,
+                    clock = clock,
+                    fritekst = fritekst,
+                ),
+            )
                 .mapLeft {
                     return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
                 }.map { dokument ->
@@ -1190,7 +1214,7 @@ class RevurderingServiceImpl(
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeAvslutteRevurdering(it).left()
         }
 
-        return brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock)).mapLeft {
+        return brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock, fritekst)).mapLeft {
             KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageDokument(it)
         }.map {
             Pair(avsluttetRevurdering.fnr, it.generertDokument)

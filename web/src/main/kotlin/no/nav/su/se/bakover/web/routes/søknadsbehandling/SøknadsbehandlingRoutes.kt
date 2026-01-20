@@ -251,13 +251,11 @@ internal fun Route.søknadsbehandlingRoutes(
                             BrevutkastForSøknadsbehandlingCommand.ForAttestant(
                                 søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                                 utførtAv = Attestant(call.suUserContext.navIdent),
-                                fritekst = body.fritekst,
                             )
                         } else {
                             BrevutkastForSøknadsbehandlingCommand.ForSaksbehandler(
                                 søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
                                 utførtAv = Saksbehandler(call.suUserContext.navIdent),
-                                fritekst = body.fritekst,
                             )
                         },
                     )
@@ -292,25 +290,22 @@ internal fun Route.søknadsbehandlingRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
-                    call.withBody<WithFritekstBody> { body ->
-                        val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
-                        søknadsbehandlingService.sendTilAttestering(
-                            SendTilAttesteringRequest(
-                                behandlingId = SøknadsbehandlingId(behandlingId),
-                                saksbehandler = saksBehandler,
-                                fritekstTilBrev = body.fritekst,
-                            ),
-                        ).fold(
-                            {
-                                call.svar(it.tilResultat())
-                            },
-                            {
-                                call.sikkerlogg("Sendte behandling med id $behandlingId til attestering")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                call.svar(OK.jsonBody(it, formuegrenserFactory))
-                            },
-                        )
-                    }
+                    val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
+                    søknadsbehandlingService.sendTilAttestering(
+                        SendTilAttesteringRequest(
+                            behandlingId = SøknadsbehandlingId(behandlingId),
+                            saksbehandler = saksBehandler,
+                        ),
+                    ).fold(
+                        {
+                            call.svar(it.tilResultat())
+                        },
+                        {
+                            call.sikkerlogg("Sendte behandling med id $behandlingId til attestering")
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                            call.svar(OK.jsonBody(it, formuegrenserFactory))
+                        },
+                    )
                 }
             }
         }

@@ -7,7 +7,6 @@ import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanBeregnes
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregnetAvslag
@@ -129,7 +128,6 @@ internal class SøknadsbehandlingBeregnTest {
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Avslag>()
             it.saksbehandler shouldBe saksbehandler
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering()))
             it.søknadsbehandlingsHistorikk shouldBe underkjentAvslagBeregning.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(

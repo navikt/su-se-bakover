@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -121,6 +123,7 @@ class SøknadsbehandlingServiceImpl(
     private val satsFactory: SatsFactory,
     private val skatteService: SkatteService,
     private val sessionFactory: SessionFactory,
+    private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
 ) : SøknadsbehandlingService {
 
@@ -283,7 +286,6 @@ class SøknadsbehandlingServiceImpl(
             }
         return søknadsbehandlingSomKanSendesTilAttestering.tilAttestering(
             saksbehandler = request.saksbehandler,
-            fritekstTilBrev = request.fritekstTilBrev,
             clock = clock,
         ).map { søknadsbehandlingTilAttestering ->
             oppgaveService.oppdaterOppgave(
@@ -472,8 +474,14 @@ class SøknadsbehandlingServiceImpl(
     override fun genererBrevutkast(
         command: BrevutkastForSøknadsbehandlingCommand,
     ): Either<KunneIkkeGenerereBrevutkastForSøknadsbehandling, Pair<PdfA, Fnr>> {
+        val fritekst = fritekstService.hentFritekst(
+            command.søknadsbehandlingId.value,
+            FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+        ).map { it.fritekst }.getOrElse { "" }
+
         return genererBrevutkastForSøknadsbehandling(
             command = command,
+            fritekst = fritekst,
             hentSøknadsbehandling = søknadsbehandlingRepo::hent,
             lagDokument = brevService::lagDokument,
             satsFactory = satsFactory,

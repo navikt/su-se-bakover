@@ -3,16 +3,19 @@ package no.nav.su.se.bakover.domain.fritekst
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import java.util.UUID
 
 interface FritekstService {
+    // Denne brukes i routes for å kunne gjennomføres med tilgangsjekk.
     fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst>
+    fun hentFritekst(referanseId: UUID, type: FritekstType, sessionContext: SessionContext? = null): Either<FritekstFeil, Fritekst>
     fun lagreFritekst(fritekst: FritekstDomain): Unit
     fun slettFritekst(referanseId: UUID, type: FritekstType, sakId: UUID): Either<FritekstFeil, Unit>
 }
 
 interface FritekstRepo {
-    fun hentFritekst(referanseId: UUID, type: FritekstType): Fritekst?
+    fun hentFritekst(referanseId: UUID, type: FritekstType, sessionContext: SessionContext? = null): Fritekst?
     fun lagreFritekst(fritekst: Fritekst)
     fun slettFritekst(referanseId: UUID, type: FritekstType)
 }
@@ -20,9 +23,15 @@ interface FritekstRepo {
 class FritekstServiceImpl(
     private val repository: FritekstRepo,
 ) : FritekstService {
-
     override fun hentFritekst(hentDomain: FritekstHentDomain): Either<FritekstFeil, Fritekst> {
-        val fritekst = repository.hentFritekst(referanseId = hentDomain.referanseId, type = hentDomain.type)
+        return hentFritekst(
+            referanseId = hentDomain.referanseId,
+            type = hentDomain.type,
+        )
+    }
+
+    override fun hentFritekst(referanseId: UUID, type: FritekstType, sessionContext: SessionContext?): Either<FritekstFeil, Fritekst> {
+        val fritekst = repository.hentFritekst(referanseId = referanseId, type = type, sessionContext = sessionContext)
         return fritekst?.right() ?: FritekstFeil.FantIkkeFritekst.left()
     }
 

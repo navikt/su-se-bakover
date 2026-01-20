@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.fritekst
 
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
+import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -36,7 +36,15 @@ internal class FritekstRouteTest {
         val fritekst = Fritekst(referanseId = referanseId, FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING, fritekst = "fritekst for vedtak")
         val request = FritekstRequestHent(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name)
         val fritekstMockService = mock<FritekstService> {
-            on { hentFritekst(hentDomain = request.toDomain().getOrElse { throw IllegalStateException("feilmapping") }) } doReturn fritekst.right()
+            on {
+                hentFritekst(
+                    FritekstHentDomain(
+                        referanseId = referanseId,
+                        sakId = sakId,
+                        type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                    ),
+                )
+            } doReturn fritekst.right()
         }
         testApplication {
             application {
@@ -61,7 +69,15 @@ internal class FritekstRouteTest {
         val sakId = UUID.randomUUID()
         val request = FritekstRequestHent(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name)
         val fritekstMockService = mock<FritekstService> {
-            on { hentFritekst(hentDomain = request.toDomain().getOrElse { throw IllegalStateException("feilmapping") }) } doReturn FritekstFeil.FantIkkeFritekst.left()
+            on {
+                hentFritekst(
+                    FritekstHentDomain(
+                        referanseId = referanseId,
+                        sakId = sakId,
+                        type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
+                    ),
+                )
+            } doReturn FritekstFeil.FantIkkeFritekst.left()
         }
         testApplication {
             application {

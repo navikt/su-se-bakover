@@ -8,7 +8,6 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.søknadsbehandling.FRITEKST_TIL_BREV
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttesteringAvslagBeregning
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttesteringAvslagVilkår
@@ -31,7 +30,6 @@ internal class UnderkjennTest {
             it shouldBe beOfType<UnderkjentSøknadsbehandling.Avslag.UtenBeregning>()
             it.saksbehandler shouldBe saksbehandler
             it.beregning shouldBe null
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk
         }
@@ -47,7 +45,6 @@ internal class UnderkjennTest {
             it shouldBe beOfType<UnderkjentSøknadsbehandling.Avslag.MedBeregning>()
             it.saksbehandler shouldBe saksbehandler
             it.beregning shouldNotBe null
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
             it.søknadsbehandlingsHistorikk shouldBe søknadsbehandling.søknadsbehandlingsHistorikk
         }
@@ -63,7 +60,6 @@ internal class UnderkjennTest {
             it shouldBe beOfType<UnderkjentSøknadsbehandling.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
             it.beregning shouldBe tilAttesteringInnvilget.beregning
-            it.fritekstTilBrev shouldBe FRITEKST_TIL_BREV
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
             it.søknadsbehandlingsHistorikk shouldBe tilAttesteringInnvilget.søknadsbehandlingsHistorikk
         }

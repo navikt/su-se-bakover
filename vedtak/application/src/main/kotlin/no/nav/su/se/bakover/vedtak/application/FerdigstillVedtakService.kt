@@ -11,6 +11,8 @@ import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -49,6 +51,7 @@ class FerdigstillVedtakServiceImpl(
     private val vedtakService: VedtakService,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
+    private val fritekstService: FritekstService,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -149,7 +152,19 @@ class FerdigstillVedtakServiceImpl(
         vedtak: VedtakSomKanRevurderes,
         transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtak, Dokument.MedMetadata> {
-        return brevService.lagDokument(vedtak.lagDokumentKommando(clock, satsFactory)).mapLeft {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = vedtak.behandling.id.value,
+            type = FritekstType.VEDTAKSBREV_REVURDERING,
+            sessionContext = transactionContext,
+        ).map { it.fritekst }.getOrElse { "" }
+
+        return brevService.lagDokument(
+            vedtak.lagDokumentKommando(
+                clock,
+                satsFactory,
+                fritekst = fritekst,
+            ),
+        ).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
         }.map {
             val dokumentMedMetadata: Dokument.MedMetadata = it.leggTilMetadata(
