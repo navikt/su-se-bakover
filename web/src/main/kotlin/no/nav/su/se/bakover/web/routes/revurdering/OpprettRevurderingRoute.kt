@@ -91,23 +91,23 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "sak_finnes_ikke",
         )
 
-        is KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling -> BadRequest.errorJson(
+        KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling -> BadRequest.errorJson(
             "Klagen er allerede knyttet til en behandling",
             "klage_allerede_knyttet_til_behandling",
         )
-        is KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt -> BadRequest.errorJson(
+        KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt -> BadRequest.errorJson(
             "Klagen er ikke ferdigstilt",
             "klage_ikke_ferdigstilt",
         )
-        is KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning -> BadRequest.errorJson(
+        KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning -> BadRequest.errorJson(
             "Klage må finnes for å kunne knyttes til behandling",
             "klage_må_finnes_for_knytning",
         )
-        is KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> BadRequest.errorJson(
+        KunneIkkeOppretteRevurdering.KlageUgyldigUUID -> BadRequest.errorJson(
             "Klageid mangler eller er ugyldig",
             "klage_ugyldig_uuid",
         )
-        is KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> BadRequest.errorJson(
+        KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn -> BadRequest.errorJson(
             "Omgjøringsgrunn er ulik mellom klage og revurdering",
             "ulik_omgjøringsgrunn",
         )

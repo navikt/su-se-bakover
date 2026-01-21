@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
+import no.nav.su.se.bakover.domain.klage.relatertId.FantIkkeRelatertKlageId
+import no.nav.su.se.bakover.domain.klage.relatertId.finnRelatertIdForOmgjøring
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.toVedtakSomRevurderesMånedsvis
@@ -63,9 +65,24 @@ fun Sak.kanOppretteRevurdering(
         } ?: return KunneIkkeOppretteRevurdering.KlageUgyldigUUID.left()
         val klage =
             this.hentKlage(KlageId(klageId)) ?: return KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning.left()
-        finnRelatertIdOmgjøringKlage(klage, revurderingsårsak, sakId = this.id, cmd.omgjøringsgrunn).getOrElse(
-            { return it.left() },
-        )
+        klage.finnRelatertIdForOmgjøring(revurderingsårsak.årsak, sakId = this.id, cmd.omgjøringsgrunn).getOrElse {
+            return when (it) {
+                FantIkkeRelatertKlageId.IngenAvsluttedeKlageHendelserFraKA -> KunneIkkeOppretteRevurdering.IngenAvsluttedeKlageHendelserFraKA.left()
+                FantIkkeRelatertKlageId.IngenKlageHendelserFraKA -> KunneIkkeOppretteRevurdering.IngenKlageHendelserFraKA.left()
+                FantIkkeRelatertKlageId.IngenTrygderettenAvsluttetHendelser -> KunneIkkeOppretteRevurdering.IngenTrygderettenAvsluttetHendelser.left()
+                FantIkkeRelatertKlageId.KlageErAlleredeKnyttetTilBehandling -> KunneIkkeOppretteRevurdering.KlageErAlleredeKnyttetTilBehandling.left()
+                FantIkkeRelatertKlageId.KlageErIkkeFerdigstilt -> KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstilt.left()
+                FantIkkeRelatertKlageId.KlageErIkkeFerdigstiltOmgjortKlage -> KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstiltOmgjortKlage.left()
+                FantIkkeRelatertKlageId.KlageErIkkeOversendt -> KunneIkkeOppretteRevurdering.KlageErIkkeOversendt.left()
+                FantIkkeRelatertKlageId.KlageMåFinnesForKnytning -> KunneIkkeOppretteRevurdering.KlageMåFinnesForKnytning.left()
+                FantIkkeRelatertKlageId.KlageUgyldigUUID -> KunneIkkeOppretteRevurdering.KlageUgyldigUUID.left()
+                FantIkkeRelatertKlageId.MåhaOmgjøringsgrunn -> KunneIkkeOppretteRevurdering.MåhaOmgjøringsgrunn.left()
+                FantIkkeRelatertKlageId.UlikOmgjøringsgrunn -> KunneIkkeOppretteRevurdering.UlikOmgjøringsgrunn.left()
+                is FantIkkeRelatertKlageId.UgyldigRevurderingsårsak -> KunneIkkeOppretteRevurdering.UgyldigRevurderingsårsak(
+                    it.feil,
+                ).left()
+            }
+        }
     } else {
         log.warn("Fant ingen id å knytte revurdering mot i sakid: $id årsak: ${revurderingsårsak.årsak} gjeldende vedtak: ${gjeldendeVedtak.id}")
         null
@@ -90,7 +107,6 @@ internal fun finnRelatertIdOmgjøringKlage(
     omgjøringsGrunn: String?,
 ): Either<KunneIkkeOppretteRevurdering, KlageId> {
     return when (revurderingsårsak.årsak) {
-        // VedtakServiceImpl.startNySøknadsbehandlingForAvslag( skal ikke ha denne logikken
         Årsak.OMGJØRING_VEDTAK_FRA_KLAGEINSTANSEN -> {
             when (klage) {
                 is OversendtKlage -> {
