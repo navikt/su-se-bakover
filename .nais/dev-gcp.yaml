@@ -63,11 +63,13 @@ spec:
           cluster: "dev-gcp"
         - application: "frikorttjenester"
           namespace: "teamfrikort"
+          cluster: "dev-fss"
           permissions:
             roles:
               - frikort
         - application: "frikorttjenester-q2"
           namespace: "teamfrikort"
+          cluster: "dev-fss"
           permissions:
             roles:
               - frikort
