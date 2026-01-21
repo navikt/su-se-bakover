@@ -214,7 +214,6 @@ internal class RevurderingPostgresRepoTest(private val dataSource: DataSource) {
                 helper.revurderingRepo.lagre(
                     it.leggTilBrevvalg(
                         sendBrev(
-                            fritekst = "fri tekset",
                             begrunnelse = "beggy",
                             bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
                         ),
@@ -222,7 +221,6 @@ internal class RevurderingPostgresRepoTest(private val dataSource: DataSource) {
                     ),
                 )
                 helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.Valgt.SendBrev(
-                    fritekst = "fri tekset",
                     begrunnelse = "beggy",
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
                 )

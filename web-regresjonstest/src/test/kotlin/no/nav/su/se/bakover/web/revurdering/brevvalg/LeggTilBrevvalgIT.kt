@@ -44,7 +44,6 @@ internal class LeggTilBrevvalgIT {
                         """
                     {
                         "valg":"IKKE_VALGT",
-                        "fritekst":null,
                         "begrunnelse":null,
                         "bestemtAv":""
                     }
@@ -56,7 +55,6 @@ internal class LeggTilBrevvalgIT {
                     velgSendBrev(
                         sakId = sakId,
                         behandlingId = revurderingId,
-                        fritekst = "befriende tekst",
                         begrunnelse = "godt begrunnet",
                         client = this.client,
                     ).let {
@@ -64,7 +62,6 @@ internal class LeggTilBrevvalgIT {
                             """
                     {
                         "valg":"SEND",
-                        "fritekst":"befriende tekst",
                         "begrunnelse":"godt begrunnet",
                         "bestemtAv":"$DEFAULT_IDENT"
                     }
@@ -84,7 +81,6 @@ internal class LeggTilBrevvalgIT {
                             """
                     {
                         "valg":"IKKE_SEND",
-                        "fritekst": null,
                         "begrunnelse":"ikke behov likevel",
                         "bestemtAv":"$DEFAULT_IDENT"
                     }

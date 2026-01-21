@@ -47,7 +47,6 @@ internal sealed interface RevurderingJson {
 
 data class BrevvalgRevurderingJson(
     val valg: String,
-    val fritekst: String?,
     val begrunnelse: String?,
     val bestemtAv: String,
 )
@@ -57,7 +56,6 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
         BrevvalgRevurdering.IkkeValgt -> {
             BrevvalgRevurderingJson(
                 valg = "IKKE_VALGT",
-                fritekst = null,
                 begrunnelse = null,
                 bestemtAv = "",
             )
@@ -66,7 +64,6 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
         is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "IKKE_SEND",
-                fritekst = null,
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv.toString(),
             )
@@ -75,7 +72,6 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
         is BrevvalgRevurdering.Valgt.SendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "SEND",
-                fritekst = fritekst,
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv.toString(),
             )

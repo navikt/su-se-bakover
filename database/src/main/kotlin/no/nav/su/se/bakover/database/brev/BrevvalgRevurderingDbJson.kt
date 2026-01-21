@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
 
 internal data class BrevvalgRevurderingDbJson(
     val type: BrevvalgRevurderingDbType,
-    val fritekst: String?,
     val begrunnelse: String?,
     val bestemtav: String?,
 )
@@ -22,7 +21,6 @@ internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
         BrevvalgRevurdering.IkkeValgt -> {
             BrevvalgRevurderingDbJson(
                 type = BrevvalgRevurderingDbType.IKKE_VALGT,
-                fritekst = null,
                 begrunnelse = null,
                 bestemtav = null,
             )
@@ -30,7 +28,6 @@ internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
         is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
             BrevvalgRevurderingDbJson(
                 type = BrevvalgRevurderingDbType.IKKE_SEND_BREV,
-                fritekst = null,
                 begrunnelse = begrunnelse,
                 bestemtav = when (val verdi = bestemtAv) {
                     is BrevvalgRevurdering.BestemtAv.Behandler -> verdi.ident
@@ -41,7 +38,6 @@ internal fun BrevvalgRevurdering.toDb(): BrevvalgRevurderingDbJson {
         is BrevvalgRevurdering.Valgt.SendBrev -> {
             BrevvalgRevurderingDbJson(
                 type = BrevvalgRevurderingDbType.SEND_BREV,
-                fritekst = fritekst,
                 begrunnelse = begrunnelse,
                 bestemtav = when (val verdi = bestemtAv) {
                     is BrevvalgRevurdering.BestemtAv.Behandler -> verdi.ident
@@ -72,7 +68,6 @@ internal fun BrevvalgRevurderingDbJson.toDomain(): BrevvalgRevurdering {
         }
         BrevvalgRevurderingDbType.SEND_BREV -> {
             BrevvalgRevurdering.Valgt.SendBrev(
-                fritekst = fritekst,
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv(bestemtav!!),
             )

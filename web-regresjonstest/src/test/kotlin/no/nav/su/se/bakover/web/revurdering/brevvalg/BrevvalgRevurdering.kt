@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.test.application.defaultRequest
 internal fun velgSendBrev(
     sakId: String,
     behandlingId: String,
-    fritekst: String? = "En flott fritekst",
     begrunnelse: String? = "Sender et lite et",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/brevvalg",
@@ -34,7 +33,6 @@ internal fun velgSendBrev(
                 """
               {
                 "valg": "SEND",
-                "fritekst": "$fritekst",
                 "begrunnelse": "$begrunnelse"
               }
                 """.trimIndent(),
