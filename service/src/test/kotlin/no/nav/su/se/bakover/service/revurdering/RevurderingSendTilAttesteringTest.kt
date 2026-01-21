@@ -49,7 +49,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import sun.java2d.cmm.ProfileDataVerifier.verify
 import vilkår.formue.domain.FormueVilkår
 
 internal class RevurderingSendTilAttesteringTest {
@@ -292,7 +291,6 @@ internal class RevurderingSendTilAttesteringTest {
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
             brevvalg = BrevvalgRevurdering.Valgt.SendBrev(
-                fritekst = null,
                 begrunnelse = null,
                 bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
             ),

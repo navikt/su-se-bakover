@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 data class LeggTilBrevvalgRequest(
     val revurderingId: RevurderingId,
     val valg: Valg,
-    val fritekst: String?,
     val begrunnelse: String?,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {
@@ -19,7 +18,6 @@ data class LeggTilBrevvalgRequest(
         return when (valg) {
             Valg.SEND -> {
                 BrevvalgRevurdering.Valgt.SendBrev(
-                    fritekst = fritekst,
                     begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
                 )

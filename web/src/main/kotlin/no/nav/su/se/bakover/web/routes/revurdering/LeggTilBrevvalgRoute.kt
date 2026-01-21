@@ -27,7 +27,6 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
 ) {
     data class Body(
         val valg: LeggTilBrevvalgRequest.Valg,
-        val fritekst: String?,
         val begrunnelse: String?,
     )
 
@@ -40,7 +39,6 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                             LeggTilBrevvalgRequest(
                                 revurderingId = RevurderingId(revurderingId),
                                 valg = body.valg,
-                                fritekst = body.fritekst,
                                 begrunnelse = body.begrunnelse,
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ),
