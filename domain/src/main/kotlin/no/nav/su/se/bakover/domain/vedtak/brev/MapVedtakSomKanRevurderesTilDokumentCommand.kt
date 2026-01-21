@@ -28,15 +28,6 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
         )
 
         is VedtakInnvilgetRevurdering -> {
-            /**
-             * Vi har ikke et så godt skille mellom det som er forhåndsvisning av vedtaket, og det som faktisk er utsendingen.
-             * Ved forhåndsvisning krever vi ikke noe fritekst, men vi gjør det når brevet skal sendes ut.
-             * Vi krever at fritekst ved revurdering er satt dersom BrevvalgRevurdering.Valgt.SendBrev er valgt før attestering for å løse dette [KunneIkkeSendeRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev]
-             */
-            val brevvalg = this.behandling.brevvalgRevurdering
-            if (!brevvalg.kanSendesTilAttestering()) {
-                fail("Generering av dokument for vedtaket forutsetter at vi skal sende brev, og at friteksten er satt.")
-            }
             this.behandling.lagDokumentKommando(
                 satsFactory = satsFactory,
                 clock = clock,
