@@ -73,6 +73,7 @@ spec:
           cluster: "prod-gcp"
         - application: "frikorttjenester"
           namespace: "teamfrikort"
+          cluster: "prod-fss"
           permissions:
             roles:
               - frikort
