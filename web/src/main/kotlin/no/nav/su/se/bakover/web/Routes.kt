@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.drift.sakStatistikkRoutes
+import no.nav.su.se.bakover.web.routes.drift.stønadstatistikkRoutes
 import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -161,6 +162,7 @@ internal fun Application.setupKtorRoutes(
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
                     fritekstRoutes(services.fritekstService)
                     sakStatistikkRoutes(services.sakstatistikkBigQueryService)
+                    stønadstatistikkRoutes(services.stønadStatistikkJobService)
                 }
             }
         }

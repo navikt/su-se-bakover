@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import java.time.LocalDate
 
-// TODO: mulig vi skal slå sammen alle jobber til denne routen
 internal fun Route.sakStatistikkRoutes(
     service: SakStatistikkBigQueryService,
 ) {

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import statistikk.domain.StønadsklassifiseringDto
@@ -19,9 +20,9 @@ class StønadStatistikkRepoImpl(
     private val dbMetrics: DbMetrics,
 ) : StønadStatistikkRepo {
 
-    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned) {
+    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned, tx: TransactionContext?) {
         return dbMetrics.timeQuery("hentStatistikkForMåned") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 lagreMånedStatistikk(session, månedStatistikk)
             }
         }
@@ -149,111 +150,123 @@ class StønadStatistikkRepoImpl(
                 ),
                 session = session,
             )
-        // månedStatistikk.månedsbeløp?.let { lagreMånedsbeløpMedFradrag(session, månedStatistikk.id, it) }
     }
 
     override fun hentMånedStatistikk(måned: YearMonth): List<StønadstatistikkMåned> {
         return dbMetrics.timeQuery("hentStønadstatistikkMåned") {
-            sessionFactory.withSession { session ->
-                """
+            hentStatistikk(måned, måned)
+        }
+    }
+
+    override fun hentStatistikkForPeriode(fraOgMed: YearMonth, tilOgMed: YearMonth): List<StønadstatistikkMåned> {
+        return dbMetrics.timeQuery("hentStatistikkForPeriode") {
+            hentStatistikk(fraOgMed, tilOgMed)
+        }
+    }
+
+    private fun hentStatistikk(fraOgMed: YearMonth, tilOgMed: YearMonth): List<StønadstatistikkMåned> {
+        return sessionFactory.withSession { session ->
+            """
                 SELECT *
                 FROM stoenad_maaned_statistikk
-                WHERE maaned = :maaned
-                """.trimIndent()
-                    .hentListe(
-                        params = mapOf("maaned" to måned.atDay(1)),
-                        session = session,
-                    ) { row ->
-                        with(row) {
-                            val id = uuid("id")
-                            StønadstatistikkMåned(
-                                id = id,
-                                måned = måned,
-                                funksjonellTid = tidspunkt("funksjonell_tid"),
-                                tekniskTid = tidspunkt("teknisk_tid"),
-                                sakId = UUID.fromString(string("sak_id")),
-                                stonadstype = StønadstatistikkDto.Stønadstype.valueOf(string("stonadstype")),
-                                vedtaksdato = localDate("vedtaksdato"),
-                                personnummer = Fnr(string("personnummer")),
-                                personNummerEps = stringOrNull("personnummer_eps")?.let { Fnr(it) },
-                                vedtakFraOgMed = localDate("vedtak_fra_og_med"),
-                                vedtakTilOgMed = localDate("vedtak_til_og_med"),
-                                vedtakstype = StønadstatistikkDto.Vedtakstype.valueOf(string("vedtakstype")),
-                                vedtaksresultat = StønadstatistikkDto.Vedtaksresultat.valueOf(string("vedtaksresultat")),
-                                opphorsgrunn = stringOrNull("opphorsgrunn"),
-                                opphorsdato = localDateOrNull("opphorsdato"),
-                                behandlendeEnhetKode = string("behandlende_enhet_kode"),
-                                stonadsklassifisering = stringOrNull("stonadsklassifisering")?.let {
-                                    StønadsklassifiseringDto.valueOf(
-                                        it,
-                                    )
-                                },
-                                årsakStans = stringOrNull("aarsakStans"),
-                                sats = longOrNull("sats"),
-                                utbetales = longOrNull("utbetales"),
-                                fradragSum = longOrNull("fradragSum"),
-                                uføregrad = intOrNull("uforegrad"),
-                                fribeløpEps = longOrNull("fribeloepEps"),
-                                alderspensjon = intOrNull("alderspensjon"),
-                                alderspensjonEps = intOrNull("alderspensjonEps"),
-                                arbeidsavklaringspenger = intOrNull("arbeidsavklaringspenger"),
-                                arbeidsavklaringspengerEps = intOrNull("arbeidsavklaringspengerEps"),
-                                arbeidsinntekt = intOrNull("arbeidsinntekt"),
-                                arbeidsinntektEps = intOrNull("arbeidsinntektEps"),
-                                omstillingsstønad = intOrNull("omstillingsstonad"),
-                                omstillingsstønadEps = intOrNull("omstillingsstonadEps"),
-                                avtalefestetPensjon = intOrNull("avtalefestetPensjon"),
-                                avtalefestetPensjonEps = intOrNull("avtalefestetPensjonEps"),
-                                avtalefestetPensjonPrivat = intOrNull("avtalefestetPensjonPrivat"),
-                                avtalefestetPensjonPrivatEps = intOrNull("avtalefestetPensjonPrivatEps"),
-                                bidragEtterEkteskapsloven = intOrNull("bidragEtterEkteskapsloven"),
-                                bidragEtterEkteskapslovenEps = intOrNull("bidragEtterEkteskapslovenEps"),
-                                dagpenger = intOrNull("dagpenger"),
-                                dagpengerEps = intOrNull("dagpengerEps"),
-                                fosterhjemsgodtgjørelse = intOrNull("fosterhjemsgodtgjorelse"),
-                                fosterhjemsgodtgjørelseEps = intOrNull("fosterhjemsgodtgjorelseEps"),
-                                gjenlevendepensjon = intOrNull("gjenlevendepensjon"),
-                                gjenlevendepensjonEps = intOrNull("gjenlevendepensjonEps"),
-                                introduksjonsstønad = intOrNull("introduksjonsstonad"),
-                                introduksjonsstønadEps = intOrNull("introduksjonsstonadEps"),
-                                kapitalinntekt = intOrNull("kapitalinntekt"),
-                                kapitalinntektEps = intOrNull("kapitalinntektEps"),
-                                kontantstøtte = intOrNull("kontantstotte"),
-                                kontantstøtteEps = intOrNull("kontantstotteEps"),
-                                kvalifiseringsstønad = intOrNull("kvalifiseringsstonad"),
-                                kvalifiseringsstønadEps = intOrNull("kvalifiseringsstonadEps"),
-                                navYtelserTilLivsopphold = intOrNull("navYtelserTilLivsopphold"),
-                                navYtelserTilLivsoppholdEps = intOrNull("navYtelserTilLivsoppholdEps"),
-                                offentligPensjon = intOrNull("offentligPensjon"),
-                                offentligPensjonEps = intOrNull("offentligPensjonEps"),
-                                privatPensjon = intOrNull("privatPensjon"),
-                                privatPensjonEps = intOrNull("privatPensjonEps"),
-                                sosialstønad = intOrNull("sosialstonad"),
-                                sosialstønadEps = intOrNull("sosialstonadEps"),
-                                statensLånekasse = intOrNull("statensLaanekasse"),
-                                statensLånekasseEps = intOrNull("statensLaanekasseEps"),
-                                supplerendeStønad = intOrNull("supplerendeStonad"),
-                                supplerendeStønadEps = intOrNull("supplerendeStonadEps"),
-                                sykepenger = intOrNull("sykepenger"),
-                                sykepengerEps = intOrNull("sykepengerEps"),
-                                tiltakspenger = intOrNull("tiltakspenger"),
-                                tiltakspengerEps = intOrNull("tiltakspengerEps"),
-                                ventestønad = intOrNull("ventestonad"),
-                                ventestønadEps = intOrNull("ventestonadEps"),
-                                uføretrygd = intOrNull("uforetrygd"),
-                                uføretrygdEps = intOrNull("uforetrygdEps"),
-                                forventetInntekt = intOrNull("forventetInntekt"),
-                                forventetInntektEps = intOrNull("forventetInntektEps"),
-                                avkortingUtenlandsopphold = intOrNull("avkortingUtenlandsopphold"),
-                                avkortingUtenlandsoppholdEps = intOrNull("avkortingUtenlandsoppholdEps"),
-                                underMinstenivå = intOrNull("underMinstenivaa"),
-                                underMinstenivåEps = intOrNull("underMinstenivaaEps"),
-                                annet = intOrNull("annet"),
-                                annetEps = intOrNull("annetEps"),
-                            )
-                        }
+                WHERE maaned >= :fom and maaned <= :tom
+            """.trimIndent()
+                .hentListe(
+                    params = mapOf(
+                        "fom" to fraOgMed.atDay(1),
+                        "tom" to tilOgMed.atEndOfMonth(),
+                    ),
+                    session = session,
+                ) { row ->
+                    with(row) {
+                        val id = uuid("id")
+                        StønadstatistikkMåned(
+                            id = id,
+                            måned = YearMonth.from(localDate("maaned")),
+                            funksjonellTid = tidspunkt("funksjonell_tid"),
+                            tekniskTid = tidspunkt("teknisk_tid"),
+                            sakId = UUID.fromString(string("sak_id")),
+                            stonadstype = StønadstatistikkDto.Stønadstype.valueOf(string("stonadstype")),
+                            vedtaksdato = localDate("vedtaksdato"),
+                            personnummer = Fnr(string("personnummer")),
+                            personNummerEps = stringOrNull("personnummer_eps")?.let { Fnr(it) },
+                            vedtakFraOgMed = localDate("vedtak_fra_og_med"),
+                            vedtakTilOgMed = localDate("vedtak_til_og_med"),
+                            vedtakstype = StønadstatistikkDto.Vedtakstype.valueOf(string("vedtakstype")),
+                            vedtaksresultat = StønadstatistikkDto.Vedtaksresultat.valueOf(string("vedtaksresultat")),
+                            opphorsgrunn = stringOrNull("opphorsgrunn"),
+                            opphorsdato = localDateOrNull("opphorsdato"),
+                            behandlendeEnhetKode = string("behandlende_enhet_kode"),
+                            stonadsklassifisering = stringOrNull("stonadsklassifisering")?.let {
+                                StønadsklassifiseringDto.valueOf(
+                                    it,
+                                )
+                            },
+                            årsakStans = stringOrNull("aarsakStans"),
+                            sats = longOrNull("sats"),
+                            utbetales = longOrNull("utbetales"),
+                            fradragSum = longOrNull("fradragSum"),
+                            uføregrad = intOrNull("uforegrad"),
+                            fribeløpEps = longOrNull("fribeloepEps"),
+                            alderspensjon = intOrNull("alderspensjon"),
+                            alderspensjonEps = intOrNull("alderspensjonEps"),
+                            arbeidsavklaringspenger = intOrNull("arbeidsavklaringspenger"),
+                            arbeidsavklaringspengerEps = intOrNull("arbeidsavklaringspengerEps"),
+                            arbeidsinntekt = intOrNull("arbeidsinntekt"),
+                            arbeidsinntektEps = intOrNull("arbeidsinntektEps"),
+                            omstillingsstønad = intOrNull("omstillingsstonad"),
+                            omstillingsstønadEps = intOrNull("omstillingsstonadEps"),
+                            avtalefestetPensjon = intOrNull("avtalefestetPensjon"),
+                            avtalefestetPensjonEps = intOrNull("avtalefestetPensjonEps"),
+                            avtalefestetPensjonPrivat = intOrNull("avtalefestetPensjonPrivat"),
+                            avtalefestetPensjonPrivatEps = intOrNull("avtalefestetPensjonPrivatEps"),
+                            bidragEtterEkteskapsloven = intOrNull("bidragEtterEkteskapsloven"),
+                            bidragEtterEkteskapslovenEps = intOrNull("bidragEtterEkteskapslovenEps"),
+                            dagpenger = intOrNull("dagpenger"),
+                            dagpengerEps = intOrNull("dagpengerEps"),
+                            fosterhjemsgodtgjørelse = intOrNull("fosterhjemsgodtgjorelse"),
+                            fosterhjemsgodtgjørelseEps = intOrNull("fosterhjemsgodtgjorelseEps"),
+                            gjenlevendepensjon = intOrNull("gjenlevendepensjon"),
+                            gjenlevendepensjonEps = intOrNull("gjenlevendepensjonEps"),
+                            introduksjonsstønad = intOrNull("introduksjonsstonad"),
+                            introduksjonsstønadEps = intOrNull("introduksjonsstonadEps"),
+                            kapitalinntekt = intOrNull("kapitalinntekt"),
+                            kapitalinntektEps = intOrNull("kapitalinntektEps"),
+                            kontantstøtte = intOrNull("kontantstotte"),
+                            kontantstøtteEps = intOrNull("kontantstotteEps"),
+                            kvalifiseringsstønad = intOrNull("kvalifiseringsstonad"),
+                            kvalifiseringsstønadEps = intOrNull("kvalifiseringsstonadEps"),
+                            navYtelserTilLivsopphold = intOrNull("navYtelserTilLivsopphold"),
+                            navYtelserTilLivsoppholdEps = intOrNull("navYtelserTilLivsoppholdEps"),
+                            offentligPensjon = intOrNull("offentligPensjon"),
+                            offentligPensjonEps = intOrNull("offentligPensjonEps"),
+                            privatPensjon = intOrNull("privatPensjon"),
+                            privatPensjonEps = intOrNull("privatPensjonEps"),
+                            sosialstønad = intOrNull("sosialstonad"),
+                            sosialstønadEps = intOrNull("sosialstonadEps"),
+                            statensLånekasse = intOrNull("statensLaanekasse"),
+                            statensLånekasseEps = intOrNull("statensLaanekasseEps"),
+                            supplerendeStønad = intOrNull("supplerendeStonad"),
+                            supplerendeStønadEps = intOrNull("supplerendeStonadEps"),
+                            sykepenger = intOrNull("sykepenger"),
+                            sykepengerEps = intOrNull("sykepengerEps"),
+                            tiltakspenger = intOrNull("tiltakspenger"),
+                            tiltakspengerEps = intOrNull("tiltakspengerEps"),
+                            ventestønad = intOrNull("ventestonad"),
+                            ventestønadEps = intOrNull("ventestonadEps"),
+                            uføretrygd = intOrNull("uforetrygd"),
+                            uføretrygdEps = intOrNull("uforetrygdEps"),
+                            forventetInntekt = intOrNull("forventetInntekt"),
+                            forventetInntektEps = intOrNull("forventetInntektEps"),
+                            avkortingUtenlandsopphold = intOrNull("avkortingUtenlandsopphold"),
+                            avkortingUtenlandsoppholdEps = intOrNull("avkortingUtenlandsoppholdEps"),
+                            underMinstenivå = intOrNull("underMinstenivaa"),
+                            underMinstenivåEps = intOrNull("underMinstenivaaEps"),
+                            annet = intOrNull("annet"),
+                            annetEps = intOrNull("annetEps"),
+                        )
                     }
-            }
+                }
         }
     }
 }

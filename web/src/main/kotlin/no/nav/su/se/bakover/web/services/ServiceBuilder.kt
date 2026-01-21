@@ -354,6 +354,8 @@ data object ServiceBuilder {
             stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
                 vedtakRepo = databaseRepos.vedtakRepo,
+                sessionFactory = databaseRepos.sessionFactory,
+                clock = clock,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
             sakstatistikkBigQueryService = sakStatistikkBigQueryService,

@@ -271,7 +271,6 @@ private fun localJobberOgConsumers(
         ),
 
         LagStønadstatistikkForMånedJob.startJob(
-            clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(1, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
@@ -365,7 +364,6 @@ private fun naisJobberOgConsumers(
         ),
 
         LagStønadstatistikkForMånedJob.startJob(
-            clock = clock,
             initialDelay = initialDelay.next(),
             periode = Duration.of(4, ChronoUnit.HOURS),
             runCheckFactory = runCheckFactory,
