@@ -13,8 +13,9 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.relatertId.FantIkkeRelatertKlageId
+import no.nav.su.se.bakover.domain.klage.relatertId.finnRelatertIdForOmgjøring
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -182,27 +183,27 @@ class VedtakServiceImpl(
             val klage = klageRepo.hentKlage(KlageId(klageId))
                 ?: return KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
 
-            when (klage) {
-                is FerdigstiltOmgjortKlage -> {
-                    if (klage.behandlingId != null) {
-                        log.error("Klage ${klage.id} er knyttet mot ${klage.behandlingId} fra før av Saksnummer: ${sak.saksnummer}")
-                        return KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
+            klage.finnRelatertIdForOmgjøring(omgjøringsårsak, sakId = sakId, cmd.omgjøringsgrunn).getOrElse {
+                return when (it) {
+                    FantIkkeRelatertKlageId.IngenAvsluttedeKlageHendelserFraKA -> KunneIkkeStarteNySøknadsbehandling.IngenAvsluttedeKlageHendelserFraKA.left()
+                    FantIkkeRelatertKlageId.IngenKlageHendelserFraKA -> KunneIkkeStarteNySøknadsbehandling.IngenKlageHendelserFraKA.left()
+                    FantIkkeRelatertKlageId.IngenTrygderettenAvsluttetHendelser -> KunneIkkeStarteNySøknadsbehandling.IngenTrygderettenAvsluttetHendelser.left()
+                    FantIkkeRelatertKlageId.KlageErAlleredeKnyttetTilBehandling -> KunneIkkeStarteNySøknadsbehandling.KlageErAlleredeKnyttetTilBehandling.left()
+                    FantIkkeRelatertKlageId.KlageErIkkeFerdigstilt -> KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
+                    FantIkkeRelatertKlageId.KlageErIkkeFerdigstiltOmgjortKlage -> KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstiltOmgjortKlage.left()
+                    FantIkkeRelatertKlageId.KlageErIkkeOversendt -> KunneIkkeStarteNySøknadsbehandling.KlageErIkkeOversendt.left()
+                    FantIkkeRelatertKlageId.KlageMåFinnesForKnytning -> KunneIkkeStarteNySøknadsbehandling.KlageMåFinnesForKnytning.left()
+                    FantIkkeRelatertKlageId.KlageUgyldigUUID -> KunneIkkeStarteNySøknadsbehandling.KlageUgyldigUUID.left()
+                    FantIkkeRelatertKlageId.MåhaOmgjøringsgrunn -> KunneIkkeStarteNySøknadsbehandling.MåhaOmgjøringsgrunn.left()
+                    FantIkkeRelatertKlageId.UlikOmgjøringsgrunn -> KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
+                    is FantIkkeRelatertKlageId.UgyldigRevurderingsårsak -> {
+                        when (it.feil) {
+                            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeStarteNySøknadsbehandling.UgyldigBegrunnelseRevurderingsÅrsak.left()
+                            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeStarteNySøknadsbehandling.UgyldigÅrsakRevurderingsÅrsak.left()
+                        }
                     }
-                    val vedtaksvurdering = klage.vurderinger.vedtaksvurdering
-
-                    if (vedtaksvurdering.årsak.name != cmd.omgjøringsgrunn) {
-                        log.error("Klage ${klage.id} har grunn ${vedtaksvurdering.årsak.name} saksbehandler har valgt ${cmd.omgjøringsgrunn}. Saksnummer: ${sak.saksnummer}")
-                        return KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
-                    }
-                }
-
-                else -> {
-                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Saksnummer: ${sak.saksnummer}")
-                    return KunneIkkeStarteNySøknadsbehandling.KlageErIkkeFerdigstilt.left()
                 }
             }
-            log.info("Knytter omgjøring mot klage ${klage.id} for sak $sakId")
-            klage.id
         }
 
         return vedtak.behandling.opprettNySøknadsbehandling(
