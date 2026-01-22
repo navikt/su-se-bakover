@@ -811,14 +811,12 @@ class BeregningRegelspesifiseringTest {
 
 // Innhold i verdi testes ikke. Det er kun en dump av beregningen som brukes og testes andre steder.
 object ForventetRegelspesifisering {
-    // frb = forventet regelspesifisert beregning
     fun beregning(regel: Regelspesifiseringer, avhengigeRegler: List<Regelspesifisering>) =
         regel.benyttRegelspesifisering(
             verdi = "",
             avhengigeRegler = avhengigeRegler,
         )
 
-    // frg =  forventet regelspesifisert grunnlag
     fun grunnlag(grunnlag: RegelspesifisertGrunnlag) = grunnlag.benyttGrunnlag("")
 }
 
