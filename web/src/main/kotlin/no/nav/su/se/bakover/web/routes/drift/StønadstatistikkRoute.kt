@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.web.routes.drift
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -35,10 +38,12 @@ internal fun Route.stønadstatistikkRoutes(
                 if (!body.erGyldig()) {
                     call.svar(feilrespons)
                 } else {
-                    service.lagStatistikkForFlereMåneder(
-                        YearMonth.from(body.fraOgMed),
-                        YearMonth.from(body.tilOgMed),
-                    )
+                    CoroutineScope(Dispatchers.IO).launch {
+                        service.lagStatistikkForFlereMåneder(
+                            YearMonth.from(body.fraOgMed),
+                            YearMonth.from(body.tilOgMed),
+                        )
+                    }
                     call.svar(Resultat.okJson())
                 }
             }

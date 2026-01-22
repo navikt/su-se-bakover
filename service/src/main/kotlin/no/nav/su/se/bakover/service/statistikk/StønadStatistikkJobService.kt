@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.domain.extensions.hasOneElement
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -51,6 +49,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -80,18 +79,31 @@ class StønadStatistikkJobServiceImpl(
     }
 
     override fun lagStatistikkForFlereMåneder(fraOgMed: YearMonth, tilOgMed: YearMonth) {
-        sessionFactory.withTransactionContext { tx ->
-            var måned = fraOgMed
-            while (!måned.isAfter(tilOgMed)) {
-                lagMånedligStønadstatistikk(måned, tx)
-                måned = måned.plusMonths(1)
+        log.info("lagStatistikkForFlereMåneder - Lager stønadstatistikk for $fraOgMed og $tilOgMed")
+        var månedUnderGenerering = fraOgMed
+        var månedAntall = 1
+        val totalt = ChronoUnit.MONTHS.between(fraOgMed, tilOgMed) + 1
+        try {
+            while (!månedUnderGenerering.isAfter(tilOgMed)) {
+                sessionFactory.withTransactionContext { tx ->
+                    lagMånedligStønadstatistikk(månedUnderGenerering, tx)
+                }
+                log.info("lagStatistikkForFlereMåneder - Fullført $månedUnderGenerering, progresjon er $månedAntall/$totalt")
+                månedUnderGenerering = månedUnderGenerering.plusMonths(1)
+                månedAntall++
             }
+        } catch (e: Exception) {
+            log.error("lagStatistikkForFlereMåneder - feilet for $månedUnderGenerering, stopper.", e)
+            throw e
         }
+        log.info("lagStatistikkForFlereMåneder - Fullført stønadstatistikk for $fraOgMed og $tilOgMed")
     }
 
     override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
+        log.info("sendMånederTilBQ - Sender stønadstatistikk for $fraOgMed og $tilOgMed")
         val statistikk = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
         StønadBigQueryService.lastTilBigQuery(statistikk)
+        log.info("sendMånederTilBQ - Fullført stønadstatistikk for $fraOgMed og $tilOgMed")
     }
 
     fun lagMånedligStønadstatistikk(måned: YearMonth, tx: TransactionContext? = null) {
