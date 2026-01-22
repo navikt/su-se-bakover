@@ -27,6 +27,17 @@ interface HendelsekonsumenterRepo {
     ): Map<UUID, Nel<HendelseId>>
 
     /**
+     * Brukes for de hendelsene som har sakId, men bare for tilbakekreving for å ta hensyn til avbrutte hendelser for da skal man ikke lage dokumenter
+     * Kun for HendelseskonsumentId("GenererDokumentForForhåndsvarselTilbakekrevingKonsument") og ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
+     */
+    fun hentUteståendeSakOgHendelsesIderForKonsumentOgTypeTilbakekreving(
+        konsumentId: HendelseskonsumentId,
+        hendelsestype: Hendelsestype,
+        sx: SessionContext? = null,
+        limit: Int = 10,
+    ): Map<UUID, Nel<HendelseId>>
+
+    /**
      * Brukes for de hendelsene som ikke har sakId
      *
      * @return et sett med unike hendelseIder

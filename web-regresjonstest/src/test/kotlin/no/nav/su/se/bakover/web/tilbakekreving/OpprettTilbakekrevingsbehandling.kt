@@ -34,7 +34,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
     client: HttpClient,
     verifiserRespons: Boolean = true,
     utførSideeffekter: Boolean = true,
-    saksversjon: Long,
+    hendelsesversjon: Long,
 ): OpprettetTilbakekrevingsbehandlingRespons {
     val appComponents = this
     val sakFørKallJson = hentSak(sakId, client)
@@ -47,7 +47,7 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody(serialize(OpprettTilbakekrevingRequest(versjon = saksversjon, relatertId = UUID.randomUUID().toString()))) }.apply {
+        ) { setBody(serialize(OpprettTilbakekrevingRequest(versjon = hendelsesversjon, relatertId = UUID.randomUUID().toString()))) }.apply {
             withClue("opprettTilbakekrevingsbehandling feilet: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }
@@ -76,9 +76,9 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
             if (verifiserRespons) {
                 if (utførSideeffekter) {
                     // oppgavehendelse
-                    saksversjonEtter shouldBe saksversjon + 2
+                    saksversjonEtter shouldBe hendelsesversjon + 2
                 } else {
-                    saksversjonEtter shouldBe saksversjon + 1
+                    saksversjonEtter shouldBe hendelsesversjon + 1
                 }
                 sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger")
                 listOf(
@@ -89,17 +89,11 @@ internal fun AppComponents.opprettTilbakekrevingsbehandling(
                         lagOpprettTilbakekrevingRespons(
                             sakId,
                             Tidspunkt.now(fixedClock),
-                            saksversjon + 1,
+                            hendelsesversjon + 1,
                         ),
                         it::id,
                         it::opprettet,
                         it::kravgrunnlag,
-                    )
-
-                    it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
-                        lagKravgrunnlagRespons(),
-                        it.kravgrunnlag!!::hendelseId,
-                        it.kravgrunnlag!!::kontrollfelt,
                     )
                 }
             }

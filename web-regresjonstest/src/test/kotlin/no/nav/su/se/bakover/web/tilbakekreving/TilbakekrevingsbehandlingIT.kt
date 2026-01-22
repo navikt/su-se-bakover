@@ -21,6 +21,68 @@ import org.junit.jupiter.api.Test
 
 internal class TilbakekrevingsbehandlingIT {
 
+    /*
+    Denne er til for å teste at hentUteståendeSakOgHendelsesIderForKonsumentOgTypeTilbakekreving ikke prøver å generere dokument for en tilbakekreving  som er avbrutt AVBRUTT_TILBAKEKREVINGSBEHANDLING
+     */
+    @Test
+    fun `Opprettet tilbakekrevingsbehandling med forhåndsvarsling også avbrutt og verifiser at dokumenter ikke blir sendt`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            clock = clock,
+        ) { appComponents ->
+            val stønadStart = 1.januar(2021)
+            val stønadSlutt = 31.januar(2021)
+            val fnr = Fnr.generer().toString()
+
+            val søknadsbehandlingJson = opprettInnvilgetSøknadsbehandling(
+                fnr = fnr,
+                fraOgMed = stønadStart.toString(),
+                tilOgMed = stønadSlutt.toString(),
+                client = this.client,
+                appComponents = appComponents,
+            )
+            val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
+
+            opprettIverksattRevurdering(
+                sakid = sakId,
+                fraogmed = 1.januar(2021).toString(),
+                tilogmed = 31.januar(2021).toString(),
+                client = this.client,
+                appComponents = appComponents,
+                leggTilFradrag = { fradragSakId, behandlingId, fraOgMed, tilOgMed ->
+                    leggTilFradrag(
+                        sakId = fradragSakId,
+                        behandlingId = behandlingId,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        body = { """{"fradrag": [{"periode": {"fraOgMed": "$fraOgMed", "tilOgMed": "$tilOgMed"}, "type": "PrivatPensjon", "beløp": 35000.0, "utenlandskInntekt": null, "tilhører": "EPS"}]}""" },
+                        client = this.client,
+                    )
+                },
+            )
+            appComponents.emulerViMottarKravgrunnlagDetaljer()
+            // 1. reservert, 2. kvittering søknadsbehandling 3. kvittering revurdering 4. kravgrunnlag
+            verifiserKravgrunnlagPåSak(sakId, client, true, 4)
+            val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
+                sakId = sakId,
+                // Må økes etter hvert som vi får flere hendelser.
+                hendelsesversjon = 4,
+                client = this.client,
+            )
+
+            forhåndsvisForhåndsvarselTilbakekreving(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                saksversjon = saksversjonEtterOpprettelseAvBehandling,
+                client = this.client,
+            )
+            appComponents.avbrytTilbakekrevingsbehandling(sakId, tilbakekrevingsbehandlingId, client = this.client, saksversjon = saksversjonEtterOpprettelseAvBehandling)
+
+            appComponents.verifiserGenererDokumentForForhåndsvarselKonsument(0)
+            appComponents.verifiserDokumentHendelser(sakId, 0, 0, 0)
+        }
+    }
+
     @Test
     fun `kjører gjennom en tilbakekrevingsbehandling til iverksetting, med underkjenning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
@@ -53,7 +115,7 @@ internal class TilbakekrevingsbehandlingIT {
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 4,
+                hendelsesversjon = 4,
                 client = this.client,
             )
             forhåndsvisForhåndsvarselTilbakekreving(
@@ -119,6 +181,7 @@ internal class TilbakekrevingsbehandlingIT {
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 client = this.client,
             )
+
             val (underkjentAttestering, versjonEtterUnderkjenning) = appComponents.underkjennTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
@@ -218,7 +281,7 @@ internal class TilbakekrevingsbehandlingIT {
             verifiserKravgrunnlagPåSak(sakId, client, true, 4)
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
-                saksversjon = 4,
+                hendelsesversjon = 4,
                 client = this.client,
             )
             val (_, versjonEtterVurdering) = vurderTilbakekrevingsbehandling(

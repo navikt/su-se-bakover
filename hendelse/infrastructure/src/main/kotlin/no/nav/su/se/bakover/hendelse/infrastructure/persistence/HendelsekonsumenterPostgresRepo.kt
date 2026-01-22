@@ -53,6 +53,65 @@ class HendelsekonsumenterPostgresRepo(
         }
     }
 
+    /**
+     * Kun for HendelseskonsumentId("GenererDokumentForForhåndsvarselTilbakekrevingKonsument") og ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype
+     * Vanligvis antok man at hvis GenererDokumentForForhåndsvarselTilbakekrevingKonsument typen var null med left join så måtte man lage et dokument
+     * men dette er feil siden det ikke tok høyde for senere hendelser som er avbrutt eks:
+     | hendelseid | hendelsesnummer | type | hendelsestidspunkt | tidligerehendelseid |
+     | :--- | :--- | :--- | :--- | :--- |
+     | 6afc6772-31bf-4715-a06c-70ff5a4d16af | 7729 | OPPRETTET\_TILBAKEKREVINGSBEHANDLING | 2025-12-02 12:06:39.846925 +00:00 | null |
+     | 4319ab24-9226-4407-91f1-b26e3fbc0746 | 7730 | FORHÅNDSVARSLET\_TILBAKEKREVINGSBEHANDLING | 2025-12-02 12:06:45.465299 +00:00 | 6afc6772-31bf-4715-a06c-70ff5a4d16af |
+     | 6e4f4d92-f72f-4a1d-9ef2-487fcb6d4b10 | 7731 | FORHÅNDSVARSLET\_TILBAKEKREVINGSBEHANDLING | 2025-12-02 12:07:21.113051 +00:00 | 4319ab24-9226-4407-91f1-b26e3fbc0746 |
+     | 9f5a548e-c997-46ee-bf86-24daa83894e1 | 7732 | AVBRUTT\_TILBAKEKREVINGSBEHANDLING | 2025-12-02 12:08:30.132999 +00:00 | 6e4f4d92-f72f-4a1d-9ef2-487fcb6d4b10 |
+     * I dette caset så skal man ikke generere dokumenter for TK men prøver å gjøre det selvom TK er i feil tilstand kreves: [KanForhåndsvarsle] men er i [AvbruttTilbakekrevingsbehandling]
+     */
+    override fun hentUteståendeSakOgHendelsesIderForKonsumentOgTypeTilbakekreving(
+        konsumentId: HendelseskonsumentId,
+        hendelsestype: Hendelsestype,
+        sx: SessionContext?,
+        limit: Int,
+    ): Map<UUID, Nel<HendelseId>> {
+        return (sx ?: sessionFactory.newSessionContext()).withSession {
+            // Mulig det hadde holdt her å se på h.id = senere.tidligerehendelseid i FROM hendelse senere i stedet for behandlingsId
+            """
+            SELECT h.sakId, h.hendelseId
+            FROM hendelse h
+            WHERE h.type = :type
+              AND NOT EXISTS (
+                SELECT 1
+                FROM hendelse_konsument hk
+                WHERE hk.hendelseId = h.hendelseId
+                  AND hk.konsumentId = :konsumentId
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM hendelse senere
+                WHERE (senere.data ->> 'behandlingsId')::uuid =
+                      (h.data ->> 'behandlingsId')::uuid
+                  AND senere.hendelsesnummer > h.hendelsesnummer
+                  AND senere.type = 'AVBRUTT_TILBAKEKREVINGSBEHANDLING'
+              )
+            LIMIT :limit
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "type" to hendelsestype.value,
+                        "konsumentId" to konsumentId.value,
+                        "limit" to limit,
+                    ),
+                    it,
+                ) {
+                    it.uuid("sakId") to HendelseId.fromUUID(it.uuid("hendelseId"))
+                }
+                .groupBy { it.first }
+                .mapValues { (_, value) ->
+                    value.map { it.second }.toNonEmptyList()
+                }
+        }
+    }
+
+    // denne blir feil dersom det finnes en tk hendelse avbrutt etter FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING siden den bare da søker etter hendeseskonsument av typen GenererDokumentForForhåndsvarselTilbakekrevingKonsument som aldri finnes siden dne ikke skal finnes siden den er avbrutt det må vi ta høyde for
+
     override fun hentUteståendeSakOgHendelsesIderForKonsumentOgType(
         konsumentId: HendelseskonsumentId,
         hendelsestype: Hendelsestype,

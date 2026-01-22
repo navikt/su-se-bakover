@@ -91,7 +91,7 @@ internal class AnnullerKravgrunnlagIT {
             val (tilbakekrevingsbehandlingId, saksversjonEtterOpprettelseAvBehandling) = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 4,
+                hendelsesversjon = 4,
                 client = this.client,
             )
             appComponents.annullerKravgrunnlag(
