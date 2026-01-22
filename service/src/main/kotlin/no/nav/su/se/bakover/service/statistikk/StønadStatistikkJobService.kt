@@ -51,6 +51,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -80,18 +81,31 @@ class StønadStatistikkJobServiceImpl(
     }
 
     override fun lagStatistikkForFlereMåneder(fraOgMed: YearMonth, tilOgMed: YearMonth) {
-        sessionFactory.withTransactionContext { tx ->
-            var måned = fraOgMed
+        log.info("lagStatistikkForFlereMåneder - Lager stønadstatistikk for $fraOgMed og $tilOgMed")
+        var måned = fraOgMed
+        var i = 1
+        val totalt = ChronoUnit.MONTHS.between(fraOgMed, tilOgMed) + 1
+        try {
             while (!måned.isAfter(tilOgMed)) {
-                lagMånedligStønadstatistikk(måned, tx)
+                sessionFactory.withTransactionContext { tx ->
+                    lagMånedligStønadstatistikk(måned, tx)
+                }
                 måned = måned.plusMonths(1)
+                log.info("lagStatistikkForFlereMåneder - Fullført $måned, progresjon er $i/$totalt")
+                i++
             }
+        } catch (e: Exception) {
+            log.error("lagStatistikkForFlereMåneder - feilet for $måned, stopper.", e)
+            throw e
         }
+        log.info("lagStatistikkForFlereMåneder - Fullført stønadstatistikk for $fraOgMed og $tilOgMed")
     }
 
     override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
+        log.info("sendMånederTilBQ - Sender stønadstatistikk for $fraOgMed og $tilOgMed")
         val statistikk = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
         StønadBigQueryService.lastTilBigQuery(statistikk)
+        log.info("sendMånederTilBQ - Fullført stønadstatistikk for $fraOgMed og $tilOgMed")
     }
 
     fun lagMånedligStønadstatistikk(måned: YearMonth, tx: TransactionContext? = null) {
