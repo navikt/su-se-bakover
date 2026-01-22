@@ -313,3 +313,6 @@ VDI)
 ## Statistikk
 
 Se https://confluence.adeo.no/spaces/TESUS/pages/514138632/su-topics
+
+# Regel i kode
+[Se Regelspesifisering.kt](common/domain/src/main/kotlin/no/nav/su/se/bakover/common/domain/regelspesifisering/Regelspesifisering.kt)
