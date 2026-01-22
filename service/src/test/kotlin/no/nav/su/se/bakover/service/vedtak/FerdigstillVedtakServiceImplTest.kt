@@ -215,7 +215,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
-                    fritekst = "",
+                    fritekst = "fritekst",
                 ).right()
             },
         ) {
