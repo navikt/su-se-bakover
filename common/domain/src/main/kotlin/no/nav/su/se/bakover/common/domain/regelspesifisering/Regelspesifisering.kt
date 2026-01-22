@@ -10,9 +10,9 @@ package no.nav.su.se.bakover.common.domain.regelspesifisering
  [RegelspesifisertBeregning.benyttetRegel] populeres ved å bruke [Regelspesifiseringer.benyttRegelspesifisering]
  og [RegelspesifisertGrunnlag.benyttGrunnlag] hvor grunnlag beregningen er avhengig av legges til som parameter.
  Beregninger er som oftest avhengige av andre beregninger som grunnlag, så både [Regelspesifisering.Beregning] og
- [Regelspesifisering.Grunnlag] vil kunne være grunnlag/avhengigRegel for en bereging.
+ [Regelspesifisering.Grunnlag] vil kunne være grunnlag/avhengigRegel for en beregning.
 
- Alle beregninger skal ha en test som verifiserer at et komplett regeltre blir riktg her: [beregning.domain.BeregningRegelspesifiseringTest]
+ Alle beregninger skal ha en test som verifiserer at et komplett regeltre blir riktig her: [beregning.domain.BeregningRegelspesifiseringTest]
 **/
 enum class Regelspesifiseringer(
     val kode: String,
