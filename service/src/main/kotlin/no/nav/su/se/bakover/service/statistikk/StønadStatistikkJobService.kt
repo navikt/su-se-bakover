@@ -90,8 +90,8 @@ class StønadStatistikkJobServiceImpl(
                 sessionFactory.withTransactionContext { tx ->
                     lagMånedligStønadstatistikk(måned, tx)
                 }
-                måned = måned.plusMonths(1)
                 log.info("lagStatistikkForFlereMåneder - Fullført $måned, progresjon er $i/$totalt")
+                måned = måned.plusMonths(1)
                 i++
             }
         } catch (e: Exception) {
