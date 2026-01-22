@@ -218,6 +218,7 @@ internal class BrevServiceImplTest {
             it.brevService.lagDokument(
                 vedtak.behandling.lagBrevCommand(
                     satsFactory = satsFactoryTestPåDato(),
+                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
@@ -241,6 +242,7 @@ internal class BrevServiceImplTest {
             it.brevService.lagDokument(
                 vedtak.behandling.lagBrevCommand(
                     satsFactory = satsFactoryTestPåDato(),
+                    fritekst = "",
                 ),
             ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)

@@ -95,7 +95,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                         grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingshistorikk,
                         saksbehandler = saksbehandler,
-                        fritekstTilBrev = forrigeTilstand.fritekstTilBrev,
                     )
                 }
 
@@ -108,7 +107,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                         søknad = forrigeTilstand.søknad,
                         oppgaveId = forrigeTilstand.oppgaveId,
                         fnr = forrigeTilstand.fnr,
-                        fritekstTilBrev = forrigeTilstand.fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
                         attesteringer = forrigeTilstand.attesteringer,
@@ -129,7 +127,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                         søknad = forrigeTilstand.søknad,
                         oppgaveId = forrigeTilstand.oppgaveId,
                         fnr = forrigeTilstand.fnr,
-                        fritekstTilBrev = forrigeTilstand.fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = oppdaterteGrunnlagsdataOgVilkårsvurderinger,
                         attesteringer = forrigeTilstand.attesteringer,
@@ -171,7 +168,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val søknad: Søknad.Journalført.MedOppgave,
         override val oppgaveId: OppgaveId,
         override val fnr: Fnr,
-        override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
@@ -221,7 +217,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-        override val fritekstTilBrev: String,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling,
@@ -238,7 +233,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             aldersvurdering: Aldersvurdering,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
-            fritekstTilBrev: String,
         ) : this(
             opprettet = forrigeTilstand.opprettet,
             sakId = forrigeTilstand.sakId,
@@ -253,7 +247,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             aldersvurdering = aldersvurdering,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-            fritekstTilBrev = fritekstTilBrev,
             omgjøringsårsak = forrigeTilstand.omgjøringsårsak,
             omgjøringsgrunn = forrigeTilstand.omgjøringsgrunn,
         )
@@ -286,7 +279,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                     handling = SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(iverksattSøknadsbehandling.id),
                 ),
             ),
-            fritekstTilBrev = iverksattSøknadsbehandling.fritekstTilBrev,
             omgjøringsårsak = årsak,
             omgjøringsgrunn = omgjøringsgrunn,
         )
@@ -321,9 +313,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
          * Til bruk der systemet har behov for å gjøre handling
          * Se eksempel: [no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.avslåSøknad]
          */
-        fun tilAttesteringForSystembruker(
-            fritekstTilBrev: String,
-        ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
+        fun tilAttesteringForSystembruker(): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
                 return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
@@ -336,7 +326,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 oppgaveId = oppgaveId,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
-                fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -363,7 +352,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 oppgaveId = oppgaveId,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
-                fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 attesteringer = attesteringer,
@@ -392,7 +380,6 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val søknad: Søknad.Journalført.MedOppgave,
         override val oppgaveId: OppgaveId,
         override val fnr: Fnr,
-        override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering?,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val attesteringer: Attesteringshistorikk,

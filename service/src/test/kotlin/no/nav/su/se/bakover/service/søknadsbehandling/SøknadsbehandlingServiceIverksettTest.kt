@@ -329,7 +329,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 beregning = avslagTilAttestering.beregning,
                 saksbehandler = avslagTilAttestering.saksbehandler,
                 attesteringer = Attesteringshistorikk.create(listOf(attestering)),
-                fritekstTilBrev = avslagTilAttestering.fritekstTilBrev,
                 aldersvurdering = avslagTilAttestering.aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = avslagTilAttestering.grunnlagsdataOgVilkårsvurderinger,
                 sakstype = avslagTilAttestering.sakstype,

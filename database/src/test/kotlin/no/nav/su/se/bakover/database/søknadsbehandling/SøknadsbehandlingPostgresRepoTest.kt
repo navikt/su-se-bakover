@@ -326,7 +326,6 @@ internal class SøknadsbehandlingPostgresRepoTest(private val dataSource: DataSo
         val (_, iverksatt) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
-                fritekstTilBrev = "Dette er fritekst",
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
                 attestering = attesteringIverksatt(clock = enUkeEtterFixedClock),
             )

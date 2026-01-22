@@ -135,7 +135,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
-                    fritekst = "",
+                    fritekst = "fritekst",
                 ).right()
             },
         ) {
@@ -147,7 +147,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ).left()
 
             verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId, null)
-            verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato())), anyOrNull())
+            verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato(), fritekst = "fritekst")), anyOrNull())
         }
     }
 
@@ -167,7 +167,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
-                    fritekst = "",
+                    fritekst = "fritekst",
                 ).right()
             },
         ) {

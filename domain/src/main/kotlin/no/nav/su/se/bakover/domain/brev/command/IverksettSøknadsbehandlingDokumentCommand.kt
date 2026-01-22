@@ -21,8 +21,8 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
         val forventetInntektStørreEnn0: Boolean,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
-        val fritekst: String,
         val satsoversikt: Satsoversikt,
+        val fritekst: String,
     ) : IverksettSøknadsbehandlingDokumentCommand
 
     /**
@@ -35,9 +35,9 @@ sealed interface IverksettSøknadsbehandlingDokumentCommand : GenererDokumentCom
         val avslag: behandling.søknadsbehandling.domain.avslag.Avslag,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
-        val fritekst: String,
         // Kun relevant for uføre
         val forventetInntektStørreEnn0: Boolean?,
         val satsoversikt: Satsoversikt?,
+        val fritekst: String,
     ) : IverksettSøknadsbehandlingDokumentCommand
 }

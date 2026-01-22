@@ -167,24 +167,20 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    data class WithFritekstBody(val fritekst: String)
-
     post("$SØKNAD_PATH/{søknadId}/avslag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                call.withBody<WithFritekstBody> { body ->
-                    avslåSøknadManglendeDokumentasjonService.avslå(
-                        AvslagSøknadCmd(
-                            søknadId = søknadId,
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekstTilBrev = body.fritekst,
-                        ),
-                    ).mapLeft {
-                        call.svar(it.tilResultat())
-                    }.map {
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
-                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
-                    }
+                avslåSøknadManglendeDokumentasjonService.avslå(
+                    AvslagSøknadCmd(
+                        søknadId = søknadId,
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        fritekst = "Manglende dokumentasjon",
+                    ),
+                ).mapLeft {
+                    call.svar(it.tilResultat())
+                }.map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
+                    call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
                 }
             }
         }
@@ -193,19 +189,17 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{søknadId}/avslag/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                call.withBody<WithFritekstBody> { body ->
-                    avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
-                        AvslagSøknadCmd(
-                            søknadId = søknadId,
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekstTilBrev = body.fritekst,
-                        ),
-                    ).mapLeft {
-                        call.svar(it.tilResultat())
-                    }.map {
-                        call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
-                        call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
-                    }
+                avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
+                    AvslagSøknadCmd(
+                        søknadId = søknadId,
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        fritekst = "Manglende dokumentasjon",
+                    ),
+                ).mapLeft {
+                    call.svar(it.tilResultat())
+                }.map {
+                    call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
+                    call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
                 }
             }
         }

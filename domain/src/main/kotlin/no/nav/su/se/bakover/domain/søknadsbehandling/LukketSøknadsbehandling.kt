@@ -35,7 +35,6 @@ data class LukketSøknadsbehandling private constructor(
     override val stønadsperiode: Stønadsperiode? get() = aldersvurdering?.stønadsperiode
     override val grunnlagsdataOgVilkårsvurderinger = underliggendeSøknadsbehandling.grunnlagsdataOgVilkårsvurderinger
     override val attesteringer = underliggendeSøknadsbehandling.attesteringer
-    override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
     override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId
     override val id = underliggendeSøknadsbehandling.id
     override val opprettet = underliggendeSøknadsbehandling.opprettet

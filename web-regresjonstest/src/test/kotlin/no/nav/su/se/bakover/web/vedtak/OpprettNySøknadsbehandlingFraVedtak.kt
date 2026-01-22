@@ -24,7 +24,6 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
     verifiserResponsVilkårAvslag: Boolean = true,
     verifiserResponsBeregningAvslag: Boolean = false,
     postbody: NySøknadCommandOmgjøring? = null,
-    expectedFritekstTilBrev: String? = null,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -39,10 +38,10 @@ internal fun AppComponents.opprettNySøknadsbehandlingFraVedtak(
             }
         }.bodyAsText().let {
             if (verifiserResponsVilkårAvslag) {
-                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(sakId, expectedSøknadId, it, postbody, expectedFritekstTilBrev = expectedFritekstTilBrev)
+                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(sakId, expectedSøknadId, it, postbody)
             }
             if (verifiserResponsBeregningAvslag) {
-                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(sakId, expectedSøknadId, it, postbody, expectedFritekstTilBrev = expectedFritekstTilBrev)
+                verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(sakId, expectedSøknadId, it, postbody)
             }
             it
         }
@@ -55,7 +54,6 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
     expectedSøknadId: String,
     actual: String,
     postbody: NySøknadCommandOmgjøring? = null,
-    expectedFritekstTilBrev: String? = null,
 ) {
     //language=json
     val expected =
@@ -75,7 +73,6 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
             "opprettet":"2021-01-01T01:02:31.456789Z",
             "attesteringer":[],
             "saksbehandler":"$DEFAULT_IDENT",
-            "fritekstTilBrev":"${expectedFritekstTilBrev ?: ""}",
             "sakId":"$expectedSakId",
             "stønadsperiode":{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}},
             "grunnlagsdataOgVilkårsvurderinger":{
@@ -111,7 +108,6 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
     expectedSøknadId: String,
     actual: String,
     postbody: NySøknadCommandOmgjøring? = null,
-    expectedFritekstTilBrev: String? = null,
 ) {
     //language=json
     val expected =
@@ -138,7 +134,6 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
             "opprettet":"2021-01-01T01:02:44.456789Z",
             "attesteringer":[],
             "saksbehandler":"$DEFAULT_IDENT",
-            "fritekstTilBrev":"${expectedFritekstTilBrev ?: ""}",
             "sakId":"$expectedSakId",
             "stønadsperiode":{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}},
             "grunnlagsdataOgVilkårsvurderinger":{

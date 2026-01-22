@@ -353,7 +353,6 @@ class SøknadsbehandlingServiceImpl(
                         oppgaveId = oppgaveId,
                         fnr = fnr,
                         beregning = beregning,
-                        fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
@@ -379,7 +378,6 @@ class SøknadsbehandlingServiceImpl(
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                        fritekstTilBrev = fritekstTilBrev,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
                     )
@@ -395,7 +393,6 @@ class SøknadsbehandlingServiceImpl(
                         fnr = fnr,
                         beregning = beregning,
                         simulering = simulering,
-                        fritekstTilBrev = fritekstTilBrev,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,

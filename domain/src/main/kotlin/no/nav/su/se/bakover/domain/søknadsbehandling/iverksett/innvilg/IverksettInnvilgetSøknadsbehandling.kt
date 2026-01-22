@@ -63,7 +63,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         return it.left()
     }
 
-    val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering, fritekst)
+    val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering)
     val simulertUtbetaling = this.lagNyUtbetaling(
         saksbehandler = attestering.attestant,
         beregning = iverksattBehandling.beregning,
@@ -86,7 +86,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
         clock = clock,
     )
 
-    val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory))
+    val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory, fritekst))
         .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
         .leggTilMetadata(
             Dokument.Metadata(

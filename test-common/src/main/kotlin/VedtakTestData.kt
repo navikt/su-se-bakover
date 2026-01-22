@@ -76,7 +76,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Pair<Sak, VedtakInnvilgetSøknadsbehandling> {
@@ -88,7 +87,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         attestering = attestering,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
     ).let {
@@ -121,7 +119,6 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
     ),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Pair<Sak, VedtakAvslagBeregning> {
@@ -133,7 +130,6 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         attestering = attestering,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
     ).let {
@@ -157,7 +153,6 @@ fun vedtakSøknadsbehandlingIverksattAvslagUtenBeregning(
     customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Pair<Sak, VedtakAvslagVilkår> {
@@ -169,7 +164,6 @@ fun vedtakSøknadsbehandlingIverksattAvslagUtenBeregning(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         attestering = attestering,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
     ).let {

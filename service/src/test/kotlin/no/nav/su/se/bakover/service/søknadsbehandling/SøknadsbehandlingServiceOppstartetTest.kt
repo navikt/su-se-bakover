@@ -195,7 +195,6 @@ internal class SøknadsbehandlingServiceOppstartetTest {
                     søknad = søknad,
                     oppgaveId = søknad.oppgaveId,
                     fnr = søknad.fnr,
-                    fritekstTilBrev = "",
                     aldersvurdering = null,
                     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,

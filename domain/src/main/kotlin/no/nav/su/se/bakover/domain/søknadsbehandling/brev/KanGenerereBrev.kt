@@ -31,5 +31,6 @@ sealed interface KanGenerereBrev : Søknadsbehandling {
      */
     fun lagBrevCommand(
         satsFactory: SatsFactory,
+        fritekst: String,
     ): IverksettSøknadsbehandlingDokumentCommand
 }

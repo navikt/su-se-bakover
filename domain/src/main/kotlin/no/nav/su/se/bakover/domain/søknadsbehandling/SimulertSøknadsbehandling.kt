@@ -43,7 +43,6 @@ data class SimulertSøknadsbehandling(
     override val fnr: Fnr,
     override val beregning: Beregning,
     override val simulering: Simulering,
-    override val fritekstTilBrev: String,
     override val aldersvurdering: Aldersvurdering,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
     override val attesteringer: Attesteringshistorikk,
@@ -107,7 +106,6 @@ data class SimulertSøknadsbehandling(
                 fnr = fnr,
                 beregning = beregning,
                 simulering = simulering,
-                fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
@@ -153,7 +151,6 @@ data class SimulertSøknadsbehandling(
             beregning = beregning,
             simulering = simulering,
             saksbehandler = saksbehandler,
-            fritekstTilBrev = fritekstTilBrev,
             aldersvurdering = aldersvurdering,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 

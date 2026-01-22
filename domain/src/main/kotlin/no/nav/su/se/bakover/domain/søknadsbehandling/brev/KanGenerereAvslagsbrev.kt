@@ -45,9 +45,10 @@ sealed interface KanGenerereAvslagsbrev :
 
     override fun lagBrevCommand(
         satsFactory: SatsFactory,
+        fritekst: String,
     ) = lagDokumentCommand(
         satsFactory = satsFactory,
-        fritekst = fritekstTilBrev,
+        fritekst = fritekst,
         saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
         attestant = attesteringer.hentSisteIverksatteAttesteringOrNull()!!.attestant,
     )
@@ -79,11 +80,11 @@ sealed interface KanGenerereAvslagsbrev :
             attestant = attestant,
             forventetInntektStørreEnn0 = vilkårsvurderinger.uføreVilkår()
                 .getOrNull()?.grunnlag?.harForventetInntektStørreEnn0(),
-            fritekst = fritekst,
             saksnummer = saksnummer,
             fødselsnummer = fnr,
             satsoversikt = Satsoversikt.fra(bosituasjon, satsFactory, sakstype),
             sakstype = sakstype,
+            fritekst = fritekst,
         )
     }
 }
