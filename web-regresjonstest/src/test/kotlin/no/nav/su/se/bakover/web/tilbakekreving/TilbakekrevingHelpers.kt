@@ -140,7 +140,6 @@ internal fun AppComponents.lukkOppgave() {
 
 /**
  * Kjører [GenererDokumentForForhåndsvarselTilbakekrevingKonsument].
- *  //TODO: lage test bare for denne eller regresjonstest?
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
  */
 internal fun AppComponents.genererDokumenterForForhåndsvarsel() {
