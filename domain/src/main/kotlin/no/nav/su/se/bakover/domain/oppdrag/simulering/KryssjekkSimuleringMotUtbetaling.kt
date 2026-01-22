@@ -54,7 +54,7 @@ fun kryssjekkSimuleringMotUtbetaling(
             "Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se sikkerlogg for mer kontekst. Feil: $it",
             RuntimeException("Genererer en stacktrace for enklere debugging."),
         )
-        sikkerLogg.error("Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se vanlig logg for stacktrace. Feil: $it, Utbetaling med simulering: $simulertUtbetaling")
+        sikkerLogg.error("Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se vanlig logg for stacktrace. Feil: $it, Utbetaling med simulering: $simulertUtbetaling tidligereutbetaligner: $tidligereUtbetalinger")
         return it.left()
     }
     return Unit.right()
