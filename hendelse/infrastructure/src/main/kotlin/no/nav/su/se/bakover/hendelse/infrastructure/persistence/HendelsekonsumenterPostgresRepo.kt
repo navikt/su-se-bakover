@@ -110,6 +110,10 @@ class HendelsekonsumenterPostgresRepo(
         }
     }
 
+    /**
+     * Denne metoden tar ikke høyde for at det har det ligger en avbrutt hendelse for den samme kategorien så hvis den feilen oppstår er løsningen å gjøre noe ala
+     *  [hentUteståendeSakOgHendelsesIderForKonsumentOgTypeTilbakekreving] men for andre mer spesifikke avbrutt statuser som kan sendes inn.
+     */
     override fun hentUteståendeSakOgHendelsesIderForKonsumentOgType(
         konsumentId: HendelseskonsumentId,
         hendelsestype: Hendelsestype,
