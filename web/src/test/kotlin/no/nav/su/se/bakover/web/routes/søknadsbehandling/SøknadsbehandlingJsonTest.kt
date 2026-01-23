@@ -250,7 +250,6 @@ internal class SøknadsbehandlingJsonTest {
                 }
               ],
               "saksbehandler": "saksbehandler",
-              "fritekstTilBrev": "",
               "sakId": "${søknadsbehandling.sakId}",
               "stønadsperiode": {
                 "periode": {
@@ -697,7 +696,6 @@ internal class SøknadsbehandlingJsonTest {
               "opprettet": "${søknadsbehandling.opprettet}",
               "attesteringer": [],
               "saksbehandler": "saksbehandler",
-              "fritekstTilBrev": "",
               "sakId": "${søknadsbehandling.sakId}",
               "stønadsperiode": {
                 "periode": {

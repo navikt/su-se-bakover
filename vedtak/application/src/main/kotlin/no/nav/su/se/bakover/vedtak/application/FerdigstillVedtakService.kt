@@ -156,7 +156,12 @@ class FerdigstillVedtakServiceImpl(
             referanseId = vedtak.behandling.id.value,
             type = FritekstType.VEDTAKSBREV_REVURDERING,
             sessionContext = transactionContext,
-        ).map { it.fritekst }.getOrElse { "" }
+        ).map { it.fritekst }.getOrElse {
+            throw IllegalStateException("Mangler fritekst for behandling kan ikke ferdigstille vedtak")
+        }
+        if (fritekst == "") {
+            throw IllegalStateException("Mangler fritekst for behandling kan ikke ferdigstille vedtak")
+        }
 
         return brevService.lagDokument(
             vedtak.lagDokumentKommando(

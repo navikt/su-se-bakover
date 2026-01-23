@@ -59,6 +59,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 const val SØKNAD_PATH = "/soknad"
+data class AvslagBody(val fritekst: String)
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -167,17 +168,15 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    data class WithFritekstBody(val fritekst: String)
-
     post("$SØKNAD_PATH/{søknadId}/avslag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                call.withBody<WithFritekstBody> { body ->
+                call.withBody<AvslagBody> {
                     avslåSøknadManglendeDokumentasjonService.avslå(
                         AvslagSøknadCmd(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekstTilBrev = body.fritekst,
+                            fritekst = it.fritekst,
                         ),
                     ).mapLeft {
                         call.svar(it.tilResultat())
@@ -193,12 +192,12 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{søknadId}/avslag/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                call.withBody<WithFritekstBody> { body ->
+                call.withBody<AvslagBody> {
                     avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
                         AvslagSøknadCmd(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekstTilBrev = body.fritekst,
+                            fritekst = it.fritekst,
                         ),
                     ).mapLeft {
                         call.svar(it.tilResultat())

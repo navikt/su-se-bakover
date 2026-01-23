@@ -75,7 +75,7 @@ fun Sak.avslåSøknad(
                 simulerUtbetaling = simulerUtbetaling,
                 clock = clock,
                 satsFactory = satsFactory,
-                fritekst = command.fritekstTilBrev,
+                fritekst = command.fritekst,
             ).map {
                 lukkOppgave(it.søknadsbehandling.oppgaveId)
                 it as IverksattAvslåttSøknadsbehandlingResponse
@@ -102,7 +102,7 @@ private fun avslå(
             tidspunkt = Tidspunkt.now(clock),
         ).getOrElse {
             return KunneIkkeAvslåSøknad.Periodefeil(it).left()
-        }.tilAttesteringForSystembruker(fritekstTilBrev = request.fritekstTilBrev)
+        }.tilAttesteringForSystembruker()
         .let { søknadsbehandlingTilAttestering ->
 
             søknadsbehandlingTilAttestering.getOrElse {

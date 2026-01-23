@@ -94,7 +94,6 @@ fun søknadsbehandlingJson(
               "opprettet": "2021-01-01T01:02:03.456789Z",
               "attesteringer": [],
               "saksbehandler": null,
-              "fritekstTilBrev": "",
               "sakId": "5cb0d64c-9432-4d9f-840a-341c75ade20a",
               "stønadsperiode": null,
               "grunnlagsdataOgVilkårsvurderinger": {

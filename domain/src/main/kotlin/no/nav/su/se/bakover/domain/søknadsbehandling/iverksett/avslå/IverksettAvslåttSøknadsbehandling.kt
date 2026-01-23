@@ -35,10 +35,10 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattAvslåttSøknadsbehandlingResponse> {
     require(this.søknadsbehandlinger.any { it == søknadsbehandling })
 
-    val iverksattBehandling = søknadsbehandling.iverksett(attestering, fritekst)
+    val iverksattBehandling = søknadsbehandling.iverksett(attestering)
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
-    val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory))
+    val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory, fritekst))
         .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
         .leggTilMetadata(
             Dokument.Metadata(

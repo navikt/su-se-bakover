@@ -37,6 +37,7 @@ fun VedtakSomKanRevurderes.lagDokumentKommando(
 
         is VedtakInnvilgetSøknadsbehandling -> this.behandling.lagBrevCommand(
             satsFactory = satsFactory,
+            fritekst = fritekst,
         )
 
         is VedtakGjenopptakAvYtelse -> fail("Skal ikke sende brev for VedtakGjenopptakAvYtelse")

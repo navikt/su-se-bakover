@@ -107,7 +107,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 AvslagSøknadCmd(
                     uavklart.søknad.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
-                    fritekstTilBrev = "fritekstTilBrev",
+                    fritekst = "fritekst",
                 ),
             ).getOrFail()
 
@@ -134,7 +134,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ),
                 ),
-                fritekstTilBrev = "fritekstTilBrev",
                 aldersvurdering = Aldersvurdering.SkalIkkeVurderes(Stønadsperiode.create(expectedPeriode)),
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
                     grunnlagsdata = uavklart.grunnlagsdata,
@@ -257,7 +256,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 AvslagSøknadCmd(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
-                    fritekstTilBrev = "fritekstTilBrev",
+                    fritekst = "fritekst",
                 ),
             ).getOrFail()
 
@@ -280,7 +279,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     ),
                 ),
-                fritekstTilBrev = "fritekstTilBrev",
                 aldersvurdering = vilkårsvurdertInnvilget.aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = vilkårsvurdertInnvilget.grunnlagsdataOgVilkårsvurderinger.oppdaterVilkårsvurderinger(
                     vilkårsvurdertInnvilget.vilkårsvurderinger.oppdaterVilkår(
@@ -373,7 +371,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 AvslagSøknadCmd(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
-                    fritekstTilBrev = "fritekstTilBrev",
+                    fritekst = "fritekst",
                 ),
             )
         }.message shouldContain "Ingen åpen søknadsbehandling for søknad="

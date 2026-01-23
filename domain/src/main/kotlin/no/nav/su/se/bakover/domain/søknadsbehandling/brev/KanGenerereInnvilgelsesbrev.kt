@@ -39,11 +39,12 @@ sealed interface KanGenerereInnvilgelsesbrev : KanGenerereBrev {
 
     override fun lagBrevCommand(
         satsFactory: SatsFactory,
+        fritekst: String,
     ) = lagDokumentCommand(
         satsFactory = satsFactory,
-        fritekst = fritekstTilBrev,
         saksbehandler = saksbehandler ?: throw IllegalStateException("Behandling må ha saksbehandler på dette stadiet"),
         attestant = attesteringer.hentSisteIverksatteAttesteringOrNull()!!.attestant,
+        fritekst = fritekst,
     )
 
     private fun lagDokumentCommand(
@@ -61,11 +62,11 @@ sealed interface KanGenerereInnvilgelsesbrev : KanGenerereBrev {
                 .getOrNull()?.grunnlag?.harForventetInntektStørreEnn0() ?: false,
             saksbehandler = saksbehandler,
             attestant = attestant,
-            fritekst = fritekst,
             saksnummer = saksnummer,
             satsoversikt = Satsoversikt.fra(bosituasjon, satsFactory, sakstype),
             sakstype = sakstype,
             fødselsnummer = fnr,
+            fritekst = fritekst,
         )
     }
 }

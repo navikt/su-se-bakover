@@ -54,7 +54,6 @@ class IverksattSøknadsbehandlingTest {
                             tidspunkt = fixedTidspunkt,
                         ),
                     ),
-                    fritekstTilBrev = original.fritekstTilBrev,
                     aldersvurdering = original.aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sak.type,
@@ -99,7 +98,6 @@ class IverksattSøknadsbehandlingTest {
                             tidspunkt = fixedTidspunkt,
                         ),
                     ),
-                    fritekstTilBrev = original.fritekstTilBrev,
                     aldersvurdering = original.aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger.copy(
                         vilkårsvurderinger = (original.vilkårsvurderinger as VilkårsvurderingerSøknadsbehandling.Uføre).copy(
@@ -157,7 +155,6 @@ class IverksattSøknadsbehandlingTest {
                             tidspunkt = fixedTidspunkt,
                         ),
                     ),
-                    fritekstTilBrev = original.fritekstTilBrev,
                     aldersvurdering = original.aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = original.grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sak.type,

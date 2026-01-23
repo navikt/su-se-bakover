@@ -68,7 +68,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
             ),
             saksbehandler = command.saksbehandler,
             attestant = null,
-            fritekst = command.fritekstTilBrev,
+            fritekst = command.fritekst,
             forventetInntektStørreEnn0 = false,
             satsoversikt = null,
             sakstype = sak.type,

@@ -6,5 +6,5 @@ import java.util.UUID
 data class AvslagSøknadCmd(
     val søknadId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
-    val fritekstTilBrev: String = "",
+    val fritekst: String,
 )

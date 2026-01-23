@@ -58,7 +58,6 @@ sealed interface SøknadsbehandlingTilAttestering :
         override val beregning: Beregning,
         override val simulering: Simulering,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val fritekstTilBrev: String,
         override val aldersvurdering: Aldersvurdering,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
@@ -105,7 +104,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                 saksbehandler = saksbehandler,
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                fritekstTilBrev = fritekstTilBrev,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 sakstype = sakstype,
@@ -114,7 +112,7 @@ sealed interface SøknadsbehandlingTilAttestering :
             ).right()
         }
 
-        fun tilIverksatt(attestering: Attestering, fritekst: String): IverksattSøknadsbehandling.Innvilget {
+        fun tilIverksatt(attestering: Attestering): IverksattSøknadsbehandling.Innvilget {
             return IverksattSøknadsbehandling.Innvilget(
                 id = id,
                 opprettet = opprettet,
@@ -128,7 +126,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                 saksbehandler = saksbehandler,
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                fritekstTilBrev = fritekst,
                 aldersvurdering = aldersvurdering,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
@@ -146,10 +143,10 @@ sealed interface SøknadsbehandlingTilAttestering :
         override val beregning: Beregning?
         abstract override val aldersvurdering: Aldersvurdering
 
-        fun iverksett(attestering: Attestering.Iverksatt, fritekst: String): IverksattSøknadsbehandling.Avslag {
+        fun iverksett(attestering: Attestering.Iverksatt): IverksattSøknadsbehandling.Avslag {
             return when (this) {
-                is MedBeregning -> this.tilIverksatt(attestering, fritekst)
-                is UtenBeregning -> this.tilIverksatt(attestering, fritekst)
+                is MedBeregning -> this.tilIverksatt(attestering)
+                is UtenBeregning -> this.tilIverksatt(attestering)
             }
         }
 
@@ -162,7 +159,6 @@ sealed interface SøknadsbehandlingTilAttestering :
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -209,7 +205,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                    fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
 
@@ -221,7 +216,6 @@ sealed interface SøknadsbehandlingTilAttestering :
 
             fun tilIverksatt(
                 attestering: Attestering,
-                fritekst: String,
             ): IverksattSøknadsbehandling.Avslag.UtenBeregning {
                 return IverksattSøknadsbehandling.Avslag.UtenBeregning(
                     id = id,
@@ -240,7 +234,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    fritekstTilBrev = fritekst,
                 )
             }
         }
@@ -255,7 +248,6 @@ sealed interface SøknadsbehandlingTilAttestering :
             override val fnr: Fnr,
             override val beregning: Beregning,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val fritekstTilBrev: String,
             override val aldersvurdering: Aldersvurdering,
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
@@ -307,7 +299,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                    fritekstTilBrev = fritekstTilBrev,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,
@@ -318,7 +309,6 @@ sealed interface SøknadsbehandlingTilAttestering :
 
             internal fun tilIverksatt(
                 attestering: Attestering,
-                fritekst: String,
             ): IverksattSøknadsbehandling.Avslag.MedBeregning {
                 return IverksattSøknadsbehandling.Avslag.MedBeregning(
                     id = id,
@@ -332,7 +322,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                    fritekstTilBrev = fritekst,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,

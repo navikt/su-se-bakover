@@ -60,7 +60,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                 AvslagSøknadCmd(
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
-                    fritekstTilBrev = "Du må svare i telefonen",
+                    fritekst = "fritekst",
                 ),
             )
 
@@ -145,7 +145,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                 AvslagSøknadCmd(
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
-                    fritekstTilBrev = "Du må svare i telefonen",
+                    fritekst = "fritekst",
                 ),
             )
 

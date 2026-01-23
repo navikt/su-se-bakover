@@ -74,7 +74,6 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             søknad = behandling.søknad,
             oppgaveId = behandling.oppgaveId,
             fnr = behandling.fnr,
-            fritekstTilBrev = behandling.fritekstTilBrev,
             aldersvurdering = behandling.aldersvurdering,
             grunnlagsdataOgVilkårsvurderinger = behandling.grunnlagsdataOgVilkårsvurderinger.oppdaterGrunnlagsdata(
                 Grunnlagsdata.create(

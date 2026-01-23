@@ -214,7 +214,6 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SøknadsbehandlingTilAttestering.Innvilget> {
     return tilAttesteringSøknadsbehandling(
@@ -224,7 +223,6 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).mapSecond { it as SøknadsbehandlingTilAttestering.Innvilget }
 }
@@ -246,7 +244,6 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
         ),
     ),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
     return tilAttesteringSøknadsbehandling(
@@ -256,7 +253,6 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).mapSecond { it as SøknadsbehandlingTilAttestering.Avslag.MedBeregning }
 }
@@ -268,7 +264,6 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning> {
     return tilAttesteringSøknadsbehandling(
@@ -278,7 +273,6 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).mapSecond { it as SøknadsbehandlingTilAttestering.Avslag.UtenBeregning }
 }
@@ -299,7 +293,6 @@ fun søknadsbehandlingUnderkjentInnvilget(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, UnderkjentSøknadsbehandling.Innvilget> {
     return underkjentSøknadsbehandling(
@@ -309,7 +302,6 @@ fun søknadsbehandlingUnderkjentInnvilget(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).mapSecond { it as UnderkjentSøknadsbehandling.Innvilget }
 }
@@ -321,7 +313,6 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.UtenBeregning> {
     return underkjentSøknadsbehandling(
@@ -331,7 +322,6 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).mapSecond { it as UnderkjentSøknadsbehandling.Avslag.UtenBeregning }
 }
@@ -352,7 +342,6 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
         ),
     ),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, UnderkjentSøknadsbehandling.Avslag.MedBeregning> {
     return underkjentSøknadsbehandling(
@@ -362,7 +351,6 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).mapSecond { it as UnderkjentSøknadsbehandling.Avslag.MedBeregning }
 }
@@ -380,7 +368,6 @@ fun søknadsbehandlingIverksattInnvilget(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling.Innvilget, VedtakInnvilgetSøknadsbehandling> {
@@ -392,7 +379,6 @@ fun søknadsbehandlingIverksattInnvilget(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         attestering = attestering,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
     ).let {
@@ -423,7 +409,6 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     ),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling.Avslag.MedBeregning, Avslagsvedtak> {
@@ -435,7 +420,6 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         attestering = attestering,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
     ).let {
@@ -457,7 +441,6 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
     customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling.Avslag.UtenBeregning, Avslagsvedtak> {
@@ -469,7 +452,6 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         attestering = attestering,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
     ).let {
@@ -653,7 +635,6 @@ fun underkjentSøknadsbehandlingUføre(
     ),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
-    fritekstTilBrev: String = "",
 ): Pair<Sak, UnderkjentSøknadsbehandling> {
     return underkjentSøknadsbehandling(
         clock = clock,
@@ -661,7 +642,6 @@ fun underkjentSøknadsbehandlingUføre(
         sakOgSøknad = sakOgSøknad,
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
-        fritekstTilBrev = fritekstTilBrev,
     )
 }
 
@@ -672,7 +652,6 @@ fun underkjentSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, UnderkjentSøknadsbehandling> {
     return tilAttesteringSøknadsbehandling(
@@ -682,7 +661,6 @@ fun underkjentSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock)).getOrFail()
@@ -732,7 +710,6 @@ fun iverksattSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
 ): Triple<Sak, IverksattSøknadsbehandling, VedtakIverksattSøknadsbehandling> {
@@ -743,7 +720,6 @@ fun iverksattSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
-        fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
     ).let { (sak, tilAttestering) ->
         sak.iverksettSøknadsbehandling(
@@ -812,7 +788,6 @@ fun tilAttesteringSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    fritekstTilBrev: String = "",
 ): Pair<Sak, SøknadsbehandlingTilAttestering> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -821,7 +796,6 @@ fun tilAttesteringSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         saksbehandler = saksbehandler,
-        fritekstTilBrev = fritekstTilBrev,
     )
 }
 
@@ -832,7 +806,6 @@ fun tilAttesteringSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
-    fritekstTilBrev: String = "",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SøknadsbehandlingTilAttestering> {
     return vilkårsvurdertSøknadsbehandling(

@@ -17,7 +17,6 @@ internal data class SøknadsbehandlingJson(
     val opprettet: String,
     val attesteringer: List<AttesteringJson>,
     val saksbehandler: String?,
-    val fritekstTilBrev: String,
     val sakId: UUID,
     val stønadsperiode: StønadsperiodeJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,

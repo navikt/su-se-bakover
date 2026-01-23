@@ -36,10 +36,6 @@ sealed interface Søknadsbehandling :
 
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk
 
-    // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
-    // TODO: Fritekst lagres nå i fritekst tabellen via FritekstService. Derfor bør denne fjernes herfra.
-    val fritekstTilBrev: String
-
     val erIverksatt: Boolean get() = this is IverksattSøknadsbehandling.Avslag || this is IverksattSøknadsbehandling.Innvilget
     val erLukket: Boolean get() = this is LukketSøknadsbehandling
 
@@ -85,30 +81,3 @@ sealed interface Søknadsbehandling :
         lukkSøknadCommand = lukkSøknadCommand,
     )
 }
-
-// Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.
-// Teoretisk sett skal ikke UNCHECKED_CAST være noe problem i dette tilfellet siden T er begrenset til subklasser av Søknadsbehandling.
-// ... i hvert fall så lenge alle subklassene av Søknadsbehandling er data classes
-@Suppress("UNCHECKED_CAST")
-fun <T : Søknadsbehandling> T.medFritekstTilBrev(fritekstTilBrev: String): T = (
-    // Her caster vi til Søknadsbehandling for å unngå å måtte ha en else-branch
-    when (val x = this as Søknadsbehandling) {
-        is BeregnetSøknadsbehandling.Avslag -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is BeregnetSøknadsbehandling.Innvilget -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is IverksattSøknadsbehandling.Avslag.MedBeregning -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is IverksattSøknadsbehandling.Avslag.UtenBeregning -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is IverksattSøknadsbehandling.Innvilget -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is SimulertSøknadsbehandling -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is SøknadsbehandlingTilAttestering.Innvilget -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is UnderkjentSøknadsbehandling.Innvilget -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is VilkårsvurdertSøknadsbehandling.Avslag -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is VilkårsvurdertSøknadsbehandling.Innvilget -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is VilkårsvurdertSøknadsbehandling.Uavklart -> x.copy(fritekstTilBrev = fritekstTilBrev)
-        is LukketSøknadsbehandling -> throw IllegalArgumentException("Det støttes ikke å endre fritekstTilBrev på en lukket søknadsbehandling.")
-    }
-    // ... og så caster vi tilbake til T for at Kotlin skal henge med i svingene
-    ) as T

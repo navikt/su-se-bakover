@@ -66,7 +66,6 @@ fun Sak.opprettNySøknadsbehandling(
         søknad = søknad,
         oppgaveId = søknad.oppgaveId,
         fnr = fnr,
-        fritekstTilBrev = "",
         aldersvurdering = null,
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,

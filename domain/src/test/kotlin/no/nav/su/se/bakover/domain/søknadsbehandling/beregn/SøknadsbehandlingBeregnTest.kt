@@ -107,7 +107,6 @@ internal class SøknadsbehandlingBeregnTest {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
             it.beregning.getBegrunnelse() shouldBe "123"
-            it.fritekstTilBrev shouldBe ""
             it.attesteringer shouldBe Attesteringshistorikk.empty()
             it.søknadsbehandlingsHistorikk shouldBe simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
@@ -167,7 +166,6 @@ internal class SøknadsbehandlingBeregnTest {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
             it.beregning.getBegrunnelse() shouldBe "123"
-            it.fritekstTilBrev shouldBe underkjentInnvilget.fritekstTilBrev
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering()))
             it.søknadsbehandlingsHistorikk shouldBe underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
