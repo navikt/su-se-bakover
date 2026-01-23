@@ -59,6 +59,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 const val SØKNAD_PATH = "/soknad"
+data class AvslagBody(val fritekst: String)
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -170,17 +171,19 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{søknadId}/avslag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                avslåSøknadManglendeDokumentasjonService.avslå(
-                    AvslagSøknadCmd(
-                        søknadId = søknadId,
-                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        fritekst = "Manglende dokumentasjon",
-                    ),
-                ).mapLeft {
-                    call.svar(it.tilResultat())
-                }.map {
-                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
-                    call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
+                call.withBody<AvslagBody> {
+                    avslåSøknadManglendeDokumentasjonService.avslå(
+                        AvslagSøknadCmd(
+                            søknadId = søknadId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            fritekst = it.fritekst,
+                        ),
+                    ).mapLeft {
+                        call.svar(it.tilResultat())
+                    }.map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
+                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
+                    }
                 }
             }
         }
@@ -189,17 +192,19 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{søknadId}/avslag/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
-                    AvslagSøknadCmd(
-                        søknadId = søknadId,
-                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        fritekst = "Manglende dokumentasjon",
-                    ),
-                ).mapLeft {
-                    call.svar(it.tilResultat())
-                }.map {
-                    call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
-                    call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
+                call.withBody<AvslagBody> {
+                    avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
+                        AvslagSøknadCmd(
+                            søknadId = søknadId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            fritekst = it.fritekst,
+                        ),
+                    ).mapLeft {
+                        call.svar(it.tilResultat())
+                    }.map {
+                        call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
+                        call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
+                    }
                 }
             }
         }

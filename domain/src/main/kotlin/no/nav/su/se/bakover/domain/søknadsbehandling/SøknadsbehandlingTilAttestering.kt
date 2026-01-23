@@ -143,10 +143,10 @@ sealed interface SøknadsbehandlingTilAttestering :
         override val beregning: Beregning?
         abstract override val aldersvurdering: Aldersvurdering
 
-        fun iverksett(attestering: Attestering.Iverksatt, fritekst: String): IverksattSøknadsbehandling.Avslag {
+        fun iverksett(attestering: Attestering.Iverksatt): IverksattSøknadsbehandling.Avslag {
             return when (this) {
-                is MedBeregning -> this.tilIverksatt(attestering, fritekst)
-                is UtenBeregning -> this.tilIverksatt(attestering, fritekst)
+                is MedBeregning -> this.tilIverksatt(attestering)
+                is UtenBeregning -> this.tilIverksatt(attestering)
             }
         }
 
@@ -216,7 +216,6 @@ sealed interface SøknadsbehandlingTilAttestering :
 
             fun tilIverksatt(
                 attestering: Attestering,
-                fritekst: String,
             ): IverksattSøknadsbehandling.Avslag.UtenBeregning {
                 return IverksattSøknadsbehandling.Avslag.UtenBeregning(
                     id = id,
@@ -235,7 +234,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    // fritekst = fritekst,
                 )
             }
         }
@@ -311,7 +309,6 @@ sealed interface SøknadsbehandlingTilAttestering :
 
             internal fun tilIverksatt(
                 attestering: Attestering,
-                fritekst: String,
             ): IverksattSøknadsbehandling.Avslag.MedBeregning {
                 return IverksattSøknadsbehandling.Avslag.MedBeregning(
                     id = id,
@@ -325,7 +322,6 @@ sealed interface SøknadsbehandlingTilAttestering :
                     saksbehandler = saksbehandler,
                     attesteringer = attesteringer.leggTilNyAttestering(attestering),
                     søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
-                    // fritekst= fritekst,
                     aldersvurdering = aldersvurdering,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     sakstype = sakstype,

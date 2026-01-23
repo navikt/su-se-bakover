@@ -81,30 +81,3 @@ sealed interface Søknadsbehandling :
         lukkSøknadCommand = lukkSøknadCommand,
     )
 }
-
-// Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.
-// Teoretisk sett skal ikke UNCHECKED_CAST være noe problem i dette tilfellet siden T er begrenset til subklasser av Søknadsbehandling.
-// ... i hvert fall så lenge alle subklassene av Søknadsbehandling er data classes
-@Suppress("UNCHECKED_CAST")
-fun <T : Søknadsbehandling> T.medFritekstTilBrev(fritekstTilBrev: String): T = (
-    // Her caster vi til Søknadsbehandling for å unngå å måtte ha en else-branch
-    when (val x = this as Søknadsbehandling) {
-        is BeregnetSøknadsbehandling.Avslag -> x.copy()
-        is BeregnetSøknadsbehandling.Innvilget -> x.copy()
-        is IverksattSøknadsbehandling.Avslag.MedBeregning -> x.copy()
-        is IverksattSøknadsbehandling.Avslag.UtenBeregning -> x.copy()
-        is IverksattSøknadsbehandling.Innvilget -> x.copy()
-        is SimulertSøknadsbehandling -> x.copy()
-        is SøknadsbehandlingTilAttestering.Avslag.MedBeregning -> x.copy()
-        is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning -> x.copy()
-        is SøknadsbehandlingTilAttestering.Innvilget -> x.copy()
-        is UnderkjentSøknadsbehandling.Avslag.MedBeregning -> x.copy()
-        is UnderkjentSøknadsbehandling.Avslag.UtenBeregning -> x.copy()
-        is UnderkjentSøknadsbehandling.Innvilget -> x.copy()
-        is VilkårsvurdertSøknadsbehandling.Avslag -> x.copy()
-        is VilkårsvurdertSøknadsbehandling.Innvilget -> x.copy()
-        is VilkårsvurdertSøknadsbehandling.Uavklart -> x.copy()
-        is LukketSøknadsbehandling -> throw IllegalArgumentException("Det støttes ikke å endre fritekstTilBrev på en lukket søknadsbehandling.")
-    }
-    // ... og så caster vi tilbake til T for at Kotlin skal henge med i svingene
-    ) as T
