@@ -77,13 +77,17 @@ class KontrollsamtaleServiceImpl(
         }
 
         if (sak.erStanset()) {
+            val sisteUtbetalingslinje = sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
+            if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(LocalDate.now(clock))) {
+                log.error("Stansen er sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId")
+            }
             log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
             return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
         }
 
         val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
             ?: return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left().also {
-                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId, merk om saken har vært stanset i en lengre periode kan dette være utløsende årsak")
+                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId, merk om saken har vært stanset i en lengre periode kan dette være utløsende årsak.")
             }
 
         if (kontrollsamtale.innkallingsdato >= gjeldendeStønadsperiode.tilOgMed) {
