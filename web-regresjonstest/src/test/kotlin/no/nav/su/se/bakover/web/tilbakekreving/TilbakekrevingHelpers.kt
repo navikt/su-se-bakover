@@ -140,7 +140,6 @@ internal fun AppComponents.lukkOppgave() {
 
 /**
  * Kjører [GenererDokumentForForhåndsvarselTilbakekrevingKonsument].
- *
  * @return Denne funksjonen bumper saksversjon med 1 uavhengig om vi faktisk oppretter en oppgave eller ikke.
  */
 internal fun AppComponents.genererDokumenterForForhåndsvarsel() {
@@ -328,14 +327,16 @@ internal fun AppComponents.slettLukketOppgaveKonsumentJobb() {
     }
 }
 
-private fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenerert: Int) {
+internal fun AppComponents.verifiserGenererDokumentForForhåndsvarselKonsument(antallGenerert: Int) {
     this.databaseRepos.hendelsekonsumenterRepo.let {
         (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
             """
                 select * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
             """.trimIndent().hentListe(emptyMap(), it) {
                 it.string("hendelseId")
-            }.size shouldBe antallGenerert
+            }.let { hendelsesider ->
+                hendelsesider.size shouldBe antallGenerert
+            }
         }
     }
 }

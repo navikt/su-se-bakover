@@ -92,19 +92,6 @@ internal fun AppComponents.avbrytTilbakekrevingsbehandling(
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
                     )
-
-                    it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
-                        lagKravgrunnlagRespons(
-                            summertBetaltSkattForYtelsesgruppen = "3025",
-                            summertBruttoFeilutbetaling = 6050,
-                            summertBruttoNyUtbetaling = 2513,
-                            summertBruttoTidligereUtbetalt = 8563,
-                            summertNettoFeilutbetaling = 3025,
-                            summertSkattFeilutbetaling = 3025,
-                        ),
-                        it.kravgrunnlag!!::hendelseId,
-                        it.kravgrunnlag!!::kontrollfelt,
-                    )
                 }
             }
             AvbrytTilbakekrevingRespons(

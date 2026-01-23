@@ -51,7 +51,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
 
     fun genererDokumenter(correlationId: CorrelationId) {
         Either.catch {
-            hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgType(
+            hendelsekonsumenterRepo.hentUteståendeSakOgHendelsesIderForKonsumentOgTypeTilbakekreving(
                 konsumentId = konsumentId,
                 hendelsestype = ForhåndsvarsletTilbakekrevingsbehandlingHendelsestype,
             ).forEach { (sakId, hendelsesIder) -> genererDokumenterForSak(sakId, hendelsesIder, correlationId) }

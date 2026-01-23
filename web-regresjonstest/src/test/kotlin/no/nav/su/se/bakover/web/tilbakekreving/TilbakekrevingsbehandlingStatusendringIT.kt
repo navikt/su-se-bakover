@@ -57,7 +57,7 @@ internal class TilbakekrevingsbehandlingStatusendringIT {
             val eksternVedtakId = appComponents.opprettTilbakekrevingsbehandling(
                 sakId = sakId,
                 // Må økes etter hvert som vi får flere hendelser.
-                saksversjon = 4,
+                hendelsesversjon = 4,
                 client = this.client,
             ).let {
                 it.responseJson.kravgrunnlag!!.eksternVedtakId
