@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
+import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.toTidspunkt
@@ -303,6 +304,193 @@ internal class KryssjekkSimuleringMotUtbetaling {
         )
 
         val svar = sjekkUtbetalingMotSimulering(simulering, test!!, erOpphør = true, naa = naa)
+        svar.shouldBeRight()
+    }
+
+    @Test
+    fun `Skal ikke feile når opphør frem i tid mangler simulering for månedene etter linjen`() {
+        val clock = TikkendeKlokke()
+        val simuleringsÅr = 2025
+        val naa = LocalDate.of(simuleringsÅr, Month.SEPTEMBER, 1)
+
+        // Simuleringsdata: kun juni og juli (første måneder i linjen), resten mangler
+        val juni = SimulertMåned(
+            måned = no.nav.su.se.bakover.common.tid.periode.juni(simuleringsÅr),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.juni(simuleringsÅr),
+                        faktiskTilOgMed = 30.juni(simuleringsÅr),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val julisim = SimulertMåned(
+            måned = no.nav.su.se.bakover.common.tid.periode.juli(simuleringsÅr),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.juli(simuleringsÅr),
+                        faktiskTilOgMed = 31.juli(simuleringsÅr),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val simulering = Simulering(
+            gjelderId = Fnr.generer(),
+            gjelderNavn = "tester",
+            datoBeregnet = 1.september(simuleringsÅr),
+            nettoBeløp = 0,
+            måneder = listOf(juni, julisim),
+            rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
+        )
+
+        val rekkefølge = Rekkefølge.generator()
+        // Opphør-linje som strekker seg fra juni til oktober, beløp > 0 (f.eks. opphør i fremtidige måneder)
+        val opphørsLinje = utbetalingslinjeNy(
+            opprettet = 1.september(simuleringsÅr).atStartOfDay(zoneIdOslo).toTidspunkt(),
+            periode = no.nav.su.se.bakover.common.tid.periode.juni(simuleringsÅr)..oktober(simuleringsÅr),
+            beløp = 25262, // Linjen har fortsatt beløp, selv om simulering mangler fremtidige måneder
+            rekkefølge = rekkefølge.neste(),
+        )
+
+        val utbetalingerTidslinje = TidslinjeForUtbetalinger.fra(
+            utbetalinger(clock, opphørsLinje),
+        )!!
+
+        val svar = sjekkUtbetalingMotSimulering(
+            simulering = simulering,
+            utbetalingslinjePåTidslinjer = utbetalingerTidslinje,
+            erOpphør = true,
+            naa = naa,
+        )
+
+        // Skal være right, dvs. ingen feil, fordi fremtidige måneder uten simulering er OK ved opphør
+        svar.shouldBeRight()
+    }
+
+    @Test
+    fun `Skal ikke feile når det er opphør frem i tid og simulering mangler for månedene etter linjen`() {
+        val clock = TikkendeKlokke()
+        val simuleringsÅr = 2025
+        val naa = LocalDate.of(simuleringsÅr, Month.MAY, 1)
+
+        // Simuleringsdata: kun juni og juli (første måneder i linjen), resten mangler
+        val juni = SimulertMåned(
+            måned = no.nav.su.se.bakover.common.tid.periode.juni(simuleringsÅr),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.juni(simuleringsÅr),
+                        faktiskTilOgMed = 30.juni(simuleringsÅr),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val julisim = SimulertMåned(
+            måned = no.nav.su.se.bakover.common.tid.periode.juli(simuleringsÅr),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.juli(simuleringsÅr),
+                        faktiskTilOgMed = 31.juli(simuleringsÅr),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUALDER,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val simulering = Simulering(
+            gjelderId = Fnr.generer(),
+            gjelderNavn = "tester",
+            datoBeregnet = 1.september(simuleringsÅr),
+            nettoBeløp = 0,
+            måneder = listOf(juni, julisim),
+            rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
+        )
+
+        val rekkefølge = Rekkefølge.generator()
+        // Opphør-linje som strekker seg fra juni til oktober, beløp > 0 (f.eks. opphør i fremtidige måneder)
+        val opphørsLinje = utbetalingslinjeNy(
+            opprettet = 1.september(simuleringsÅr).atStartOfDay(zoneIdOslo).toTidspunkt(),
+            periode = juni(simuleringsÅr),
+            beløp = 0, // Linjen har fortsatt beløp, selv om simulering mangler fremtidige måneder
+            rekkefølge = rekkefølge.neste(),
+        )
+
+        val utbetalingerTidslinje = TidslinjeForUtbetalinger.fra(
+            utbetalinger(clock, opphørsLinje),
+        )!!
+
+        val svar = sjekkUtbetalingMotSimulering(
+            simulering = simulering,
+            utbetalingslinjePåTidslinjer = utbetalingerTidslinje,
+            erOpphør = false,
+            naa = naa,
+        )
+
         svar.shouldBeRight()
     }
 }

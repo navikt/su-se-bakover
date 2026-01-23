@@ -53,12 +53,13 @@ fun kryssjekkSimuleringMotUtbetaling(
             "Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se sikkerlogg for mer kontekst. Feil: $it",
             RuntimeException("Genererer en stacktrace for enklere debugging."),
         )
-        sikkerLogg.error("Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se vanlig logg for stacktrace. Feil: $it, Utbetaling med simulering: $simulertUtbetaling")
+        sikkerLogg.error("Feil ved kryssjekk av utbetaling og simulering for saksnummer $saksnummer. Se vanlig logg for stacktrace. Feil: $it, Utbetaling med simulering: $simulertUtbetaling tidligereutbetaligner: $tidligereUtbetalinger")
         return it.left()
     }
     return Unit.right()
 }
 
+val log: Logger = LoggerFactory.getLogger("KryssjekkSimuleringMotUtbetaling.kt")
 internal fun sjekkUtbetalingMotSimulering(
     simulering: Simulering,
     utbetalingslinjePåTidslinjer: TidslinjeForUtbetalinger,
@@ -93,10 +94,17 @@ internal fun sjekkUtbetalingMotSimulering(
             if (simuleringsperiode != null) {
                 /*
                  Simulering gir ikke svar for perioder der beløp er 0, vi vil kun at det skal gjelde opphør frem i tid. Vi vet ikke om betalingen er gjort enda for inneværende månde så vi vil sjekke neste måned.
+                   Hvis frem i tid men ikke krav om at linje beløp er 0 siden feks utetbetalinglje opphør 98d9dc53-36e0-4a9a-80bf-4b24f0 har beløp 25626 men er tom 2026-01-31 må endre til å passe det
                  */
-                if (erOpphør && linje.periode.tilOgMed.erFremITidMenIkkeSammeMåned(naa) && linje.beløp == 0) {
+                if (erOpphør && linje.periode.tilOgMed.erFremITidMenIkkeSammeMåned(naa)) {
+                    log.info("Er opphør med utbetaling frem i tid, kan aldri ha simuleringsperiode for dette., skipper")
                     return@forEach
                 }
+                if (linje.periode.tilOgMed.erFremITidMenIkkeSammeMåned(naa) && linje.beløp == 0) {
+                    log.info("Er frem i tid med beløp 0, kan aldri ha simuleringsperiode for dette., skipper")
+                    return@forEach
+                }
+
                 if (simuleringsperiode != linje.periode) {
                     forskjeller.add(
                         ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode.UlikPeriode(
