@@ -60,9 +60,38 @@ class KontrollsamtaleServiceImpl(
             throw IllegalArgumentException("Fant ikke sak for sakId $sakId")
         }
 
+        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
+            log.error("Fant ikke person for sakId $sakId, saksnummer ${sak.saksnummer}")
+            return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
+        }
+
+        if (person.erDød()) {
+            log.info("Person er død for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
+            val utbetalingstidslinje = sak.utbetalingstidslinje()
+            if (utbetalingstidslinje != null && utbetalingstidslinje.periode.tilOgMed.isAfter(LocalDate.now(clock))) {
+                log.error("Død person har utbetaling frem etter dødsfall, må sjekkes manuelt")
+            }
+            kontrollsamtaleRepo.lagre(
+                kontrollsamtale = kontrollsamtale.annuller().getOrElse {
+                    log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
+                    return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
+                },
+            )
+            return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
+        }
+
+        if (sak.erStanset()) {
+            val sisteUtbetalingslinje = sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
+            if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(LocalDate.now(clock))) {
+                log.error("Stansen er sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres.")
+            }
+            log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
+            return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
+        }
+
         val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
             ?: return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left().also {
-                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
+                log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId, merk om saken har vært stanset i en lengre periode kan dette være utløsende årsak.")
             }
 
         if (kontrollsamtale.innkallingsdato >= gjeldendeStønadsperiode.tilOgMed) {
@@ -74,27 +103,6 @@ class KontrollsamtaleServiceImpl(
                 },
             )
             return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
-        }
-
-        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
-            log.error("Fant ikke person for sakId $sakId, saksnummer ${sak.saksnummer}")
-            return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
-        }
-
-        if (person.erDød()) {
-            log.info("Person er død for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
-            kontrollsamtaleRepo.lagre(
-                kontrollsamtale = kontrollsamtale.annuller().getOrElse {
-                    log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
-                    return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
-                },
-            )
-            return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
-        }
-
-        if (sak.erStanset()) {
-            log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
-            return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
         }
 
         val dokument = lagDokument(sak).getOrElse {
