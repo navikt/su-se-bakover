@@ -35,7 +35,7 @@ import java.time.Month
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-internal class KryssjekkSimuleringMotUtbetaling {
+internal class KryssjekkSimuleringMotUtbetalingTest {
 
     private val fagsystemId = "2100"
     private val fnr = Fnr("12345678910")

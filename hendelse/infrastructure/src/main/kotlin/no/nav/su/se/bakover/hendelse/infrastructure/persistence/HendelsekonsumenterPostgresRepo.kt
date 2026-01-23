@@ -110,8 +110,6 @@ class HendelsekonsumenterPostgresRepo(
         }
     }
 
-    // denne blir feil dersom det finnes en tk hendelse avbrutt etter FORHÅNDSVARSLET_TILBAKEKREVINGSBEHANDLING siden den bare da søker etter hendeseskonsument av typen GenererDokumentForForhåndsvarselTilbakekrevingKonsument som aldri finnes siden dne ikke skal finnes siden den er avbrutt det må vi ta høyde for
-
     override fun hentUteståendeSakOgHendelsesIderForKonsumentOgType(
         konsumentId: HendelseskonsumentId,
         hendelsestype: Hendelsestype,
