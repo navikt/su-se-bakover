@@ -19,7 +19,6 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.LocalDate
-import kotlin.math.log
 
 /**
  * En sjekk som gjøres for å gi saksbehandler tilbakemelding om simuleringen stemmer overens med utbetalingslinjene som kommer til å bli sendt.
