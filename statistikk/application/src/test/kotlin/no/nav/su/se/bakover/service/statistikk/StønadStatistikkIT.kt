@@ -51,7 +51,7 @@ internal class StønadStatistikkIT {
             )
 
             service.lagMånedligStønadstatistikk(juni)
-            val result = stønadStatistikkRepo.hentMånedStatistikk(juni)
+            val result = stønadStatistikkRepo.hentStatistikkForMåned(juni)
 
             result.size shouldBe 1
             with(result.first()) {
@@ -88,7 +88,7 @@ internal class StønadStatistikkIT {
             )
 
             service.lagMånedligStønadstatistikk(juni)
-            val result = stønadStatistikkRepo.hentMånedStatistikk(juni)
+            val result = stønadStatistikkRepo.hentStatistikkForMåned(juni)
 
             result.size shouldBe 1
             with(result.first()) {
@@ -126,7 +126,7 @@ internal class StønadStatistikkIT {
             )
 
             service.lagMånedligStønadstatistikk(juli)
-            val result = stønadStatistikkRepo.hentMånedStatistikk(juli)
+            val result = stønadStatistikkRepo.hentStatistikkForMåned(juli)
 
             result.size shouldBe 0
         }

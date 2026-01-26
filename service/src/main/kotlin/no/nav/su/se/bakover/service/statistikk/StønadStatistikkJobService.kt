@@ -70,10 +70,10 @@ class StønadStatistikkJobServiceImpl(
 
     override fun lagMånedligStønadstatistikk() {
         val måned = YearMonth.now(clock).minusMonths(1)
-        val harKjørt = stønadStatistikkRepo.hentMånedStatistikk(måned).isNotEmpty()
+        val harKjørt = stønadStatistikkRepo.hentStatistikkForMåned(måned).isNotEmpty()
         if (!harKjørt) {
             lagMånedligStønadstatistikk(måned)
-            val månedstatistikk = stønadStatistikkRepo.hentMånedStatistikk(måned)
+            val månedstatistikk = stønadStatistikkRepo.hentStatistikkForMåned(måned)
             StønadBigQueryService.lastTilBigQuery(månedstatistikk)
         }
     }

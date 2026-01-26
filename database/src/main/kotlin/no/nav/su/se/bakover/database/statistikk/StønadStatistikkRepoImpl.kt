@@ -152,8 +152,8 @@ class StønadStatistikkRepoImpl(
             )
     }
 
-    override fun hentMånedStatistikk(måned: YearMonth): List<StønadstatistikkMåned> {
-        return dbMetrics.timeQuery("hentStønadstatistikkMåned") {
+    override fun hentStatistikkForMåned(måned: YearMonth): List<StønadstatistikkMåned> {
+        return dbMetrics.timeQuery("hentStatistikkForMåned") {
             hentStatistikk(måned, måned)
         }
     }
