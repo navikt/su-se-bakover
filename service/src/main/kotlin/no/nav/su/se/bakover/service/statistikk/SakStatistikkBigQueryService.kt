@@ -54,7 +54,7 @@ class SakStatistikkBigQueryServiceImpl(
 
         val table = "saksstatistikk"
         val csv = data.toCsv()
-        logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
+        logger.info("Bytes til GCP ${csv.length}, til BigQuery-tabell: $table")
         if (csv.isNotEmpty()) {
             val job = writeCsvToBigQueryTable(bq, project, table, csv)
             logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")

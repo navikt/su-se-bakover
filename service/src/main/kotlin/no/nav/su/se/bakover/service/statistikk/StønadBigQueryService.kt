@@ -38,7 +38,7 @@ object StønadBigQueryService {
 
         val stoenadtable = "stoenadstatistikk"
         val stoenadCSV = data.toCSV()
-        log.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
+        log.info("Data til biguqery: ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
         if (stoenadCSV.isNotEmpty()) {
             val jobStoenad = writeCsvToBigQueryTable(
                 bigQueryClient = bq,
