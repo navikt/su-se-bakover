@@ -39,15 +39,18 @@ object StønadBigQueryService {
         val stoenadtable = "stoenadstatistikk"
         val stoenadCSV = data.toCSV()
         log.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
+        if (stoenadCSV.isNotEmpty()) {
+            val jobStoenad = writeCsvToBigQueryTable(
+                bigQueryClient = bq,
+                project = project,
+                tableName = stoenadtable,
+                csvData = stoenadCSV,
+            )
 
-        val jobStoenad = writeCsvToBigQueryTable(
-            bigQueryClient = bq,
-            project = project,
-            tableName = stoenadtable,
-            csvData = stoenadCSV,
-        )
-
-        log.info("Saksstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
+            log.info("Stønadstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
+        } else {
+            log.info("Stønadstatistikkjobb oppretter ikke skrivejobb mot GCP da vi ikke har data å sende")
+        }
     }
 
     private fun createBigQueryClient(project: String): BigQuery =
