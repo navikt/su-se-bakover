@@ -56,12 +56,8 @@ class SakStatistikkBigQueryServiceImpl(
         val table = "saksstatistikk"
         val csv = data.toCsv()
         logger.info("Bytes til GCP ${csv.length}, til BigQuery-tabell: $table")
-        if (csv.isNotEmpty()) {
-            val job = writeCsvToBigQueryTable(bq, project, table, csv)
-            logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
-        } else {
-            logger.info("Ingen data å skrive, forsøker ikke å opprette tom skriving mot GCP for Saksstatistikkjobb")
-        }
+        val job = writeCsvToBigQueryTable(bq, project, table, csv)
+        logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
     }
 
     private fun createBigQueryClient(project: String): BigQuery =
