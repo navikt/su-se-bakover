@@ -118,7 +118,17 @@ data class SendPåminnelseNyStønadsperiodeContext(
             log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
             return false
         }
-        return sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
+
+        val februar = YearMonth.of(2026, 2)
+        val nå = YearMonth.now()
+        // TODO kun siste skal gjelde etter februar og kan fjernes i mars
+        return if (nå < februar) {
+            sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
+        } else if (nå == februar) {
+            sak.ytelseUtløperVedUtløpAv(id().tilPeriode()) || sak.ytelseUtløperVedUtløpAvMånedEtter(id().yearMonth)
+        } else {
+            sak.ytelseUtløperVedUtløpAvMånedEtter(id().yearMonth)
+        }
     }
 
     fun håndter(
