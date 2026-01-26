@@ -76,7 +76,7 @@ class SimuleringProxyClientGcp(
                 .httpPost()
                 .authentication().bearer(token)
                 .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
-                .header(HttpHeaders.Accept, ContentType.Application.Xml.toString())
+                .header(HttpHeaders.Accept, "${ContentType.Application.Xml}, ${ContentType.Application.Json}")
                 .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
                 .body(soapRequest)
                 .responseString()
@@ -110,7 +110,7 @@ class SimuleringProxyClientGcp(
                         }
                     }
                     else -> {
-                        log.error("Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage}")
+                        log.error("Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} datasendt: ${response.data}. Merk dette skal ikke skje, sjekk hvorfor")
                         SimuleringFeilet.TekniskFeil
                     }
                 }

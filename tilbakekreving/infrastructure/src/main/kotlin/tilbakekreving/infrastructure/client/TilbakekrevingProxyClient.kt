@@ -99,7 +99,7 @@ class TilbakekrevingProxyClient(
             .httpPost()
             .authentication().bearer(token)
             .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
-            .header(HttpHeaders.Accept, ContentType.Application.Xml.toString())
+            .header(HttpHeaders.Accept, "${ContentType.Application.Xml}, ${ContentType.Application.Json}")
             .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
             .body(soapRequest)
             .responseString()
@@ -140,7 +140,7 @@ class TilbakekrevingProxyClient(
                         }
                     }
                     else -> {
-                        log.error("Feil ved send tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        log.error("Feil ved send tilbakekreving saksnummer $saksnummer: ${response.statusCode} data: ${response.data}")
                         KunneIkkeSendeTilbakekrevingsvedtak.UkjentFeil
                     }
                 }
@@ -167,7 +167,7 @@ class TilbakekrevingProxyClient(
             .httpPost()
             .authentication().bearer(token)
             .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
-            .header(HttpHeaders.Accept, ContentType.Application.Xml.toString())
+            .header(HttpHeaders.Accept, "${ContentType.Application.Xml}, ${ContentType.Application.Json}")
             .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
             .body(soapRequest)
             .responseString()
@@ -209,7 +209,7 @@ class TilbakekrevingProxyClient(
                         }
                     }
                     else -> {
-                        log.error("Feil ved annuller tilbakekreving saksnummer $saksnummer: ${response.statusCode} ${response.responseMessage}")
+                        log.error("Feil ved annuller tilbakekreving saksnummer $saksnummer: ${response.statusCode} data: ${response.data}")
                         KunneIkkeAnnullerePåbegynteVedtak.UkjentFeil
                     }
                 }
