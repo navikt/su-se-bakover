@@ -159,12 +159,14 @@ class FerdigstillVedtakServiceImpl(
         ).map { it.fritekst }.getOrElse {
             throw IllegalStateException("Mangler fritekst for behandling kan ikke ferdigstille vedtak")
         }
-        if (fritekst == "") {
+        if (fritekst.isEmpty()) {
             throw IllegalStateException("Mangler fritekst for behandling kan ikke ferdigstille vedtak")
         }
-
+        // TODO: sjekk om flere mottakere her og isåfall må det sendes med slik at vi får lagret to journalposter og sendt ut to brev ref dokument_distrubson
+        // Hvis vedtak?
+        // Denne er dessverre så overengineered at det krever litt jobb å få til ordentlig støtte av verge, fullmektig/advokat
         return brevService.lagDokument(
-            vedtak.lagDokumentKommando(
+            vedtak.lagDokumentKommando( // Denne plukker ut fnr på behandlingen e.l.
                 clock,
                 satsFactory,
                 fritekst = fritekst,
@@ -182,6 +184,10 @@ class FerdigstillVedtakServiceImpl(
                 // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
                 distribueringsadresse = null,
             )
+            // mottakerService feks
+            // dokument tabellen trenger bare ett innsalg men må se hvor tight den koblingen er først
+            // Dette må gjøre en gang per mottaker da dokument_distribusjon har Foreign key: dokumentid → dokument(id) så et dokument kan ha maks en dokument_distrubson
+            // TODO: her må det bli en visningsfiks i frontend og gjøre om til liste somewhere for vedtaksbrev henting i sak
             brevService.lagreDokument(dokumentMedMetadata, transactionContext)
 
             dokumentMedMetadata
