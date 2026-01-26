@@ -23,7 +23,9 @@ object StønadBigQueryService {
 
     fun lastTilBigQuery(data: List<StønadstatistikkMåned>) {
         log.info("Sender ${data.size} rader for stønadstatistikk fra databasen")
-        writeToBigQuery(data)
+        if (data.isNotEmpty()) {
+            writeToBigQuery(data)
+        }
         log.info("Slutter jobb Stønadstatistikk")
     }
 
