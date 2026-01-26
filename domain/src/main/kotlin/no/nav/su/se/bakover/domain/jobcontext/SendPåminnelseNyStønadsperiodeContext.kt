@@ -143,11 +143,15 @@ data class SendPåminnelseNyStønadsperiodeContext(
         val person = hentPerson(sak.fnr).getOrElse {
             return KunneIkkeSendePåminnelse.FantIkkePerson.left()
         }
+
         return if (skalSendePåminnelse(sak, person)) {
+            val sisteVedtak = sak.vedtakstidslinje()?.lastOrNull()
+                ?: return KunneIkkeSendePåminnelse.FantIkkeVedtak.left()
+
             val dokumentCommand = PåminnelseNyStønadsperiodeDokumentCommand.ny(
                 sak,
                 person,
-                id().yearMonth.atEndOfMonth(),
+                sisteVedtak.periode.tilOgMed,
             ).getOrElse {
                 return it.left()
             }
@@ -188,5 +192,6 @@ data class SendPåminnelseNyStønadsperiodeContext(
         data object FantIkkePerson : KunneIkkeSendePåminnelse
         data object PersonManglerFødselsdato : KunneIkkeSendePåminnelse
         data object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
+        data object FantIkkeVedtak : KunneIkkeSendePåminnelse
     }
 }
