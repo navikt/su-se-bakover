@@ -37,9 +37,10 @@ class SakStatistikkBigQueryServiceImpl(
 
     override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
         val data = repo.hentSakStatistikk(fraOgMed, tilOgMed)
-
         logger.info("Hentet ${data.size} rader fra databasen")
-        writeToBigQuery(data)
+        if (data.isNotEmpty()) {
+            writeToBigQuery(data)
+        }
         logger.info("Slutter jobb Saksstatistikk")
     }
 
@@ -54,10 +55,8 @@ class SakStatistikkBigQueryServiceImpl(
 
         val table = "saksstatistikk"
         val csv = data.toCsv()
-        logger.info("Skriver ${csv.length} bytes til BigQuery-tabell: $table")
-
+        logger.info("Bytes til GCP ${csv.length}, til BigQuery-tabell: $table")
         val job = writeCsvToBigQueryTable(bq, project, table, csv)
-
         logger.info("Saksstatistikkjobb: ${job.getStatistics<JobStatistics.LoadStatistics>()}")
     }
 

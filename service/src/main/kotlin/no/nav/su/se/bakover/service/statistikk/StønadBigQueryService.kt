@@ -23,7 +23,9 @@ object StønadBigQueryService {
 
     fun lastTilBigQuery(data: List<StønadstatistikkMåned>) {
         log.info("Sender ${data.size} rader for stønadstatistikk fra databasen")
-        writeToBigQuery(data)
+        if (data.isNotEmpty()) {
+            writeToBigQuery(data)
+        }
         log.info("Slutter jobb Stønadstatistikk")
     }
 
@@ -38,16 +40,14 @@ object StønadBigQueryService {
 
         val stoenadtable = "stoenadstatistikk"
         val stoenadCSV = data.toCSV()
-        log.info("Skriver ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
-
+        log.info("Data til biguqery: ${stoenadCSV.length} bytes til BigQuery-tabell: $stoenadtable")
         val jobStoenad = writeCsvToBigQueryTable(
             bigQueryClient = bq,
             project = project,
             tableName = stoenadtable,
             csvData = stoenadCSV,
         )
-
-        log.info("Saksstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
+        log.info("Stønadstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
     }
 
     private fun createBigQueryClient(project: String): BigQuery =
