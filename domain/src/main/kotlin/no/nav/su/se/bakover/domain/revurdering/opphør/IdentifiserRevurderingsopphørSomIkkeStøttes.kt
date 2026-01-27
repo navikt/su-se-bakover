@@ -10,6 +10,7 @@ import beregning.domain.Månedsberegning
 import beregning.domain.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.common.CopyArgs
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
@@ -19,12 +20,14 @@ sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
         private val vilkårsvurderinger: VilkårsvurderingerRevurdering,
         private val periode: Periode,
     ) : IdentifiserRevurderingsopphørSomIkkeStøttes {
+        private val log = LoggerFactory.getLogger(this::class.java)
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat.let { opphørVedRevurdering ->
                 val utfall = mutableSetOf<RevurderingsutfallSomIkkeStøttes>()
                 when (opphørVedRevurdering) {
                     is OpphørVedRevurdering.Ja -> {
                         if (opphørVedRevurdering.opphørsgrunner.count() > 1) {
+                            log.info("Opphørsgrunner: ${opphørVedRevurdering.opphørsgrunner.joinToString(",")}")
                             utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
                         }
                         if (!opphørVedRevurdering.opphørsdatoErTidligesteDatoIRevurdering()) {
@@ -49,6 +52,7 @@ sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
         private val nyBeregning: Beregning,
         private val clock: Clock,
     ) : IdentifiserRevurderingsopphørSomIkkeStøttes {
+        private val log = LoggerFactory.getLogger(this::class.java)
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger,
@@ -59,6 +63,7 @@ sealed interface IdentifiserRevurderingsopphørSomIkkeStøttes {
                 when (opphørVedRevurdering) {
                     is OpphørVedRevurdering.Ja -> {
                         if (opphørVedRevurdering.opphørsgrunner.count() > 1) {
+                            log.info("Opphørsgrunner: ${opphørVedRevurdering.opphørsgrunner.joinToString(",")}")
                             utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
                         }
                         if (!opphørVedRevurdering.opphørsdatoErTidligesteDatoIRevurdering()) {

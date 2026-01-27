@@ -90,7 +90,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
                 .getOrElse { throw IllegalStateException("Skal eksistere minste én måned med avslag.") }
                 .let { (månedsberegning, merknad) ->
                     OpphørVedRevurdering.Ja(
-                        opphørsgrunner = listOf(element = merknad.tilOpphørsgrunn()),
+                        opphørsgrunner = listOf(merknad.tilOpphørsgrunn()),
                         opphørsdato = månedsberegning.periode.fraOgMed,
                     )
                 }
@@ -101,7 +101,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
                 .firstOrNull { (månedsberegning, _) -> månedsberegning.periode.fraOgMed >= førsteDagInneværendeMåned }
                 ?.let { (månedsberegning, merknad) ->
                     OpphørVedRevurdering.Ja(
-                        opphørsgrunner = listOf(element = merknad.tilOpphørsgrunn()),
+                        opphørsgrunner = listOf(merknad.tilOpphørsgrunn()),
                         opphørsdato = månedsberegning.periode.fraOgMed,
                     )
                 } ?: OpphørVedRevurdering.Nei
