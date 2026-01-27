@@ -287,4 +287,8 @@ class KontrollsamtaleServiceImpl(
             }
         }
     }
+
+    override fun hentInnkalteKontrollsamtaleForDrift(fristPåDato: LocalDate): List<Kontrollsamtale> {
+        return kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato)
+    }
 }

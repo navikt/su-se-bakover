@@ -1420,6 +1420,10 @@ open class AccessCheckProxy(
 
                     override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate) =
                         kastKanKunKallesFraAnnenService()
+
+                    override fun hentInnkalteKontrollsamtaleForDrift(fristPåDato: LocalDate): List<Kontrollsamtale> {
+                        return service.hentInnkalteKontrollsamtaleForDrift(fristPåDato)
+                    }
                 }
 
                 override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService
