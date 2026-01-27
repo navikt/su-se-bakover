@@ -41,7 +41,7 @@ spec:
           - name: "cloudsql.enable_pgaudit"
             value: "on"
           - name: "pgaudit.log"
-            value: "write,ddl,role"
+            value: "write,ddl,role,read"
           - name: "pgaudit.log_parameter"
             value: "on"
   observability:
