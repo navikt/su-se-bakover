@@ -39,7 +39,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
 
-        return brevService.lagDokument(
+        return brevService.lagDokumentPdf(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
                 sakstype = sak.type,

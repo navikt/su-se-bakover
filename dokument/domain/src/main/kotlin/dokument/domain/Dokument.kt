@@ -19,6 +19,7 @@ sealed interface Dokument {
     fun erJournalført() = this is MedMetadata && metadata.journalpostId != null
     fun erBrevBestilt() = this is MedMetadata && metadata.brevbestillingId != null
 
+    // Denne kommer kun fra generering av PDF uten metadata så den er ikke ferdig
     sealed interface UtenMetadata : Dokument {
 
         fun leggTilMetadata(metadata: Metadata, distribueringsadresse: Distribueringsadresse?): MedMetadata
@@ -72,6 +73,7 @@ sealed interface Dokument {
     }
 
     /**
+     * Denne er til å lagre ned PDF og sending etter PDF generering
      * TODO jah: I visse tilfeller journalfører vi uten å sende brev. F.eks. skattemelding (notat). I de tilfellene er det rart å at vi knytter distribusjonsdata til dokumentet. i.e. distribusjonstype, distribusjonstidspunkt og brevbestillingId.
      */
     sealed interface MedMetadata : Dokument {

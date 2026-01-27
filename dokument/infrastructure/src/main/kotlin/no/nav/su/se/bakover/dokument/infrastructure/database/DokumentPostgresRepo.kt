@@ -84,10 +84,10 @@ class DokumentPostgresRepo(
         }
     }
 
-    override fun hentDokument(id: UUID): Dokument.MedMetadata? {
+    override fun hentDokument(dokumentId: UUID): Dokument.MedMetadata? {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForDokumentId") {
             sessionFactory.withSession { session ->
-                hentDokument(id, session)
+                hentDokument(dokumentId, session)
             }
         }
     }
@@ -292,11 +292,11 @@ class DokumentPostgresRepo(
             )
     }
 
-    private fun hentDokument(id: UUID, session: Session) =
+    private fun hentDokument(dokumentId: UUID, session: Session) =
         """
             $joinDokumentOgDistribusjonQuery and d.id = :id
         """.trimIndent()
-            .hent(mapOf("id" to id), session) {
+            .hent(mapOf("id" to dokumentId), session) {
                 it.toDokumentMedStatus()
             }
 

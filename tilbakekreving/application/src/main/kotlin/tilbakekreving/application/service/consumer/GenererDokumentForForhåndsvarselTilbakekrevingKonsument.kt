@@ -153,7 +153,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             kravgrunnlag = behandling.kravgrunnlag,
         )
 
-        val dokument = brevService.lagDokument(id = forhåndsvarsleHendelse.dokumentId, command = command)
+        val dokument = brevService.lagDokumentPdf(id = forhåndsvarsleHendelse.dokumentId, command = command)
             .getOrElse { return it.left() }
             .leggTilMetadata(
                 Dokument.Metadata(

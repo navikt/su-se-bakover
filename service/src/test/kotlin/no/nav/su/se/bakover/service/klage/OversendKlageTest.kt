@@ -150,7 +150,7 @@ internal class OversendKlageTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
@@ -165,7 +165,7 @@ internal class OversendKlageTest {
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
 
-        verify(mocks.brevServiceMock).lagDokument(
+        verify(mocks.brevServiceMock).lagDokumentPdf(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
@@ -197,7 +197,7 @@ internal class OversendKlageTest {
 
             brevServiceMock = mock {
                 on {
-                    lagDokument(
+                    lagDokumentPdf(
                         any(),
                         anyOrNull(),
                     )
@@ -219,7 +219,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(mocks.brevServiceMock).lagDokument(
+        verify(mocks.brevServiceMock).lagDokumentPdf(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
@@ -256,7 +256,7 @@ internal class OversendKlageTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdKnyttetTilVedtakDetKlagePå
@@ -274,7 +274,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(mocks.brevServiceMock).lagDokument(
+        verify(mocks.brevServiceMock).lagDokumentPdf(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
@@ -493,7 +493,7 @@ internal class OversendKlageTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
             klageClient = mock {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
@@ -529,7 +529,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(mocks.brevServiceMock).lagDokument(
+        verify(mocks.brevServiceMock).lagDokumentPdf(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
@@ -608,7 +608,7 @@ internal class OversendKlageTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
             klageClient = mock {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
@@ -644,7 +644,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(mocks.brevServiceMock).lagDokument(
+        verify(mocks.brevServiceMock).lagDokumentPdf(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,

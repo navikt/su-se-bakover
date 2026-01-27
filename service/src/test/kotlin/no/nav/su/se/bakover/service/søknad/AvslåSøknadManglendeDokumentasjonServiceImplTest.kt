@@ -97,7 +97,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 }.whenever(it).simulerUtbetaling(any())
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn mockedDokument.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -245,7 +245,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 }.whenever(it).simulerUtbetaling(any())
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn mockedDokument.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn mockedDokument.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any(), any()) } doReturn KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(oppgaveId).left()

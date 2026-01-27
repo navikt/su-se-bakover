@@ -32,7 +32,7 @@ class BrevServiceImpl(
     private val clock: Clock,
 ) : BrevService {
 
-    override fun lagDokument(
+    override fun lagDokumentPdf(
         command: GenererDokumentCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {

@@ -114,7 +114,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
 
         ).let { serviceAndMocks ->
@@ -200,7 +200,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
             }
         },
         private val brevService: BrevService = mock {
-            on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
         },
         sessionFactory: SessionFactory = TestSessionFactory(),
         private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),
@@ -252,7 +252,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         fun verifyLagBrev(
             // saksbehandlerNavn: String = saksbehandlernavn,
         ) {
-            verify(brevService).lagDokument(
+            verify(brevService).lagDokumentPdf(
                 argThat {
                     it shouldBe TrukketSøknadDokumentCommand(
                         fødselsnummer = sak!!.fnr,

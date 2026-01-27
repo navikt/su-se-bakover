@@ -502,7 +502,7 @@ open class AccessCheckProxy(
             },
             brev = object : BrevService {
 
-                override fun lagDokument(
+                override fun lagDokumentPdf(
                     command: GenererDokumentCommand,
                     id: UUID,
                 ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {

@@ -31,7 +31,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
         ).let {
             simulertRevurdering.saksbehandler shouldNotBe saksbehandlerSomLagerBrev
@@ -41,7 +41,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 "saksbehandler og saksbehandler som lager brev er ikke de samme",
             ).shouldBeRight()
             verify(it.revurderingRepo).hent(simulertRevurdering.id)
-            verify(it.brevService).lagDokument(any(), anyOrNull())
+            verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }
@@ -68,7 +68,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
@@ -89,7 +89,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             },
 
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()

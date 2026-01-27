@@ -96,7 +96,7 @@ class LukkSøknadServiceImpl(
         sakId: UUID,
         søknadId: UUID,
     ) {
-        return brevService.lagDokument(genererDokumentCommand).getOrElse {
+        return brevService.lagDokumentPdf(genererDokumentCommand).getOrElse {
             // TODO jah: Kan vel være en left? Lag en overload på lagreDokument som tar inn GenererDokumentCommand+Dokument.Metadata+tx.
             throw IllegalArgumentException("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
         }.let {
@@ -129,7 +129,7 @@ class LukkSøknadServiceImpl(
         ).getOrElse {
             throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - kan ikke lages brev i denne tilstanden. Underliggende feil: $it")
         }
-        return brevService.lagDokument(pdfCommand).getOrElse {
+        return brevService.lagDokumentPdf(pdfCommand).getOrElse {
             throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - feil ved generering av brev. Underliggende feil: $it")
         }.let {
             Pair(fnr, it.generertDokument)

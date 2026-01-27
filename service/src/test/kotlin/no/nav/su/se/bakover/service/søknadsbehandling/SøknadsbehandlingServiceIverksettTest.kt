@@ -299,7 +299,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hent(any()) } doReturn avslagTilAttestering
                 },
                 brevService = mock {
-                    on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
+                    on { lagDokumentPdf(any(), anyOrNull()) } doReturn underliggendeFeil.left()
                 },
                 fritekstService = fritekstServiceMock,
             )
@@ -362,7 +362,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().second shouldBe expectedAvslag
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(avslagTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(
+            verify(serviceAndMocks.brevService).lagDokumentPdf(
                 argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Avslag>() },
                 anyOrNull(),
             )
@@ -483,7 +483,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
                 brevService = mock {
-                    on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
                     doThrow(RuntimeException("kastet fra testen.")).whenever(it).lagreDokument(any(), anyOrNull())
                 },
                 fritekstService = fritekstServiceMock,
@@ -567,7 +567,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             actualSøknadsbehandling.attesteringer shouldBe Attesteringshistorikk.create(listOf(attestering))
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(innvilgetTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(
+            verify(serviceAndMocks.brevService).lagDokumentPdf(
                 argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
                 anyOrNull(),
             )
@@ -899,7 +899,7 @@ private data class ServiceAndMocks(
     },
     val observer: StatistikkEventObserver = mock(),
     val brevService: BrevService = mock {
-        on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
+        on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
     },
     val vedtakService: VedtakService = mock {
         doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())

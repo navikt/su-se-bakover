@@ -165,7 +165,13 @@ class FerdigstillVedtakServiceImpl(
         // TODO: sjekk om flere mottakere her og isåfall må det sendes med slik at vi får lagret to journalposter og sendt ut to brev ref dokument_distrubson
         // Hvis vedtak?
         // Denne er dessverre så overengineered at det krever litt jobb å få til ordentlig støtte av verge, fullmektig/advokat
-        return brevService.lagDokument(
+        // TODO2: skal brevservice være ansvarlig for å hensynta flere mottakere?
+        /**
+         *  Ser egentlig for meg at vi prøver her å lage en service for lage flere brev aka dokument + dokument_distriubsjon
+         *  for en id som er generell og som hensyntar adresse
+         *
+         */
+        return brevService.lagDokumentPdf(
             vedtak.lagDokumentKommando( // Denne plukker ut fnr på behandlingen e.l.
                 clock,
                 satsFactory,

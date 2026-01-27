@@ -130,7 +130,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn simulert
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -163,7 +163,7 @@ internal class AvsluttRevurderingTest {
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
         )
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
-        verify(brevServiceMock).lagDokument(
+        verify(brevServiceMock).lagDokumentPdf(
             argThat {
                 it shouldBe AvsluttRevurderingDokumentCommand(
                     sakstype = Sakstype.UFØRE,

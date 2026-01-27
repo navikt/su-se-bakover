@@ -41,7 +41,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn simulertRevurdering
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = minimumPdfAzeroPadded(),
@@ -64,7 +64,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<IverksettRevurderingDokumentCommand.Inntekt>() }, anyOrNull())
+                verify(it.brevService).lagDokumentPdf(argThat { it shouldBe beOfType<IverksettRevurderingDokumentCommand.Inntekt>() }, anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -78,7 +78,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
             fritekstService = mock {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
@@ -94,7 +94,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(any(), anyOrNull())
+                verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -108,7 +108,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
             fritekstService = mock {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
@@ -124,7 +124,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(any(), anyOrNull())
+                verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -138,7 +138,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn revurdering
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
             fritekstService = mock {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
@@ -154,7 +154,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(any(), anyOrNull())
+                verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
                 it.verifyNoMoreInteractions()
             }
         }
@@ -170,7 +170,7 @@ internal class LagBrevutkastForRevurderingTest {
                     on { hent(any()) } doReturn opprettetRevurdering
                 },
                 brevService = mock {
-                    on { lagDokument(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
+                    on { lagDokumentPdf(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
                 },
                 fritekstService = mock {
                     on { hentFritekst(any(), any(), anyOrNull()) } doReturn FritekstFeil.FantIkkeFritekst.left()
@@ -199,7 +199,7 @@ internal class LagBrevutkastForRevurderingTest {
                     on { hent(any()) } doReturn beregnget
                 },
                 brevService = mock {
-                    on { lagDokument(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
+                    on { lagDokumentPdf(any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
                 },
                 fritekstService = mock {
                     on { hentFritekst(any(), any(), anyOrNull()) } doThrow IllegalArgumentException("fra en test")
