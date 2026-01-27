@@ -15,17 +15,27 @@ interface MottakerRepo {
     fun slettMottaker(mottakerId: UUID, dokumentId: UUID)
 }
 
-class MottakerService(
-    private val mottakerRepo: MottakerRepo,
-) {
-
-    fun hentMottaker(
+interface MottakerService {
+    fun hentMottaker(dokumentId: UUID, sessionContext: SessionContext? = null): MottakerDomain?
+    fun lagreMottaker(mottaker: Mottaker, dokumentId: UUID)
+    fun oppdaterMottaker(mottaker: Mottaker, dokumentId: UUID)
+    fun slettMottaker(
+        mottakerId: UUID,
         dokumentId: UUID,
-        sessionContext: SessionContext? = null,
+    )
+}
+
+class MottakerServiceImpl(
+    private val mottakerRepo: MottakerRepo,
+) : MottakerService {
+    // TODO: Mangler validring her på CRUD operasjoner om tilknyttet dokument eller behandling kan endres på, viktig for å sikre at mottaker blir lagret til ettertiden
+    override fun hentMottaker(
+        dokumentId: UUID,
+        sessionContext: SessionContext?,
     ): MottakerDomain? =
         mottakerRepo.hentMottaker(dokumentId, sessionContext)
 
-    fun lagreMottaker(
+    override fun lagreMottaker(
         mottaker: Mottaker,
         dokumentId: UUID,
     ) {
@@ -33,7 +43,7 @@ class MottakerService(
         mottakerRepo.lagreMottaker(mottakerValidert, dokumentId)
     }
 
-    fun oppdaterMottaker(
+    override fun oppdaterMottaker(
         mottaker: Mottaker,
         dokumentId: UUID,
     ) {
@@ -42,7 +52,7 @@ class MottakerService(
         mottakerRepo.oppdaterMottaker(mottakerValidert, dokumentId)
     }
 
-    fun slettMottaker(
+    override fun slettMottaker(
         mottakerId: UUID,
         dokumentId: UUID,
     ) {
@@ -92,7 +102,7 @@ data class MottakerDomain(
 )
 
 data class Adresse(
-    val adresseType: String, // TODO: må være PDL type?
+    val adresseType: String, // TODO: må være PDL type? se PdlAdresseformat
     val adresselinje1: String? = null,
     val adresselinje2: String? = null,
     val adresselinje3: String? = null,
