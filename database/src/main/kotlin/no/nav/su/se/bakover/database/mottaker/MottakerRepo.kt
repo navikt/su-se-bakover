@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import java.util.UUID
 
+// TODO: tester for disse
 data class MottakerRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
@@ -36,10 +37,6 @@ data class MottakerRepo(
                 """
                     insert into mottaker (id, navn, foedselsnummer, adresse, dokument_id)
                     values (:id, :navn, :foedselsnummer, :adresse::jsonb, :dokument_id)
-                    on conflict (dokument_id) do update
-                    set navn = :navn,
-                        foedselsnummer = :foedselsnummer,
-                        adresse = :adresse::jsonb
                 """.trimIndent().insert(
                     mapOf(
                         "id" to mottaker.id,

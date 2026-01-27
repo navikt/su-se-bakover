@@ -6,6 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 interface MottakerRepo {
@@ -28,6 +30,8 @@ interface MottakerService {
 class MottakerServiceImpl(
     private val mottakerRepo: MottakerRepo,
 ) : MottakerService {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
     // TODO: Mangler validring her på CRUD operasjoner om tilknyttet dokument eller behandling kan endres på, viktig for å sikre at mottaker blir lagret til ettertiden
     override fun hentMottaker(
         dokumentId: UUID,
@@ -40,6 +44,7 @@ class MottakerServiceImpl(
         dokumentId: UUID,
     ) {
         val mottakerValidert = mottaker.toDomain().getOrElse { return }
+        // TODO: sjekke at det ikke finnes en på dokumentet allerede
         mottakerRepo.lagreMottaker(mottakerValidert, dokumentId)
     }
 
@@ -56,7 +61,13 @@ class MottakerServiceImpl(
         mottakerId: UUID,
         dokumentId: UUID,
     ) {
-        mottakerRepo.slettMottaker(mottakerId, dokumentId)
+        val mottaker = mottakerRepo.hentMottaker(dokumentId)
+        if (mottaker == null) {
+            log.info("Fant ikke mottaker for dokumentId=$dokumentId ingenting å slette")
+            return
+        } else {
+            mottakerRepo.slettMottaker(mottakerId, dokumentId)
+        }
     }
 }
 
