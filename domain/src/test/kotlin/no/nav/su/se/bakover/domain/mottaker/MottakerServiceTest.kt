@@ -147,6 +147,50 @@ internal class MottakerServiceTest {
     }
 
     @Test
+    fun `Kan lagre mottaker for revurdering og oppdaterer da brevet ikke er sendt aka dokument ikke finnes i dokubase`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForRevurdering(referanseId) } doReturn emptyList()
+        }
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo)
+        val mottaker = Mottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = Distribueringsadresse(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            sakId = sakId.toString(),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            id = UUID.randomUUID().toString(),
+        )
+
+        service.lagreMottaker(
+            mottaker = mottaker,
+            sakId = sakId,
+        ).shouldBeRight()
+        val mottakerDomain = mottaker.toDomain().getOrElse { throw IllegalStateException("Skal ikke feile") }
+        verify(mottakerRepo, times(1)).lagreMottaker(mottakerDomain)
+
+        val nyttnavnForOppdatering = "Nytt navn"
+        service.oppdaterMottaker(
+            mottaker.copy(navn = nyttnavnForOppdatering),
+            sakId,
+        ).shouldBeRight()
+        verify(mottakerRepo, times(1)).oppdaterMottaker(mottakerDomain.copy(navn = nyttnavnForOppdatering))
+        verify(dokumentRepo, times(2)).hentForRevurdering(referanseId)
+
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo)
+    }
+
+    @Test
     fun `Kan lagre mottaker for revurdering selvom brev av annen type enn vedtak finnes på revurderingen`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
