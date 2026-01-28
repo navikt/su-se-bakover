@@ -113,12 +113,22 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return alle().map { it.saksnummer }.toSet().minus(prosessert())
     }
 
-    private fun skalSendePåminnelse(sak: Sak, person: Person): Boolean {
+    fun skalSendePåminnelse(sak: Sak, person: Person, clock: Clock): Boolean {
         if (person.erDød()) {
             log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
             return false
         }
-        return sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
+
+        val februar = YearMonth.of(2026, 2)
+        val nå = YearMonth.now(clock)
+        // TODO kun siste skal gjelde etter februar og kan fjernes i mars
+        return if (nå < februar) {
+            sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
+        } else if (nå == februar) {
+            sak.ytelseUtløperVedUtløpAv(id().tilPeriode()) || sak.ytelseUtløperMånedEtter(id().yearMonth)
+        } else {
+            sak.ytelseUtløperMånedEtter(id().yearMonth)
+        }
     }
 
     fun håndter(
@@ -133,11 +143,15 @@ data class SendPåminnelseNyStønadsperiodeContext(
         val person = hentPerson(sak.fnr).getOrElse {
             return KunneIkkeSendePåminnelse.FantIkkePerson.left()
         }
-        return if (skalSendePåminnelse(sak, person)) {
+
+        return if (skalSendePåminnelse(sak, person, clock)) {
+            val sisteVedtak = sak.vedtakstidslinje()?.lastOrNull()
+                ?: return KunneIkkeSendePåminnelse.FantIkkeVedtak.left()
+
             val dokumentCommand = PåminnelseNyStønadsperiodeDokumentCommand.ny(
                 sak,
                 person,
-                id().yearMonth.atEndOfMonth(),
+                sisteVedtak.periode.tilOgMed,
             ).getOrElse {
                 return it.left()
             }
@@ -178,5 +192,6 @@ data class SendPåminnelseNyStønadsperiodeContext(
         data object FantIkkePerson : KunneIkkeSendePåminnelse
         data object PersonManglerFødselsdato : KunneIkkeSendePåminnelse
         data object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
+        data object FantIkkeVedtak : KunneIkkeSendePåminnelse
     }
 }
