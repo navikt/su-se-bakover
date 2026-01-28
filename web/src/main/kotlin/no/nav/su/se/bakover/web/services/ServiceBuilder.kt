@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
+import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
@@ -361,6 +362,7 @@ data object ServiceBuilder {
             sakstatistikkBigQueryService = sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
+            mottakerService = MottakerServiceImpl(databaseRepos.mottakerRepo, dokumentRepo = databaseRepos.dokumentRepo),
         )
     }
 }

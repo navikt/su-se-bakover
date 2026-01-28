@@ -71,6 +71,11 @@ import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
+import no.nav.su.se.bakover.domain.mottaker.Mottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -1500,6 +1505,26 @@ open class AccessCheckProxy(
             søknadStatistikkService = object : SøknadStatistikkService {
                 override fun hentogSendSøknadStatistikkTilBigquery() {
                     services.søknadStatistikkService.hentogSendSøknadStatistikkTilBigquery()
+                }
+            },
+            mottakerService = object : MottakerService {
+                override fun hentMottaker(
+                    mottakerIdentifikator: MottakerIdentifikator,
+                    sessionContext: SessionContext?,
+                ): MottakerDomain? {
+                    TODO("Not yet implemented")
+                }
+
+                override fun lagreMottaker(mottaker: Mottaker): Either<FeilkoderMottaker, Unit> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun oppdaterMottaker(mottaker: Mottaker): Either<FeilkoderMottaker, Unit> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator) {
+                    TODO("Not yet implemented")
                 }
             },
         )

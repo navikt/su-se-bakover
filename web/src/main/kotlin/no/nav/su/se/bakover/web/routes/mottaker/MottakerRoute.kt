@@ -20,7 +20,7 @@ internal const val MOTTAKER_PATH = "/mottaker"
 internal fun Route.mottakerRoutes(
     mottakerService: MottakerService,
 ) {
-    // TODO: mulig alle disse burde ha sakid som prefiks for å sjekke tilgang etc?
+    // TODO: mulig alle disse burde ha sakid som prefiks for å sjekke tilgang etc? burde vel skje i service wrapper?
     route(MOTTAKER_PATH) {
         get("/{referanseType}/{referanseId}") {
             val referanseType = call.parameters["referanseType"]

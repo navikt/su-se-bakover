@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRe
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
+import no.nav.su.se.bakover.database.mottaker.MottakerRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
@@ -351,6 +352,7 @@ data object DatabaseBuilder {
             ),
             fritekstAvslagRepo = FritekstAvslagRepoImpl(sessionFactory = sessionFactory),
             søknadStatistikkRepo = SøknadStatistikkRepoImpl(sessionFactory = sessionFactory),
+            mottakerRepo = MottakerRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
         )
     }
 }

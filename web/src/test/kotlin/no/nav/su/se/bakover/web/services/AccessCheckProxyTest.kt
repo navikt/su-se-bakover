@@ -60,6 +60,7 @@ internal class AccessCheckProxyTest {
         sakstatistikkBigQueryService = mock(),
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),
+        mottakerService = mock(),
     )
 
     @Nested

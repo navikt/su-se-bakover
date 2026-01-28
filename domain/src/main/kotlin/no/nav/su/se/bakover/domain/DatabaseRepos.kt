@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
+import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -57,4 +58,5 @@ data class DatabaseRepos(
     val fritekstRepo: FritekstRepo,
     val fritekstAvslagRepo: FritekstAvslagRepo,
     val søknadStatistikkRepo: SøknadStatistikkRepo,
+    val mottakerRepo: MottakerRepo,
 )
