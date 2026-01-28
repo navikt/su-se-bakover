@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -63,4 +64,5 @@ data class Services(
     val pesysJobService: PesysJobService,
     val fritekstAvslagService: FritekstAvslagService,
     val søknadStatistikkService: SøknadStatistikkService,
+    val kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
 )

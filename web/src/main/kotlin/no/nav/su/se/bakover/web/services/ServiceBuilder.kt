@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
+import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
@@ -361,6 +362,10 @@ data object ServiceBuilder {
             sakstatistikkBigQueryService = sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
+            kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
+                kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
+                utbetalingsRepo = databaseRepos.utbetaling,
+            ),
         )
     }
 }
