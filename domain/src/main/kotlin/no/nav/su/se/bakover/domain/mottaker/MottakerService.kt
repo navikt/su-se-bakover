@@ -58,7 +58,8 @@ class MottakerServiceImpl(
             ReferanseType.VEDTAK ->
                 dokumentRepo.hentForVedtak(mottaker.referanseId)
 
-            // De andre typene støtter ikke flere mottakere og kan ha flere per revurderingid som ødelegger bindingen mot mottakertabellen siden man ikke har noen unik id å knytte det mot
+            // De andre typene støtter ikke flere mottakere og kan ha flere per revurderingid som ødelegger bindingen mot mottakertabellen siden man ikke har noen unik id å knytte det mot.
+            // Du kan til og med ha flere av samme typen per revurdering så her må man tilpasse om det skal støttes.
             ReferanseType.REVURDERING -> dokumentRepo.hentForRevurdering(mottaker.referanseId)
                 .filter { it is Dokument.MedMetadata.Vedtak }
 
