@@ -28,6 +28,7 @@ interface MottakerService {
 
 sealed interface FeilkoderMottaker {
     data object KanIkkeLagreMottaker : FeilkoderMottaker
+    data object KanIkkeOppdatereMottaker : FeilkoderMottaker
     data object BrevFinnesIDokumentBasen : FeilkoderMottaker
     data class UgyldigMottakerRequest(val feil: List<String>) : FeilkoderMottaker
 }
@@ -96,7 +97,7 @@ class MottakerServiceImpl(
         return if (kanEndre) {
             mottakerRepo.oppdaterMottaker(mottakerValidert).right()
         } else {
-            FeilkoderMottaker.KanIkkeLagreMottaker.left()
+            FeilkoderMottaker.KanIkkeOppdatereMottaker.left()
         }
     }
 
