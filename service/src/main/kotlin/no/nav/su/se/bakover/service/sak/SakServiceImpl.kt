@@ -154,7 +154,7 @@ class SakServiceImpl(
         val sak = sakRepo.hentSak(request.sakId)
             ?: throw IllegalStateException("Fant ikke sak ved opprettFritekstDokument. sakid ${request.sakId}")
 
-        return brevService.lagDokumentPdf(
+        return brevService.lagDokument(
             FritekstDokumentCommand(
                 fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,

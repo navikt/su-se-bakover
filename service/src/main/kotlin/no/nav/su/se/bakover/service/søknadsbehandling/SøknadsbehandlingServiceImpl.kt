@@ -480,7 +480,7 @@ class SøknadsbehandlingServiceImpl(
             command = command,
             fritekst = fritekst,
             hentSøknadsbehandling = søknadsbehandlingRepo::hent,
-            lagDokument = brevService::lagDokumentPdf,
+            lagDokument = brevService::lagDokument,
             satsFactory = satsFactory,
         )
     }

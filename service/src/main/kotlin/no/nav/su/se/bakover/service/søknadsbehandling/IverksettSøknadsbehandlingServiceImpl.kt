@@ -58,7 +58,7 @@ class IverksettSøknadsbehandlingServiceImpl(
         return sakService.hentSakForSøknadsbehandling(command.behandlingId)
             .iverksettSøknadsbehandling(
                 command = command,
-                genererPdf = brevService::lagDokumentPdf,
+                genererPdf = brevService::lagDokument,
                 clock = clock,
                 simulerUtbetaling = utbetalingService::simulerUtbetaling,
                 satsFactory = satsFactory,

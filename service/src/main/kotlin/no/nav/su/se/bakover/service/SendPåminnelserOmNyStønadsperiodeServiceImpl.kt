@@ -42,7 +42,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                         clock = clock,
                         sessionFactory = sessionFactory,
                         lagDokument = { command ->
-                            brevService.lagDokumentPdf(command = command)
+                            brevService.lagDokument(command = command)
                                 .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev }
                         },
                         lagreDokument = { dokument, tx ->

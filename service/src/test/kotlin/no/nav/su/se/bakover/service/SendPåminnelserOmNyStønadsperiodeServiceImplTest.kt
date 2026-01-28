@@ -93,7 +93,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
                     KunneIkkeLageDokument.FeilVedGenereringAvPdf.left(),
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
@@ -141,7 +141,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
 
             val captor = argumentCaptor<GenererDokumentCommand>()
-            verify(serviceAndMocks.brevService, times(2)).lagDokumentPdf(captor.capture(), anyOrNull())
+            verify(serviceAndMocks.brevService, times(2)).lagDokument(captor.capture(), anyOrNull())
 
             captor.lastValue shouldBe PåminnelseNyStønadsperiodeDokumentCommand(
                 saksnummer = Saksnummer(3001),
@@ -195,7 +195,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
@@ -317,7 +317,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
+                on { lagDokument(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),

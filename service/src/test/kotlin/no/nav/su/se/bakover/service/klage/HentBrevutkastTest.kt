@@ -101,7 +101,7 @@ internal class HentBrevutkastTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
         mocks.service.brevutkast(
@@ -112,7 +112,7 @@ internal class HentBrevutkastTest {
             KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
         ).left()
 
-        verify(mocks.brevServiceMock).lagDokumentPdf(any(), anyOrNull())
+        verify(mocks.brevServiceMock).lagDokument(any(), anyOrNull())
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -131,7 +131,7 @@ internal class HentBrevutkastTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         )
 
@@ -143,7 +143,7 @@ internal class HentBrevutkastTest {
             KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
         ).left()
 
-        verify(mocks.brevServiceMock).lagDokumentPdf(any(), anyOrNull())
+        verify(mocks.brevServiceMock).lagDokument(any(), anyOrNull())
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -163,7 +163,7 @@ internal class HentBrevutkastTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         )
 
@@ -175,7 +175,7 @@ internal class HentBrevutkastTest {
 
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.brevServiceMock).lagDokumentPdf(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     fødselsnummer = sak.fnr,
@@ -209,7 +209,7 @@ internal class HentBrevutkastTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
                     tittel = "test-dokument-informasjon-annet",
                 ).right()
@@ -220,7 +220,7 @@ internal class HentBrevutkastTest {
 
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.brevServiceMock).lagDokumentPdf(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     sakstype = Sakstype.UFØRE,
@@ -252,7 +252,7 @@ internal class HentBrevutkastTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
                     tittel = "test-dokument-informasjon-annet",
                 ).right()
@@ -263,7 +263,7 @@ internal class HentBrevutkastTest {
 
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
-        verify(mocks.brevServiceMock).lagDokumentPdf(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
                     sakstype = Sakstype.UFØRE,
@@ -446,7 +446,7 @@ internal class HentBrevutkastTest {
             },
 
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonAnnet(
                     pdf = pdfAsBytes,
                     tittel = "test-dokument-informasjon-annet",
                 ).right()
@@ -459,7 +459,7 @@ internal class HentBrevutkastTest {
         if (brevRequest is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring) {
             verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         }
-        verify(mocks.brevServiceMock).lagDokumentPdf(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe when (brevRequest) {
                     is KlageDokumentCommand.Avvist -> KlageDokumentCommand.Avvist(

@@ -746,7 +746,7 @@ class RevurderingServiceImpl(
         ).mapLeft {
             KunneIkkeForhåndsvarsle.UgyldigTilstand
         }.flatMap { brevCommand ->
-            brevService.lagDokumentPdf(brevCommand).mapLeft {
+            brevService.lagDokument(brevCommand).mapLeft {
                 KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(it)
             }
         }.flatMap { dokumentUtenMetadata ->
@@ -819,7 +819,7 @@ class RevurderingServiceImpl(
             ).mapLeft {
                 KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
             }.flatMap {
-                brevService.lagDokumentPdf(it).mapLeft {
+                brevService.lagDokument(it).mapLeft {
                     KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
                 }.map { it.generertDokument }
             }
@@ -973,7 +973,7 @@ class RevurderingServiceImpl(
         ).map { it.fritekst }.getOrElse { "" }
         return hent(revurderingId).mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
             .flatMap { revurdering ->
-                brevService.lagDokumentPdf(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock, fritekst = fritekst))
+                brevService.lagDokument(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock, fritekst = fritekst))
                     .mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
                     }.map { it.generertDokument }
@@ -1137,7 +1137,7 @@ class RevurderingServiceImpl(
                 referanseId = revurdering.id.value,
                 type = FritekstType.VEDTAKSBREV_REVURDERING,
             ).map { it.fritekst }.getOrElse { "" }
-            brevService.lagDokumentPdf(
+            brevService.lagDokument(
                 avsluttetRevurdering.lagDokumentKommando(
                     satsFactory = satsFactory,
                     clock = clock,
@@ -1214,7 +1214,7 @@ class RevurderingServiceImpl(
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeAvslutteRevurdering(it).left()
         }
 
-        return brevService.lagDokumentPdf(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock, fritekst)).mapLeft {
+        return brevService.lagDokument(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock, fritekst)).mapLeft {
             KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageDokument(it)
         }.map {
             Pair(avsluttetRevurdering.fnr, it.generertDokument)

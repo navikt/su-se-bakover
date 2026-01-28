@@ -87,7 +87,7 @@ internal class BrevServiceImplTest {
             personService = personServiceMock,
             identClient = identClientMock,
         )
-        val actual = serviceOgMocks.brevService.lagDokumentPdf(dokumentCommand)
+        val actual = serviceOgMocks.brevService.lagDokument(dokumentCommand)
             .getOrFail() as Dokument.UtenMetadata.Informasjon.Annet
         actual.generertDokument shouldBe pdf
         actual.tittel shouldBe dokumentCommand.brevTittel
@@ -145,7 +145,7 @@ internal class BrevServiceImplTest {
             personService = personServiceMock,
             identClient = identClientMock,
         ).let {
-            it.brevService.lagDokumentPdf(dokumentCommand) shouldBe KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+            it.brevService.lagDokument(dokumentCommand) shouldBe KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             // Disse testes i happy case
             verify(pdfGeneratorMock).genererPdf(any<PdfInnhold>())
             verify(personServiceMock).hentPersonMedSystembruker(any())
@@ -215,7 +215,7 @@ internal class BrevServiceImplTest {
         ServiceOgMocks(
             personService = personServiceMock,
         ).let {
-            it.brevService.lagDokumentPdf(
+            it.brevService.lagDokument(
                 vedtak.behandling.lagBrevCommand(
                     satsFactory = satsFactoryTestPåDato(),
                     fritekst = "",
@@ -239,7 +239,7 @@ internal class BrevServiceImplTest {
             personService = personServiceMock,
             identClient = microsoftGraphApiOppslagMock,
         ).let {
-            it.brevService.lagDokumentPdf(
+            it.brevService.lagDokument(
                 vedtak.behandling.lagBrevCommand(
                     satsFactory = satsFactoryTestPåDato(),
                     fritekst = "",

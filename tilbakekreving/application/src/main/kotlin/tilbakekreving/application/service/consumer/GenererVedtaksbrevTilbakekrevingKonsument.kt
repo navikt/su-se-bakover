@@ -152,7 +152,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
         )
 
-        val dokument = brevService.lagDokumentPdf(command = command)
+        val dokument = brevService.lagDokument(command = command)
             .getOrElse { return it.left() }
             .leggTilMetadata(
                 // TODO: hvorfor knyttes det mot vedtak og tilbakekrevingsbehandlingen?

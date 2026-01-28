@@ -243,7 +243,7 @@ internal class IverksettAvvistKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             brevServiceMock = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
+                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -272,7 +272,7 @@ internal class IverksettAvvistKlageTest {
         actual shouldBe expected
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.brevServiceMock).lagDokumentPdf(
+        verify(mocks.brevServiceMock).lagDokument(
             argThat {
                 it shouldBe KlageDokumentCommand.Avvist(
                     fødselsnummer = klage.fnr,

@@ -202,7 +202,7 @@ internal class SakServiceImplTest {
         }
         val brevService = mock<BrevService> {
             on {
-                lagDokumentPdf(
+                lagDokument(
                     any<GenererDokumentCommand>(),
                     anyOrNull(),
                 )
@@ -231,7 +231,7 @@ internal class SakServiceImplTest {
         val expectedGenerertDokument = dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet")
         val brevService = mock<BrevService> {
             on {
-                lagDokumentPdf(
+                lagDokument(
                     any<GenererDokumentCommand>(),
                     anyOrNull(),
                 )
@@ -264,7 +264,7 @@ internal class SakServiceImplTest {
             ).getOrFail()
 
         verify(sakRepo).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(brevService).lagDokumentPdf(
+        verify(brevService).lagDokument(
             argThat {
                 it shouldBe FritekstDokumentCommand(
                     fødselsnummer = sak.fnr,

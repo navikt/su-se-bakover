@@ -9,7 +9,7 @@ import java.util.UUID
 
 interface BrevService {
 
-    fun lagDokumentPdf(
+    fun lagDokument(
         command: GenererDokumentCommand,
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>

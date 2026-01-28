@@ -73,7 +73,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
             satsoversikt = null,
             sakstype = sak.type,
         )
-        return brevService.lagDokumentPdf(dok).map { Pair(sak.fnr, it.generertDokument) }
+        return brevService.lagDokument(dok).map { Pair(sak.fnr, it.generertDokument) }
     }
 
     private fun lagAvslag(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
@@ -84,7 +84,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
             satsFactory = satsFactory,
             formuegrenserFactory = formuegrenserFactory,
-            genererPdf = brevService::lagDokumentPdf,
+            genererPdf = brevService::lagDokument,
             simulerUtbetaling = utbetalingService::simulerUtbetaling,
             lukkOppgave = {
                 oppgaveService.lukkOppgave(
