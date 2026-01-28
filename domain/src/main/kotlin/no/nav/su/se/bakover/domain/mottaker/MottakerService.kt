@@ -38,7 +38,6 @@ class MottakerServiceImpl(
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    // TODO: Mangler validring her på CRUD operasjoner om tilknyttet dokument eller behandling kan endres på, viktig for å sikre at mottaker blir lagret til ettertiden
     /**
      * Alle dokumenter som kun har sakid men ingen annen id kan ikke ha flere mottakere da de er "automatiske"
      * Eller manuelle brev som er opprettet direkte på saken uten annen tilknytning og kan ikke unikt identifiseres

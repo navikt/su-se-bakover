@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import no.nav.su.se.bakover.domain.mottaker.ReferanseType
 import java.util.UUID
 
-// TODO: tester for disse
 data class MottakerRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
