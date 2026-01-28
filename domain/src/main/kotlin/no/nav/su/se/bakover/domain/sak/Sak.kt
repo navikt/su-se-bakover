@@ -307,7 +307,7 @@ data class Sak(
         } ?: false
     }
 
-    fun ytelseUtløperVedUtløpAvMånedEtter(måned: YearMonth): Boolean {
+    fun ytelseUtløperMånedEtter(måned: YearMonth): Boolean {
         return vedtakstidslinje()?.lastOrNull()?.let {
             !it.erOpphør() && it.periode slutterSamtidig måned.plusMonths(1).tilMåned()
         } ?: false

@@ -125,9 +125,9 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return if (nå < februar) {
             sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
         } else if (nå == februar) {
-            sak.ytelseUtløperVedUtløpAv(id().tilPeriode()) || sak.ytelseUtløperVedUtløpAvMånedEtter(id().yearMonth)
+            sak.ytelseUtløperVedUtløpAv(id().tilPeriode()) || sak.ytelseUtløperMånedEtter(id().yearMonth)
         } else {
-            sak.ytelseUtløperVedUtløpAvMånedEtter(id().yearMonth)
+            sak.ytelseUtløperMånedEtter(id().yearMonth)
         }
     }
 
