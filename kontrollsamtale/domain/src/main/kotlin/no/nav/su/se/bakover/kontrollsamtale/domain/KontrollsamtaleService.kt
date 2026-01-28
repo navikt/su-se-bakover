@@ -52,6 +52,4 @@ interface KontrollsamtaleService {
         command: OppdaterStatusPåKontrollsamtaleCommand,
         sessionContext: SessionContext? = null,
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale>
-
-    fun hentInnkalteKontrollsamtaleForDrift(fristPåDato: LocalDate): List<Kontrollsamtale>
 }

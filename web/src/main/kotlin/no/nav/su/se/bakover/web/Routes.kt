@@ -93,7 +93,7 @@ internal fun Application.setupKtorRoutes(
                         resendStatistikkhendelserService = accessProtectedServices.resendStatistikkhendelserService,
                         ferdigstillVedtakService = accessProtectedServices.ferdigstillVedtak,
                         personhendelseService = accessProtectedServices.personhendelseService,
-                        kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
+                        kontrollsamtaleDriftOversiktService = accessProtectedServices.kontrollsamtaleDriftOversiktService,
                     )
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,

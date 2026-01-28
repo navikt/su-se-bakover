@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -23,7 +23,7 @@ internal fun Route.driftRoutes(
     resendStatistikkhendelserService: ResendStatistikkhendelserService,
     ferdigstillVedtakService: FerdigstillVedtakService,
     personhendelseService: PersonhendelseService,
-    kontrollsamtaleService: KontrollsamtaleService,
+    kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
         authorize(Brukerrolle.Drift) {
@@ -43,5 +43,5 @@ internal fun Route.driftRoutes(
     ferdigstillVedtakRoutes(ferdigstillVedtakService)
     innlesingPersonhendelserFraFilRoute(personhendelseService)
 
-    kontrollsamtalerDriftRoute(kontrollsamtaleService)
+    kontrollsamtalerDriftRoute(kontrollsamtaleDriftOversiktService)
 }

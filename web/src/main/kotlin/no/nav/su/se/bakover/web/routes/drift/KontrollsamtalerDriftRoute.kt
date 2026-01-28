@@ -8,40 +8,15 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
-import java.time.LocalDate
-import java.time.YearMonth
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
 
 internal fun Route.kontrollsamtalerDriftRoute(
-    service: KontrollsamtaleService,
+    service: KontrollsamtaleDriftOversiktService,
 ) {
     get("$DRIFT_PATH/kontrollsamtaler") {
         authorize(Brukerrolle.Drift) {
-            val nå = YearMonth.now().atEndOfMonth()
-            val nesteMåned = nå.plusMonths(1)
-            val innkalliger = service.hentInnkalteKontrollsamtaleForDrift(nesteMåned)
-            val antall = KontrollsamtaleDrift(
-                listOf(
-                    innkalliger.antallPerFrist(nå),
-                    innkalliger.antallPerFrist(nesteMåned),
-                ),
-            )
-            call.svar(Resultat.json(HttpStatusCode.OK, serialize(antall)))
+            val result = service.hentKontrollsamtaleOversikt()
+            call.svar(Resultat.json(HttpStatusCode.OK, serialize(result)))
         }
     }
 }
-
-data class KontrollsamtaleDrift(
-    val kontrollsamtaleAntall: List<KontrollsamtaleAntall>,
-)
-
-data class KontrollsamtaleAntall(
-    val frist: LocalDate,
-    val antall: Int,
-)
-
-fun List<Kontrollsamtale>.antallPerFrist(frist: LocalDate) = KontrollsamtaleAntall(
-    frist = frist,
-    antall = filter { it.frist == frist }.size,
-)

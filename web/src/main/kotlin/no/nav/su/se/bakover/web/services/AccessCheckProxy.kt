@@ -198,6 +198,8 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
@@ -1420,10 +1422,6 @@ open class AccessCheckProxy(
 
                     override fun hentFristUtløptFørEllerPåDato(fristFørEllerPåDato: LocalDate) =
                         kastKanKunKallesFraAnnenService()
-
-                    override fun hentInnkalteKontrollsamtaleForDrift(fristPåDato: LocalDate): List<Kontrollsamtale> {
-                        return service.hentInnkalteKontrollsamtaleForDrift(fristPåDato)
-                    }
                 }
 
                 override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService
@@ -1543,6 +1541,9 @@ open class AccessCheckProxy(
                 ): Either<FeilkoderMottaker, Unit> {
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.slettMottaker(mottakerIdentifikator, sakId)
+            kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
+                override fun hentKontrollsamtaleOversikt(): KontrollsamtaleDriftOversikt {
+                    return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt()
                 }
             },
         )
