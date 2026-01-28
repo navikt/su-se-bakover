@@ -22,13 +22,13 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         val nesteMåned = nå.plusMonths(1)
         val innkalliger = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(nesteMåned)
 
-        val innkallingerSomUtløperDenneMåneden = innkalliger.antallPerFrist(nå)
+        val innkallingerSomUtløperDenneMåneden = innkalliger.fristSammeMånedSom(nå)
         val sakerMedStansDenneMåneden = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(innkallingerSomUtløperDenneMåneden)
 
         return KontrollsamtaleDriftOversikt(
             nesteMåned = KontrollsamtaleMånedOversikt(
                 frist = nesteMåned,
-                antallInnkallinger = innkalliger.antallPerFrist(nesteMåned).size,
+                antallInnkallinger = innkalliger.fristSammeMånedSom(nesteMåned).size,
                 sakerMedStans = emptyList(),
             ),
             inneværendeMåned = KontrollsamtaleMånedOversikt(
@@ -47,4 +47,4 @@ class KontrollsamtaleDriftOversiktServiceImpl(
     }
 }
 
-fun List<Kontrollsamtale>.antallPerFrist(frist: LocalDate) = filter { it.frist == frist }
+fun List<Kontrollsamtale>.fristSammeMånedSom(frist: LocalDate) = filter { it.frist.month == frist.month }
