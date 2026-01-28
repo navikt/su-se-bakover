@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.util.UUID
 
 interface BrevService {
-
+    // TODO: endre navn på denne til lagDokumentPdf
     fun lagDokument(
         command: GenererDokumentCommand,
         id: UUID = UUID.randomUUID(),

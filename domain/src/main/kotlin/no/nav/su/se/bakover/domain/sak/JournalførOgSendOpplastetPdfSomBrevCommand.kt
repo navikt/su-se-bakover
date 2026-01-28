@@ -31,7 +31,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
                 ),
-                metadata = Dokument.Metadata(sakId = this.sakId),
+                metadata = Dokument.Metadata(sakId = this.sakId), // Dette er dust for da kan jeg ikke vite hvilket dokument
                 distribueringsadresse = this.distribueringsadresse,
             )
 

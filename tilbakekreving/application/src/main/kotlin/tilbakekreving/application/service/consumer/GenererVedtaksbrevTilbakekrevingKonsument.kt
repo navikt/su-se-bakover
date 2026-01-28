@@ -155,6 +155,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
         val dokument = brevService.lagDokument(command = command)
             .getOrElse { return it.left() }
             .leggTilMetadata(
+                // TODO: hvorfor knyttes det mot vedtak og tilbakekrevingsbehandlingen?
                 Dokument.Metadata(
                     sakId = sakInfo.sakId,
                     vedtakId = iverksattHendelse.vedtakId,
