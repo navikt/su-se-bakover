@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
-import no.nav.su.se.bakover.domain.mottaker.ReferanseType
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import java.util.UUID
 
-data class MottakerRepo(
+data class MottakerRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : MottakerRepo {
@@ -137,7 +137,7 @@ data class MottakerRepo(
             adresse = deserialize(row.string("adresse")),
             sakId = row.uuid("sakid"),
             referanseId = row.uuid("referanse_id"),
-            referanseType = ReferanseType.valueOf(row.string("referanse_type")),
+            referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
             dokumentId = row.uuidOrNull("dokument_id"),
         )
 }

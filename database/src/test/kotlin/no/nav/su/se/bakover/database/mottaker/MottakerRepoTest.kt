@@ -4,7 +4,7 @@ import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
-import no.nav.su.se.bakover.domain.mottaker.ReferanseType
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -21,7 +21,7 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.mottakerRepo
         val referanseId = UUID.randomUUID()
-        val referanseType = ReferanseType.REVURDERING
+        val referanseType = ReferanseTypeMottaker.REVURDERING
         val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
 
         val mottaker = MottakerDomain(

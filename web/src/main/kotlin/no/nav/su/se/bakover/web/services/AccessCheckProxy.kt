@@ -1535,7 +1535,7 @@ open class AccessCheckProxy(
                 override fun slettMottaker(
                     mottakerIdentifikator: MottakerIdentifikator,
                     sakId: UUID,
-                ) {
+                ): Either<FeilkoderMottaker, Unit> {
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.slettMottaker(mottakerIdentifikator, sakId)
                 }

@@ -23,7 +23,7 @@ interface MottakerService {
     fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): MottakerDomain?
     fun lagreMottaker(mottaker: Mottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
     fun oppdaterMottaker(mottaker: Mottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
-    fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID)
+    fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, Unit>
 }
 
 sealed interface FeilkoderMottaker {
@@ -41,7 +41,7 @@ class MottakerServiceImpl(
     /**
      * Alle dokumenter som kun har sakid men ingen annen id kan ikke ha flere mottakere da de er "automatiske"
      * Eller manuelle brev som er opprettet direkte på saken uten annen tilknytning og kan ikke unikt identifiseres
-     * hvis vi skal støtte frie brev med flere mottakere mot man som feks [lagreOgSendOpplastetPdfPåSak] må man ha en ekstra referanseid på dem
+     * hvis vi skal støtte frie brev med flere mottakere mot som feks [lagreOgSendOpplastetPdfPåSak] må man ha en ekstra referanseid på dem
      */
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
@@ -52,18 +52,18 @@ class MottakerServiceImpl(
 
     private fun kanEndreForMottaker(mottaker: MottakerDomain): Boolean {
         val dokumenter = when (mottaker.referanseType) {
-            ReferanseType.SØKNAD ->
+            ReferanseTypeMottaker.SØKNAD ->
                 dokumentRepo.hentForSøknad(mottaker.referanseId)
 
-            ReferanseType.VEDTAK ->
+            ReferanseTypeMottaker.VEDTAK ->
                 dokumentRepo.hentForVedtak(mottaker.referanseId)
 
             // De andre typene støtter ikke flere mottakere og kan ha flere per revurderingid som ødelegger bindingen mot mottakertabellen siden man ikke har noen unik id å knytte det mot.
             // Du kan til og med ha flere av samme typen per revurdering så her må man tilpasse om det skal støttes.
-            ReferanseType.REVURDERING -> dokumentRepo.hentForRevurdering(mottaker.referanseId)
+            ReferanseTypeMottaker.REVURDERING -> dokumentRepo.hentForRevurdering(mottaker.referanseId)
                 .filter { it is Dokument.MedMetadata.Vedtak }
 
-            ReferanseType.KLAGE ->
+            ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId)
         }
 
@@ -103,21 +103,21 @@ class MottakerServiceImpl(
     override fun slettMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
-    ) {
+    ): Either<FeilkoderMottaker, Unit> {
         val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)
-        if (mottaker == null) {
+        return if (mottaker == null) {
             log.info("Fant ikke mottaker for type ${mottakerIdentifikator.referanseType} id: ${mottakerIdentifikator.referanseId} ingenting å slette")
-            return
+            return Unit.right()
         } else {
             // Kun revurderinger kan ha flere brev registrert på seg av andre typer. Fant bare [INFORMASJON_VIKTIG] -> [Dokument.MedMetadata.Informasjon.Viktig] med duplikater for revurderinger i prod
             val dokument = when (mottaker.referanseType) {
-                ReferanseType.SØKNAD ->
+                ReferanseTypeMottaker.SØKNAD ->
                     dokumentRepo.hentForSøknad(mottaker.referanseId)
 
-                ReferanseType.VEDTAK ->
+                ReferanseTypeMottaker.VEDTAK ->
                     dokumentRepo.hentForVedtak(mottaker.referanseId)
 
-                ReferanseType.REVURDERING ->
+                ReferanseTypeMottaker.REVURDERING ->
                     dokumentRepo.hentForRevurdering(mottaker.referanseId).filter {
                         when (it) {
                             is Dokument.MedMetadata.Informasjon.Annet -> false
@@ -126,15 +126,15 @@ class MottakerServiceImpl(
                         }
                     }
 
-                ReferanseType.KLAGE ->
+                ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId)
             }
             if (dokument.isNotEmpty()) {
                 log.info("Kan ikke slette mottaker da det finnes et brev for referansen")
-                FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
+                return FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
             }
             log.info("Sletter mottaker med id: ${mottaker.id} sakid ${mottaker.sakId} type ${mottaker.referanseType} id: ${mottaker.referanseId}")
-            mottakerRepo.slettMottaker(mottaker.id)
+            mottakerRepo.slettMottaker(mottaker.id).right()
         }
     }
 }
@@ -183,10 +183,10 @@ data class Mottaker(
                 navn = navn,
                 foedselsnummer = Fnr(foedselsnummer),
                 adresse = adresse,
-                dokumentId = UUID.fromString(dokumentId),
+                dokumentId = dokumentId?.let { UUID.fromString(dokumentId) },
                 sakId = UUID.fromString(sakId),
                 referanseId = UUID.fromString(referanseId),
-                referanseType = ReferanseType.valueOf(referanseType),
+                referanseType = ReferanseTypeMottaker.valueOf(referanseType),
             ).right()
         } else {
             erGyldig.left()
@@ -195,7 +195,7 @@ data class Mottaker(
 }
 
 class MottakerIdentifikator(
-    val referanseType: ReferanseType,
+    val referanseType: ReferanseTypeMottaker,
     val referanseId: UUID,
 )
 
@@ -206,11 +206,11 @@ data class MottakerDomain(
     val adresse: Distribueringsadresse, // toDokDistRequestJson + DokDistAdresseJson
     val sakId: UUID,
     val referanseId: UUID,
-    val referanseType: ReferanseType,
+    val referanseType: ReferanseTypeMottaker,
     val dokumentId: UUID? = null,
 )
 
-enum class ReferanseType {
+enum class ReferanseTypeMottaker {
     SØKNAD,
     VEDTAK,
     REVURDERING,

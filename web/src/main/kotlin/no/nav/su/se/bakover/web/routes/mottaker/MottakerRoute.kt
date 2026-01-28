@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.domain.mottaker.Mottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
-import no.nav.su.se.bakover.domain.mottaker.ReferanseType
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import java.util.UUID
 
 internal const val MOTTAKER_PATH = "/mottaker"
@@ -25,7 +25,7 @@ internal fun Route.mottakerRoutes(
         get("/{sakId}/{referanseType}/{referanseId}") {
             call.withSakId { sakId ->
                 val referanseType = call.parameters["referanseType"]
-                    ?.let { ReferanseType.valueOf(it.uppercase()) }
+                    ?.let { ReferanseTypeMottaker.valueOf(it.uppercase()) }
                     ?: return@get call.respond(HttpStatusCode.BadRequest, "Mangler referanseType")
 
                 val referanseId = call.parameters["referanseId"]
