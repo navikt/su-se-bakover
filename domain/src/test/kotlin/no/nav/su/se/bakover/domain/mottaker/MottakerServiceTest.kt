@@ -21,6 +21,39 @@ import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class MottakerServiceTest {
+
+    @Test
+    fun `Kan hente mottaker for revurdering`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottaker = Mottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = Distribueringsadresse(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            sakId = sakId.toString(),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            id = UUID.randomUUID().toString(),
+        )
+        val mident = MottakerIdentifikator(referanseId = referanseId, referanseType = ReferanseTypeMottaker.REVURDERING)
+        val mottakerSomDomain = mottaker.toDomain().getOrElse { throw IllegalStateException("Skal ikke feile") }
+        val mottakerRepo = mock<MottakerRepoImpl> {
+            on { hentMottaker(mident) } doReturn mottakerSomDomain
+        }
+        val dokumentRepo = mock<DokumentRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo)
+        val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
+        hentetMottaker shouldBe mottakerSomDomain
+        verify(mottakerRepo, times(1)).hentMottaker(mident)
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo)
+    }
+
     @Test
     fun `Kan lagre mottaker for revurdering`() {
         val sakId = UUID.randomUUID()
