@@ -1510,21 +1510,34 @@ open class AccessCheckProxy(
             mottakerService = object : MottakerService {
                 override fun hentMottaker(
                     mottakerIdentifikator: MottakerIdentifikator,
-                    sessionContext: SessionContext?,
+                    sakId: UUID,
                 ): MottakerDomain? {
-                    TODO("Not yet implemented")
+                    assertHarTilgangTilSak(sakId)
+                    return services.mottakerService.hentMottaker(mottakerIdentifikator, sakId)
                 }
 
-                override fun lagreMottaker(mottaker: Mottaker): Either<FeilkoderMottaker, Unit> {
-                    TODO("Not yet implemented")
+                override fun lagreMottaker(
+                    mottaker: Mottaker,
+                    sakId: UUID,
+                ): Either<FeilkoderMottaker, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.mottakerService.lagreMottaker(mottaker, sakId)
                 }
 
-                override fun oppdaterMottaker(mottaker: Mottaker): Either<FeilkoderMottaker, Unit> {
-                    TODO("Not yet implemented")
+                override fun oppdaterMottaker(
+                    mottaker: Mottaker,
+                    sakId: UUID,
+                ): Either<FeilkoderMottaker, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.mottakerService.oppdaterMottaker(mottaker, sakId)
                 }
 
-                override fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator) {
-                    TODO("Not yet implemented")
+                override fun slettMottaker(
+                    mottakerIdentifikator: MottakerIdentifikator,
+                    sakId: UUID,
+                ) {
+                    assertHarTilgangTilSak(sakId)
+                    return services.mottakerService.slettMottaker(mottakerIdentifikator, sakId)
                 }
             },
         )

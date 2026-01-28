@@ -6,24 +6,23 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 interface MottakerRepo {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sessionContext: SessionContext? = null): MottakerDomain?
+    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator): MottakerDomain?
     fun lagreMottaker(mottaker: MottakerDomain)
     fun oppdaterMottaker(mottaker: MottakerDomain)
     fun slettMottaker(mottakerId: UUID)
 }
 
 interface MottakerService {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sessionContext: SessionContext? = null): MottakerDomain?
-    fun lagreMottaker(mottaker: Mottaker): Either<FeilkoderMottaker, Unit>
-    fun oppdaterMottaker(mottaker: Mottaker): Either<FeilkoderMottaker, Unit>
-    fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator)
+    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): MottakerDomain?
+    fun lagreMottaker(mottaker: Mottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
+    fun oppdaterMottaker(mottaker: Mottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
+    fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID)
 }
 
 sealed interface FeilkoderMottaker {
@@ -45,13 +44,14 @@ class MottakerServiceImpl(
      */
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
-        sessionContext: SessionContext?,
+        sakId: UUID,
     ): MottakerDomain? {
-        return mottakerRepo.hentMottaker(mottakerIdentifikator, sessionContext)
+        return mottakerRepo.hentMottaker(mottakerIdentifikator)
     }
 
     override fun lagreMottaker(
         mottaker: Mottaker,
+        sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it).left()
@@ -74,6 +74,7 @@ class MottakerServiceImpl(
 
     override fun oppdaterMottaker(
         mottaker: Mottaker,
+        sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it).left()
@@ -84,6 +85,7 @@ class MottakerServiceImpl(
 
     override fun slettMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
+        sakId: UUID,
     ) {
         val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)
         if (mottaker == null) {
