@@ -39,6 +39,7 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
             referanseType = referanseType,
         )
         repo.lagreMottaker(mottaker)
+        repo.lagreMottaker(mottaker.copy(referanseId = UUID.randomUUID(), id = UUID.randomUUID())) // For å sjekke at ting går fint med en random annen ref
         val ident = MottakerIdentifikator(referanseType, referanseId)
         val hentetMottaker = repo.hentMottaker(ident)
         hentetMottaker shouldBe mottaker
