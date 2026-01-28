@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.person.Fnr
@@ -26,7 +27,8 @@ interface MottakerService {
 }
 
 sealed interface FeilkoderMottaker {
-    data object KanIkkeLagerMottaker : FeilkoderMottaker
+    data object KanIkkeLagreMottaker : FeilkoderMottaker
+    data object BrevFinnesIDokumentBasen : FeilkoderMottaker
     data class UgyldigMottakerRequest(val feil: List<String>) : FeilkoderMottaker
 }
 
@@ -49,6 +51,25 @@ class MottakerServiceImpl(
         return mottakerRepo.hentMottaker(mottakerIdentifikator)
     }
 
+    private fun kanEndreForMottaker(mottaker: MottakerDomain): Boolean {
+        val dokumenter = when (mottaker.referanseType) {
+            ReferanseType.SØKNAD ->
+                dokumentRepo.hentForSøknad(mottaker.referanseId)
+
+            ReferanseType.VEDTAK ->
+                dokumentRepo.hentForVedtak(mottaker.referanseId)
+
+            // De andre typene støtter ikke flere mottakere og kan ha flere per revurderingid som ødelegger bindingen mot mottakertabellen siden man ikke har noen unik id å knytte det mot
+            ReferanseType.REVURDERING -> dokumentRepo.hentForRevurdering(mottaker.referanseId)
+                .filter { it is Dokument.MedMetadata.Vedtak }
+
+            ReferanseType.KLAGE ->
+                dokumentRepo.hentForKlage(mottaker.referanseId)
+        }
+
+        return dokumenter.isEmpty()
+    }
+
     override fun lagreMottaker(
         mottaker: Mottaker,
         sakId: UUID,
@@ -56,19 +77,11 @@ class MottakerServiceImpl(
         val mottakerValidert = mottaker.toDomain().getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it).left()
         }
-
-        // TODO: må sjekke at det ikke finnes et dokument for denne behandlingen i dokumentbasen? holder det?
-        when (mottakerValidert.referanseType) {
-            ReferanseType.SØKNAD -> TODO()
-            ReferanseType.VEDTAK -> TODO()
-            ReferanseType.REVURDERING -> TODO()
-            ReferanseType.KLAGE -> TODO()
-        }
-
-        return if (true) {
+        val kanEndre = kanEndreForMottaker(mottakerValidert)
+        return if (kanEndre) {
             mottakerRepo.lagreMottaker(mottakerValidert).right()
         } else {
-            FeilkoderMottaker.KanIkkeLagerMottaker.left()
+            FeilkoderMottaker.KanIkkeLagreMottaker.left()
         }
     }
 
@@ -79,8 +92,12 @@ class MottakerServiceImpl(
         val mottakerValidert = mottaker.toDomain().getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it).left()
         }
-        // TODO: må sjekke samme som over i lagreMottaker.....
-        return mottakerRepo.oppdaterMottaker(mottakerValidert).right()
+        val kanEndre = kanEndreForMottaker(mottakerValidert)
+        return if (kanEndre) {
+            mottakerRepo.oppdaterMottaker(mottakerValidert).right()
+        } else {
+            FeilkoderMottaker.KanIkkeLagreMottaker.left()
+        }
     }
 
     override fun slettMottaker(
@@ -92,6 +109,30 @@ class MottakerServiceImpl(
             log.info("Fant ikke mottaker for type ${mottakerIdentifikator.referanseType} id: ${mottakerIdentifikator.referanseId} ingenting å slette")
             return
         } else {
+            // Kun revurderinger kan ha flere brev registrert på seg av andre typer. Fant bare [INFORMASJON_VIKTIG] -> [Dokument.MedMetadata.Informasjon.Viktig] med duplikater for revurderinger i prod
+            val dokument = when (mottaker.referanseType) {
+                ReferanseType.SØKNAD ->
+                    dokumentRepo.hentForSøknad(mottaker.referanseId)
+
+                ReferanseType.VEDTAK ->
+                    dokumentRepo.hentForVedtak(mottaker.referanseId)
+
+                ReferanseType.REVURDERING ->
+                    dokumentRepo.hentForRevurdering(mottaker.referanseId).filter {
+                        when (it) {
+                            is Dokument.MedMetadata.Informasjon.Annet -> false
+                            is Dokument.MedMetadata.Informasjon.Viktig -> false
+                            is Dokument.MedMetadata.Vedtak -> true
+                        }
+                    }
+
+                ReferanseType.KLAGE ->
+                    dokumentRepo.hentForKlage(mottaker.referanseId)
+            }
+            if (dokument.isNotEmpty()) {
+                log.info("Kan ikke slette mottaker da det finnes et brev for referansen")
+                FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
+            }
             log.info("Sletter mottaker med id: ${mottaker.id} sakid ${mottaker.sakId} type ${mottaker.referanseType} id: ${mottaker.referanseId}")
             mottakerRepo.slettMottaker(mottaker.id)
         }
