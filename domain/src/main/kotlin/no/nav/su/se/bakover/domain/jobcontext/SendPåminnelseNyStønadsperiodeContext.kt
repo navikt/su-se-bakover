@@ -113,14 +113,14 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return alle().map { it.saksnummer }.toSet().minus(prosessert())
     }
 
-    private fun skalSendePåminnelse(sak: Sak, person: Person): Boolean {
+    fun skalSendePåminnelse(sak: Sak, person: Person, clock: Clock): Boolean {
         if (person.erDød()) {
             log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
             return false
         }
 
         val februar = YearMonth.of(2026, 2)
-        val nå = YearMonth.now()
+        val nå = YearMonth.now(clock)
         // TODO kun siste skal gjelde etter februar og kan fjernes i mars
         return if (nå < februar) {
             sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
@@ -144,7 +144,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
             return KunneIkkeSendePåminnelse.FantIkkePerson.left()
         }
 
-        return if (skalSendePåminnelse(sak, person)) {
+        return if (skalSendePåminnelse(sak, person, clock)) {
             val sisteVedtak = sak.vedtakstidslinje()?.lastOrNull()
                 ?: return KunneIkkeSendePåminnelse.FantIkkeVedtak.left()
 
