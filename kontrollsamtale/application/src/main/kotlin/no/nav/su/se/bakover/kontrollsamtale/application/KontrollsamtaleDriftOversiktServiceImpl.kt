@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
-import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
@@ -17,24 +16,20 @@ class KontrollsamtaleDriftOversiktServiceImpl(
     private val utbetalingsRepo: UtbetalingRepo,
 ) : KontrollsamtaleDriftOversiktService {
 
-    override fun hentKontrollsamtaleOversikt(): KontrollsamtaleDriftOversikt {
-        val nå = YearMonth.now().atEndOfMonth()
-        val nesteMåned = nå.plusMonths(1)
-        val innkalliger = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(nesteMåned)
+    override fun hentKontrollsamtaleOversikt(inneværendeMåned: YearMonth): KontrollsamtaleDriftOversikt {
+        val innkalliger = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(inneværendeMåned.atEndOfMonth().plusDays(1))
 
-        val innkallingerSomUtløperDenneMåneden = innkalliger.fristSammeMånedSom(nå)
-        val sakerMedStansDenneMåneden = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(innkallingerSomUtløperDenneMåneden)
+        val utgåtteKontrollsamtaler = innkalliger.utgårIMåned(inneværendeMåned.minusMonths(1))
+        val sakerMedStans = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utgåtteKontrollsamtaler)
 
         return KontrollsamtaleDriftOversikt(
-            nesteMåned = KontrollsamtaleMånedOversikt(
-                frist = nesteMåned,
-                antallInnkallinger = innkalliger.fristSammeMånedSom(nesteMåned).size,
+            inneværendeMåned = KontrollsamtaleMånedOversikt(
+                antallInnkallinger = innkalliger.utgårIMåned(inneværendeMåned).size,
                 sakerMedStans = emptyList(),
             ),
-            inneværendeMåned = KontrollsamtaleMånedOversikt(
-                frist = nå,
-                antallInnkallinger = innkallingerSomUtløperDenneMåneden.size,
-                sakerMedStans = sakerMedStansDenneMåneden,
+            utgåttMåned = KontrollsamtaleMånedOversikt(
+                antallInnkallinger = utgåtteKontrollsamtaler.size,
+                sakerMedStans = sakerMedStans,
             ),
         )
     }
@@ -47,4 +42,4 @@ class KontrollsamtaleDriftOversiktServiceImpl(
     }
 }
 
-fun List<Kontrollsamtale>.fristSammeMånedSom(frist: LocalDate) = filter { it.frist.month == frist.month }
+fun List<Kontrollsamtale>.utgårIMåned(måned: YearMonth) = filter { it.frist.month == måned.month }

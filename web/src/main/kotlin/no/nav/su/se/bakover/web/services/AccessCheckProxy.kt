@@ -1542,7 +1542,7 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.slettMottaker(mottakerIdentifikator, sakId)
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
-                override fun hentKontrollsamtaleOversikt(): KontrollsamtaleDriftOversikt {
+                override fun hentKontrollsamtaleOversikt(inneværendeMåned: YearMonth): KontrollsamtaleDriftOversikt {
                     return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt()
                 }
             },
