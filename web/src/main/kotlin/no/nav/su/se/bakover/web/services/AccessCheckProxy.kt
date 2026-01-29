@@ -72,10 +72,11 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
-import no.nav.su.se.bakover.domain.mottaker.Mottaker
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -1511,13 +1512,13 @@ open class AccessCheckProxy(
                 override fun hentMottaker(
                     mottakerIdentifikator: MottakerIdentifikator,
                     sakId: UUID,
-                ): MottakerDomain? {
+                ): Either<FeilkoderMottaker, MottakerDomain?> {
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.hentMottaker(mottakerIdentifikator, sakId)
                 }
 
                 override fun lagreMottaker(
-                    mottaker: Mottaker,
+                    mottaker: LagreMottaker,
                     sakId: UUID,
                 ): Either<FeilkoderMottaker, Unit> {
                     assertHarTilgangTilSak(sakId)
@@ -1525,7 +1526,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun oppdaterMottaker(
-                    mottaker: Mottaker,
+                    mottaker: OppdaterMottaker,
                     sakId: UUID,
                 ): Either<FeilkoderMottaker, Unit> {
                     assertHarTilgangTilSak(sakId)

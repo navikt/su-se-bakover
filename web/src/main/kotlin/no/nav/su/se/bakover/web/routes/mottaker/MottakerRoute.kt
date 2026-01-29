@@ -10,9 +10,10 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
-import no.nav.su.se.bakover.domain.mottaker.Mottaker
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import java.util.UUID
 
@@ -36,8 +37,9 @@ internal fun Route.mottakerRoutes(
                     MottakerIdentifikator(referanseType, referanseId),
                     sakId = sakId,
                 )
+                val mottakerUtenFeil = mottaker.getOrElse { return@get call.respond(it) }
 
-                if (mottaker == null) {
+                if (mottakerUtenFeil == null) {
                     call.respond(HttpStatusCode.NotFound)
                 } else {
                     call.respond(mottaker)
@@ -47,7 +49,7 @@ internal fun Route.mottakerRoutes(
 
         post("/{sakId}/lagremottaker") {
             call.withSakId { sakId ->
-                val mottaker = call.receive<Mottaker>()
+                val mottaker = call.receive<LagreMottaker>()
                 mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
                     return@post call.respond(it)
                 }
@@ -57,7 +59,7 @@ internal fun Route.mottakerRoutes(
 
         put("/{sakId}/oppdatermottaker") {
             call.withSakId { sakId ->
-                val mottaker = call.receive<Mottaker>()
+                val mottaker = call.receive<OppdaterMottaker>()
                 mottakerService.oppdaterMottaker(mottaker = mottaker, sakId).getOrElse {
                     return@put call.respond(it)
                 }

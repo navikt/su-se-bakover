@@ -20,9 +20,9 @@ interface MottakerRepo {
 }
 
 interface MottakerService {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): MottakerDomain?
-    fun lagreMottaker(mottaker: Mottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
-    fun oppdaterMottaker(mottaker: Mottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
+    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, MottakerDomain?>
+    fun lagreMottaker(mottaker: LagreMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
+    fun oppdaterMottaker(mottaker: OppdaterMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
     fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, Unit>
 }
 
@@ -30,6 +30,7 @@ sealed interface FeilkoderMottaker {
     data object KanIkkeLagreMottaker : FeilkoderMottaker
     data object KanIkkeOppdatereMottaker : FeilkoderMottaker
     data object BrevFinnesIDokumentBasen : FeilkoderMottaker
+    data object ForespurtSakIdMatcherIkkeMottaker : FeilkoderMottaker
     data class UgyldigMottakerRequest(val feil: List<String>) : FeilkoderMottaker
 }
 
@@ -47,8 +48,15 @@ class MottakerServiceImpl(
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
-    ): MottakerDomain? {
-        return mottakerRepo.hentMottaker(mottakerIdentifikator)
+    ): Either<FeilkoderMottaker, MottakerDomain?> {
+        val hentetMottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)?.let {
+            if (it.sakId != sakId) {
+                return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
+            } else {
+                it
+            }
+        }
+        return hentetMottaker.right()
     }
 
     private fun kanEndreForMottaker(mottaker: MottakerDomain): Boolean {
@@ -72,7 +80,7 @@ class MottakerServiceImpl(
     }
 
     override fun lagreMottaker(
-        mottaker: Mottaker,
+        mottaker: LagreMottaker,
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
@@ -87,7 +95,7 @@ class MottakerServiceImpl(
     }
 
     override fun oppdaterMottaker(
-        mottaker: Mottaker,
+        mottaker: OppdaterMottaker,
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
@@ -140,19 +148,38 @@ class MottakerServiceImpl(
     }
 }
 
-data class Mottaker(
-    val id: String?,
-    val navn: String,
-    val foedselsnummer: String,
-    val adresse: Distribueringsadresse,
-    val sakId: String,
-    val referanseId: String,
-    val referanseType: String,
-    val dokumentId: String? = null,
-) {
+fun String.isUuid(): Boolean =
+    try {
+        UUID.fromString(this)
+        true
+    } catch (_: IllegalArgumentException) {
+        false
+    }
+
+sealed interface MottakerRequest {
+    val navn: String
+    val foedselsnummer: String
+    val adresse: Distribueringsadresse
+    val sakId: String
+    val referanseId: String
+    val referanseType: String
+}
+
+data class OppdaterMottaker(
+    val id: String,
+    override val navn: String,
+    override val foedselsnummer: String,
+    override val adresse: Distribueringsadresse,
+    override val sakId: String,
+    override val referanseId: String,
+    override val referanseType: String,
+) : MottakerRequest {
+
     private fun erGyldig(): List<String> {
         val feil = mutableListOf<String>()
-
+        if (!id.isUuid()) {
+            feil += "MottakerId er ikke en gyldig UUID"
+        }
         if (navn.isBlank()) {
             feil += "Navn er blank"
         }
@@ -161,12 +188,20 @@ data class Mottaker(
             feil += "Fødselsnummer er ikke angitt"
         }
 
+        if (Fnr.tryCreate(foedselsnummer) == null) {
+            feil += "Ugyldig fødselsnummer"
+        }
+
         if (sakId.isBlank()) {
             feil += "sakId mangler"
         }
 
         if (referanseId.isBlank()) {
             feil += "referanseId mangler"
+        }
+
+        if (!referanseId.isUuid()) {
+            feil += "referanseId er ikke en gyldig UUID"
         }
 
         if (referanseType.isBlank()) {
@@ -184,7 +219,65 @@ data class Mottaker(
                 navn = navn,
                 foedselsnummer = Fnr(foedselsnummer),
                 adresse = adresse,
-                dokumentId = dokumentId?.let { UUID.fromString(dokumentId) },
+                sakId = UUID.fromString(sakId),
+                referanseId = UUID.fromString(referanseId),
+                referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+            ).right()
+        } else {
+            erGyldig.left()
+        }
+    }
+}
+
+data class LagreMottaker(
+    override val navn: String,
+    override val foedselsnummer: String,
+    override val adresse: Distribueringsadresse,
+    override val sakId: String,
+    override val referanseId: String,
+    override val referanseType: String,
+) : MottakerRequest {
+    private fun erGyldig(): List<String> {
+        val feil = mutableListOf<String>()
+
+        if (navn.isBlank()) {
+            feil += "Navn er blank"
+        }
+
+        if (foedselsnummer.isBlank()) {
+            feil += "Fødselsnummer er ikke angitt"
+        }
+
+        if (Fnr.tryCreate(foedselsnummer) == null) {
+            feil += "Ugyldig fødselsnummer"
+        }
+
+        if (sakId.isBlank()) {
+            feil += "sakId mangler"
+        }
+
+        if (referanseId.isBlank()) {
+            feil += "referanseId mangler"
+        }
+
+        if (!referanseId.isUuid()) {
+            feil += "referanseId er ikke en gyldig UUID"
+        }
+
+        if (referanseType.isBlank()) {
+            feil += "referanseType mangler"
+        }
+
+        return feil
+    }
+
+    fun toDomain(): Either<List<String>, MottakerDomain> {
+        val erGyldig = this.erGyldig()
+        return if (erGyldig.isEmpty()) {
+            MottakerDomain(
+                navn = navn,
+                foedselsnummer = Fnr(foedselsnummer),
+                adresse = adresse,
                 sakId = UUID.fromString(sakId),
                 referanseId = UUID.fromString(referanseId),
                 referanseType = ReferanseTypeMottaker.valueOf(referanseType),
