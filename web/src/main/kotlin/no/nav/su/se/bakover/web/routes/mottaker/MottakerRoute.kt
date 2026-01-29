@@ -39,12 +39,12 @@ internal fun Route.mottakerRoutes(
                     MottakerIdentifikator(referanseType, referanseId),
                     sakId = sakId,
                 )
-                val mottakerUtenFeil = mottaker.getOrElse { return@get call.respond(it) }
+                val mottakerUtenFeil = mottaker.getOrElse { return@get call.respond(HttpStatusCode.InternalServerError, it) }
 
                 if (mottakerUtenFeil == null) {
                     call.respond(HttpStatusCode.NotFound)
                 } else {
-                    call.respond(mottaker)
+                    call.respond(mottakerUtenFeil)
                 }
             }
         }
@@ -53,7 +53,7 @@ internal fun Route.mottakerRoutes(
             call.withSakId { sakId ->
                 val mottaker = call.receive<LagreMottaker>()
                 mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
-                    return@post call.respond(it)
+                    return@post call.respond(HttpStatusCode.InternalServerError, it)
                 }
                 call.respond(HttpStatusCode.Created)
             }
@@ -63,7 +63,7 @@ internal fun Route.mottakerRoutes(
             call.withSakId { sakId ->
                 val mottaker = call.receive<OppdaterMottaker>()
                 mottakerService.oppdaterMottaker(mottaker = mottaker, sakId).getOrElse {
-                    return@put call.respond(it)
+                    return@put call.respond(HttpStatusCode.InternalServerError, it)
                 }
                 call.respond(HttpStatusCode.OK)
             }
@@ -72,7 +72,7 @@ internal fun Route.mottakerRoutes(
         post("/{sakId}/slett") {
             call.withSakId { sakId ->
                 val identifikator = call.receive<MottakerIdentifikator>()
-                mottakerService.slettMottaker(identifikator, sakId)
+                mottakerService.slettMottaker(identifikator, sakId).getOrElse { return@post call.respond(HttpStatusCode.InternalServerError, it) }
                 call.respond(HttpStatusCode.NoContent)
             }
         }
