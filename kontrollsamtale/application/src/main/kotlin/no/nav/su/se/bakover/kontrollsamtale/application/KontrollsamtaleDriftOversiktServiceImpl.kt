@@ -25,8 +25,6 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         val utgåtteKontrollsamtaler = innkalliger.fristIMåned(toSisteMåneder.fraOgMed.month)
         val sakerMedStans = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utgåtteKontrollsamtaler)
 
-        // TODO filtrere på statuser? Trygt å anta at inneværende så er alle innkalt og i forrige alle stanset??
-
         return KontrollsamtaleDriftOversikt(
             inneværendeMåned = KontrollsamtaleMånedOversikt(
                 antallInnkallinger = nyeInnkallinger.size,
