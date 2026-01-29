@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -24,17 +25,13 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
 
     private val kontrollsamtaleService = mock<KontrollsamtaleService> {
         on {
-            hentInnkalteKontrollsamtalerMedFristUtløptPåDato(januar.atEndOfMonth())
-        } doReturn listOf(
-            sak3.kontrollsamtale,
-            sak4.kontrollsamtale,
-            sak5.kontrollsamtale,
-        )
-        on {
-            hentInnkalteKontrollsamtalerMedFristUtløptPåDato(februar.atEndOfMonth())
+            hentKontrollsamtalerMedFristIPeriode(toSisteMåneder)
         } doReturn listOf(
             sak1.kontrollsamtale,
             sak2.kontrollsamtale,
+            sak3.kontrollsamtale,
+            sak4.kontrollsamtale,
+            sak5.kontrollsamtale,
         )
     }
     private val utbetalingsRepo = mock<UtbetalingRepo> {
@@ -48,7 +45,7 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
 
     @Test
     fun `henter oversikt over kontrollsamtaler inneværende og forrige måned`() {
-        val result = service.hentKontrollsamtaleOversikt(inneværendeMåned = februar)
+        val result = service.hentKontrollsamtaleOversikt(toSisteMåneder)
         with(result.inneværendeMåned) {
             antallInnkallinger shouldBe 2
             sakerMedStans.size shouldBe 0
@@ -66,6 +63,7 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
     companion object {
         private val januar = YearMonth.of(2026, 1)
         private val februar = YearMonth.of(2026, 2)
+        private val toSisteMåneder = Periode.create(januar.atDay(1), februar.atEndOfMonth())
 
         val sak1 = testSak(februar)
         val sak2 = testSak(februar)

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.kontrollsamtale.application
 
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
@@ -8,7 +9,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
-import java.time.YearMonth
+import java.time.Month
 import java.util.UUID
 
 class KontrollsamtaleDriftOversiktServiceImpl(
@@ -16,10 +17,11 @@ class KontrollsamtaleDriftOversiktServiceImpl(
     private val utbetalingsRepo: UtbetalingRepo,
 ) : KontrollsamtaleDriftOversiktService {
 
-    override fun hentKontrollsamtaleOversikt(inneværendeMåned: YearMonth): KontrollsamtaleDriftOversikt {
-        val nyeInnkallinger = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(inneværendeMåned.atEndOfMonth())
+    override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
+        val innkalliger = kontrollsamtaleService.hentKontrollsamtalerMedFristIPeriode(toSisteMåneder)
 
-        val utgåtteKontrollsamtaler = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(inneværendeMåned.minusMonths(1).atEndOfMonth())
+        val nyeInnkallinger = innkalliger.fristIMåned(toSisteMåneder.tilOgMed.month)
+        val utgåtteKontrollsamtaler = innkalliger.fristIMåned(toSisteMåneder.fraOgMed.month)
         val sakerMedStans = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utgåtteKontrollsamtaler)
 
         return KontrollsamtaleDriftOversikt(
@@ -41,3 +43,5 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         }.map { it.sakId }
     }
 }
+
+fun List<Kontrollsamtale>.fristIMåned(måned: Month): List<Kontrollsamtale> = filter { it.frist.month == måned }

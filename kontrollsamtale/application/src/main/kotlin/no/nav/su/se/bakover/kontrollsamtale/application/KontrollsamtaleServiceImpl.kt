@@ -8,8 +8,10 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.QueryJournalpostClient
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -271,5 +273,9 @@ class KontrollsamtaleServiceImpl(
                 it.first
             }
         }
+    }
+
+    override fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale> {
+        return kontrollsamtaleRepo.hentKontrollsamtalerMedFristIPeriode(periode)
     }
 }

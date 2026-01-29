@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.YearMonth
 import java.util.UUID
 
 interface KontrollsamtaleDriftOversiktService {
     fun hentKontrollsamtaleOversikt(
-        inneværendeMåned: YearMonth = YearMonth.now(),
+        toSisteMåneder: Periode = Periode.create(
+            fraOgMed = YearMonth.now().atDay(1),
+            tilOgMed = YearMonth.now().atEndOfMonth(),
+        ),
     ): KontrollsamtaleDriftOversikt
 }
 

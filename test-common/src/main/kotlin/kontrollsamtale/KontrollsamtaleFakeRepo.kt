@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
 import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
@@ -39,6 +40,10 @@ class KontrollsamtaleFakeRepo : KontrollsamtaleRepo {
     }
 
     override fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale> {
+        TODO("Not yet implemented")
+    }
+
+    override fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale> {
         TODO("Not yet implemented")
     }
 }

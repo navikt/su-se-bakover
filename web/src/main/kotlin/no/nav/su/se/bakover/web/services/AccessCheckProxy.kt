@@ -1412,6 +1412,9 @@ open class AccessCheckProxy(
                         return service.oppdaterStatusPåKontrollsamtale(command, sessionContext)
                     }
 
+                    override fun hentKontrollsamtalerMedFristIPeriode(periode: Periode) =
+                        kastKanKunKallesFraAnnenService()
+
                     override fun kallInnTilKontrollsamtale(
                         kontrollsamtale: Kontrollsamtale,
                     ) = kastKanKunKallesFraAnnenService()
@@ -1544,7 +1547,7 @@ open class AccessCheckProxy(
                 }
             },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
-                override fun hentKontrollsamtaleOversikt(inneværendeMåned: YearMonth): KontrollsamtaleDriftOversikt {
+                override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
                     return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt()
                 }
             },
