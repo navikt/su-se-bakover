@@ -49,7 +49,7 @@ internal fun Route.mottakerRoutes(
             }
         }
 
-        post("/{sakId}/lagremottaker") {
+        post("/{sakId}/lagre") {
             call.withSakId { sakId ->
                 val mottaker = call.receive<LagreMottaker>()
                 mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
@@ -59,7 +59,7 @@ internal fun Route.mottakerRoutes(
             }
         }
 
-        put("/{sakId}/oppdatermottaker") {
+        put("/{sakId}/oppdater") {
             call.withSakId { sakId ->
                 val mottaker = call.receive<OppdaterMottaker>()
                 mottakerService.oppdaterMottaker(mottaker = mottaker, sakId).getOrElse {
