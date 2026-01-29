@@ -39,7 +39,7 @@ internal fun Route.mottakerRoutes(
                     MottakerIdentifikator(referanseType, referanseId),
                     sakId = sakId,
                 )
-                val mottakerUtenFeil = mottaker.getOrElse { return@get call.respond(HttpStatusCode.InternalServerError, it) }
+                val mottakerUtenFeil = mottaker.getOrElse { return@get call.respond(HttpStatusCode.BadRequest, it) }
 
                 if (mottakerUtenFeil == null) {
                     call.respond(HttpStatusCode.NotFound)
@@ -53,7 +53,7 @@ internal fun Route.mottakerRoutes(
             call.withSakId { sakId ->
                 val mottaker = call.receive<LagreMottaker>()
                 mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
-                    return@post call.respond(HttpStatusCode.InternalServerError, it)
+                    return@post call.respond(HttpStatusCode.BadRequest, it)
                 }
                 call.respond(HttpStatusCode.Created)
             }
@@ -63,7 +63,7 @@ internal fun Route.mottakerRoutes(
             call.withSakId { sakId ->
                 val mottaker = call.receive<OppdaterMottaker>()
                 mottakerService.oppdaterMottaker(mottaker = mottaker, sakId).getOrElse {
-                    return@put call.respond(HttpStatusCode.InternalServerError, it)
+                    return@put call.respond(HttpStatusCode.BadRequest, it)
                 }
                 call.respond(HttpStatusCode.OK)
             }
@@ -72,7 +72,7 @@ internal fun Route.mottakerRoutes(
         post("/{sakId}/slett") {
             call.withSakId { sakId ->
                 val identifikator = call.receive<MottakerIdentifikator>()
-                mottakerService.slettMottaker(identifikator, sakId).getOrElse { return@post call.respond(HttpStatusCode.InternalServerError, it) }
+                mottakerService.slettMottaker(identifikator, sakId).getOrElse { return@post call.respond(HttpStatusCode.BadRequest, it) }
                 call.respond(HttpStatusCode.NoContent)
             }
         }

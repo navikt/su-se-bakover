@@ -206,6 +206,9 @@ data class OppdaterMottaker(
 
         if (referanseType.isBlank()) {
             feil += "referanseType mangler"
+        } else {
+            runCatching { ReferanseTypeMottaker.valueOf(referanseType.uppercase()) }
+                .getOrElse { feil += "Ugyldig referanseType: $referanseType" }
         }
 
         return feil
