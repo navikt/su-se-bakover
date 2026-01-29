@@ -1548,7 +1548,7 @@ open class AccessCheckProxy(
             },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
                 override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
-                    return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt()
+                    return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt(toSisteMåneder)
                 }
             },
         )

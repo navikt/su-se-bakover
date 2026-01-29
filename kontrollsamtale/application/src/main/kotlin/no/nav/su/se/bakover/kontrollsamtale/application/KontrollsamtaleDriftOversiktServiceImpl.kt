@@ -19,10 +19,14 @@ class KontrollsamtaleDriftOversiktServiceImpl(
 ) : KontrollsamtaleDriftOversiktService {
 
     override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
-        val innkalliger = kontrollsamtaleService.hentKontrollsamtalerMedFristIPeriode(toSisteMåneder)
+        require(toSisteMåneder.getAntallMåneder() == 2) {
+            "periode toSisteMåneder er lenger enn to, skal kun være inneværende og forrige måned"
+        }
 
-        val nyeInnkallinger = innkalliger.fristIMåned(toSisteMåneder.tilOgMed.month)
-        val utgåtteKontrollsamtaler = innkalliger.fristIMåned(toSisteMåneder.fraOgMed.month)
+        val innkallinger = kontrollsamtaleService.hentKontrollsamtalerMedFristIPeriode(toSisteMåneder)
+
+        val nyeInnkallinger = innkallinger.fristIMåned(toSisteMåneder.tilOgMed.month)
+        val utgåtteKontrollsamtaler = innkallinger.fristIMåned(toSisteMåneder.fraOgMed.month)
         val sakerMedStans = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utgåtteKontrollsamtaler)
 
         return KontrollsamtaleDriftOversikt(
@@ -43,7 +47,7 @@ class KontrollsamtaleDriftOversiktServiceImpl(
             utbetalinger.tidslinje().getOrNull()?.last() is UtbetalingslinjePåTidslinje.Stans
         }.map {
             val sakInfo = sakRepo.hentSakInfo(it.sakId)
-                ?: throw IllegalStateException("Fant ikke sak for kontrollsamale sakId=${it.sakId}")
+                ?: throw IllegalStateException("Fant ikke sak for kontrollsamtale sakId=${it.sakId}")
             sakInfo.saksnummer.nummer
         }
     }
