@@ -36,7 +36,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -66,7 +66,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
 
-            verify(it.brevService).lagDokument(any(), anyOrNull())
+            verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             verify(it.fritekstService).hentFritekst(
                 any(),
@@ -80,7 +80,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner navn på attestant eller saksbehandler`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -107,7 +107,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(
                 KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
             ).left()
-            verify(it.brevService).lagDokument(any(), anyOrNull())
+            verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             verify(it.fritekstService).hentFritekst(
                 any(),
@@ -122,7 +122,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     fun `svarer med feil hvis generering av pdf feiler`() {
         val underliggendeFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn underliggendeFeil.left()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -149,7 +149,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                     utførtAv = attestant,
                 ),
             ) shouldBe KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil(underliggendeFeil).left()
-            verify(it.brevService).lagDokument(any(), anyOrNull())
+            verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
             verify(it.søknadsbehandlingRepo).hent(tilAttesteringInnvilget.id)
             verify(it.fritekstService).hentFritekst(
                 any(),
@@ -170,7 +170,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             generertDokumentJson = "{}",
         )
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
         }
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttesteringInnvilget
@@ -196,7 +196,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                     utførtAv = attestant,
                 ),
             ) shouldBe Pair(generertDokument, tilAttesteringInnvilget.fnr).right()
-            verify(it.brevService).lagDokument(
+            verify(it.brevService).lagDokumentPdf(
                 argThat {
                     it shouldBe IverksettSøknadsbehandlingDokumentCommand.Innvilgelse(
                         fødselsnummer = tilAttesteringInnvilget.fnr,

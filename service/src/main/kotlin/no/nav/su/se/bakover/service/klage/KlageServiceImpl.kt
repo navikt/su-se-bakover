@@ -348,7 +348,7 @@ class KlageServiceImpl(
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
-            brevService.lagDokument(command = it).getOrElse {
+            brevService.lagDokumentPdf(command = it).getOrElse {
                 return KunneIkkeOversendeKlage.KunneIkkeLageDokument(it).left()
             }
         }.leggTilMetadata(
@@ -414,7 +414,7 @@ class KlageServiceImpl(
         val dokument = avvistKlage.lagAvvistVedtaksbrevKommando().getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()
         }.let { command ->
-            brevService.lagDokument(command = command).getOrElse {
+            brevService.lagDokumentPdf(command = command).getOrElse {
                 return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev(it).left()
             }
         }.leggTilMetadata(
@@ -476,7 +476,7 @@ class KlageServiceImpl(
             hentKlage = { klage },
             hentVedtaksbrevDato = { vedtaksbrevdato },
             genererPdf = {
-                brevService.lagDokument(command = it).map { it.generertDokument }
+                brevService.lagDokumentPdf(command = it).map { it.generertDokument }
             },
         )
     }

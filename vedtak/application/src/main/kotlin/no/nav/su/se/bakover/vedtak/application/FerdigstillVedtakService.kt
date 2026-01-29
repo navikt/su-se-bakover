@@ -171,7 +171,7 @@ class FerdigstillVedtakServiceImpl(
          *  for en id som er generell og som hensyntar adresse
          *
          */
-        return brevService.lagDokument(
+        return brevService.lagDokumentPdf(
             vedtak.lagDokumentKommando( // Denne plukker ut fnr på behandlingen e.l.
                 clock,
                 satsFactory,

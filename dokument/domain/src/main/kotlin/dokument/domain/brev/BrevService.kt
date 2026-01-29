@@ -9,7 +9,7 @@ import java.util.UUID
 
 interface BrevService {
     // TODO: endre navn på denne til lagDokumentPdf
-    fun lagDokument(
+    fun lagDokumentPdf(
         command: GenererDokumentCommand,
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>

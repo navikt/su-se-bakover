@@ -129,7 +129,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
             fritekstService = mock {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
@@ -147,7 +147,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ).left()
 
             verify(vedtakService).hentForUtbetaling(vedtak.utbetalingId, null)
-            verify(brevService).lagDokument(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato(), fritekst = "fritekst")), anyOrNull())
+            verify(brevService).lagDokumentPdf(eq(vedtak.behandling.lagBrevCommand(satsFactoryTestPåDato(), fritekst = "fritekst")), anyOrNull())
         }
     }
 
@@ -161,7 +161,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn underliggendeFeil.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn underliggendeFeil.left()
             },
             fritekstService = mock {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
@@ -183,7 +183,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakService).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId }, eq(null))
-                verify(brevService).lagDokument(
+                verify(brevService).lagDokumentPdf(
                     argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
                     anyOrNull(),
                 )
@@ -204,7 +204,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = pdf,
@@ -227,7 +227,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat { it shouldBe vedtak.utbetalingId },
                 eq(TestSessionFactory.transactionContext),
             )
-            verify(brevService).lagDokument(
+            verify(brevService).lagDokumentPdf(
                 argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
                 anyOrNull(),
             )

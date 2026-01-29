@@ -79,7 +79,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             },
             brevService = mock {
                 on {
-                    lagDokument(
+                    lagDokumentPdf(
                         any(),
                         anyOrNull(),
                     )
@@ -207,7 +207,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             søknadsbehandling = søknadsbehandling,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
         ).let { serviceAndMocks ->
             shouldThrow<IllegalArgumentException> {
@@ -240,7 +240,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             søknad = søknad,
             lukkSøknadCommand = trekkSøknad(søknad.id),
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
@@ -285,7 +285,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("Fritekst"),
             ),
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
@@ -321,7 +321,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
                 } doAnswer { KunneIkkeLukkeOppgave.FeilVedHentingAvOppgave(it.getArgument(0)).left() }
             },
             brevService = mock {
-                on { lagDokument(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
@@ -391,7 +391,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
 
         fun verifyLagBrev() {
-            verify(brevService).lagDokument(
+            verify(brevService).lagDokumentPdf(
                 argThat {
                     it shouldBe when (lukkSøknadCommand) {
                         is LukkSøknadCommand.MedBrev.AvvistSøknad -> AvvistSøknadDokumentCommand(
