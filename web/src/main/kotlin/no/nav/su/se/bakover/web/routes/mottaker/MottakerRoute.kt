@@ -22,12 +22,14 @@ internal const val MOTTAKER_PATH = "/mottaker"
 internal fun Route.mottakerRoutes(
     mottakerService: MottakerService,
 ) {
+    fun String.tilReferanseTypeMottaker(): ReferanseTypeMottaker? =
+        runCatching { ReferanseTypeMottaker.valueOf(this.uppercase()) }.getOrNull()
     route(MOTTAKER_PATH) {
         get("/{sakId}/{referanseType}/{referanseId}") {
             call.withSakId { sakId ->
                 val referanseType = call.parameters["referanseType"]
-                    ?.let { ReferanseTypeMottaker.valueOf(it.uppercase()) }
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Mangler referanseType")
+                    ?.tilReferanseTypeMottaker()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseType")
 
                 val referanseId = call.parameters["referanseId"]
                     ?.let(UUID::fromString)
