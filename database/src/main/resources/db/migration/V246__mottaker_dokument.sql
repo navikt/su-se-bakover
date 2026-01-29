@@ -10,5 +10,6 @@ CREATE TABLE mottaker (
   CONSTRAINT fk_mottaker_sak
       FOREIGN KEY (sakid) REFERENCES sak(id)
 );
--- constrainten her representerer det faktumet at vi kun kan ha en dokument_distribusjon per dokument hvis vi da vil ha flere brev
--- per vedtak feks må vi opprette flere innslag i dokument tabellen så vi kan ha flere distrubsjoner hver med sin unike mottaker
+
+CREATE INDEX idx_mottaker_referanse_type_id
+    ON mottaker (referanse_type, referanse_id);

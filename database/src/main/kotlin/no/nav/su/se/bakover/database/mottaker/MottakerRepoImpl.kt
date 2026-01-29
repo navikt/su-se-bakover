@@ -54,8 +54,7 @@ data class MottakerRepoImpl(
                     adresse,
                     sakid,
                     referanse_type,
-                    referanse_id,
-                    dokument_id
+                    referanse_id
                 ) values (
                     :id,
                     :navn,
@@ -63,8 +62,7 @@ data class MottakerRepoImpl(
                     :adresse::jsonb,
                     :sakid,
                     :referanse_type,
-                    :referanse_id,
-                    :dokument_id
+                    :referanse_id
                 )
                 """.trimIndent().insert(
                     mapOf(
@@ -75,7 +73,6 @@ data class MottakerRepoImpl(
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
                         "referanse_id" to mottaker.referanseId,
-                        "dokument_id" to mottaker.dokumentId,
                     ),
                     session,
                 )
@@ -93,8 +90,7 @@ data class MottakerRepoImpl(
                     adresse = :adresse::jsonb,
                     sakid = :sakid,
                     referanse_type = :referanse_type,
-                    referanse_id = :referanse_id,
-                    dokument_id = :dokument_id
+                    referanse_id = :referanse_id
                 where id = :id
                 """.trimIndent().oppdatering(
                     mapOf(
@@ -105,7 +101,6 @@ data class MottakerRepoImpl(
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
                         "referanse_id" to mottaker.referanseId,
-                        "dokument_id" to mottaker.dokumentId,
                     ),
                     session,
                 )
@@ -138,6 +133,5 @@ data class MottakerRepoImpl(
             sakId = row.uuid("sakid"),
             referanseId = row.uuid("referanse_id"),
             referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
-            dokumentId = row.uuidOrNull("dokument_id"),
         )
 }

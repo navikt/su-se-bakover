@@ -301,7 +301,6 @@ data class MottakerDomain(
     val sakId: UUID,
     val referanseId: UUID,
     val referanseType: ReferanseTypeMottaker,
-    val dokumentId: UUID? = null,
 )
 
 enum class ReferanseTypeMottaker {
