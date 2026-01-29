@@ -3,12 +3,15 @@ package no.nav.su.se.bakover.kontrollsamtale.application
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.tid.februar
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.sakInfo
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
@@ -34,14 +37,21 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
             sak5.kontrollsamtale,
         )
     }
-    private val utbetalingsRepo = mock<UtbetalingRepo> {
-        on { hentOversendteUtbetalinger(sak1.sakId) } doReturn sak1.utbetalinger
-        on { hentOversendteUtbetalinger(sak2.sakId) } doReturn sak2.utbetalinger
-        on { hentOversendteUtbetalinger(sak3.sakId) } doReturn sak3.utbetalinger
-        on { hentOversendteUtbetalinger(sak4.sakId) } doReturn sak4.utbetalinger
-        on { hentOversendteUtbetalinger(sak5.sakId) } doReturn sak5.utbetalinger
+    private val sakRepo = mock<SakRepo> {
+        on { hentSakInfo(sak1.sakInfo.sakId) } doReturn sak1.sakInfo
+        on { hentSakInfo(sak2.sakInfo.sakId) } doReturn sak2.sakInfo
+        on { hentSakInfo(sak3.sakInfo.sakId) } doReturn sak3.sakInfo
+        on { hentSakInfo(sak4.sakInfo.sakId) } doReturn sak4.sakInfo
+        on { hentSakInfo(sak5.sakInfo.sakId) } doReturn sak5.sakInfo
     }
-    private val service = KontrollsamtaleDriftOversiktServiceImpl(kontrollsamtaleService, utbetalingsRepo)
+    private val utbetalingsRepo = mock<UtbetalingRepo> {
+        on { hentOversendteUtbetalinger(sak1.sakInfo.sakId) } doReturn sak1.utbetalinger
+        on { hentOversendteUtbetalinger(sak2.sakInfo.sakId) } doReturn sak2.utbetalinger
+        on { hentOversendteUtbetalinger(sak3.sakInfo.sakId) } doReturn sak3.utbetalinger
+        on { hentOversendteUtbetalinger(sak4.sakInfo.sakId) } doReturn sak4.utbetalinger
+        on { hentOversendteUtbetalinger(sak5.sakInfo.sakId) } doReturn sak5.utbetalinger
+    }
+    private val service = KontrollsamtaleDriftOversiktServiceImpl(kontrollsamtaleService, utbetalingsRepo, sakRepo)
 
     @Test
     fun `henter oversikt over kontrollsamtaler inneværende og forrige måned`() {
@@ -56,7 +66,7 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
             // Men velger å la en gjenstå med status innkalt for å teste filtrering på stans
             antallInnkallinger shouldBe 3
             sakerMedStans.size shouldBe 2
-            sakerMedStans.shouldContainAll(listOf(sak4.sakId, sak5.sakId))
+            sakerMedStans.shouldContainAll(listOf(sak4.sakInfo.saksnummer.nummer, sak5.sakInfo.saksnummer.nummer))
         }
     }
 
@@ -65,21 +75,22 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
         private val februar = YearMonth.of(2026, 2)
         private val toSisteMåneder = Periode.create(januar.atDay(1), februar.atEndOfMonth())
 
-        val sak1 = testSak(februar)
-        val sak2 = testSak(februar)
-        val sak3 = testSak(januar)
-        val sak4 = testSak(januar, stanset = true)
-        val sak5 = testSak(januar, stanset = true)
+        val sak1 = testSak(3001, februar)
+        val sak2 = testSak(3002, februar)
+        val sak3 = testSak(3003, januar)
+        val sak4 = testSak(3004, januar, stanset = true)
+        val sak5 = testSak(3005, januar, stanset = true)
 
         private fun testSak(
+            saksnummer: Int,
             kontrollsamtaleMåned: YearMonth,
             stanset: Boolean = false,
         ): TestSakMedKontrollsamtaleOgUtbetaling {
-            val id = UUID.randomUUID()
+            val sakId = UUID.randomUUID()
             return TestSakMedKontrollsamtaleOgUtbetaling(
-                sakId = id,
+                sakInfo = sakInfo(sakId = sakId, saksnummer = Saksnummer.parse(saksnummer.toString())),
                 kontrollsamtale = innkaltKontrollsamtale(
-                    sakId = id,
+                    sakId = sakId,
                     innkallingsdato = kontrollsamtaleMåned.atDay(1),
                     frist = kontrollsamtaleMåned.atEndOfMonth(),
                 ),
@@ -100,7 +111,7 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
 }
 
 data class TestSakMedKontrollsamtaleOgUtbetaling(
-    val sakId: UUID,
+    val sakInfo: SakInfo,
     val kontrollsamtale: Kontrollsamtale,
     val utbetalinger: Utbetalinger,
 )

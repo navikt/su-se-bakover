@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.application
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
@@ -10,11 +11,11 @@ import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
 import java.time.Month
-import java.util.UUID
 
 class KontrollsamtaleDriftOversiktServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val utbetalingsRepo: UtbetalingRepo,
+    private val sakRepo: SakRepo,
 ) : KontrollsamtaleDriftOversiktService {
 
     override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
@@ -23,6 +24,8 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         val nyeInnkallinger = innkalliger.fristIMåned(toSisteMåneder.tilOgMed.month)
         val utgåtteKontrollsamtaler = innkalliger.fristIMåned(toSisteMåneder.fraOgMed.month)
         val sakerMedStans = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utgåtteKontrollsamtaler)
+
+        // TODO filtrere på statuser? Trygt å anta at inneværende så er alle innkalt og i forrige alle stanset??
 
         return KontrollsamtaleDriftOversikt(
             inneværendeMåned = KontrollsamtaleMånedOversikt(
@@ -36,11 +39,15 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         )
     }
 
-    private fun sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utløpteKontrollSamtaler: List<Kontrollsamtale>): List<UUID> {
+    private fun sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utløpteKontrollSamtaler: List<Kontrollsamtale>): List<Long> {
         return utløpteKontrollSamtaler.filter {
             val utbetalinger = utbetalingsRepo.hentOversendteUtbetalinger(it.sakId)
             utbetalinger.tidslinje().getOrNull()?.last() is UtbetalingslinjePåTidslinje.Stans
-        }.map { it.sakId }
+        }.map {
+            val sakInfo = sakRepo.hentSakInfo(it.sakId)
+                ?: throw IllegalStateException("Fant ikke sak for kontrollsamale sakId=${it.sakId}")
+            sakInfo.saksnummer.nummer
+        }
     }
 }
 

@@ -367,6 +367,7 @@ data object ServiceBuilder {
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,
+                sakRepo = databaseRepos.sak,
             ),
         )
     }

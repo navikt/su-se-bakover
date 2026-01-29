@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.YearMonth
-import java.util.UUID
 
 interface KontrollsamtaleDriftOversiktService {
     fun hentKontrollsamtaleOversikt(
@@ -20,5 +19,5 @@ data class KontrollsamtaleDriftOversikt(
 
 data class KontrollsamtaleMånedOversikt(
     val antallInnkallinger: Int,
-    val sakerMedStans: List<UUID>,
+    val sakerMedStans: List<Long>,
 )
