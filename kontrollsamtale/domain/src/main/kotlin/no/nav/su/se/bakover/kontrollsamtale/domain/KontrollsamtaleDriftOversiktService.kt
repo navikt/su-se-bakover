@@ -7,7 +7,7 @@ import java.util.UUID
 interface KontrollsamtaleDriftOversiktService {
     fun hentKontrollsamtaleOversikt(
         toSisteMåneder: Periode = Periode.create(
-            fraOgMed = YearMonth.now().atDay(1),
+            fraOgMed = YearMonth.now().minusMonths(1).atDay(1),
             tilOgMed = YearMonth.now().atEndOfMonth(),
         ),
     ): KontrollsamtaleDriftOversikt

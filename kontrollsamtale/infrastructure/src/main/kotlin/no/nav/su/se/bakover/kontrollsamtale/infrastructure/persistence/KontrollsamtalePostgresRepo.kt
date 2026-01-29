@@ -141,7 +141,7 @@ internal class KontrollsamtalePostgresRepo(
     override fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale> {
         return dbMetrics.timeQuery("hentKontrollsamtalerMedFristIPeriode") {
             sessionFactory.withSession { session ->
-                "select * from kontrollsamtale where frist >= :from and frist <= :tom"
+                "select * from kontrollsamtale where frist >= :fom and frist <= :tom"
                     .hentListe(
                         mapOf(
                             "fom" to periode.fraOgMed,
