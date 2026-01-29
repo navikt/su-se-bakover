@@ -36,6 +36,7 @@ class DokumentPostgresRepo(
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
+    // TODO: denne må støtte å lage to dokumentdistribusjoner hvis DokumentKategori.VEDTAK i første omgang - nevermind er kun en distrubsjon per dokument så en per mottaker- rm later
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext?) {
         val size = dokument.generertDokument.getContent().size
         require(size > 311) { "Pdf dokument må være minst 312 bytes, var $size" }
@@ -59,7 +60,7 @@ class DokumentPostgresRepo(
                                 is Dokument.MedMetadata.Informasjon.Annet -> DokumentKategori.INFORMASJON_ANNET
                                 is Dokument.MedMetadata.Vedtak -> DokumentKategori.VEDTAK
                             }.toString(),
-                            "tittel" to dokument.tittel,
+                            "tittel" to dokument.tittel, // TODO: potensielt kopi her i tittel hvis er fullmektig eller advokat, men usikker for now
                             "soknadId" to dokument.metadata.søknadId,
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
@@ -83,10 +84,10 @@ class DokumentPostgresRepo(
         }
     }
 
-    override fun hentDokument(id: UUID): Dokument.MedMetadata? {
+    override fun hentDokument(dokumentId: UUID): Dokument.MedMetadata? {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForDokumentId") {
             sessionFactory.withSession { session ->
-                hentDokument(id, session)
+                hentDokument(dokumentId, session)
             }
         }
     }
@@ -291,11 +292,11 @@ class DokumentPostgresRepo(
             )
     }
 
-    private fun hentDokument(id: UUID, session: Session) =
+    private fun hentDokument(dokumentId: UUID, session: Session) =
         """
             $joinDokumentOgDistribusjonQuery and d.id = :id
         """.trimIndent()
-            .hent(mapOf("id" to id), session) {
+            .hent(mapOf("id" to dokumentId), session) {
                 it.toDokumentMedStatus()
             }
 
