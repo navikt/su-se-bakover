@@ -32,8 +32,8 @@ internal fun Route.mottakerRoutes(
                     ?: return@get call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseType")
 
                 val referanseId = call.parameters["referanseId"]
-                    ?.let(UUID::fromString)
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Mangler referanseId")
+                    ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseId")
 
                 val mottaker = mottakerService.hentMottaker(
                     MottakerIdentifikator(referanseType, referanseId),
