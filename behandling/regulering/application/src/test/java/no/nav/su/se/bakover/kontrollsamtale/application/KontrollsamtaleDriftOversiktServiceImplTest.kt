@@ -24,13 +24,17 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
 
     private val kontrollsamtaleService = mock<KontrollsamtaleService> {
         on {
-            hentInnkalteKontrollsamtalerMedFristUtløptPåDato(mars.atDay(1))
+            hentInnkalteKontrollsamtalerMedFristUtløptPåDato(januar.atEndOfMonth())
         } doReturn listOf(
-            sak1.kontrollsamtale,
-            sak2.kontrollsamtale,
             sak3.kontrollsamtale,
             sak4.kontrollsamtale,
             sak5.kontrollsamtale,
+        )
+        on {
+            hentInnkalteKontrollsamtalerMedFristUtløptPåDato(februar.atEndOfMonth())
+        } doReturn listOf(
+            sak1.kontrollsamtale,
+            sak2.kontrollsamtale,
         )
     }
     private val utbetalingsRepo = mock<UtbetalingRepo> {
@@ -62,7 +66,6 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
     companion object {
         private val januar = YearMonth.of(2026, 1)
         private val februar = YearMonth.of(2026, 2)
-        private val mars = YearMonth.of(2026, 3)
 
         val sak1 = testSak(februar)
         val sak2 = testSak(februar)

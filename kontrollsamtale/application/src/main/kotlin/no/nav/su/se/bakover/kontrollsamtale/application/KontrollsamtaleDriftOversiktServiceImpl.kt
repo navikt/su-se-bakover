@@ -17,14 +17,14 @@ class KontrollsamtaleDriftOversiktServiceImpl(
 ) : KontrollsamtaleDriftOversiktService {
 
     override fun hentKontrollsamtaleOversikt(inneværendeMåned: YearMonth): KontrollsamtaleDriftOversikt {
-        val innkalliger = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(inneværendeMåned.atEndOfMonth().plusDays(1))
+        val nyeInnkallinger = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(inneværendeMåned.atEndOfMonth())
 
-        val utgåtteKontrollsamtaler = innkalliger.utgårIMåned(inneværendeMåned.minusMonths(1))
+        val utgåtteKontrollsamtaler = kontrollsamtaleService.hentInnkalteKontrollsamtalerMedFristUtløptPåDato(inneværendeMåned.minusMonths(1).atEndOfMonth())
         val sakerMedStans = sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utgåtteKontrollsamtaler)
 
         return KontrollsamtaleDriftOversikt(
             inneværendeMåned = KontrollsamtaleMånedOversikt(
-                antallInnkallinger = innkalliger.utgårIMåned(inneværendeMåned).size,
+                antallInnkallinger = nyeInnkallinger.size,
                 sakerMedStans = emptyList(),
             ),
             utgåttMåned = KontrollsamtaleMånedOversikt(
@@ -41,5 +41,3 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         }.map { it.sakId }
     }
 }
-
-fun List<Kontrollsamtale>.utgårIMåned(måned: YearMonth) = filter { it.frist.month == måned.month }
