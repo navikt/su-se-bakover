@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.kontrollsamtale.application
+package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainAll
@@ -7,8 +7,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.sakInfo
