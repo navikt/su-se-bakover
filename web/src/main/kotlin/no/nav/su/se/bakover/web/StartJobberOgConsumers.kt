@@ -538,20 +538,14 @@ private fun naisJobberOgConsumers(
     )
 
     val consumers = listOfNotNull(
-        // holder inst på kun i preprod inntil videre
-        if (!isProd) {
-            val institusjonsoppholdService = EksternInstitusjonsoppholdKonsument(
+        InstitusjonsoppholdConsumer(
+            config = applicationConfig.institusjonsoppholdKafkaConfig,
+            institusjonsoppholdService = EksternInstitusjonsoppholdKonsument(
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
                 sakRepo = databaseRepos.sak,
                 clock = clock,
-            )
-            InstitusjonsoppholdConsumer(
-                config = applicationConfig.institusjonsoppholdKafkaConfig,
-                institusjonsoppholdService = institusjonsoppholdService,
-            )
-        } else {
-            null
-        },
+            ),
+        ),
         KravgrunnlagIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
             globalJmsContext = jmsConfig.jmsContext ?: throw IllegalArgumentException("Må ha jmscontext for prod"),
