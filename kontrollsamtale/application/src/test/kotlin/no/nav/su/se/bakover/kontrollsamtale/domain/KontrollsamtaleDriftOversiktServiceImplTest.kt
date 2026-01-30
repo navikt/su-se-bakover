@@ -37,11 +37,9 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
         )
     }
     private val sakRepo = mock<SakRepo> {
-        on { hentSakInfo(sak1.sakInfo.sakId) } doReturn sak1.sakInfo
-        on { hentSakInfo(sak2.sakInfo.sakId) } doReturn sak2.sakInfo
-        on { hentSakInfo(sak3.sakInfo.sakId) } doReturn sak3.sakInfo
-        on { hentSakInfo(sak4.sakInfo.sakId) } doReturn sak4.sakInfo
-        on { hentSakInfo(sak5.sakInfo.sakId) } doReturn sak5.sakInfo
+        on {
+            hentSakInfoBulk(listOf(sak3.sakInfo.sakId, sak4.sakInfo.sakId, sak5.sakInfo.sakId))
+        } doReturn listOf(sak3.sakInfo, sak4.sakInfo, sak5.sakInfo)
     }
     private val utbetalingsRepo = mock<UtbetalingRepo> {
         on { hentOversendteUtbetalinger(sak1.sakInfo.sakId) } doReturn sak1.utbetalinger
