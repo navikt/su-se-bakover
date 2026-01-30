@@ -266,6 +266,9 @@ internal class SakPostgresRepo(
     }
 
     override fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo> {
+        if (sakIder.isEmpty()) {
+            return emptyList()
+        }
         return dbMetrics.timeQuery("hentSakInfoForFnr") {
             val sakIderString = sakIder.joinToString(",") { "'$it'" }
             sessionFactory.withSession { session ->
