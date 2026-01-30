@@ -269,7 +269,7 @@ internal class SakPostgresRepo(
         if (sakIder.isEmpty()) {
             return emptyList()
         }
-        return dbMetrics.timeQuery("hentSakInfoForFnr") {
+        return dbMetrics.timeQuery("hentSakInfoBulk") {
             val sakIderString = sakIder.joinToString(",") { "'$it'" }
             sessionFactory.withSession { session ->
                 """
