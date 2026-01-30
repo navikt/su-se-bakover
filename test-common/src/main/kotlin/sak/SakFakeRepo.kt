@@ -83,6 +83,10 @@ class SakFakeRepo : SakRepo {
         }
     }
 
+    override fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo> {
+        TODO("Not yet implemented")
+    }
+
     override fun opprettSak(sak: NySak) {
         TODO("Not yet implemented")
     }

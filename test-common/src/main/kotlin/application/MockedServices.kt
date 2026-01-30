@@ -39,4 +39,5 @@ fun mockedServices() = Services(
     fritekstAvslagService = mock(),
     søknadStatistikkService = mock(),
     mottakerService = mock(),
+    kontrollsamtaleDriftOversiktService = mock(),
 )

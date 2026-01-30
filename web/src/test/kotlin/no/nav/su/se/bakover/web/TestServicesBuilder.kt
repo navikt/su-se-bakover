@@ -100,5 +100,6 @@ data object TestServicesBuilder {
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),
         mottakerService = mock(),
+        kontrollsamtaleDriftOversiktService = mock(),
     )
 }

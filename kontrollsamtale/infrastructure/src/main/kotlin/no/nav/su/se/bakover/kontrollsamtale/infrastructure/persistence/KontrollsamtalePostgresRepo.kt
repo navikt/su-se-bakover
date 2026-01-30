@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -9,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
@@ -128,6 +131,21 @@ internal class KontrollsamtalePostgresRepo(
                         mapOf(
                             "status" to Kontrollsamtalestatus.INNKALT.toString(),
                             "frist" to fristPåDato,
+                        ),
+                        session,
+                    ) { it.toKontrollsamtale() }
+            }
+        }
+    }
+
+    override fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale> {
+        return dbMetrics.timeQuery("hentKontrollsamtalerMedFristIPeriode") {
+            sessionFactory.withSession { session ->
+                "select * from kontrollsamtale where frist >= :fom and frist <= :tom"
+                    .hentListe(
+                        mapOf(
+                            "fom" to periode.fraOgMed,
+                            "tom" to periode.tilOgMed,
                         ),
                         session,
                     ) { it.toKontrollsamtale() }

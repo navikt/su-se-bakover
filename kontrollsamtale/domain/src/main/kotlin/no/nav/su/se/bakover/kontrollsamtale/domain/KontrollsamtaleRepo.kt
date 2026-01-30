@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.LocalDate
 import java.util.UUID
 
@@ -18,4 +19,6 @@ interface KontrollsamtaleRepo {
 
     /** Her kan vi ikke bruke [Kontrollsamtaler], siden den er begrenset til en sak. */
     fun hentInnkalteKontrollsamtalerMedFristUtløptPåDato(fristPåDato: LocalDate): List<Kontrollsamtale>
+
+    fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale>
 }

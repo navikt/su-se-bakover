@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.sak
 
 import arrow.core.getOrElse
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -151,6 +152,21 @@ internal class SakPostgresRepoTest(private val dataSource: DataSource) {
         hentetSakInfo.sakId shouldBe sak.id
         hentetSakInfo.saksnummer shouldBe sak.saksnummer
         hentetSakInfo.type shouldBe sak.type
+    }
+
+    @Test
+    fun `henter sakinfo for et gitt flere saker`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.sakRepo
+        val (sak1) = testDataHelper.persisterSøknadsbehandlingIverksatt()
+        val (sak2) = testDataHelper.persisterSøknadsbehandlingIverksatt()
+        val (sak3) = testDataHelper.persisterSøknadsbehandlingIverksatt()
+        val sakIder = listOf(sak1.id, sak2.id, sak3.id)
+
+        val saker = repo.hentSakInfoBulk(sakIder)
+
+        saker.size shouldBe 3
+        saker.map { it.sakId } shouldContainAll sakIder
     }
 
     @Test

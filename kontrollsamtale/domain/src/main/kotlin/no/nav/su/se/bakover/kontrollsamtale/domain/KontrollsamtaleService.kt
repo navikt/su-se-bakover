@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
@@ -52,4 +53,6 @@ interface KontrollsamtaleService {
         command: OppdaterStatusPåKontrollsamtaleCommand,
         sessionContext: SessionContext? = null,
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale>
+
+    fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale>
 }

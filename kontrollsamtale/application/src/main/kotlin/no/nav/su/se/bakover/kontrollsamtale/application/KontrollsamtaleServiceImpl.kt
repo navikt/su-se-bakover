@@ -8,12 +8,12 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.QueryJournalpostClient
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
@@ -42,7 +42,6 @@ import java.util.UUID
 class KontrollsamtaleServiceImpl(
     private val sakService: SakService,
     private val brevService: BrevService,
-    private val oppgaveService: OppgaveService,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
@@ -121,18 +120,6 @@ class KontrollsamtaleServiceImpl(
                 )
                 Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
                     kontrollsamtaleRepo.lagre(it, transactionContext)
-                }
-            }
-            oppgaveService.opprettOppgaveMedSystembruker(
-                config = OppgaveConfig.Kontrollsamtale(
-                    saksnummer = sak.saksnummer,
-                    fnr = sak.fnr,
-                    clock = clock,
-                    sakstype = sak.type,
-                ),
-            ).getOrElse {
-                throw RuntimeException("Fikk ikke opprettet oppgave").also {
-                    log.error("Fikk ikke opprettet oppgave")
                 }
             }
         }.fold(
@@ -286,5 +273,9 @@ class KontrollsamtaleServiceImpl(
                 it.first
             }
         }
+    }
+
+    override fun hentKontrollsamtalerMedFristIPeriode(periode: Periode): List<Kontrollsamtale> {
+        return kontrollsamtaleRepo.hentKontrollsamtalerMedFristIPeriode(periode)
     }
 }

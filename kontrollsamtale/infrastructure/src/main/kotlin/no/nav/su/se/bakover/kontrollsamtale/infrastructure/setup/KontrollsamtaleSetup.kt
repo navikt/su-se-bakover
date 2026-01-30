@@ -49,7 +49,6 @@ interface KontrollsamtaleSetup {
             val kontrollsamtaleService = KontrollsamtaleServiceImpl(
                 sakService = sakService,
                 brevService = brevService,
-                oppgaveService = oppgaveService,
                 kontrollsamtaleRepo = kontrollsamtaleRepo,
                 sessionFactory = sessionFactory,
                 clock = clock,

@@ -11,13 +11,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
-import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
@@ -27,7 +24,6 @@ import no.nav.su.se.bakover.test.kontrollsamtale.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
-import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -169,30 +165,6 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
-    fun `feiler dersom vi ikke klarer å lage oppgave`() {
-        val oppgaveService = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
-        }
-
-        ServiceOgMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-            personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person.right()
-            },
-            brevService = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
-            },
-            oppgaveService = oppgaveService,
-            sessionFactory = TestSessionFactory(),
-            clock = fixedClock,
-        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
-            kontrollsamtale = kontrollsamtale,
-        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
-    }
-
-    @Test
     fun `feiler hvis vi ikke klarer å lagre kontrollsamtaleinnkalling`() {
         ServiceOgMocks(
             sakService = mock {
@@ -203,9 +175,6 @@ internal class KontrollsamtaleServiceImplTest {
             },
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
-            },
-            oppgaveService = mock {
-                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             kontrollsamtaleRepo = mock {
                 on { lagre(any(), any()) } doThrow RuntimeException("Fikk ikke lagret kontrollsamtale")
@@ -218,7 +187,7 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
-    fun `lager brev og oppgave dersom alt går bra`() {
+    fun `lager brev dersom alt går bra`() {
         val services = ServiceOgMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -228,9 +197,6 @@ internal class KontrollsamtaleServiceImplTest {
             },
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
-            },
-            oppgaveService = mock {
-                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
@@ -244,17 +210,6 @@ internal class KontrollsamtaleServiceImplTest {
         verify(services.brevService).lagreDokument(capture<Dokument.MedMetadata.Informasjon>(dokumentCaptor), any())
         dokumentCaptor.value.opprettet shouldBe Tidspunkt.now(fixedClock)
         dokumentCaptor.value.generertDokument shouldBe minimumPdfAzeroPadded()
-
-        verify(services.oppgaveService).opprettOppgaveMedSystembruker(
-            argThat {
-                it shouldBe OppgaveConfig.Kontrollsamtale(
-                    saksnummer = sak.saksnummer,
-                    fnr = sak.fnr,
-                    clock = fixedClock,
-                    sakstype = sak.type,
-                )
-            },
-        )
     }
 
     @Test
@@ -328,7 +283,6 @@ internal class KontrollsamtaleServiceImplTest {
         val sakService: SakService = mock(),
         val personService: PersonService = mock(),
         val brevService: BrevService = mock(),
-        val oppgaveService: OppgaveService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val clock: Clock = mock(),
         val kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
@@ -337,7 +291,6 @@ internal class KontrollsamtaleServiceImplTest {
         val kontrollsamtaleService = KontrollsamtaleServiceImpl(
             sakService = sakService,
             brevService = brevService,
-            oppgaveService = oppgaveService,
             sessionFactory = sessionFactory,
             clock = clock,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
