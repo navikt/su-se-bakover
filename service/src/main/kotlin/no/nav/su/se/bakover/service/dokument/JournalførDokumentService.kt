@@ -42,12 +42,6 @@ class JournalførDokumentService(
             throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${dokumentdistribusjon.dokument.metadata.sakId}")
         }
 
-        /**
-         * TODO: er en mulighet å legge inn sjekk på mottakertabelln her, hvor hacky er det?
-         * Da slipper vi å migrere dokumentdistribusjonstabellen med ny og gammel type metadata
-         * Det blir vanskelig å sende med riktig u
-         */
-
         val journalførtDokument = dokumentdistribusjon.journalfør {
             journalfør(
                 command = JournalførBrevCommand(

@@ -2,6 +2,7 @@ package dokument.domain
 
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
@@ -36,6 +37,13 @@ sealed interface Dokument {
                 distribueringsadresse: Distribueringsadresse?,
             ): MedMetadata.Vedtak {
                 return MedMetadata.Vedtak(this, metadata, distribueringsadresse)
+            }
+            fun leggTilMetadataOgMottaker(
+                metadata: Metadata,
+                distribueringsadresse: Distribueringsadresse?,
+                mottakerFnr: Fnr,
+            ): MedMetadata.Vedtak {
+                return MedMetadata.Vedtak(this, metadata, distribueringsadresse).copy(tittel = this.tittel + "(KOPI)", ekstraMottaker = mottakerFnr)
             }
         }
 
@@ -102,6 +110,7 @@ sealed interface Dokument {
             override val generertDokumentJson: String,
             override val distribueringsadresse: Distribueringsadresse?,
             override val metadata: Metadata,
+            val ekstraMottaker: Fnr? = null,
         ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev
 
 import arrow.core.Either
+import dokument.domain.Dokument
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -18,15 +19,20 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBru
 internal class JournalførBrevHttpClient(private val client: JournalførHttpClient) : JournalførBrevClient {
     override fun journalførBrev(command: JournalførBrevCommand): Either<ClientError, JournalpostId> {
         val dokument = command.dokument
+        val mottakerFnr = when (dokument) {
+            is Dokument.MedMetadata.Informasjon.Annet -> command.fnr
+            is Dokument.MedMetadata.Informasjon.Viktig -> command.fnr
+            is Dokument.MedMetadata.Vedtak -> dokument.ekstraMottaker ?: command.fnr
+        }
         return client.opprettJournalpost(
             JournalførJsonRequest(
-                tittel = dokument.tittel, // trenger et flagg her for å si kopi hvis det skal sendes flere steder
+                tittel = dokument.tittel,
                 journalpostType = JournalPostType.UTGAAENDE,
                 kanal = null,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.ÅLESUND.enhet,
                 // denne støtter også navn men dokdist gjør vel noe magi der basert på fnr
-                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()), // denne skal være verge eller søker men vi har ingen støtte for dette
+                avsenderMottaker = AvsenderMottaker(id = mottakerFnr.toString()), // denne skal være verge eller søker men vi har ingen støtte for dette
                 bruker = command.fnr.tilBruker(), // Denne må være søker fnr
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(

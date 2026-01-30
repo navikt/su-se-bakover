@@ -172,6 +172,7 @@ data object ServiceBuilder {
         ).apply {
             addObserver(statistikkEventObserver)
         }
+        val mottakerService = MottakerServiceImpl(databaseRepos.mottakerRepo, dokumentRepo = databaseRepos.dokumentRepo)
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
             oppgaveService = oppgaveService,
@@ -179,6 +180,7 @@ data object ServiceBuilder {
             clock = clock,
             satsFactory = satsFactory,
             fritekstService = fritekstService,
+            mottakerServiceImpl = mottakerService,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(
@@ -378,10 +380,7 @@ data object ServiceBuilder {
             sakstatistikkBigQueryService = sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
-            mottakerService = MottakerServiceImpl(
-                databaseRepos.mottakerRepo,
-                dokumentRepo = databaseRepos.dokumentRepo,
-            ),
+            mottakerService = mottakerService,
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,

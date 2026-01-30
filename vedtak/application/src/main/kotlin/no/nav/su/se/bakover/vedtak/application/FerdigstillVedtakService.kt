@@ -186,8 +186,8 @@ class FerdigstillVedtakServiceImpl(
             ),
         ).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
-        }.map {
-            val dokumentMedMetadata: Dokument.MedMetadata = it.leggTilMetadata(
+        }.map { utenMetadata ->
+            val dokumentMedMetadata: Dokument.MedMetadata = utenMetadata.leggTilMetadata(
                 metadata = Dokument.Metadata(
                     sakId = vedtak.behandling.sakId,
                     søknadId = null,
@@ -218,18 +218,24 @@ class FerdigstillVedtakServiceImpl(
                 else -> null
             }
             if (mottaker != null) {
-                val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = it.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        sakId = vedtak.behandling.sakId,
-                        søknadId = null,
-                        vedtakId = vedtak.id,
-                        revurderingId = null,
-                    ),
-                    // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
-                    distribueringsadresse = mottaker.adresse,
-                )
+                when (utenMetadata) {
+                    is Dokument.UtenMetadata.Vedtak -> {
+                        val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = utenMetadata.leggTilMetadataOgMottaker(
+                            metadata = Dokument.Metadata(
+                                sakId = vedtak.behandling.sakId,
+                                søknadId = null,
+                                vedtakId = vedtak.id,
+                                revurderingId = null,
+                            ),
+                            // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
+                            distribueringsadresse = mottaker.adresse,
+                            mottakerFnr = mottaker.foedselsnummer,
+                        )
 
-                brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)
+                        brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)
+                    }
+                    else -> Unit
+                }
             }
             brevService.lagreDokument(dokumentMedMetadata, transactionContext)
 
