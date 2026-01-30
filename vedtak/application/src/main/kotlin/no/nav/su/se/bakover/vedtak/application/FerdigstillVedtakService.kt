@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
@@ -177,7 +179,7 @@ class FerdigstillVedtakServiceImpl(
          */
 
         return brevService.lagDokumentPdf(
-            vedtak.lagDokumentKommando( // Denne plukker ut fnr på behandlingen e.l.
+            vedtak.lagDokumentKommando(
                 clock,
                 satsFactory,
                 fritekst = fritekst,
@@ -204,7 +206,17 @@ class FerdigstillVedtakServiceImpl(
             // TODO NY: egentlig må vi først knytte det mot revurderingen også sjekke mot revurderingsiden her men lagre på vedtakid.. blir rotete
             // dette bryter vel hele modellen. problemet her er at vi må ha noe å knytte den mot så må sjekke opp hvordan
             // det lar seg gjøre
-            val mottaker = mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.VEDTAK, referanseId = vedtak.id), vedtak.sakId).getOrElse { null }
+
+            // TODO: noe annet fra behandlingstypen som skal støttes?
+            val mottaker = when (vedtak.behandling) {
+                is AbstraktRevurdering -> {
+                    mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
+                }
+                is Søknadsbehandling -> {
+                    mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
+                }
+                else -> null
+            }
             if (mottaker != null) {
                 val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = it.leggTilMetadata(
                     metadata = Dokument.Metadata(

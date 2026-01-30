@@ -311,7 +311,7 @@ data class MottakerDomain(
 
 enum class ReferanseTypeMottaker {
     SØKNAD,
-    VEDTAK,
+    VEDTAK, // Tror ikke denne går å støtte da behandlingen er knyttet opp mot vedtak men som kun opprettes etter iverksatt så vi har ingen binding til den før det er for sent
     REVURDERING,
-    KLAGE,
+    KLAGE, // special case
 }
