@@ -59,7 +59,7 @@ fun fromBrevCommand(
                 }
             } ?: "-".right()
         }
-    // TODO: denne blir direkte mappet ut i pdf-gen så den er helt avhengig av om vi kan skrive kopi i tittel eller om vi må ha ekstra felt ved verge
+
     val personalia = {
         hentPerson(command.fødselsnummer).mapLeft {
             FeilVedHentingAvInformasjon.KunneIkkeHentePerson(it)

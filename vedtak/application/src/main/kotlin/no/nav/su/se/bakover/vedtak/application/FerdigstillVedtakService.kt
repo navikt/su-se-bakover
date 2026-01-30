@@ -13,6 +13,9 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
@@ -52,6 +55,7 @@ class FerdigstillVedtakServiceImpl(
     private val clock: Clock,
     private val satsFactory: SatsFactory,
     private val fritekstService: FritekstService,
+    private val mottakerServiceImpl: MottakerServiceImpl,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -152,6 +156,7 @@ class FerdigstillVedtakServiceImpl(
         vedtak: VedtakSomKanRevurderes,
         transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtak, Dokument.MedMetadata> {
+        // TODO: Det gir ingen mening å kaste exceptions her da betaling allerede er oversendt, alt dette må valideres på forhånd ved iverksett og dermed låses
         val fritekst = fritekstService.hentFritekst(
             referanseId = vedtak.behandling.id.value,
             type = FritekstType.VEDTAKSBREV_REVURDERING,
@@ -169,8 +174,8 @@ class FerdigstillVedtakServiceImpl(
         /**
          *  Ser egentlig for meg at vi prøver her å lage en service for lage flere brev aka dokument + dokument_distriubsjon
          *  for en id som er generell og som hensyntar adresse
-         *
          */
+
         return brevService.lagDokumentPdf(
             vedtak.lagDokumentKommando( // Denne plukker ut fnr på behandlingen e.l.
                 clock,
@@ -187,13 +192,33 @@ class FerdigstillVedtakServiceImpl(
                     vedtakId = vedtak.id,
                     revurderingId = null,
                 ),
-                // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+                // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
                 distribueringsadresse = null,
             )
             // mottakerService feks
             // dokument tabellen trenger bare ett innsalg men må se hvor tight den koblingen er først
             // Dette må gjøre en gang per mottaker da dokument_distribusjon har Foreign key: dokumentid → dokument(id) så et dokument kan ha maks en dokument_distrubson
             // TODO: her må det bli en visningsfiks i frontend og gjøre om til liste somewhere for vedtaksbrev henting i sak
+
+            // litt i stuss her siden vi lagrer vedtaksiden  men det kan være knyttet til alle typer behandling. TODO: kanskje vi alltid skal basere oss på vedtak? se-> VedtakSomKanRevurderes.lagDokumentKommando
+            // TODO NY: egentlig må vi først knytte det mot revurderingen også sjekke mot revurderingsiden her men lagre på vedtakid.. blir rotete
+            // dette bryter vel hele modellen. problemet her er at vi må ha noe å knytte den mot så må sjekke opp hvordan
+            // det lar seg gjøre
+            val mottaker = mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.VEDTAK, referanseId = vedtak.id), vedtak.sakId).getOrElse { null }
+            if (mottaker != null) {
+                val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = it.leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = vedtak.behandling.sakId,
+                        søknadId = null,
+                        vedtakId = vedtak.id,
+                        revurderingId = null,
+                    ),
+                    // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
+                    distribueringsadresse = mottaker.adresse,
+                )
+
+                brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)
+            }
             brevService.lagreDokument(dokumentMedMetadata, transactionContext)
 
             dokumentMedMetadata

@@ -20,13 +20,14 @@ internal class JournalførBrevHttpClient(private val client: JournalførHttpClie
         val dokument = command.dokument
         return client.opprettJournalpost(
             JournalførJsonRequest(
-                tittel = dokument.tittel,
+                tittel = dokument.tittel, // trenger et flagg her for å si kopi hvis det skal sendes flere steder
                 journalpostType = JournalPostType.UTGAAENDE,
                 kanal = null,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.ÅLESUND.enhet,
-                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()),
-                bruker = command.fnr.tilBruker(),
+                // denne støtter også navn men dokdist gjør vel noe magi der basert på fnr
+                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()), // denne skal være verge eller søker men vi har ingen støtte for dette
+                bruker = command.fnr.tilBruker(), // Denne må være søker fnr
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(
                     tittel = dokument.tittel,

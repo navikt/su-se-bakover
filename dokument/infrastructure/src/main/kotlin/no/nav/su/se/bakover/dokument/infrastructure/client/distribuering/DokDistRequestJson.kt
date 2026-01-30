@@ -31,6 +31,7 @@ fun toDokDistRequestJson(
     distribusjonstidspunkt: Distribusjonstidspunkt,
     distribueringsadresse: Distribueringsadresse?,
 ): String {
+    // TODO: se om navn kan  sendes med i dtoen her? evt plukker den opp fra `journalpost.avsenderMottaker.navn`
     return DokDistRequestJson(
         journalpostId = journalpostId.toString(),
         distribusjonstype = when (distribusjonstype) {
@@ -42,6 +43,7 @@ fun toDokDistRequestJson(
             Distribusjonstidspunkt.UMIDDELBART -> "UMIDDELBART"
             Distribusjonstidspunkt.KJERNETID -> "KJERNETID"
         },
+        // Denne sender med noe magisk virker det som så vi har aldri
         adresse = distribueringsadresse?.let {
             DokDistRequestJson.DokDistAdresseJson(
                 adresselinje1 = it.adresselinje1,

@@ -32,6 +32,7 @@ class BrevServiceImpl(
     private val clock: Clock,
 ) : BrevService {
 
+    // basert på kommandotypen så avjøres typen av Metadata
     override fun lagDokumentPdf(
         command: GenererDokumentCommand,
         id: UUID,

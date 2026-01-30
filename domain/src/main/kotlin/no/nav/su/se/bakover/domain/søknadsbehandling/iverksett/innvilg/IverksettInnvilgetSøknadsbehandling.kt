@@ -95,7 +95,7 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
                 vedtakId = vedtak.id,
                 revurderingId = null,
             ),
-            // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+            // SOS: vi bruker dokdist sin adresse for fnr på journalposten
             distribueringsadresse = null,
         )
 
