@@ -265,6 +265,23 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo> {
+        return dbMetrics.timeQuery("hentSakInfoForFnr") {
+            val sakIderString = sakIder.joinToString(",") { "'$it'" }
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id, saksnummer, fnr, type
+                FROM sak
+                WHERE id in ($sakIderString)
+                """.trimIndent().hentListe(
+                    mapOf(),
+                    session,
+                ) { row -> row.toSakInfo() }
+            }
+        }
+    }
+
     private fun Row.toSakInfo(): SakInfo {
         return SakInfo(
             sakId = uuid("id"),

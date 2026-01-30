@@ -42,14 +42,11 @@ class KontrollsamtaleDriftOversiktServiceImpl(
     }
 
     private fun sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utløpteKontrollSamtaler: List<Kontrollsamtale>): List<Long> {
-        return utløpteKontrollSamtaler.filter {
+        val saker = sakRepo.hentSakInfoBulk(utløpteKontrollSamtaler.map { it.sakId })
+        return saker.filter {
             val utbetalinger = utbetalingsRepo.hentOversendteUtbetalinger(it.sakId)
             utbetalinger.tidslinje().getOrNull()?.last() is UtbetalingslinjePåTidslinje.Stans
-        }.map {
-            val sakInfo = sakRepo.hentSakInfo(it.sakId)
-                ?: throw IllegalStateException("Fant ikke sak for kontrollsamtale sakId=${it.sakId}")
-            sakInfo.saksnummer.nummer
-        }
+        }.map { it.saksnummer.nummer }
     }
 }
 
