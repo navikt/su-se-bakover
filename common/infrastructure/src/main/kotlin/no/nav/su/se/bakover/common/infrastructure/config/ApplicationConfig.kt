@@ -642,6 +642,7 @@ data class ApplicationConfig(
                         keyDeserializer = StringDeserializer::class.java,
                         valueDeserializer = StringDeserializer::class.java,
                         clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
+                        autoOffsetResetConfig = "latest",
                     ),
                 topicName = getEnvironmentVariableOrThrow("INSTITUSJONSOPPHOLD_TOPIC"),
             )
