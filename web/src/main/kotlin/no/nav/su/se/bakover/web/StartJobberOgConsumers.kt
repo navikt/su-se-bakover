@@ -308,9 +308,8 @@ private fun naisJobberOgConsumers(
     val isProd = applicationConfig.naisCluster == NaisCluster.Prod
 
     val jobber = listOfNotNull(
-        // holder inst på kun i preprod inntil videre
-        if (!isProd) {
-            val hendelseskonsument = OpprettOppgaverForInstitusjonsoppholdshendelser(
+        InstitusjonsoppholdOppgaveJob.startJob(
+            hendelseskonsument = OpprettOppgaverForInstitusjonsoppholdshendelser(
                 oppgaveService = services.oppgave,
                 institusjonsoppholdHendelseRepo = databaseRepos.institusjonsoppholdHendelseRepo,
                 oppgaveHendelseRepo = databaseRepos.oppgaveHendelseRepo,
@@ -319,16 +318,15 @@ private fun naisJobberOgConsumers(
                 clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
                 hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
-            )
-            InstitusjonsoppholdOppgaveJob.startJob(
-                hendelseskonsument = hendelseskonsument,
-                periode = Duration.of(5, ChronoUnit.MINUTES),
-                initialDelay = initialDelay.next(),
-                runCheckFactory = runCheckFactory,
-            )
-        } else {
-            null
-        },
+            ),
+            periode = if (isProd) {
+                Duration.of(1, ChronoUnit.HOURS)
+            } else {
+                Duration.of(15, ChronoUnit.MINUTES)
+            },
+            initialDelay = initialDelay.next(),
+            runCheckFactory = runCheckFactory,
+        ),
 
         FssProxyJob.startJob(
             initialDelay = Duration.of(1, ChronoUnit.SECONDS),
