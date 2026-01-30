@@ -152,7 +152,9 @@ class ApplicationConfigTest {
             kafkaConfig = kafkaConfig,
         ),
         institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
-            kafkaConfig = kafkaConfig,
+            kafkaConfig = kafkaConfig + mapOf(
+                "auto.offset.reset" to "latest",
+            ),
             topicName = "INSTITUSJONSOPPHOLD_TOPIC",
         ),
     )
