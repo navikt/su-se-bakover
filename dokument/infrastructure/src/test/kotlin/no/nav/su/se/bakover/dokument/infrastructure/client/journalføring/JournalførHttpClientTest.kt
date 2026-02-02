@@ -146,7 +146,7 @@ internal class JournalførHttpClientTest {
         kanal = "kanal",
         behandlingstema = "behandlingstema",
         journalfoerendeEnhet = "journalfoerendeEnhet",
-        avsenderMottaker = AvsenderMottaker(id = "id"),
+        avsenderMottaker = AvsenderMottakerFnr(id = "id"),
         bruker = Bruker(id = "id", idType = "idType"),
         sak = Fagsak(
             fagsakId = "fagsakId",

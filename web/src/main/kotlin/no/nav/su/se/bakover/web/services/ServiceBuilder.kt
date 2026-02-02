@@ -180,7 +180,7 @@ data object ServiceBuilder {
             clock = clock,
             satsFactory = satsFactory,
             fritekstService = fritekstService,
-            mottakerServiceImpl = mottakerService,
+            mottakerService = mottakerService,
         )
 
         val stansAvYtelseService = StansYtelseServiceImpl(

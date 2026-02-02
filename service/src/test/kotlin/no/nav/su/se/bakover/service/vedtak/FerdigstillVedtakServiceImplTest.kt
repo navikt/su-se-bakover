@@ -338,7 +338,7 @@ internal class FerdigstillVedtakServiceImplTest {
             clock = clock,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             fritekstService = fritekstService,
-            mottakerServiceImpl = mottakerService,
+            mottakerService = mottakerService,
         )
 
         init {

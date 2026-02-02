@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -57,7 +59,7 @@ class FerdigstillVedtakServiceImpl(
     private val clock: Clock,
     private val satsFactory: SatsFactory,
     private val fritekstService: FritekstService,
-    private val mottakerServiceImpl: MottakerService,
+    private val mottakerService: MottakerService,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -210,16 +212,21 @@ class FerdigstillVedtakServiceImpl(
             // TODO: noe annet fra behandlingstypen som skal støttes?
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
-                    mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
+                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
                 }
                 is IverksattSøknadsbehandling.Innvilget -> {
-                    mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
+                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
                 }
                 else -> null
             }
             if (mottaker != null) {
                 when (utenMetadata) {
                     is Dokument.UtenMetadata.Vedtak -> {
+                        val (identifikator, adresse) = when (val tempmottaker = mottaker) {
+                            is MottakerFnrDomain -> tempmottaker.foedselsnummer.toString() to tempmottaker.adresse
+                            is MottakerOrgnummerDomain -> tempmottaker.orgnummer to tempmottaker.adresse
+                            else -> throw IllegalStateException("Mottaker er null")
+                        }
                         val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = utenMetadata.leggTilMetadataOgMottaker(
                             metadata = Dokument.Metadata(
                                 sakId = vedtak.behandling.sakId,
@@ -228,8 +235,8 @@ class FerdigstillVedtakServiceImpl(
                                 revurderingId = null,
                             ),
                             // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
-                            distribueringsadresse = mottaker.adresse,
-                            mottakerFnr = mottaker.foedselsnummer,
+                            distribueringsadresse = adresse,
+                            mottakerIdentifikator = identifikator ?: throw IllegalStateException("Mottaker har ingen identifikator"),
                         )
 
                         brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)

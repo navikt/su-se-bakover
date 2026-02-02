@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.mottaker
 
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.NySak
@@ -24,7 +24,7 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
         val referanseType = ReferanseTypeMottaker.REVURDERING
         val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
 
-        val mottaker = MottakerDomain(
+        val mottaker = MottakerFnrDomain(
             navn = "tester",
             foedselsnummer = sak.fnr,
             adresse = Distribueringsadresse(

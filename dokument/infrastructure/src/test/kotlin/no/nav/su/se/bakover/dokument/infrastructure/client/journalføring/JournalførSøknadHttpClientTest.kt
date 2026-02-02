@@ -59,7 +59,7 @@ internal class JournalførSøknadHttpClientTest {
                     kanal = "INNSENDT_NAV_ANSATT",
                     behandlingstema = behandlingstema,
                     journalfoerendeEnhet = "9999",
-                    avsenderMottaker = AvsenderMottaker(id = fnr.toString()),
+                    avsenderMottaker = AvsenderMottakerFnr(id = fnr.toString()),
                     bruker = Bruker(id = fnr.toString()),
                     sak = Fagsak(saksnummer.toString()),
                     dokumenter = listOf(

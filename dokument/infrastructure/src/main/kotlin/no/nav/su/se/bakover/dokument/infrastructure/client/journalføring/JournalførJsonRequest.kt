@@ -12,7 +12,7 @@ data class JournalførJsonRequest(
     val kanal: String?,
     val behandlingstema: String,
     val journalfoerendeEnhet: String,
-    val avsenderMottaker: AvsenderMottaker?,
+    val avsenderMottaker: Avsender?,
     val bruker: Bruker,
     val sak: Fagsak,
     val dokumenter: List<JournalpostDokument>,
@@ -50,10 +50,17 @@ data class JournalpostDokument(
     }
 }
 
-data class AvsenderMottaker(
+sealed interface Avsender
+data class AvsenderMottakerFnr(
     val id: String,
     val idType: String = "FNR",
-)
+) : Avsender
+
+data class AvsenderMottakerOrgnr(
+    val id: String,
+    val navn: String? = null,
+    val idType: String = "ORGNR",
+) : Avsender
 
 data class Bruker(
     val id: String,

@@ -29,8 +29,15 @@ internal class MottakerServiceTest {
         expected: LagreMottaker,
     ): ArgumentMatcher<MottakerDomain> =
         ArgumentMatcher { actual ->
-            actual.navn == expected.navn &&
-                actual.foedselsnummer.toString() == expected.foedselsnummer &&
+            val identMatcher = when (actual) {
+                is MottakerFnrDomain ->
+                    actual.foedselsnummer?.toString() == expected.foedselsnummer
+                is MottakerOrgnummerDomain ->
+                    actual.orgnummer == expected.orgnummer
+            }
+
+            identMatcher &&
+                actual.navn == expected.navn &&
                 actual.adresse == expected.adresse &&
                 actual.sakId.toString() == expected.sakId &&
                 actual.referanseId.toString() == expected.referanseId &&
@@ -235,7 +242,6 @@ internal class MottakerServiceTest {
             mottaker = mottaker,
             sakId = sakId,
         ).shouldBeRight()
-        val mottakerDomain = mottaker.toDomain().getOrElse { throw IllegalStateException("Skal ikke feile") }
         verify(mottakerRepo, times(1))
             .lagreMottaker(argThat(matcherMottaker(mottaker)))
 
@@ -260,7 +266,17 @@ internal class MottakerServiceTest {
             skalMatche,
             sakId,
         ).shouldBeRight()
-        verify(mottakerRepo, times(1)).oppdaterMottaker(skalMatche.toDomain().getOrElse { throw IllegalStateException("Skal ikke feile") })
+        verify(mottakerRepo, times(1)).oppdaterMottaker(
+            argThat { domain ->
+                domain is MottakerFnrDomain &&
+                    domain.navn == nyttnavnForOppdatering &&
+                    domain.foedselsnummer?.toString() == oppdaterMottaker.foedselsnummer &&
+                    domain.adresse == oppdaterMottaker.adresse &&
+                    domain.sakId.toString() == oppdaterMottaker.sakId &&
+                    domain.referanseId.toString() == oppdaterMottaker.referanseId &&
+                    domain.referanseType.name == oppdaterMottaker.referanseType
+            },
+        )
         verify(dokumentRepo, times(2)).hentForRevurdering(referanseId)
 
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo)

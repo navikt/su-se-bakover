@@ -45,6 +45,8 @@ class MottakerServiceImpl(
      * Eller manuelle brev som er opprettet direkte på saken uten annen tilknytning og kan ikke unikt identifiseres
      * hvis vi skal støtte frie brev med flere mottakere mot som feks [lagreOgSendOpplastetPdfPåSak] må man ha en ekstra referanseid på dem
      */
+
+    // TODO: Må sjekke her om adressen er gyldig
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
@@ -158,17 +160,50 @@ fun String.isUuid(): Boolean =
 
 sealed interface MottakerRequest {
     val navn: String
-    val foedselsnummer: String
+    val foedselsnummer: String?
+    val orgnummer: String?
     val adresse: Distribueringsadresse
     val sakId: String
     val referanseId: String
     val referanseType: String
 }
 
+private fun validerFnrEllerOrgnummer(req: MottakerRequest): List<String> {
+    val feil = mutableListOf<String>()
+    val foedselsnummer = req.foedselsnummer
+    val orgnummer = req.orgnummer
+    val hasFnr = !foedselsnummer.isNullOrBlank()
+    val hasOrgnr = !orgnummer.isNullOrBlank()
+
+    when {
+        hasFnr && hasOrgnr -> {
+            feil += "Kan ikke ha både fødselsnummer og organisasjonsnummer"
+        }
+
+        !hasFnr && !hasOrgnr -> {
+            feil += "Enten fødselsnummer eller organisasjonsnummer må angis"
+        }
+
+        hasFnr -> {
+            if (Fnr.tryCreate(foedselsnummer) == null) {
+                feil += "Ugyldig fødselsnummer"
+            }
+        }
+
+        hasOrgnr -> {
+            if (orgnummer.length != 9) {
+                feil += "Organisasjonsnummer må være 9 siffer langt"
+            }
+        }
+    }
+    return feil
+}
+
 data class OppdaterMottaker(
     val id: String,
     override val navn: String,
-    override val foedselsnummer: String,
+    override val foedselsnummer: String? = null,
+    override val orgnummer: String? = null,
     override val adresse: Distribueringsadresse,
     override val sakId: String,
     override val referanseId: String,
@@ -183,14 +218,7 @@ data class OppdaterMottaker(
         if (navn.isBlank()) {
             feil += "Navn er blank"
         }
-
-        if (foedselsnummer.isBlank()) {
-            feil += "Fødselsnummer er ikke angitt"
-        }
-
-        if (Fnr.tryCreate(foedselsnummer) == null) {
-            feil += "Ugyldig fødselsnummer"
-        }
+        feil.addAll(validerFnrEllerOrgnummer(this))
 
         if (sakId.isBlank()) {
             feil += "sakId mangler"
@@ -217,15 +245,25 @@ data class OppdaterMottaker(
     fun toDomain(): Either<List<String>, MottakerDomain> {
         val erGyldig = this.erGyldig()
         return if (erGyldig.isEmpty()) {
-            MottakerDomain(
-                id = UUID.fromString(id),
-                navn = navn,
-                foedselsnummer = Fnr(foedselsnummer),
-                adresse = adresse,
-                sakId = UUID.fromString(sakId),
-                referanseId = UUID.fromString(referanseId),
-                referanseType = ReferanseTypeMottaker.valueOf(referanseType),
-            ).right()
+            if (foedselsnummer == null) {
+                MottakerOrgnummerDomain(
+                    navn = navn,
+                    orgnummer = orgnummer,
+                    adresse = adresse,
+                    sakId = UUID.fromString(sakId),
+                    referanseId = UUID.fromString(referanseId),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                ).right()
+            } else {
+                MottakerFnrDomain(
+                    navn = navn,
+                    foedselsnummer = Fnr.tryCreate(foedselsnummer),
+                    adresse = adresse,
+                    sakId = UUID.fromString(sakId),
+                    referanseId = UUID.fromString(referanseId),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                ).right()
+            }
         } else {
             erGyldig.left()
         }
@@ -234,7 +272,8 @@ data class OppdaterMottaker(
 
 data class LagreMottaker(
     override val navn: String,
-    override val foedselsnummer: String,
+    override val foedselsnummer: String? = null,
+    override val orgnummer: String? = null,
     override val adresse: Distribueringsadresse,
     override val sakId: String,
     override val referanseId: String,
@@ -247,13 +286,7 @@ data class LagreMottaker(
             feil += "Navn er blank"
         }
 
-        if (foedselsnummer.isBlank()) {
-            feil += "Fødselsnummer er ikke angitt"
-        }
-
-        if (Fnr.tryCreate(foedselsnummer) == null) {
-            feil += "Ugyldig fødselsnummer"
-        }
+        feil.addAll(validerFnrEllerOrgnummer(this))
 
         if (sakId.isBlank()) {
             feil += "sakId mangler"
@@ -280,14 +313,25 @@ data class LagreMottaker(
     fun toDomain(): Either<List<String>, MottakerDomain> {
         val erGyldig = this.erGyldig()
         return if (erGyldig.isEmpty()) {
-            MottakerDomain(
-                navn = navn,
-                foedselsnummer = Fnr(foedselsnummer),
-                adresse = adresse,
-                sakId = UUID.fromString(sakId),
-                referanseId = UUID.fromString(referanseId),
-                referanseType = ReferanseTypeMottaker.valueOf(referanseType),
-            ).right()
+            if (foedselsnummer == null) {
+                MottakerOrgnummerDomain(
+                    navn = navn,
+                    orgnummer = orgnummer,
+                    adresse = adresse,
+                    sakId = UUID.fromString(sakId),
+                    referanseId = UUID.fromString(referanseId),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                ).right()
+            } else {
+                MottakerFnrDomain(
+                    navn = navn,
+                    foedselsnummer = Fnr.tryCreate(foedselsnummer),
+                    adresse = adresse,
+                    sakId = UUID.fromString(sakId),
+                    referanseId = UUID.fromString(referanseId),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                ).right()
+            }
         } else {
             erGyldig.left()
         }
@@ -299,15 +343,34 @@ class MottakerIdentifikator(
     val referanseId: UUID,
 )
 
-data class MottakerDomain(
-    val id: UUID = UUID.randomUUID(),
-    val navn: String,
-    val foedselsnummer: Fnr,
-    val adresse: Distribueringsadresse, // toDokDistRequestJson + DokDistAdresseJson
-    val sakId: UUID,
-    val referanseId: UUID,
-    val referanseType: ReferanseTypeMottaker,
-)
+sealed interface MottakerDomain {
+    val id: UUID
+    val navn: String
+    val adresse: Distribueringsadresse // toDokDistRequestJson + DokDistAdresseJson
+    val sakId: UUID
+    val referanseId: UUID
+    val referanseType: ReferanseTypeMottaker
+}
+
+data class MottakerOrgnummerDomain(
+    override val id: UUID = UUID.randomUUID(),
+    override val navn: String,
+    override val adresse: Distribueringsadresse,
+    override val sakId: UUID,
+    override val referanseId: UUID,
+    override val referanseType: ReferanseTypeMottaker,
+    val orgnummer: String?,
+) : MottakerDomain
+
+data class MottakerFnrDomain(
+    override val id: UUID = UUID.randomUUID(),
+    override val navn: String,
+    override val adresse: Distribueringsadresse,
+    override val sakId: UUID,
+    override val referanseId: UUID,
+    override val referanseType: ReferanseTypeMottaker,
+    val foedselsnummer: Fnr?,
+) : MottakerDomain
 
 enum class ReferanseTypeMottaker {
     SØKNAD,
