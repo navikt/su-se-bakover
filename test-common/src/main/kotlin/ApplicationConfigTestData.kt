@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
@@ -78,7 +77,6 @@ fun applicationConfig() = ApplicationConfig(
         skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
             apiBaseUrl = "a",
             clientId = "skattClientId",
-            consumerId = SU_SE_BAKOVER_CONSUMER_ID,
         ),
         dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
             url = "dokArkivUrl",

@@ -152,7 +152,6 @@ class SkatteClient(
             .header("Authorization", "Bearer $token")
             .header("Nav-Call-Id", correlationId.toString())
             .header("Content-Type", "application/json")
-            .header("Nav-Consumer-Id", skatteetatenConfig.consumerId)
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
 

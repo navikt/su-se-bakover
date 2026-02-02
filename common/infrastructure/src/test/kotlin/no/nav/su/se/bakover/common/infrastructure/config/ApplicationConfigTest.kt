@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.common.infrastructure.config
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroups
@@ -110,7 +109,6 @@ class ApplicationConfigTest {
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = "skatteetatenUrl",
                 clientId = "skattClientId",
-                consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             ),
             dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
                 url = "dokArkivUrl",
@@ -298,7 +296,6 @@ class ApplicationConfigTest {
                     skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                         apiBaseUrl = "mocked",
                         clientId = "mocked",
-                        consumerId = "srvsupstonad",
                     ),
                     dokArkivConfig = ApplicationConfig.ClientsConfig.DokArkivConfig(
                         url = "mocked",

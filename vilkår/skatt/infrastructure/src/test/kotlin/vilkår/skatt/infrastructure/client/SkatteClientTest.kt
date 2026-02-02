@@ -8,7 +8,6 @@ import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
@@ -35,7 +34,6 @@ internal class SkatteClientTest {
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = baseUrl,
                 clientId = "mocked",
-                consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             ),
             azureAd = azureAdMock,
         )
