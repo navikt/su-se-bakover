@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -191,6 +192,8 @@ internal class FerdigstillVedtakServiceImplTest {
         }
     }
 
+    // TODO: lag en tilsvarende test med mottaker
+
     @Test
     fun `ferdigstill NY etter utbetaling går fint`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
@@ -217,6 +220,9 @@ internal class FerdigstillVedtakServiceImplTest {
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                     fritekst = "fritekst",
                 ).right()
+            },
+            mottakerService = mock {
+                on { hentMottaker(any(), any()) } doReturn null.right()
             },
         ) {
             val utbetaling =
@@ -322,6 +328,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val vedtakService: VedtakService = mock(),
         val utbetalingRepo: UtbetalingRepo = mock(),
         val fritekstService: FritekstService = mock(),
+        val mottakerService: MottakerService = mock(),
         val runTest: FerdigstillVedtakServiceMocks.() -> Unit,
     ) {
         val service = FerdigstillVedtakServiceImpl(
@@ -331,7 +338,7 @@ internal class FerdigstillVedtakServiceImplTest {
             clock = clock,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             fritekstService = fritekstService,
-            mock(),
+            mottakerServiceImpl = mottakerService,
         )
 
         init {

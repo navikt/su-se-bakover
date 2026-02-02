@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
-import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
@@ -57,7 +57,7 @@ class FerdigstillVedtakServiceImpl(
     private val clock: Clock,
     private val satsFactory: SatsFactory,
     private val fritekstService: FritekstService,
-    private val mottakerServiceImpl: MottakerServiceImpl,
+    private val mottakerServiceImpl: MottakerService,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -209,10 +209,10 @@ class FerdigstillVedtakServiceImpl(
 
             // TODO: noe annet fra behandlingstypen som skal støttes?
             val mottaker = when (vedtak.behandling) {
-                is AbstraktRevurdering -> {
+                is IverksattRevurdering -> {
                     mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
                 }
-                is Søknadsbehandling -> {
+                is IverksattSøknadsbehandling.Innvilget -> {
                     mottakerServiceImpl.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
                 }
                 else -> null
