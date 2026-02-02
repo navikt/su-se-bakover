@@ -110,7 +110,7 @@ spec:
         - host: inst2.prod-fss-pub.nais.io
         - host: dokdistfordeling.prod-fss-pub.nais.io
         - host: oppgave.prod-fss-pub.nais.io
-        - host: team-inntekt-proxy.prod-fss-pub.nais.io
+        - host: sigrun.prod-fss-pub.nais.io
         - host: kodeverk-api.nav.no
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: mpls02.adeo.no
@@ -214,7 +214,7 @@ spec:
     - name: MQ_TILBAKEKREVING_MOTTAK
       value: "QA.P_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
     - name: SKATTEETATEN_URL
-      value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/sigrun"
+      value: "https://sigrun.prod-fss-pub.nais.io"
     - name: SKATT_CLIENT_ID
       value: "api://prod-fss.team-inntekt.sigrun"
     - name: KRR_URL
