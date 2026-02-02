@@ -1,6 +1,7 @@
 #    permissions:
 #      contents: 'write' # needed to create/edit releases
 #      pull-requests: 'write' # needed to add labels to pull requests
+#Se release-drafter.yml for spesifikasjoner og kategoriseringer av branches i releases
 
 name: 'Draft release'
 description: 'Appends all PR descriptions to a draft release (creates/edits). Also adds labels to PRs'
