@@ -41,6 +41,14 @@ import java.time.Year
  * https://github.com/navikt/sigrun/pull/50
  *
  */
+
+data class SummertSkattegrunnlagRequestDto(
+    val inntektsaar: String,
+    val personident: String,
+    val rettighetspakke: String,
+    val stadie: String,
+)
+
 class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
     private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraCoroutineContext() },
@@ -122,12 +130,6 @@ class SkatteClient(
         }
     }
 
-    data class SummertSkattegrunnlagRequestDto(
-        val inntektsaar: String,
-        val personident: String,
-        val rettighetspakke: String,
-        val stadie: String,
-    )
     private fun hentSamletSkattegrunnlagFraSkatt(
         fnr: Fnr,
         inntektsÅr: Year,
