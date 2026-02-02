@@ -24,9 +24,9 @@ categories:
       - 'refactor'
   - title: '📖 Dokumentasjon'
     labels:
-    - 'documentation'
-    - 'docs'
-    - 'doc'
+      - 'documentation'
+      - 'docs'
+      - 'doc'
   - title: '📦 Andre endringer'
     labels: [ ] #dekker alle andre branches navn som ikke inneholder de over
 autolabeler:
