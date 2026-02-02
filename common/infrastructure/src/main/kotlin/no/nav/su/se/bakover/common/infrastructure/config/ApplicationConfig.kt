@@ -5,7 +5,6 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrNull
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrThrow
@@ -394,7 +393,6 @@ data class ApplicationConfig(
         data class SkatteetatenConfig(
             val apiBaseUrl: String,
             val clientId: String,
-            val consumerId: String,
             val rettighetspakke: String = "navSupplerendeStoenad",
         ) {
             companion object {
@@ -404,14 +402,12 @@ data class ApplicationConfig(
                     return SkatteetatenConfig(
                         apiBaseUrl = apiBaseUrl,
                         clientId = clientId,
-                        consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
                     )
                 }
 
                 fun createLocalConfig() = SkatteetatenConfig(
                     apiBaseUrl = "mocked",
                     clientId = "mocked",
-                    consumerId = NavIdentBruker.Saksbehandler.systembruker().toString(),
                 )
             }
         }

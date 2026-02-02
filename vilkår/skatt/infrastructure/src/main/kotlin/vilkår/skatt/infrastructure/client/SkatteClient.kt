@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Clien
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.common.tid.toRange
@@ -40,6 +41,14 @@ import java.time.Year
  * https://github.com/navikt/sigrun/pull/50
  *
  */
+
+data class SummertSkattegrunnlagRequestDto(
+    val inntektsaar: String,
+    val personident: String,
+    val rettighetspakke: String,
+    val stadie: String,
+)
+
 class SkatteClient(
     private val skatteetatenConfig: SkatteetatenConfig,
     private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraCoroutineContext() },
@@ -129,16 +138,21 @@ class SkatteClient(
         correlationId: CorrelationId,
     ): Either<SkatteoppslagFeil, Skattegrunnlag.SkattegrunnlagForÅr> {
         val url = "${skatteetatenConfig.apiBaseUrl}/api/v2/summertskattegrunnlag"
-        val params =
-            "inntektsaar=$inntektsÅr&stadie=${stadie.verdi}&rettighetspakke=${skatteetatenConfig.rettighetspakke}"
+        val requestBody = serialize(
+            SummertSkattegrunnlagRequestDto(
+                inntektsaar = inntektsÅr.toString(),
+                personident = fnr.toString(),
+                rettighetspakke = skatteetatenConfig.rettighetspakke,
+                stadie = stadie.verdi,
+            ),
+        )
         val getRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$url?$params"))
-            .setHeader("Accept", "application/json")
-            .setHeader("Authorization", "Bearer $token")
-            .setHeader("Nav-Call-Id", correlationId.toString())
-            .setHeader("Nav-Consumer-Id", skatteetatenConfig.consumerId)
-            .setHeader("Nav-Personident", fnr.toString())
-            .GET()
+            .uri(URI.create(url))
+            .header("Accept", "application/json")
+            .header("Authorization", "Bearer $token")
+            .header("Nav-Call-Id", correlationId.toString())
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
 
         return Either.catch {
