@@ -16,6 +16,11 @@ sealed interface KunneIkkeFerdigstilleOgIverksette {
     data class KunneIkkeUtbetale(val feil: KunneIkkeFerdigstilleIverksettelsestransaksjon) : KunneIkkeFerdigstilleOgIverksette
 }
 
+sealed interface KunneIkkeHenteReguleringsgrunnlag {
+    data object FantIkkeRegulering : KunneIkkeHenteReguleringsgrunnlag
+    data object FantIkkeGjeldendeVedtaksdata : KunneIkkeHenteReguleringsgrunnlag
+}
+
 sealed interface KunneIkkeRegulereManuelt {
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object SimuleringFeilet : KunneIkkeRegulereManuelt
@@ -64,6 +69,12 @@ interface ReguleringService {
     fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
     fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
+
+    fun hentReguleringsgrunnlag(
+        reguleringId: ReguleringId,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata>
+
     fun regulerManuelt(
         reguleringId: ReguleringId,
         uføregrunnlag: List<Uføregrunnlag>,

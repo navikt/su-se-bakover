@@ -10,7 +10,9 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,17 +35,20 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
+import no.nav.su.se.bakover.web.routes.regulering.json.ReguleringsGrunnlagsdataJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -54,12 +59,51 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-// TODO - filnavnet er automatisk. vi har manuell route her inne også
 internal fun Route.reguler(
     reguleringService: ReguleringService,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
 ) {
+    route("$REGULERING_PATH/manuell/{reguleringId}") {
+        get {
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withReguleringId { id ->
+                    reguleringService.hentReguleringsgrunnlag(
+                        reguleringId = ReguleringId(id),
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                        },
+                    )
+                }
+            }
+        }
+        post {
+            authorize(Brukerrolle.Saksbehandler) {
+                data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
+                call.withReguleringId { id ->
+                    call.withBody<Body> { body ->
+                        sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
+                        reguleringService.regulerManuelt(
+                            reguleringId = ReguleringId(id),
+                            uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                            fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                                call.svar(Resultat.okJson())
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     post("$REGULERING_PATH/automatisk") {
         authorize(Brukerrolle.Drift) {
             val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
@@ -133,29 +177,6 @@ internal fun Route.reguler(
                     }
                 },
             )
-        }
-    }
-
-    post("$REGULERING_PATH/manuell/{reguleringId}") {
-        authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
-            call.withReguleringId { id ->
-                call.withBody<Body> { body ->
-                    sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
-                    reguleringService.regulerManuelt(
-                        reguleringId = ReguleringId(id),
-                        uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                        fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                            call.svar(Resultat.okJson())
-                        },
-                    )
-                }
-            }
         }
     }
 
@@ -391,6 +412,15 @@ val fantIkkeRegulering = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke regulering",
     "fant_ikke_regulering",
 )
+val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
+    "Fant ikke gjeldende vedtaksdata",
+    "fant_ikke_vedtaksdata",
+)
+
+internal fun KunneIkkeHenteReguleringsgrunnlag.tilResultat(): Resultat = when (this) {
+    KunneIkkeHenteReguleringsgrunnlag.FantIkkeRegulering -> fantIkkeRegulering
+    KunneIkkeHenteReguleringsgrunnlag.FantIkkeGjeldendeVedtaksdata -> fantIkkeVedtaksdata
+}
 
 internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
     KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
