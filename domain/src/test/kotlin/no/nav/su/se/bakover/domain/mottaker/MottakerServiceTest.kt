@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.mottaker
 import arrow.core.getOrElse
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
-import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -38,7 +37,7 @@ internal class MottakerServiceTest {
 
             identMatcher &&
                 actual.navn == expected.navn &&
-                actual.adresse == expected.adresse &&
+                actual.adresse == expected.adresse.toDomain() &&
                 actual.sakId.toString() == expected.sakId &&
                 actual.referanseId.toString() == expected.referanseId &&
                 actual.referanseType.name == expected.referanseType
@@ -51,7 +50,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -82,7 +81,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -118,7 +117,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -154,7 +153,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -190,7 +189,7 @@ internal class MottakerServiceTest {
         val oppdaterMottaker = OppdaterMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -226,7 +225,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -248,7 +247,7 @@ internal class MottakerServiceTest {
         val oppdaterMottaker = OppdaterMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -271,7 +270,7 @@ internal class MottakerServiceTest {
                 domain is MottakerFnrDomain &&
                     domain.navn == nyttnavnForOppdatering &&
                     domain.foedselsnummer?.toString() == oppdaterMottaker.foedselsnummer &&
-                    domain.adresse == oppdaterMottaker.adresse &&
+                    domain.adresse == oppdaterMottaker.adresse.toDomain() &&
                     domain.sakId.toString() == oppdaterMottaker.sakId &&
                     domain.referanseId.toString() == oppdaterMottaker.referanseId &&
                     domain.referanseType.name == oppdaterMottaker.referanseType
@@ -306,7 +305,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -352,7 +351,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -386,7 +385,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,
@@ -441,7 +440,7 @@ internal class MottakerServiceTest {
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
-            adresse = Distribueringsadresse(
+            adresse = DistribueringsadresseRequest(
                 adresselinje1 = "Gate 1",
                 adresselinje2 = null,
                 adresselinje3 = null,

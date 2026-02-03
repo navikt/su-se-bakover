@@ -56,6 +56,7 @@ data class AvsenderMottakerFnr(
     val idType: String = "FNR",
 ) : Avsender
 
+// TODO: hvis dette er satt så må orgnummer feltet settes i dokdist..https://confluence.adeo.no/spaces/BOA/pages/320038938/RDIST002+-+DistribuerJournalpost+resttjeneste
 data class AvsenderMottakerOrgnr(
     val id: String,
     val navn: String? = null,

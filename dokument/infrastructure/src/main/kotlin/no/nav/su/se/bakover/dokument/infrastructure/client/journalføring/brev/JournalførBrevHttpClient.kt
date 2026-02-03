@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBru
 internal class JournalførBrevHttpClient(private val client: JournalførHttpClient) : JournalførBrevClient {
     override fun journalførBrev(command: JournalførBrevCommand): Either<ClientError, JournalpostId> {
         val dokument = command.dokument
+        // TODO: kan hende vi må ha noe tilsvarende for dokdist.
         val mottakerIdentifikator = when (dokument) {
             is Dokument.MedMetadata.Informasjon.Annet -> command.fnr.toString()
             is Dokument.MedMetadata.Informasjon.Viktig -> command.fnr.toString()
@@ -41,7 +42,7 @@ internal class JournalførBrevHttpClient(private val client: JournalførHttpClie
                 journalfoerendeEnhet = JournalførendeEnhet.ÅLESUND.enhet,
                 // denne støtter også navn men dokdist gjør vel noe magi der basert på fnr
                 avsenderMottaker = avsender, // denne skal være verge eller søker men vi har ingen støtte for dette
-                bruker = command.fnr.tilBruker(), // Denne må være søker fnr
+                bruker = command.fnr.tilBruker(), // Denne må være søker fnr - men også for orgnr
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(
                     tittel = dokument.tittel,

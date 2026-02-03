@@ -31,7 +31,7 @@ sealed interface FeilkoderMottaker {
     data object KanIkkeOppdatereMottaker : FeilkoderMottaker
     data object BrevFinnesIDokumentBasen : FeilkoderMottaker
     data object ForespurtSakIdMatcherIkkeMottaker : FeilkoderMottaker
-    data class UgyldigMottakerRequest(val feil: List<String>) : FeilkoderMottaker
+    data class UgyldigMottakerRequest(val feil: String) : FeilkoderMottaker
 }
 
 class MottakerServiceImpl(
@@ -45,8 +45,6 @@ class MottakerServiceImpl(
      * Eller manuelle brev som er opprettet direkte på saken uten annen tilknytning og kan ikke unikt identifiseres
      * hvis vi skal støtte frie brev med flere mottakere mot som feks [lagreOgSendOpplastetPdfPåSak] må man ha en ekstra referanseid på dem
      */
-
-    // TODO: Må sjekke her om adressen er gyldig
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
@@ -86,7 +84,7 @@ class MottakerServiceImpl(
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
-            return FeilkoderMottaker.UgyldigMottakerRequest(it).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString { "," }).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
@@ -101,7 +99,7 @@ class MottakerServiceImpl(
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
-            return FeilkoderMottaker.UgyldigMottakerRequest(it).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString { "," }).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
@@ -125,6 +123,7 @@ class MottakerServiceImpl(
                 ReferanseTypeMottaker.SØKNAD ->
                     dokumentRepo.hentForSøknad(mottaker.referanseId)
 
+                // TODO: usikkert om noen knytning direkte mot vedtak skal forekomme da vedtaket ikke er opprettet når vi legger knytningen mot mottaker
                 ReferanseTypeMottaker.VEDTAK ->
                     dokumentRepo.hentForVedtak(mottaker.referanseId)
 
@@ -150,6 +149,22 @@ class MottakerServiceImpl(
     }
 }
 
+data class DistribueringsadresseRequest(
+    val adresselinje1: String? = null,
+    val adresselinje2: String? = null,
+    val adresselinje3: String? = null,
+    val postnummer: String? = null,
+    val poststed: String? = null,
+) {
+    fun toDomain() = Distribueringsadresse(
+        adresselinje1 = this.adresselinje1,
+        adresselinje2 = this.adresselinje2,
+        adresselinje3 = this.adresselinje3,
+        postnummer = this.postnummer!!,
+        poststed = this.poststed!!,
+    )
+}
+
 fun String.isUuid(): Boolean =
     try {
         UUID.fromString(this)
@@ -162,10 +177,43 @@ sealed interface MottakerRequest {
     val navn: String
     val foedselsnummer: String?
     val orgnummer: String?
-    val adresse: Distribueringsadresse
+    val adresse: DistribueringsadresseRequest
     val sakId: String
     val referanseId: String
     val referanseType: String
+
+    fun validerFelles(): List<String> {
+        val feil = mutableListOf<String>()
+
+        if (navn.isBlank()) {
+            feil += "Navn er blank"
+        }
+
+        feil += validerFnrEllerOrgnummer(this)
+        feil += validerAdrese(adresse)
+
+        if (sakId.isBlank()) {
+            feil += "sakId mangler"
+        }
+
+        if (referanseId.isBlank()) {
+            feil += "referanseId mangler"
+        } else if (!referanseId.isUuid()) {
+            feil += "referanseId er ikke en gyldig UUID"
+        }
+
+        if (referanseType.isBlank()) {
+            feil += "referanseType mangler"
+        } else {
+            runCatching {
+                ReferanseTypeMottaker.valueOf(referanseType.uppercase())
+            }.getOrElse {
+                feil += "Ugyldig referanseType: $referanseType"
+            }
+        }
+
+        return feil
+    }
 }
 
 private fun validerFnrEllerOrgnummer(req: MottakerRequest): List<String> {
@@ -199,12 +247,26 @@ private fun validerFnrEllerOrgnummer(req: MottakerRequest): List<String> {
     return feil
 }
 
+private fun validerAdrese(adresse: DistribueringsadresseRequest): List<String> {
+    val feil = mutableListOf<String>()
+
+    if (adresse.poststed.isNullOrBlank()) {
+        feil += "Poststed er tom"
+    }
+    if (adresse.postnummer.isNullOrBlank()) {
+        feil += "Postnummer er tom"
+    } else if (adresse.postnummer.length != 4) {
+        feil += "Postnummer må være 4 siffer langt"
+    }
+    return feil
+}
+
 data class OppdaterMottaker(
     val id: String,
     override val navn: String,
     override val foedselsnummer: String? = null,
     override val orgnummer: String? = null,
-    override val adresse: Distribueringsadresse,
+    override val adresse: DistribueringsadresseRequest,
     override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
@@ -215,29 +277,7 @@ data class OppdaterMottaker(
         if (!id.isUuid()) {
             feil += "MottakerId er ikke en gyldig UUID"
         }
-        if (navn.isBlank()) {
-            feil += "Navn er blank"
-        }
-        feil.addAll(validerFnrEllerOrgnummer(this))
-
-        if (sakId.isBlank()) {
-            feil += "sakId mangler"
-        }
-
-        if (referanseId.isBlank()) {
-            feil += "referanseId mangler"
-        }
-
-        if (!referanseId.isUuid()) {
-            feil += "referanseId er ikke en gyldig UUID"
-        }
-
-        if (referanseType.isBlank()) {
-            feil += "referanseType mangler"
-        } else {
-            runCatching { ReferanseTypeMottaker.valueOf(referanseType.uppercase()) }
-                .getOrElse { feil += "Ugyldig referanseType: $referanseType" }
-        }
+        feil.addAll(this.validerFelles())
 
         return feil
     }
@@ -249,7 +289,7 @@ data class OppdaterMottaker(
                 MottakerOrgnummerDomain(
                     navn = navn,
                     orgnummer = orgnummer,
-                    adresse = adresse,
+                    adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType),
@@ -258,7 +298,7 @@ data class OppdaterMottaker(
                 MottakerFnrDomain(
                     navn = navn,
                     foedselsnummer = Fnr.tryCreate(foedselsnummer),
-                    adresse = adresse,
+                    adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType),
@@ -274,38 +314,14 @@ data class LagreMottaker(
     override val navn: String,
     override val foedselsnummer: String? = null,
     override val orgnummer: String? = null,
-    override val adresse: Distribueringsadresse,
+    override val adresse: DistribueringsadresseRequest,
     override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
 ) : MottakerRequest {
     private fun erGyldig(): List<String> {
         val feil = mutableListOf<String>()
-
-        if (navn.isBlank()) {
-            feil += "Navn er blank"
-        }
-
-        feil.addAll(validerFnrEllerOrgnummer(this))
-
-        if (sakId.isBlank()) {
-            feil += "sakId mangler"
-        }
-
-        if (referanseId.isBlank()) {
-            feil += "referanseId mangler"
-        }
-
-        if (!referanseId.isUuid()) {
-            feil += "referanseId er ikke en gyldig UUID"
-        }
-
-        if (referanseType.isBlank()) {
-            feil += "referanseType mangler"
-        } else {
-            runCatching { ReferanseTypeMottaker.valueOf(referanseType.uppercase()) }
-                .getOrElse { feil += "Ugyldig referanseType: $referanseType" }
-        }
+        feil.addAll(this.validerFelles())
 
         return feil
     }
@@ -317,7 +333,7 @@ data class LagreMottaker(
                 MottakerOrgnummerDomain(
                     navn = navn,
                     orgnummer = orgnummer,
-                    adresse = adresse,
+                    adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType),
@@ -326,7 +342,7 @@ data class LagreMottaker(
                 MottakerFnrDomain(
                     navn = navn,
                     foedselsnummer = Fnr.tryCreate(foedselsnummer),
-                    adresse = adresse,
+                    adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType),

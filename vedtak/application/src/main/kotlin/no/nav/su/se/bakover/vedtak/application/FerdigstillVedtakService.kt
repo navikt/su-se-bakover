@@ -222,6 +222,7 @@ class FerdigstillVedtakServiceImpl(
             if (mottaker != null) {
                 when (utenMetadata) {
                     is Dokument.UtenMetadata.Vedtak -> {
+                        // TODO: skal sende med navn også
                         val (identifikator, adresse) = when (val tempmottaker = mottaker) {
                             is MottakerFnrDomain -> tempmottaker.foedselsnummer.toString() to tempmottaker.adresse
                             is MottakerOrgnummerDomain -> tempmottaker.orgnummer to tempmottaker.adresse
@@ -234,7 +235,7 @@ class FerdigstillVedtakServiceImpl(
                                 vedtakId = vedtak.id,
                                 revurderingId = null,
                             ),
-                            // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
+                            // SOS: Vi bruker dokdist sin adresse for fnr på journalposten
                             distribueringsadresse = adresse,
                             mottakerIdentifikator = identifikator ?: throw IllegalStateException("Mottaker har ingen identifikator"),
                         )
