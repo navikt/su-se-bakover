@@ -86,7 +86,7 @@ class MottakerServiceImpl(
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
-            return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString { "," }).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
@@ -101,7 +101,7 @@ class MottakerServiceImpl(
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
-            return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString { "," }).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
@@ -192,7 +192,7 @@ sealed interface MottakerRequest {
         }
 
         feil += validerFnrEllerOrgnummer(this)
-        feil += validerAdrese(adresse)
+        feil += validerAdresse(adresse)
 
         if (sakId.isBlank()) {
             feil += "sakId mangler"
@@ -241,7 +241,7 @@ private fun validerFnrEllerOrgnummer(req: MottakerRequest): List<String> {
         }
 
         hasOrgnr -> {
-            if (orgnummer.length != 9) {
+            if (orgnummer.length != 9 || !orgnummer.all { it.isDigit() }) {
                 feil += "Organisasjonsnummer må være 9 siffer langt"
             }
         }
@@ -249,7 +249,7 @@ private fun validerFnrEllerOrgnummer(req: MottakerRequest): List<String> {
     return feil
 }
 
-private fun validerAdrese(adresse: DistribueringsadresseRequest): List<String> {
+private fun validerAdresse(adresse: DistribueringsadresseRequest): List<String> {
     val feil = mutableListOf<String>()
 
     if (adresse.poststed.isNullOrBlank()) {
@@ -257,7 +257,7 @@ private fun validerAdrese(adresse: DistribueringsadresseRequest): List<String> {
     }
     if (adresse.postnummer.isNullOrBlank()) {
         feil += "Postnummer er tom"
-    } else if (adresse.postnummer.length != 4) {
+    } else if (adresse.postnummer.length != 4 || !adresse.postnummer.all { it.isDigit() }) {
         feil += "Postnummer må være 4 siffer langt"
     }
     return feil
