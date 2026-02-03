@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
@@ -27,9 +28,10 @@ data class MottakerRepoImpl(
      */
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
+        transactionContext: TransactionContext?,
     ): MottakerDomain? =
         dbMetrics.timeQuery("hentMottaker") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(transactionContext) { session ->
                 """
                 select *
                 from mottaker

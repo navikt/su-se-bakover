@@ -212,10 +212,10 @@ class FerdigstillVedtakServiceImpl(
             // TODO: noe annet fra behandlingstypen som skal støttes?
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
-                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
+                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
                 }
                 is IverksattSøknadsbehandling.Innvilget -> {
-                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId).getOrElse { null }
+                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
                 }
                 else -> null
             }

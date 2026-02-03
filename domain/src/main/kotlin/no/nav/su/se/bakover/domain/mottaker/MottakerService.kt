@@ -7,20 +7,21 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 interface MottakerRepo {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator): MottakerDomain?
+    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, transactionContext: TransactionContext? = null): MottakerDomain?
     fun lagreMottaker(mottaker: MottakerDomain)
     fun oppdaterMottaker(mottaker: MottakerDomain)
     fun slettMottaker(mottakerId: UUID)
 }
 
 interface MottakerService {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, MottakerDomain?>
+    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID, transactionContext: TransactionContext? = null): Either<FeilkoderMottaker, MottakerDomain?>
     fun lagreMottaker(mottaker: LagreMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
     fun oppdaterMottaker(mottaker: OppdaterMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
     fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, Unit>
@@ -48,8 +49,9 @@ class MottakerServiceImpl(
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
+        transactionContext: TransactionContext?,
     ): Either<FeilkoderMottaker, MottakerDomain?> {
-        val hentetMottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)?.let {
+        val hentetMottaker = mottakerRepo.hentMottaker(mottakerIdentifikator, transactionContext)?.let {
             if (it.sakId != sakId) {
                 return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
             } else {

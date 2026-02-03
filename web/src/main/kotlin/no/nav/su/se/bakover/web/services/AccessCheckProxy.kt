@@ -1565,6 +1565,7 @@ open class AccessCheckProxy(
                 override fun hentMottaker(
                     mottakerIdentifikator: MottakerIdentifikator,
                     sakId: UUID,
+                    transactionContext: TransactionContext?,
                 ): Either<FeilkoderMottaker, MottakerDomain?> {
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.hentMottaker(mottakerIdentifikator, sakId)
