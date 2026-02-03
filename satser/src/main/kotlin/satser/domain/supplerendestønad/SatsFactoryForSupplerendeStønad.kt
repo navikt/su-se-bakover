@@ -7,6 +7,7 @@ import grunnbeløp.domain.Grunnbeløpsendring
 import no.nav.su.se.bakover.common.domain.Faktor
 import no.nav.su.se.bakover.common.domain.Knekkpunkt
 import no.nav.su.se.bakover.common.domain.tid.erSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -60,6 +61,7 @@ val grunnbeløpsendringer = nonEmptyListOf(
     Grunnbeløpsendring(1.mai(2023), 26.mai(2023), 118620, BigDecimal(1.064076)),
     Grunnbeløpsendring(1.mai(2024), 24.mai(2024), 124028, BigDecimal(1.045591)),
     Grunnbeløpsendring(1.mai(2025), 23.mai(2025), 130160, BigDecimal(1.049440)),
+    Grunnbeløpsendring(1.februar(2026), 1.februar(2026), 140160, BigDecimal(1.060440)),
 )
 
 val garantipensjonsendringerOrdinær = nonEmptyListOf(
