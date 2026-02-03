@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.equality.FieldsEqualityCheckConfig
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
@@ -41,7 +39,6 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.beregning
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -49,17 +46,12 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
-import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.nyReguleringssupplementFor
 import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
-import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
-import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
@@ -97,9 +89,7 @@ import java.time.Clock
 import java.util.UUID
 
 // TODO refaktorer disse testene til å unngå "scrambling" og hacking, og i større grad bruke satsfactory til å trigge endringer.
-internal class ReguleringServiceImplTest {
-
-    val periodeMaiDes = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
+internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `regulerer alle saker`() {
@@ -107,7 +97,7 @@ internal class ReguleringServiceImplTest {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = clock,
         ).first
-        val reguleringService = lagReguleringServiceImpl(
+        val reguleringService = lagReguleringAutomatiskServiceImpl(
             sak = sak,
             clock = clock,
         )
@@ -130,7 +120,7 @@ internal class ReguleringServiceImplTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
         )
-        private val reguleringService = lagReguleringServiceImpl(
+        private val reguleringService = lagReguleringAutomatiskServiceImpl(
             vedtakSøknadsbehandlingIverksattInnvilget(
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(fradraget),
@@ -141,7 +131,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `behandlinger som ikke har OffentligPensjon eller NAVytelserTilLivsopphold blir automatisk regulert`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
                 .first().getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
@@ -164,7 +154,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `Stans må håndteres manuelt`() {
             val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
-            val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(stansAvYtelse)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
@@ -182,7 +172,7 @@ internal class ReguleringServiceImplTest {
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             ).first
 
-            val reguleringService = lagReguleringServiceImpl(sak = revurdertSak, clock = clock)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
@@ -203,7 +193,7 @@ internal class ReguleringServiceImplTest {
                 ),
             ).first
 
-            val reguleringService = lagReguleringServiceImpl(revurdertSak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
@@ -241,7 +231,7 @@ internal class ReguleringServiceImplTest {
                     ),
                 ),
             ).first
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
@@ -279,92 +269,11 @@ internal class ReguleringServiceImplTest {
                     ),
                 ),
             ).first
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
-        }
-
-        private fun offentligPensjonGrunnlag(beløp: Double, periode: Periode) =
-            lagFradragsgrunnlag(
-                id = UUID.randomUUID(),
-                type = Fradragstype.OffentligPensjon,
-                månedsbeløp = beløp,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
-            )
-
-        @Test
-        fun `manuell behandling happy case`() {
-            val supplement = Reguleringssupplement(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                supplement = listOf(
-                    nyReguleringssupplementFor(
-                        fnr = fnr,
-                        innhold = arrayOf(nyReguleringssupplementInnholdPerType(kategori = Fradragstype.OffentligPensjon.kategori)),
-                    ),
-                ),
-                originalCsv = "",
-            )
-            val (sak, regulering) = innvilgetSøknadsbehandlingMedÅpenRegulering(
-                regulerFraOgMed = mai(2021),
-                supplement = supplement,
-                customGrunnlag = grunnlagsdataEnsligUtenFradrag(
-                    periode = stønadsperiode2021.periode,
-                    fradragsgrunnlag = listOf(
-                        offentligPensjonGrunnlag(8000.0, år(2021)),
-                    ),
-                    bosituasjon = nonEmptyListOf(
-                        bosituasjongrunnlagEnslig(
-                            periode = stønadsperiode2021.periode,
-                        ),
-                    ),
-                ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
-            )
-
-            val reguleringService = lagReguleringServiceImpl(sak)
-
-            val iverksattRegulering = reguleringService.regulerManuelt(
-                reguleringId = regulering.id,
-                uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
-                fradrag = listOf(offentligPensjonGrunnlag(5000.0, periodeMaiDes)),
-                saksbehandler = saksbehandler,
-            ).getOrFail()
-
-            iverksattRegulering.beregning.getFradrag() shouldBe listOf(
-                FradragFactory.nyFradragsperiode(
-                    fradragstype = Fradragstype.OffentligPensjon,
-                    månedsbeløp = 5000.0,
-                    periode = periodeMaiDes,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.nyUføreFradrag(
-                    forventetInntekt = 0,
-                    periode = periodeMaiDes,
-                ),
-            )
-        }
-
-        @Test
-        fun `manuell behandling av stans skal ikke være lov`() {
-            val tikkendeKlokke = TikkendeKlokke(fixedClock)
-            val (sak, regulering) = stansetSøknadsbehandlingMedÅpenRegulering(
-                regulerFraOgMed = mai(2021),
-                clock = tikkendeKlokke,
-            )
-
-            val reguleringService = lagReguleringServiceImpl(sak)
-
-            reguleringService.regulerManuelt(
-                reguleringId = regulering.id,
-                uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
-                fradrag = listOf(offentligPensjonGrunnlag(8100.0, periodeMaiDes)),
-                saksbehandler = saksbehandler,
-            ) shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
         @Test
@@ -372,7 +281,7 @@ internal class ReguleringServiceImplTest {
             val revurdertSak =
                 vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
-            val reguleringService = lagReguleringServiceImpl(revurdertSak, lagFeilutbetaling = true)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
@@ -387,7 +296,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `skal kunne regulere selv om reguleringsdato er langt etter vedtaksperioden`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2023), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
@@ -399,7 +308,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
@@ -415,7 +324,7 @@ internal class ReguleringServiceImplTest {
                     periodeEtterReguleringsdato,
                 ),
             ).first
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).first()
@@ -457,7 +366,7 @@ internal class ReguleringServiceImplTest {
             )
             val (sak, regulering) = sakOgVedtak
 
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
             reguleringService.startAutomatiskRegulering(mai(2021), supplement).first()
                 .getOrFail()
                 .let {
@@ -516,7 +425,7 @@ internal class ReguleringServiceImplTest {
             )
             val (sak, regulering) = sakOgVedtak
 
-            val reguleringService = lagReguleringServiceImpl(sak)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
             reguleringService.startAutomatiskRegulering(mai(2021), supplement).first()
                 .getOrFail()
                 .let {
@@ -561,7 +470,7 @@ internal class ReguleringServiceImplTest {
                 ),
             ),
         )
-        val reguleringService = lagReguleringServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock)
+        val reguleringService = lagReguleringAutomatiskServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock)
 
         reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
             it.size shouldBe 1
@@ -590,15 +499,24 @@ internal class ReguleringServiceImplTest {
         }
         val vedtakMock = mock<VedtakService> {}
         val sessionMock = mock<SessionFactory> {}
+        val clock = fixedClockAt(25.mai(2021))
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepo = reguleringRepo,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakMock,
+            sessionFactory = sessionMock,
+            clock = clock,
+        )
 
-        ReguleringServiceImpl(
+        ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            clock = fixedClockAt(25.mai(2021)),
             satsFactory = satsFactoryTestPåDato(25.mai(2021)),
+            reguleringService = reguleringService,
+            clock = clock,
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -638,18 +556,29 @@ internal class ReguleringServiceImplTest {
         }
         val vedtakMock = mock<VedtakService> {}
         val sessionMock = mock<SessionFactory> {}
+        val clock = fixedClockAt(25.mai(2021))
 
         val satsFactory = SatsFactoryForSupplerendeStønad(
             grunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+        ).gjeldende(1.mai(2020))
+
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepo = reguleringRepo,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakMock,
+            sessionFactory = sessionMock,
+            clock = clock,
         )
-        ReguleringServiceImpl(
+
+        ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            clock = fixedClockAt(25.mai(2021)),
-            satsFactory = satsFactory.gjeldende(1.mai(2020)),
+            satsFactory = satsFactory,
+            reguleringService = reguleringService,
+            clock = clock,
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -680,12 +609,12 @@ internal class ReguleringServiceImplTest {
     /**
      * @param scrambleUtbetaling Endrer utbetalingslinjene på saken slik at de ikke lenger matcher gjeldendeVedtaksdata. Da tvinger vi fram en ny beregning som har andre beløp enn tidligere utbetalinger.
      */
-    private fun lagReguleringServiceImpl(
+    private fun lagReguleringAutomatiskServiceImpl(
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
         clock: Clock = tikkendeFixedClock(),
-    ): ReguleringServiceImpl {
+    ): ReguleringAutomatiskServiceImpl {
         val sakMedEndringer = if (scrambleUtbetaling) {
             sak.copy(
                 // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
@@ -738,30 +667,41 @@ internal class ReguleringServiceImplTest {
                 on { it.invoke(any()) } doReturn utbetalingsRequest.right()
             },
         )
-
-        return ReguleringServiceImpl(
-            reguleringRepo = mock {
-                on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
-                on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
-                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            },
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
+            on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        }
+        val utbetalingService = mock<UtbetalingService> { service ->
+            doAnswer { invocation ->
+                simulerUtbetaling(
+                    utbetalingerPåSak = sakMedEndringer.utbetalinger,
+                    utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                )
+            }.whenever(service).simulerUtbetaling(any())
+            on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+        }
+        val vedtakService = mock<VedtakService>()
+        val sessionFactory = TestSessionFactory()
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepo = reguleringRepo,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakService,
+            sessionFactory = sessionFactory,
+            clock = clock,
+        )
+        return ReguleringAutomatiskServiceImpl(
             sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sakMedEndringer.info())
                 on { hentSak(any<UUID>()) } doReturn sakMedEndringer.right()
             },
-            utbetalingService = mock { service ->
-                doAnswer { invocation ->
-                    simulerUtbetaling(
-                        utbetalingerPåSak = sakMedEndringer.utbetalinger,
-                        utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
-                    )
-                }.whenever(service).simulerUtbetaling(any())
-                on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
-            },
-            vedtakService = mock(),
-            sessionFactory = TestSessionFactory(),
-            clock = clock,
             satsFactory = satsFactoryTestPåDato(),
+            reguleringRepo = reguleringRepo,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakService,
+            sessionFactory = sessionFactory,
+            clock = clock,
+            reguleringService = reguleringService,
         )
     }
 }
