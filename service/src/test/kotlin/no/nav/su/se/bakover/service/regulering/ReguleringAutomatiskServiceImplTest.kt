@@ -510,11 +510,9 @@ internal class ReguleringAutomatiskServiceImplTest {
 
         ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
-            utbetalingService = utbetalingService,
-            vedtakService = vedtakMock,
-            sessionFactory = sessionMock,
             satsFactory = satsFactoryTestPåDato(25.mai(2021)),
             reguleringService = reguleringService,
+            sakService = sakService,
             clock = clock,
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
