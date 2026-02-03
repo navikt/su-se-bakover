@@ -5,7 +5,7 @@ import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.uføre.domain.Uføregrunnlag
 
 data class ReguleringGrunnlagsdata(
-    val uføreFraGjeldendeVedtak: List<Uføregrunnlag>, // TODO egen klasse for alder eller gjøre denne nullable??
+    val uføreFraGjeldendeVedtak: List<Uføregrunnlag>,
     val fradragFraGjeldendeVedtak: List<Fradrag>,
 
     val uføreUnderRegulering: List<Uføregrunnlag>?,
