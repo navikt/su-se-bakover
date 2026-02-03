@@ -238,6 +238,7 @@ class FerdigstillVedtakServiceImpl(
                             // SOS: Vi bruker dokdist sin adresse for fnr på journalposten
                             distribueringsadresse = adresse,
                             mottakerIdentifikator = identifikator ?: throw IllegalStateException("Mottaker har ingen identifikator"),
+                            navnMottaker = mottaker.navn,
                         )
 
                         brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)

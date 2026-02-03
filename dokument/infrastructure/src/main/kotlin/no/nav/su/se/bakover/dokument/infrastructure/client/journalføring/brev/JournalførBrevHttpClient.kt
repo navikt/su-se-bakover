@@ -7,6 +7,7 @@ import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Avsender
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottakerFnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottakerOrgnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Fagsak
@@ -18,21 +19,32 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Journa
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 
+internal object MottakerPolicy {
+    fun bestemMottaker(
+        dokument: Dokument,
+        søkerFnr: Fnr,
+    ): Avsender =
+        when (dokument) {
+            is Dokument.MedMetadata.Vedtak ->
+                dokument.ekstraMottaker
+                    ?.let { ident ->
+                        if (Fnr.tryCreate(ident) != null) {
+                            AvsenderMottakerFnr(ident, dokument.navnEkstraMottaker)
+                        } else {
+                            AvsenderMottakerOrgnr(ident, dokument.navnEkstraMottaker)
+                        }
+                    }
+                    ?: AvsenderMottakerFnr(søkerFnr.toString(), dokument.navnEkstraMottaker)
+
+            else ->
+                AvsenderMottakerFnr(søkerFnr.toString())
+        }
+}
+
 internal class JournalførBrevHttpClient(private val client: JournalførHttpClient) : JournalførBrevClient {
     override fun journalførBrev(command: JournalførBrevCommand): Either<ClientError, JournalpostId> {
         val dokument = command.dokument
-        // TODO: kan hende vi må ha noe tilsvarende for dokdist.
-        val mottakerIdentifikator = when (dokument) {
-            is Dokument.MedMetadata.Informasjon.Annet -> command.fnr.toString()
-            is Dokument.MedMetadata.Informasjon.Viktig -> command.fnr.toString()
-            is Dokument.MedMetadata.Vedtak -> dokument.ekstraMottaker ?: command.fnr.toString()
-        }
-
-        val avsender = if (Fnr.tryCreate(mottakerIdentifikator) == null) {
-            AvsenderMottakerFnr(id = mottakerIdentifikator)
-        } else {
-            AvsenderMottakerOrgnr(id = mottakerIdentifikator)
-        }
+        val avsender = MottakerPolicy.bestemMottaker(dokument, command.fnr)
         return client.opprettJournalpost(
             JournalførJsonRequest(
                 tittel = dokument.tittel,

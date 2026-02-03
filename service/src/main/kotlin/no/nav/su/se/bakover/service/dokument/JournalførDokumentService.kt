@@ -48,7 +48,7 @@ class JournalførDokumentService(
                     saksnummer = sakInfo.saksnummer,
                     dokument = dokumentdistribusjon.dokument,
                     sakstype = sakInfo.type,
-                    fnr = sakInfo.fnr, // TODO: hvor skal fnr til mottaker komme inn i bildet?
+                    fnr = sakInfo.fnr,
                 ),
             ).mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring }
         }
