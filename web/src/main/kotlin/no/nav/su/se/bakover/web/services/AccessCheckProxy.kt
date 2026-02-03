@@ -85,6 +85,7 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -1309,7 +1310,7 @@ open class AccessCheckProxy(
                 override fun hentReguleringsgrunnlag(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, ReguleringGrunnlagsdata> {
+                ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata> {
                     return services.reguleringService.hentReguleringsgrunnlag(
                         reguleringId,
                         saksbehandler,
