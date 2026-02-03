@@ -52,7 +52,6 @@ internal class JournalførBrevHttpClient(private val client: JournalførHttpClie
                 kanal = null,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.ÅLESUND.enhet,
-                // denne støtter også navn men dokdist gjør vel noe magi der basert på fnr
                 avsenderMottaker = avsender, // denne skal være verge eller søker men vi har ingen støtte for dette
                 bruker = command.fnr.tilBruker(), // Denne må være søker fnr - men også for orgnr
                 sak = Fagsak(command.saksnummer.nummer.toString()),
