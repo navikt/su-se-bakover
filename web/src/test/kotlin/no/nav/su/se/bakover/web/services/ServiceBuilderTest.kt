@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
@@ -96,7 +95,6 @@ internal class ServiceBuilderTest {
                 (it.sak as SakServiceImpl).getObservers().singleOrNull(),
                 (it.søknad as SøknadServiceImpl).getObservers().singleOrNull(),
                 (it.revurdering as RevurderingServiceImpl).getObservers().singleOrNull(),
-                (it.reguleringService as ReguleringServiceImpl).getObservers().singleOrNull(),
                 (it.søknadsbehandling.søknadsbehandlingService as SøknadsbehandlingServiceImpl).getObservers()
                     .singleOrNull(),
                 (it.klageService as KlageServiceImpl).getObservers().singleOrNull(),

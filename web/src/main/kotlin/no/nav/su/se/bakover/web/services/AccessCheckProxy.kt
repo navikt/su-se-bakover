@@ -89,9 +89,10 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnlagsdata
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
-import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -1278,43 +1279,62 @@ open class AccessCheckProxy(
                     deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
                 ) = kastKanKunKallesFraAnnenService()
             },
-            reguleringService = object : ReguleringService {
-                override fun startAutomatiskRegulering(
-                    fraOgMedMåned: Måned,
-                    supplement: Reguleringssupplement,
-                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return services.reguleringService.startAutomatiskRegulering(fraOgMedMåned, supplement)
-                }
-
-                override fun startAutomatiskReguleringForInnsyn(
-                    command: StartAutomatiskReguleringForInnsynCommand,
-                ) {
-                    return services.reguleringService.startAutomatiskReguleringForInnsyn(command)
-                }
-
+            reguleringManuellService = object : ReguleringManuellService {
                 override fun avslutt(
                     reguleringId: ReguleringId,
                     avsluttetAv: NavIdentBruker,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
-                    return services.reguleringService.avslutt(reguleringId, avsluttetAv)
+                    return services.reguleringManuellService.avslutt(reguleringId, avsluttetAv)
                 }
 
                 override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
-                    return services.reguleringService.hentStatusForÅpneManuelleReguleringer()
+                    return services.reguleringManuellService.hentStatusForÅpneManuelleReguleringer()
                 }
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
-                    return services.reguleringService.hentSakerMedÅpenBehandlingEllerStans()
+                    return services.reguleringManuellService.hentSakerMedÅpenBehandlingEllerStans()
                 }
 
                 override fun hentReguleringsgrunnlag(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata> {
-                    return services.reguleringService.hentReguleringsgrunnlag(
+                    return services.reguleringManuellService.hentReguleringsgrunnlag(
                         reguleringId,
                         saksbehandler,
                     )
+                }
+
+                override fun beregnReguleringManuelt(
+                    reguleringId: ReguleringId,
+                    uføregrunnlag: List<Uføregrunnlag>,
+                    fradrag: List<Fradragsgrunnlag>,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun reguleringTilAttestering(
+                    reguleringId: ReguleringId,
+                    uføregrunnlag: List<Uføregrunnlag>,
+                    fradrag: List<Fradragsgrunnlag>,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun godkjennRegulering(
+                    reguleringId: ReguleringId,
+                    attestant: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun underkjennRegulering(
+                    reguleringId: ReguleringId,
+                    attestant: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                    TODO("Not yet implemented")
                 }
 
                 override fun regulerManuelt(
@@ -1323,18 +1343,32 @@ open class AccessCheckProxy(
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-                    return services.reguleringService.regulerManuelt(
+                    return services.reguleringManuellService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,
                         fradrag,
                         saksbehandler,
                     )
                 }
+            },
+            reguleringAutomatiskService = object : ReguleringAutomatiskService {
+                override fun startAutomatiskRegulering(
+                    fraOgMedMåned: Måned,
+                    supplement: Reguleringssupplement,
+                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, supplement)
+                }
+
+                override fun startAutomatiskReguleringForInnsyn(
+                    command: StartAutomatiskReguleringForInnsynCommand,
+                ) {
+                    return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
+                }
 
                 override fun oppdaterReguleringerMedSupplement(
                     supplement: Reguleringssupplement,
                 ) {
-                    return services.reguleringService.oppdaterReguleringerMedSupplement(supplement)
+                    return services.reguleringAutomatiskService.oppdaterReguleringerMedSupplement(supplement)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {

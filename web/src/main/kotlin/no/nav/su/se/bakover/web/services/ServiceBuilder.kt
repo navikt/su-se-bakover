@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
@@ -236,13 +238,28 @@ data object ServiceBuilder {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
-            sakService = sakService,
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
+        )
+        val reguleringManuellService = ReguleringManuellServiceImpl(
+            reguleringRepo = databaseRepos.reguleringRepo,
+            sakService = sakService,
             satsFactory = satsFactory,
-        ).apply { addObserver(statistikkEventObserver) }
+            reguleringService = reguleringService,
+            clock = clock,
+        )
+        val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
+            reguleringRepo = databaseRepos.reguleringRepo,
+            sakService = sakService,
+            satsFactory = satsFactory,
+            reguleringService = reguleringService,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
+        )
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
@@ -328,7 +345,8 @@ data object ServiceBuilder {
             ),
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
-            reguleringService = reguleringService,
+            reguleringManuellService = reguleringManuellService,
+            reguleringAutomatiskService = reguleringAutomatiskService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
                 sakService = sakService,
@@ -363,7 +381,10 @@ data object ServiceBuilder {
             sakstatistikkBigQueryService = sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
-            mottakerService = MottakerServiceImpl(databaseRepos.mottakerRepo, dokumentRepo = databaseRepos.dokumentRepo),
+            mottakerService = MottakerServiceImpl(
+                databaseRepos.mottakerRepo,
+                dokumentRepo = databaseRepos.dokumentRepo,
+            ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,

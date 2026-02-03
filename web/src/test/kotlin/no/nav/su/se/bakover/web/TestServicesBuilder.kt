@@ -3,7 +3,8 @@ package no.nav.su.se.bakover.web
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -54,7 +55,8 @@ data object TestServicesBuilder {
         avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService = mock(),
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
-        regulerServices: ReguleringService = mock(),
+        reguleringAutomatiskServices: ReguleringAutomatiskService = mock(),
+        reguleringManuellService: ReguleringManuellService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService: SkatteService = mock(),
         stansAvYtelseService: StansYtelseService = mock(),
@@ -88,7 +90,8 @@ data object TestServicesBuilder {
         avslåSøknadManglendeDokumentasjonService = avslåSøknadManglendeDokumentasjonService,
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
-        reguleringService = regulerServices,
+        reguleringAutomatiskService = reguleringAutomatiskServices,
+        reguleringManuellService = reguleringManuellService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
         skatteService = skatteService,
         kontrollsamtaleSetup = kontrollsamtaleSetup,
