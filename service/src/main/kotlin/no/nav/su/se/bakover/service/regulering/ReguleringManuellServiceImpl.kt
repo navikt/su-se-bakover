@@ -32,9 +32,9 @@ import java.time.Clock
 class ReguleringManuellServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val sakService: SakService,
-    private val clock: Clock,
-    private val satsFactory: SatsFactory,
+    private val satsFactory: SatsFactory, // TODO bjg flytte satFactory til indre service
     private val reguleringService: ReguleringServiceImpl,
+    private val clock: Clock,
 ) : ReguleringManuellService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -126,7 +126,7 @@ class ReguleringManuellServiceImpl(
                     .leggTilUføre(uføregrunnlag, clock)
                     .leggTilSaksbehandler(saksbehandler)
                     .let {
-                        reguleringService.ferdigstillOgIverksettRegulering(it, sak, true, satsFactory)
+                        reguleringService.behandleRegulering(it, sak, satsFactory)
                             .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
                     }
             }

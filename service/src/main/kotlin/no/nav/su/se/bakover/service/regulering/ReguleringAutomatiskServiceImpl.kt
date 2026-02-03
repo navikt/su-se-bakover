@@ -5,13 +5,14 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.split
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
-import no.nav.su.se.bakover.domain.regulering.LiveRun
+import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -20,22 +21,18 @@ import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsyn
 import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
-import økonomi.application.utbetaling.UtbetalingService
 import java.math.BigDecimal
 import java.time.Clock
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val sakService: SakService,
-    private val utbetalingService: UtbetalingService,
-    private val vedtakService: VedtakService,
-    private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val satsFactory: SatsFactory,
+    private val satsFactory: SatsFactory, // TODO bjg flytte satFactory til indre service
     private val reguleringService: ReguleringServiceImpl,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -47,7 +44,7 @@ class ReguleringAutomatiskServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
+        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor // TODO bjg flytte satFactory til indre service
 
         reguleringRepo.lagre(supplement)
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
@@ -157,16 +154,11 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         if (isLiveRun) {
-            LiveRun.Opprettet(
-                sessionFactory = sessionFactory,
-                lagreRegulering = reguleringRepo::lagre,
-                lagreVedtak = vedtakService::lagreITransaksjon,
-                klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-            ).kjørSideffekter(regulering)
+            reguleringRepo.lagre(regulering)
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            reguleringService.ferdigstillOgIverksettRegulering(regulering, sak, isLiveRun, satsFactory)
+            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun, satsFactory)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
         } else {
@@ -259,7 +251,7 @@ class ReguleringAutomatiskServiceImpl(
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 
                 if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                    reguleringService.ferdigstillOgIverksettRegulering(oppdatertRegulering, sak, true, satsFactory)
+                    forsøkAutomatiskReguleringEllerOverførTilManuell(oppdatertRegulering, sak, true, satsFactory)
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                         .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
                 } else {
@@ -271,6 +263,34 @@ class ReguleringAutomatiskServiceImpl(
             }.mapLeft {
                 log.error("Feil ved oppdatering av regulering for saksnummer ${reguleringssammendrag.saksnummer}", it)
             }
+        }
+    }
+
+    private fun forsøkAutomatiskReguleringEllerOverførTilManuell(
+        regulering: OpprettetRegulering,
+        sak: Sak,
+        isLiveRun: Boolean,
+        satsFactory: SatsFactory,
+    ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
+        return reguleringService.behandleRegulering(
+            regulering,
+            sak,
+            satsFactory,
+            isLiveRun,
+        ).onLeft {
+            val message = when (it) {
+                is KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
+                is KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
+                is KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
+            }
+            val manuellRegulering = regulering.copy(
+                reguleringstype = Reguleringstype.MANUELL(
+                    setOf(
+                        ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse = message),
+                    ),
+                ),
+            )
+            reguleringRepo.lagre(manuellRegulering)
         }
     }
 }

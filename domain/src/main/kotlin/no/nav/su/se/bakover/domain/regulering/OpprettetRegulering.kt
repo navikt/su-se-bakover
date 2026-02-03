@@ -147,7 +147,7 @@ data class OpprettetRegulering(
         satsFactory: SatsFactory,
         begrunnelse: String? = null,
         clock: Clock,
-    ): Either<KunneIkkeBeregneRegulering, OpprettetRegulering> {
+    ): Either<KunneIkkeBeregneRegulering.BeregningFeilet, OpprettetRegulering> {
         return this.utførBeregning(
             satsFactory = satsFactory,
             begrunnelse = begrunnelse,

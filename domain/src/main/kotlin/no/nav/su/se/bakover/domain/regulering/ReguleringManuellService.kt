@@ -23,10 +23,6 @@ sealed interface KunneIkkeRegulereManuelt {
     data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt
 }
 
-sealed interface BeregnOgSimulerFeilet {
-    data object KunneIkkeSimulere : BeregnOgSimulerFeilet
-}
-
 sealed interface KunneIkkeAvslutte {
     data object FantIkkeRegulering : KunneIkkeAvslutte
     data object UgyldigTilstand : KunneIkkeAvslutte

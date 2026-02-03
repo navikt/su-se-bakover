@@ -12,15 +12,10 @@ sealed interface KunneIkkeFerdigstilleOgIverksette {
 }
 
 interface ReguleringService {
-
-    /**
-     * Lagrer reguleringen
-     */
-    // TODO del opp i beregning, simuler og ferdigstill??
-    fun ferdigstillOgIverksettRegulering(
+    fun behandleRegulering(
         regulering: OpprettetRegulering,
         sak: Sak,
-        isLiveRun: Boolean,
         satsFactory: SatsFactory,
+        isLiveRun: Boolean = true,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering>
 }

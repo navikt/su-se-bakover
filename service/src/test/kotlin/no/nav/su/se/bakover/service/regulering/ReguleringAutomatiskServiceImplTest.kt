@@ -511,9 +511,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
-            utbetalingService = utbetalingService,
-            vedtakService = vedtakMock,
-            sessionFactory = sessionMock,
             satsFactory = satsFactoryTestPåDato(25.mai(2021)),
             reguleringService = reguleringService,
             clock = clock,
@@ -573,9 +570,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
-            utbetalingService = utbetalingService,
-            vedtakService = vedtakMock,
-            sessionFactory = sessionMock,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
             clock = clock,
@@ -697,9 +691,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             },
             satsFactory = satsFactoryTestPåDato(),
             reguleringRepo = reguleringRepo,
-            utbetalingService = utbetalingService,
-            vedtakService = vedtakService,
-            sessionFactory = sessionFactory,
             clock = clock,
             reguleringService = reguleringService,
         )

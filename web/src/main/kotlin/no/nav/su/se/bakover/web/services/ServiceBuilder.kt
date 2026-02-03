@@ -255,9 +255,6 @@ data object ServiceBuilder {
             sakService = sakService,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
-            utbetalingService = utbetalingService,
-            vedtakService = vedtakService,
-            sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
 
