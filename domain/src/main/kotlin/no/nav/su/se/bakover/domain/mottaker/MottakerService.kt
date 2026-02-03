@@ -22,7 +22,7 @@ interface MottakerRepo {
 
 interface MottakerService {
     fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID, transactionContext: TransactionContext? = null): Either<FeilkoderMottaker, MottakerDomain?>
-    fun lagreMottaker(mottaker: LagreMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
+    fun lagreMottaker(mottaker: LagreMottaker, sakId: UUID): Either<FeilkoderMottaker, MottakerDomain>
     fun oppdaterMottaker(mottaker: OppdaterMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
     fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, Unit>
 }
@@ -84,13 +84,14 @@ class MottakerServiceImpl(
     override fun lagreMottaker(
         mottaker: LagreMottaker,
         sakId: UUID,
-    ): Either<FeilkoderMottaker, Unit> {
+    ): Either<FeilkoderMottaker, MottakerDomain> {
         val mottakerValidert = mottaker.toDomain().getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            mottakerRepo.lagreMottaker(mottakerValidert).right()
+            mottakerRepo.lagreMottaker(mottakerValidert)
+            mottakerValidert.right()
         } else {
             FeilkoderMottaker.KanIkkeLagreMottaker.left()
         }

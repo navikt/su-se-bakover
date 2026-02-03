@@ -1574,7 +1574,7 @@ open class AccessCheckProxy(
                 override fun lagreMottaker(
                     mottaker: LagreMottaker,
                     sakId: UUID,
-                ): Either<FeilkoderMottaker, Unit> {
+                ): Either<FeilkoderMottaker, MottakerDomain> {
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.lagreMottaker(mottaker, sakId)
                 }

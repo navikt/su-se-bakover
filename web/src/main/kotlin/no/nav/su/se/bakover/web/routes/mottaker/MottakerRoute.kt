@@ -2,14 +2,17 @@ package no.nav.su.se.bakover.web.routes.mottaker
 
 import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.log
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
@@ -52,10 +55,12 @@ internal fun Route.mottakerRoutes(
         post("/{sakId}/lagre") {
             call.withSakId { sakId ->
                 val mottaker = call.receive<LagreMottaker>()
-                mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
+                application.log.info("After receive") // <-- ser du denne?
+
+                val mottakerLagret = mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
                     return@post call.respond(HttpStatusCode.BadRequest, it)
                 }
-                call.respond(HttpStatusCode.Created)
+                call.respond(HttpStatusCode.Created, serialize(mottakerLagret))
             }
         }
 
@@ -72,7 +77,9 @@ internal fun Route.mottakerRoutes(
         post("/{sakId}/slett") {
             call.withSakId { sakId ->
                 val identifikator = call.receive<MottakerIdentifikator>()
-                mottakerService.slettMottaker(identifikator, sakId).getOrElse { return@post call.respond(HttpStatusCode.BadRequest, it) }
+                mottakerService.slettMottaker(identifikator, sakId).getOrElse {
+                    return@post call.respond(HttpStatusCode.BadRequest, it)
+                }
                 call.respond(HttpStatusCode.NoContent)
             }
         }
