@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatcher
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -420,7 +421,7 @@ internal class MottakerServiceTest {
         ).shouldBeLeft()
         verify(dokumentRepo, times(1)).hentForRevurdering(referanseId)
 
-        verify(mottakerRepo, times(1)).hentMottaker(any())
+        verify(mottakerRepo, times(1)).hentMottaker(any(), anyOrNull())
 
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verify(mottakerRepo, times(0)).slettMottaker(any())
@@ -475,7 +476,7 @@ internal class MottakerServiceTest {
         ).shouldBeRight()
         verify(dokumentRepo, times(1)).hentForRevurdering(referanseId)
 
-        verify(mottakerRepo, times(1)).hentMottaker(any())
+        verify(mottakerRepo, times(1)).hentMottaker(any(), anyOrNull())
 
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verify(mottakerRepo, times(1)).slettMottaker(any())
