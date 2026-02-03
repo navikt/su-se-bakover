@@ -100,7 +100,7 @@ spec:
         - host: supstonad-proxy.dev-fss-pub.nais.io
         - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
         - host: pdl-api.dev-fss-pub.nais.io
-        - host: sigrun-q2.dev.adeo.no
+        - host: sigrun-q2.dev-fss-pub.nais.io
         - host: saf-q2.dev-fss-pub.nais.io
         - host: dokdistfordeling.dev-fss-pub.nais.io
         - host: dokarkiv-q2.dev-fss-pub.nais.io
@@ -205,7 +205,7 @@ spec:
     - name: MQ_TILBAKEKREVING_MOTTAK
       value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
     - name: SKATTEETATEN_URL
-      value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/sigrun-q2"
+      value: "https://sigrun-q2.dev-fss-pub.nais.io"
     - name: SKATT_CLIENT_ID
       value: "api://dev-fss.team-inntekt.sigrun-q2"
     - name: KRR_URL

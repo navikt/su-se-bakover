@@ -316,3 +316,8 @@ Se https://confluence.adeo.no/spaces/TESUS/pages/514138632/su-topics
 
 # Regel i kode
 [Se Regelspesifisering.kt](common/domain/src/main/kotlin/no/nav/su/se/bakover/common/domain/regelspesifisering/Regelspesifisering.kt)
+
+# Release notes
+Vi bruker release-drafter/release-drafter@v6
+Se https://github.com/release-drafter/release-drafter for config
+og vår config i .github/release-drafter.yml

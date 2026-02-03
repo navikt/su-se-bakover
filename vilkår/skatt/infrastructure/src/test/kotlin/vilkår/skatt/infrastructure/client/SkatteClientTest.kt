@@ -3,13 +3,11 @@ package vilkår.skatt.infrastructure.client
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.matching
 import com.github.tomakehurst.wiremock.http.Body
 import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
@@ -36,7 +34,6 @@ internal class SkatteClientTest {
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(
                 apiBaseUrl = baseUrl,
                 clientId = "mocked",
-                consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             ),
             azureAd = azureAdMock,
         )
@@ -47,7 +44,7 @@ internal class SkatteClientTest {
     fun `nettverks feil håndteres`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
             )
 
@@ -77,7 +74,7 @@ internal class SkatteClientTest {
     fun `ukjent fnr returnerer feilkode og tilsvarende skatteoppslagsfeil`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
@@ -120,7 +117,7 @@ internal class SkatteClientTest {
     fun `hvis skattegrunnlag ikke eksisterer for fnr og gitt år så mapper vi til tilsvarende skatteoppslagsfeil`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
@@ -163,7 +160,7 @@ internal class SkatteClientTest {
     fun `SSG-006 Oppgitt inntektsår er ikke støttet`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
@@ -206,7 +203,7 @@ internal class SkatteClientTest {
     fun `feil i mapping håndteres (dato kan ikke parses)`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.ok(
                             """
@@ -238,7 +235,7 @@ internal class SkatteClientTest {
     fun `feil i deserializering håndteres`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.ok(
                             """
@@ -271,8 +268,7 @@ internal class SkatteClientTest {
         val fnr = Fnr(fnr = "04900148157")
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
-                    .withHeader("Nav-Personident", matching(fnr.toString()))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.ok(
                             """
@@ -368,7 +364,7 @@ internal class SkatteClientTest {
     fun `kan deserialisere alle feltene i responsen er null`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                WireMock.get(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
                     .willReturn(
                         WireMock.ok("""{"grunnlag":null,"svalbardGrunnlag":null,"skatteoppgjoersdato":null}""".trimIndent())
                             .withHeader("Content-Type", "application/json"),
