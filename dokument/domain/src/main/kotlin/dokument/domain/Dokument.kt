@@ -37,7 +37,7 @@ sealed interface Dokument {
             ): MedMetadata.Vedtak {
                 return MedMetadata.Vedtak(this, metadata, distribueringsadresse)
             }
-            fun leggTilMetadataOgMottaker(
+            fun leggTilMetadataOgMottakerForKopiBrev(
                 metadata: Metadata,
                 distribueringsadresse: Distribueringsadresse?,
                 mottakerIdentifikator: String,
