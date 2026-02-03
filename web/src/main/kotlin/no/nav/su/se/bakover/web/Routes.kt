@@ -111,7 +111,8 @@ internal fun Application.setupKtorRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
                     )
                     reguleringRoutes(
-                        accessProtectedServices.reguleringService,
+                        accessProtectedServices.reguleringManuellService,
+                        accessProtectedServices.reguleringAutomatiskService,
                         clock,
                         applicationConfig.runtimeEnvironment,
                     )

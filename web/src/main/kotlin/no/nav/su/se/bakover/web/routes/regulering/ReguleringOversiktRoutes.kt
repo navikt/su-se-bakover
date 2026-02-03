@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 
 internal fun Route.reguleringOversiktRoutes(
-    reguleringService: ReguleringService,
+    reguleringService: ReguleringManuellService,
 ) {
     get("$REGULERING_PATH/status") {
         authorize(Brukerrolle.Saksbehandler) {
