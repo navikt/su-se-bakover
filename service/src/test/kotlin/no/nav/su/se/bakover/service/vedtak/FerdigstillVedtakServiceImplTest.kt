@@ -222,7 +222,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).right()
             },
             mottakerService = mock {
-                on { hentMottaker(any(), any()) } doReturn null.right()
+                on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
             },
         ) {
             val utbetaling =
