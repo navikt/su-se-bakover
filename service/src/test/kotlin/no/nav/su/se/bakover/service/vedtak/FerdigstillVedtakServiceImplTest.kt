@@ -6,16 +6,20 @@ import behandling.domain.BehandlingMedOppgave
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -27,6 +31,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.ikkeSendBrev
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -47,6 +52,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import økonomi.domain.kvittering.Kvittering
@@ -192,8 +198,6 @@ internal class FerdigstillVedtakServiceImplTest {
         }
     }
 
-    // TODO: lag en tilsvarende test med mottaker
-
     @Test
     fun `ferdigstill NY etter utbetaling går fint`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
@@ -249,6 +253,96 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent) },
             )
             org.mockito.kotlin.verifyNoMoreInteractions(*all())
+        }
+    }
+
+    @Test
+    fun `ferdigstill NY etter utbetaling går fint med ekstra mottaker for IverksattSøknadsbehandling`() {
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
+
+        val pdf = PdfA("brev".toByteArray())
+        val ekstraMottaker = MottakerFnrDomain(
+            foedselsnummer = Fnr.generer(),
+            navn = "Ekstra Mottaker",
+            adresse = Distribueringsadresse(
+                adresselinje1 = "Gate 2",
+                postnummer = "0002",
+                poststed = "Oslo",
+                adresselinje2 = null,
+                adresselinje3 = null,
+            ),
+            sakId = sak.id,
+            referanseId = vedtak.behandling.id.value,
+            referanseType = ReferanseTypeMottaker.SØKNAD,
+        )
+
+        FerdigstillVedtakServiceMocks(
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            vedtakService = mock {
+                on { hentForUtbetaling(any(), anyOrNull()) } doReturn vedtak
+            },
+            brevService = mock {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn Dokument.UtenMetadata.Vedtak(
+                    opprettet = fixedTidspunkt,
+                    tittel = "tittel1",
+                    generertDokument = pdf,
+                    generertDokumentJson = "brev",
+                ).right()
+            },
+            fritekstService = mock {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = vedtak.behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "fritekst",
+                ).right()
+            },
+            mottakerService = mock {
+                on {
+                    hentMottaker(
+                        any(),
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn ekstraMottaker.right()
+            },
+        ) {
+            val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
+
+            service.ferdigstillVedtakEtterUtbetaling(utbetaling, TestSessionFactory.transactionContext)
+
+            verify(vedtakService).hentForUtbetaling(
+                argThat { it shouldBe vedtak.utbetalingId },
+                eq(TestSessionFactory.transactionContext),
+            )
+
+            verify(brevService).lagDokumentPdf(
+                argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
+                anyOrNull(),
+            )
+
+            verify(brevService, times(2)).lagreDokument(
+                argThat {
+                    it.generertDokument shouldBe pdf
+                    it.metadata.sakId shouldBe sak.id
+                },
+                eq(TestSessionFactory.transactionContext),
+            )
+
+            verify(oppgaveService).lukkOppgaveMedSystembruker(
+                argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId },
+                argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent) },
+            )
+
+            verify(mottakerService).hentMottaker(any(), any(), anyOrNull())
+
+            org.mockito.kotlin.verifyNoMoreInteractions(
+                oppgaveService,
+                vedtakService,
+                brevService,
+                mottakerService,
+            )
         }
     }
 

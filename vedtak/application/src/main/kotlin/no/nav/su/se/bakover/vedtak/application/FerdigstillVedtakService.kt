@@ -171,14 +171,6 @@ class FerdigstillVedtakServiceImpl(
         if (fritekst.isEmpty()) {
             throw IllegalStateException("Mangler fritekst for behandling kan ikke ferdigstille vedtak")
         }
-        // TODO: sjekk om flere mottakere her og isåfall må det sendes med slik at vi får lagret to journalposter og sendt ut to brev ref dokument_distrubson
-        // Hvis vedtak?
-        // Denne er dessverre så overengineered at det krever litt jobb å få til ordentlig støtte av verge, fullmektig/advokat
-        // TODO2: skal brevservice være ansvarlig for å hensynta flere mottakere?
-        /**
-         *  Ser egentlig for meg at vi prøver her å lage en service for lage flere brev aka dokument + dokument_distriubsjon
-         *  for en id som er generell og som hensyntar adresse
-         */
 
         return brevService.lagDokumentPdf(
             vedtak.lagDokumentKommando(
@@ -199,15 +191,6 @@ class FerdigstillVedtakServiceImpl(
                 // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
                 distribueringsadresse = null,
             )
-            // mottakerService feks
-            // dokument tabellen trenger bare ett innsalg men må se hvor tight den koblingen er først
-            // Dette må gjøre en gang per mottaker da dokument_distribusjon har Foreign key: dokumentid → dokument(id) så et dokument kan ha maks en dokument_distrubson
-            // TODO: her må det bli en visningsfiks i frontend og gjøre om til liste somewhere for vedtaksbrev henting i sak
-
-            // litt i stuss her siden vi lagrer vedtaksiden  men det kan være knyttet til alle typer behandling. TODO: kanskje vi alltid skal basere oss på vedtak? se-> VedtakSomKanRevurderes.lagDokumentKommando
-            // TODO NY: egentlig må vi først knytte det mot revurderingen også sjekke mot revurderingsiden her men lagre på vedtakid.. blir rotete
-            // dette bryter vel hele modellen. problemet her er at vi må ha noe å knytte den mot så må sjekke opp hvordan
-            // det lar seg gjøre
 
             // TODO: noe annet fra behandlingstypen som skal støttes?
             val mottaker = when (vedtak.behandling) {
@@ -222,11 +205,9 @@ class FerdigstillVedtakServiceImpl(
             if (mottaker != null) {
                 when (utenMetadata) {
                     is Dokument.UtenMetadata.Vedtak -> {
-                        // TODO: skal sende med navn også
-                        val (identifikator, adresse) = when (val tempmottaker = mottaker) {
-                            is MottakerFnrDomain -> tempmottaker.foedselsnummer.toString() to tempmottaker.adresse
-                            is MottakerOrgnummerDomain -> tempmottaker.orgnummer to tempmottaker.adresse
-                            else -> throw IllegalStateException("Mottaker er null")
+                        val (identifikator, adresse) = when (mottaker) {
+                            is MottakerFnrDomain -> mottaker.foedselsnummer.toString() to mottaker.adresse
+                            is MottakerOrgnummerDomain -> mottaker.orgnummer to mottaker.adresse
                         }
                         val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = utenMetadata.leggTilMetadataOgMottaker(
                             metadata = Dokument.Metadata(
