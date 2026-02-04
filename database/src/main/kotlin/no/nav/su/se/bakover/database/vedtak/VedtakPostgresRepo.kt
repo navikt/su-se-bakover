@@ -117,6 +117,7 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    // TODO: denne må håndtere slik at kopien ikke blir tatt med kanskje?
     internal fun hentVedtakForIdOgSession(
         vedtakId: UUID,
         session: Session,
