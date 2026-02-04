@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
-import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
@@ -32,7 +31,6 @@ import java.time.Clock
 class ReguleringManuellServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val sakService: SakService,
-    private val satsFactory: SatsFactory, // TODO bjg flytte satFactory til indre service
     private val reguleringService: ReguleringServiceImpl,
     private val clock: Clock,
 ) : ReguleringManuellService {
@@ -126,7 +124,7 @@ class ReguleringManuellServiceImpl(
                     .leggTilUføre(uføregrunnlag, clock)
                     .leggTilSaksbehandler(saksbehandler)
                     .let {
-                        reguleringService.behandleRegulering(it, sak, satsFactory)
+                        reguleringService.behandleRegulering(it, sak)
                             .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
                     }
             }

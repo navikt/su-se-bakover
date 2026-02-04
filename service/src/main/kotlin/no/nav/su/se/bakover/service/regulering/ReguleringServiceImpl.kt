@@ -31,6 +31,7 @@ class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
+    private val satsFactory: SatsFactory,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : ReguleringService {
@@ -39,7 +40,6 @@ class ReguleringServiceImpl(
     override fun behandleRegulering(
         regulering: OpprettetRegulering,
         sak: Sak,
-        satsFactory: SatsFactory,
         isLiveRun: Boolean,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
         val beregnetRegulering = beregnRegulering(

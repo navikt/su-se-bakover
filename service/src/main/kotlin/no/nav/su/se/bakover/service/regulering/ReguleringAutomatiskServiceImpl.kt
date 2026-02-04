@@ -32,7 +32,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val sakService: SakService,
     private val clock: Clock,
-    private val satsFactory: SatsFactory, // TODO bjg flytte satFactory til indre service
+    private val satsFactory: SatsFactory,
     private val reguleringService: ReguleringServiceImpl,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -158,7 +158,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun, satsFactory)
+            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
         } else {
@@ -251,7 +251,7 @@ class ReguleringAutomatiskServiceImpl(
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 
                 if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                    forsøkAutomatiskReguleringEllerOverførTilManuell(oppdatertRegulering, sak, true, satsFactory)
+                    forsøkAutomatiskReguleringEllerOverførTilManuell(oppdatertRegulering, sak, true)
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                         .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
                 } else {
@@ -270,12 +270,10 @@ class ReguleringAutomatiskServiceImpl(
         regulering: OpprettetRegulering,
         sak: Sak,
         isLiveRun: Boolean,
-        satsFactory: SatsFactory,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
         return reguleringService.behandleRegulering(
             regulering,
             sak,
-            satsFactory,
             isLiveRun,
         ).onLeft {
             val message = when (it) {

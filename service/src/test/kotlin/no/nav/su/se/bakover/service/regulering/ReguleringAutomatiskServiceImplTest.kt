@@ -499,20 +499,22 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
         val vedtakMock = mock<VedtakService> {}
         val sessionMock = mock<SessionFactory> {}
+        val satsFactory = satsFactoryTestPåDato(25.mai(2021))
         val clock = fixedClockAt(25.mai(2021))
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = reguleringRepo,
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
+            satsFactory = satsFactory,
             clock = clock,
         )
 
         ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
-            satsFactory = satsFactoryTestPåDato(25.mai(2021)),
             reguleringService = reguleringService,
             sakService = sakService,
+            satsFactory = satsFactory,
             clock = clock,
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
@@ -564,6 +566,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
+            satsFactory = satsFactory,
             clock = clock,
         )
 
@@ -677,11 +680,13 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
         val vedtakService = mock<VedtakService>()
         val sessionFactory = TestSessionFactory()
+        val satsFactory = satsFactoryTestPåDato()
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = reguleringRepo,
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
+            satsFactory = satsFactory,
             clock = clock,
         )
         return ReguleringAutomatiskServiceImpl(
@@ -689,7 +694,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sakMedEndringer.info())
                 on { hentSak(any<UUID>()) } doReturn sakMedEndringer.right()
             },
-            satsFactory = satsFactoryTestPåDato(),
+            satsFactory = satsFactory,
             reguleringRepo = reguleringRepo,
             clock = clock,
             reguleringService = reguleringService,
