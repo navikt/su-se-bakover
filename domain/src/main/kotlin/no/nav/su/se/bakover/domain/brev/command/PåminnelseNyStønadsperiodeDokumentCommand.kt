@@ -26,9 +26,13 @@ data class PåminnelseNyStønadsperiodeDokumentCommand(
 ) : GenererDokumentCommand {
     companion object {
         fun ny(sak: Sak, person: Person, utløpsdato: LocalDate): Either<KunneIkkeSendePåminnelse, PåminnelseNyStønadsperiodeDokumentCommand> {
-            val uføreSomFyller67 = person.er67EllerEldre(utløpsdato.endOfMonth())
-                ?: return KunneIkkeSendePåminnelse.PersonManglerFødselsdato.left()
-
+            val uføreSomFyller67 = when (sak.type) {
+                Sakstype.ALDER -> false
+                Sakstype.UFØRE -> {
+                    person.er67EllerEldre(utløpsdato.endOfMonth())
+                        ?: return KunneIkkeSendePåminnelse.PersonManglerFødselsdato.left()
+                }
+            }
             return PåminnelseNyStønadsperiodeDokumentCommand(
                 fødselsnummer = sak.fnr,
                 saksnummer = sak.saksnummer,
