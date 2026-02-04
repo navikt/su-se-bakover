@@ -61,6 +61,8 @@ class MottakerServiceImpl(
         return hentetMottaker.right()
     }
 
+    // TODO: denne blir feil siden knytningen blir mot vedtakid. og den sier at man skal kun knytte metadata mot en id bortsett fra sakid.. så enten sjekké om vedtak er lagret for revurdering
+    // eller populere begge to, usikker på konsekvensene av dette. Problemet her r er jo at man har dette og typen på dokumentet som skiller på dette men ingenting entydig
     private fun kanEndreForMottaker(mottaker: MottakerDomain): Boolean {
         val dokumenter = when (mottaker.referanseType) {
             ReferanseTypeMottaker.SØKNAD ->

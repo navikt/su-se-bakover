@@ -193,6 +193,7 @@ class FerdigstillVedtakServiceImpl(
             )
 
             // TODO: noe annet fra behandlingstypen som skal støttes?
+            // TODO: hentingen blir riktig her men lagringen av dokumentet kun på vedtakid gjør konsistenssjekk vanskelig i mottaker da revurderingen ikke er koblet opp mot vedtak før iverksatt
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
                     mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }

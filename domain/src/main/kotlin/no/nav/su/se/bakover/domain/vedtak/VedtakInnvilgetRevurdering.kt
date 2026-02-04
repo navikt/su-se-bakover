@@ -83,6 +83,8 @@ data class VedtakInnvilgetRevurdering private constructor(
     /**
      * Brevutsending skjer i [no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService]
      * TODO: Er det mulig å flytte denne logikken til ut fra vedtaks-biten til en felles plass?
+     *
+     * //TODO: når endrer dokumenttilstand? når settes den generert? og påvirker det to brev?
      */
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {

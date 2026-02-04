@@ -36,7 +36,6 @@ class DokumentPostgresRepo(
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
-    // TODO: denne må støtte å lage to dokumentdistribusjoner hvis DokumentKategori.VEDTAK i første omgang - nevermind er kun en distrubsjon per dokument så en per mottaker- rm later
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext?) {
         val size = dokument.generertDokument.getContent().size
         require(size > 311) { "Pdf dokument må være minst 312 bytes, var $size" }
@@ -60,7 +59,7 @@ class DokumentPostgresRepo(
                                 is Dokument.MedMetadata.Informasjon.Annet -> DokumentKategori.INFORMASJON_ANNET
                                 is Dokument.MedMetadata.Vedtak -> DokumentKategori.VEDTAK
                             }.toString(),
-                            "tittel" to dokument.tittel, // TODO: potensielt kopi her i tittel hvis er fullmektig eller advokat, men usikker for now
+                            "tittel" to dokument.tittel,
                             "soknadId" to dokument.metadata.søknadId,
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
