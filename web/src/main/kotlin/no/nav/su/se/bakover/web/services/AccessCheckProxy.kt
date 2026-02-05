@@ -638,6 +638,8 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse> = kastKanKunKallesFraAnnenService()
 
                 override fun hentOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
+
+                override fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
             person = object : PersonService {
                 override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {

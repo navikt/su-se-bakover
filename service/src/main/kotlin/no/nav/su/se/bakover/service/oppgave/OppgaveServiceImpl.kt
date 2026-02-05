@@ -57,4 +57,8 @@ class OppgaveServiceImpl(
     override fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
         return oppgaveClient.hentOppgave(oppgaveId)
     }
+
+    override fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave> {
+        return oppgaveClient.hentOppgaveMedSystembruker(oppgaveId)
+    }
 }

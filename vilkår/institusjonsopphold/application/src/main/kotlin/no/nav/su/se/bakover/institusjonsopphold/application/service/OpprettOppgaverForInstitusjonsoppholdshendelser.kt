@@ -107,7 +107,7 @@ class OpprettOppgaverForInstitusjonsoppholdshendelser(
         hendelserSomManglerOppgaver: Nel<HendelseId>,
     ) {
         instOgOppgaveHendelserPåSak.sisteOppgaveId()?.let { oppgaveId ->
-            oppgaveService.hentOppgave(oppgaveId).onRight { oppgave ->
+            oppgaveService.hentOppgaveMedSystembruker(oppgaveId).onRight { oppgave ->
                 if (oppgave.erÅpen()) {
                     log.info("Det finnes allerede en åpen institusjonsoppgave for sak $sakId, oppgaveId $oppgaveId, vi lagrer derfor ikke en ny oppgave.")
                     sessionFactory.withSessionContext { sx ->

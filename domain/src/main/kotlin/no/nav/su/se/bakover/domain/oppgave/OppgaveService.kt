@@ -38,4 +38,7 @@ interface OppgaveService {
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
     fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave>
+
+    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
+    fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave>
 }
