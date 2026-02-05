@@ -75,7 +75,7 @@ data class JmsConfig(
                 queueManager = it.mqQueueManager
                 transportType = WMQConstants.WMQ_CM_CLIENT
                 clientReconnectOptions = WMQConstants.WMQ_CLIENT_RECONNECT_Q_MGR
-                clientReconnectTimeout = 5
+                clientReconnectTimeout = 300
                 setBooleanProperty(JmsConstants.USER_AUTHENTICATION_MQCSP, true)
             }
         }.createContext(
