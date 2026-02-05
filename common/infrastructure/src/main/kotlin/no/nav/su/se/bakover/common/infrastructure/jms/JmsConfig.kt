@@ -68,6 +68,7 @@ data class JmsConfig(
         log.info("Initializing JMSContext with timeout...")
         System.setProperty("com.ibm.mq.cfg.TCP.Connect_Timeout", "10")
         return MQConnectionFactory().apply {
+            val femMinutter = 300
             applicationConfig.oppdrag.let {
                 hostName = it.mqHostname
                 port = it.mqPort
@@ -75,7 +76,7 @@ data class JmsConfig(
                 queueManager = it.mqQueueManager
                 transportType = WMQConstants.WMQ_CM_CLIENT
                 clientReconnectOptions = WMQConstants.WMQ_CLIENT_RECONNECT_Q_MGR
-                clientReconnectTimeout = 5
+                clientReconnectTimeout = femMinutter
                 setBooleanProperty(JmsConstants.USER_AUTHENTICATION_MQCSP, true)
             }
         }.createContext(
