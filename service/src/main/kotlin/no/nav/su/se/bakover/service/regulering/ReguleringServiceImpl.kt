@@ -73,7 +73,7 @@ class ReguleringServiceImpl(
             clock = clock,
         ).mapLeft { kunneikkeBeregne ->
             log.error(
-                "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og eguleringstype: ${regulering.reguleringstype::class.simpleName}",
+                "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
                 kunneikkeBeregne.feil,
             )
             KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne

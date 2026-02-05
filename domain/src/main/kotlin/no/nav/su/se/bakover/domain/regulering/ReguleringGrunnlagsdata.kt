@@ -18,7 +18,6 @@ data class ReguleringGrunnlagsdata(
         ): ReguleringGrunnlagsdata {
             val grunnlagOgVilkår = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
 
-            val lok = regulering.grunnlagsdataOgVilkårsvurderinger
             return ReguleringGrunnlagsdata(
                 uføreFraGjeldendeVedtak = grunnlagOgVilkår.vilkårsvurderinger.uføreVilkår().getOrNull()?.grunnlag
                     ?: emptyList(),
