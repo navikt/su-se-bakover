@@ -13,7 +13,7 @@ sealed interface JwtToken {
         companion object {
             fun fraCoroutineContext(): BrukerToken {
                 val token = Kontekst.get()?.token
-                    ?: throw IllegalStateException("TokenContext not set, sjekk AuthTokenContextPlugin og at install(AuthTokenContextPlugin) er kjørt på dine routes")
+                    ?: throw IllegalStateException("TokenContext not set, sjekk AuthTokenContextPlugin og at install(AuthTokenContextPlugin) er kjørt på dine routes. Ellers kan det være brukt systembruker mot en obo hendelse, det er feil.")
                 return BrukerToken(token)
             }
 
