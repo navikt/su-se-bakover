@@ -12,7 +12,7 @@ interface OppgaveService {
 
     fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 
-    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
+    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JWT */
     fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 
     fun lukkOppgave(
@@ -20,7 +20,7 @@ interface OppgaveService {
         tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
     ): Either<KunneIkkeLukkeOppgave, OppgaveHttpKallResponse>
 
-    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
+    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JWT */
     fun lukkOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
         tilordnetRessurs: OppdaterOppgaveInfo.TilordnetRessurs,
@@ -31,7 +31,7 @@ interface OppgaveService {
         oppdaterOppgaveInfo: OppdaterOppgaveInfo,
     ): Either<KunneIkkeOppdatereOppgave, OppgaveHttpKallResponse>
 
-    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
+    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JWT */
     fun oppdaterOppgaveMedSystembruker(
         oppgaveId: OppgaveId,
         oppdaterOppgaveInfo: OppdaterOppgaveInfo,
@@ -39,6 +39,6 @@ interface OppgaveService {
 
     fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave>
 
-    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JTW */
+    /** Skal kun brukes ved asynkrone kall, der man ikke har tilgang til bruker's JWT */
     fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Oppgave>
 }
