@@ -9,6 +9,9 @@ import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -38,6 +41,7 @@ sealed interface FeilkoderMottaker {
 class MottakerServiceImpl(
     private val mottakerRepo: MottakerRepo,
     private val dokumentRepo: DokumentRepo,
+    private val vedtakRepo: VedtakRepo,
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -64,23 +68,21 @@ class MottakerServiceImpl(
     // TODO: denne blir feil siden knytningen blir mot vedtakid. og den sier at man skal kun knytte metadata mot en id bortsett fra sakid.. så enten sjekké om vedtak er lagret for revurdering
     // eller populere begge to, usikker på konsekvensene av dette. Problemet her r er jo at man har dette og typen på dokumentet som skiller på dette men ingenting entydig
     private fun kanEndreForMottaker(mottaker: MottakerDomain): Boolean {
-        val dokumenter = when (mottaker.referanseType) {
+        return when (mottaker.referanseType) {
             ReferanseTypeMottaker.SØKNAD ->
-                dokumentRepo.hentForSøknad(mottaker.referanseId)
+                !vedtakRepo.finnesVedtakForSøknadsbehandlingId(SøknadsbehandlingId(mottaker.referanseId))
 
             ReferanseTypeMottaker.VEDTAK ->
-                dokumentRepo.hentForVedtak(mottaker.referanseId)
+                dokumentRepo.hentForVedtak(mottaker.referanseId).isEmpty()
 
             // De andre typene støtter ikke flere mottakere og kan ha flere per revurderingid som ødelegger bindingen mot mottakertabellen siden man ikke har noen unik id å knytte det mot.
             // Du kan til og med ha flere av samme typen per revurdering så her må man tilpasse om det skal støttes.
-            ReferanseTypeMottaker.REVURDERING -> dokumentRepo.hentForRevurdering(mottaker.referanseId)
-                .filter { it is Dokument.MedMetadata.Vedtak }
+            ReferanseTypeMottaker.REVURDERING ->
+                !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
 
             ReferanseTypeMottaker.KLAGE ->
-                dokumentRepo.hentForKlage(mottaker.referanseId)
+                dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
         }
-
-        return dokumenter.isEmpty()
     }
 
     override fun lagreMottaker(

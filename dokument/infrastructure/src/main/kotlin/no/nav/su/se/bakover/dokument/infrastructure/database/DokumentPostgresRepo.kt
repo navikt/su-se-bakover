@@ -299,6 +299,17 @@ class DokumentPostgresRepo(
                 it.toDokumentMedStatus()
             }
 
+    private fun hentDokumentInkludertDuplikater(dokumentId: UUID, session: Session) =
+        """
+            select d.*, dd.journalpostid, dd.brevbestillingid
+            from dokument d
+            left join dokument_distribusjon dd on dd.dokumentid = d.id
+            where d.id = :id
+        """.trimIndent()
+            .hent(mapOf("id" to dokumentId), session) {
+                it.toDokumentMedStatus()
+            }
+
     private fun Row.toDokumentMedStatus(): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
         val id = uuid("id")
@@ -383,7 +394,7 @@ class DokumentPostgresRepo(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             endret = tidspunkt("endret"),
-            dokument = hentDokument(uuid("dokumentId"), session)!!,
+            dokument = hentDokumentInkludertDuplikater(uuid("dokumentId"), session)!!,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = stringOrNull("journalpostid")?.let { JournalpostId(it) },
                 iverksattBrevbestillingId = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) },

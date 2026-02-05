@@ -172,7 +172,11 @@ data object ServiceBuilder {
         ).apply {
             addObserver(statistikkEventObserver)
         }
-        val mottakerService = MottakerServiceImpl(databaseRepos.mottakerRepo, dokumentRepo = databaseRepos.dokumentRepo)
+        val mottakerService = MottakerServiceImpl(
+            databaseRepos.mottakerRepo,
+            dokumentRepo = databaseRepos.dokumentRepo,
+            vedtakRepo = databaseRepos.vedtakRepo,
+        )
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
             oppgaveService = oppgaveService,

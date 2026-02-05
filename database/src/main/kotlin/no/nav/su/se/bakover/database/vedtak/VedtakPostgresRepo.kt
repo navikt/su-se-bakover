@@ -163,6 +163,30 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun finnesVedtakForRevurderingId(revurderingId: RevurderingId): Boolean {
+        return sessionFactory.withSession { session ->
+            """
+                select 1
+                from behandling_vedtak
+                where revurderingId = :revurderingId
+                limit 1
+            """.trimIndent()
+                .hent(mapOf("revurderingId" to revurderingId.value), session) { true } ?: false
+        }
+    }
+
+    override fun finnesVedtakForSøknadsbehandlingId(søknadsbehandlingId: SøknadsbehandlingId): Boolean {
+        return sessionFactory.withSession { session ->
+            """
+                select 1
+                from behandling_vedtak
+                where søknadsbehandlingId = :soknadsbehandlingId
+                limit 1
+            """.trimIndent()
+                .hent(mapOf("soknadsbehandlingId" to søknadsbehandlingId.value), session) { true } ?: false
+        }
+    }
+
     override fun hentVedtakForMåned(måned: Måned, tx: TransactionContext?): List<Vedtak> {
         return sessionFactory.withSession(tx) { session ->
             """
