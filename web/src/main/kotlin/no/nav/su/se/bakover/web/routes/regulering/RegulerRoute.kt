@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
-import no.nav.su.se.bakover.web.routes.regulering.json.ReguleringsGrunnlagsdataJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -76,7 +75,7 @@ internal fun Route.reguler(
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
                         },
                     )
                 }

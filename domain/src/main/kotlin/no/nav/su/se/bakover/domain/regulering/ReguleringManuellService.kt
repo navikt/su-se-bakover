@@ -36,7 +36,7 @@ interface ReguleringManuellService {
     fun hentReguleringsgrunnlag(
         reguleringId: ReguleringId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata>
+    ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning>
 
     fun beregnReguleringManuelt(
         reguleringId: ReguleringId,

@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnlagsdata
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -39,13 +39,13 @@ class ReguleringManuellServiceImpl(
     override fun hentReguleringsgrunnlag(
         reguleringId: ReguleringId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata> {
+    ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeHenteReguleringsgrunnlag.FantIkkeRegulering.left()
         val gjeldendeVedtaksdata = sakService.hentGjeldendeVedtaksdata(
             sakId = regulering.sakId,
             periode = regulering.periode,
         ).getOrNull() ?: return KunneIkkeHenteReguleringsgrunnlag.FantIkkeGjeldendeVedtaksdata.left()
-        return ReguleringGrunnlagsdata.create(
+        return ManuellReguleringVisning.create(
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
             regulering = regulering,
         ).right()
