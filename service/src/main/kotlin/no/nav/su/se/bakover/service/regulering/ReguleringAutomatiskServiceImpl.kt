@@ -44,7 +44,7 @@ class ReguleringAutomatiskServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor // TODO bjg flytte satFactory til indre service
+        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
         reguleringRepo.lagre(supplement)
         return Either.catch { start(fraOgMedMåned, true, satsFactory, supplement, omregningsfaktor) }
@@ -288,7 +288,9 @@ class ReguleringAutomatiskServiceImpl(
                     ),
                 ),
             )
-            reguleringRepo.lagre(manuellRegulering)
+            if (isLiveRun) {
+                reguleringRepo.lagre(manuellRegulering)
+            }
         }
     }
 }
