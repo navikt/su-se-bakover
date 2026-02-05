@@ -210,7 +210,8 @@ class FerdigstillVedtakServiceImpl(
                             is MottakerFnrDomain -> mottaker.foedselsnummer.toString() to mottaker.adresse
                             is MottakerOrgnummerDomain -> mottaker.orgnummer to mottaker.adresse
                         }
-                        val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = utenMetadata.leggTilMetadataOgMottakerForKopiBrev(
+                        val kopiUtenMetadata = utenMetadata.copy(id = UUID.randomUUID())
+                        val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = kopiUtenMetadata.leggTilMetadataOgMottakerForKopiBrev(
                             metadata = Dokument.Metadata(
                                 sakId = vedtak.behandling.sakId,
                                 søknadId = null,
