@@ -241,12 +241,12 @@ data object ServiceBuilder {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
+            satsFactory = satsFactory,
             clock = clock,
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = sakService,
-            satsFactory = satsFactory,
             reguleringService = reguleringService,
             clock = clock,
         )
@@ -255,9 +255,6 @@ data object ServiceBuilder {
             sakService = sakService,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
-            utbetalingService = utbetalingService,
-            vedtakService = vedtakService,
-            sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
 

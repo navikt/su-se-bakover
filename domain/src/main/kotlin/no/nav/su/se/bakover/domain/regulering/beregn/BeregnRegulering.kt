@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering.beregn
 
 import arrow.core.getOrElse
-import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
@@ -25,11 +24,7 @@ fun Sak.blirBeregningEndret(
         begrunnelse = null,
         clock = clock,
     ).getOrElse {
-        when (it) {
-            is KunneIkkeBeregneRegulering.BeregningFeilet -> {
-                throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
-            }
-        }
+        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
     }
 
     return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->

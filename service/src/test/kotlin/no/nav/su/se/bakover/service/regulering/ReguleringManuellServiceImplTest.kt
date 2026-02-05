@@ -227,6 +227,7 @@ private fun lagReguleringManuellServiceImpl(
         utbetalingService = utbetalingService,
         vedtakService = vedtakService,
         sessionFactory = sessionFactory,
+        satsFactory = satsFactoryTestPåDato(),
         clock = clock,
     )
     return ReguleringManuellServiceImpl(
@@ -234,7 +235,6 @@ private fun lagReguleringManuellServiceImpl(
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sakMedEndringer.info())
             on { hentSak(any<UUID>()) } doReturn sakMedEndringer.right()
         },
-        satsFactory = satsFactoryTestPåDato(),
         reguleringRepo = reguleringRepo,
         clock = clock,
         reguleringService = reguleringService,
