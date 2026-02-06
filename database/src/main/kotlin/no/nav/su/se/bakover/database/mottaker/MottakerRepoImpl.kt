@@ -52,7 +52,7 @@ data class MottakerRepoImpl(
             sessionFactory.withSession { session ->
                 val (fnr, orgnr) = when (mottaker) {
                     is MottakerFnrDomain ->
-                        mottaker.foedselsnummer?.toString() to null
+                        mottaker.foedselsnummer.toString() to null
 
                     is MottakerOrgnummerDomain ->
                         null to mottaker.orgnummer
@@ -100,7 +100,7 @@ data class MottakerRepoImpl(
             sessionFactory.withSession { session ->
                 val (fnr, orgnr) = when (mottaker) {
                     is MottakerFnrDomain ->
-                        mottaker.foedselsnummer?.toString() to null
+                        mottaker.foedselsnummer.toString() to null
 
                     is MottakerOrgnummerDomain ->
                         null to mottaker.orgnummer

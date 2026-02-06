@@ -32,7 +32,7 @@ internal class MottakerServiceTest {
         ArgumentMatcher { actual ->
             val identMatcher = when (actual) {
                 is MottakerFnrDomain ->
-                    actual.foedselsnummer?.toString() == expected.foedselsnummer
+                    actual.foedselsnummer.toString() == expected.foedselsnummer
                 is MottakerOrgnummerDomain ->
                     actual.orgnummer == expected.orgnummer
             }
@@ -263,7 +263,7 @@ internal class MottakerServiceTest {
             argThat { domain ->
                 domain is MottakerFnrDomain &&
                     domain.navn == nyttnavnForOppdatering &&
-                    domain.foedselsnummer?.toString() == oppdaterMottaker.foedselsnummer &&
+                    domain.foedselsnummer.toString() == oppdaterMottaker.foedselsnummer &&
                     domain.adresse == oppdaterMottaker.adresse.toDomain() &&
                     domain.sakId.toString() == oppdaterMottaker.sakId &&
                     domain.referanseId.toString() == oppdaterMottaker.referanseId &&
