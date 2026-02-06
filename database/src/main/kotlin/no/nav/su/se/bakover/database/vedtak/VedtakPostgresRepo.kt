@@ -133,6 +133,7 @@ internal class VedtakPostgresRepo(
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 where v.id = :vedtakId
                 and d.duplikatAv is null
+                and d.er_kopi is not true
                 order by v.opprettet
         """.trimIndent()
             .hent(mapOf("vedtakId" to vedtakId), session) {
@@ -155,6 +156,7 @@ internal class VedtakPostgresRepo(
                 join revurdering r on r.id = bv.revurderingId
                 where r.id = :revurderingId
                 and d.duplikatAv is null
+                and d.er_kopi is not true
                 order by v.opprettet
             """.trimIndent()
                 .hent(mapOf("revurderingId" to revurderingId.value), session) {
@@ -200,6 +202,7 @@ internal class VedtakPostgresRepo(
             left join dokument_distribusjon dd on d.id = dd.dokumentid
             where fraogmed <= :maaned and tilogmed >= :maaned
             and d.duplikatAv is null
+            and d.er_kopi is not true
             order by v.opprettet
             """.trimIndent()
                 .hentListe(mapOf("maaned" to måned.fraOgMed), session) {
@@ -220,6 +223,7 @@ internal class VedtakPostgresRepo(
             left join dokument_distribusjon dd on d.id = dd.dokumentid
             where v.sakId = :sakId
             and d.duplikatAv is null
+            and d.er_kopi is not true
             order by v.opprettet
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
@@ -280,6 +284,7 @@ internal class VedtakPostgresRepo(
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 where v.utbetalingId = :utbetalingId
                 and d.duplikatAv is null
+                and d.er_kopi is not true
                 order by v.opprettet
                 """.trimIndent()
                     .hent(mapOf("utbetalingId" to utbetalingId), session) {
@@ -300,7 +305,7 @@ internal class VedtakPostgresRepo(
                 from dokument d
                 inner join dokument_distribusjon dd
                   on d.id = dd.dokumentid
-                where d.vedtakid = :vedtakId and d.duplikatAv is null
+                where d.vedtakid = :vedtakId and d.duplikatAv is null and d.er_kopi is not true
                 """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
                     JournalpostId(it.string("journalpostid"))
                 }

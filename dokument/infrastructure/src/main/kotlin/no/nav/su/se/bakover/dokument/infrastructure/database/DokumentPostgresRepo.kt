@@ -34,7 +34,7 @@ class DokumentPostgresRepo(
 ) : DokumentRepo {
 
     private val joinDokumentOgDistribusjonQuery =
-        "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
+        "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null and d.er_kopi = false"
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext?) {
         val size = dokument.generertDokument.getContent().size
@@ -43,8 +43,39 @@ class DokumentPostgresRepo(
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             sessionFactory.withTransaction(transactionContext) { tx ->
                 """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, distribueringsadresse)
-                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId, :distribueringsadresse::jsonb)
+                insert into dokument(
+                    id,
+                    opprettet,
+                    sakId,
+                    generertDokument,
+                    generertDokumentJson,
+                    type,
+                    tittel,
+                    søknadId,
+                    vedtakId,
+                    revurderingId,
+                    klageId,
+                    distribueringsadresse,
+                    er_kopi,
+                    ekstra_mottaker,
+                    navn_ekstra_mottaker
+                ) values (
+                    :id,
+                    :opprettet,
+                    :sakId,
+                    :generertDokument,
+                    to_json(:generertDokumentJson::json),
+                    :type,
+                    :tittel,
+                    :soknadId,
+                    :vedtakId,
+                    :revurderingId,
+                    :klageId,
+                    :distribueringsadresse::jsonb,
+                    :erKopi,
+                    :ekstraMottaker,
+                    :navnEkstraMottaker
+                )
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -65,6 +96,9 @@ class DokumentPostgresRepo(
                             "revurderingId" to dokument.metadata.revurderingId,
                             "klageId" to dokument.metadata.klageId,
                             "distribueringsadresse" to dokument.distribueringsadresse?.toDbJson(),
+                            "erKopi" to dokument.erKopi(),
+                            "ekstraMottaker" to dokument.ekstraMottaker(),
+                            "navnEkstraMottaker" to dokument.navnEkstraMottaker(),
                         ),
                         tx,
                     )
@@ -293,7 +327,10 @@ class DokumentPostgresRepo(
 
     private fun hentDokument(dokumentId: UUID, session: Session) =
         """
-            $joinDokumentOgDistribusjonQuery and d.id = :id
+            select d.*, dd.journalpostid, dd.brevbestillingid
+            from dokument d
+            left join dokument_distribusjon dd on dd.dokumentid = d.id
+            where d.id = :id and d.duplikatAv is null
         """.trimIndent()
             .hent(mapOf("id" to dokumentId), session) {
                 it.toDokumentMedStatus()
@@ -325,6 +362,9 @@ class DokumentPostgresRepo(
         val brevbestillingId = stringOrNull("brevbestillingid")
         val journalpostId = stringOrNull("journalpostid")
         val distribueringsadresse = stringOrNull("distribueringsadresse")?.let { deserializeDistribueringsadresse(it) }
+        val erKopi = boolean("er_kopi")
+        val ekstraMottaker = stringOrNull("ekstra_mottaker")
+        val navnEkstraMottaker = stringOrNull("navn_ekstra_mottaker")
 
         return when (type) {
             DokumentKategori.INFORMASJON_VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
@@ -379,6 +419,9 @@ class DokumentPostgresRepo(
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
+                erKopi = erKopi,
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
             )
         }
     }
@@ -404,5 +447,17 @@ class DokumentPostgresRepo(
                 ),
             ),
         )
+    }
+
+    private fun Dokument.MedMetadata.erKopi(): Boolean {
+        return (this as? Dokument.MedMetadata.Vedtak)?.erKopi ?: false
+    }
+
+    private fun Dokument.MedMetadata.ekstraMottaker(): String? {
+        return (this as? Dokument.MedMetadata.Vedtak)?.ekstraMottaker
+    }
+
+    private fun Dokument.MedMetadata.navnEkstraMottaker(): String? {
+        return (this as? Dokument.MedMetadata.Vedtak)?.navnEkstraMottaker
     }
 }

@@ -110,6 +110,7 @@ internal class SøknadPostgresRepo(
                              left join dokument_distribusjon dd on d.id = dd.dokumentid
                     where s.journalpostId is null
                     and d.duplikatAv is null
+                    and d.er_kopi is not true
                 """.trimIndent().hentListe(
                     session = session,
                 ) {
@@ -135,6 +136,7 @@ internal class SøknadPostgresRepo(
                     where s.journalpostId is not null 
                     and oppgaveId is null
                     and d.duplikatAv is null
+                    and d.er_kopi is not true
                 """.trimIndent().hentListe(
                     session = session,
                 ) {
