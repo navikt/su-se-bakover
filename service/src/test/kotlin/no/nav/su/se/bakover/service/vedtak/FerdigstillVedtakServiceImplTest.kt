@@ -7,12 +7,15 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -257,8 +260,8 @@ internal class FerdigstillVedtakServiceImplTest {
     }
 
     @Test
-    fun `ferdigstill NY etter utbetaling går fint med ekstra mottaker for IverksattSøknadsbehandling`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
+    fun `ferdigstill NY etter utbetaling lager kopi for IverksattRevurdering`() {
+        val (sak, vedtak) = vedtakRevurderingIverksattInnvilget()
 
         val pdf = PdfA("brev".toByteArray())
         val ekstraMottaker = MottakerFnrDomain(
@@ -273,7 +276,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ),
             sakId = sak.id,
             referanseId = vedtak.behandling.id.value,
-            referanseType = ReferanseTypeMottaker.SØKNAD,
+            referanseType = ReferanseTypeMottaker.REVURDERING,
         )
 
         FerdigstillVedtakServiceMocks(
@@ -294,7 +297,7 @@ internal class FerdigstillVedtakServiceImplTest {
             fritekstService = mock {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = vedtak.behandling.id.value,
-                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    type = FritekstType.VEDTAKSBREV_REVURDERING,
                     fritekst = "fritekst",
                 ).right()
             },
@@ -308,7 +311,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 } doReturn ekstraMottaker.right()
             },
         ) {
-            val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
+            val utbetaling = sak.utbetalinger.first { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.MedKvittering
 
             service.ferdigstillVedtakEtterUtbetaling(utbetaling, TestSessionFactory.transactionContext)
 
@@ -318,7 +321,7 @@ internal class FerdigstillVedtakServiceImplTest {
             )
 
             verify(brevService).lagDokumentPdf(
-                argThat { it shouldBe beOfType<IverksettSøknadsbehandlingDokumentCommand.Innvilgelse>() },
+                argThat { it should beInstanceOf<IverksettRevurderingDokumentCommand>() },
                 anyOrNull(),
             )
 

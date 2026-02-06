@@ -87,6 +87,49 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `hentForSak inkluderer kopier`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
+        val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+        val tx = testDataHelper.sessionFactory.newTransactionContext()
+
+        val original = Dokument.MedMetadata.Vedtak(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            tittel = "tittel",
+            generertDokument = minimumPdfAzeroPadded(),
+            generertDokumentJson = """{"some": "json"}""",
+            metadata = Dokument.Metadata(
+                sakId = sak.id,
+                søknadId = sak.søknader.first().id,
+                vedtakId = vedtak.id,
+            ),
+            distribueringsadresse = null,
+        )
+
+        val kopi = original.copy(
+            id = UUID.randomUUID(),
+            tittel = "${original.tittel} (KOPI)",
+            erKopi = true,
+            ekstraMottaker = "12345678910",
+            navnEkstraMottaker = "Kopi Person",
+            distribueringsadresse = nyDistribueringsAdresse(),
+        )
+
+        dokumentRepo.lagre(original, tx)
+        dokumentRepo.lagre(kopi, tx)
+
+        val forSak = dokumentRepo.hentForSak(sak.id)
+        forSak shouldHaveSize 2
+        forSak.filterIsInstance<Dokument.MedMetadata.Vedtak>().count { it.erKopi } shouldBe 1
+        dokumentRepo.hentForVedtak(vedtak.id) shouldHaveSize 1
+
+        val hentetKopi = dokumentRepo.hentDokument(kopi.id) as Dokument.MedMetadata.Vedtak
+        hentetKopi.erKopi shouldBe true
+        hentetKopi.ekstraMottaker shouldBe kopi.ekstraMottaker
+    }
+
+    @Test
     fun `journalfører og distribuerer dokumentdistribusjon`() {
         val testDataHelper = TestDataHelper(dataSource)
         val dokumentRepo = testDataHelper.dokumentRepo

@@ -30,6 +30,8 @@ data class IverksettInnvilgetRevurderingResponse(
     val clock: Clock,
 
 ) : IverksettRevurderingResponse<VedtakInnvilgetRevurdering> {
+
+    // TODO: for søknad så gjøres dokumentlagring i iverksatt mens for revurdering gjøres den når man får betaling ok, men hvorfor? er styrt av vedtak.skalGenerereDokumentVedFerdigstillelse() men gir litt ulikoppførsel som er uheldig
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
