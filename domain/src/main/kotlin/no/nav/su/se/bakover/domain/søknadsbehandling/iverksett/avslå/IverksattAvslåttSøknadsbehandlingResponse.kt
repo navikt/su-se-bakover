@@ -49,7 +49,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         statistikkObservers: List<StatistikkEventObserver>,
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
-        lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,
@@ -63,7 +63,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
              */
             lagreSøknadsbehandling(søknadsbehandling, tx)
             lagreVedtak(vedtak, tx)
-            lagreDokument(dokument, tx)
+            lagreDokumentMedKopi(dokument, tx)
             genererOgLagreSkattedokument(vedtak, tx)
             val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak)
             statistikkObservers.notify(sakStatistikkEvent, tx)

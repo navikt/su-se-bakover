@@ -300,6 +300,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
+            mottakerService = mottakerService,
         ).apply {
             addObserver(statistikkEventObserver)
         }

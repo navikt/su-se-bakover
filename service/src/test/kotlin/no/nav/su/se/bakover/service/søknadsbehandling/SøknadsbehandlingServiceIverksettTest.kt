@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
+import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
@@ -26,6 +28,9 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -614,6 +619,66 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         @Test
+        fun `lagrer kopi når mottaker finnes for innvilget søknadsbehandling`() {
+            val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
+            val fritekstServiceMock = mock<FritekstService> {
+                on {
+                    hentFritekst(any(), any(), anyOrNull())
+                } doReturn Fritekst(
+                    referanseId = innvilgetTilAttestering.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+
+            val lagredeDokumenter = mutableListOf<Dokument.MedMetadata>()
+            val brevServiceMock = mock<BrevService> {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()
+                doAnswer { invocation ->
+                    lagredeDokumenter.add(invocation.getArgument(0))
+                    Unit
+                }.whenever(it).lagreDokument(any(), anyOrNull())
+            }
+
+            val mottaker = MottakerFnrDomain(
+                navn = "Test Testesen",
+                foedselsnummer = sak.fnr,
+                adresse = Distribueringsadresse(
+                    adresselinje1 = "Jallabekk 11",
+                    adresselinje2 = null,
+                    adresselinje3 = null,
+                    postnummer = "0550",
+                    poststed = "Oslo",
+                ),
+                sakId = sak.id,
+                referanseId = innvilgetTilAttestering.id.value,
+                referanseType = ReferanseTypeMottaker.SØKNAD,
+            )
+
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
+                brevService = brevServiceMock,
+                mottakerService = mock {
+                    on { hentMottaker(any(), any(), anyOrNull()) } doReturn mottaker.right()
+                },
+                fritekstService = fritekstServiceMock,
+            )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = innvilgetTilAttestering.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).shouldBeRight()
+
+            lagredeDokumenter.size shouldBe 2
+            val vedtakDokumenter = lagredeDokumenter.filterIsInstance<Dokument.MedMetadata.Vedtak>()
+            vedtakDokumenter.size shouldBe 2
+            vedtakDokumenter.count { it.erKopi } shouldBe 1
+            vedtakDokumenter.first { it.erKopi }.ekstraMottaker shouldBe sak.fnr.toString()
+        }
+
+        @Test
         fun `verifiser at utbetaling skjer etter alle lagre-kall`() {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
@@ -922,6 +987,9 @@ private data class ServiceAndMocks(
     val skattDokumentService: SkattDokumentService = mock {},
     val fritekstService: FritekstService = mock {},
     val sakStatistikkService: SakStatistikkService = mock {},
+    val mottakerService: MottakerService = mock {
+        on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
+    },
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
@@ -937,6 +1005,7 @@ private data class ServiceAndMocks(
         satsFactory = satsFactoryTestPåDato(),
         fritekstService = fritekstService,
         sakStatistikkService = sakStatistikkService,
+        mottakerService = mottakerService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

@@ -47,7 +47,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
         statistikkObservers: List<StatistikkEventObserver>,
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         // disse er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
-        lagreDokument: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,
@@ -69,7 +69,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
                 }
             lagreVedtak(vedtak, tx)
             genererOgLagreSkattedokument(vedtak, tx)
-            lagreDokument(dokument, tx)
+            lagreDokumentMedKopi(dokument, tx)
 
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)
