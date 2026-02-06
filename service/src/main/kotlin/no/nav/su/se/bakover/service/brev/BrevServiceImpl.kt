@@ -77,8 +77,6 @@ class BrevServiceImpl(
             is HentDokumenterForIdType.HentDokumenterForRevurdering -> dokumentRepo.hentForRevurdering(
                 hentDokumenterForIdType.id,
             )
-
-            // TODO: Hva blir evt konsekvensene av å ha to dokuementer for et vedtak?
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }

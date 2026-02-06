@@ -35,6 +35,8 @@ class DokumentPostgresRepo(
 
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null and d.er_kopi = false"
+    private val joinDokumentOgDistribusjonQueryOgKopier =
+        "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null"
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext?) {
         val size = dokument.generertDokument.getContent().size
@@ -137,7 +139,7 @@ class DokumentPostgresRepo(
                 (
                     ct.withSession {
                         """
-                $joinDokumentOgDistribusjonQuery and sakId = :id
+                $joinDokumentOgDistribusjonQueryOgKopier and sakId = :id
                         """.trimIndent()
                             .hentListe(mapOf("id" to sakId), it) {
                                 it.toDokumentMedStatus()

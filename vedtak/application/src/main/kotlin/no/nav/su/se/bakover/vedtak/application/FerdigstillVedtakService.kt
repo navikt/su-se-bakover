@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
@@ -192,18 +191,15 @@ class FerdigstillVedtakServiceImpl(
                 distribueringsadresse = null,
             )
 
-            // TODO: noe annet fra behandlingstypen som skal støttes?
-            // TODO: hentingen blir riktig her men lagringen av dokumentet kun på vedtakid gjør konsistenssjekk vanskelig i mottaker da revurderingen ikke er koblet opp mot vedtak før iverksatt
+            // foreløpig bare revurdering som bruker denne? kanskej klage og tk og? søknad har egen
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
                     mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
                 }
-                is IverksattSøknadsbehandling.Innvilget -> {
-                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
-                }
                 else -> null
             }
             if (mottaker != null) {
+                log.info("Fant mottaker: $mottaker")
                 when (utenMetadata) {
                     is Dokument.UtenMetadata.Vedtak -> {
                         val (identifikator, adresse) = when (mottaker) {
@@ -223,10 +219,13 @@ class FerdigstillVedtakServiceImpl(
                             mottakerIdentifikator = identifikator,
                             navnMottaker = mottaker.navn,
                         )
-
+                        log.info("Lagret dokument med metadata for ekstra mottaker: $dokumentMedMetadataForRepresentant")
                         brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)
                     }
-                    else -> Unit
+                    else -> {
+                        log.info("dokument var av feil type: ${utenMetadata.javaClass.simpleName}")
+                        Unit
+                    }
                 }
             }
             brevService.lagreDokument(dokumentMedMetadata, transactionContext)
