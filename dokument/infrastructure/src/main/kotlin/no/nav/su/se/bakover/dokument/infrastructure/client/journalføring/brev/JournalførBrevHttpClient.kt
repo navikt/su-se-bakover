@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev
 
 import arrow.core.Either
+import dokument.domain.Dokument
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottaker
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Avsender
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottakerFnr
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottakerOrgnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Fagsak
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalPostType
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
@@ -15,9 +19,32 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Journa
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 
+internal object MottakerPolicy {
+    fun bestemMottaker(
+        dokument: Dokument,
+        søkerFnr: Fnr,
+    ): Avsender =
+        when (dokument) {
+            is Dokument.MedMetadata.Vedtak ->
+                dokument.ekstraMottaker
+                    ?.let { ident ->
+                        if (Fnr.tryCreate(ident) != null) {
+                            AvsenderMottakerFnr(ident, dokument.navnEkstraMottaker)
+                        } else {
+                            AvsenderMottakerOrgnr(ident, dokument.navnEkstraMottaker)
+                        }
+                    }
+                    ?: AvsenderMottakerFnr(søkerFnr.toString(), dokument.navnEkstraMottaker)
+
+            else ->
+                AvsenderMottakerFnr(søkerFnr.toString())
+        }
+}
+
 internal class JournalførBrevHttpClient(private val client: JournalførHttpClient) : JournalførBrevClient {
     override fun journalførBrev(command: JournalførBrevCommand): Either<ClientError, JournalpostId> {
         val dokument = command.dokument
+        val avsender = MottakerPolicy.bestemMottaker(dokument, command.fnr)
         return client.opprettJournalpost(
             JournalførJsonRequest(
                 tittel = dokument.tittel,
@@ -25,8 +52,8 @@ internal class JournalførBrevHttpClient(private val client: JournalførHttpClie
                 kanal = null,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.ÅLESUND.enhet,
-                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()),
-                bruker = command.fnr.tilBruker(),
+                avsenderMottaker = avsender, // denne skal være verge eller søker men vi har ingen støtte for dette
+                bruker = command.fnr.tilBruker(), // Denne må være søker fnr - men også for orgnr
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(
                     tittel = dokument.tittel,

@@ -117,6 +117,7 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    // TODO: denne må håndtere slik at kopien ikke blir tatt med kanskje?
     internal fun hentVedtakForIdOgSession(
         vedtakId: UUID,
         session: Session,
@@ -128,10 +129,12 @@ internal class VedtakPostgresRepo(
                   dd.brevbestillingid,
                   dd.journalpostid
                 from vedtak v
-                left join dokument d on v.id = d.vedtakid
+                left join dokument d
+                  on v.id = d.vedtakid
+                 and d.duplikatAv is null
+                 and d.er_kopi = false
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 where v.id = :vedtakId
-                and d.duplikatAv is null
                 order by v.opprettet
         """.trimIndent()
             .hent(mapOf("vedtakId" to vedtakId), session) {
@@ -148,17 +151,43 @@ internal class VedtakPostgresRepo(
                   dd.brevbestillingid,
                   dd.journalpostid
                 from vedtak v
-                left join dokument d on v.id = d.vedtakid
+                left join dokument d
+                  on v.id = d.vedtakid
+                 and d.duplikatAv is null
+                 and d.er_kopi = false
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 join behandling_vedtak bv on bv.vedtakid = v.id
                 join revurdering r on r.id = bv.revurderingId
                 where r.id = :revurderingId
-                and d.duplikatAv is null
                 order by v.opprettet
             """.trimIndent()
                 .hent(mapOf("revurderingId" to revurderingId.value), session) {
                     it.toVedtak(session)
                 }
+        }
+    }
+
+    override fun finnesVedtakForRevurderingId(revurderingId: RevurderingId): Boolean {
+        return sessionFactory.withSession { session ->
+            """
+                select 1
+                from behandling_vedtak
+                where revurderingId = :revurderingId
+                limit 1
+            """.trimIndent()
+                .hent(mapOf("revurderingId" to revurderingId.value), session) { true } ?: false
+        }
+    }
+
+    override fun finnesVedtakForSøknadsbehandlingId(søknadsbehandlingId: SøknadsbehandlingId): Boolean {
+        return sessionFactory.withSession { session ->
+            """
+                select 1
+                from behandling_vedtak
+                where søknadsbehandlingId = :soknadsbehandlingId
+                limit 1
+            """.trimIndent()
+                .hent(mapOf("soknadsbehandlingId" to søknadsbehandlingId.value), session) { true } ?: false
         }
     }
 
@@ -171,10 +200,12 @@ internal class VedtakPostgresRepo(
               dd.brevbestillingid,
               dd.journalpostid
             from vedtak v
-            left join dokument d on v.id = d.vedtakid
+            left join dokument d
+              on v.id = d.vedtakid
+             and d.duplikatAv is null
+             and d.er_kopi = false
             left join dokument_distribusjon dd on d.id = dd.dokumentid
             where fraogmed <= :maaned and tilogmed >= :maaned
-            and d.duplikatAv is null
             order by v.opprettet
             """.trimIndent()
                 .hentListe(mapOf("maaned" to måned.fraOgMed), session) {
@@ -191,10 +222,12 @@ internal class VedtakPostgresRepo(
               dd.brevbestillingid,
               dd.journalpostid
             from vedtak v
-            left join dokument d on v.id = d.vedtakid
+            left join dokument d
+              on v.id = d.vedtakid
+             and d.duplikatAv is null
+             and d.er_kopi = false
             left join dokument_distribusjon dd on d.id = dd.dokumentid
             where v.sakId = :sakId
-            and d.duplikatAv is null
             order by v.opprettet
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
@@ -251,10 +284,12 @@ internal class VedtakPostgresRepo(
                   dd.brevbestillingid,
                   dd.journalpostid
                 from vedtak v
-                left join dokument d on v.id = d.vedtakid
+                left join dokument d
+                  on v.id = d.vedtakid
+                 and d.duplikatAv is null
+                 and d.er_kopi = false
                 left join dokument_distribusjon dd on d.id = dd.dokumentid
                 where v.utbetalingId = :utbetalingId
-                and d.duplikatAv is null
                 order by v.opprettet
                 """.trimIndent()
                     .hent(mapOf("utbetalingId" to utbetalingId), session) {
@@ -275,7 +310,7 @@ internal class VedtakPostgresRepo(
                 from dokument d
                 inner join dokument_distribusjon dd
                   on d.id = dd.dokumentid
-                where d.vedtakid = :vedtakId and d.duplikatAv is null
+                where d.vedtakid = :vedtakId and d.duplikatAv is null and d.er_kopi = false
                 """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
                     JournalpostId(it.string("journalpostid"))
                 }

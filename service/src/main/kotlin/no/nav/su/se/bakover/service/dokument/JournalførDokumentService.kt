@@ -41,6 +41,7 @@ class JournalførDokumentService(
         val sakInfo = sakService.hentSakInfo(dokumentdistribusjon.dokument.metadata.sakId).getOrElse {
             throw IllegalStateException("Fant ikke sak. Her burde vi egentlig sak finnes. sakId ${dokumentdistribusjon.dokument.metadata.sakId}")
         }
+
         val journalførtDokument = dokumentdistribusjon.journalfør {
             journalfør(
                 command = JournalførBrevCommand(

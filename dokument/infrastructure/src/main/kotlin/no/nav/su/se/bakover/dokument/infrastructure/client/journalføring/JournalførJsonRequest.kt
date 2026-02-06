@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -12,7 +13,7 @@ data class JournalførJsonRequest(
     val kanal: String?,
     val behandlingstema: String,
     val journalfoerendeEnhet: String,
-    val avsenderMottaker: AvsenderMottaker?,
+    val avsenderMottaker: Avsender?,
     val bruker: Bruker,
     val sak: Fagsak,
     val dokumenter: List<JournalpostDokument>,
@@ -50,10 +51,21 @@ data class JournalpostDokument(
     }
 }
 
-data class AvsenderMottaker(
+sealed interface Avsender
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class AvsenderMottakerFnr(
     val id: String,
+    val navn: String? = null,
     val idType: String = "FNR",
-)
+) : Avsender
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class AvsenderMottakerOrgnr(
+    val id: String,
+    val navn: String? = null,
+    val idType: String = "ORGNR",
+) : Avsender
 
 data class Bruker(
     val id: String,

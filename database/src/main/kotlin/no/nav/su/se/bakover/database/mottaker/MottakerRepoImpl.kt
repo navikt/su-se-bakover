@@ -7,10 +7,13 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import java.util.UUID
@@ -25,9 +28,10 @@ data class MottakerRepoImpl(
      */
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
+        transactionContext: TransactionContext?,
     ): MottakerDomain? =
         dbMetrics.timeQuery("hentMottaker") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(transactionContext) { session ->
                 """
                 select *
                 from mottaker
@@ -46,29 +50,40 @@ data class MottakerRepoImpl(
     override fun lagreMottaker(mottaker: MottakerDomain) {
         dbMetrics.timeQuery("lagreMottaker") {
             sessionFactory.withSession { session ->
+                val (fnr, orgnr) = when (mottaker) {
+                    is MottakerFnrDomain ->
+                        mottaker.foedselsnummer.toString() to null
+
+                    is MottakerOrgnummerDomain ->
+                        null to mottaker.orgnummer
+                }
+
                 """
-                insert into mottaker (
-                    id,
-                    navn,
-                    foedselsnummer,
-                    adresse,
-                    sakid,
-                    referanse_type,
-                    referanse_id
-                ) values (
-                    :id,
-                    :navn,
-                    :foedselsnummer,
-                    :adresse::jsonb,
-                    :sakid,
-                    :referanse_type,
-                    :referanse_id
-                )
+            insert into mottaker (
+                id,
+                navn,
+                foedselsnummer,
+                orgnummer,
+                adresse,
+                sakid,
+                referanse_type,
+                referanse_id
+            ) values (
+                :id,
+                :navn,
+                :foedselsnummer,
+                :orgnummer,
+                :adresse::jsonb,
+                :sakid,
+                :referanse_type,
+                :referanse_id
+            )
                 """.trimIndent().insert(
                     mapOf(
                         "id" to mottaker.id,
                         "navn" to mottaker.navn,
-                        "foedselsnummer" to mottaker.foedselsnummer.toString(), // important
+                        "foedselsnummer" to fnr,
+                        "orgnummer" to orgnr,
                         "adresse" to serialize(mottaker.adresse),
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
@@ -83,20 +98,30 @@ data class MottakerRepoImpl(
     override fun oppdaterMottaker(mottaker: MottakerDomain) {
         dbMetrics.timeQuery("oppdaterMottaker") {
             sessionFactory.withSession { session ->
+                val (fnr, orgnr) = when (mottaker) {
+                    is MottakerFnrDomain ->
+                        mottaker.foedselsnummer.toString() to null
+
+                    is MottakerOrgnummerDomain ->
+                        null to mottaker.orgnummer
+                }
+
                 """
-                update mottaker
-                set navn = :navn,
-                    foedselsnummer = :foedselsnummer,
-                    adresse = :adresse::jsonb,
-                    sakid = :sakid,
-                    referanse_type = :referanse_type,
-                    referanse_id = :referanse_id
-                where id = :id
+            update mottaker
+            set navn = :navn,
+                foedselsnummer = :foedselsnummer,
+                orgnummer = :orgnummer,
+                adresse = :adresse::jsonb,
+                sakid = :sakid,
+                referanse_type = :referanse_type,
+                referanse_id = :referanse_id
+            where id = :id
                 """.trimIndent().oppdatering(
                     mapOf(
                         "id" to mottaker.id,
                         "navn" to mottaker.navn,
-                        "foedselsnummer" to mottaker.foedselsnummer.toString(),
+                        "foedselsnummer" to fnr,
+                        "orgnummer" to orgnr,
                         "adresse" to serialize(mottaker.adresse),
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
@@ -124,14 +149,34 @@ data class MottakerRepoImpl(
         }
     }
 
-    private fun rowToMottaker(row: Row): MottakerDomain =
-        MottakerDomain(
-            id = row.uuid("id"),
-            navn = row.string("navn"),
-            foedselsnummer = Fnr(row.string("foedselsnummer")),
-            adresse = deserialize(row.string("adresse")),
-            sakId = row.uuid("sakid"),
-            referanseId = row.uuid("referanse_id"),
-            referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
-        )
+    private fun rowToMottaker(row: Row): MottakerDomain {
+        val fnr = row.stringOrNull("foedselsnummer")
+        val orgnr = row.stringOrNull("orgnummer")
+
+        return when {
+            fnr != null -> MottakerFnrDomain(
+                id = row.uuid("id"),
+                navn = row.string("navn"),
+                foedselsnummer = Fnr(fnr),
+                adresse = deserialize(row.string("adresse")),
+                sakId = row.uuid("sakid"),
+                referanseId = row.uuid("referanse_id"),
+                referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
+            )
+
+            orgnr != null -> MottakerOrgnummerDomain(
+                id = row.uuid("id"),
+                navn = row.string("navn"),
+                orgnummer = orgnr,
+                adresse = deserialize(row.string("adresse")),
+                sakId = row.uuid("sakid"),
+                referanseId = row.uuid("referanse_id"),
+                referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
+            )
+
+            else -> error(
+                "Ugyldig mottaker i DB: ${row.uuid("id")} mangler både foedselsnummer og orgnummer",
+            )
+        }
+    }
 }

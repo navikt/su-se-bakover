@@ -13,8 +13,15 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtakMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.brev.lagDokumentKommando
@@ -52,6 +59,7 @@ class FerdigstillVedtakServiceImpl(
     private val clock: Clock,
     private val satsFactory: SatsFactory,
     private val fritekstService: FritekstService,
+    private val mottakerService: MottakerService,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -152,6 +160,7 @@ class FerdigstillVedtakServiceImpl(
         vedtak: VedtakSomKanRevurderes,
         transactionContext: TransactionContext?,
     ): Either<KunneIkkeFerdigstilleVedtak, Dokument.MedMetadata> {
+        // TODO: Det gir ingen mening å kaste exceptions her da betaling allerede er oversendt, alt dette må valideres på forhånd ved iverksett og dermed låses
         val fritekst = fritekstService.hentFritekst(
             referanseId = vedtak.behandling.id.value,
             type = FritekstType.VEDTAKSBREV_REVURDERING,
@@ -162,38 +171,64 @@ class FerdigstillVedtakServiceImpl(
         if (fritekst.isEmpty()) {
             throw IllegalStateException("Mangler fritekst for behandling kan ikke ferdigstille vedtak")
         }
-        // TODO: sjekk om flere mottakere her og isåfall må det sendes med slik at vi får lagret to journalposter og sendt ut to brev ref dokument_distrubson
-        // Hvis vedtak?
-        // Denne er dessverre så overengineered at det krever litt jobb å få til ordentlig støtte av verge, fullmektig/advokat
-        // TODO2: skal brevservice være ansvarlig for å hensynta flere mottakere?
-        /**
-         *  Ser egentlig for meg at vi prøver her å lage en service for lage flere brev aka dokument + dokument_distriubsjon
-         *  for en id som er generell og som hensyntar adresse
-         *
-         */
+
         return brevService.lagDokumentPdf(
-            vedtak.lagDokumentKommando( // Denne plukker ut fnr på behandlingen e.l.
+            vedtak.lagDokumentKommando(
                 clock,
                 satsFactory,
                 fritekst = fritekst,
             ),
         ).mapLeft {
             KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev(it)
-        }.map {
-            val dokumentMedMetadata: Dokument.MedMetadata = it.leggTilMetadata(
+        }.map { utenMetadata ->
+            val dokumentMedMetadata: Dokument.MedMetadata = utenMetadata.leggTilMetadata(
                 metadata = Dokument.Metadata(
                     sakId = vedtak.behandling.sakId,
                     søknadId = null,
                     vedtakId = vedtak.id,
                     revurderingId = null,
                 ),
-                // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+                // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
                 distribueringsadresse = null,
             )
-            // mottakerService feks
-            // dokument tabellen trenger bare ett innsalg men må se hvor tight den koblingen er først
-            // Dette må gjøre en gang per mottaker da dokument_distribusjon har Foreign key: dokumentid → dokument(id) så et dokument kan ha maks en dokument_distrubson
-            // TODO: her må det bli en visningsfiks i frontend og gjøre om til liste somewhere for vedtaksbrev henting i sak
+
+            // TODO: noe annet fra behandlingstypen som skal støttes?
+            // TODO: hentingen blir riktig her men lagringen av dokumentet kun på vedtakid gjør konsistenssjekk vanskelig i mottaker da revurderingen ikke er koblet opp mot vedtak før iverksatt
+            val mottaker = when (vedtak.behandling) {
+                is IverksattRevurdering -> {
+                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
+                }
+                is IverksattSøknadsbehandling.Innvilget -> {
+                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.SØKNAD, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
+                }
+                else -> null
+            }
+            if (mottaker != null) {
+                when (utenMetadata) {
+                    is Dokument.UtenMetadata.Vedtak -> {
+                        val (identifikator, adresse) = when (mottaker) {
+                            is MottakerFnrDomain -> mottaker.foedselsnummer.toString() to mottaker.adresse
+                            is MottakerOrgnummerDomain -> mottaker.orgnummer to mottaker.adresse
+                        }
+                        val kopiUtenMetadata = utenMetadata.copy(id = UUID.randomUUID())
+                        val dokumentMedMetadataForRepresentant: Dokument.MedMetadata = kopiUtenMetadata.leggTilMetadataOgMottakerForKopiBrev(
+                            metadata = Dokument.Metadata(
+                                sakId = vedtak.behandling.sakId,
+                                søknadId = null,
+                                vedtakId = vedtak.id,
+                                revurderingId = null,
+                            ),
+                            // SOS: Vi bruker dokdist sin adresse for fnr på journalposten
+                            distribueringsadresse = adresse,
+                            mottakerIdentifikator = identifikator,
+                            navnMottaker = mottaker.navn,
+                        )
+
+                        brevService.lagreDokument(dokumentMedMetadataForRepresentant, transactionContext)
+                    }
+                    else -> Unit
+                }
+            }
             brevService.lagreDokument(dokumentMedMetadata, transactionContext)
 
             dokumentMedMetadata

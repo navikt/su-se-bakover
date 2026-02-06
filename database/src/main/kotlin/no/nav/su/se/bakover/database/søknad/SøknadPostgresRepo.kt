@@ -106,10 +106,12 @@ internal class SøknadPostgresRepo(
                            dd.brevbestillingid,
                            dd.journalpostid as journalpostidDokument
                     from søknad s
-                             left join dokument d on s.id = d.søknadid
+                             left join dokument d
+                               on s.id = d.søknadid
+                              and d.duplikatAv is null
+                              and d.er_kopi = false
                              left join dokument_distribusjon dd on d.id = dd.dokumentid
                     where s.journalpostId is null
-                    and d.duplikatAv is null
                 """.trimIndent().hentListe(
                     session = session,
                 ) {
@@ -130,11 +132,13 @@ internal class SøknadPostgresRepo(
                            dd.brevbestillingid,
                            dd.journalpostid as journalpostidDokument
                     from søknad s
-                             left join dokument d on s.id = d.søknadid
+                             left join dokument d
+                               on s.id = d.søknadid
+                              and d.duplikatAv is null
+                              and d.er_kopi = false
                              left join dokument_distribusjon dd on d.id = dd.dokumentid
                     where s.journalpostId is not null 
                     and oppgaveId is null
-                    and d.duplikatAv is null
                 """.trimIndent().hentListe(
                     session = session,
                 ) {

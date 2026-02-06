@@ -37,6 +37,19 @@ sealed interface Dokument {
             ): MedMetadata.Vedtak {
                 return MedMetadata.Vedtak(this, metadata, distribueringsadresse)
             }
+            fun leggTilMetadataOgMottakerForKopiBrev(
+                metadata: Metadata,
+                distribueringsadresse: Distribueringsadresse?,
+                mottakerIdentifikator: String,
+                navnMottaker: String,
+            ): MedMetadata.Vedtak {
+                return MedMetadata.Vedtak(this, metadata, distribueringsadresse).copy(
+                    tittel = this.tittel + "(KOPI)",
+                    erKopi = true,
+                    ekstraMottaker = mottakerIdentifikator,
+                    navnEkstraMottaker = navnMottaker,
+                )
+            }
         }
 
         sealed interface Informasjon : UtenMetadata {
@@ -102,6 +115,9 @@ sealed interface Dokument {
             override val generertDokumentJson: String,
             override val distribueringsadresse: Distribueringsadresse?,
             override val metadata: Metadata,
+            val erKopi: Boolean = false,
+            val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
+            val navnEkstraMottaker: String? = null,
         ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 

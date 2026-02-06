@@ -32,6 +32,7 @@ class BrevServiceImpl(
     private val clock: Clock,
 ) : BrevService {
 
+    // basert på kommandotypen så avjøres typen av Metadata
     override fun lagDokumentPdf(
         command: GenererDokumentCommand,
         id: UUID,
@@ -77,6 +78,7 @@ class BrevServiceImpl(
                 hentDokumenterForIdType.id,
             )
 
+            // TODO: Hva blir evt konsekvensene av å ha to dokuementer for et vedtak?
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }

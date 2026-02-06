@@ -4,6 +4,8 @@ package dokument.domain.distribuering
  * Matcher dokdist sin distribuering av brev.
  * Dette flyter rett igjennom domenet vårt fra frontend til dokdist.
  * Tanken er å bruke dokdist sin validering i dette tilfellet.
+ *
+ * MERK at det er dette som bestemmer hvor brevet skal ikke selve headeren med navn i generert pdf. Dette blir stemplet på brevet fysisk.
  */
 data class Distribueringsadresse(
     val adresselinje1: String?,

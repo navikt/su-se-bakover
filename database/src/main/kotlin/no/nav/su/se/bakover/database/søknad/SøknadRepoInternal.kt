@@ -25,10 +25,12 @@ internal data object SøknadRepoInternal {
                dd.brevbestillingid,
                dd.journalpostid as journalpostidDokument
         from søknad s
-                 left join dokument d on s.id = d.søknadid
+                 left join dokument d
+                   on s.id = d.søknadid
+                  and d.duplikatAv is null
+                  and d.er_kopi = false
                  left join dokument_distribusjon dd on d.id = dd.dokumentid
         where s.id = :id
-          and d.duplikatAv is null
         order by s.opprettet
     """.trimIndent()
         .hent(mapOf("id" to søknadId), session) {
@@ -41,10 +43,12 @@ internal data object SøknadRepoInternal {
                dd.brevbestillingid,
                dd.journalpostid as journalpostidDokument
         from søknad s
-                 left join dokument d on s.id = d.søknadid
+                 left join dokument d
+                   on s.id = d.søknadid
+                  and d.duplikatAv is null
+                  and d.er_kopi = false
                  left join dokument_distribusjon dd on d.id = dd.dokumentid
         where s.sakId = :sakId
-          and d.duplikatAv is null
         order by s.opprettet
     """.trimIndent()
         .hentListe(mapOf("sakId" to sakId), session) {

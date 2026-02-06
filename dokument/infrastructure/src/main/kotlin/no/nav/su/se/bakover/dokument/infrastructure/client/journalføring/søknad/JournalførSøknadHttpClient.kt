@@ -6,7 +6,7 @@ import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottaker
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.AvsenderMottakerFnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Fagsak
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalPostType
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
@@ -32,7 +32,7 @@ internal class JournalførSøknadHttpClient(private val client: JournalførHttpC
                 kanal = Kanal.INNSENDT_NAV_ANSATT.value,
                 behandlingstema = command.sakstype.tilBehandlingstema(),
                 journalfoerendeEnhet = JournalførendeEnhet.AUTOMATISK.enhet,
-                avsenderMottaker = AvsenderMottaker(id = command.fnr.toString()),
+                avsenderMottaker = AvsenderMottakerFnr(id = command.fnr.toString()),
                 bruker = command.fnr.tilBruker(),
                 sak = Fagsak(command.saksnummer.nummer.toString()),
                 dokumenter = JournalpostDokument.lagDokumenterForJournalpostForSak(
