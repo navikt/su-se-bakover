@@ -6,10 +6,12 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.regulering.json.EksternSupplementReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
@@ -87,4 +89,13 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
         is IverksattRegulering, is OpprettetRegulering -> null
     },
     sakstype = sakstype.toJson(),
+)
+
+internal data class ManuellReguleringVisningJson(
+    val gjeldendeVedtaksdata: GrunnlagsdataOgVilkårsvurderingerJson,
+    val regulering: ReguleringJson,
+)
+internal fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
+    gjeldendeVedtaksdata = gjeldendeVedtaksdata.toJson(formuegrenserFactory),
+    regulering = regulering.toJson(formuegrenserFactory),
 )
