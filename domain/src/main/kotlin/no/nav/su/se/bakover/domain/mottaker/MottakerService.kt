@@ -295,7 +295,7 @@ data class OppdaterMottaker(
             if (foedselsnummer == null) {
                 MottakerOrgnummerDomain(
                     navn = navn,
-                    orgnummer = orgnummer,
+                    orgnummer = orgnummer!!,
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
@@ -304,7 +304,7 @@ data class OppdaterMottaker(
             } else {
                 MottakerFnrDomain(
                     navn = navn,
-                    foedselsnummer = Fnr.tryCreate(foedselsnummer),
+                    foedselsnummer = Fnr.tryCreate(foedselsnummer)!!,
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
@@ -339,7 +339,7 @@ data class LagreMottaker(
             if (foedselsnummer == null) {
                 MottakerOrgnummerDomain(
                     navn = navn,
-                    orgnummer = orgnummer,
+                    orgnummer = orgnummer!!,
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
@@ -348,7 +348,7 @@ data class LagreMottaker(
             } else {
                 MottakerFnrDomain(
                     navn = navn,
-                    foedselsnummer = Fnr.tryCreate(foedselsnummer),
+                    foedselsnummer = Fnr.tryCreate(foedselsnummer)!!,
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
@@ -382,7 +382,7 @@ data class MottakerOrgnummerDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
-    val orgnummer: String?,
+    val orgnummer: String,
 ) : MottakerDomain
 
 data class MottakerFnrDomain(
@@ -392,7 +392,7 @@ data class MottakerFnrDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
-    val foedselsnummer: Fnr?,
+    val foedselsnummer: Fnr,
 ) : MottakerDomain
 
 enum class ReferanseTypeMottaker {

@@ -220,7 +220,7 @@ class FerdigstillVedtakServiceImpl(
                             ),
                             // SOS: Vi bruker dokdist sin adresse for fnr på journalposten
                             distribueringsadresse = adresse,
-                            mottakerIdentifikator = identifikator ?: throw IllegalStateException("Mottaker har ingen identifikator"),
+                            mottakerIdentifikator = identifikator,
                             navnMottaker = mottaker.navn,
                         )
 
