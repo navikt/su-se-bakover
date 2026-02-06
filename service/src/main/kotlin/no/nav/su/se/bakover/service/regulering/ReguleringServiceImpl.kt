@@ -44,7 +44,6 @@ class ReguleringServiceImpl(
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
         val beregnetRegulering = beregnRegulering(
             regulering = regulering,
-            satsFactory = satsFactory,
             clock = clock,
         ).getOrElse { return it.left() }
 
@@ -62,9 +61,8 @@ class ReguleringServiceImpl(
         return iverksattRegulering.right()
     }
 
-    private fun beregnRegulering(
+    fun beregnRegulering(
         regulering: OpprettetRegulering,
-        satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, OpprettetRegulering> =
         regulering.beregn(
@@ -79,7 +77,7 @@ class ReguleringServiceImpl(
             KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
         }
 
-    private fun simulerReguleringOgUtbetaling(
+    fun simulerReguleringOgUtbetaling(
         regulering: OpprettetRegulering,
         sak: Sak,
     ) = regulering.simuler { beregning, uføregrunnlag ->

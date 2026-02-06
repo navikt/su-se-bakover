@@ -49,8 +49,10 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
+import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
+import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
@@ -62,6 +64,7 @@ import java.util.UUID
 internal fun Route.reguler(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
+    formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
 ) {
@@ -69,15 +72,38 @@ internal fun Route.reguler(
         get {
             authorize(Brukerrolle.Saksbehandler) {
                 call.withReguleringId { id ->
-                    reguleringManuellService.hentReguleringsgrunnlag(
+                    reguleringManuellService.hentRegulering(
                         reguleringId = ReguleringId(id),
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
                         },
                     )
+                }
+            }
+        }
+        post("beregn") {
+            authorize(Brukerrolle.Saksbehandler) {
+                data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
+                call.withReguleringId { id ->
+                    call.withBody<Body> { body ->
+                        sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
+                        reguleringManuellService.beregnReguleringManuelt(
+                            reguleringId = ReguleringId(id),
+                            uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                            fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
+                            },
+
+                        )
+                    }
                 }
             }
         }
@@ -415,6 +441,12 @@ val fantIkkeRegulering = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke regulering",
     "fant_ikke_regulering",
 )
+
+val reguleringFeilTilstand = HttpStatusCode.BadRequest.errorJson(
+    "Regulering er ikke i riktig tilstand for manuell behandling",
+    "regulering_feil_tilstand",
+)
+
 val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke gjeldende vedtaksdata",
     "fant_ikke_vedtaksdata",
@@ -437,6 +469,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
     )
 
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
+    KunneIkkeRegulereManuelt.FeilTilstand -> reguleringFeilTilstand
     KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.ukjentBeregningFeil
     KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.ukjentSimuleringFeil
     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
