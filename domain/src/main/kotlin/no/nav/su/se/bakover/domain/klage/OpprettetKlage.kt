@@ -106,7 +106,6 @@ data class OpprettetKlage(
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = Klageinstanshendelser.empty(),
-            fritekstTilAvvistVedtaksbrev = null,
             sakstype = sakstype,
         )
     }

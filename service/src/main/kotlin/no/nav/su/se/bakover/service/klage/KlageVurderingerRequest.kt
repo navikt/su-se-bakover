@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 data class KlageVurderingerRequest(
     val klageId: KlageId,
     private val saksbehandler: NavIdentBruker.Saksbehandler,
-    private val fritekstTilBrev: String?, // TODO: Denne burde ligge inne i SkalTilKabal
+    private val fritekst: String?, // TODO: Denne burde ligge inne i SkalTilKabal
     private val omgjør: BehandlesIVedtaksInstansen?,
     private val delvisomgjøring_egen_instans: BehandlesIVedtaksInstansen?,
     private val oppretthold: SkalTilKabal?,
@@ -81,21 +81,18 @@ data class KlageVurderingerRequest(
         }
     }
 
-    fun toDomain(): Either<KunneIkkeVurdereKlage, Domain> {
+    fun toDomain(fritekstTilOversendelsesbrev: String?): Either<KunneIkkeVurdereKlage, Domain> {
         val muligeUtfall = listOf(omgjør, delvisomgjøring_egen_instans, oppretthold, delvisomgjøring_ka)
         val innsendteUtfall = muligeUtfall.count { it != null }
         if (innsendteUtfall > 1) {
             return KunneIkkeVurdereKlage.ForMangeUtfall.left()
         }
-        val fritekstTilBrev = if (oppretthold != null || delvisomgjøring_ka != null) {
-            fritekstTilBrev
-        } else {
-            null
-        }
+        val fritekst = if (oppretthold != null || delvisomgjøring_ka != null) fritekstTilOversendelsesbrev else null
+
         return Domain(
             klageId = klageId,
             vurderinger = VurderingerTilKlage.create(
-                fritekstTilOversendelsesbrev = fritekstTilBrev,
+                fritekstTilOversendelsesbrev = fritekst,
                 vedtaksvurdering = toVedtaksvurdering().getOrElse { return it.left() },
             ),
             saksbehandler = saksbehandler,

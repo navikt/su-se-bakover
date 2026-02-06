@@ -20,10 +20,6 @@ data class IverksattAvvistKlage(
 
     override fun erÅpen() = false
 
-    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return fritekstTilVedtaksbrev.right()
-    }
-
     /**
      * Vi har ikke lagt til noen valgmulighet for ikke å sende brev ved avvisning av klage.
      */
@@ -31,14 +27,14 @@ data class IverksattAvvistKlage(
         return true
     }
 
-    fun lagAvvistVedtaksbrevKommando(): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+    fun lagAvvistVedtaksbrevKommando(fritekst: String): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         return KlageDokumentCommand.Avvist(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
             sakstype = this.sakstype,
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
-            fritekst = this.fritekstTilVedtaksbrev,
+            fritekst = fritekst,
         ).right()
     }
 
@@ -53,6 +49,7 @@ data class IverksattAvvistKlage(
 sealed interface KunneIkkeIverksetteAvvistKlage {
     data object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage
+    data object FritekstMangler : KunneIkkeIverksetteAvvistKlage
     data object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage {
         val til = IverksattAvvistKlage::class

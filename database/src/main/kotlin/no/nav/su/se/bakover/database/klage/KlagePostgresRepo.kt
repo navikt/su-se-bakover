@@ -174,7 +174,6 @@ internal class KlagePostgresRepo(
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "fritekstTilBrev" to klage.fritekstTilBrev,
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen.svar.tilDatabaseType(),
                     "innenforFristen_begrunnelse" to klage.vilkårsvurderinger.innenforFristen.begrunnelse,
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket.svar,
@@ -206,7 +205,6 @@ internal class KlagePostgresRepo(
                 "id" to klage.id.value,
                 "type" to klage.databasetype(),
                 "attestering" to klage.attesteringer.toDatabaseJson(),
-                "fritekst" to klage.fritekstTilVedtaksbrev,
                 "saksbehandler" to klage.saksbehandler,
             ),
             session,
@@ -502,7 +500,6 @@ internal class KlagePostgresRepo(
                 vilkårsvurderinger = formkravUtfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
                 sakstype = sakstype,
             )
         }
@@ -510,8 +507,6 @@ internal class KlagePostgresRepo(
         fun avvistKlage() = AvvistKlage(
             forrigeSteg = bekreftetAvvistVilkårsvurdertKlage(),
             saksbehandler = saksbehandler,
-            fritekstTilVedtaksbrev = fritekstTilBrev
-                ?: throw IllegalStateException("Fritekst må være utfylt for en avvist klage som er til attestering. id: $id"),
             sakstype = sakstype,
         )
 
@@ -611,7 +606,6 @@ internal class KlagePostgresRepo(
                     vilkårsvurderinger = formkravUtfylt,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    fritekstTilVedtaksbrev = fritekstTilBrev,
                     sakstype = sakstype,
                 )
             }

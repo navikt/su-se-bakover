@@ -16,7 +16,6 @@ import kotlin.reflect.KClass
 
 interface AvvistKlageFelter : VilkårsvurdertKlageFelter {
     override val vilkårsvurderinger: FormkravTilKlage.Utfylt
-    val fritekstTilVedtaksbrev: String
 }
 
 /**
@@ -30,7 +29,6 @@ interface AvvistKlageFelter : VilkårsvurdertKlageFelter {
 data class AvvistKlage(
     private val forrigeSteg: VilkårsvurdertKlage.Bekreftet.Avvist,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-    override val fritekstTilVedtaksbrev: String,
     override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
     override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
     override val sakstype: Sakstype,
@@ -47,8 +45,9 @@ data class AvvistKlage(
     override fun lagBrevRequest(
         utførtAv: NavIdentBruker,
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        fritekst: String,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
-        return lagAvvistVedtaksbrevKommando(attestant = null)
+        return lagAvvistVedtaksbrevKommando(attestant = null, fritekst = fritekst)
     }
 
     override fun erÅpen() = true
@@ -68,7 +67,6 @@ data class AvvistKlage(
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
-            fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
             sakstype = sakstype,
         ).right()
     }
@@ -92,7 +90,6 @@ data class AvvistKlage(
                 datoKlageMottatt = datoKlageMottatt,
                 vurderinger = null,
                 klageinstanshendelser = Klageinstanshendelser.empty(),
-                fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                 sakstype = sakstype,
             )
 
@@ -113,10 +110,6 @@ data class AvvistKlage(
         }.right()
     }
 
-    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return fritekstTilVedtaksbrev.right()
-    }
-
     override fun leggTilFritekstTilAvvistVedtaksbrev(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekstTilAvvistVedtaksbrev: String,
@@ -124,7 +117,6 @@ data class AvvistKlage(
         return AvvistKlage(
             forrigeSteg = forrigeSteg,
             saksbehandler = saksbehandler,
-            fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
             sakstype = sakstype,
         )
     }

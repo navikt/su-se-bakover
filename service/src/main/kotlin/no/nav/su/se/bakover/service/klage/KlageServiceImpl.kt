@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
@@ -78,6 +80,7 @@ class KlageServiceImpl(
     private val queryJournalpostClient: QueryJournalpostClient,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val sakStatistikkService: SakStatistikkService,
+    private val fritekstService: FritekstService,
     val clock: Clock,
 ) : KlageService {
 
@@ -182,7 +185,17 @@ class KlageServiceImpl(
     }
 
     override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
-        return request.toDomain().flatMap { requestAsDomain ->
+        val fritekst: String? =
+            fritekstService.hentFritekst(
+                referanseId = request.klageId.value,
+                type = FritekstType.VEDTAKSBREV_KLAGE,
+            ).fold(
+                ifLeft = { null },
+                ifRight = { it.fritekst },
+            )
+        return request.toDomain(
+            fritekst,
+        ).flatMap { requestAsDomain ->
             (
                 klageRepo.hentKlage(requestAsDomain.klageId)
                     ?.right()
@@ -328,6 +341,11 @@ class KlageServiceImpl(
                 throw java.lang.IllegalStateException("Kunne ikke generere brevutkast for sak. Fant ikke sak med id $sakId og klageId $klageId")
             }
 
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = klageId.value,
+            type = FritekstType.VEDTAKSBREV_KLAGE,
+        ).map { it.fritekst } getOrElse { "" }
+
         val klage = (
             sak.hentKlage(klageId)
                 ?: run {
@@ -345,6 +363,7 @@ class KlageServiceImpl(
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
             hentVedtaksbrevDato = { hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId) },
+            fritekst = fritekst,
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
@@ -411,7 +430,11 @@ class KlageServiceImpl(
         }
 
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
-        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando().getOrElse {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = klage.id.value,
+            type = FritekstType.VEDTAKSBREV_KLAGE,
+        ).map { it.fritekst }.getOrElse { return KunneIkkeIverksetteAvvistKlage.FritekstMangler.left() }
+        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando(fritekst).getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()
         }.let { command ->
             brevService.lagDokumentPdf(command = command).getOrElse {
@@ -458,9 +481,11 @@ class KlageServiceImpl(
                 log.error("Kunne ikke generere brevutkast for sak. Fant ikke klage med id $klageId på sak $sakId")
                 return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
             }
-        (klage as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
-            KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(fra = klage::class),
-        ).left()
+        if (klage !is KanGenerereBrevutkast) {
+            return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+                feil = KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class),
+            ).left()
+        }
         val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
             KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class),
         ).left()
@@ -470,9 +495,14 @@ class KlageServiceImpl(
                 return KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato)
                     .left()
             }
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = klage.id.value,
+            type = FritekstType.VEDTAKSBREV_KLAGE,
+        ).map { it.fritekst }.getOrElse { "" }
         return genererBrevutkastForKlage(
             klageId = klageId,
             ident = ident,
+            fritekst = fritekst,
             hentKlage = { klage },
             hentVedtaksbrevDato = { vedtaksbrevdato },
             genererPdf = {

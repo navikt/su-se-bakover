@@ -278,6 +278,7 @@ data object ServiceBuilder {
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             sakStatistikkService = sakStatistikkService,
+            fritekstService = fritekstService,
         ).apply { addObserver(statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
