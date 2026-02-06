@@ -294,6 +294,7 @@ data class OppdaterMottaker(
         return if (erGyldig.isEmpty()) {
             if (foedselsnummer == null) {
                 MottakerOrgnummerDomain(
+                    id = UUID.fromString(id),
                     navn = navn,
                     orgnummer = orgnummer!!,
                     adresse = adresse.toDomain(),
@@ -303,6 +304,7 @@ data class OppdaterMottaker(
                 ).right()
             } else {
                 MottakerFnrDomain(
+                    id = UUID.fromString(id),
                     navn = navn,
                     foedselsnummer = Fnr.tryCreate(foedselsnummer)!!,
                     adresse = adresse.toDomain(),

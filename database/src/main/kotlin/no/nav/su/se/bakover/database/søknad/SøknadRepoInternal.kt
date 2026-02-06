@@ -29,7 +29,7 @@ internal data object SøknadRepoInternal {
                  left join dokument_distribusjon dd on d.id = dd.dokumentid
         where s.id = :id
           and d.duplikatAv is null
-          and d.er_kopi is not true
+          and d.er_kopi = false
         order by s.opprettet
     """.trimIndent()
         .hent(mapOf("id" to søknadId), session) {
@@ -46,7 +46,7 @@ internal data object SøknadRepoInternal {
                  left join dokument_distribusjon dd on d.id = dd.dokumentid
         where s.sakId = :sakId
           and d.duplikatAv is null
-          and d.er_kopi is not true
+          and d.er_kopi = false
         order by s.opprettet
     """.trimIndent()
         .hentListe(mapOf("sakId" to sakId), session) {
