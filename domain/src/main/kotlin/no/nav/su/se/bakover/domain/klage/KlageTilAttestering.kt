@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.FormkravTilKlage
@@ -30,13 +29,10 @@ sealed interface KlageTilAttestering :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val sakstype: Sakstype,
     ) : KlageTilAttestering,
+        KanGenerereBrevutkast,
         AvvistKlageFelter by forrigeSteg {
 
         override fun erÅpen() = true
-
-        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-            return fritekstTilVedtaksbrev.right()
-        }
 
         /**
          * @param utførtAv forventes at denne er en attestant
@@ -45,9 +41,10 @@ sealed interface KlageTilAttestering :
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
             hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+            fritekst: String,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             utførtAv as NavIdentBruker.Attestant
-            return lagAvvistVedtaksbrevKommando(attestant = utførtAv)
+            return lagAvvistVedtaksbrevKommando(attestant = utførtAv, fritekst = fritekst)
         }
 
         fun iverksett(
@@ -91,17 +88,7 @@ sealed interface KlageTilAttestering :
     ) : KlageTilAttestering,
         VurdertKlage.BekreftetOversendtTilKA by forrigeSteg {
 
-        /**
-         * @throws IllegalStateException - dersom saksbehandler ikke har lagt til fritekst enda.
-         */
-        override val fritekstTilVedtaksbrev
-            get() = getFritekstTilBrev().getOrElse {
-                throw IllegalStateException("Vi har ikke fått lagret fritekst for klage $id")
-            }
-
         override fun erÅpen() = true
-
-        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> = vurderinger.fritekstTilOversendelsesbrev.right()
 
         /**
          * @param utførtAv forventes at denne er NavIdentBruker.Attestant
@@ -109,11 +96,13 @@ sealed interface KlageTilAttestering :
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
             hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+            fritekst: String,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             utførtAv as NavIdentBruker.Attestant
             return genererOversendelsesBrev(
                 attestant = utførtAv,
                 hentVedtaksbrevDato = hentVedtaksbrevDato,
+                fritekst = fritekst,
             )
         }
 

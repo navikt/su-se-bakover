@@ -929,7 +929,6 @@ fun createBekreftetVilkårsvurdertKlage(
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
-            fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
             sakstype = sakstype,
         )
     } else {

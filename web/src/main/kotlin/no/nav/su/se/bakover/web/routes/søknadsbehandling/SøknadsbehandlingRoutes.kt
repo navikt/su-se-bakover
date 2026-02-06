@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.log
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -220,25 +221,30 @@ internal fun Route.søknadsbehandlingRoutes(
     }
 
     suspend fun lagBrevutkast(call: ApplicationCall, req: BrevutkastForSøknadsbehandlingCommand) =
-        søknadsbehandlingService.genererBrevutkast(req).fold(
-            {
-                call.svar(
-                    when (it) {
-                        is KunneIkkeGenerereBrevutkastForSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
-                            fra = it.fra,
-                            til = it.til,
-                        )
+        try {
+            søknadsbehandlingService.genererBrevutkast(req).fold(
+                {
+                    call.svar(
+                        when (it) {
+                            is KunneIkkeGenerereBrevutkastForSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
+                                fra = it.fra,
+                                til = it.til,
+                            )
 
-                        is KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil -> it.underliggende.tilResultat()
-                    },
-                )
-            },
-            {
-                call.sikkerlogg("Hentet brev for behandling med id ${req.søknadsbehandlingId}")
-                call.audit(it.second, AuditLogEvent.Action.ACCESS, req.søknadsbehandlingId.value)
-                call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
-            },
-        )
+                            is KunneIkkeGenerereBrevutkastForSøknadsbehandling.UnderliggendeFeil -> it.underliggende.tilResultat()
+                        },
+                    )
+                },
+                {
+                    call.sikkerlogg("Hentet brev for behandling med id ${req.søknadsbehandlingId}")
+                    call.audit(it.second, AuditLogEvent.Action.ACCESS, req.søknadsbehandlingId.value)
+                    call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
+                },
+            )
+        } catch (e: Exception) {
+            call.application.log.error("Feil ved generering av brevutkast. req=$req", e)
+            throw e
+        }
 
     // Brukes av saksbehandler før hen sen sender til attestering.
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/vedtaksutkast") {

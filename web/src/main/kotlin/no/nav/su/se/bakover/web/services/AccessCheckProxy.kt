@@ -592,6 +592,9 @@ open class AccessCheckProxy(
                         FritekstType.VEDTAKSBREV_REVURDERING,
                         -> assertHarTilgangTilRevurdering(RevurderingId(referanseId))
 
+                        FritekstType.VEDTAKSBREV_KLAGE,
+                        -> assertHarTilgangTilKlage(KlageId(referanseId))
+
                         FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
                         FritekstType.VEDTAKSBREV_TILBAKEKREVING,
                         FritekstType.NOTAT_TILBAKEKREVING,

@@ -28,7 +28,6 @@ interface VurdertKlageFelter : VilkårsvurdertKlageFelter {
 sealed interface VurdertKlage :
     Klage,
     VurdertKlageFelter {
-    val fritekstTilBrev: String? // Spesifikt for å slippe å ha flere lagre metoder i db
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -67,7 +66,6 @@ sealed interface VurdertKlage :
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klageinstanshendelser = klageinstanshendelser,
-                fritekstTilAvvistVedtaksbrev = null,
                 sakstype = sakstype,
             )
         }.right()
@@ -104,22 +102,18 @@ sealed interface VurdertKlage :
         KlageSomKanVurderes,
         VilkårsvurdertKlage.Bekreftet.TilVurderingFelter by forrigeSteg {
 
-        override val fritekstTilBrev: String?
-            get() = vurderinger.fritekstTilOversendelsesbrev
-
-        override val fritekstTilVedtaksbrev: String?
-            get() = vurderinger.fritekstTilOversendelsesbrev
-
         /**
          * @param utførtAv brukes kun i attesteringsstegene
          */
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
             hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+            fritekst: String,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             return genererOversendelsesBrev(
                 attestant = null,
                 hentVedtaksbrevDato = hentVedtaksbrevDato,
+                fritekst = fritekst,
             )
         }
 
@@ -198,7 +192,6 @@ sealed interface VurdertKlage :
                         saksbehandler,
                         vurderinger,
                         sakstype,
-                        fritekstTilVedtaksbrev = vurderinger.fritekstTilOversendelsesbrev,
                     )
                 }
             }
@@ -268,8 +261,6 @@ sealed interface VurdertKlage :
     ) : Utfylt,
         VurdertKlageFelter by forrigeSteg {
         override fun internalForrigeStegUtfylt(): Påbegynt = forrigeSteg
-        override val fritekstTilBrev: String?
-            get() = null
 
         companion object {
             fun create(
@@ -294,7 +285,6 @@ sealed interface VurdertKlage :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vurderinger: VurderingerTilKlage.OversendtKA,
         override val sakstype: Sakstype,
-        override val fritekstTilVedtaksbrev: String,
     ) : KanGenerereBrevutkast,
         UtfyltOversendtTilKA,
         VurdertKlageFelter by forrigeSteg {
@@ -306,14 +296,12 @@ sealed interface VurdertKlage :
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vurderinger: VurderingerTilKlage.OversendtKA,
                 sakstype: Sakstype,
-                fritekstTilVedtaksbrev: String,
             ): UtfyltTilOversending {
                 return UtfyltTilOversending(
                     forrigeSteg = forrigeSteg,
                     saksbehandler = saksbehandler,
                     vurderinger = vurderinger,
                     sakstype = sakstype,
-                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 )
             }
         }
@@ -324,15 +312,14 @@ sealed interface VurdertKlage :
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
             hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+            fritekst: String,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             return genererOversendelsesBrev(
                 attestant = null,
                 hentVedtaksbrevDato = hentVedtaksbrevDato,
+                fritekst = fritekst,
             )
         }
-
-        override val fritekstTilBrev: String
-            get() = vurderinger.fritekstTilOversendelsesbrev
     }
 
     /**
@@ -431,11 +418,6 @@ sealed interface VurdertKlage :
         Bekreftet,
         VurdertKlageFelter by forrigeSteg {
         override val vurderinger: VurderingerTilKlage.OversendtKA = forrigeSteg.vurderinger
-        override val fritekstTilBrev: String
-            get() = vurderinger.fritekstTilOversendelsesbrev
-
-        override val fritekstTilVedtaksbrev: String
-            get() = vurderinger.fritekstTilOversendelsesbrev
 
         override fun sendTilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -463,10 +445,12 @@ sealed interface VurdertKlage :
         override fun lagBrevRequest(
             utførtAv: NavIdentBruker,
             hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+            fritekst: String,
         ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
             return genererOversendelsesBrev(
                 attestant = null,
                 hentVedtaksbrevDato = hentVedtaksbrevDato,
+                fritekst = fritekst,
             )
         }
 
@@ -538,8 +522,6 @@ sealed interface VurdertKlage :
             return this
         }
         override fun internalForrigeStegBekreftet() = forrigeSteg
-        override val fritekstTilBrev: String?
-            get() = null
     }
 }
 

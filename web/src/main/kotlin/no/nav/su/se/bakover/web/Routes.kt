@@ -103,7 +103,7 @@ internal fun Application.setupKtorRoutes(
                         stansAvYtelseService = accessProtectedServices.stansYtelse,
                         gjenopptakAvYtelseService = accessProtectedServices.gjenopptaYtelse,
                     )
-                    klageRoutes(accessProtectedServices.klageService, clock)
+                    klageRoutes(accessProtectedServices.klageService, fritekstService = services.fritekstService, clock)
                     dokumentRoutes(accessProtectedServices.brev, distribuerDokumentService)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)

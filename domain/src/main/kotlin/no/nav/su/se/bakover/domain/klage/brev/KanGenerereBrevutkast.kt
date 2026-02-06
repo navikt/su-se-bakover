@@ -12,8 +12,6 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import java.time.LocalDate
 
 sealed interface KanGenerereBrevutkast : Klage {
-    val fritekstTilVedtaksbrev: String?
-
     /**
      * TODO jah: Splitt denne i en funksjon for attestant (denne tar eksplisitt inn en attestant) og en for saksbehandler (ingen parameter for attestant)
      * @param utførtAv - tar inn ident på den som utførte handlingen. Det er ikke sikkert denne identen havner i brevet.
@@ -22,12 +20,14 @@ sealed interface KanGenerereBrevutkast : Klage {
     fun lagBrevRequest(
         utførtAv: NavIdentBruker,
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        fritekst: String,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand>
 }
 
 // TODO jah: Mulig vi skal bruke et slags avvist konsept ala: AvvistVariant.genererAvvistVedtaksbrev()
 internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
     attestant: NavIdentBruker.Attestant?,
+    fritekst: String,
 ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
     return KlageDokumentCommand.Avvist(
         fødselsnummer = this.fnr,
@@ -35,27 +35,19 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
         sakstype = this.sakstype,
         saksbehandler = saksbehandler,
         attestant = attestant,
-        fritekst = this.fritekstTilVedtaksbrev!!,
+        fritekst = fritekst,
     ).right()
 }
 
 internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
     attestant: NavIdentBruker.Attestant?,
+    fritekst: String,
     hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
 ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
     val vedtaksbrevDato = (
         hentVedtaksbrevDato(this.id)
             ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left()
         )
-
-    val fritekst = when (this) {
-        is AvvistKlage -> this.fritekstTilVedtaksbrev
-        is KlageTilAttestering.Avvist -> this.fritekstTilVedtaksbrev
-        is KlageTilAttestering.Vurdert -> this.fritekstTilVedtaksbrev
-        is VurdertKlage.Påbegynt -> this.fritekstTilVedtaksbrev ?: return KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt.left()
-        is VurdertKlage.BekreftetTilOversending -> this.fritekstTilVedtaksbrev
-        is VurdertKlage.UtfyltTilOversending -> this.fritekstTilVedtaksbrev
-    }
 
     return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
         fødselsnummer = this.fnr,

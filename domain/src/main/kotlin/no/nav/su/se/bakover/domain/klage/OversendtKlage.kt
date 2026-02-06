@@ -50,16 +50,15 @@ data class OversendtKlage(
 
     fun genererOversendelsesbrev(
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        fritekst: String,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
-        val fritekstTilOversendelsesbrev = this.vurderinger.fritekstTilOversendelsesbrev
-
         return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
             sakstype = this.sakstype,
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
-            fritekst = fritekstTilOversendelsesbrev,
+            fritekst = fritekst,
             klageDato = this.datoKlageMottatt,
             vedtaksbrevDato = hentVedtaksbrevDato(this.id)
                 ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left(),

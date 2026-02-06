@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeKlag
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedtak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvVedtakDato
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fritesktErNull
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstandInternalServerError
@@ -33,6 +34,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
@@ -67,6 +70,7 @@ data class OpprettKlageRequest(
 
 internal fun Route.klageRoutes(
     klageService: KlageService,
+    fritekstService: FritekstService,
     clock: Clock,
 ) {
     post(KLAGE_PATH) {
@@ -262,7 +266,6 @@ internal fun Route.klageRoutes(
             data class SkalTilKabal(val hjemler: List<String> = emptyList(), val klagenotat: String?)
 
             data class Body(
-                val fritekstTilBrev: String?,
                 val omgjør: BehandlesIVedtaksinstans?,
                 val delvisomgjøring_egen_instans: BehandlesIVedtaksinstans?,
                 val oppretthold: SkalTilKabal?,
@@ -271,10 +274,17 @@ internal fun Route.klageRoutes(
 
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
+                    val fritekst: String = fritekstService.hentFritekst(
+                        referanseId = klageId,
+                        type = FritekstType.VEDTAKSBREV_KLAGE,
+                    ).fold(
+                        ifLeft = { "" },
+                        ifRight = { it.fritekst },
+                    )
                     val resultat: Resultat = klageService.vurder(
                         request = KlageVurderingerRequest(
                             klageId = KlageId(klageId),
-                            fritekstTilBrev = body.fritekstTilBrev,
+                            fritekst = fritekst,
                             omgjør = body.omgjør?.let { o ->
                                 KlageVurderingerRequest.BehandlesIVedtaksInstansen(
                                     årsak = o.årsak,
@@ -481,6 +491,7 @@ internal fun Route.klageRoutes(
                     val resultat = when (it) {
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
+                        KunneIkkeIverksetteAvvistKlage.FritekstMangler -> fritesktErNull
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.tilResultat()
                         is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
                             it.fra,

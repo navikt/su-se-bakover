@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.VurdertKlage.Utfylt.Companion.createUtfylt
 import java.time.LocalDate
 import java.util.UUID
@@ -67,7 +68,6 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = Klageinstanshendelser.empty(),
-                    fritekstTilAvvistVedtaksbrev = null,
                     sakstype = sakstype,
                 )
 
@@ -132,8 +132,6 @@ sealed interface VilkårsvurdertKlage :
             override val vilkårsvurderinger: FormkravTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            // Ønsker å ta vare på dette feltet dersom vi går tilbake til vilkårsvurderingen igjen.
-            val fritekstTilVedtaksbrev: String?,
             override val sakstype: Sakstype,
         ) : Utfylt {
 
@@ -158,7 +156,6 @@ sealed interface VilkårsvurdertKlage :
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                         sakstype = sakstype,
@@ -196,7 +193,6 @@ sealed interface VilkårsvurdertKlage :
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                     sakstype = sakstype,
                 ).right()
             }
@@ -249,15 +245,6 @@ sealed interface VilkårsvurdertKlage :
         ) : Utfylt,
             TilVurderingFelter {
 
-            val fritekstTilBrev: String?
-                get() =
-                    when (val vurderinger = vurderinger) {
-                        is VurderingerTilKlage.Påbegynt -> vurderinger.fritekstTilOversendelsesbrev
-                        is VurderingerTilKlage.UtfyltBehandlesIVedtaksInstans -> null
-                        is VurderingerTilKlage.OversendtKA -> vurderinger.fritekstTilOversendelsesbrev
-                        null -> null
-                    }
-
             override fun erÅpen() = true
             override fun erAvsluttet() = false
             override fun erAvbrutt() = false
@@ -285,7 +272,6 @@ sealed interface VilkårsvurdertKlage :
                         datoKlageMottatt = datoKlageMottatt,
                         klageinstanshendelser = klageinstanshendelser,
                         vurderinger = vurderinger,
-                        fritekstTilAvvistVedtaksbrev = null,
                         sakstype = sakstype,
                     )
 
@@ -371,7 +357,6 @@ sealed interface VilkårsvurdertKlage :
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
                 klageinstanshendelser: Klageinstanshendelser,
-                fritekstTilAvvistVedtaksbrev: String?,
             ): Utfylt {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist(
@@ -386,7 +371,6 @@ sealed interface VilkårsvurdertKlage :
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                         sakstype = sakstype,
                     )
                 }
@@ -436,10 +420,10 @@ sealed interface VilkårsvurdertKlage :
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             // Så vi kan ta vare på fritekst hvis vi går tilbake til vilkårsvurderingen igjen.
-            val fritekstTilAvvistVedtaksbrev: String?,
             override val sakstype: Sakstype,
         ) : Bekreftet,
             BekreftetFelter,
+            KanGenerereBrevutkast,
             KanLeggeTilFritekstTilAvvistBrev {
 
             override fun erÅpen() = true
@@ -465,7 +449,6 @@ sealed interface VilkårsvurdertKlage :
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
-                        fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                         sakstype = sakstype,
                     )
 
@@ -493,7 +476,6 @@ sealed interface VilkårsvurdertKlage :
                 return AvvistKlage(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
-                    fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                     sakstype = sakstype,
                 )
             }
@@ -513,7 +495,6 @@ sealed interface VilkårsvurdertKlage :
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                     sakstype = sakstype,
                 ).right()
             }
@@ -538,6 +519,17 @@ sealed interface VilkårsvurdertKlage :
                 datoKlageMottatt = datoKlageMottatt,
                 sakstype = sakstype,
             ).right()
+
+            override fun lagBrevRequest(
+                utførtAv: NavIdentBruker,
+                hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+                fritekst: String,
+            ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+                return lagAvvistVedtaksbrevKommando(
+                    attestant = null,
+                    fritekst = fritekst,
+                )
+            }
         }
 
         interface TilVurderingFelter : BekreftetFelter {
@@ -562,6 +554,7 @@ sealed interface VilkårsvurdertKlage :
             override val sakstype: Sakstype,
         ) : Bekreftet,
             TilVurderingFelter,
+            KanGenerereBrevutkast,
             KlageSomKanVurderes {
 
             val fritekstTilBrev: String?
@@ -599,7 +592,6 @@ sealed interface VilkårsvurdertKlage :
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = vurderinger,
                         klageinstanshendelser = klageinstanshendelser,
-                        fritekstTilAvvistVedtaksbrev = null,
                         sakstype = sakstype,
                     )
 
@@ -704,6 +696,29 @@ sealed interface VilkårsvurdertKlage :
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
                 }
+            }
+
+            override fun lagBrevRequest(
+                utførtAv: NavIdentBruker,
+                hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+                fritekst: String,
+            ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+                val vedtaksdato = hentVedtaksbrevDato(id)
+                    ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato
+                        .left()
+                if (fritekst.isBlank()) {
+                    return KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt.left()
+                }
+                return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
+                    fødselsnummer = fnr,
+                    saksnummer = saksnummer,
+                    sakstype = sakstype,
+                    saksbehandler = saksbehandler,
+                    attestant = null,
+                    fritekst = fritekst,
+                    klageDato = datoKlageMottatt,
+                    vedtaksbrevDato = vedtaksdato,
+                ).right()
             }
         }
     }

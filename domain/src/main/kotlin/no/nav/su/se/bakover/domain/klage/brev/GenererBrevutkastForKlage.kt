@@ -20,6 +20,7 @@ import java.time.LocalDate
 fun genererBrevutkastForKlage(
     klageId: KlageId,
     ident: NavIdentBruker,
+    fritekst: String,
     hentKlage: (KlageId) -> Klage?,
     hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     genererPdf: (KlageDokumentCommand) -> Either<KunneIkkeLageDokument, PdfA>,
@@ -36,6 +37,7 @@ fun genererBrevutkastForKlage(
     return klage.lagBrevRequest(
         utførtAv = ident,
         hentVedtaksbrevDato = hentVedtaksbrevDato,
+        fritekst = fritekst,
     ).mapLeft {
         KunneIkkeLageBrevutkast.FeilVedBrevRequest(it)
     }.flatMap {
