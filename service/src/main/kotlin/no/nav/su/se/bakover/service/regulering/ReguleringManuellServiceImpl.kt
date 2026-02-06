@@ -59,7 +59,6 @@ class ReguleringManuellServiceImpl(
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
-        // TODO flere spesifikke feilmeldinger
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is OpprettetRegulering || regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.FeilTilstand.left()
 

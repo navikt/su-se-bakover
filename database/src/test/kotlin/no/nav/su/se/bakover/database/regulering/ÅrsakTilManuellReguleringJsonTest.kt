@@ -16,7 +16,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 
-class ÅrsakTilManuellReguleringVisningJsonTest {
+class ÅrsakTilManuellReguleringJsonTest {
 
     private val årsakUtbetalingFeilet = ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet("WOLOLO")
     private val årsakForventetInntektErStørreEnn0 =
