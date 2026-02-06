@@ -155,6 +155,7 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
+    // Denne lager potensielt dokumenter for alle behandlinger men søknad lagrer de på forhånd så de skal ikke bli kjørt her. Se skalGenerereDokumentVedFerdigstillelse
     private fun lagreDokument(
         vedtak: VedtakSomKanRevurderes,
         transactionContext: TransactionContext?,

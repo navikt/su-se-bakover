@@ -120,7 +120,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             lagreVedtak = vedtakService::lagreITransaksjon,
             statistikkObservers = observers,
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
-            lagreDokument = lagreDokumentMedKopi,
+            lagreDokumentMedKopi = lagreDokumentMedKopi,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
             lagreSakstatistikk = { statistikk, tx ->
                 sakStatistikkService.lagre(statistikk, tx)
