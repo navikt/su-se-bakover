@@ -91,7 +91,6 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
         val testDataHelper = TestDataHelper(dataSource)
         val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
         val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-        val tx = testDataHelper.sessionFactory.newTransactionContext()
 
         val original = Dokument.MedMetadata.Vedtak(
             id = UUID.randomUUID(),
@@ -116,8 +115,8 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
             distribueringsadresse = nyDistribueringsAdresse(),
         )
 
-        dokumentRepo.lagre(original, tx)
-        dokumentRepo.lagre(kopi, tx)
+        dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
+        dokumentRepo.lagre(kopi, testDataHelper.sessionFactory.newTransactionContext())
 
         val forSak = dokumentRepo.hentForSak(sak.id)
         forSak shouldHaveSize 2
