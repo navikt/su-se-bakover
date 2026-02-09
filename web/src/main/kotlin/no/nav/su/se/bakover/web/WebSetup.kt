@@ -120,8 +120,8 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
 
-            val status = call.response.status()?.value ?: 0
-            if (status >= 500) return@filter false
+            val status = call.response.status()
+            if (status != null && status.value >= 500) return@filter false
 
             call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY)?.let { ex ->
                 call.application.log.error(
@@ -164,13 +164,16 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
 
     intercept(ApplicationCallPipeline.Monitoring) {
         proceed()
-        val status = call.response.status()?.value ?: 0
-        if (status >= 500 && call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null) {
+        if (call.request.httpMethod.value == "OPTIONS") return@intercept
+        if (call.pathShouldBeExcluded(naisPaths)) return@intercept
+
+        val status = call.response.status() ?: return@intercept
+        if (status.value >= 500 && call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null) {
             call.application.log.error(
                 "5xx response: {} {} status={}",
                 call.request.httpMethod,
                 call.request.path(),
-                status,
+                status.value,
             )
         }
     }
