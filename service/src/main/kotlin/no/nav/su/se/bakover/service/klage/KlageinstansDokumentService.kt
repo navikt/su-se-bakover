@@ -9,6 +9,7 @@ interface KlageinstansDokumentService {
     suspend fun hentDokumenterForSak(sakId: UUID): Either<KlageinstansDokumentFeil, List<KlageinstansDokument>>
 }
 
+@Suppress("ArrayInDataClass")
 data class KlageinstansDokument(
     val journalpostId: JournalpostId,
     val journalpostTittel: String?,
