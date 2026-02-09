@@ -114,6 +114,10 @@ val EXCEPTIONATTRIBUTE_KEY = AttributeKey<Throwable>("exception_key")
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
         level = Level.INFO
+        callLogLevel { _, status ->
+            val code = status?.value ?: 0
+            if (code >= 500) Level.ERROR else Level.INFO
+        }
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
@@ -208,7 +212,7 @@ private fun Application.setupKtorExceptionHandling(
             )
         }
         exception<Throwable> { call, cause ->
-            call.attributes.put(AttributeKey(EXCEPTIONATTRIBUTE_KEY.name), cause)
+            call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
             log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             call.svar(Feilresponser.ukjentFeil)
         }
