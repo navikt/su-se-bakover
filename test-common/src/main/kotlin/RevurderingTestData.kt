@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Tuple4
+import arrow.core.right
 import dokument.domain.brev.Brevvalg
 import io.kotest.assertions.fail
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -446,6 +447,9 @@ fun iverksattRevurdering(
                     utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                 )
             },
+            genererPdf = { dokumentUtenMetadataVedtak().right() },
+            satsFactory = satsFactoryTestPåDato(),
+            fritekst = "",
         ).getOrFail().let { response ->
             /**
              * TODO: se om vi får til noe som oppfører seg som [IverksettRevurderingResponse.ferdigstillIverksettelseITransaksjon]?

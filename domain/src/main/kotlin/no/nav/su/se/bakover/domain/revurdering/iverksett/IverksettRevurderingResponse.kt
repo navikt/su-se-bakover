@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.iverksett
 
 import arrow.core.Either
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -18,6 +19,7 @@ interface IverksettRevurderingResponse<out T : Revurderingsvedtak> {
     val sak: Sak
     val vedtak: T
     val utbetaling: Utbetaling.SimulertUtbetaling
+    val dokument: Dokument.MedMetadata?
 
     /**
      * @param annullerKontrollsamtale er kun relevant ved opphør.
@@ -29,6 +31,7 @@ interface IverksettRevurderingResponse<out T : Revurderingsvedtak> {
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering>
 }

@@ -29,6 +29,11 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -118,6 +123,7 @@ import vilkår.inntekt.domain.grunnlag.slåSammen
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
+import java.util.UUID
 import kotlin.reflect.KClass
 
 class RevurderingServiceImpl(
@@ -127,6 +133,7 @@ class RevurderingServiceImpl(
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val brevService: BrevService,
+    private val mottakerService: MottakerService,
     private val clock: Clock,
     private val vedtakService: VedtakService,
     private val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService,
@@ -984,13 +991,51 @@ class RevurderingServiceImpl(
         revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = revurderingId.value,
+            type = FritekstType.VEDTAKSBREV_REVURDERING,
+        ).map { it.fritekst }.getOrElse { "" }
+
         return sakService.hentSakForRevurdering(revurderingId).iverksettRevurdering(
             revurderingId = revurderingId,
             attestant = attestant,
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
-        ).flatMap {
-            it.ferdigstillIverksettelseITransaksjon(
+            genererPdf = brevService::lagDokumentPdf,
+            satsFactory = satsFactory,
+            fritekst = fritekst,
+        ).flatMap { response ->
+            val lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
+                if (dokument is Dokument.MedMetadata.Vedtak) {
+                    val mottaker = mottakerService.hentMottaker(
+                        MottakerIdentifikator(
+                            ReferanseTypeMottaker.REVURDERING,
+                            referanseId = response.vedtak.behandling.id.value,
+                        ),
+                        response.vedtak.behandling.sakId,
+                        tx,
+                    ).getOrElse { null }
+
+                    if (mottaker != null) {
+                        val identifikator = when (mottaker) {
+                            is MottakerFnrDomain -> mottaker.foedselsnummer.toString()
+                            is MottakerOrgnummerDomain -> mottaker.orgnummer
+                        }
+
+                        val kopi = dokument.copy(
+                            id = UUID.randomUUID(),
+                            tittel = dokument.tittel + "(KOPI)",
+                            erKopi = true,
+                            ekstraMottaker = identifikator,
+                            navnEkstraMottaker = mottaker.navn,
+                            distribueringsadresse = mottaker.adresse,
+                        )
+                        brevService.lagreDokument(kopi, tx)
+                    }
+                }
+                brevService.lagreDokument(dokument, tx)
+            }
+            response.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                 lagreVedtak = vedtakService::lagreITransaksjon,
@@ -1001,6 +1046,7 @@ class RevurderingServiceImpl(
                 lagreSakstatistikk = { statistikkHendelse, tx ->
                     sakStatistikkService.lagre(statistikkHendelse, tx)
                 },
+                lagreDokumentMedKopi = lagreDokumentMedKopi,
             ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }

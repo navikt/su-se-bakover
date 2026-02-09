@@ -9,8 +9,10 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertMånedFeilutbetalingVedOpphør
 import org.junit.jupiter.api.Test
@@ -56,6 +58,9 @@ class IverksettRevurderingTest {
                     utbetalingForSimulering = utbetalingForSimulering,
                 ).right()
             },
+            genererPdf = { dokumentUtenMetadataVedtak().right() },
+            satsFactory = satsFactoryTestPåDato(),
+            fritekst = "",
         ) shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(
             no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet.Forskjeller(
                 KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling,

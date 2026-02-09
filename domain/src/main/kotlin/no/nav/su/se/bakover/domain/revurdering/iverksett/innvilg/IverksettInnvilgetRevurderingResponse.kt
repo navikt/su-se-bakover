@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -27,11 +28,11 @@ data class IverksettInnvilgetRevurderingResponse(
     override val sak: Sak,
     override val vedtak: VedtakInnvilgetRevurdering,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
+    override val dokument: Dokument.MedMetadata?,
     val clock: Clock,
 
 ) : IverksettRevurderingResponse<VedtakInnvilgetRevurdering> {
 
-    // TODO: for søknad så gjøres dokumentlagring i iverksatt mens for revurdering gjøres den når man får betaling ok, men hvorfor? er styrt av vedtak.skalGenerereDokumentVedFerdigstillelse() men gir litt ulikoppførsel som er uheldig
     override fun ferdigstillIverksettelseITransaksjon(
         sessionFactory: SessionFactory,
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<KunneIkkeKlaregjøreUtbetaling, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
@@ -39,6 +40,7 @@ data class IverksettInnvilgetRevurderingResponse(
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -60,6 +62,7 @@ data class IverksettInnvilgetRevurderingResponse(
                 }
                 lagreVedtak(vedtak, tx)
                 lagreRevurdering(vedtak.behandling, tx)
+                dokument?.let { lagreDokumentMedKopi(it, tx) }
 
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak)
                 statistikkObservers().notify(sakStatistikkEvent, tx)
