@@ -277,13 +277,13 @@ internal class GjeldendeVedtaksdataTest {
                     nyFradragsgrunnlag(
                         periode = revurderingsperiode,
                         månedsbeløp = 5000.0,
-                        opprettet = Tidspunkt.parse("2021-02-01T00:01:37Z"),
+                        opprettet = Tidspunkt.parse("2021-02-01T00:01:38Z"),
                         id = fradragRevurdering.id,
                         type = fradragRevurdering.fradragstype,
                     ),
                     nyFradragsgrunnlag(
                         periode = juni(2021),
-                        opprettet = Tidspunkt.parse("2021-02-01T00:01:37Z"),
+                        opprettet = Tidspunkt.parse("2021-02-01T00:01:38Z"),
                         månedsbeløp = fradragAndreSøknadsbehandling.månedsbeløp,
                         id = fradragAndreSøknadsbehandling.id,
                         type = fradragAndreSøknadsbehandling.fradragstype,
