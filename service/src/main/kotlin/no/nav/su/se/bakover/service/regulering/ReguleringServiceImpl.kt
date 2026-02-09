@@ -61,7 +61,7 @@ class ReguleringServiceImpl(
         return iverksattRegulering.right()
     }
 
-    fun beregnRegulering(
+    override fun beregnRegulering(
         regulering: OpprettetRegulering,
         clock: Clock,
     ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, OpprettetRegulering> =
@@ -77,7 +77,7 @@ class ReguleringServiceImpl(
             KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
         }
 
-    fun simulerReguleringOgUtbetaling(
+    override fun simulerReguleringOgUtbetaling(
         regulering: OpprettetRegulering,
         sak: Sak,
     ) = regulering.simuler { beregning, uføregrunnlag ->

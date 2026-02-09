@@ -62,7 +62,9 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is OpprettetRegulering || regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.FeilTilstand.left()
 
-        val reguleringNyttGrunnlag = regulering.leggTilUføre(uføregrunnlag, clock).leggTilFradrag(fradrag)
+        val reguleringNyttGrunnlag = regulering.leggTilSaksbehandler(saksbehandler)
+            .leggTilUføre(uføregrunnlag, clock)
+            .leggTilFradrag(fradrag)
 
         val beregnetRegulering = reguleringService.beregnRegulering(reguleringNyttGrunnlag, clock).getOrElse {
             return KunneIkkeRegulereManuelt.BeregningFeilet.left()
