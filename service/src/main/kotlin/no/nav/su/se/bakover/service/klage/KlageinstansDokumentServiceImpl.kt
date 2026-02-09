@@ -38,7 +38,11 @@ class KlageinstansDokumentServiceImpl(
                     .bind()
 
                 journalpost.dokumenter.mapNotNull dokument@{ dokument ->
-                    val valgtVariant = velgVariant(dokument.varianter) ?: return@dokument null
+                    val valgtVariant = velgVariant(
+                        journalpostId = journalpostId,
+                        dokumentInfoId = dokument.dokumentInfoId,
+                        varianter = dokument.varianter,
+                    ) ?: return@dokument null
 
                     val innhold = journalpostClient.hentDokument(
                         journalpostId = journalpostId,
@@ -89,7 +93,11 @@ class KlageinstansDokumentServiceImpl(
         }
     }
 
-    private fun velgVariant(varianter: List<DokumentVariant>): DokumentVariant? {
+    private fun velgVariant(
+        journalpostId: JournalpostId,
+        dokumentInfoId: String,
+        varianter: List<DokumentVariant>,
+    ): DokumentVariant? {
         if (varianter.isEmpty()) return null
 
         val ikkeSladdet = varianter.filterNot {
@@ -101,13 +109,19 @@ class KlageinstansDokumentServiceImpl(
             filtype == "PDF" || filtype == "PDFA"
         }
 
-        ikkeSladdet
+        val ikkeStottet = ikkeSladdet
             .mapNotNull { it.filtype?.uppercase() }
             .filterNot { it == "PDF" || it == "PDFA" }
             .distinct()
-            .forEach { filtype ->
-                log.error("Fant filtype som ikke støttes: {}", filtype)
-            }
+
+        if (ikkeStottet.isNotEmpty()) {
+            log.warn(
+                "Fant filtyper som ikke støttes. journalpostId={}, dokumentInfoId={}, filtyper={}",
+                journalpostId,
+                dokumentInfoId,
+                ikkeStottet.joinToString(","),
+            )
+        }
 
         if (pdfVarianter.isEmpty()) return null
 
