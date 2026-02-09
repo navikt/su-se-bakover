@@ -29,9 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
-import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
@@ -112,6 +110,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import no.nav.su.se.bakover.service.brev.lagreDokumentMedKopi
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
@@ -123,7 +122,6 @@ import vilkår.inntekt.domain.grunnlag.slåSammen
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
-import java.util.UUID
 import kotlin.reflect.KClass
 
 class RevurderingServiceImpl(
@@ -1005,36 +1003,15 @@ class RevurderingServiceImpl(
             satsFactory = satsFactory,
             fritekst = fritekst,
         ).flatMap { response ->
-            val lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
-                if (dokument is Dokument.MedMetadata.Vedtak) {
-                    val mottaker = mottakerService.hentMottaker(
-                        MottakerIdentifikator(
-                            ReferanseTypeMottaker.REVURDERING,
-                            referanseId = response.vedtak.behandling.id.value,
-                        ),
-                        response.vedtak.behandling.sakId,
-                        tx,
-                    ).getOrElse { null }
-
-                    if (mottaker != null) {
-                        val identifikator = when (mottaker) {
-                            is MottakerFnrDomain -> mottaker.foedselsnummer.toString()
-                            is MottakerOrgnummerDomain -> mottaker.orgnummer
-                        }
-
-                        val kopi = dokument.copy(
-                            id = UUID.randomUUID(),
-                            tittel = dokument.tittel + "(KOPI)",
-                            erKopi = true,
-                            ekstraMottaker = identifikator,
-                            navnEkstraMottaker = mottaker.navn,
-                            distribueringsadresse = mottaker.adresse,
-                        )
-                        brevService.lagreDokument(kopi, tx)
-                    }
-                }
-                brevService.lagreDokument(dokument, tx)
-            }
+            val lagreDokumentMedKopi = lagreDokumentMedKopi(
+                brevService = brevService,
+                mottakerService = mottakerService,
+                mottakerIdentifikator = MottakerIdentifikator(
+                    ReferanseTypeMottaker.REVURDERING,
+                    referanseId = response.vedtak.behandling.id.value,
+                ),
+                sakId = response.vedtak.behandling.sakId,
+            )
             response.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
