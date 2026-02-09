@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 
@@ -14,8 +15,7 @@ sealed interface KunneIkkeHenteReguleringsgrunnlag {
 sealed interface KunneIkkeRegulereManuelt {
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object FeilTilstand : KunneIkkeRegulereManuelt
-    data object SimuleringFeilet : KunneIkkeRegulereManuelt
-    data object BeregningFeilet : KunneIkkeRegulereManuelt
+    data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
@@ -44,7 +44,7 @@ interface ReguleringManuellService {
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering>
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,

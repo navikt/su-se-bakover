@@ -13,11 +13,12 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -58,14 +59,17 @@ class ReguleringManuellServiceImpl(
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is OpprettetRegulering || regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.FeilTilstand.left()
-
+        val sak = sakService.hentSak(regulering.sakId).getOrElse {
+            return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        }
         val reguleringNyttGrunnlag = regulering.leggTilSaksbehandler(saksbehandler)
             .leggTilUføre(uføregrunnlag, clock)
             .leggTilFradrag(fradrag)
 
+        /*
         val beregnetRegulering = reguleringService.beregnRegulering(reguleringNyttGrunnlag, clock).getOrElse {
             return KunneIkkeRegulereManuelt.BeregningFeilet.left()
         }
@@ -78,6 +82,11 @@ class ReguleringManuellServiceImpl(
             sak,
         ).getOrElse {
             return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
+        }
+         */
+
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
+            return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
         }
 
         reguleringRepo.lagre(simulertRegulering)
@@ -165,13 +174,13 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
         return when (regulering) {
-            is AvsluttetRegulering, is IverksattRegulering -> KunneIkkeAvslutte.UgyldigTilstand.left()
-            is OpprettetRegulering -> {
+            is ReguleringUnderBehandling -> {
                 val avsluttetRegulering = regulering.avslutt(avsluttetAv, clock)
                 reguleringRepo.lagre(avsluttetRegulering)
 
                 avsluttetRegulering.right()
             }
+            else -> KunneIkkeAvslutte.UgyldigTilstand.left()
         }
     }
 

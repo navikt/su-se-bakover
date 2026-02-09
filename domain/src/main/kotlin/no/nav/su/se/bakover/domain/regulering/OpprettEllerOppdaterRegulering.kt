@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import org.slf4j.LoggerFactory
@@ -32,7 +33,7 @@ fun Sak.opprettEllerOppdaterRegulering(
     // TODO - kan heller ta en funksjon som gir EksternSupplementRegulering som parameter
     supplement: Reguleringssupplement,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, ReguleringUnderBehandling.OpprettetRegulering> {
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
             when (r.size) {

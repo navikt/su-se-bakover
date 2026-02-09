@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
+import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
@@ -20,8 +20,9 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
@@ -30,11 +31,11 @@ import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFo
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
+import satser.domain.SatsFactory
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import økonomi.domain.simulering.Simuleringsresultat
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -88,7 +89,7 @@ fun iverksattAutomatiskRegulering(
     clock: Clock = fixedClock,
     sakstype: Sakstype = Sakstype.UFØRE,
 ): IverksattRegulering {
-    return opprettetRegulering(
+    val opprettet = opprettetRegulering(
         id = id,
         sakId = sakId,
         reguleringsperiode = reguleringsperiode,
@@ -100,16 +101,24 @@ fun iverksattAutomatiskRegulering(
         saksbehandler = saksbehandler,
         sakstype = sakstype,
     )
-        .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
-        .simuler(
-            simuler = { _, _ ->
-                // TODO jah: Denne simuleringen henger ikke sammen med resten av dataene. Bør lage en sak og gå via APIene der. Se SøknadsbehandlingTestData f.eks.
-                Simuleringsresultat.UtenForskjeller(simulertUtbetaling()).right()
-            },
-        ).getOrFail()
-        .first
-        .tilIverksatt()
+    val beregning = opprettet.beregn(satsFactoryTestPåDato(), null, clock)
+    val simulering = simulertUtbetaling().simulering
+    val beregnetRegulering = opprettet.tilBeregnet(beregning, simulering)
+    return beregnetRegulering.tilIverksatt()
 }
+
+fun ReguleringUnderBehandling.beregn(
+    satsFactory: SatsFactory,
+    begrunnelse: String? = null,
+    clock: Clock,
+) = BeregningStrategyFactory(
+    clock = clock,
+    satsFactory = satsFactory,
+).beregn(
+    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+    begrunnelse = begrunnelse,
+    sakstype = sakstype,
+)
 
 fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,

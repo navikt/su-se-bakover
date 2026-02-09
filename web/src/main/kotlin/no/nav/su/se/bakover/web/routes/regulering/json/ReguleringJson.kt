@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
@@ -74,7 +74,8 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
     reguleringsstatus = when (this) {
         is AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
         is IverksattRegulering -> ReguleringJson.Status.IVERKSATT
-        is OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
+        is ReguleringUnderBehandling.OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
+        is ReguleringUnderBehandling.BeregnetRegulering -> TODO()
     },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
@@ -86,7 +87,7 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
     saksbehandler = saksbehandler.navIdent,
     avsluttet = when (this) {
         is AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)
-        is IverksattRegulering, is OpprettetRegulering -> null
+        is IverksattRegulering, is ReguleringUnderBehandling -> null
     },
     sakstype = sakstype.toJson(),
 )

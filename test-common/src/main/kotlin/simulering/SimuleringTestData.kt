@@ -176,6 +176,7 @@ fun simulerUtbetaling(
 fun simulerUtbetaling(
     sak: Sak,
     regulering: Regulering,
+    beregning: Beregning,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock(),
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
@@ -183,8 +184,7 @@ fun simulerUtbetaling(
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
         sak = sak,
-        beregning = regulering.beregning
-            ?: throw IllegalArgumentException("Kan ikke simulere, regulering har ingen beregning"),
+        beregning = beregning,
         uføregrunnlag = regulering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
         behandler = behandler,
         clock = clock,

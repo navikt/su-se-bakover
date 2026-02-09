@@ -14,18 +14,21 @@ sealed interface KunneIkkeFerdigstilleOgIverksette {
 
 interface ReguleringService {
     fun behandleRegulering(
-        regulering: OpprettetRegulering,
+        regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean = true,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering>
 
+    /*
     fun beregnRegulering(
-        regulering: OpprettetRegulering,
+        regulering: ReguleringUnderBehandling,
         clock: Clock,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, OpprettetRegulering>
+    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, ReguleringUnderBehandling.BeregnetRegulering>
+     */
 
-    fun simulerReguleringOgUtbetaling(
-        regulering: OpprettetRegulering,
+    fun beregnOgSimulerRegulering(
+        regulering: ReguleringUnderBehandling,
         sak: Sak,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere, Pair<OpprettetRegulering, Utbetaling.SimulertUtbetaling>>
+        clock: Clock,
+    ): Either<KunneIkkeFerdigstilleOgIverksette, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>>
 }

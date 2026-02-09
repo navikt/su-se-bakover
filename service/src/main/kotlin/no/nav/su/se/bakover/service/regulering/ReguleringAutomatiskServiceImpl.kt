@@ -12,17 +12,18 @@ import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.domain.regulering.beregn.blirBeregningEndret
+import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.math.BigDecimal
@@ -147,7 +148,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         // TODO jah: Flytt inn i sak.opprettEllerOppdaterRegulering(...)
-        if (!sak.blirBeregningEndret(regulering, satsFactory, clock)) {
+        if (!blirBeregningEndret(sak, regulering, satsFactory, clock)) {
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
             log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
             return KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
@@ -164,6 +165,37 @@ class ReguleringAutomatiskServiceImpl(
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             regulering.right()
+        }
+    }
+
+    /**
+     * Finner ut om en re-beregning av reguleringen vil føre til endring i stønaden.
+     * Dersom noen av vilkårene gir avslag, returnerer vi 'true',
+     */
+    private fun blirBeregningEndret(
+        sak: Sak,
+        regulering: OpprettetRegulering,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): Boolean {
+        if (regulering.inneholderAvslag()) return true
+
+        val beregning = reguleringService.beregn(
+            satsFactory = satsFactory,
+            begrunnelse = null,
+            regulering,
+            clock = clock,
+        ).getOrElse {
+            throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
+        }
+
+        return !beregning.getMånedsberegninger().all { månedsberegning ->
+            sak.hentGjeldendeUtbetaling(
+                forDato = månedsberegning.periode.fraOgMed,
+            ).fold(
+                { false },
+                { månedsberegning.getSumYtelse() == it.beløp },
+            )
         }
     }
 
@@ -240,6 +272,7 @@ class ReguleringAutomatiskServiceImpl(
 
                 val regulering = sak.reguleringer.hent(reguleringssammendrag.reguleringId)
                     ?: throw IllegalStateException("Fant ikke regulering med id ${reguleringssammendrag.reguleringId}")
+                if (regulering !is ReguleringUnderBehandling) throw IllegalStateException("Fant ikke regulering med id ${reguleringssammendrag.reguleringId}")
 
                 val søkersSupplement = supplement.getFor(regulering.fnr)
                 val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
@@ -267,7 +300,7 @@ class ReguleringAutomatiskServiceImpl(
     }
 
     private fun forsøkAutomatiskReguleringEllerOverførTilManuell(
-        regulering: OpprettetRegulering,
+        regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
@@ -276,20 +309,13 @@ class ReguleringAutomatiskServiceImpl(
             sak,
             isLiveRun,
         ).onLeft {
-            val message = when (it) {
-                is KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
-                is KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
-                is KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
-            }
-            val manuellRegulering = regulering.copy(
-                reguleringstype = Reguleringstype.MANUELL(
-                    setOf(
-                        ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse = message),
-                    ),
-                ),
-            )
             if (isLiveRun) {
-                reguleringRepo.lagre(manuellRegulering)
+                val message = when (it) {
+                    is KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
+                    is KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
+                    is KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
+                }
+                reguleringRepo.lagre(regulering.endreTilManuell(message))
             }
         }
     }

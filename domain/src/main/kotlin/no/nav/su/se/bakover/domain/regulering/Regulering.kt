@@ -87,12 +87,6 @@ sealed interface Regulering : Stønadsbehandling {
 
     fun erÅpen(): Boolean
 
-    // TODO jah - Bør nok lagre at det er denne vi har brukt og
-    fun oppdaterMedSupplement(
-        eksternSupplementRegulering: EksternSupplementRegulering,
-        omregningsfaktor: BigDecimal,
-    ): OpprettetRegulering
-
     /** true dersom dette er en iverksatt regulering, false ellers. */
     val erFerdigstilt: Boolean
 
@@ -111,7 +105,7 @@ sealed interface Regulering : Stønadsbehandling {
             sakstype: Sakstype,
             eksternSupplementRegulering: EksternSupplementRegulering,
             omregningsfaktor: BigDecimal,
-        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
+        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, ReguleringUnderBehandling.OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer =
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
@@ -136,7 +130,7 @@ sealed interface Regulering : Stønadsbehandling {
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
                 reguleringstype2 = reguleringstypeVedSupplement,
             )
-            return OpprettetRegulering(
+            return ReguleringUnderBehandling.OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
