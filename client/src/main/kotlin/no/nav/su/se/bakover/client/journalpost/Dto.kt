@@ -47,6 +47,37 @@ internal data class HentJournalpostResponse(
 )
 
 /**
+ * Generell modell for spørringer mot hentJournalpost med dokumentmetadata
+ */
+internal data class HentJournalpostMedDokumenterHttpResponse(
+    override val data: HentJournalpostMedDokumenterResponse?,
+    override val errors: List<Error>?,
+) : GraphQLHttpResponse()
+
+internal data class HentJournalpostMedDokumenterResponse(
+    val journalpost: JournalpostMedDokumenterResponse?,
+)
+
+internal data class JournalpostMedDokumenterResponse(
+    val journalpostId: String,
+    val tittel: String?,
+    val dokumenter: List<DokumentInfoResponse> = emptyList(),
+)
+
+internal data class DokumentInfoResponse(
+    val dokumentInfoId: String,
+    val tittel: String?,
+    val brevkode: String?,
+    val dokumentstatus: String?,
+    val dokumentvarianter: List<DokumentvariantResponse> = emptyList(),
+)
+
+internal data class DokumentvariantResponse(
+    val variantFormat: String,
+    val filtype: String?,
+)
+
+/**
  * Variabler for spørringer mot hentJournalpost
  */
 internal data class HentJournalpostVariables(

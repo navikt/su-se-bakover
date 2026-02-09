@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.Kontrollsamtale
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.service.klage.KlageinstansDokumentService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
@@ -55,6 +56,7 @@ data class Services(
     val avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
     val klageService: KlageService,
     val klageinstanshendelseService: KlageinstanshendelseService,
+    val klageinstansDokumentService: KlageinstansDokumentService,
     val reguleringManuellService: ReguleringManuellService,
     val reguleringAutomatiskService: ReguleringAutomatiskService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,

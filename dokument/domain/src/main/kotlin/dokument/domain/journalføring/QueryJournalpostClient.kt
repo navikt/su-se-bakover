@@ -29,6 +29,22 @@ interface QueryJournalpostClient {
         saksnummer: Saksnummer,
         periode: DatoIntervall,
     ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt>
+
+    /**
+     * Henter journalpost med dokumentmetadata (inkl. tilgjengelige varianter).
+     */
+    suspend fun hentJournalpostMedDokumenter(
+        journalpostId: JournalpostId,
+    ): Either<KunneIkkeHenteJournalpost, JournalpostMedDokumenter>
+
+    /**
+     * Henter fysisk dokument (rå bytes) fra SAF.
+     */
+    suspend fun hentDokument(
+        journalpostId: JournalpostId,
+        dokumentInfoId: String,
+        variantFormat: String,
+    ): Either<KunneIkkeHenteDokument, DokumentInnhold>
 }
 
 data class KunneIkkeSjekkKontrollnotatMottatt(val feil: Any)
@@ -54,4 +70,46 @@ sealed interface KunneIkkeSjekkeTilknytningTilSak {
 
 sealed interface KunneIkkeHenteJournalposter {
     data object ClientError : KunneIkkeHenteJournalposter
+}
+
+data class JournalpostMedDokumenter(
+    val journalpostId: JournalpostId,
+    val tittel: String?,
+    val dokumenter: List<DokumentInfoMedVarianter>,
+)
+
+data class DokumentInfoMedVarianter(
+    val dokumentInfoId: String,
+    val tittel: String?,
+    val brevkode: String?,
+    val dokumentstatus: String?,
+    val varianter: List<DokumentVariant>,
+)
+
+data class DokumentVariant(
+    val variantFormat: String,
+    val filtype: String?,
+)
+
+data class DokumentInnhold(
+    val bytes: ByteArray,
+    val contentType: String?,
+    val contentDisposition: String?,
+)
+
+sealed interface KunneIkkeHenteJournalpost {
+    data object FantIkkeJournalpost : KunneIkkeHenteJournalpost
+    data object IkkeTilgang : KunneIkkeHenteJournalpost
+    data object UgyldigInput : KunneIkkeHenteJournalpost
+    data object TekniskFeil : KunneIkkeHenteJournalpost
+    data object Ukjent : KunneIkkeHenteJournalpost
+}
+
+sealed interface KunneIkkeHenteDokument {
+    data object FantIkkeDokument : KunneIkkeHenteDokument
+    data object IkkeTilgang : KunneIkkeHenteDokument
+    data object IkkeAutorisert : KunneIkkeHenteDokument
+    data object UgyldigInput : KunneIkkeHenteDokument
+    data class TekniskFeil(val msg: String) : KunneIkkeHenteDokument
+    data class Ukjent(val msg: String) : KunneIkkeHenteDokument
 }

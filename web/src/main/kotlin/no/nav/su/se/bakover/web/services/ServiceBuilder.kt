@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceIm
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageinstansDokumentServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -286,6 +287,10 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
+        val klageinstansDokumentService = KlageinstansDokumentServiceImpl(
+            klageRepo = databaseRepos.klageRepo,
+            journalpostClient = clients.queryJournalpostClient,
+        )
         val iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
             sakService = sakService,
             clock = clock,
@@ -349,6 +354,7 @@ data object ServiceBuilder {
             ),
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
+            klageinstansDokumentService = klageinstansDokumentService,
             reguleringManuellService = reguleringManuellService,
             reguleringAutomatiskService = reguleringAutomatiskService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(

@@ -1,0 +1,18 @@
+# https://confluence.adeo.no/display/BOA/Query%3A+journalpost
+
+query($journalpostId: String!){
+    journalpost(journalpostId: $journalpostId){
+        journalpostId
+        tittel
+        dokumenter {
+            dokumentInfoId
+            tittel
+            brevkode
+            dokumentstatus
+            dokumentvarianter {
+                variantFormat
+                filtype
+            }
+        }
+    }
+}
