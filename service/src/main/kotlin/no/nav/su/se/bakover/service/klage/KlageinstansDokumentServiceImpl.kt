@@ -56,7 +56,7 @@ class KlageinstansDokumentServiceImpl(
                         brevkode = dokument.brevkode,
                         dokumentstatus = dokument.dokumentstatus,
                         variantFormat = valgtVariant.variantFormat,
-                        bytes = innhold.bytes,
+                        dokument = innhold.bytes,
                     )
                 }
             }

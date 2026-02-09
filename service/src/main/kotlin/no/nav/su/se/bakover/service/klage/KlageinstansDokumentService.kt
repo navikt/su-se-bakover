@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
-import dokument.domain.journalføring.KunneIkkeHenteDokument
-import dokument.domain.journalføring.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import java.time.LocalDate
 import java.util.UUID
@@ -20,7 +18,7 @@ data class KlageinstansDokument(
     val brevkode: String?,
     val dokumentstatus: String?,
     val variantFormat: String,
-    val bytes: ByteArray,
+    val dokument: ByteArray,
 )
 
 sealed interface KlageinstansDokumentFeil {

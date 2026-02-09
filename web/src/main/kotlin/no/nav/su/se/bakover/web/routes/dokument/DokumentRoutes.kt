@@ -178,7 +178,7 @@ private fun KlageinstansDokument.toJson(): KlageinstansDokumentJson {
         brevkode = brevkode,
         dokumentstatus = dokumentstatus,
         variantFormat = variantFormat,
-        pdfBase64 = Base64.getEncoder().encodeToString(bytes),
+        pdfBase64 = Base64.getEncoder().encodeToString(dokument),
     )
 }
 
