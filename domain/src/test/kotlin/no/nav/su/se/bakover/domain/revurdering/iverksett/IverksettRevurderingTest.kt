@@ -159,11 +159,10 @@ class IverksettRevurderingTest {
             attestant = attestant,
             clock = clock,
             simuler = { utbetalingForSimulering ->
-                simulerUtbetaling(
-                    utbetalingerPåSak = sak.utbetalinger,
+                Utbetaling.SimulertUtbetaling(
+                    simulering = revurdering.simulering!!,
                     utbetalingForSimulering = utbetalingForSimulering,
-                    clock = clock,
-                )
+                ).right()
             },
             genererPdf = { KunneIkkeLageDokument.FeilVedGenereringAvPdf.left() },
             satsFactory = satsFactoryTestPåDato(),
