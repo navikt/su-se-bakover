@@ -19,13 +19,6 @@ interface ReguleringService {
         isLiveRun: Boolean = true,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering>
 
-    /*
-    fun beregnRegulering(
-        regulering: ReguleringUnderBehandling,
-        clock: Clock,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, ReguleringUnderBehandling.BeregnetRegulering>
-     */
-
     fun beregnOgSimulerRegulering(
         regulering: ReguleringUnderBehandling,
         sak: Sak,

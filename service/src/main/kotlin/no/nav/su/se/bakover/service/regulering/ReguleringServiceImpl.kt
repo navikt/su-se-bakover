@@ -49,18 +49,6 @@ class ReguleringServiceImpl(
         sak: Sak,
         isLiveRun: Boolean,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
-        /*
-        val beregnetRegulering = beregnRegulering(
-            regulering = regulering,
-            clock = clock,
-        ).getOrElse { return it.left() }
-
-        val (simulertRegulering, simulertUtbetaling) = simulerReguleringOgUtbetaling(
-            beregnetRegulering,
-            sak,
-        ).getOrElse { return it.left() }
-
-         */
         val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
             return it.left()
         }
@@ -73,56 +61,6 @@ class ReguleringServiceImpl(
 
         return iverksattRegulering.right()
     }
-/*
-    override fun beregnRegulering(
-        regulering: ReguleringUnderBehandling,
-        clock: Clock,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, ReguleringUnderBehandling.BeregnetRegulering> =
-        beregn(
-            satsFactory = satsFactory,
-            begrunnelse = null,
-            clock = clock,
-        ).mapLeft { kunneikkeBeregne ->
-            log.error(
-                "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
-                kunneikkeBeregne.feil,
-            )
-            KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
-        }
-
-    fun simulerReguleringOgUtbetaling(
-        regulering: OpprettetRegulering,
-        sak: Sak,
-    ) = regulering.simuler { beregning, uføregrunnlag ->
-        Either.catch {
-            sak.lagNyUtbetaling(
-                saksbehandler = regulering.saksbehandler,
-                beregning = beregning,
-                clock = clock,
-                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                uføregrunnlag = uføregrunnlag,
-            ).let {
-                simulerUtbetaling(
-                    tidligereUtbetalinger = sak.utbetalinger,
-                    utbetalingForSimulering = it,
-                    simuler = utbetalingService::simulerUtbetaling,
-                )
-            }
-        }.fold(
-            {
-                log.error(
-                    "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
-                    it,
-                )
-                SimuleringFeilet.TekniskFeil.left()
-            },
-            { it },
-        )
-    }.mapLeft {
-        log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
-        KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
-    }
- */
 
     override fun beregnOgSimulerRegulering(
         regulering: ReguleringUnderBehandling,

@@ -61,7 +61,7 @@ class ReguleringManuellServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
-        if (regulering !is OpprettetRegulering || regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.FeilTilstand.left()
+        if (regulering !is ReguleringUnderBehandling || regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.FeilTilstand.left()
         val sak = sakService.hentSak(regulering.sakId).getOrElse {
             return KunneIkkeRegulereManuelt.FantIkkeSak.left()
         }
@@ -69,23 +69,7 @@ class ReguleringManuellServiceImpl(
             .leggTilUføre(uføregrunnlag, clock)
             .leggTilFradrag(fradrag)
 
-        /*
-        val beregnetRegulering = reguleringService.beregnRegulering(reguleringNyttGrunnlag, clock).getOrElse {
-            return KunneIkkeRegulereManuelt.BeregningFeilet.left()
-        }
-
-        val sak = sakService.hentSak(beregnetRegulering.sakId).getOrElse {
-            return KunneIkkeRegulereManuelt.FantIkkeSak.left()
-        }
-        val (simulertRegulering, _) = reguleringService.simulerReguleringOgUtbetaling(
-            beregnetRegulering,
-            sak,
-        ).getOrElse {
-            return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
-        }
-         */
-
-        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak, clock).getOrElse {
             return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
         }
 
