@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client.journalpost
 
+import java.time.LocalDate
+
 /**
  * Generell modell for spørringer mot dokumentoversiktFagsak
  */
@@ -44,6 +46,38 @@ internal data class HentJournalpostHttpResponse(
 
 internal data class HentJournalpostResponse(
     val journalpost: Journalpost?,
+)
+
+/**
+ * Generell modell for spørringer mot hentJournalpost med dokumentmetadata
+ */
+internal data class HentJournalpostMedDokumenterHttpResponse(
+    override val data: HentJournalpostMedDokumenterResponse?,
+    override val errors: List<Error>?,
+) : GraphQLHttpResponse()
+
+internal data class HentJournalpostMedDokumenterResponse(
+    val journalpost: JournalpostMedDokumenterResponse?,
+)
+
+internal data class JournalpostMedDokumenterResponse(
+    val journalpostId: String,
+    val tittel: String?,
+    val datoOpprettet: LocalDate?,
+    val dokumenter: List<DokumentInfoResponse> = emptyList(),
+)
+
+internal data class DokumentInfoResponse(
+    val dokumentInfoId: String,
+    val tittel: String?,
+    val brevkode: String?,
+    val dokumentstatus: String?,
+    val dokumentvarianter: List<DokumentvariantResponse> = emptyList(),
+)
+
+internal data class DokumentvariantResponse(
+    val variantFormat: String,
+    val filtype: String?,
 )
 
 /**

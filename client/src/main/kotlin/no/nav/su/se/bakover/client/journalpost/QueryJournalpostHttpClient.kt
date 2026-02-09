@@ -1,12 +1,19 @@
 package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
+import dokument.domain.journalføring.DokumentInfoMedVarianter
+import dokument.domain.journalføring.DokumentInnhold
+import dokument.domain.journalføring.DokumentVariant
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.ErTilknyttetSak
 import dokument.domain.journalføring.Journalpost
+import dokument.domain.journalføring.JournalpostMedDokumenter
+import dokument.domain.journalføring.KunneIkkeHenteDokument
+import dokument.domain.journalføring.KunneIkkeHenteJournalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
@@ -19,6 +26,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -100,6 +108,101 @@ internal class QueryJournalpostHttpClient(
                 } ?: return KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
             },
         )
+    }
+
+    override suspend fun hentJournalpostMedDokumenter(
+        journalpostId: JournalpostId,
+    ): Either<KunneIkkeHenteJournalpost, JournalpostMedDokumenter> {
+        val request = GraphQLQuery<HentJournalpostMedDokumenterHttpResponse>(
+            getQueryFrom("/hentJournalpostMedDokumenter.graphql"),
+            HentJournalpostVariables(journalpostId.toString()),
+        )
+        val brukerToken = JwtToken.BrukerToken.fraCoroutineContext()
+
+        return gqlRequest(
+            request = request,
+            token = azureAd.onBehalfOfToken(
+                originalToken = brukerToken.value,
+                otherAppId = safConfig.clientId,
+            ),
+        ).fold(
+            { feil ->
+                when (feil) {
+                    is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
+                    is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeHenteJournalpost.IkkeTilgang
+                    is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
+                    is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeHenteJournalpost.TekniskFeil
+                    is GraphQLApiFeil.HttpFeil.Ukjent -> KunneIkkeHenteJournalpost.Ukjent
+                    is GraphQLApiFeil.TekniskFeil -> KunneIkkeHenteJournalpost.TekniskFeil
+                }.left()
+            },
+            { response ->
+                response.data?.journalpost?.let { jp ->
+                    JournalpostMedDokumenter(
+                        journalpostId = JournalpostId(jp.journalpostId),
+                        tittel = jp.tittel,
+                        datoOpprettet = jp.datoOpprettet,
+                        dokumenter = jp.dokumenter.map { doc ->
+                            DokumentInfoMedVarianter(
+                                dokumentInfoId = doc.dokumentInfoId,
+                                tittel = doc.tittel,
+                                brevkode = doc.brevkode,
+                                dokumentstatus = doc.dokumentstatus,
+                                varianter = doc.dokumentvarianter.map { variant ->
+                                    DokumentVariant(
+                                        variantFormat = variant.variantFormat,
+                                        filtype = variant.filtype,
+                                    )
+                                },
+                            )
+                        },
+                    ).right()
+                } ?: KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
+            },
+        )
+    }
+
+    override suspend fun hentDokument(
+        journalpostId: JournalpostId,
+        dokumentInfoId: String,
+        variantFormat: String,
+    ): Either<KunneIkkeHenteDokument, DokumentInnhold> {
+        val brukerToken = JwtToken.BrukerToken.fraCoroutineContext()
+        val token = azureAd.onBehalfOfToken(
+            originalToken = brukerToken.value,
+            otherAppId = safConfig.clientId,
+        )
+        val url = URI.create("${safConfig.url}/rest/hentdokument/$journalpostId/$dokumentInfoId/$variantFormat")
+        val request = HttpRequest.newBuilder(url)
+            .header("Authorization", "Bearer $token")
+            .header("Nav-Consumer-Id", "su-se-bakover")
+            .header("Nav-Callid", getOrCreateCorrelationIdFromThreadLocal().toString())
+            .header("Accept", "*/*")
+            .GET()
+            .build()
+
+        return Either.catch {
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray()).await()
+        }.mapLeft { throwable ->
+            KunneIkkeHenteDokument.TekniskFeil(throwable.toString())
+        }.flatMap { response ->
+            when (response.statusCode()) {
+                200 -> {
+                    val headers = response.headers()
+                    DokumentInnhold(
+                        bytes = response.body(),
+                        contentType = headers.firstValue("Content-Type").orElse(null),
+                        contentDisposition = headers.firstValue("Content-Disposition").orElse(null),
+                    ).right()
+                }
+
+                400 -> KunneIkkeHenteDokument.UgyldigInput.left()
+                401 -> KunneIkkeHenteDokument.IkkeAutorisert.left()
+                403 -> KunneIkkeHenteDokument.IkkeTilgang.left()
+                404 -> KunneIkkeHenteDokument.FantIkkeDokument.left()
+                else -> KunneIkkeHenteDokument.Ukjent("Status: ${response.statusCode()}").left()
+            }
+        }
     }
 
     override fun hentJournalposterFor(

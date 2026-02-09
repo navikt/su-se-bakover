@@ -27,6 +27,7 @@ fun mockedServices() = Services(
     avslåSøknadManglendeDokumentasjonService = mock(),
     klageService = mock(),
     klageinstanshendelseService = mock(),
+    klageinstansDokumentService = mock(),
     reguleringAutomatiskService = mock(),
     reguleringManuellService = mock(),
     sendPåminnelserOmNyStønadsperiodeService = mock(),

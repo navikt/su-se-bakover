@@ -222,6 +222,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KlageinstansDokumentService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
@@ -1280,6 +1281,13 @@ open class AccessCheckProxy(
                 override fun håndterUtfallFraKlageinstans(
                     deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
                 ) = kastKanKunKallesFraAnnenService()
+            },
+            klageinstansDokumentService = object : KlageinstansDokumentService {
+                override suspend fun hentDokumenterForSak(
+                    sakId: UUID,
+                ) = services.klageinstansDokumentService.also {
+                    assertHarTilgangTilSak(sakId)
+                }.hentDokumenterForSak(sakId)
             },
             reguleringManuellService = object : ReguleringManuellService {
                 override fun avslutt(
