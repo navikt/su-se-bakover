@@ -77,7 +77,7 @@ internal data class DokumentInfoResponse(
 )
 
 internal data class DokumentvariantResponse(
-    @JsonProperty("variantformat")
+    @param:JsonProperty("variantformat")
     val variantFormat: String,
     val filtype: String?,
 )
