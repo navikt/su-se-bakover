@@ -24,10 +24,12 @@ class KlageinstansDokumentServiceImpl(
 
     override suspend fun hentDokumenterForSak(sakId: UUID): Either<KlageinstansDokumentFeil, List<KlageinstansDokument>> {
         val klager = klageRepo.hentKlager(sakId)
+        log.info("Hentet {} klager fra database for sakId={}", klager.size, sakId)
         val journalpostIder = klager
             .flatMap { it.klageinstanshendelserOrEmpty() }
             .flatMap { it.journalposterOrEmpty() }
             .distinct()
+        log.info("Fant {} journalpostIder fra klager for sakId={}", journalpostIder.size, sakId)
 
         return either {
             if (journalpostIder.isEmpty()) return@either emptyList()
@@ -36,6 +38,11 @@ class KlageinstansDokumentServiceImpl(
                 val journalpost = journalpostClient.hentJournalpostMedDokumenter(journalpostId)
                     .mapLeft { it.tilFeil() }
                     .bind()
+                log.info(
+                    "Hentet journalpost med dokumenter fra ekstern tjeneste. journalpostId={}, antallDokumenter={}",
+                    journalpostId,
+                    journalpost.dokumenter.size,
+                )
 
                 journalpost.dokumenter.mapNotNull dokument@{ dokument ->
                     val valgtVariant = velgVariant(
@@ -50,6 +57,12 @@ class KlageinstansDokumentServiceImpl(
                         variantFormat = valgtVariant.variantFormat,
                     ).mapLeft { it.tilFeil() }
                         .bind()
+                    log.info(
+                        "Hentet dokument fra ekstern tjeneste. journalpostId={}, dokumentInfoId={}, variantFormat={}",
+                        journalpostId,
+                        dokument.dokumentInfoId,
+                        valgtVariant.variantFormat,
+                    )
 
                     KlageinstansDokument(
                         journalpostId = journalpost.journalpostId,

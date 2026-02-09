@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.journalpost
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 /**
@@ -76,6 +77,7 @@ internal data class DokumentInfoResponse(
 )
 
 internal data class DokumentvariantResponse(
+    @JsonProperty("variantformat")
     val variantFormat: String,
     val filtype: String?,
 )
