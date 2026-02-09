@@ -13,8 +13,11 @@ sealed interface KunneIkkeHenteReguleringsgrunnlag {
 }
 
 sealed interface KunneIkkeRegulereManuelt {
+    interface Beregne : KunneIkkeRegulereManuelt {
+        data object ReguleringstypeAutomatisk : Beregne
+        data object IkkeUnderBehandling : Beregne
+    }
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
-    data object FeilTilstand : KunneIkkeRegulereManuelt
     data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt

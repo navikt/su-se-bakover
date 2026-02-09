@@ -61,7 +61,8 @@ class ReguleringManuellServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
-        if (regulering !is ReguleringUnderBehandling || regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.FeilTilstand.left()
+        if (regulering !is ReguleringUnderBehandling) return KunneIkkeRegulereManuelt.Beregne.IkkeUnderBehandling.left()
+        if (regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.Beregne.ReguleringstypeAutomatisk.left()
         val sak = sakService.hentSak(regulering.sakId).getOrElse {
             return KunneIkkeRegulereManuelt.FantIkkeSak.left()
         }

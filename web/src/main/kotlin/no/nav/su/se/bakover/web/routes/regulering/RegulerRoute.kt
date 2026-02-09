@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -442,9 +443,19 @@ val fantIkkeRegulering = HttpStatusCode.BadRequest.errorJson(
     "fant_ikke_regulering",
 )
 
-val reguleringFeilTilstand = HttpStatusCode.BadRequest.errorJson(
-    "Regulering er ikke i riktig tilstand for manuell behandling",
-    "regulering_feil_tilstand",
+val reguleringErIkkeUnderBehandling = HttpStatusCode.BadRequest.errorJson(
+    "Reguleringstype er ferdigstilt",
+    "regulering_ikke_under_behandling",
+)
+
+val reguleringErAutomatisk = HttpStatusCode.BadRequest.errorJson(
+    "Regulering er type automatisk",
+    "regulering_er_automatisk",
+)
+
+val reguleringFeiletUnderBeregening = HttpStatusCode.BadRequest.errorJson(
+    "Regulering er type automatisk",
+    "regulering_er_automatisk",
 )
 
 val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
@@ -457,7 +468,7 @@ internal fun KunneIkkeHenteReguleringsgrunnlag.tilResultat(): Resultat = when (t
     KunneIkkeHenteReguleringsgrunnlag.FantIkkeGjeldendeVedtaksdata -> fantIkkeVedtaksdata
 }
 
-internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
+internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
         "Reguleringen er allerede ferdigstilt",
         "regulering_allerede_ferdigstilt",
@@ -469,12 +480,15 @@ internal fun KunneIkkeRegulereManuelt.tilResultat(): Resultat = when (this) {
     )
 
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
-    KunneIkkeRegulereManuelt.FeilTilstand -> reguleringFeilTilstand
     KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet -> Feilresponser.ukjentBeregningOgSimuleringFeil
     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
         "Stanset ytelse må startes før den kan reguleres",
         "stanset_ytelse_må_startes_før_den_kan_reguleres",
     )
+
+    is Beregne.IkkeUnderBehandling -> reguleringErIkkeUnderBehandling
+    is Beregne.ReguleringstypeAutomatisk -> reguleringErAutomatisk
+    is Beregne -> reguleringFeiletUnderBeregening
 
     is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
         "Kunne ikke ferdigstille regulering på grunn av ${this.feil}",
