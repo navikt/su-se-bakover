@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import java.time.LocalDate
 
 data object QueryJournalpostClientStub : QueryJournalpostClient {
     override suspend fun erTilknyttetSak(
@@ -68,6 +69,7 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
         return JournalpostMedDokumenter(
             journalpostId = journalpostId,
             tittel = "Stub journalpost",
+            datoOpprettet = LocalDate.of(2020, 1, 1),
             dokumenter = listOf(
                 DokumentInfoMedVarianter(
                     dokumentInfoId = "stub-doc-1",

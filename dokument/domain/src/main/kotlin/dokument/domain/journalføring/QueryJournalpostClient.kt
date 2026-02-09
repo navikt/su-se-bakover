@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import java.time.LocalDate
 
 interface QueryJournalpostClient {
     /**
@@ -75,6 +76,7 @@ sealed interface KunneIkkeHenteJournalposter {
 data class JournalpostMedDokumenter(
     val journalpostId: JournalpostId,
     val tittel: String?,
+    val datoOpprettet: LocalDate?,
     val dokumenter: List<DokumentInfoMedVarianter>,
 )
 

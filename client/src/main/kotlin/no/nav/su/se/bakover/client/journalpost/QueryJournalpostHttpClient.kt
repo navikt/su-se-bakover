@@ -141,6 +141,7 @@ internal class QueryJournalpostHttpClient(
                     JournalpostMedDokumenter(
                         journalpostId = JournalpostId(jp.journalpostId),
                         tittel = jp.tittel,
+                        datoOpprettet = jp.datoOpprettet,
                         dokumenter = jp.dokumenter.map { doc ->
                             DokumentInfoMedVarianter(
                                 dokumentInfoId = doc.dokumentInfoId,

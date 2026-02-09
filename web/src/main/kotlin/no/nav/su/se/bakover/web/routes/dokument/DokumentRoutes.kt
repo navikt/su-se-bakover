@@ -155,6 +155,7 @@ internal fun Route.dokumentRoutes(
 private data class KlageinstansDokumentJson(
     val journalpostId: String,
     val journalpostTittel: String?,
+    val datoOpprettet: String?,
     val dokumentInfoId: String,
     val dokumentTittel: String?,
     val brevkode: String?,
@@ -171,6 +172,7 @@ private fun KlageinstansDokument.toJson(): KlageinstansDokumentJson {
     return KlageinstansDokumentJson(
         journalpostId = journalpostId.toString(),
         journalpostTittel = journalpostTittel,
+        datoOpprettet = datoOpprettet?.toString(),
         dokumentInfoId = dokumentInfoId,
         dokumentTittel = dokumentTittel,
         brevkode = brevkode,

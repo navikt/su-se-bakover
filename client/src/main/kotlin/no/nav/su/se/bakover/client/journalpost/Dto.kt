@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client.journalpost
 
+import java.time.LocalDate
+
 /**
  * Generell modell for spørringer mot dokumentoversiktFagsak
  */
@@ -61,6 +63,7 @@ internal data class HentJournalpostMedDokumenterResponse(
 internal data class JournalpostMedDokumenterResponse(
     val journalpostId: String,
     val tittel: String?,
+    val datoOpprettet: LocalDate?,
     val dokumenter: List<DokumentInfoResponse> = emptyList(),
 )
 

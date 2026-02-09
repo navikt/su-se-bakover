@@ -32,8 +32,6 @@ class KlageinstansDokumentServiceImpl(
         return either {
             if (journalpostIder.isEmpty()) return@either emptyList()
 
-            val seen = mutableSetOf<String>()
-
             journalpostIder.flatMap { journalpostId ->
                 val journalpost = journalpostClient.hentJournalpostMedDokumenter(journalpostId)
                     .mapLeft { it.tilFeil() }
@@ -41,8 +39,6 @@ class KlageinstansDokumentServiceImpl(
 
                 journalpost.dokumenter.mapNotNull dokument@{ dokument ->
                     val valgtVariant = velgVariant(dokument.varianter) ?: return@dokument null
-                    val key = "${journalpostId}_${dokument.dokumentInfoId}_${valgtVariant.variantFormat}"
-                    if (!seen.add(key)) return@dokument null
 
                     val innhold = journalpostClient.hentDokument(
                         journalpostId = journalpostId,
@@ -54,6 +50,7 @@ class KlageinstansDokumentServiceImpl(
                     KlageinstansDokument(
                         journalpostId = journalpost.journalpostId,
                         journalpostTittel = journalpost.tittel,
+                        datoOpprettet = journalpost.datoOpprettet,
                         dokumentInfoId = dokument.dokumentInfoId,
                         dokumentTittel = dokument.tittel,
                         brevkode = dokument.brevkode,
@@ -63,6 +60,11 @@ class KlageinstansDokumentServiceImpl(
                     )
                 }
             }
+        }.map { dokumenter ->
+            dokumenter.sortedWith(
+                compareBy<KlageinstansDokument> { it.datoOpprettet == null }
+                    .thenBy { it.datoOpprettet },
+            )
         }
     }
 
