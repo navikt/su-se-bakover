@@ -11,7 +11,7 @@ query($journalpostId: String!){
             brevkode
             dokumentstatus
             dokumentvarianter {
-                variantFormat
+                variantformat
                 filtype
             }
         }
