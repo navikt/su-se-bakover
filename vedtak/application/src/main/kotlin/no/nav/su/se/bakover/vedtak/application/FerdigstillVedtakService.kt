@@ -192,7 +192,7 @@ class FerdigstillVedtakServiceImpl(
                 distribueringsadresse = null,
             )
 
-            // foreløpig bare revurdering som bruker denne? kanskej klage og tk og? søknad har egen
+            // SOS TODO: RM deenne kan slettes etter https://github.com/navikt/su-se-bakover/pull/2547 går i prod og har stått 24 t
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
                     mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
