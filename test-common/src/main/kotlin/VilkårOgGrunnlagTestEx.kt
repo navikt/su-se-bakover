@@ -286,11 +286,25 @@ fun Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Fradragsgrunnlag) {
     this.id shouldNotBe expected.id
 }
 
+fun Fradragsgrunnlag.shouldBeEqualToExceptIdAndOpprettet(expected: Fradragsgrunnlag) {
+    this.shouldBe(Fradragsgrunnlag.create(id, this.opprettet, expected.fradrag))
+    this.id shouldNotBe expected.id
+}
+
 @JvmName("shouldBeEqualToExceptIdGrunnlagFradragsgrunnlag")
 fun List<Fradragsgrunnlag>.shouldBeEqualToExceptId(expected: List<Fradragsgrunnlag>) {
     withClue("Actual: $this, Expected: $expected") {
         this.zip(expected).map { (actual, expected) ->
             actual.shouldBeEqualToExceptId(expected)
+        }
+    }
+}
+
+@JvmName("shouldBeEqualToExceptIdAndOpprettetGrunnlagFradragsgrunnlag")
+fun List<Fradragsgrunnlag>.shouldBeEqualToExceptIdAndOpprettet(expected: List<Fradragsgrunnlag>) {
+    withClue("Actual: $this, Expected: $expected") {
+        this.zip(expected).map { (actual, expected) ->
+            actual.shouldBeEqualToExceptIdAndOpprettet(expected)
         }
     }
 }

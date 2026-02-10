@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
@@ -27,6 +28,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
     override val sak: Sak,
     override val vedtak: Opphørsvedtak,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
+    override val dokument: Dokument.MedMetadata?,
     val clock: Clock,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
     override fun ferdigstillIverksettelseITransaksjon(
@@ -36,6 +38,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -59,6 +62,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
 
                 annullerKontrollsamtale(sak.id, tx)
                 lagreRevurdering(vedtak.behandling, tx)
+                dokument?.let { lagreDokumentMedKopi(it, tx) }
 
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak)
                 statistikkObservers().notify(sakStatistikkEvent, tx)

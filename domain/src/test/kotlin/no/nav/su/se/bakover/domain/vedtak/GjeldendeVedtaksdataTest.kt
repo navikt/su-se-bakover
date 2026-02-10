@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
+import no.nav.su.se.bakover.test.shouldBeEqualToExceptIdAndOpprettet
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -272,18 +273,16 @@ internal class GjeldendeVedtaksdataTest {
                 april(2021) to førsteSøknadsbehandlingsvedtak,
                 juni(2021) to andreSøknadsbehandlingsvedtak,
             )
-            it.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptId(
+            it.grunnlagsdata.fradragsgrunnlag.shouldBeEqualToExceptIdAndOpprettet(
                 listOf(
                     nyFradragsgrunnlag(
                         periode = revurderingsperiode,
                         månedsbeløp = 5000.0,
-                        opprettet = Tidspunkt.parse("2021-02-01T00:01:37Z"),
                         id = fradragRevurdering.id,
                         type = fradragRevurdering.fradragstype,
                     ),
                     nyFradragsgrunnlag(
                         periode = juni(2021),
-                        opprettet = Tidspunkt.parse("2021-02-01T00:01:37Z"),
                         månedsbeløp = fradragAndreSøknadsbehandling.månedsbeløp,
                         id = fradragAndreSøknadsbehandling.id,
                         type = fradragAndreSøknadsbehandling.fradragstype,

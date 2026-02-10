@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.domain.revurdering.iverksett
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.either
+import dokument.domain.Dokument
+import dokument.domain.GenererDokumentCommand
+import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -12,6 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.iverksettInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.opphør.medUtbetaling.iverksettOpphørtRevurderingMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.Revurderingsvedtak
+import satser.domain.SatsFactory
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
@@ -21,6 +25,9 @@ fun Sak.iverksettRevurdering(
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    genererPdf: (command: GenererDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
+    satsFactory: SatsFactory,
+    fritekst: String,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {
     return either {
         val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
@@ -33,6 +40,9 @@ fun Sak.iverksettRevurdering(
                 attestant = attestant,
                 clock = clock,
                 simuler = simuler,
+                genererPdf = genererPdf,
+                satsFactory = satsFactory,
+                fritekst = fritekst,
             )
 
             is RevurderingTilAttestering.Opphørt -> {
@@ -41,6 +51,9 @@ fun Sak.iverksettRevurdering(
                     attestant = attestant,
                     clock = clock,
                     simuler = simuler,
+                    genererPdf = genererPdf,
+                    satsFactory = satsFactory,
+                    fritekst = fritekst,
                 )
             }
         }.bind()

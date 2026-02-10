@@ -2,16 +2,12 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
-import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -24,6 +20,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
+import no.nav.su.se.bakover.service.brev.lagreDokumentMedKopi
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
@@ -32,7 +29,6 @@ import satser.domain.SatsFactory
 import vedtak.domain.Stønadsvedtak
 import økonomi.application.utbetaling.UtbetalingService
 import java.time.Clock
-import java.util.UUID
 
 class IverksettSøknadsbehandlingServiceImpl(
     private val sakService: SakService,
@@ -82,36 +78,15 @@ class IverksettSøknadsbehandlingServiceImpl(
     override fun iverksett(
         iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
     ) {
-        val lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
-            if (dokument is Dokument.MedMetadata.Vedtak) {
-                val mottaker = mottakerService.hentMottaker(
-                    MottakerIdentifikator(
-                        ReferanseTypeMottaker.SØKNAD,
-                        referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
-                    ),
-                    iverksattSøknadsbehandlingResponse.vedtak.behandling.sakId,
-                    tx,
-                ).getOrElse { null }
-
-                if (mottaker != null) {
-                    val identifikator = when (mottaker) {
-                        is MottakerFnrDomain -> mottaker.foedselsnummer.toString()
-                        is MottakerOrgnummerDomain -> mottaker.orgnummer
-                    }
-
-                    val kopi = dokument.copy(
-                        id = UUID.randomUUID(),
-                        tittel = dokument.tittel + "(KOPI)",
-                        erKopi = true,
-                        ekstraMottaker = identifikator,
-                        navnEkstraMottaker = mottaker.navn,
-                        distribueringsadresse = mottaker.adresse,
-                    )
-                    brevService.lagreDokument(kopi, tx)
-                }
-            }
-            brevService.lagreDokument(dokument, tx)
-        }
+        val lagreDokumentMedKopi = lagreDokumentMedKopi(
+            brevService = brevService,
+            mottakerService = mottakerService,
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.SØKNAD,
+                referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
+            ),
+            sakId = iverksattSøknadsbehandlingResponse.vedtak.behandling.sakId,
+        )
 
         iverksattSøknadsbehandlingResponse.ferdigstillIverksettelseITransaksjon(
             klargjørUtbetaling = utbetalingService::klargjørUtbetaling,

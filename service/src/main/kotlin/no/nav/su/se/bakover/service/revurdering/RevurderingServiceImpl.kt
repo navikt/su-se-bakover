@@ -29,6 +29,9 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -107,6 +110,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import no.nav.su.se.bakover.service.brev.lagreDokumentMedKopi
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
@@ -127,6 +131,7 @@ class RevurderingServiceImpl(
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val brevService: BrevService,
+    private val mottakerService: MottakerService,
     private val clock: Clock,
     private val vedtakService: VedtakService,
     private val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService,
@@ -984,13 +989,30 @@ class RevurderingServiceImpl(
         revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = revurderingId.value,
+            type = FritekstType.VEDTAKSBREV_REVURDERING,
+        ).map { it.fritekst }.getOrElse { "" }
+
         return sakService.hentSakForRevurdering(revurderingId).iverksettRevurdering(
             revurderingId = revurderingId,
             attestant = attestant,
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
-        ).flatMap {
-            it.ferdigstillIverksettelseITransaksjon(
+            genererPdf = brevService::lagDokumentPdf,
+            satsFactory = satsFactory,
+            fritekst = fritekst,
+        ).flatMap { response ->
+            val lagreDokumentMedKopi = lagreDokumentMedKopi(
+                brevService = brevService,
+                mottakerService = mottakerService,
+                mottakerIdentifikator = MottakerIdentifikator(
+                    ReferanseTypeMottaker.REVURDERING,
+                    referanseId = response.vedtak.behandling.id.value,
+                ),
+                sakId = response.vedtak.behandling.sakId,
+            )
+            response.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                 lagreVedtak = vedtakService::lagreITransaksjon,
@@ -1001,6 +1023,7 @@ class RevurderingServiceImpl(
                 lagreSakstatistikk = { statistikkHendelse, tx ->
                     sakStatistikkService.lagre(statistikkHendelse, tx)
                 },
+                lagreDokumentMedKopi = lagreDokumentMedKopi,
             ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }

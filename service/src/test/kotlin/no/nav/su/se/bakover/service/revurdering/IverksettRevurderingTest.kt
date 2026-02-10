@@ -109,6 +109,9 @@ internal class IverksettRevurderingTest {
             revurdering = argThat { it shouldBe response },
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
+        verify(serviceAndMocks.brevService).lagDokumentPdf(any(), anyOrNull())
+        verify(serviceAndMocks.brevService).lagreDokument(any(), anyOrNull())
+        verify(serviceAndMocks.mottakerService).hentMottaker(any(), any(), anyOrNull())
         verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
 
         serviceAndMocks.verifyNoMoreInteractions()
@@ -178,6 +181,9 @@ internal class IverksettRevurderingTest {
             revurdering = any(),
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
+        verify(serviceAndMocks.brevService).lagDokumentPdf(any(), anyOrNull())
+        verify(serviceAndMocks.brevService).lagreDokument(any(), anyOrNull())
+        verify(serviceAndMocks.mottakerService).hentMottaker(any(), any(), anyOrNull())
         verify(callback).invoke(utbetalingKlarForOversendelse.utbetaling.utbetalingsrequest)
         serviceAndMocks.verifyNoMoreInteractions()
     }

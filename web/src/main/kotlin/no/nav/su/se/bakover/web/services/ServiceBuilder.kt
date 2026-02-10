@@ -221,6 +221,7 @@ data object ServiceBuilder {
             oppgaveService = oppgaveService,
             personService = personService,
             brevService = brevService,
+            mottakerService = mottakerService,
             clock = clock,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
