@@ -35,12 +35,12 @@ class KodeverkHttpClient(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     private val poststedCache: Cache<String, KodeverkCacheValue> = newCache(
-        expireAfterWrite = Duration.ofHours(12),
+        expireAfterWrite = Duration.ofMinutes(30),
         cacheName = "kodeverk-poststed",
         suMetrics = suMetrics,
     )
     private val kommunenavnCache: Cache<String, KodeverkCacheValue> = newCache(
-        expireAfterWrite = Duration.ofHours(12),
+        expireAfterWrite = Duration.ofMinutes(30),
         cacheName = "kodeverk-kommunenavn",
         suMetrics = suMetrics,
     )
