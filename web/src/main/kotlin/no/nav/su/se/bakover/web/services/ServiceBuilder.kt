@@ -324,7 +324,7 @@ data object ServiceBuilder {
             clock = clock,
             dokumentRepo = databaseRepos.dokumentRepo,
             brevService = brevService,
-            clients.queryJournalpostClient,
+            journalpostClient = clients.queryJournalpostClient,
             personService = personService,
             fritekstService = fritekstService,
         ).apply { addObserver(statistikkEventObserver) }
