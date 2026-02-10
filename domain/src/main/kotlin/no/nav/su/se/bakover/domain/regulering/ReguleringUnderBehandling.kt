@@ -8,7 +8,9 @@ import behandling.domain.BehandlingMedAttestering
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.attestering.UnderkjennAttesteringsgrunn
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -143,9 +145,6 @@ sealed class ReguleringUnderBehandling :
         }
     }
 
-    fun tilIverksatt(): IverksattRegulering =
-        IverksattRegulering(opprettetRegulering = this, beregning!!, simulering!!)
-
     fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {
         return AvsluttetRegulering(
             opprettetRegulering = this,
@@ -238,7 +237,48 @@ sealed class ReguleringUnderBehandling :
         override val sakstype: Sakstype,
         override val eksternSupplementRegulering: EksternSupplementRegulering,
         override val attesteringer: Attesteringshistorikk,
-    ) : ReguleringUnderBehandling()
+    ) : ReguleringUnderBehandling() {
+
+        fun godkjenn(attestant: NavIdentBruker.Attestant, clock: Clock): IverksattRegulering {
+            val godkjentRegulering = copy(
+                attesteringer = attesteringer.leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        attestant = attestant,
+                        opprettet = Tidspunkt.now(clock),
+                    ),
+                ),
+            )
+            return IverksattRegulering(godkjentRegulering, beregning, simulering)
+        }
+
+        fun underkjenn(
+            attestant: NavIdentBruker.Attestant,
+            kommentar: String,
+            clock: Clock,
+        ) = BeregnetRegulering(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            saksbehandler = saksbehandler,
+            reguleringstype = reguleringstype,
+            sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering,
+            beregning = beregning,
+            simulering = simulering,
+            attesteringer = attesteringer.leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = attestant,
+                    opprettet = Tidspunkt.now(clock),
+                    grunn = UnderkjentRegulering,
+                    kommentar = kommentar,
+                ),
+            ),
+        )
+        object UnderkjentRegulering : UnderkjennAttesteringsgrunn
+    }
 }
 
 data class FeilMedBeregningsgrunnlag(

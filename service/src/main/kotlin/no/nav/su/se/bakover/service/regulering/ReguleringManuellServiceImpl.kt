@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
-import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -98,17 +97,27 @@ class ReguleringManuellServiceImpl(
 
     override fun godkjennRegulering(
         reguleringId: ReguleringId,
-        attestant: NavIdentBruker.Saksbehandler,
+        attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForIverksettelse.left()
+        val iverksattRegulering = regulering.godkjenn(attestant, clock)
         // TODO må det kontrollsimuleres noe?
-        TODO("Not yet implemented")
+        reguleringRepo.lagre(iverksattRegulering)
+        return iverksattRegulering.right()
     }
 
     override fun underkjennRegulering(
         reguleringId: ReguleringId,
-        attestant: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
-        TODO("Not yet implemented")
+        attestant: NavIdentBruker.Attestant,
+        kommentar: String,
+        clock: Clock,
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse.left()
+        val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
+        reguleringRepo.lagre(underkjentRegulering)
+        return underkjentRegulering.right()
     }
 
     override fun regulerManuelt(

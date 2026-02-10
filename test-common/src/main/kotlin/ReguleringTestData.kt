@@ -104,7 +104,8 @@ fun iverksattAutomatiskRegulering(
     val beregning = opprettet.beregn(satsFactoryTestPåDato(), null, clock)
     val simulering = simulertUtbetaling().simulering
     val beregnetRegulering = opprettet.tilBeregnet(beregning, simulering)
-    return beregnetRegulering.tilIverksatt()
+    return beregnetRegulering.tilAttestering(saksbehandler)
+        .godkjenn(NavIdentBruker.Attestant(saksbehandler.navIdent), clock)
 }
 
 fun ReguleringUnderBehandling.beregn(

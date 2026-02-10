@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
+import java.time.Clock
 
 sealed interface KunneIkkeHenteReguleringsgrunnlag {
     data object FantIkkeRegulering : KunneIkkeHenteReguleringsgrunnlag
@@ -19,6 +19,8 @@ sealed interface KunneIkkeRegulereManuelt {
         data object FeilMedBeregningsgrunnlag : Beregne
     }
     data object FeilTilstandForAttestering : KunneIkkeRegulereManuelt
+    data object FeilTilstandForIverksettelse : KunneIkkeRegulereManuelt
+    data object FeilTilstandForUnderkjennelse : KunneIkkeRegulereManuelt
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
@@ -58,13 +60,15 @@ interface ReguleringManuellService {
 
     fun godkjennRegulering(
         reguleringId: ReguleringId,
-        attestant: NavIdentBruker.Saksbehandler,
+        attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 
     fun underkjennRegulering(
         reguleringId: ReguleringId,
-        attestant: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering>
+        attestant: NavIdentBruker.Attestant,
+        kommentar: String,
+        clock: Clock,
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
     fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
 

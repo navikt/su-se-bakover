@@ -569,10 +569,12 @@ class TestDataHelper(
                 Simuleringsresultat.UtenForskjeller(it)
             }.simulertUtbetaling
             val beregnetRegulering = regulering.tilBeregnet(beregning, simulering.simulering)
-            beregnetRegulering.tilIverksatt().let { iverksattAttestering ->
-                databaseRepos.reguleringRepo.lagre(iverksattAttestering)
-                sak.oppdaterRegulering(iverksattAttestering) to iverksattAttestering
-            }
+            beregnetRegulering.tilAttestering(saksbehandler)
+                .godkjenn(NavIdentBruker.Attestant(saksbehandler.navIdent), clock)
+                .let { iverksattAttestering ->
+                    databaseRepos.reguleringRepo.lagre(iverksattAttestering)
+                    sak.oppdaterRegulering(iverksattAttestering) to iverksattAttestering
+                }
         }
     }
 
