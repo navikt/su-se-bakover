@@ -55,7 +55,7 @@ internal class PersonClient(
             PersonMedSkjermingOgKontaktinfo(
                 person = toPerson(it, brukerToken),
                 skjermet = config.skjerming.erSkjermet(it.ident.fnr, brukerToken),
-                kontaktinfo = kontaktinfo(it.ident.fnr),
+                kontaktinfo = hentKontaktinfo(it.ident.fnr),
             )
         }
     }
@@ -127,7 +127,7 @@ internal class PersonClient(
         kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer, token).getOrNull(),
     )
 
-    private fun kontaktinfo(fnr: Fnr): Kontaktinfo? {
+    private fun hentKontaktinfo(fnr: Fnr): Kontaktinfo? {
         return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(
             {
                 when (it) {

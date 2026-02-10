@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
@@ -45,6 +46,7 @@ import java.time.LocalDate
 class StubClientsBuilder(
     val clock: Clock,
     val databaseRepos: DatabaseRepos,
+    private val suMetrics: SuMetrics,
 ) : ClientsBuilder {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -73,7 +75,13 @@ class StubClientsBuilder(
                 ).also { log.warn("********** Using stubs for ${JournalførClients::class.java} **********") }
             },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
-            kodeverk = KodeverkHttpClient("mocked", "mocked", oauth, "mocked"),
+            kodeverk = KodeverkHttpClient(
+                baseUrl = "mocked",
+                consumerId = "mocked",
+                azureAd = oauth,
+                kodeverkClientId = "mocked",
+                suMetrics = suMetrics,
+            ),
             simuleringClient = SimuleringStub(
                 clock = clock,
                 utbetalingerKjørtTilOgMed = { LocalDate.now(clock) },

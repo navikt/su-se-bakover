@@ -5,7 +5,6 @@ import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
-import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.cache.newCache
@@ -14,7 +13,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
 class KontaktOgReservasjonsregisterClientTest {
@@ -35,26 +33,32 @@ class KontaktOgReservasjonsregisterClientTest {
 
     @Test
     fun `Returnerer cachet response`() {
-        val fnr = Fnr("07028820547")
-        val cache: Cache<Fnr, Kontaktinformasjon> = newCache(cacheName = "kontaktinfo", suMetrics = mock())
-        val config = mock<ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig> {
-            on { url } doReturn "http://localhost:8080"
-            on { appId } doReturn "some-app-id" // <- important
+        startedWireMockServerWithCorrelationId {
+            val fnr = Fnr("07028820547")
+            val cache: Cache<Fnr, Kontaktinformasjon> = newCache(cacheName = "kontaktinfo", suMetrics = mock())
+            val client = KontaktOgReservasjonsregisterClient(
+                config = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
+                    appId = "some-app-id",
+                    url = baseUrl(),
+                ),
+                azure = AzureClientStub,
+                suMetrics = mock(),
+                krrCache = cache,
+            )
+
+            val kontakt = Kontaktinformasjon(
+                epostadresse = "noreply@nav.no",
+                mobiltelefonnummer = "11111111",
+                reservert = false,
+                kanVarsles = false,
+                språk = "nb",
+            )
+
+            cache.put(fnr, kontakt)
+
+            client.hentKontaktinformasjon(fnr).shouldBeRight(kontakt)
+            verify(0, WireMock.postRequestedFor(WireMock.urlPathEqualTo(PERSONER_PATH)))
         }
-
-        val client = KontaktOgReservasjonsregisterClient(config, AzureClientStub, mock(), cache)
-
-        val kontakt = Kontaktinformasjon(
-            epostadresse = "noreply@nav.no",
-            mobiltelefonnummer = "11111111",
-            reservert = false,
-            kanVarsles = false,
-            språk = "nb",
-        )
-
-        client.hentKontaktinformasjon(fnr).shouldBeLeft()
-        cache.put(fnr, kontakt)
-        client.hentKontaktinformasjon(fnr).shouldBeRight(kontakt)
     }
 
     @Test

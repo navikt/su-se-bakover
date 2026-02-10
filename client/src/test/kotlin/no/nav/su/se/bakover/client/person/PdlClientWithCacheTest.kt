@@ -69,7 +69,7 @@ class PdlClientWithCacheTest {
     }
 
     @Test
-    fun `Andre kall hentes ikke fra cache`() {
+    fun `Ulikt fnr gir ikke cache-treff`() {
         val fnr = Fnr("07028820547")
         val fnrNummerTo = Fnr("33332882057")
         val brukerToken = JwtToken.BrukerToken("ignored because of mock")
