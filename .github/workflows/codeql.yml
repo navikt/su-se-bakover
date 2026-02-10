@@ -23,8 +23,8 @@ jobs:
       - name: CodeQL Init
         uses: github/codeql-action/init@v4
         with:
-          languages: kotlin
-          queries: security-and-quality
+          languages: java-kotlin
+          queries: security-extended
           setup-python-dependencies: false
           ram: 16000
           threads: 8

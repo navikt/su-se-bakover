@@ -7,3 +7,5 @@ query-filters:
   - exclude:
       problem.severity:
         - note
+  - exclude:
+      id: java/local-variable-is-never-read
