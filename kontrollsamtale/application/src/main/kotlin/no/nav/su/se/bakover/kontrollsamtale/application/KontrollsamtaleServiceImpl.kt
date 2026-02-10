@@ -82,7 +82,7 @@ class KontrollsamtaleServiceImpl(
         if (sak.erStanset()) {
             val sisteUtbetalingslinje = sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
             if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(LocalDate.now(clock))) {
-                log.error("Stansen er sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres.")
+                log.error("Stansen er sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres evt kontrollsamtalen opphøres.")
             }
             log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
             return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
