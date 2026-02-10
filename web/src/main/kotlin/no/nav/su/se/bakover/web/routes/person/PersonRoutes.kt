@@ -161,16 +161,16 @@ data class PersonResponseJson(
                     relatertVedSivilstand = sivilstand.relatertVedSivilstand?.toString(),
                 )
             },
-            fødsel = when (person.fødsel) {
+            fødsel = when (val fødsel = person.fødsel) {
                 is Person.Fødsel.MedFødselsdato -> Fødsel(
-                    dato = (person.fødsel as Person.Fødsel.MedFødselsdato).dato,
-                    år = (person.fødsel as Person.Fødsel.MedFødselsdato).år.value,
-                    alder = (person.fødsel as Person.Fødsel.MedFødselsdato).getAlder(LocalDate.now(clock)),
+                    dato = fødsel.dato,
+                    år = fødsel.år.value,
+                    alder = fødsel.getAlder(LocalDate.now(clock)),
                 )
 
                 is Person.Fødsel.MedFødselsår -> Fødsel(
                     dato = null,
-                    år = (person.fødsel as Person.Fødsel.MedFødselsår).år.value,
+                    år = fødsel.år.value,
                     alder = null,
                 )
 
