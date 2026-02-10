@@ -177,7 +177,7 @@ data class PersonResponseJson(
             },
             adressebeskyttelse = this.adressebeskyttelse,
             skjermet = this.skjermet,
-            kontaktinfo = this.kontaktinfo?.let {
+            kontaktinfo = this.kontaktinfo()?.let {
                 KontaktinfoJson(
                     epostadresse = it.epostadresse,
                     mobiltelefonnummer = it.mobiltelefonnummer,
