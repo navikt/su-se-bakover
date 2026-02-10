@@ -35,7 +35,6 @@ import person.domain.PersonService
 import vilkår.skatt.application.SkatteService
 import økonomi.application.utbetaling.UtbetalingService
 
-// Interface som definerer type service?
 data class Services(
     val avstemming: AvstemmingService,
     val utbetaling: UtbetalingService,

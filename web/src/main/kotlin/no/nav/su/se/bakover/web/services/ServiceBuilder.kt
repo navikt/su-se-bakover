@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
@@ -64,13 +65,239 @@ data object ServiceBuilder {
         dbMetrics: DbMetrics,
         sakStatistikkRepo: SakStatistikkRepo,
     ): Services {
+        val kjerneTjenester = buildKjerneTjenester(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            clock = clock,
+            applicationConfig = applicationConfig,
+            sakStatistikkRepo = sakStatistikkRepo,
+        )
+        val søknadService = buildSøknadService(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            clock = clock,
+            kjerneTjenester = kjerneTjenester,
+        )
+        val skatteServices = buildSkattServices(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            clock = clock,
+            kjerneTjenester = kjerneTjenester,
+        )
+        val søknadsbehandlingService = buildSøknadsbehandlingService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            skatteService = skatteServices.skatteService,
+            formuegrenserFactory = formuegrenserFactory,
+            satsFactory = satsFactory,
+            clock = clock,
+        )
+        val vedtakService = buildVedtakService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            søknadsbehandlingService = søknadsbehandlingService,
+            clock = clock,
+            sakStatistikkRepo = sakStatistikkRepo,
+        )
+        val mottakerService = buildMottakerService(databaseRepos)
+        val ferdigstillVedtakService = buildFerdigstillVedtakService(
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            mottakerService = mottakerService,
+            satsFactory = satsFactory,
+            clock = clock,
+        )
+        val stansAvYtelseService = buildStansYtelseService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            clock = clock,
+        )
+        val postgresSessionFactory = databaseRepos.requirePostgresSessionFactory()
+        val kontrollsamtaleSetup = buildKontrollsamtaleSetup(
+            kjerneTjenester = kjerneTjenester,
+            stansAvYtelseService = stansAvYtelseService,
+            applicationConfig = applicationConfig,
+            clients = clients,
+            dbMetrics = dbMetrics,
+            clock = clock,
+            sessionFactory = postgresSessionFactory,
+        )
+        val revurderingService = buildRevurderingService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            mottakerService = mottakerService,
+            kontrollsamtaleSetup = kontrollsamtaleSetup,
+            formuegrenserFactory = formuegrenserFactory,
+            satsFactory = satsFactory,
+            clock = clock,
+        )
+        val gjenopptaYtelseService = buildGjenopptaYtelseService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            clock = clock,
+        )
+        val reguleringServices = buildReguleringServices(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            satsFactory = satsFactory,
+            clock = clock,
+        )
+        val klageServices = buildKlageServices(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            clock = clock,
+        )
+        val iverksettSøknadsbehandlingService = buildIverksettSøknadsbehandlingService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            vedtakService = vedtakService,
+            kontrollsamtaleSetup = kontrollsamtaleSetup,
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            skattDokumentService = skatteServices.skattDokumentService,
+            satsFactory = satsFactory,
+            clock = clock,
+            mottakerService = mottakerService,
+        )
+        val lukkSøknadService = buildLukkSøknadService(
+            databaseRepos = databaseRepos,
+            kjerneTjenester = kjerneTjenester,
+            søknadService = søknadService,
+            søknadsbehandlingService = søknadsbehandlingService,
+            clock = clock,
+        )
+
+        return Services(
+            avstemming = AvstemmingServiceImpl(
+                repo = databaseRepos.avstemming,
+                publisher = clients.avstemmingPublisher,
+                clock = clock,
+            ),
+            utbetaling = kjerneTjenester.utbetalingService,
+            sak = kjerneTjenester.sakService,
+            søknad = søknadService,
+            brev = kjerneTjenester.brevService,
+            fritekstService = kjerneTjenester.fritekstService,
+            lukkSøknad = lukkSøknadService,
+            oppgave = kjerneTjenester.oppgaveService,
+            person = kjerneTjenester.personService,
+            søknadsbehandling = SøknadsbehandlingServices(
+                søknadsbehandlingService = søknadsbehandlingService,
+                iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
+            ),
+            ferdigstillVedtak = ferdigstillVedtakService,
+            revurdering = revurderingService,
+            vedtakService = vedtakService,
+            nøkkeltallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo),
+            avslåSøknadManglendeDokumentasjonService = AvslåSøknadManglendeDokumentasjonServiceImpl(
+                clock = clock,
+                sakService = kjerneTjenester.sakService,
+                satsFactory = satsFactory,
+                formuegrenserFactory = formuegrenserFactory,
+                iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
+                utbetalingService = kjerneTjenester.utbetalingService,
+                brevService = kjerneTjenester.brevService,
+                oppgaveService = kjerneTjenester.oppgaveService,
+            ),
+            klageService = klageServices.klageService,
+            klageinstanshendelseService = klageServices.klageinstanshendelseService,
+            klageinstansDokumentService = klageServices.klageinstansDokumentService,
+            reguleringManuellService = reguleringServices.reguleringManuellService,
+            reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
+            sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
+                clock = clock,
+                sakService = kjerneTjenester.sakService,
+                sessionFactory = databaseRepos.sessionFactory,
+                brevService = kjerneTjenester.brevService,
+                sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
+                personService = kjerneTjenester.personService,
+            ),
+            skatteService = skatteServices.skatteService,
+            stansYtelse = stansAvYtelseService,
+            gjenopptaYtelse = gjenopptaYtelseService,
+            kontrollsamtaleSetup = kontrollsamtaleSetup,
+            resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
+                vedtakService = vedtakService,
+                sakRepo = databaseRepos.sak,
+                statistikkEventObserver = kjerneTjenester.statistikkEventObserver,
+            ),
+            personhendelseService = PersonhendelseServiceImpl(
+                sakRepo = databaseRepos.sak,
+                personhendelseRepo = databaseRepos.personhendelseRepo,
+                vedtakService = vedtakService,
+                oppgaveServiceImpl = kjerneTjenester.oppgaveService,
+                clock = clock,
+            ),
+            stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
+                stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
+                vedtakRepo = databaseRepos.vedtakRepo,
+                sessionFactory = databaseRepos.sessionFactory,
+                clock = clock,
+            ),
+            pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
+            sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
+            fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
+            søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
+            mottakerService = mottakerService,
+            kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
+                kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
+                utbetalingsRepo = databaseRepos.utbetaling,
+                sakRepo = databaseRepos.sak,
+            ),
+        )
+    }
+
+    private data class KjerneTjenester(
+        val personService: PersonServiceImpl,
+        val sakService: SakServiceImpl,
+        val oppgaveService: OppgaveServiceImpl,
+        val brevService: BrevServiceImpl,
+        val fritekstService: FritekstServiceImpl,
+        val utbetalingService: UtbetalingServiceImpl,
+        val sakStatistikkService: SakStatistikkService,
+        val sakStatistikkBigQueryService: SakStatistikkBigQueryServiceImpl,
+        val statistikkEventObserver: StatistikkEventObserver,
+    )
+
+    private data class SkattServices(
+        val skattDokumentService: SkattDokumentServiceImpl,
+        val skatteService: SkatteServiceImpl,
+    )
+
+    private data class ReguleringServices(
+        val reguleringManuellService: ReguleringManuellServiceImpl,
+        val reguleringAutomatiskService: ReguleringAutomatiskServiceImpl,
+    )
+
+    private data class KlageServices(
+        val klageService: KlageServiceImpl,
+        val klageinstanshendelseService: KlageinstanshendelseServiceImpl,
+        val klageinstansDokumentService: KlageinstansDokumentServiceImpl,
+    )
+
+    private fun DatabaseRepos.requirePostgresSessionFactory(): PostgresSessionFactory {
+        return sessionFactory as? PostgresSessionFactory
+            ?: error("DatabaseRepos.sessionFactory må være PostgresSessionFactory, var ${sessionFactory::class.qualifiedName}")
+    }
+
+    private fun buildKjerneTjenester(
+        databaseRepos: DatabaseRepos,
+        clients: Clients,
+        clock: Clock,
+        applicationConfig: ApplicationConfig,
+        sakStatistikkRepo: SakStatistikkRepo,
+    ): KjerneTjenester {
         val personService = PersonServiceImpl(
             personOppslag = clients.personOppslag,
             personRepo = databaseRepos.person,
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
         val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(databaseRepos.sakStatistikkRepo)
-
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
             personService = personService,
@@ -101,152 +328,252 @@ data object ServiceBuilder {
             personService = personService,
             fritekstService = fritekstService,
         ).apply { addObserver(statistikkEventObserver) }
-
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
         )
-        val søknadService = SøknadServiceImpl(
-            søknadRepo = databaseRepos.søknad,
+        return KjerneTjenester(
+            personService = personService,
             sakService = sakService,
+            oppgaveService = oppgaveService,
+            brevService = brevService,
+            fritekstService = fritekstService,
+            utbetalingService = utbetalingService,
+            sakStatistikkService = sakStatistikkService,
+            sakStatistikkBigQueryService = sakStatistikkBigQueryService,
+            statistikkEventObserver = statistikkEventObserver,
+        )
+    }
+
+    private fun buildSøknadService(
+        databaseRepos: DatabaseRepos,
+        clients: Clients,
+        clock: Clock,
+        kjerneTjenester: KjerneTjenester,
+    ): SøknadServiceImpl {
+        return SøknadServiceImpl(
+            søknadRepo = databaseRepos.søknad,
+            sakService = kjerneTjenester.sakService,
             sakFactory = SakFactory(clock = clock),
             pdfGenerator = clients.pdfGenerator,
             journalførSøknadClient = clients.journalførClients.søknad,
-            personService = personService,
-            oppgaveService = oppgaveService,
+            personService = kjerneTjenester.personService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
-            sakStatistikkService = sakStatistikkService,
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
         ).apply {
-            addObserver(statistikkEventObserver)
+            addObserver(kjerneTjenester.statistikkEventObserver)
         }
+    }
 
+    private fun buildSkattServices(
+        databaseRepos: DatabaseRepos,
+        clients: Clients,
+        clock: Clock,
+        kjerneTjenester: KjerneTjenester,
+    ): SkattServices {
         val skattDokumentService = SkattDokumentServiceImpl(
             pdfGenerator = clients.pdfGenerator,
-            personService = personService,
+            personService = kjerneTjenester.personService,
             dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
             journalførSkattDokumentService = JournalførSkattDokumentService(
                 journalførSkattedokumentPåSakClient = clients.journalførClients.skattedokumentPåSak,
                 journalførSkattedokumentUtenforSakClient = clients.journalførClients.skattedokumentUtenforSak,
-                sakService = sakService,
+                sakService = kjerneTjenester.sakService,
                 dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
             ),
             clock = clock,
         )
-
-        val skatteServiceImpl = SkatteServiceImpl(
+        val skatteService = SkatteServiceImpl(
             skatteClient = clients.skatteOppslag,
             skattDokumentService = skattDokumentService,
-            personService = personService,
-            sakService = sakService,
+            personService = kjerneTjenester.personService,
+            sakService = kjerneTjenester.sakService,
             journalpostClient = clients.queryJournalpostClient,
             clock = clock,
         )
+        return SkattServices(
+            skattDokumentService = skattDokumentService,
+            skatteService = skatteService,
+        )
+    }
 
-        val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
+    private fun buildSøknadsbehandlingService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        skatteService: SkatteServiceImpl,
+        formuegrenserFactory: FormuegrenserFactory,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): SøknadsbehandlingServiceImpl {
+        return SøknadsbehandlingServiceImpl(
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-            utbetalingService = utbetalingService,
-            personService = personService,
-            oppgaveService = oppgaveService,
-            brevService = brevService,
+            utbetalingService = kjerneTjenester.utbetalingService,
+            personService = kjerneTjenester.personService,
+            oppgaveService = kjerneTjenester.oppgaveService,
+            brevService = kjerneTjenester.brevService,
             clock = clock,
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             formuegrenserFactory = formuegrenserFactory,
             satsFactory = satsFactory,
             sessionFactory = databaseRepos.sessionFactory,
-            skatteService = skatteServiceImpl,
-            fritekstService = fritekstService,
-            sakStatistikkService = sakStatistikkService,
+            skatteService = skatteService,
+            fritekstService = kjerneTjenester.fritekstService,
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
         ).apply {
-            addObserver(statistikkEventObserver)
+            addObserver(kjerneTjenester.statistikkEventObserver)
         }
+    }
 
-        val vedtakService = VedtakServiceImpl(
+    private fun buildVedtakService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        søknadsbehandlingService: SøknadsbehandlingServiceImpl,
+        clock: Clock,
+        sakStatistikkRepo: SakStatistikkRepo,
+    ): VedtakServiceImpl {
+        return VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
-            sakService = sakService,
-            oppgaveService = oppgaveService,
+            sakService = kjerneTjenester.sakService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             søknadsbehandlingService = søknadsbehandlingService,
             klageRepo = databaseRepos.klageRepo,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             sakStatistikkRepo = sakStatistikkRepo,
         ).apply {
-            addObserver(statistikkEventObserver)
+            addObserver(kjerneTjenester.statistikkEventObserver)
         }
-        val mottakerService = MottakerServiceImpl(
+    }
+
+    private fun buildMottakerService(databaseRepos: DatabaseRepos): MottakerServiceImpl {
+        return MottakerServiceImpl(
             databaseRepos.mottakerRepo,
             dokumentRepo = databaseRepos.dokumentRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
         )
-        val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
-            brevService = brevService,
-            oppgaveService = oppgaveService,
+    }
+
+    private fun buildFerdigstillVedtakService(
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        mottakerService: MottakerServiceImpl,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): FerdigstillVedtakServiceImpl {
+        return FerdigstillVedtakServiceImpl(
+            brevService = kjerneTjenester.brevService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             vedtakService = vedtakService,
             clock = clock,
             satsFactory = satsFactory,
-            fritekstService = fritekstService,
+            fritekstService = kjerneTjenester.fritekstService,
             mottakerService = mottakerService,
         )
+    }
 
-        val stansAvYtelseService = StansYtelseServiceImpl(
-            utbetalingService = utbetalingService,
+    private fun buildStansYtelseService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        clock: Clock,
+    ): StansYtelseServiceImpl {
+        return StansYtelseServiceImpl(
+            utbetalingService = kjerneTjenester.utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             vedtakService = vedtakService,
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
-            sakStatistikkService = sakStatistikkService,
-        ).apply { addObserver(statistikkEventObserver) }
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
+        ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
+    }
 
-        val kontrollsamtaleSetup = KontrollsamtaleSetup.create(
-            sakService = sakService,
-            brevService = brevService,
-            oppgaveService = oppgaveService,
-            sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
+    private fun buildKontrollsamtaleSetup(
+        kjerneTjenester: KjerneTjenester,
+        stansAvYtelseService: StansYtelseServiceImpl,
+        applicationConfig: ApplicationConfig,
+        clients: Clients,
+        dbMetrics: DbMetrics,
+        clock: Clock,
+        sessionFactory: PostgresSessionFactory,
+    ): KontrollsamtaleSetup {
+        return KontrollsamtaleSetup.create(
+            sakService = kjerneTjenester.sakService,
+            brevService = kjerneTjenester.brevService,
+            oppgaveService = kjerneTjenester.oppgaveService,
+            sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
             clock = clock,
             serviceUser = applicationConfig.serviceUser.username,
             jobContextPostgresRepo = JobContextPostgresRepo(
                 // TODO jah: Finnes nå 2 instanser av denne. Opprettes også i DatabaseBuilder for StønadsperiodePostgresRepo
-                sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
+                sessionFactory = sessionFactory,
             ),
             queryJournalpostClient = clients.queryJournalpostClient,
             stansAvYtelseService = stansAvYtelseService,
-            personService = personService,
+            personService = kjerneTjenester.personService,
         )
+    }
 
-        val revurderingService = RevurderingServiceImpl(
-            utbetalingService = utbetalingService,
+    private fun buildRevurderingService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        mottakerService: MottakerServiceImpl,
+        kontrollsamtaleSetup: KontrollsamtaleSetup,
+        formuegrenserFactory: FormuegrenserFactory,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): RevurderingServiceImpl {
+        return RevurderingServiceImpl(
+            utbetalingService = kjerneTjenester.utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
-            oppgaveService = oppgaveService,
-            personService = personService,
-            brevService = brevService,
+            oppgaveService = kjerneTjenester.oppgaveService,
+            personService = kjerneTjenester.personService,
+            brevService = kjerneTjenester.brevService,
             mottakerService = mottakerService,
             clock = clock,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             formuegrenserFactory = formuegrenserFactory,
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             satsFactory = satsFactory,
             annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
             klageRepo = databaseRepos.klageRepo,
-            fritekstService = fritekstService,
-            sakStatistikkService = sakStatistikkService,
-        ).apply { addObserver(statistikkEventObserver) }
+            fritekstService = kjerneTjenester.fritekstService,
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
+        ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
+    }
 
-        val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
-            utbetalingService = utbetalingService,
+    private fun buildGjenopptaYtelseService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        clock: Clock,
+    ): GjenopptaYtelseServiceImpl {
+        return GjenopptaYtelseServiceImpl(
+            utbetalingService = kjerneTjenester.utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             clock = clock,
             vedtakService = vedtakService,
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             sessionFactory = databaseRepos.sessionFactory,
-            sakStatistikkService = sakStatistikkService,
-        ).apply { addObserver(statistikkEventObserver) }
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
+        ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
+    }
 
+    private fun buildReguleringServices(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): ReguleringServices {
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
-            utbetalingService = utbetalingService,
+            utbetalingService = kjerneTjenester.utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             satsFactory = satsFactory,
@@ -254,37 +581,47 @@ data object ServiceBuilder {
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
             clock = clock,
         )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
             clock = clock,
         )
+        return ReguleringServices(
+            reguleringManuellService = reguleringManuellService,
+            reguleringAutomatiskService = reguleringAutomatiskService,
+        )
+    }
 
-        val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
-
+    private fun buildKlageServices(
+        databaseRepos: DatabaseRepos,
+        clients: Clients,
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        clock: Clock,
+    ): KlageServices {
         val klageService = KlageServiceImpl(
-            sakService = sakService,
+            sakService = kjerneTjenester.sakService,
             klageRepo = databaseRepos.klageRepo,
             vedtakService = vedtakService,
-            brevService = brevService,
+            brevService = kjerneTjenester.brevService,
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
-            oppgaveService = oppgaveService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
-            sakStatistikkService = sakStatistikkService,
-        ).apply { addObserver(statistikkEventObserver) }
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
+        ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
             klageRepo = databaseRepos.klageRepo,
-            oppgaveService = oppgaveService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
@@ -292,112 +629,62 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             journalpostClient = clients.queryJournalpostClient,
         )
-        val iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
-            sakService = sakService,
+        return KlageServices(
+            klageService = klageService,
+            klageinstanshendelseService = klageinstanshendelseService,
+            klageinstansDokumentService = klageinstansDokumentService,
+        )
+    }
+
+    private fun buildIverksettSøknadsbehandlingService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        vedtakService: VedtakServiceImpl,
+        kontrollsamtaleSetup: KontrollsamtaleSetup,
+        ferdigstillVedtakService: FerdigstillVedtakServiceImpl,
+        skattDokumentService: SkattDokumentServiceImpl,
+        satsFactory: SatsFactory,
+        clock: Clock,
+        mottakerService: MottakerServiceImpl,
+    ): IverksettSøknadsbehandlingServiceImpl {
+        return IverksettSøknadsbehandlingServiceImpl(
+            sakService = kjerneTjenester.sakService,
             clock = clock,
-            utbetalingService = utbetalingService,
+            utbetalingService = kjerneTjenester.utbetalingService,
             sessionFactory = databaseRepos.sessionFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             vedtakService = vedtakService,
             opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            brevService = brevService,
+            brevService = kjerneTjenester.brevService,
             skattDokumentService = skattDokumentService,
             satsFactory = satsFactory,
-            fritekstService = fritekstService,
-            sakStatistikkService = sakStatistikkService,
+            fritekstService = kjerneTjenester.fritekstService,
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
         ).apply {
-            addObserver(statistikkEventObserver)
+            addObserver(kjerneTjenester.statistikkEventObserver)
         }
-        return Services(
-            avstemming = AvstemmingServiceImpl(
-                repo = databaseRepos.avstemming,
-                publisher = clients.avstemmingPublisher,
-                clock = clock,
-            ),
-            utbetaling = utbetalingService,
-            sak = sakService,
-            søknad = søknadService,
-            brev = brevService,
-            fritekstService = fritekstService,
-            lukkSøknad = LukkSøknadServiceImpl(
-                clock = clock,
-                søknadService = søknadService,
-                brevService = brevService,
-                oppgaveService = oppgaveService,
-                søknadsbehandlingService = søknadsbehandlingService,
-                sakService = sakService,
-                sessionFactory = databaseRepos.sessionFactory,
-                sakStatistikkService = sakStatistikkService,
-            ).apply {
-                addObserver(statistikkEventObserver)
-            },
-            oppgave = oppgaveService,
-            person = personService,
-            søknadsbehandling = SøknadsbehandlingServices(
-                søknadsbehandlingService = søknadsbehandlingService,
-                iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
-            ),
-            ferdigstillVedtak = ferdigstillVedtakService,
-            revurdering = revurderingService,
-            vedtakService = vedtakService,
-            nøkkeltallService = nøkkelTallService,
-            avslåSøknadManglendeDokumentasjonService = AvslåSøknadManglendeDokumentasjonServiceImpl(
-                clock = clock,
-                sakService = sakService,
-                satsFactory = satsFactory,
-                formuegrenserFactory = formuegrenserFactory,
-                iverksettSøknadsbehandlingService = iverksettSøknadsbehandlingService,
-                utbetalingService = utbetalingService,
-                brevService = brevService,
-                oppgaveService = oppgaveService,
-            ),
-            klageService = klageService,
-            klageinstanshendelseService = klageinstanshendelseService,
-            klageinstansDokumentService = klageinstansDokumentService,
-            reguleringManuellService = reguleringManuellService,
-            reguleringAutomatiskService = reguleringAutomatiskService,
-            sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
-                clock = clock,
-                sakService = sakService,
-                sessionFactory = databaseRepos.sessionFactory,
-                brevService = brevService,
-                sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
-                personService = personService,
-            ),
-            skatteService = skatteServiceImpl,
-            stansYtelse = stansAvYtelseService,
-            gjenopptaYtelse = gjenopptakAvYtelseService,
-            kontrollsamtaleSetup = kontrollsamtaleSetup,
-            resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
-                vedtakService = vedtakService,
-                sakRepo = databaseRepos.sak,
-                statistikkEventObserver = statistikkEventObserver,
-            ),
-            personhendelseService = PersonhendelseServiceImpl(
-                sakRepo = databaseRepos.sak,
-                personhendelseRepo = databaseRepos.personhendelseRepo,
-                vedtakService = vedtakService,
-                oppgaveServiceImpl = oppgaveService,
-                clock = clock,
-            ),
-            stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = databaseRepos.stønadStatistikkRepo,
-                vedtakRepo = databaseRepos.vedtakRepo,
-                sessionFactory = databaseRepos.sessionFactory,
-                clock = clock,
-            ),
-            pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
-            sakstatistikkBigQueryService = sakStatistikkBigQueryService,
-            fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
-            søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
-            mottakerService = mottakerService,
-            kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
-                kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
-                utbetalingsRepo = databaseRepos.utbetaling,
-                sakRepo = databaseRepos.sak,
-            ),
-        )
+    }
+
+    private fun buildLukkSøknadService(
+        databaseRepos: DatabaseRepos,
+        kjerneTjenester: KjerneTjenester,
+        søknadService: SøknadServiceImpl,
+        søknadsbehandlingService: SøknadsbehandlingServiceImpl,
+        clock: Clock,
+    ): LukkSøknadServiceImpl {
+        return LukkSøknadServiceImpl(
+            clock = clock,
+            søknadService = søknadService,
+            brevService = kjerneTjenester.brevService,
+            oppgaveService = kjerneTjenester.oppgaveService,
+            søknadsbehandlingService = søknadsbehandlingService,
+            sakService = kjerneTjenester.sakService,
+            sessionFactory = databaseRepos.sessionFactory,
+            sakStatistikkService = kjerneTjenester.sakStatistikkService,
+        ).apply {
+            addObserver(kjerneTjenester.statistikkEventObserver)
+        }
     }
 }
