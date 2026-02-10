@@ -149,7 +149,9 @@ class ReguleringManuellServiceImpl(
                         fradragsgrunnlag = fradrag,
                         uføregrunnlag = uføregrunnlag,
                         clock = clock,
-                    )
+                    ).getOrElse {
+                        return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
+                    }
                     .let {
                         reguleringService.behandleRegulering(it, sak)
                             .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
