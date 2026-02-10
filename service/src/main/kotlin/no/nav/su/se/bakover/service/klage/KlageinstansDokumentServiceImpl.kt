@@ -68,7 +68,7 @@ class KlageinstansDokumentServiceImpl(
                         journalpostId = journalpost.journalpostId,
                         journalpostTittel = journalpost.tittel,
                         datoOpprettet = journalpost.datoOpprettet,
-                        distribueringsadresse = journalpost.distribueringsadresse,
+                        utsendingsinfo = journalpost.utsendingsinfo,
                         dokumentInfoId = dokument.dokumentInfoId,
                         dokumentTittel = dokument.tittel,
                         brevkode = dokument.brevkode,

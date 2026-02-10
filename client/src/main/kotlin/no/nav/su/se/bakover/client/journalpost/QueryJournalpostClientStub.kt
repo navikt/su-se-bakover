@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.right
-import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.DokumentInfoMedVarianter
 import dokument.domain.journalføring.DokumentInnhold
 import dokument.domain.journalføring.DokumentVariant
@@ -20,6 +19,7 @@ import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
+import dokument.domain.journalføring.Utsendingsinfo
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -71,12 +71,9 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
             journalpostId = journalpostId,
             tittel = "Stub journalpost",
             datoOpprettet = LocalDate.of(2020, 1, 1),
-            distribueringsadresse = Distribueringsadresse(
-                adresselinje1 = "Stubveien 1",
-                adresselinje2 = null,
-                adresselinje3 = null,
-                postnummer = "0001",
-                poststed = "Oslo",
+            utsendingsinfo = Utsendingsinfo(
+                fysiskpostSendt = "Stubveien 1\n0001 Oslo\nNORGE",
+                digitalpostSendt = null,
             ),
             dokumenter = listOf(
                 DokumentInfoMedVarianter(

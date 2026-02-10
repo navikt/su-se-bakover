@@ -1,7 +1,6 @@
 package dokument.domain.journalføring
 
 import arrow.core.Either
-import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -78,8 +77,13 @@ data class JournalpostMedDokumenter(
     val journalpostId: JournalpostId,
     val tittel: String?,
     val datoOpprettet: LocalDate?,
-    val distribueringsadresse: Distribueringsadresse?,
+    val utsendingsinfo: Utsendingsinfo?,
     val dokumenter: List<DokumentInfoMedVarianter>,
+)
+
+data class Utsendingsinfo(
+    val fysiskpostSendt: String?,
+    val digitalpostSendt: String?,
 )
 
 data class DokumentInfoMedVarianter(

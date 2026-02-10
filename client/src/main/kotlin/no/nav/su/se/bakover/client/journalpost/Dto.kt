@@ -71,14 +71,15 @@ internal data class JournalpostMedDokumenterResponse(
 
 internal data class UtsendingsinfoResponse(
     val fysiskpostSendt: FysiskpostSendtResponse?,
+    val digitalpostSendt: DigitalpostSendtResponse?,
 )
 
 internal data class FysiskpostSendtResponse(
-    val adresselinje1: String?,
-    val adresselinje2: String?,
-    val adresselinje3: String?,
-    val postnummer: String?,
-    val poststed: String?,
+    val adressetekstKonvolutt: String?,
+)
+
+internal data class DigitalpostSendtResponse(
+    val adresse: String?,
 )
 
 internal data class DokumentInfoResponse(

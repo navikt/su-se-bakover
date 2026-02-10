@@ -7,11 +7,10 @@ query($journalpostId: String!){
         datoOpprettet
         utsendingsinfo {
             fysiskpostSendt {
-                adresselinje1
-                adresselinje2
-                adresselinje3
-                postnummer
-                poststed
+                adressetekstKonvolutt
+            }
+            digitalpostSendt {
+                adresse
             }
         }
         dokumenter {

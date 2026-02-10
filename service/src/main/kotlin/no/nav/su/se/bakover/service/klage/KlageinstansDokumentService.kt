@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
-import dokument.domain.distribuering.Distribueringsadresse
+import dokument.domain.journalføring.Utsendingsinfo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import java.time.LocalDate
 import java.util.UUID
@@ -15,7 +15,7 @@ data class KlageinstansDokument(
     val journalpostId: JournalpostId,
     val journalpostTittel: String?,
     val datoOpprettet: LocalDate?,
-    val distribueringsadresse: Distribueringsadresse?,
+    val utsendingsinfo: Utsendingsinfo?,
     val dokumentInfoId: String,
     val dokumentTittel: String?,
     val brevkode: String?,
