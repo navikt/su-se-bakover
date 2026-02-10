@@ -70,6 +70,10 @@ internal data class JournalpostMedDokumenterResponse(
 )
 
 internal data class UtsendingsinfoResponse(
+    val fysiskpostSendt: FysiskpostSendtResponse?,
+)
+
+internal data class FysiskpostSendtResponse(
     val adresselinje1: String?,
     val adresselinje2: String?,
     val adresselinje3: String?,

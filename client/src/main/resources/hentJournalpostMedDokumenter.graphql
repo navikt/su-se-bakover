@@ -6,11 +6,13 @@ query($journalpostId: String!){
         tittel
         datoOpprettet
         utsendingsinfo {
-            adresselinje1
-            adresselinje2
-            adresselinje3
-            postnummer
-            poststed
+            fysiskpostSendt {
+                adresselinje1
+                adresselinje2
+                adresselinje3
+                postnummer
+                poststed
+            }
         }
         dokumenter {
             dokumentInfoId

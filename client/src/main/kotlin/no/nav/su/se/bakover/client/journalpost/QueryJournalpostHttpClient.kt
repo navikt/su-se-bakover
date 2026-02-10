@@ -376,12 +376,13 @@ internal class QueryJournalpostHttpClient(
 
 private fun UtsendingsinfoResponse?.toDistribueringsadresseOrNull(): Distribueringsadresse? {
     if (this == null) return null
-    val postnummer = this.postnummer ?: return null
-    val poststed = this.poststed ?: return null
+    val fysiskpost = this.fysiskpostSendt ?: return null
+    val postnummer = fysiskpost.postnummer ?: return null
+    val poststed = fysiskpost.poststed ?: return null
     return Distribueringsadresse(
-        adresselinje1 = this.adresselinje1,
-        adresselinje2 = this.adresselinje2,
-        adresselinje3 = this.adresselinje3,
+        adresselinje1 = fysiskpost.adresselinje1,
+        adresselinje2 = fysiskpost.adresselinje2,
+        adresselinje3 = fysiskpost.adresselinje3,
         postnummer = postnummer,
         poststed = poststed,
     )
