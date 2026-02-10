@@ -70,6 +70,7 @@ data class ProdClientsBuilder(
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,
             azure = azureAd,
+            suMetrics = suMetrics,
         )
         val skjermingClient = SkjermingClient(skjermingUrl = clientsConfig.skjermingConfig.url, skjermingClientId = clientsConfig.skjermingConfig.clientId, azureAd = azureAd)
         val pdlClientConfig = PdlClientConfig(

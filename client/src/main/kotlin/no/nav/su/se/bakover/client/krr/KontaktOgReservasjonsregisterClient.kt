@@ -3,19 +3,23 @@ package no.nav.su.se.bakover.client.krr
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.github.benmanes.caffeine.cache.Cache
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 internal const val PERSONER_PATH = "/rest/v1/personer"
 
@@ -25,10 +29,19 @@ internal const val PERSONER_PATH = "/rest/v1/personer"
 class KontaktOgReservasjonsregisterClient(
     val config: ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig,
     val azure: AzureAd,
+    suMetrics: SuMetrics,
+    private val krrCache: Cache<Fnr, Kontaktinformasjon> = newCache(
+        cacheName = "kontaktinfo",
+        expireAfterWrite = Duration.ofMinutes(30),
+        suMetrics = suMetrics,
+    ),
 ) : KontaktOgReservasjonsregister {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentKontaktinformasjon(fnr: Fnr): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {
+        krrCache.getIfPresent(fnr)?.let { cachedKontaktinfo ->
+            return cachedKontaktinfo.right()
+        }
         val request = serialize(
             HentKontaktinformasjonRequest(
                 personidenter = listOf(fnr.toString()),
@@ -42,7 +55,7 @@ class KontaktOgReservasjonsregisterClient(
             .body(request)
             .responseString()
 
-        return result.fold(
+        val svar = result.fold(
             { json ->
 
                 val jsonNode = jsonNode(json)
@@ -90,6 +103,7 @@ class KontaktOgReservasjonsregisterClient(
                 KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
             },
         )
+        return svar.onRight { krrCache.put(fnr, it) }
     }
 }
 
