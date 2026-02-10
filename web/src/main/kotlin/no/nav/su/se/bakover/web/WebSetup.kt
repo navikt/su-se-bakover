@@ -8,6 +8,8 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.plugins.callid.CallId
@@ -115,16 +117,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
     install(CallLogging) {
         level = Level.INFO
         filter { call ->
-            if (call.request.httpMethod.value == "OPTIONS") return@filter false
-            if (call.pathShouldBeExcluded(naisPaths)) return@filter false
-
-            call.attributes.getOrNull(AttributeKey<Throwable>(EXCEPTIONATTRIBUTE_KEY.name))?.let { ex ->
-                call.application.log.error(
-                    "Request ${call.request.httpMethod} ${call.request.path()} failed with exception",
-                    ex,
-                )
-            }
-            return@filter true
+            return@filter call.shouldLogCall()
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
@@ -155,6 +148,21 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
         }
 
         disableDefaultColors()
+    }
+
+    intercept(ApplicationCallPipeline.Monitoring) {
+        proceed()
+        if (!call.shouldLogCall()) return@intercept
+
+        val status = call.response.status() ?: return@intercept
+        if (status.value >= 500 && call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null) {
+            call.application.log.error(
+                "5xx response: {} {} status={}",
+                call.request.httpMethod,
+                call.request.path(),
+                status.value,
+            )
+        }
     }
 }
 
@@ -208,7 +216,7 @@ private fun Application.setupKtorExceptionHandling(
             )
         }
         exception<Throwable> { call, cause ->
-            call.attributes.put(AttributeKey(EXCEPTIONATTRIBUTE_KEY.name), cause)
+            call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
             log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             call.svar(Feilresponser.ukjentFeil)
         }
@@ -219,4 +227,10 @@ private fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
     return paths.any {
         this.request.path().startsWith(it)
     }
+}
+
+private fun ApplicationCall.shouldLogCall(): Boolean {
+    if (this.request.httpMethod.value == "OPTIONS") return false
+    if (this.pathShouldBeExcluded(naisPaths)) return false
+    return true
 }
