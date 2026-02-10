@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.right
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.DokumentInfoMedVarianter
 import dokument.domain.journalføring.DokumentInnhold
 import dokument.domain.journalføring.DokumentVariant
@@ -70,6 +71,13 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
             journalpostId = journalpostId,
             tittel = "Stub journalpost",
             datoOpprettet = LocalDate.of(2020, 1, 1),
+            distribueringsadresse = Distribueringsadresse(
+                adresselinje1 = "Stubveien 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
             dokumenter = listOf(
                 DokumentInfoMedVarianter(
                     dokumentInfoId = "stub-doc-1",

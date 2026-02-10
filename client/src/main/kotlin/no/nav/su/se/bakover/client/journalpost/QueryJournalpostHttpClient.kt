@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.DokumentInfoMedVarianter
 import dokument.domain.journalføring.DokumentInnhold
 import dokument.domain.journalføring.DokumentVariant
@@ -142,6 +143,7 @@ internal class QueryJournalpostHttpClient(
                         journalpostId = JournalpostId(jp.journalpostId),
                         tittel = jp.tittel,
                         datoOpprettet = jp.datoOpprettet,
+                        distribueringsadresse = jp.utsendingsinfo.toDistribueringsadresseOrNull(),
                         dokumenter = jp.dokumenter.map { doc ->
                             DokumentInfoMedVarianter(
                                 dokumentInfoId = doc.dokumentInfoId,
@@ -370,6 +372,19 @@ internal class QueryJournalpostHttpClient(
             data class Ukjent(val request: Any, val msg: String) : HttpFeil
         }
     }
+}
+
+private fun UtsendingsinfoResponse?.toDistribueringsadresseOrNull(): Distribueringsadresse? {
+    if (this == null) return null
+    val postnummer = this.postnummer ?: return null
+    val poststed = this.poststed ?: return null
+    return Distribueringsadresse(
+        adresselinje1 = this.adresselinje1,
+        adresselinje2 = this.adresselinje2,
+        adresselinje3 = this.adresselinje3,
+        postnummer = postnummer,
+        poststed = poststed,
+    )
 }
 
 internal abstract class GraphQLHttpResponse {

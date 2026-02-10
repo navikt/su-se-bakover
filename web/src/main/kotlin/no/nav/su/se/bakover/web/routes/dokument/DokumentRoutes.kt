@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.HentDokumenterForIdType
+import dokument.domain.distribuering.Distribueringsadresse
 import dokument.domain.journalføring.KunneIkkeHenteDokument
 import dokument.domain.journalføring.KunneIkkeHenteJournalpost
 import io.ktor.http.ContentType
@@ -156,12 +157,21 @@ private data class KlageinstansDokumentJson(
     val journalpostId: String,
     val journalpostTittel: String?,
     val datoOpprettet: String?,
+    val distribueringsadresse: DistribueringsadresseJson?,
     val dokumentInfoId: String,
     val dokumentTittel: String?,
     val brevkode: String?,
     val dokumentstatus: String?,
     val variantFormat: String,
     val pdfBase64: String,
+)
+
+private data class DistribueringsadresseJson(
+    val adresselinje1: String?,
+    val adresselinje2: String?,
+    val adresselinje3: String?,
+    val postnummer: String,
+    val poststed: String,
 )
 
 private fun List<KlageinstansDokument>.toJson(): String {
@@ -173,12 +183,23 @@ private fun KlageinstansDokument.toJson(): KlageinstansDokumentJson {
         journalpostId = journalpostId.toString(),
         journalpostTittel = journalpostTittel,
         datoOpprettet = datoOpprettet?.toString(),
+        distribueringsadresse = distribueringsadresse?.toJson(),
         dokumentInfoId = dokumentInfoId,
         dokumentTittel = dokumentTittel,
         brevkode = brevkode,
         dokumentstatus = dokumentstatus,
         variantFormat = variantFormat,
         pdfBase64 = Base64.getEncoder().encodeToString(dokument),
+    )
+}
+
+private fun Distribueringsadresse.toJson(): DistribueringsadresseJson {
+    return DistribueringsadresseJson(
+        adresselinje1 = adresselinje1,
+        adresselinje2 = adresselinje2,
+        adresselinje3 = adresselinje3,
+        postnummer = postnummer,
+        poststed = poststed,
     )
 }
 
