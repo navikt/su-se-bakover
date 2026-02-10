@@ -1,13 +1,7 @@
 package no.nav.su.se.bakover.client.person
 
-import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeSameInstanceAs
-import io.kotest.matchers.types.shouldNotBeSameInstanceAs
-import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
@@ -15,169 +9,91 @@ import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.verifyNoInteractions
+import person.domain.Kontaktinfo
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import java.time.Year
 
 internal class PersonClientTest {
 
-    @Nested
-    inner class `person()` {
-        @Test
-        fun `andre kall med samme token hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.person(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.person(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+    @Test
+    fun `person henter ikke kontaktinfo eller skjerming`() {
+        val mocks = PersonClientConfigTestMocks()
 
-        @Test
-        fun `andre kall med nytt token hentes ikke fra cache`() {
-            val mocks = PersonClientConfigTestMocks(
-                BrukertokenGenerator(nonEmptyListOf("1", "2").map { JwtToken.BrukerToken(it) }),
-            )
-            val first =
-                mocks.personClient.person(fnr = mocks.fnr).also { it shouldBe mocks.person().right() }.getOrFail()
-            mocks.personClient.person(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
-                it.getOrFail() shouldNotBeSameInstanceAs first
-            }
-            verify(mocks.pdlClient, times(2)).person(eq(mocks.fnr), any())
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+        val person = mocks.personClient.person(fnr = mocks.fnr).getOrFail()
 
-        @Test
-        fun `andre kall med annet fnr hentes ikke fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val fnr1 = mocks.fnr
-            val fnr2 = Fnr.generer()
-            val first = mocks.personClient.person(fnr = fnr1).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            mocks.personClient.person(fnr = fnr2).also {
-                it shouldBe mocks.person().right()
-                it.getOrFail() shouldNotBeSameInstanceAs first
-            }
-            verify(mocks.pdlClient).person(eq(fnr1), any())
-            verify(mocks.pdlClient).person(eq(fnr2), any())
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
+        verifyNoInteractions(mocks.kontaktOgReservasjonsregisterMock)
+        verifyNoInteractions(mocks.skjermingMock)
+
+        person shouldBe mocks.person()
     }
 
-    @Nested
-    inner class `personMedSystembruker()` {
+    @Test
+    fun `personMedSystembruker mapper data`() {
+        val mocks = PersonClientConfigTestMocks()
 
-        @Test
-        fun `andre kall med samme token hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+        val result = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail()
 
-        @Test
-        fun `første kall med personbruker og andre kall med systembruker hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.person(fnr = mocks.fnr).also {
-                it shouldBe mocks.person().right()
-            }.getOrFail()
-            verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            verifyNoMoreInteractions(mocks.pdlClient)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+        result shouldBe mocks.person()
+        verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
     }
 
-    @Nested
-    inner class `aktørId()` {
-        @Test
-        fun `andre kall med samme token hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).also {
-                it shouldBe mocks.aktørId.right()
-            }.getOrFail()
-            verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
-            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+    @Test
+    fun `personMedSkjermingOgKontaktinfo henter kontaktinfo og skjerming`() {
+        val mocks = PersonClientConfigTestMocks()
+
+        val result = mocks.personClient.personMedSkjermingOgKontaktinfo(fnr = mocks.fnr).getOrFail()
+
+        result shouldBe PersonMedSkjermingOgKontaktinfo(
+            person = mocks.person(),
+            skjermet = false,
+            kontaktinfo = Kontaktinfo(
+                epostadresse = mocks.kontaktinformasjon.epostadresse,
+                mobiltelefonnummer = mocks.kontaktinformasjon.mobiltelefonnummer,
+                språk = mocks.kontaktinformasjon.språk,
+                kanKontaktesDigitalt = true,
+            ),
+        )
+
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
+        verify(mocks.skjermingMock).erSkjermet(mocks.fnr, mocks.brukerToken)
+        verify(mocks.kontaktOgReservasjonsregisterMock).hentKontaktinformasjon(mocks.fnr)
     }
 
-    @Nested
-    inner class `aktørIdMedSystembruker()` {
-        @Test
-        fun `andre kall med samme token hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).also {
-                it shouldBe mocks.aktørId.right()
-            }.getOrFail()
-            verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
-            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+    @Test
+    fun `aktørIdMedSystembruker mapper data`() {
+        val mocks = PersonClientConfigTestMocks()
 
-        @Test
-        fun `første kall med personbruker og andre kall med systembruker hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).also {
-                it shouldBe mocks.aktørId.right()
-            }.getOrFail()
-            verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
-            verifyNoMoreInteractions(mocks.pdlClient)
-            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
+        mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr) shouldBe mocks.aktørId.right()
+
+        verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
     }
 
-    @Nested
-    inner class `sjekkTilgangTilPerson()` {
-        @Test
-        fun `andre kall med samme token hentes fra cache`() {
-            val mocks = PersonClientConfigTestMocks()
-            val first = mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).also {
-                it shouldBe Unit.right()
-            }.getOrFail()
-            verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
-            verifyNoMoreInteractions(mocks.pdlClient)
-        }
-    }
+    @Test
+    fun `sjekkTilgangTilPerson kaller pdl`() {
+        val mocks = PersonClientConfigTestMocks()
 
-    /**
-     * Rullerer på tokens
-     */
-    private class BrukertokenGenerator(
-        private val brukerTokens: NonEmptyList<JwtToken.BrukerToken> = nonEmptyListOf(JwtToken.BrukerToken("bruker-token")),
-    ) : List<JwtToken.BrukerToken> by brukerTokens {
+        mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr) shouldBe Unit.right()
 
-        var currentIndex = 0
-        fun next(): JwtToken.BrukerToken = brukerTokens[currentIndex++ % brukerTokens.size]
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
     }
 
     private class PersonClientConfigTestMocks(
-        val brukerTokenGenerator: BrukertokenGenerator = BrukertokenGenerator(),
-        val fnr: Fnr = Fnr.generer(),
-        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person/domain", suMetrics = mock()),
-        aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId", suMetrics = mock()),
+        val fnr: Fnr = Fnr("07028820547"),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",
@@ -188,13 +104,16 @@ internal class PersonClientTest {
         )
 
         val kodeverkMock: Kodeverk = mock()
-        val skjermingMock: Skjerming = mock()
+        val skjermingMock: Skjerming = mock {
+            on { erSkjermet(any(), any()) } doReturn false
+        }
         val kontaktOgReservasjonsregisterMock: KontaktOgReservasjonsregister = mock {
             on { hentKontaktinformasjon(fnr) } doReturn kontaktinformasjon.right()
         }
         val oauthMock: AzureAd = mock()
 
-        val hentBrukerToken = { brukerTokenGenerator.next() }
+        val brukerToken = JwtToken.BrukerToken("bruker-token")
+        val hentBrukerToken = { brukerToken }
 
         val aktørId = AktørId("2751637578706")
         fun pdlData() = PdlData(
@@ -239,18 +158,11 @@ internal class PersonClientTest {
                 }
             },
             adressebeskyttelse = pdlData().adressebeskyttelse,
-            skjermet = false,
-            kontaktinfo = Person.Kontaktinfo(
-                epostadresse = kontaktinformasjon.epostadresse,
-                mobiltelefonnummer = kontaktinformasjon.mobiltelefonnummer,
-                språk = kontaktinformasjon.språk,
-                kanKontaktesDigitalt = true,
-            ),
             vergemål = pdlData().vergemålEllerFremtidsfullmakt,
             dødsdato = pdlData().dødsdato!!,
         )
 
-        val pdlClient: PdlClient = mock {
+        val pdlClient: PdlClientWithCache = mock {
             on { person(any(), any()) } doReturn pdlData().right()
             on { personForSystembruker(any()) } doReturn pdlData().right()
             on { aktørIdMedSystembruker(any()) } doReturn aktørId.right()
@@ -273,11 +185,9 @@ internal class PersonClientTest {
 
         val personClient = PersonClient(
             config = personClientConfig,
+            suMetrics = mock<SuMetrics>(),
             pdlClient = pdlClient,
             hentBrukerToken = hentBrukerToken,
-            personCache = personCacheSpy,
-            aktørIdCache = aktørIdCacheSpy,
-            suMetrics = mock(),
         )
     }
 }

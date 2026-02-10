@@ -2,14 +2,18 @@ package no.nav.su.se.bakover.client.krr
 
 import arrow.core.left
 import arrow.core.right
+import com.github.benmanes.caffeine.cache.Cache
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 
 class KontaktOgReservasjonsregisterClientTest {
 
@@ -22,9 +26,40 @@ class KontaktOgReservasjonsregisterClientTest {
             url = baseUrl,
         ),
         azure = AzureClientStub,
+        suMetrics = mock(),
     )
 
     private val fnr: Fnr = Fnr(fødselsnummer)
+
+    @Test
+    fun `Returnerer cachet response`() {
+        startedWireMockServerWithCorrelationId {
+            val fnr = Fnr("07028820547")
+            val cache: Cache<Fnr, Kontaktinformasjon> = newCache(cacheName = "kontaktinfo", suMetrics = mock())
+            val client = KontaktOgReservasjonsregisterClient(
+                config = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
+                    appId = "some-app-id",
+                    url = baseUrl(),
+                ),
+                azure = AzureClientStub,
+                suMetrics = mock(),
+                krrCache = cache,
+            )
+
+            val kontakt = Kontaktinformasjon(
+                epostadresse = "noreply@nav.no",
+                mobiltelefonnummer = "11111111",
+                reservert = false,
+                kanVarsles = false,
+                språk = "nb",
+            )
+
+            cache.put(fnr, kontakt)
+
+            client.hentKontaktinformasjon(fnr).shouldBeRight(kontakt)
+            verify(0, WireMock.postRequestedFor(WireMock.urlPathEqualTo(PERSONER_PATH)))
+        }
+    }
 
     @Test
     fun `parser respons ny`() {

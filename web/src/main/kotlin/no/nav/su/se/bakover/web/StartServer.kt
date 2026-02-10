@@ -89,6 +89,7 @@ fun Application.susebakover(
         StubClientsBuilder(
             clock = clock,
             databaseRepos = databaseRepos,
+            suMetrics = suMetrics,
         ).build(applicationConfig)
     } else {
         ProdClientsBuilder(

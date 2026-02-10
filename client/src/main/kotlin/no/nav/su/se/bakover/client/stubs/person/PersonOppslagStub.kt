@@ -8,8 +8,10 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
 import person.domain.Telefonnummer
 import java.time.LocalDate
@@ -48,13 +50,6 @@ data class PersonOppslagStub(
             dato = fødselsdato,
         ),
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
-        skjermet = false,
-        kontaktinfo = Person.Kontaktinfo(
-            epostadresse = "mail@epost.com",
-            mobiltelefonnummer = "90909090",
-            språk = "nb",
-            kanKontaktesDigitalt = true,
-        ),
         vergemål = null,
         dødsdato = null,
     )
@@ -67,6 +62,20 @@ data class PersonOppslagStub(
         }
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+
+    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
+        nyTestPerson(fnr).let {
+            PersonMedSkjermingOgKontaktinfo(
+                person = it,
+                skjermet = false,
+                kontaktinfo = Kontaktinfo(
+                    epostadresse = "mail@epost.com",
+                    mobiltelefonnummer = "90909090",
+                    språk = "nb",
+                    kanKontaktesDigitalt = true,
+                ),
+            ).right()
+        }
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
         AktørId("2437280977705").right()
 

@@ -252,6 +252,7 @@ import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonRepo
 import person.domain.PersonService
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
@@ -648,6 +649,11 @@ open class AccessCheckProxy(
                 override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
                     assertHarTilgangTilPerson(fnr)
                     return services.person.hentPerson(fnr)
+                }
+
+                override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+                    assertHarTilgangTilPerson(fnr)
+                    return services.person.hentPersonMedSkjermingOgKontaktinfo(fnr)
                 }
 
                 override fun hentPersonMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()

@@ -66,10 +66,12 @@ data class ProdClientsBuilder(
             consumerId = SU_SE_BAKOVER_CONSUMER_ID,
             kodeverkClientId = clientsConfig.kodeverkConfig.clientId,
             azureAd = azureAd,
+            suMetrics = suMetrics,
         )
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,
             azure = azureAd,
+            suMetrics = suMetrics,
         )
         val skjermingClient = SkjermingClient(skjermingUrl = clientsConfig.skjermingConfig.url, skjermingClientId = clientsConfig.skjermingConfig.clientId, azureAd = azureAd)
         val pdlClientConfig = PdlClientConfig(

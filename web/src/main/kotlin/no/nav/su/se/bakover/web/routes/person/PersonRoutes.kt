@@ -19,6 +19,7 @@ import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import person.domain.KunneIkkeHentePerson.Ukjent
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonService
 import java.time.Clock
 import java.time.LocalDate
@@ -46,7 +47,7 @@ internal fun Route.personRoutes(
                 },
                 ifRight = { fnr ->
                     call.svar(
-                        personService.hentPerson(fnr).fold(
+                        personService.hentPersonMedSkjermingOgKontaktinfo(fnr).fold(
                             {
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 it.tilResultat()
@@ -127,21 +128,21 @@ data class PersonResponseJson(
     )
 
     companion object {
-        fun Person.toJson(clock: Clock) = PersonResponseJson(
-            fnr = this.ident.fnr.toString(),
-            aktorId = this.ident.aktørId.toString(),
+        fun PersonMedSkjermingOgKontaktinfo.toJson(clock: Clock) = PersonResponseJson(
+            fnr = this.person.ident.fnr.toString(),
+            aktorId = this.person.ident.aktørId.toString(),
             navn = NavnJson(
-                fornavn = this.navn.fornavn,
-                mellomnavn = this.navn.mellomnavn,
-                etternavn = this.navn.etternavn,
+                fornavn = this.person.navn.fornavn,
+                mellomnavn = this.person.navn.mellomnavn,
+                etternavn = this.person.navn.etternavn,
             ),
-            telefonnummer = this.telefonnummer?.let { t ->
+            telefonnummer = this.person.telefonnummer?.let { t ->
                 TelefonnummerJson(
                     landskode = t.landskode,
                     nummer = t.nummer,
                 )
             },
-            adresse = this.adresse?.map {
+            adresse = this.person.adresse?.map {
                 AdresseJson(
                     adresselinje = it.adresselinje,
                     postnummer = it.poststed?.postnummer,
@@ -153,29 +154,29 @@ data class PersonResponseJson(
                     adresseformat = it.adresseformat,
                 )
             },
-            statsborgerskap = this.statsborgerskap,
-            sivilstand = this.sivilstand?.let { sivilstand ->
+            statsborgerskap = this.person.statsborgerskap,
+            sivilstand = this.person.sivilstand?.let { sivilstand ->
                 SivilstandJson(
                     type = sivilstand.type.toString(),
                     relatertVedSivilstand = sivilstand.relatertVedSivilstand?.toString(),
                 )
             },
-            fødsel = when (fødsel) {
+            fødsel = when (val fødsel = person.fødsel) {
                 is Person.Fødsel.MedFødselsdato -> Fødsel(
-                    dato = (fødsel as Person.Fødsel.MedFødselsdato).dato,
-                    år = (fødsel as Person.Fødsel.MedFødselsdato).år.value,
-                    alder = (fødsel as Person.Fødsel.MedFødselsdato).getAlder(LocalDate.now(clock)),
+                    dato = fødsel.dato,
+                    år = fødsel.år.value,
+                    alder = fødsel.getAlder(LocalDate.now(clock)),
                 )
 
                 is Person.Fødsel.MedFødselsår -> Fødsel(
                     dato = null,
-                    år = (fødsel as Person.Fødsel.MedFødselsår).år.value,
+                    år = fødsel.år.value,
                     alder = null,
                 )
 
                 null -> null
             },
-            adressebeskyttelse = this.adressebeskyttelse,
+            adressebeskyttelse = this.person.adressebeskyttelse,
             skjermet = this.skjermet,
             kontaktinfo = this.kontaktinfo?.let {
                 KontaktinfoJson(
@@ -185,8 +186,8 @@ data class PersonResponseJson(
                     kanKontaktesDigitalt = it.kanKontaktesDigitalt,
                 )
             },
-            vergemål = this.vergemål,
-            dødsdato = this.dødsdato,
+            vergemål = this.person.vergemål,
+            dødsdato = this.person.dødsdato,
         )
     }
 }

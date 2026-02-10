@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -35,7 +36,7 @@ import person.domain.PersonService
 internal class PersonRoutesKtTest {
 
     private val testIdent = "12345678910"
-    private val person = PersonOppslagStub().nyTestPerson(Fnr(testIdent))
+    private val person = PersonOppslagStub().personMedSkjermingOgKontaktinfo(Fnr(testIdent)).getOrFail()
 
     private val services = TestServicesBuilder.services()
 
@@ -80,7 +81,7 @@ internal class PersonRoutesKtTest {
 
     @Test // TODO jah: Endre til integrasjonstest.
     fun `kan hente data gjennom PersonOppslag`() {
-        val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn person.right() }
+        val personServiceMock = mock<PersonService> { on { hentPersonMedSkjermingOgKontaktinfo(any()) } doReturn person.right() }
         val accessCheckProxyMock =
             mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
@@ -149,6 +150,8 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        KunneIkkeHentePerson.Ukjent.left()
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.Ukjent.left()
@@ -184,6 +187,8 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        KunneIkkeHentePerson.FantIkkePerson.left()
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.FantIkkePerson.left()
@@ -219,6 +224,8 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.IkkeTilgangTilPerson.left()

@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
-import arrow.core.right
-import com.github.benmanes.caffeine.cache.Cache
-import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
@@ -12,10 +9,11 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
-import java.time.Duration
 import java.time.Year
 
 internal data class PersonClientConfig(
@@ -26,42 +24,16 @@ internal data class PersonClientConfig(
 )
 
 /**
- * [FnrCacheKey] sørger for at rettighetene til brukerne blir ivaretatt, mens systembrukeren har tilgang til alt.
- *
- * @param personCache Brukes av både brukere og systembrukeren.
- * @param aktørIdCache Brukes av både brukere og systembrukeren.
+ * PDL-cache håndteres i [PdlClientWithCache] for å ivareta rettigheter mellom bruker- og systemtoken.
  */
 internal class PersonClient(
     private val config: PersonClientConfig,
-    private val pdlClient: PdlClient = PdlClient(config.pdlClientConfig),
+    suMetrics: SuMetrics,
+    private val pdlClient: PdlClientWithCache = PdlClientWithCache(PdlClient(config.pdlClientConfig), suMetrics = suMetrics),
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
         JwtToken.BrukerToken.fraCoroutineContext()
     },
-    private val suMetrics: SuMetrics,
-    private val personCache: Cache<FnrCacheKey, Person> = newCache(
-        cacheName = "person/domain",
-        expireAfterWrite = Duration.ofMinutes(30),
-        suMetrics = suMetrics,
-    ),
-    private val aktørIdCache: Cache<FnrCacheKey, AktørId> = newCache(
-        cacheName = "aktoerId",
-        expireAfterWrite = Duration.ofMinutes(30),
-        suMetrics = suMetrics,
-    ),
 ) : PersonOppslag {
-
-    private fun <Value : Any, Error : Any> Cache<FnrCacheKey, Value>.getOrAdd(
-        key: FnrCacheKey,
-        mappingFunction: () -> Either<Error, Value>,
-    ): Either<Error, Value> {
-        return this.getIfPresent(key)?.right() ?: mappingFunction().onRight {
-            this.put(key, it)
-            if (key.second is JwtToken.BrukerToken) {
-                // Dersom dette ble trigget av et brukertoken, ønsker vi å cache det for SystemToken også; men ikke andre veien.
-                this.put(FnrCacheKey(key.first, JwtToken.SystemToken), it)
-            }
-        }
-    }
 
     /**
      * PDL gjør en enkel tilgangssjekk implisitt ved kallet med brukertokenet
@@ -70,32 +42,35 @@ internal class PersonClient(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, Person> {
         val brukerToken = hentBrukerToken()
-        return personCache.getOrAdd(Pair(fnr, brukerToken)) {
-            pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
-        }
+        return pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
     }
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
-        return personCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
-            pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
+        return pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
+    }
+
+    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+        val brukerToken = hentBrukerToken()
+        return pdlClient.person(fnr, brukerToken).map {
+            PersonMedSkjermingOgKontaktinfo(
+                person = toPerson(it, brukerToken),
+                skjermet = config.skjerming.erSkjermet(it.ident.fnr, brukerToken),
+                kontaktinfo = hentKontaktinfo(it.ident.fnr),
+            )
         }
     }
 
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return aktørIdCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
-            pdlClient.aktørIdMedSystembruker(fnr)
-        }
+        return pdlClient.aktørIdMedSystembruker(fnr)
     }
 
     /**
      * En forenkling av [PersonOppslag.person] for å sjekke tilgang til personen uten at vi trenger å gjøre noe videre
-     * med resultatet
+     * med resultatet.
      */
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
-        return personCache.getOrAdd(Pair(fnr, brukerToken)) {
-            pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
-        }.map { }
+        return pdlClient.person(fnr, brukerToken).map { }
     }
 
     private fun toPerson(pdlData: PdlData, token: JwtToken) = Person(
@@ -138,8 +113,6 @@ internal class PersonClient(
             }
         },
         adressebeskyttelse = pdlData.adressebeskyttelse,
-        skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr, token),
-        kontaktinfo = kontaktinfo(pdlData.ident.fnr),
         vergemål = pdlData.vergemålEllerFremtidsfullmakt,
         dødsdato = pdlData.dødsdato,
     )
@@ -154,7 +127,7 @@ internal class PersonClient(
         kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer, token).getOrNull(),
     )
 
-    private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
+    private fun hentKontaktinfo(fnr: Fnr): Kontaktinfo? {
         return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(
             {
                 when (it) {
@@ -163,7 +136,7 @@ internal class PersonClient(
                 }
             },
             {
-                Person.Kontaktinfo(
+                Kontaktinfo(
                     epostadresse = it.epostadresse,
                     mobiltelefonnummer = it.mobiltelefonnummer,
                     språk = it.språk,
@@ -173,5 +146,3 @@ internal class PersonClient(
         )
     }
 }
-
-internal typealias FnrCacheKey = Pair<Fnr, JwtToken>
