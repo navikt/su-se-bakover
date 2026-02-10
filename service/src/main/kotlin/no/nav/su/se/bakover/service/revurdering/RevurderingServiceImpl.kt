@@ -1114,109 +1114,181 @@ class RevurderingServiceImpl(
         brevvalg: Brevvalg.SaksbehandlersValg?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
-        val (avsluttetRevurdering, skalSendeAvslutningsbrev) = when (revurdering) {
+        val tidspunktAvsluttet = Tidspunkt.now(clock)
+
+        return avsluttOgAvklarBrev(
+            revurdering = revurdering,
+            begrunnelse = begrunnelse,
+            brevvalg = brevvalg,
+            saksbehandler = saksbehandler,
+            tidspunktAvsluttet = tidspunktAvsluttet,
+        ).flatMap { avsluttetRevurdering ->
+            lukkOppgaveHvisRevurdering(
+                avsluttetRevurdering = avsluttetRevurdering,
+                originalRevurdering = revurdering,
+                saksbehandler = saksbehandler,
+            )
+            lagreAvsluttetRevurdering(
+                avsluttetRevurdering = avsluttetRevurdering,
+                originalRevurdering = revurdering,
+                saksbehandler = saksbehandler,
+            )
+        }
+    }
+
+    private fun avsluttOgAvklarBrev(
+        revurdering: AbstraktRevurdering,
+        begrunnelse: String,
+        brevvalg: Brevvalg.SaksbehandlersValg?,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        tidspunktAvsluttet: Tidspunkt,
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
+        return when (revurdering) {
             is GjenopptaYtelseRevurdering -> {
                 if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()
-                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock), saksbehandler).map {
-                    it to it.skalSendeAvslutningsbrev()
-                }.getOrElse {
-                    return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it).left()
-                }
+                revurdering.avslutt(begrunnelse, tidspunktAvsluttet, saksbehandler)
+                    .mapLeft { KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it) }
             }
 
             is StansAvYtelseRevurdering -> {
                 if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()
-                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock), saksbehandler).map {
-                    it to it.skalSendeAvslutningsbrev()
-                }.getOrElse {
-                    return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it).left()
-                }
+                revurdering.avslutt(begrunnelse, tidspunktAvsluttet, saksbehandler)
+                    .mapLeft { KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it) }
             }
 
-            is Revurdering -> revurdering.avslutt(begrunnelse, brevvalg, Tidspunkt.now(clock), saksbehandler).map {
-                it to it.skalSendeAvslutningsbrev()
-            }.getOrElse {
-                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
+            is Revurdering -> {
+                revurdering.avslutt(begrunnelse, brevvalg, tidspunktAvsluttet, saksbehandler)
+                    .mapLeft { KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it) }
             }
         }
+    }
 
+    private fun lukkOppgaveHvisRevurdering(
+        avsluttetRevurdering: AbstraktRevurdering,
+        originalRevurdering: AbstraktRevurdering,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ) {
+        // Disse har oppgave
         if (avsluttetRevurdering is Revurdering) {
             oppgaveService.lukkOppgave(
                 oppgaveId = avsluttetRevurdering.oppgaveId,
                 tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-            ).mapLeft {
+            ).onLeft {
                 if (it.feilPgaAlleredeFerdigstilt()) {
                     log.warn("Oppgave ${avsluttetRevurdering.oppgaveId} er allerede ferdigstilt for revurdering  ${avsluttetRevurdering.id}")
                 } else {
-                    log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}. Dette må gjøres manuelt.")
+                    log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${originalRevurdering.id}. Dette må gjøres manuelt.")
                 }
-            }.map {
-                log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}..")
+            }.onRight {
+                log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${originalRevurdering.id}..")
             }
         }
+    }
 
-        val resultat = if (avsluttetRevurdering is AvsluttetRevurdering && skalSendeAvslutningsbrev) {
-            val fritekst = fritekstService.hentFritekst(
-                referanseId = revurdering.id.value,
-                type = FritekstType.VEDTAKSBREV_REVURDERING,
-            ).map { it.fritekst }.getOrElse { "" }
-            brevService.lagDokumentPdf(
-                avsluttetRevurdering.lagDokumentKommando(
-                    satsFactory = satsFactory,
-                    clock = clock,
-                    fritekst = fritekst,
-                ),
-            )
-                .mapLeft {
-                    return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
-                }.map { dokument ->
-                    val dokumentMedMetaData = dokument.leggTilMetadata(
-                        metadata = Dokument.Metadata(
-                            sakId = revurdering.sakId,
-                            revurderingId = revurdering.id.value,
-                        ),
-                        // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-                        distribueringsadresse = null,
+    private fun lagreAvsluttetRevurdering(
+        avsluttetRevurdering: AbstraktRevurdering,
+        originalRevurdering: AbstraktRevurdering,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
+        return when (avsluttetRevurdering) {
+            is AvsluttetRevurdering -> {
+                if (avsluttetRevurdering.skalSendeAvslutningsbrev()) {
+                    lagreAvsluttetMedBrev(
+                        avsluttetRevurdering = avsluttetRevurdering,
+                        originalRevurdering = originalRevurdering,
+                        saksbehandler = saksbehandler,
                     )
-                    sessionFactory.withTransactionContext { tx ->
-                        brevService.lagreDokument(dokumentMedMetaData, tx)
-                        revurderingRepo.lagre(avsluttetRevurdering, tx)
-                        val statistikkEvent = Avsluttet(avsluttetRevurdering, saksbehandler)
-                        observers.notify(statistikkEvent, tx)
-                        sakStatistikkService.lagre(statistikkEvent, tx)
-                    }
-                }
-            avsluttetRevurdering.right()
-        } else {
-            sessionFactory.withTransactionContext { tx ->
-                revurderingRepo.lagre(avsluttetRevurdering, tx)
-                when (avsluttetRevurdering) {
-                    is AvsluttetRevurdering -> {
-                        val sakStatistikkEvent = Avsluttet(avsluttetRevurdering, saksbehandler)
-                        observers.notify(
-                            sakStatistikkEvent,
-                            tx,
-                        )
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
-                    }
-
-                    is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
-                        val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering)
-                        observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
-                    }
-
-                    is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
-                        val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering)
-                        observers.notify(sakStatistikkEvent, tx)
-                        sakStatistikkService.lagre(sakStatistikkEvent, tx)
-                    }
+                } else {
+                    lagreAvsluttetUtenBrev(
+                        avsluttetRevurdering = avsluttetRevurdering,
+                        saksbehandler = saksbehandler,
+                    ).right()
                 }
             }
-            avsluttetRevurdering.right()
-        }
 
-        return resultat
+            else -> lagreAvsluttetUtenBrev(
+                avsluttetRevurdering = avsluttetRevurdering,
+                saksbehandler = saksbehandler,
+            ).right()
+        }
+    }
+
+    private fun lagreAvsluttetMedBrev(
+        avsluttetRevurdering: AvsluttetRevurdering,
+        originalRevurdering: AbstraktRevurdering,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = originalRevurdering.id.value,
+            type = FritekstType.VEDTAKSBREV_REVURDERING,
+        ).map { it.fritekst }.getOrElse { "" }
+
+        return brevService.lagDokumentPdf(
+            avsluttetRevurdering.lagDokumentKommando(
+                satsFactory = satsFactory,
+                clock = clock,
+                fritekst = fritekst,
+            ),
+        ).mapLeft {
+            KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument
+        }.map { dokument ->
+            val dokumentMedMetaData = dokument.leggTilMetadata(
+                metadata = Dokument.Metadata(
+                    sakId = originalRevurdering.sakId,
+                    revurderingId = originalRevurdering.id.value,
+                ),
+                // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+                distribueringsadresse = null,
+            )
+            sessionFactory.withTransactionContext { tx ->
+                brevService.lagreDokument(dokumentMedMetaData, tx)
+                revurderingRepo.lagre(avsluttetRevurdering, tx)
+                lagreStatistikkEvent(avsluttetRevurdering, saksbehandler, tx)
+            }
+            avsluttetRevurdering
+        }
+    }
+
+    private fun lagreAvsluttetUtenBrev(
+        avsluttetRevurdering: AbstraktRevurdering,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): AbstraktRevurdering {
+        sessionFactory.withTransactionContext { tx ->
+            revurderingRepo.lagre(avsluttetRevurdering, tx)
+            lagreStatistikkEvent(avsluttetRevurdering, saksbehandler, tx)
+        }
+        return avsluttetRevurdering
+    }
+
+    private fun lagreStatistikkEvent(
+        avsluttetRevurdering: AbstraktRevurdering,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        tx: TransactionContext,
+    ) {
+        when (avsluttetRevurdering) {
+            is AvsluttetRevurdering -> {
+                val sakStatistikkEvent = Avsluttet(avsluttetRevurdering, saksbehandler)
+                observers.notify(
+                    sakStatistikkEvent,
+                    tx,
+                )
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+            }
+
+            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering)
+                observers.notify(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+            }
+
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering)
+                observers.notify(sakStatistikkEvent, tx)
+                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+            }
+
+            else -> Unit
+        }
     }
 
     override fun lagBrevutkastForAvslutting(
