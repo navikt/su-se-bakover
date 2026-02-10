@@ -66,13 +66,20 @@ class ReguleringManuellServiceImpl(
         val sak = sakService.hentSak(regulering.sakId).getOrElse {
             return KunneIkkeRegulereManuelt.FantIkkeSak.left()
         }
-        val reguleringNyttGrunnlag = regulering.leggTilSaksbehandler(saksbehandler)
-            .leggTilUføre(uføregrunnlag, clock)
-            .leggTilFradrag(fradrag)
-
-        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak, clock).getOrElse {
-            return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+        val reguleringNyttGrunnlag = regulering.leggTilBeregningsgrunnlag(
+            saksbehandler = saksbehandler,
+            fradragsgrunnlag = fradrag,
+            uføregrunnlag = uføregrunnlag,
+            clock = clock,
+        ).getOrElse {
+            log.error("Feilet under leggTilBeregningsgrunnlag: ${it.error}")
+            return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
         }
+
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak, clock)
+            .getOrElse {
+                return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+            }
 
         reguleringRepo.lagre(simulertRegulering)
         return simulertRegulering.right()
@@ -137,9 +144,12 @@ class ReguleringManuellServiceImpl(
             }.map { oppdatertRegulering ->
                 return oppdatertRegulering
                     .copy(reguleringstype = oppdatertRegulering.reguleringstype)
-                    .leggTilFradrag(fradrag)
-                    .leggTilUføre(uføregrunnlag, clock)
-                    .leggTilSaksbehandler(saksbehandler)
+                    .leggTilBeregningsgrunnlag(
+                        saksbehandler = saksbehandler,
+                        fradragsgrunnlag = fradrag,
+                        uføregrunnlag = uføregrunnlag,
+                        clock = clock,
+                    )
                     .let {
                         reguleringService.behandleRegulering(it, sak)
                             .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
@@ -165,6 +175,7 @@ class ReguleringManuellServiceImpl(
 
                 avsluttetRegulering.right()
             }
+
             else -> KunneIkkeAvslutte.UgyldigTilstand.left()
         }
     }

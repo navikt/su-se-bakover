@@ -453,6 +453,11 @@ val reguleringErAutomatisk = HttpStatusCode.BadRequest.errorJson(
     "regulering_er_automatisk",
 )
 
+val reguleringFeilBeregningsgrunnlag = HttpStatusCode.BadRequest.errorJson(
+    "Feilet på grunn av beregningsgrunnlag",
+    "regulering_feil_beregningsgrunnlag",
+)
+
 val reguleringFeiletUnderBeregening = HttpStatusCode.BadRequest.errorJson(
     "Regulering er type automatisk",
     "regulering_er_automatisk",
@@ -488,6 +493,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
 
     is Beregne.IkkeUnderBehandling -> reguleringErIkkeUnderBehandling
     is Beregne.ReguleringstypeAutomatisk -> reguleringErAutomatisk
+    is Beregne.FeilMedBeregningsgrunnlag -> reguleringFeilBeregningsgrunnlag
     is Beregne -> reguleringFeiletUnderBeregening
 
     is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(

@@ -16,6 +16,7 @@ sealed interface KunneIkkeRegulereManuelt {
     interface Beregne : KunneIkkeRegulereManuelt {
         data object ReguleringstypeAutomatisk : Beregne
         data object IkkeUnderBehandling : Beregne
+        data object FeilMedBeregningsgrunnlag : Beregne
     }
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt

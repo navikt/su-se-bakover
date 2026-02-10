@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -29,31 +32,28 @@ sealed class ReguleringUnderBehandling : Regulering {
     override fun skalSendeVedtaksbrev() = false
     override val erFerdigstilt = false
 
-    fun leggTilFradrag(fradragsgrunnlag: List<Fradragsgrunnlag>): ReguleringUnderBehandling {
-        return kopierMedGrunnlagOgVilkår(
-            GrunnlagsdataOgVilkårsvurderingerRevurdering(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
-                    fradragsgrunnlag = fradragsgrunnlag,
-                ).getOrElse
-                    { throw IllegalStateException("Kunne ikke legge til fradrag ved regulering: $it") },
-                vilkårsvurderinger = vilkårsvurderinger,
-            ),
-        )
-    }
-
-    fun leggTilUføre(uføregrunnlag: List<Uføregrunnlag>, clock: Clock): ReguleringUnderBehandling {
+    fun leggTilBeregningsgrunnlag(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fradragsgrunnlag: List<Fradragsgrunnlag>,
+        uføregrunnlag: List<Uføregrunnlag>,
+        clock: Clock,
+    ): Either<FeilMedBeregningsgrunnlag, ReguleringUnderBehandling> {
         sikkerLogg.debug(
-            "Skal legge til {} for regulering {}. Vilkår & grunnlag som er på behandling NÅ: {}, {}",
+            "Skal legge til {} og {} for regulering {}. Vilkår & grunnlag som er på behandling NÅ: {}, {}",
+            fradragsgrunnlag,
             uføregrunnlag,
             this.id,
             grunnlagsdata,
             vilkårsvurderinger,
         )
-        return kopierMedGrunnlagOgVilkår(
-            GrunnlagsdataOgVilkårsvurderingerRevurdering(
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger.oppdaterVilkår(
+        val oppdatertRegulering = Either.catch {
+            val nyttFradrag = Grunnlagsdata.tryCreate(
+                bosituasjon = grunnlagsdata.bosituasjonSomFullstendig(),
+                fradragsgrunnlag = fradragsgrunnlag,
+            ).getOrElse { throw IllegalStateException("Kunne ikke legge til fradrag ved regulering: $it") }
+
+            val vilkårMedOppdatertUføre = if (uføregrunnlag.isNotEmpty()) {
+                vilkårsvurderinger.oppdaterVilkår(
                     UføreVilkår.Vurdert.tryCreate(
                         uføregrunnlag.map {
                             VurderingsperiodeUføre.tryCreate(
@@ -64,22 +64,31 @@ sealed class ReguleringUnderBehandling : Regulering {
                             ).getOrElse { throw RuntimeException("$it") }
                         }.toNonEmptyList(),
                     ).getOrElse { throw RuntimeException("$it") },
-                ),
-            ),
-        )
+                )
+            } else {
+                null
+            }
+
+            val nyttGrunnlagOgvilkår = GrunnlagsdataOgVilkårsvurderingerRevurdering(
+                grunnlagsdata = nyttFradrag,
+                vilkårsvurderinger = vilkårMedOppdatertUføre ?: vilkårsvurderinger,
+            )
+            when (this) {
+                is OpprettetRegulering -> copy(
+                    saksbehandler = saksbehandler,
+                    grunnlagsdataOgVilkårsvurderinger = nyttGrunnlagOgvilkår,
+                )
+
+                is BeregnetRegulering -> copy(
+                    saksbehandler = saksbehandler,
+                    grunnlagsdataOgVilkårsvurderinger = nyttGrunnlagOgvilkår,
+                )
+            }
+        }.getOrElse {
+            return FeilMedBeregningsgrunnlag(it).left()
+        }
+        return oppdatertRegulering.right()
     }
-
-    private fun kopierMedGrunnlagOgVilkår(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering) =
-        when (this) {
-            is OpprettetRegulering -> copy(grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger)
-            is BeregnetRegulering -> copy(grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger)
-        }
-
-    fun leggTilSaksbehandler(saksbehandler: NavIdentBruker.Saksbehandler): ReguleringUnderBehandling =
-        when (this) {
-            is OpprettetRegulering -> copy(saksbehandler = saksbehandler)
-            is BeregnetRegulering -> copy(saksbehandler = saksbehandler)
-        }
 
     fun endreTilManuell(begrunnelse: String): ReguleringUnderBehandling {
         val reguleringstype = Reguleringstype.MANUELL(
@@ -188,3 +197,7 @@ sealed class ReguleringUnderBehandling : Regulering {
         override val eksternSupplementRegulering: EksternSupplementRegulering,
     ) : ReguleringUnderBehandling()
 }
+
+data class FeilMedBeregningsgrunnlag(
+    val error: Throwable,
+)
