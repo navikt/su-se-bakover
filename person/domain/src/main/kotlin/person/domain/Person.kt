@@ -15,8 +15,6 @@ data class Person(
     val sivilstand: Sivilstand? = null,
     val fødsel: Fødsel? = null,
     val adressebeskyttelse: String? = null,
-    val skjermet: Boolean? = null,
-    val kontaktinfo: () -> Kontaktinfo?,
     val vergemål: Boolean? = null,
     val dødsdato: LocalDate? = null,
 ) {
@@ -52,13 +50,6 @@ data class Person(
     data class Poststed(
         val postnummer: String,
         val poststed: String?,
-    )
-
-    data class Kontaktinfo(
-        val epostadresse: String?,
-        val mobiltelefonnummer: String?,
-        val språk: String?,
-        val kanKontaktesDigitalt: Boolean,
     )
 
     data class Sivilstand(

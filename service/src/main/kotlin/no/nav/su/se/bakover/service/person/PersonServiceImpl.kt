@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
 import person.domain.PersonRepo
 import person.domain.PersonService
@@ -20,6 +21,10 @@ class PersonServiceImpl(
 
     override fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
         return personOppslag.personMedSystembruker(fnr)
+    }
+
+    override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+        return personOppslag.personMedSkjermingOgKontaktinfo(fnr)
     }
 
     override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {

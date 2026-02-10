@@ -32,6 +32,7 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
 
 // LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
@@ -84,6 +85,9 @@ class RoutesTest {
                                 throw RuntimeException("thrown exception")
 
                             override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+                                throw RuntimeException("thrown exception")
+
+                            override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
                                 throw RuntimeException("thrown exception")
 
                             override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =

@@ -42,7 +42,6 @@ internal class AvvistSøknadDokumentCommandTest {
         fødsel = Person.Fødsel.MedFødselsår(
             år = Year.of(1956),
         ),
-        kontaktinfo = { null },
     )
 
     @Test

@@ -98,6 +98,8 @@ internal class AccessCheckProxyTest {
                     },
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
@@ -125,6 +127,8 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
@@ -151,6 +155,8 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
@@ -177,6 +183,8 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentPersonMedSystembruker(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 

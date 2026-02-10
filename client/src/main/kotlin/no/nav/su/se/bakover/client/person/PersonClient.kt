@@ -9,8 +9,10 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
 import java.time.Year
 
@@ -45,6 +47,17 @@ internal class PersonClient(
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
         return pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
+    }
+
+    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+        val brukerToken = hentBrukerToken()
+        return pdlClient.person(fnr, brukerToken).map {
+            PersonMedSkjermingOgKontaktinfo(
+                person = toPerson(it, brukerToken),
+                skjermet = config.skjerming.erSkjermet(it.ident.fnr, brukerToken),
+                kontaktinfo = kontaktinfo(it.ident.fnr),
+            )
+        }
     }
 
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
@@ -100,8 +113,6 @@ internal class PersonClient(
             }
         },
         adressebeskyttelse = pdlData.adressebeskyttelse,
-        skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr, token),
-        kontaktinfo = { kontaktinfo(pdlData.ident.fnr) }, // Kjører lazy loading på denne da den stort sett ikke brukes
         vergemål = pdlData.vergemålEllerFremtidsfullmakt,
         dødsdato = pdlData.dødsdato,
     )
@@ -116,7 +127,7 @@ internal class PersonClient(
         kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer, token).getOrNull(),
     )
 
-    private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
+    private fun kontaktinfo(fnr: Fnr): Kontaktinfo? {
         return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(
             {
                 when (it) {
@@ -125,7 +136,7 @@ internal class PersonClient(
                 }
             },
             {
-                Person.Kontaktinfo(
+                Kontaktinfo(
                     epostadresse = it.epostadresse,
                     mobiltelefonnummer = it.mobiltelefonnummer,
                     språk = it.språk,

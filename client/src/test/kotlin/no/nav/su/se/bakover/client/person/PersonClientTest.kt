@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.client.person
 
 import arrow.core.right
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
@@ -23,28 +22,24 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import person.domain.Kontaktinfo
 import person.domain.Person
+import person.domain.PersonMedSkjermingOgKontaktinfo
 import java.time.Year
 
 internal class PersonClientTest {
 
     @Test
-    fun `kontaktinfo lastes lazy`() {
+    fun `person henter ikke kontaktinfo eller skjerming`() {
         val mocks = PersonClientConfigTestMocks()
 
         val person = mocks.personClient.person(fnr = mocks.fnr).getOrFail()
 
         verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
         verifyNoInteractions(mocks.kontaktOgReservasjonsregisterMock)
+        verifyNoInteractions(mocks.skjermingMock)
 
-        person.kontaktinfo() shouldBe Person.Kontaktinfo(
-            epostadresse = mocks.kontaktinformasjon.epostadresse,
-            mobiltelefonnummer = mocks.kontaktinformasjon.mobiltelefonnummer,
-            språk = mocks.kontaktinformasjon.språk,
-            kanKontaktesDigitalt = true,
-        )
-
-        verify(mocks.kontaktOgReservasjonsregisterMock).hentKontaktinformasjon(mocks.fnr)
+        person shouldBe mocks.person()
     }
 
     @Test
@@ -53,8 +48,30 @@ internal class PersonClientTest {
 
         val result = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail()
 
-        result.shouldBeEqualToIgnoringFields(mocks.person(), Person::kontaktinfo)
+        result shouldBe mocks.person()
         verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
+    }
+
+    @Test
+    fun `personMedSkjermingOgKontaktinfo henter kontaktinfo og skjerming`() {
+        val mocks = PersonClientConfigTestMocks()
+
+        val result = mocks.personClient.personMedSkjermingOgKontaktinfo(fnr = mocks.fnr).getOrFail()
+
+        result shouldBe PersonMedSkjermingOgKontaktinfo(
+            person = mocks.person(),
+            skjermet = false,
+            kontaktinfo = Kontaktinfo(
+                epostadresse = mocks.kontaktinformasjon.epostadresse,
+                mobiltelefonnummer = mocks.kontaktinformasjon.mobiltelefonnummer,
+                språk = mocks.kontaktinformasjon.språk,
+                kanKontaktesDigitalt = true,
+            ),
+        )
+
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
+        verify(mocks.skjermingMock).erSkjermet(mocks.fnr, mocks.brukerToken)
+        verify(mocks.kontaktOgReservasjonsregisterMock).hentKontaktinformasjon(mocks.fnr)
     }
 
     @Test
@@ -141,15 +158,6 @@ internal class PersonClientTest {
                 }
             },
             adressebeskyttelse = pdlData().adressebeskyttelse,
-            skjermet = false,
-            kontaktinfo = {
-                Person.Kontaktinfo(
-                    epostadresse = kontaktinformasjon.epostadresse,
-                    mobiltelefonnummer = kontaktinformasjon.mobiltelefonnummer,
-                    språk = kontaktinformasjon.språk,
-                    kanKontaktesDigitalt = true,
-                )
-            },
             vergemål = pdlData().vergemålEllerFremtidsfullmakt,
             dødsdato = pdlData().dødsdato!!,
         )
