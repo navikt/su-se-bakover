@@ -167,6 +167,11 @@ internal class AvsluttRevurderingTest {
             argThat { it shouldBe simulert.oppgaveId },
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
         )
+        verify(fritekstServiceMock).hentFritekst(
+            argThat { it shouldBe simulert.id.value },
+            argThat { it shouldBe FritekstType.VEDTAKSBREV_REVURDERING },
+            anyOrNull(),
+        )
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verify(brevServiceMock).lagDokumentPdf(
             argThat {
@@ -180,7 +185,7 @@ internal class AvsluttRevurderingTest {
             },
             anyOrNull(),
         )
-        verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock, fritekstServiceMock)
     }
 
     @Test
@@ -527,11 +532,16 @@ internal class AvsluttRevurderingTest {
             argThat { it shouldBe simulert.oppgaveId },
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
         )
+        verify(fritekstServiceMock).hentFritekst(
+            argThat { it shouldBe simulert.id.value },
+            argThat { it shouldBe FritekstType.VEDTAKSBREV_REVURDERING },
+            anyOrNull(),
+        )
         verify(brevServiceMock).lagDokumentPdf(any(), anyOrNull())
         verify(brevServiceMock).lagreDokument(any(), anyOrNull())
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() }, anyOrNull())
-        verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock, fritekstServiceMock)
     }
 
     private fun createRevurderingService(

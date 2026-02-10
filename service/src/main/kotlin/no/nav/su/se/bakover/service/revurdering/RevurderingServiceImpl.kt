@@ -1173,13 +1173,13 @@ class RevurderingServiceImpl(
             oppgaveService.lukkOppgave(
                 oppgaveId = avsluttetRevurdering.oppgaveId,
                 tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
-            ).mapLeft {
+            ).onLeft {
                 if (it.feilPgaAlleredeFerdigstilt()) {
                     log.warn("Oppgave ${avsluttetRevurdering.oppgaveId} er allerede ferdigstilt for revurdering  ${avsluttetRevurdering.id}")
                 } else {
                     log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${originalRevurdering.id}. Dette må gjøres manuelt.")
                 }
-            }.map {
+            }.onRight {
                 log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${originalRevurdering.id}..")
             }
         }
