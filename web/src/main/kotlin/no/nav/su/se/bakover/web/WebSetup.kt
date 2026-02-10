@@ -117,9 +117,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
     install(CallLogging) {
         level = Level.INFO
         filter { call ->
-            if (call.request.httpMethod.value == "OPTIONS") return@filter false
-            if (call.pathShouldBeExcluded(naisPaths)) return@filter false
-            return@filter true
+            return@filter call.shouldLogCall()
         }
 
         callIdMdc(CORRELATION_ID_HEADER)
@@ -154,8 +152,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
 
     intercept(ApplicationCallPipeline.Monitoring) {
         proceed()
-        if (call.request.httpMethod.value == "OPTIONS") return@intercept
-        if (call.pathShouldBeExcluded(naisPaths)) return@intercept
+        if (!call.shouldLogCall()) return@intercept
 
         val status = call.response.status() ?: return@intercept
         if (status.value >= 500 && call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null) {
@@ -230,4 +227,10 @@ private fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
     return paths.any {
         this.request.path().startsWith(it)
     }
+}
+
+private fun ApplicationCall.shouldLogCall(): Boolean {
+    if (this.request.httpMethod.value == "OPTIONS") return false
+    if (this.pathShouldBeExcluded(naisPaths)) return false
+    return true
 }
