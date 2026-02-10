@@ -87,13 +87,13 @@ class ReguleringManuellServiceImpl(
 
     override fun reguleringTilAttestering(
         reguleringId: ReguleringId,
-        uføregrunnlag: List<Uføregrunnlag>,
-        fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.TilAttestering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
-        reguleringRepo.lagre(regulering)
-        TODO("Not yet implemented")
+        if (regulering !is ReguleringUnderBehandling.BeregnetRegulering) return KunneIkkeRegulereManuelt.FeilTilstandForAttestering.left()
+        val tilAttestering = regulering.tilAttestering(saksbehandler)
+        reguleringRepo.lagre(tilAttestering)
+        return tilAttestering.right()
     }
 
     override fun godkjennRegulering(

@@ -7,6 +7,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandli
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.BeregnetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.TilAttestering
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -86,13 +88,17 @@ internal class ReguleringPostgresRepo(
                     session,
                 ) {
                     val behandlingsid = ReguleringId(it.uuid("id"))
-                    val fradragForRegulering: List<Fradragstype.Kategori> = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session).map { it.fradrag.fradragstype.kategori }.distinct() // For å unngå duplikat visning i frontend
+                    val fradragForRegulering: List<Fradragstype.Kategori> =
+                        fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session)
+                            .map { it.fradrag.fradragstype.kategori }
+                            .distinct() // For å unngå duplikat visning i frontend
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
                         reguleringId = behandlingsid,
                         fradragsKategori = fradragForRegulering,
-                        årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell")).map { it.kategori },
+                        årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
+                            .map { it.kategori },
                     )
                 }
             }
@@ -225,6 +231,7 @@ internal class ReguleringPostgresRepo(
                             "reguleringStatus" to when (regulering) {
                                 is OpprettetRegulering -> ReguleringStatus.OPPRETTET
                                 is BeregnetRegulering -> ReguleringStatus.BEREGNET
+                                is TilAttestering -> ReguleringStatus.ATTESTERING
                                 is IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is AvsluttetRegulering -> ReguleringStatus.AVSLUTTET
                             }.toString(),
@@ -330,6 +337,7 @@ internal class ReguleringPostgresRepo(
     private enum class ReguleringStatus {
         OPPRETTET,
         BEREGNET,
+        ATTESTERING,
         IVERKSATT,
         AVSLUTTET,
     }
@@ -351,50 +359,46 @@ internal class ReguleringPostgresRepo(
         sakstype: Sakstype,
         eksternSupplementRegulering: EksternSupplementRegulering,
     ): Regulering {
-        val regulering = when (status) {
-            ReguleringStatus.OPPRETTET, ReguleringStatus.AVSLUTTET -> OpprettetRegulering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                saksbehandler = saksbehandler,
-                fnr = fnr,
-                periode = periode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                reguleringstype = reguleringstype,
-                sakstype = sakstype,
-                eksternSupplementRegulering = eksternSupplementRegulering,
-            )
-            else -> BeregnetRegulering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                saksbehandler = saksbehandler,
-                fnr = fnr,
-                periode = periode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                reguleringstype = reguleringstype,
-                sakstype = sakstype,
-                eksternSupplementRegulering = eksternSupplementRegulering,
-                beregning = beregning ?: throw IllegalStateException("Beregnet regulering mangler beregning"),
-                simulering = simulering ?: throw IllegalStateException("Beregnet regulering mangler simulering"),
-            )
-        }
+        return OpprettetRegulering(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            saksbehandler = saksbehandler,
+            fnr = fnr,
+            periode = periode,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            reguleringstype = reguleringstype,
+            sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering,
+            attesteringer = Attesteringshistorikk.empty(),
+        ).let { regulering ->
+            when (status) {
+                ReguleringStatus.OPPRETTET -> regulering
+                ReguleringStatus.BEREGNET -> regulering.tilBeregnet(
+                    beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                    simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                )
 
-        return when (status) {
-            ReguleringStatus.OPPRETTET, ReguleringStatus.BEREGNET -> regulering
-            ReguleringStatus.IVERKSATT -> IverksattRegulering(
-                opprettetRegulering = regulering,
-                beregning = beregning!!,
-                simulering = simulering!!,
-            )
+                ReguleringStatus.ATTESTERING -> regulering.tilBeregnet(
+                    beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                    simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                ).tilAttestering(saksbehandler)
 
-            ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
-                opprettetRegulering = regulering,
-                avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
-                avsluttetAv = avsluttetReguleringJson.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
-            )
+                ReguleringStatus.IVERKSATT -> IverksattRegulering(
+                    opprettetRegulering = regulering,
+                    beregning = beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                    simulering = simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                )
+
+                ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
+                    opprettetRegulering = regulering,
+                    avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
+                    avsluttetAv = avsluttetReguleringJson.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
+                )
+            }
         }
     }
 }
+
+class ReguleringPostgresManglerBeregningEllersimulering : IllegalStateException()

@@ -18,6 +18,7 @@ sealed interface KunneIkkeRegulereManuelt {
         data object IkkeUnderBehandling : Beregne
         data object FeilMedBeregningsgrunnlag : Beregne
     }
+    data object FeilTilstandForAttestering : KunneIkkeRegulereManuelt
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
@@ -52,10 +53,8 @@ interface ReguleringManuellService {
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,
-        uføregrunnlag: List<Uføregrunnlag>,
-        fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering>
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.TilAttestering>
 
     fun godkjennRegulering(
         reguleringId: ReguleringId,

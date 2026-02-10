@@ -108,6 +108,22 @@ internal fun Route.reguler(
                 }
             }
         }
+        post("til_attestering") {
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withReguleringId { id ->
+                    reguleringManuellService.reguleringTilAttestering(
+                        reguleringId = ReguleringId(id),
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                            call.svar(Resultat.okJson())
+                        },
+                    )
+                }
+            }
+        }
         post {
             authorize(Brukerrolle.Saksbehandler) {
                 data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
@@ -463,6 +479,11 @@ val reguleringFeiletUnderBeregening = HttpStatusCode.BadRequest.errorJson(
     "regulering_er_automatisk",
 )
 
+val reguleringFeilTiltandforAttestering = HttpStatusCode.BadRequest.errorJson(
+    "Kan ikke sette regulering til attestering. Må være i tilstand beregnet.",
+    "regulering_feil_tilstand_attestering",
+)
+
 val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke gjeldende vedtaksdata",
     "fant_ikke_vedtaksdata",
@@ -503,4 +524,5 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
 
     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
     KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+    KunneIkkeRegulereManuelt.FeilTilstandForAttestering -> reguleringFeilTiltandforAttestering
 }
