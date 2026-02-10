@@ -35,7 +35,7 @@ data class TilbakekrevingsbehandlingJson(
         fun Tilbakekrevingsbehandling.toStringifiedJson(): String = serialize(this.toJson())
         fun List<Tilbakekrevingsbehandling>.toJson(): List<TilbakekrevingsbehandlingJson> = this.map { it.toJson() }
 
-        fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson = TilbakekrevingsbehandlingJson(
+        fun Tilbakekrevingsbehandling.toJson(fritekst: String?): TilbakekrevingsbehandlingJson = TilbakekrevingsbehandlingJson(
             id = id.toString(),
             sakId = sakId.toString(),
             opprettet = opprettet,
@@ -58,7 +58,7 @@ data class TilbakekrevingsbehandlingJson(
             },
             vurderinger = this.vurderingerMedKrav?.toJson(),
             forhåndsvarselsInfo = forhåndsvarselsInfo.toJson(),
-            fritekst = this.vedtaksbrevvalg?.fritekst,
+            fritekst = fritekst,
             versjon = this.versjon.value,
             sendtTilAttesteringAv = when (this) {
                 is OpprettetTilbakekrevingsbehandling,
@@ -73,6 +73,10 @@ data class TilbakekrevingsbehandlingJson(
             erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
             avsluttetTidspunkt = (this as? AvbruttTilbakekrevingsbehandling)?.avsluttetTidspunkt,
             notat = this.notat?.value,
+        )
+
+        fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson = this.toJson(
+            fritekst = this.vedtaksbrevvalg?.fritekst,
         )
     }
 }

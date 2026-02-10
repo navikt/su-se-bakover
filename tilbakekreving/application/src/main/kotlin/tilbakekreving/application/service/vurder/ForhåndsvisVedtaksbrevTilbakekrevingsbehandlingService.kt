@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
@@ -18,6 +20,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val brevService: BrevService,
+    private val fritekstService: FritekstService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -35,27 +38,37 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseVedtaksbrev.FantIkkeBehandling.left()
 
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = command.behandlingId.value,
+            type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+            sessionContext = null,
+        ).map { it.fritekst }
+            .getOrElse { "" }
+        val dokumentCommand = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
+            fødselsnummer = sak.fnr,
+            saksnummer = sak.saksnummer,
+            sakstype = sak.type,
+            correlationId = command.correlationId,
+            sakId = sak.id,
+            saksbehandler = when (behandling) {
+                is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
+                else -> command.utførtAv
+            },
+            attestant = when (behandling) {
+                is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
+                else -> null
+            },
+            fritekst = fritekst,
+            vurderingerMedKrav = behandling.vurderingerMedKrav ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves() ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+        )
+
         return brevService.lagDokumentPdf(
-            VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
-                fødselsnummer = sak.fnr,
-                saksnummer = sak.saksnummer,
-                sakstype = sak.type,
-                correlationId = command.correlationId,
-                sakId = sak.id,
-                saksbehandler = when (behandling) {
-                    is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
-                    else -> command.utførtAv
-                },
-                attestant = when (behandling) {
-                    is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
-                    else -> null
-                },
-                fritekst = behandling.vedtaksbrevvalg?.fritekst,
-                vurderingerMedKrav = behandling.vurderingerMedKrav ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
-                skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves() ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
-            ),
+            command = dokumentCommand,
         )
             .map { it.generertDokument }
-            .mapLeft { KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument }
+            .mapLeft {
+                KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument
+            }
     }
 }
