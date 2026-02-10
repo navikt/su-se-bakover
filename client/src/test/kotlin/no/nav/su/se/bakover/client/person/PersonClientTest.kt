@@ -76,7 +76,7 @@ internal class PersonClientTest {
     }
 
     private class PersonClientConfigTestMocks(
-        val fnr: Fnr = Fnr.generer(),
+        val fnr: Fnr = Fnr("07028820547"),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",

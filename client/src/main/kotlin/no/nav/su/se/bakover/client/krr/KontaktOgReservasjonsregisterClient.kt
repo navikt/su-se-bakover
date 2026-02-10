@@ -103,7 +103,10 @@ class KontaktOgReservasjonsregisterClient(
                 KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
             },
         )
-        return svar.onRight { krrCache.put(fnr, it) }
+        return svar.map {
+            krrCache.put(fnr, it)
+            it
+        }
     }
 }
 
