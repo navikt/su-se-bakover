@@ -1,14 +1,18 @@
 package no.nav.su.se.bakover.web.services
 
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
@@ -31,10 +35,12 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
+import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
@@ -49,8 +55,11 @@ import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
 import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
+import vilkår.skatt.application.SkatteService
+import økonomi.application.utbetaling.UtbetalingService
 import økonomi.application.utbetaling.UtbetalingServiceImpl
 import java.time.Clock
 
@@ -253,20 +262,20 @@ data object ServiceBuilder {
     }
 
     private data class KjerneTjenester(
-        val personService: PersonServiceImpl,
-        val sakService: SakServiceImpl,
-        val oppgaveService: OppgaveServiceImpl,
-        val brevService: BrevServiceImpl,
-        val fritekstService: FritekstServiceImpl,
-        val utbetalingService: UtbetalingServiceImpl,
+        val personService: PersonService,
+        val sakService: SakService,
+        val oppgaveService: OppgaveService,
+        val brevService: BrevService,
+        val fritekstService: FritekstService,
+        val utbetalingService: UtbetalingService,
         val sakStatistikkService: SakStatistikkService,
-        val sakStatistikkBigQueryService: SakStatistikkBigQueryServiceImpl,
+        val sakStatistikkBigQueryService: SakStatistikkBigQueryService,
         val statistikkEventObserver: StatistikkEventObserver,
     )
 
     private data class SkattServices(
-        val skattDokumentService: SkattDokumentServiceImpl,
-        val skatteService: SkatteServiceImpl,
+        val skattDokumentService: SkattDokumentService,
+        val skatteService: SkatteService,
     )
 
     private data class ReguleringServices(
@@ -402,7 +411,7 @@ data object ServiceBuilder {
     private fun buildSøknadsbehandlingService(
         databaseRepos: DatabaseRepos,
         kjerneTjenester: KjerneTjenester,
-        skatteService: SkatteServiceImpl,
+        skatteService: SkatteService,
         formuegrenserFactory: FormuegrenserFactory,
         satsFactory: SatsFactory,
         clock: Clock,
@@ -642,7 +651,7 @@ data object ServiceBuilder {
         vedtakService: VedtakServiceImpl,
         kontrollsamtaleSetup: KontrollsamtaleSetup,
         ferdigstillVedtakService: FerdigstillVedtakServiceImpl,
-        skattDokumentService: SkattDokumentServiceImpl,
+        skattDokumentService: SkattDokumentService,
         satsFactory: SatsFactory,
         clock: Clock,
         mottakerService: MottakerServiceImpl,
