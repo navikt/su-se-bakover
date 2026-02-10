@@ -118,7 +118,10 @@ class ReguleringServiceImpl(
         val uføregrunnlag = when (sak.type) {
             Sakstype.ALDER -> null
             Sakstype.UFØRE -> regulering.vilkårsvurderinger.uføreVilkår()
-                .getOrElse { throw IllegalStateException("Regulering uføre: $regulering.id mangler uføregrunnlag") }
+                .getOrElse {
+                    log.error("Mangler med uførevilkår ved simulering av regulering=${regulering.id}")
+                    return KunneIkkeSimulereRegulering.ManglerUføreGrunnlag.left()
+                }
                 .grunnlag
                 .toNonEmptyList()
         }
