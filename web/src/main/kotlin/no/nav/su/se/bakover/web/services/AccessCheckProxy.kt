@@ -88,12 +88,14 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnlagsdata
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -1305,11 +1307,11 @@ open class AccessCheckProxy(
                     return services.reguleringManuellService.hentSakerMedÅpenBehandlingEllerStans()
                 }
 
-                override fun hentReguleringsgrunnlag(
+                override fun hentRegulering(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata> {
-                    return services.reguleringManuellService.hentReguleringsgrunnlag(
+                ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning> {
+                    return services.reguleringManuellService.hentRegulering(
                         reguleringId,
                         saksbehandler,
                     )
@@ -1320,8 +1322,13 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Uføregrunnlag>,
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-                    TODO("Not yet implemented")
+                ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+                    return services.reguleringManuellService.beregnReguleringManuelt(
+                        reguleringId,
+                        uføregrunnlag,
+                        fradrag,
+                        saksbehandler,
+                    )
                 }
 
                 override fun reguleringTilAttestering(
@@ -1329,7 +1336,7 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Uføregrunnlag>,
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
                     TODO("Not yet implemented")
                 }
 
@@ -1343,7 +1350,7 @@ open class AccessCheckProxy(
                 override fun underkjennRegulering(
                     reguleringId: ReguleringId,
                     attestant: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
                     TODO("Not yet implemented")
                 }
 

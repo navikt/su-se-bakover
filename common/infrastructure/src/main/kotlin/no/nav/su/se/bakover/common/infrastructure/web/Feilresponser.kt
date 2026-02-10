@@ -210,8 +210,7 @@ data object Feilresponser {
         "feil_ved_henting_av_vedtak_dato",
     )
 
-    val ukjentSimuleringFeil = InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
-    val ukjentBeregningFeil = InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
+    val ukjentBeregningOgSimuleringFeil = InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
     val simuleringFørerTilFeilutbetaling = BadRequest.errorJson(
         message = "Simulering fører til feilutbetaling.",
         code = "simulering_fører_til_feilutbetaling",

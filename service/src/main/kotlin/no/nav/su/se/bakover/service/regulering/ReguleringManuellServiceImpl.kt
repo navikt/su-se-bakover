@@ -12,12 +12,14 @@ import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnlagsdata
+import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -36,16 +38,17 @@ class ReguleringManuellServiceImpl(
 ) : ReguleringManuellService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentReguleringsgrunnlag(
+    override fun hentRegulering(
         reguleringId: ReguleringId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata> {
-        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeHenteReguleringsgrunnlag.FantIkkeRegulering.left()
+    ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning> {
+        val regulering =
+            reguleringRepo.hent(reguleringId) ?: return KunneIkkeHenteReguleringsgrunnlag.FantIkkeRegulering.left()
         val gjeldendeVedtaksdata = sakService.hentGjeldendeVedtaksdata(
             sakId = regulering.sakId,
             periode = regulering.periode,
         ).getOrNull() ?: return KunneIkkeHenteReguleringsgrunnlag.FantIkkeGjeldendeVedtaksdata.left()
-        return ReguleringGrunnlagsdata.create(
+        return ManuellReguleringVisning.create(
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
             regulering = regulering,
         ).right()
@@ -56,8 +59,30 @@ class ReguleringManuellServiceImpl(
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-        TODO("Not yet implemented")
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        if (regulering !is ReguleringUnderBehandling) return KunneIkkeRegulereManuelt.Beregne.IkkeUnderBehandling.left()
+        if (regulering.reguleringstype !is Reguleringstype.MANUELL) return KunneIkkeRegulereManuelt.Beregne.ReguleringstypeAutomatisk.left()
+        val sak = sakService.hentSak(regulering.sakId).getOrElse {
+            return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        }
+        val reguleringNyttGrunnlag = regulering.leggTilBeregningsgrunnlag(
+            saksbehandler = saksbehandler,
+            fradragsgrunnlag = fradrag,
+            uføregrunnlag = uføregrunnlag,
+            clock = clock,
+        ).getOrElse {
+            log.error("Feilet under leggTilBeregningsgrunnlag: ${it.error}")
+            return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
+        }
+
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak, clock)
+            .getOrElse {
+                return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+            }
+
+        reguleringRepo.lagre(simulertRegulering)
+        return simulertRegulering.right()
     }
 
     override fun reguleringTilAttestering(
@@ -65,10 +90,9 @@ class ReguleringManuellServiceImpl(
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         reguleringRepo.lagre(regulering)
-
         TODO("Not yet implemented")
     }
 
@@ -76,13 +100,14 @@ class ReguleringManuellServiceImpl(
         reguleringId: ReguleringId,
         attestant: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+        // TODO må det kontrollsimuleres noe?
         TODO("Not yet implemented")
     }
 
     override fun underkjennRegulering(
         reguleringId: ReguleringId,
         attestant: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
         TODO("Not yet implemented")
     }
 
@@ -109,7 +134,6 @@ class ReguleringManuellServiceImpl(
         }
 
         try {
-            // TODO gjøres ved attestering?
             return sak.opprettEllerOppdaterRegulering(
                 Måned.fra(fraOgMed),
                 clock,
@@ -120,9 +144,14 @@ class ReguleringManuellServiceImpl(
             }.map { oppdatertRegulering ->
                 return oppdatertRegulering
                     .copy(reguleringstype = oppdatertRegulering.reguleringstype)
-                    .leggTilFradrag(fradrag)
-                    .leggTilUføre(uføregrunnlag, clock)
-                    .leggTilSaksbehandler(saksbehandler)
+                    .leggTilBeregningsgrunnlag(
+                        saksbehandler = saksbehandler,
+                        fradragsgrunnlag = fradrag,
+                        uføregrunnlag = uføregrunnlag,
+                        clock = clock,
+                    ).getOrElse {
+                        return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
+                    }
                     .let {
                         reguleringService.behandleRegulering(it, sak)
                             .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
@@ -142,13 +171,14 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
         return when (regulering) {
-            is AvsluttetRegulering, is IverksattRegulering -> KunneIkkeAvslutte.UgyldigTilstand.left()
-            is OpprettetRegulering -> {
+            is ReguleringUnderBehandling -> {
                 val avsluttetRegulering = regulering.avslutt(avsluttetAv, clock)
                 reguleringRepo.lagre(avsluttetRegulering)
 
                 avsluttetRegulering.right()
             }
+
+            else -> KunneIkkeAvslutte.UgyldigTilstand.left()
         }
     }
 

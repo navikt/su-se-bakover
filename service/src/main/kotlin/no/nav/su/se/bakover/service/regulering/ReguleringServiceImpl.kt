@@ -4,15 +4,21 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
+import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
+import beregning.domain.Beregning
+import beregning.domain.BeregningStrategyFactory
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
@@ -23,6 +29,7 @@ import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
@@ -38,20 +45,13 @@ class ReguleringServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun behandleRegulering(
-        regulering: OpprettetRegulering,
+        regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
-        val beregnetRegulering = beregnRegulering(
-            regulering = regulering,
-            satsFactory = satsFactory,
-            clock = clock,
-        ).getOrElse { return it.left() }
-
-        val (simulertRegulering, simulertUtbetaling) = simulerReguleringOgUtbetaling(
-            beregnetRegulering,
-            sak,
-        ).getOrElse { return it.left() }
+        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
+            return it.left()
+        }
 
         val iverksattRegulering = simulertRegulering.tilIverksatt()
 
@@ -62,28 +62,70 @@ class ReguleringServiceImpl(
         return iverksattRegulering.right()
     }
 
-    private fun beregnRegulering(
-        regulering: OpprettetRegulering,
-        satsFactory: SatsFactory,
+    override fun beregnOgSimulerRegulering(
+        regulering: ReguleringUnderBehandling,
+        sak: Sak,
         clock: Clock,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne, OpprettetRegulering> =
-        regulering.beregn(
+    ): Either<KunneIkkeFerdigstilleOgIverksette, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
+        val beregning = beregn(
             satsFactory = satsFactory,
             begrunnelse = null,
+            regulering = regulering,
             clock = clock,
-        ).mapLeft { kunneikkeBeregne ->
+        ).getOrElse { kunneikkeBeregne ->
             log.error(
                 "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
                 kunneikkeBeregne.feil,
             )
-            KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
+            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne.left()
         }
+        val simulertUtbetaling = simulerReguleringOgUtbetaling(
+            regulering,
+            sak,
+            beregning,
+        ).getOrElse {
+            log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
+            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere.left()
+        }
+        return Pair(regulering.tilBeregnet(beregning, simulertUtbetaling.simulering), simulertUtbetaling).right()
+    }
+
+    fun beregn(
+        satsFactory: SatsFactory,
+        begrunnelse: String?,
+        regulering: ReguleringUnderBehandling,
+        clock: Clock,
+    ): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
+        return Either.catch {
+            BeregningStrategyFactory(
+                clock = clock,
+                satsFactory = satsFactory,
+            ).beregn(
+                grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+                begrunnelse = begrunnelse,
+                sakstype = regulering.sakstype,
+            )
+        }.mapLeft {
+            KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
+        }
+    }
 
     private fun simulerReguleringOgUtbetaling(
-        regulering: OpprettetRegulering,
+        regulering: ReguleringUnderBehandling,
         sak: Sak,
-    ) = regulering.simuler { beregning, uføregrunnlag ->
-        Either.catch {
+        beregning: Beregning,
+    ): Either<KunneIkkeSimulereRegulering, Utbetaling.SimulertUtbetaling> {
+        val uføregrunnlag = when (sak.type) {
+            Sakstype.ALDER -> null
+            Sakstype.UFØRE -> regulering.vilkårsvurderinger.uføreVilkår()
+                .getOrElse {
+                    log.error("Mangler med uførevilkår ved simulering av regulering=${regulering.id}")
+                    return KunneIkkeSimulereRegulering.ManglerUføreGrunnlag.left()
+                }
+                .grunnlag
+                .toNonEmptyList()
+        }
+        val simulering = Either.catch {
             sak.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,
                 beregning = beregning,
@@ -107,9 +149,14 @@ class ReguleringServiceImpl(
             },
             { it },
         )
-    }.mapLeft {
-        log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
-        KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
+        return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet }
+            .map {
+                when (it) {
+                    is Simuleringsresultat.UtenForskjeller -> it.simulertUtbetaling
+                    is Simuleringsresultat.MedForskjeller -> return KunneIkkeSimulereRegulering.Forskjeller(it.forskjeller)
+                        .left()
+                }
+            }
     }
 
     private fun lagreReguleringOgVedtakOgUtbetal(

@@ -37,11 +37,13 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatus
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.BeregnetRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -221,8 +223,9 @@ internal class ReguleringPostgresRepo(
                             },
                             "arsakForManuell" to regulering.reguleringstype.årsakerTilManuellReguleringJson(),
                             "reguleringStatus" to when (regulering) {
-                                is IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is OpprettetRegulering -> ReguleringStatus.OPPRETTET
+                                is BeregnetRegulering -> ReguleringStatus.BEREGNET
+                                is IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is AvsluttetRegulering -> ReguleringStatus.AVSLUTTET
                             }.toString(),
                             "avsluttet" to when (regulering) {
@@ -236,7 +239,7 @@ internal class ReguleringPostgresRepo(
                                 }
 
                                 is IverksattRegulering -> null
-                                is OpprettetRegulering -> null
+                                is ReguleringUnderBehandling -> null
                             },
                             "reguleringsupplement" to regulering.eksternSupplementRegulering.toDbJson(),
                         ),
@@ -326,6 +329,7 @@ internal class ReguleringPostgresRepo(
 
     private enum class ReguleringStatus {
         OPPRETTET,
+        BEREGNET,
         IVERKSATT,
         AVSLUTTET,
     }
@@ -347,32 +351,47 @@ internal class ReguleringPostgresRepo(
         sakstype: Sakstype,
         eksternSupplementRegulering: EksternSupplementRegulering,
     ): Regulering {
-        val opprettetRegulering = OpprettetRegulering(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            saksbehandler = saksbehandler,
-            fnr = fnr,
-            periode = periode,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-            beregning = beregning,
-            simulering = simulering,
-            reguleringstype = reguleringstype,
-            sakstype = sakstype,
-            eksternSupplementRegulering = eksternSupplementRegulering,
-        )
+        val regulering = when (status) {
+            ReguleringStatus.OPPRETTET, ReguleringStatus.AVSLUTTET -> OpprettetRegulering(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                saksbehandler = saksbehandler,
+                fnr = fnr,
+                periode = periode,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                reguleringstype = reguleringstype,
+                sakstype = sakstype,
+                eksternSupplementRegulering = eksternSupplementRegulering,
+            )
+            else -> BeregnetRegulering(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                saksbehandler = saksbehandler,
+                fnr = fnr,
+                periode = periode,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                reguleringstype = reguleringstype,
+                sakstype = sakstype,
+                eksternSupplementRegulering = eksternSupplementRegulering,
+                beregning = beregning ?: throw IllegalStateException("Beregnet regulering mangler beregning"),
+                simulering = simulering ?: throw IllegalStateException("Beregnet regulering mangler simulering"),
+            )
+        }
 
         return when (status) {
-            ReguleringStatus.OPPRETTET -> opprettetRegulering
+            ReguleringStatus.OPPRETTET, ReguleringStatus.BEREGNET -> regulering
             ReguleringStatus.IVERKSATT -> IverksattRegulering(
-                opprettetRegulering = opprettetRegulering,
+                opprettetRegulering = regulering,
                 beregning = beregning!!,
                 simulering = simulering!!,
             )
 
             ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
-                opprettetRegulering = opprettetRegulering,
+                opprettetRegulering = regulering,
                 avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
                 avsluttetAv = avsluttetReguleringJson.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
             )

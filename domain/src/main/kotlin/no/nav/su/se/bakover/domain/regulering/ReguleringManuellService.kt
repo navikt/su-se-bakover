@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 
@@ -12,9 +13,13 @@ sealed interface KunneIkkeHenteReguleringsgrunnlag {
 }
 
 sealed interface KunneIkkeRegulereManuelt {
+    interface Beregne : KunneIkkeRegulereManuelt {
+        data object ReguleringstypeAutomatisk : Beregne
+        data object IkkeUnderBehandling : Beregne
+        data object FeilMedBeregningsgrunnlag : Beregne
+    }
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
-    data object SimuleringFeilet : KunneIkkeRegulereManuelt
-    data object BeregningFeilet : KunneIkkeRegulereManuelt
+    data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
@@ -33,24 +38,24 @@ interface ReguleringManuellService {
     fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
 
-    fun hentReguleringsgrunnlag(
+    fun hentRegulering(
         reguleringId: ReguleringId,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeHenteReguleringsgrunnlag, ReguleringGrunnlagsdata>
+    ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning>
 
     fun beregnReguleringManuelt(
         reguleringId: ReguleringId,
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
+    ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,
         uføregrunnlag: List<Uføregrunnlag>,
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
+    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering>
 
     fun godkjennRegulering(
         reguleringId: ReguleringId,
@@ -60,7 +65,7 @@ interface ReguleringManuellService {
     fun underkjennRegulering(
         reguleringId: ReguleringId,
         attestant: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
+    ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering>
 
     fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
 

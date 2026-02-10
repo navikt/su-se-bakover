@@ -6,10 +6,12 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.regulering.json.EksternSupplementReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
@@ -72,7 +74,8 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
     reguleringsstatus = when (this) {
         is AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
         is IverksattRegulering -> ReguleringJson.Status.IVERKSATT
-        is OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
+        is ReguleringUnderBehandling.OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
+        is ReguleringUnderBehandling.BeregnetRegulering -> TODO()
     },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
@@ -84,7 +87,16 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
     saksbehandler = saksbehandler.navIdent,
     avsluttet = when (this) {
         is AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)
-        is IverksattRegulering, is OpprettetRegulering -> null
+        is IverksattRegulering, is ReguleringUnderBehandling -> null
     },
     sakstype = sakstype.toJson(),
+)
+
+internal data class ManuellReguleringVisningJson(
+    val gjeldendeVedtaksdata: GrunnlagsdataOgVilkårsvurderingerJson,
+    val regulering: ReguleringJson,
+)
+internal fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
+    gjeldendeVedtaksdata = gjeldendeVedtaksdata.toJson(formuegrenserFactory),
+    regulering = regulering.toJson(formuegrenserFactory),
 )
