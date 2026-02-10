@@ -119,16 +119,6 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
-
-            val status = call.response.status()
-            if (status != null && status.value >= 500) return@filter false
-
-            call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY)?.let { ex ->
-                call.application.log.error(
-                    "Request ${call.request.httpMethod} ${call.request.path()} failed with exception",
-                    ex,
-                )
-            }
             return@filter true
         }
 
