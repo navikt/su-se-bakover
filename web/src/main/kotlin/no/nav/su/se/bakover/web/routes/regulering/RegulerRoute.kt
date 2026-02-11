@@ -532,6 +532,11 @@ val reguleringFeilTiltandforUnderkjennelse = HttpStatusCode.BadRequest.errorJson
     "regulering_feil_tilstand_underkjenn",
 )
 
+val reguleringSaksbehandlerKanIkkeAttestere = HttpStatusCode.BadRequest.errorJson(
+    "Saksbehandler som har behandlet regulering kan ikke attestere",
+    "regulering_saksbehandler_kan_ikke_attestere",
+)
+
 val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke gjeldende vedtaksdata",
     "fant_ikke_vedtaksdata",
@@ -575,4 +580,5 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.FeilTilstandForAttestering -> reguleringFeilTiltandforAttestering
     KunneIkkeRegulereManuelt.FeilTilstandForIverksettelse -> reguleringFeilTiltandforIverksettelse
     KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse -> reguleringFeilTiltandforUnderkjennelse
+    KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere -> reguleringSaksbehandlerKanIkkeAttestere
 }

@@ -21,6 +21,7 @@ sealed interface KunneIkkeRegulereManuelt {
     data object FeilTilstandForAttestering : KunneIkkeRegulereManuelt
     data object FeilTilstandForIverksettelse : KunneIkkeRegulereManuelt
     data object FeilTilstandForUnderkjennelse : KunneIkkeRegulereManuelt
+    data object SaksbehandlerKanIkkeAttestere : KunneIkkeRegulereManuelt
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
