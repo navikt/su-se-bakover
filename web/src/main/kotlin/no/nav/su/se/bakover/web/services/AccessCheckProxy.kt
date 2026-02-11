@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -222,9 +223,10 @@ import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.service.klage.AdresseServiceFeil
+import no.nav.su.se.bakover.service.klage.DokumentAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
-import no.nav.su.se.bakover.service.klage.KlageinstansDokumentService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
@@ -1290,12 +1292,25 @@ open class AccessCheckProxy(
                     deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
                 ) = kastKanKunKallesFraAnnenService()
             },
-            klageinstansDokumentService = object : KlageinstansDokumentService {
-                override suspend fun hentDokumenterForSak(
+            dokumentAdresseService = object : DokumentAdresseService {
+                override suspend fun hentKlageDokumenterAdresseForSak(
                     sakId: UUID,
-                ) = services.klageinstansDokumentService.also {
+                ) = services.dokumentAdresseService.also {
                     assertHarTilgangTilSak(sakId)
-                }.hentDokumenterForSak(sakId)
+                }.hentKlageDokumenterAdresseForSak(sakId)
+
+                override suspend fun hentAdresseForDokumentId(
+                    dokumentId: UUID,
+                    journalpostId: JournalpostId,
+                ) = assertTilgangTilSakOgHentDokument(dokumentId).fold(
+                    ifLeft = { AdresseServiceFeil.FantIkkeDokument.left() },
+                    ifRight = {
+                        services.dokumentAdresseService.hentAdresseForDokumentId(
+                            dokumentId = dokumentId,
+                            journalpostId = journalpostId,
+                        )
+                    },
+                )
             },
             reguleringManuellService = object : ReguleringManuellService {
                 override fun avslutt(

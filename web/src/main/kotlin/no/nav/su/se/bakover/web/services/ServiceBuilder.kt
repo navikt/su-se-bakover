@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.Kontrollsamtale
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
+import no.nav.su.se.bakover.service.klage.DokumentAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
-import no.nav.su.se.bakover.service.klage.KlageinstansDokumentServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -215,7 +215,7 @@ data object ServiceBuilder {
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
-            klageinstansDokumentService = klageServices.klageinstansDokumentService,
+            dokumentAdresseService = klageServices.klageinstansDokumentService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
             reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
@@ -286,7 +286,7 @@ data object ServiceBuilder {
     private data class KlageServices(
         val klageService: KlageServiceImpl,
         val klageinstanshendelseService: KlageinstanshendelseServiceImpl,
-        val klageinstansDokumentService: KlageinstansDokumentServiceImpl,
+        val klageinstansDokumentService: DokumentAdresseServiceImpl,
     )
 
     private fun DatabaseRepos.requirePostgresSessionFactory(): PostgresSessionFactory {
@@ -634,9 +634,10 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
-        val klageinstansDokumentService = KlageinstansDokumentServiceImpl(
+        val klageinstansDokumentService = DokumentAdresseServiceImpl(
             klageRepo = databaseRepos.klageRepo,
             journalpostClient = clients.queryJournalpostClient,
+            dokumentRepo = databaseRepos.dokumentRepo,
         )
         return KlageServices(
             klageService = klageService,

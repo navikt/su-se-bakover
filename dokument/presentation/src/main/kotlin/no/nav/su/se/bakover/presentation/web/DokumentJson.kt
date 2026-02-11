@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.presentation.web
 
 import dokument.domain.Dokument
 import dokument.domain.Dokument.MedMetadata
-import dokument.domain.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.journalpostId
 import no.nav.su.se.bakover.common.serialize
 import java.time.format.DateTimeFormatter
 

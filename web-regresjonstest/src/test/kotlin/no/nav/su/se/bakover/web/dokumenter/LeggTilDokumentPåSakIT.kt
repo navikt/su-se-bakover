@@ -38,6 +38,7 @@ internal class LeggTilDokumentPåSakIT {
                               "tittel":"Fritekst-brevets tittel",
                               "opprettet": "IGNORERT",
                               "dokument": "${SharedRegressionTestData.DOKEMENT_DATA}",
+                              "journalpostId": null,
                               "journalført":false,
                               "brevErBestilt":false
                             }

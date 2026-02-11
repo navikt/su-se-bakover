@@ -23,12 +23,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withDokumentId
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.presentation.web.toJson
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
-import no.nav.su.se.bakover.service.klage.KlageinstansDokument
-import no.nav.su.se.bakover.service.klage.KlageinstansDokumentFeil
-import no.nav.su.se.bakover.service.klage.KlageinstansDokumentService
+import no.nav.su.se.bakover.service.klage.AdresseServiceFeil
+import no.nav.su.se.bakover.service.klage.DokumentAdresseService
+import no.nav.su.se.bakover.service.klage.JournalpostMedDokumentPdfOgAdresse
 import java.util.Base64
 import java.util.UUID
 
@@ -37,7 +38,7 @@ private const val ID_TYPE_PARAMETER = "idType"
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
     distribuerDokumentService: DistribuerDokumentService,
-    klageinstansDokumentService: KlageinstansDokumentService,
+    dokumentAdresseService: DokumentAdresseService,
 ) {
     get("/dokumenter") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -117,7 +118,7 @@ internal fun Route.dokumentRoutes(
                     )
                 }
 
-            klageinstansDokumentService.hentDokumenterForSak(sakUuid).fold(
+            dokumentAdresseService.hentKlageDokumenterAdresseForSak(sakUuid).fold(
                 ifLeft = { call.svar(it.tilResultat()) },
                 ifRight = { dokumenter ->
                     call.svar(
@@ -128,6 +129,37 @@ internal fun Route.dokumentRoutes(
                     )
                 },
             )
+        }
+    }
+
+    get("/dokumenter/eksterne/{dokumentId}/{journalpostId}") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withDokumentId { dokumentId ->
+                val journalpostId = call.parameter("journalpostId")
+                    .getOrElse {
+                        return@authorize call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Parameter 'journalpostId' mangler",
+                                "mangler_journalpostId",
+                            ),
+                        )
+                    }
+
+                dokumentAdresseService.hentAdresseForDokumentId(
+                    dokumentId = dokumentId,
+                    journalpostId = JournalpostId(journalpostId),
+                ).fold(
+                    ifLeft = { call.svar(it.tilResultat()) },
+                    ifRight = { dokumenter ->
+                        call.svar(
+                            Resultat.json(
+                                httpCode = HttpStatusCode.OK,
+                                json = dokumenter.toJson(),
+                            ),
+                        )
+                    },
+                )
+            }
         }
     }
 
@@ -153,7 +185,7 @@ internal fun Route.dokumentRoutes(
     sendDokumentMedAdresse(distribuerDokumentService)
 }
 
-private data class KlageinstansDokumentJson(
+private data class JournalPostDokumentMedPdf(
     val journalpostId: String,
     val journalpostTittel: String?,
     val datoOpprettet: String?,
@@ -171,12 +203,12 @@ private data class UtsendingsinfoJson(
     val digitalpostSendt: String?,
 )
 
-private fun List<KlageinstansDokument>.toJson(): String {
+private fun List<JournalpostMedDokumentPdfOgAdresse>.toJson(): String {
     return serialize(this.map { it.toJson() })
 }
 
-private fun KlageinstansDokument.toJson(): KlageinstansDokumentJson {
-    return KlageinstansDokumentJson(
+private fun JournalpostMedDokumentPdfOgAdresse.toJson(): JournalPostDokumentMedPdf {
+    return JournalPostDokumentMedPdf(
         journalpostId = journalpostId.toString(),
         journalpostTittel = journalpostTittel,
         datoOpprettet = datoOpprettet?.toString(),
@@ -197,10 +229,24 @@ private fun Utsendingsinfo.toJson(): UtsendingsinfoJson {
     )
 }
 
-private fun KlageinstansDokumentFeil.tilResultat(): Resultat {
+private fun AdresseServiceFeil.tilResultat(): Resultat {
     return when (this) {
-        is KlageinstansDokumentFeil.KunneIkkeHenteJournalpost -> this.feil.tilResultat()
-        is KlageinstansDokumentFeil.KunneIkkeHenteDokument -> this.feil.tilResultat()
+        is AdresseServiceFeil.KunneIkkeHenteJournalpost -> this.feil.tilResultat()
+        is AdresseServiceFeil.KunneIkkeHenteDokument -> this.feil.tilResultat()
+        AdresseServiceFeil.FantIkkeDokument -> HttpStatusCode.NotFound.errorJson(
+            "Fant ikke dokument",
+            "fant_ikke_dokument",
+        )
+
+        AdresseServiceFeil.JournalpostIkkeKnyttetTilDokument -> HttpStatusCode.NotFound.errorJson(
+            "Journalpostiden er ikke lik som dokument sin journalpostId",
+            "journalpost_ikke_knyttet_til_dokument",
+        )
+
+        AdresseServiceFeil.FantIkkeJournalpostForDokument -> HttpStatusCode.NotFound.errorJson(
+            "Fant ikke journalpost for dokument",
+            "fant_ikke_journalpost_for_dokument",
+        )
     }
 }
 

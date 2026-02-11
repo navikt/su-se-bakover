@@ -49,7 +49,7 @@ internal class AccessCheckProxyTest {
         avslåSøknadManglendeDokumentasjonService = mock(),
         klageService = mock(),
         klageinstanshendelseService = mock(),
-        klageinstansDokumentService = mock(),
+        dokumentAdresseService = mock(),
         sendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService = mock(),
         kontrollsamtaleSetup = mock(),
