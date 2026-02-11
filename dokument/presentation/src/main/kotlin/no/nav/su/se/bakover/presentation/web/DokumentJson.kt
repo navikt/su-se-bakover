@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.presentation.web
 
 import dokument.domain.Dokument
+import dokument.domain.Dokument.MedMetadata
+import dokument.domain.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.journalpostId
 import no.nav.su.se.bakover.common.serialize
 import java.time.format.DateTimeFormatter
 
@@ -15,6 +17,7 @@ fun Dokument.toJson(): String {
         // TODO jah: Tidspunkt bør formateres mer enhetlig mot frontend.
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         dokument = generertDokument.getContent(),
+        journalpostId = if (this is MedMetadata) metadata.journalpostId else null,
         journalført = erJournalført(),
         brevErBestilt = erBrevBestilt(),
     ).let {
@@ -29,5 +32,6 @@ private data class DokumentJson(
     // TODO jah: Her bør vi heller konvertere til base64 selv; istedenfor at Jackson gjør det automagisk for oss.
     val dokument: ByteArray,
     val journalført: Boolean,
+    val journalpostId: String? = null,
     val brevErBestilt: Boolean,
 )
