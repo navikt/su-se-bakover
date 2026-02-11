@@ -71,6 +71,7 @@ class JournalpostAdresseServiceImpl(
             )
             return AdresseServiceFeil.JournalpostIkkeKnyttetTilDokument.left()
         }
+
         return hentUtsendingsinfoForJournalpost(journalpostId)
     }
 
@@ -121,6 +122,7 @@ class JournalpostAdresseServiceImpl(
         }
     }
 
+    // SOS: Denne henter mer enn den trenger mer siden endepunktet eksisterte allerede anser vi det som ok nok.
     private suspend fun hentUtsendingsinfoForJournalpost(
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> = either {
