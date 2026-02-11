@@ -34,7 +34,7 @@ class PesysJobServiceImpl(
     }
 
     override fun hentDataFraUføre() {
-        log.info("UFØRE: Henter data fra pesys for hardkodet fnrer alder")
+        log.info("UFØRE: Henter data fra pesys for hardkodet fnrer")
         val result = client.hentVedtakForPersonPaaDatoUføre(emptyList(), LocalDate.now())
         result.map { result ->
             log.info("UFØRE: Hentet data fra Pesys klient på dato ${LocalDate.now()} antall vedtak ${result.resultat.size}")
