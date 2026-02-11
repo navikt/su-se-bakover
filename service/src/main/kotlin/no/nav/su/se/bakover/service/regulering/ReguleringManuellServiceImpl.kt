@@ -101,8 +101,19 @@ class ReguleringManuellServiceImpl(
     ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForIverksettelse.left()
+        val sak = sakService.hentSak(sakId = regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
+        if (sak.erStanset()) {
+            return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+        }
+        reguleringService.simulerReguleringOgUtbetaling(
+            regulering,
+            sak,
+            regulering.beregning,
+        ).getOrElse {
+            KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+        }
+
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
-        // TODO må det kontrollsimuleres noe?
         reguleringRepo.lagre(iverksattRegulering)
         return iverksattRegulering.right()
     }

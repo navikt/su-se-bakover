@@ -112,7 +112,7 @@ class ReguleringServiceImpl(
         }
     }
 
-    private fun simulerReguleringOgUtbetaling(
+    fun simulerReguleringOgUtbetaling(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         beregning: Beregning,
