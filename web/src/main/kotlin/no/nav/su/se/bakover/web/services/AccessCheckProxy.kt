@@ -1293,11 +1293,11 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             journalpostAdresseService = object : JournalpostAdresseService {
-                override suspend fun hentKlageDokumenterAdresseForSak(
+                override suspend fun hentKlageDokumenterMedAdresseForSak(
                     sakId: UUID,
                 ) = services.journalpostAdresseService.also {
                     assertHarTilgangTilSak(sakId)
-                }.hentKlageDokumenterAdresseForSak(sakId)
+                }.hentKlageDokumenterMedAdresseForSak(sakId)
 
                 override suspend fun hentAdresseForDokumentId(
                     dokumentId: UUID,

@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface JournalpostAdresseService {
-    suspend fun hentKlageDokumenterAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>>
+    suspend fun hentKlageDokumenterMedAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>>
     suspend fun hentAdresseForDokumentId(
         dokumentId: UUID,
         journalpostId: JournalpostId,

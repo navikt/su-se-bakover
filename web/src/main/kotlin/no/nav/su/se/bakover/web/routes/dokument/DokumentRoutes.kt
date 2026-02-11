@@ -119,7 +119,7 @@ internal fun Route.dokumentRoutes(
                     )
                 }
 
-            journalpostAdresseService.hentKlageDokumenterAdresseForSak(sakUuid).fold(
+            journalpostAdresseService.hentKlageDokumenterMedAdresseForSak(sakUuid).fold(
                 ifLeft = { call.svar(it.tilResultat()) },
                 ifRight = { dokumenter ->
                     call.svar(

@@ -25,7 +25,7 @@ class JournalpostAdresseServiceImpl(
 ) : JournalpostAdresseService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override suspend fun hentKlageDokumenterAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> {
+    override suspend fun hentKlageDokumenterMedAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> {
         val klager = klageRepo.hentKlager(sakId)
         log.info("Hentet {} klager fra database for sakId={}", klager.size, sakId)
         val journalpostIder = klager
@@ -38,7 +38,7 @@ class JournalpostAdresseServiceImpl(
             if (journalpostIder.isEmpty()) return@either emptyList()
 
             journalpostIder.flatMap { journalpostId ->
-                hentDokumenterForJournalpost(journalpostId).bind()
+                hentDokumenterMedAdresseForJournalpost(journalpostId).bind()
             }
         }.map { dokumenter ->
             dokumenter.sortedWith(
@@ -74,7 +74,7 @@ class JournalpostAdresseServiceImpl(
         return hentUtsendingsinfoForJournalpost(journalpostId)
     }
 
-    private suspend fun hentDokumenterForJournalpost(
+    private suspend fun hentDokumenterMedAdresseForJournalpost(
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> = either {
         val journalpost = journalpostClient.hentJournalpostMedDokumenter(journalpostId)
@@ -93,7 +93,7 @@ class JournalpostAdresseServiceImpl(
                 varianter = dokument.varianter,
             ) ?: return@dokument null
 
-            val innhold = journalpostClient.hentDokument(
+            val innhold = journalpostClient.hentDokumentForJournalpost(
                 journalpostId = journalpostId,
                 dokumentInfoId = dokument.dokumentInfoId,
                 variantFormat = valgtVariant.variantFormat,

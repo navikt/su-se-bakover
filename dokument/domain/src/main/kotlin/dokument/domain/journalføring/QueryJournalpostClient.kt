@@ -41,7 +41,7 @@ interface QueryJournalpostClient {
     /**
      * Henter fysisk dokument (rå bytes) fra SAF.
      */
-    suspend fun hentDokument(
+    suspend fun hentDokumentForJournalpost(
         journalpostId: JournalpostId,
         dokumentInfoId: String,
         variantFormat: String,
