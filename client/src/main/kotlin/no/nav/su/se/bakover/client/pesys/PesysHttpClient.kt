@@ -51,7 +51,7 @@ class PesysHttpClient(
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         val fullUrl = "$url$alderUri"
-        val (request, response, result) =
+        val (_, response, result) =
             fullUrl
                 .httpPost(listOf("fom" to dato.toString()))
                 .authentication().bearer(azureAd.getSystemToken(clientId))
@@ -91,7 +91,7 @@ class PesysHttpClient(
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         val fullUrl = "$url$uforeUri"
-        val (request, response, result) =
+        val (_, response, result) =
             fullUrl
                 .httpPost(listOf("fom" to dato.toString()))
                 .authentication().bearer(azureAd.getSystemToken(clientId))
