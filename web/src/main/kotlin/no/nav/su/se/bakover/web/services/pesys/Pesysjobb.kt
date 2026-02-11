@@ -29,7 +29,7 @@ internal class Pesysjobb(
                 log.info("Kan kjøre pesysjobb ${isDev()}")
                 if (isDev()) {
                     log.info("Kjører $jobName")
-                    pesysjobb.hentDatafraPesys()
+                    pesysjobb.hentDatafraAlder()
                 } else {
                     log.info("Kjører ikke $jobName")
                 }
