@@ -82,7 +82,7 @@ internal class ReguleringPostgresRepo(
                       r.arsakForManuell
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
-                    WHERE r.reguleringstatus = 'OPPRETTET'
+                    WHERE r.reguleringstatus in ('OPPRETTET', 'BEREGNET', 'ATTESTERING')
                       AND r.reguleringtype = 'MANUELL'
                     GROUP BY s.saksnummer, s.fnr, r.id;
                 """.trimIndent().hentListe(
