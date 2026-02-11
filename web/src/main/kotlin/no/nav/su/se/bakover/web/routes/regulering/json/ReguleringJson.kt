@@ -44,6 +44,8 @@ internal data class ReguleringJson(
     data class Avsluttet(val tidspunkt: Tidspunkt)
     enum class Status {
         OPPRETTET,
+        BEREGNET,
+        ATTESTERING,
         IVERKSATT,
         AVSLUTTET,
         ;
@@ -75,7 +77,8 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
         is AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
         is IverksattRegulering -> ReguleringJson.Status.IVERKSATT
         is ReguleringUnderBehandling.OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
-        is ReguleringUnderBehandling.BeregnetRegulering -> TODO()
+        is ReguleringUnderBehandling.BeregnetRegulering -> ReguleringJson.Status.BEREGNET
+        is ReguleringUnderBehandling.TilAttestering -> ReguleringJson.Status.ATTESTERING
     },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),

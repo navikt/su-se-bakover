@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
+import no.nav.su.se.bakover.database.attestering.toDatabaseJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
@@ -185,7 +187,8 @@ internal class ReguleringPostgresRepo(
                 reguleringType,
                 arsakForManuell,
                 avsluttet,
-                reguleringsupplement
+                reguleringsupplement,
+                attestering
             ) values (
                 :id,
                 :sakId,
@@ -198,7 +201,8 @@ internal class ReguleringPostgresRepo(
                 :reguleringType,
                 to_jsonb(:arsakForManuell::jsonb),
                 to_jsonb(:avsluttet::jsonb),
-                to_jsonb(:reguleringsupplement::jsonb)
+                to_jsonb(:reguleringsupplement::jsonb),
+                to_jsonb(:attestering::jsonb)
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -212,7 +216,8 @@ internal class ReguleringPostgresRepo(
                 reguleringType=:reguleringType,
                 arsakForManuell=to_jsonb(:arsakForManuell::jsonb),
                 avsluttet=to_jsonb(:avsluttet::jsonb),
-                reguleringsupplement=to_jsonb(:reguleringsupplement::jsonb)
+                reguleringsupplement=to_jsonb(:reguleringsupplement::jsonb),
+                attestering=to_jsonb(:attestering::jsonb)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -249,6 +254,11 @@ internal class ReguleringPostgresRepo(
                                 is ReguleringUnderBehandling -> null
                             },
                             "reguleringsupplement" to regulering.eksternSupplementRegulering.toDbJson(),
+                            "attestering" to when (regulering) {
+                                is AvsluttetRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
+                                is IverksattRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
+                                is ReguleringUnderBehandling -> regulering.attesteringer.toDatabaseJson()
+                            },
                         ),
                         session,
                     )
@@ -314,6 +324,7 @@ internal class ReguleringPostgresRepo(
             sakstype = Sakstype.from(string("type")),
         )
         val eksternSupplementRegulering = deserEskternSupplementReguleringJson(string("reguleringsupplement"))
+        val attesteringer = stringOrNull("attestering")?.toAttesteringshistorikk() ?: Attesteringshistorikk.empty()
 
         return lagRegulering(
             status = status,
@@ -331,6 +342,7 @@ internal class ReguleringPostgresRepo(
             avsluttetReguleringJson = avbrutt,
             sakstype = sakstype,
             eksternSupplementRegulering = eksternSupplementRegulering,
+            attesteringer = attesteringer,
         )
     }
 
@@ -358,6 +370,7 @@ internal class ReguleringPostgresRepo(
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
         eksternSupplementRegulering: EksternSupplementRegulering,
+        attesteringer: Attesteringshistorikk,
     ): Regulering {
         return OpprettetRegulering(
             id = id,
@@ -371,7 +384,7 @@ internal class ReguleringPostgresRepo(
             reguleringstype = reguleringstype,
             sakstype = sakstype,
             eksternSupplementRegulering = eksternSupplementRegulering,
-            attesteringer = Attesteringshistorikk.empty(),
+            attesteringer = attesteringer,
         ).let { regulering ->
             when (status) {
                 ReguleringStatus.OPPRETTET -> regulering
@@ -386,9 +399,12 @@ internal class ReguleringPostgresRepo(
                 ).tilAttestering(saksbehandler)
 
                 ReguleringStatus.IVERKSATT -> IverksattRegulering(
-                    opprettetRegulering = regulering,
-                    beregning = beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
-                    simulering = simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                    opprettetRegulering = regulering.tilBeregnet(
+                        beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                        simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
+                    ).tilAttestering(saksbehandler),
+                    beregning = beregning,
+                    simulering = simulering,
                 )
 
                 ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
