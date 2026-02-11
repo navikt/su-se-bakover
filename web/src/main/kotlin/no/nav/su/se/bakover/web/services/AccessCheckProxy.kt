@@ -1563,7 +1563,12 @@ open class AccessCheckProxy(
 
             pesysJobService = object : PesysJobService {
                 override fun hentDatafraAlder() {
-                    throw RuntimeException("Skal ikke kalle pesys fra routes")
+                    throw RuntimeException("Skal ikke kalle pesys alder fra routes")
+                    // NO-OP
+                }
+
+                override fun hentDataFraUføre() {
+                    throw RuntimeException("Skal ikke kalle pesys uføre fra routes")
                     // NO-OP
                 }
             },

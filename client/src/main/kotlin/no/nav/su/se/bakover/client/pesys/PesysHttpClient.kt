@@ -66,13 +66,13 @@ class PesysHttpClient(
                 try {
                     deserialize<ResponseDtoAlder>(json).right()
                 } catch (e: Exception) {
-                    log.error("Deserialization failed", e)
-                    sikkerLogg.error("Deserialization failed $json", e)
+                    log.error("Alder: Deserialization failed", e)
+                    sikkerLogg.error("Alder: Deserialization failed $json", e)
                     ClientError(HttpStatusCode.InternalServerError.value, "Klarte ikke å deserialise objekt, se sikkerlogg").left()
                 }
             },
             { error ->
-                log.error("HTTP error from Pesys", error)
+                log.error("Alder: HTTP error from Pesys", error)
                 val body = response.body().toByteArray().toString(Charsets.UTF_8)
                 ClientError(
                     httpStatus = error.response.statusCode,
@@ -106,13 +106,13 @@ class PesysHttpClient(
                 try {
                     deserialize<ResponseDtoUføre>(json).right()
                 } catch (e: Exception) {
-                    log.error("Deserialization failed", e)
-                    sikkerLogg.error("Deserialization failed $json", e)
+                    log.error("uføre: Deserialization failed", e)
+                    sikkerLogg.error("uføre: Deserialization failed $json", e)
                     ClientError(HttpStatusCode.InternalServerError.value, "Klarte ikke å deserialise objekt, se sikkerlogg").left()
                 }
             },
             { error ->
-                log.error("HTTP error from Pesys", error)
+                log.error("HTTP error from Pesys uføre", error)
                 val body = response.body().toByteArray().toString(Charsets.UTF_8)
                 ClientError(
                     httpStatus = error.response.statusCode,
