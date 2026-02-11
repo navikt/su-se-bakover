@@ -146,7 +146,7 @@ internal fun Route.dokumentRoutes(
                         )
                     }
 
-                journalpostAdresseService.hentAdresseForDokumentId(
+                journalpostAdresseService.hentAdresseForDokumentIdForInterneDokumenter(
                     dokumentId = dokumentId,
                     journalpostId = JournalpostId(journalpostId),
                 ).fold(

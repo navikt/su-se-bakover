@@ -8,7 +8,7 @@ import java.util.UUID
 
 interface JournalpostAdresseService {
     suspend fun hentKlageDokumenterMedAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>>
-    suspend fun hentAdresseForDokumentId(
+    suspend fun hentAdresseForDokumentIdForInterneDokumenter(
         dokumentId: UUID,
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, DokumentUtsendingsinfo>

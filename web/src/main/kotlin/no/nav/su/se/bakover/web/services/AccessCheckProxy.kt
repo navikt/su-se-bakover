@@ -1299,13 +1299,13 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
                 }.hentKlageDokumenterMedAdresseForSak(sakId)
 
-                override suspend fun hentAdresseForDokumentId(
+                override suspend fun hentAdresseForDokumentIdForInterneDokumenter(
                     dokumentId: UUID,
                     journalpostId: JournalpostId,
                 ) = assertTilgangTilSakOgHentDokument(dokumentId).fold(
                     ifLeft = { AdresseServiceFeil.FantIkkeDokument.left() },
                     ifRight = {
-                        services.journalpostAdresseService.hentAdresseForDokumentId(
+                        services.journalpostAdresseService.hentAdresseForDokumentIdForInterneDokumenter(
                             dokumentId = dokumentId,
                             journalpostId = journalpostId,
                         )

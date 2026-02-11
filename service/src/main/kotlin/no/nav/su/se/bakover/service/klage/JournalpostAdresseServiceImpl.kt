@@ -38,7 +38,7 @@ class JournalpostAdresseServiceImpl(
             if (journalpostIder.isEmpty()) return@either emptyList()
 
             journalpostIder.flatMap { journalpostId ->
-                hentDokumenterMedAdresseForJournalpost(journalpostId).bind()
+                hentDokumenterMedAdresseForJournalpostEksterneDokumenter(journalpostId).bind()
             }
         }.map { dokumenter ->
             dokumenter.sortedWith(
@@ -48,7 +48,7 @@ class JournalpostAdresseServiceImpl(
         }
     }
 
-    override suspend fun hentAdresseForDokumentId(
+    override suspend fun hentAdresseForDokumentIdForInterneDokumenter(
         dokumentId: UUID,
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> {
@@ -74,7 +74,7 @@ class JournalpostAdresseServiceImpl(
         return hentUtsendingsinfoForJournalpost(journalpostId)
     }
 
-    private suspend fun hentDokumenterMedAdresseForJournalpost(
+    private suspend fun hentDokumenterMedAdresseForJournalpostEksterneDokumenter(
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> = either {
         val journalpost = journalpostClient.hentJournalpostMedDokumenter(journalpostId)
