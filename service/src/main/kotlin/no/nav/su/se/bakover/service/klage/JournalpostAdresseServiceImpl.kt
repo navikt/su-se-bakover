@@ -53,6 +53,7 @@ class JournalpostAdresseServiceImpl(
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> {
         val dokument = dokumentRepo.hentDokument(dokumentId) ?: return AdresseServiceFeil.FantIkkeDokument.left()
+        log.info("Hentet dokument fra database for dokumentId={}", dokumentId)
         val journalpostIdFraDb = dokument.journalpostId ?: run {
             log.error(
                 "JournalpostId finnes ikke i dokument_distribusjon for dokumentId={}. journalpostId={}",
