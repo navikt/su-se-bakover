@@ -83,7 +83,7 @@ class PesysHttpClientTest {
     fun `Kan kalle pesys uføre med fnr liste i dag`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
-                post(urlPathEqualTo("/api/uforetrygd/ekstern/supplerede-stonad/beregningsperioder"))
+                post(urlPathEqualTo("/uforetrygd/ekstern/supplerede-stonad/beregningsperioder"))
                     .withQueryParam("fom", equalTo(LocalDate.now().toString()))
                     .withHeader("Content-Type", containing("application/json"))
                     .willReturn(
