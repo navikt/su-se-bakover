@@ -133,7 +133,7 @@ internal fun Route.dokumentRoutes(
         }
     }
 
-    get("/dokumenter/eksterne/{dokumentId}/{journalpostId}") {
+    get("/dokumenter/intern/{dokumentId}/{journalpostId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withDokumentId { dokumentId ->
                 val journalpostId = call.parameter("journalpostId")
