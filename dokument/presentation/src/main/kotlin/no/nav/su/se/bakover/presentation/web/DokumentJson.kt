@@ -14,7 +14,6 @@ fun Dokument.toJson(): String {
     return DokumentJson(
         id = id.toString(),
         tittel = tittel,
-        // TODO jah: Tidspunkt bør formateres mer enhetlig mot frontend.
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         dokument = generertDokument.getContent(),
         journalpostId = if (this is MedMetadata) metadata.journalpostId else null,
@@ -25,11 +24,11 @@ fun Dokument.toJson(): String {
     }
 }
 
+@Suppress("ArrayInDataClass")
 private data class DokumentJson(
     val id: String,
     val tittel: String,
     val opprettet: String,
-    // TODO jah: Her bør vi heller konvertere til base64 selv; istedenfor at Jackson gjør det automagisk for oss.
     val dokument: ByteArray,
     val journalført: Boolean,
     val journalpostId: String? = null,

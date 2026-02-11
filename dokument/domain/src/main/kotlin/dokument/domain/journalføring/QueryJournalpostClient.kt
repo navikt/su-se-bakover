@@ -99,6 +99,7 @@ data class DokumentVariant(
     val filtype: String?,
 )
 
+@Suppress("ArrayInDataClass")
 data class DokumentInnhold(
     val bytes: ByteArray,
     val contentType: String?,
