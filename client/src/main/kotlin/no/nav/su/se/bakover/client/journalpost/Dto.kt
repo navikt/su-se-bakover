@@ -65,7 +65,21 @@ internal data class JournalpostMedDokumenterResponse(
     val journalpostId: String,
     val tittel: String?,
     val datoOpprettet: LocalDate?,
+    val utsendingsinfo: UtsendingsinfoResponse?,
     val dokumenter: List<DokumentInfoResponse> = emptyList(),
+)
+
+internal data class UtsendingsinfoResponse(
+    val fysiskpostSendt: FysiskpostSendtResponse?,
+    val digitalpostSendt: DigitalpostSendtResponse?,
+)
+
+internal data class FysiskpostSendtResponse(
+    val adressetekstKonvolutt: String?,
+)
+
+internal data class DigitalpostSendtResponse(
+    val adresse: String?,
 )
 
 internal data class DokumentInfoResponse(

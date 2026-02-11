@@ -77,7 +77,13 @@ data class JournalpostMedDokumenter(
     val journalpostId: JournalpostId,
     val tittel: String?,
     val datoOpprettet: LocalDate?,
+    val utsendingsinfo: Utsendingsinfo?,
     val dokumenter: List<DokumentInfoMedVarianter>,
+)
+
+data class Utsendingsinfo(
+    val fysiskpostSendt: String?,
+    val digitalpostSendt: String?,
 )
 
 data class DokumentInfoMedVarianter(

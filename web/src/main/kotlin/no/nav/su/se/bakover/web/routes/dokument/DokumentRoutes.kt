@@ -8,6 +8,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.journalføring.KunneIkkeHenteDokument
 import dokument.domain.journalføring.KunneIkkeHenteJournalpost
+import dokument.domain.journalføring.Utsendingsinfo
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondBytes
@@ -156,12 +157,18 @@ private data class KlageinstansDokumentJson(
     val journalpostId: String,
     val journalpostTittel: String?,
     val datoOpprettet: String?,
+    val utsendingsinfo: UtsendingsinfoJson?,
     val dokumentInfoId: String,
     val dokumentTittel: String?,
     val brevkode: String?,
     val dokumentstatus: String?,
     val variantFormat: String,
     val pdfBase64: String,
+)
+
+private data class UtsendingsinfoJson(
+    val fysiskpostSendt: String?,
+    val digitalpostSendt: String?,
 )
 
 private fun List<KlageinstansDokument>.toJson(): String {
@@ -173,12 +180,20 @@ private fun KlageinstansDokument.toJson(): KlageinstansDokumentJson {
         journalpostId = journalpostId.toString(),
         journalpostTittel = journalpostTittel,
         datoOpprettet = datoOpprettet?.toString(),
+        utsendingsinfo = utsendingsinfo?.toJson(),
         dokumentInfoId = dokumentInfoId,
         dokumentTittel = dokumentTittel,
         brevkode = brevkode,
         dokumentstatus = dokumentstatus,
         variantFormat = variantFormat,
         pdfBase64 = Base64.getEncoder().encodeToString(dokument),
+    )
+}
+
+private fun Utsendingsinfo.toJson(): UtsendingsinfoJson {
+    return UtsendingsinfoJson(
+        fysiskpostSendt = fysiskpostSendt,
+        digitalpostSendt = digitalpostSendt,
     )
 }
 

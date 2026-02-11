@@ -18,6 +18,7 @@ import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
+import dokument.domain.journalføring.Utsendingsinfo
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.cache.newCache
@@ -142,6 +143,7 @@ internal class QueryJournalpostHttpClient(
                         journalpostId = JournalpostId(jp.journalpostId),
                         tittel = jp.tittel,
                         datoOpprettet = jp.datoOpprettet,
+                        utsendingsinfo = jp.utsendingsinfo.toUtsendingsinfoOrNull(),
                         dokumenter = jp.dokumenter.map { doc ->
                             DokumentInfoMedVarianter(
                                 dokumentInfoId = doc.dokumentInfoId,
@@ -370,6 +372,17 @@ internal class QueryJournalpostHttpClient(
             data class Ukjent(val request: Any, val msg: String) : HttpFeil
         }
     }
+}
+
+private fun UtsendingsinfoResponse?.toUtsendingsinfoOrNull(): Utsendingsinfo? {
+    if (this == null) return null
+    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt
+    val digitalpost = this.digitalpostSendt?.adresse
+    if (fysiskpost == null && digitalpost == null) return null
+    return Utsendingsinfo(
+        fysiskpostSendt = fysiskpost,
+        digitalpostSendt = digitalpost,
+    )
 }
 
 internal abstract class GraphQLHttpResponse {

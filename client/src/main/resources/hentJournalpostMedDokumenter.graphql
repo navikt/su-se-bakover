@@ -5,6 +5,14 @@ query($journalpostId: String!){
         journalpostId
         tittel
         datoOpprettet
+        utsendingsinfo {
+            fysiskpostSendt {
+                adressetekstKonvolutt
+            }
+            digitalpostSendt {
+                adresse
+            }
+        }
         dokumenter {
             dokumentInfoId
             tittel
