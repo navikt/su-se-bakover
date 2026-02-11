@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.Kontrollsamtale
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
-import no.nav.su.se.bakover.service.klage.DokumentAdresseServiceImpl
+import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
@@ -159,7 +159,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             clock = clock,
         )
-        val dokumentAdresseService = DokumentAdresseServiceImpl(
+        val dokumentAdresseService = JournalpostAdresseServiceImpl(
             klageRepo = databaseRepos.klageRepo,
             journalpostClient = clients.queryJournalpostClient,
             dokumentRepo = databaseRepos.dokumentRepo,
@@ -224,7 +224,7 @@ data object ServiceBuilder {
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
-            dokumentAdresseService = dokumentAdresseService,
+            journalpostAdresseService = dokumentAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
             reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(

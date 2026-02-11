@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlageFelter
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-class DokumentAdresseServiceImpl(
+class JournalpostAdresseServiceImpl(
     private val klageRepo: KlageRepo,
     private val journalpostClient: QueryJournalpostClient,
     private val dokumentRepo: DokumentRepo,
-) : DokumentAdresseService {
+) : JournalpostAdresseService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override suspend fun hentKlageDokumenterAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> {

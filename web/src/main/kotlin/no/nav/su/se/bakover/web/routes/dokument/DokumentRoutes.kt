@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.presentation.web.toJson
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.klage.AdresseServiceFeil
-import no.nav.su.se.bakover.service.klage.DokumentAdresseService
+import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.JournalpostMedDokumentPdfOgAdresse
 import java.util.Base64
 import java.util.UUID
@@ -38,7 +38,7 @@ private const val ID_TYPE_PARAMETER = "idType"
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
     distribuerDokumentService: DistribuerDokumentService,
-    dokumentAdresseService: DokumentAdresseService,
+    journalpostAdresseService: JournalpostAdresseService,
 ) {
     get("/dokumenter") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -118,7 +118,7 @@ internal fun Route.dokumentRoutes(
                     )
                 }
 
-            dokumentAdresseService.hentKlageDokumenterAdresseForSak(sakUuid).fold(
+            journalpostAdresseService.hentKlageDokumenterAdresseForSak(sakUuid).fold(
                 ifLeft = { call.svar(it.tilResultat()) },
                 ifRight = { dokumenter ->
                     call.svar(
@@ -145,7 +145,7 @@ internal fun Route.dokumentRoutes(
                         )
                     }
 
-                dokumentAdresseService.hentAdresseForDokumentId(
+                journalpostAdresseService.hentAdresseForDokumentId(
                     dokumentId = dokumentId,
                     journalpostId = JournalpostId(journalpostId),
                 ).fold(

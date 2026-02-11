@@ -224,7 +224,7 @@ import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.AdresseServiceFeil
-import no.nav.su.se.bakover.service.klage.DokumentAdresseService
+import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
@@ -1292,10 +1292,10 @@ open class AccessCheckProxy(
                     deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
                 ) = kastKanKunKallesFraAnnenService()
             },
-            dokumentAdresseService = object : DokumentAdresseService {
+            journalpostAdresseService = object : JournalpostAdresseService {
                 override suspend fun hentKlageDokumenterAdresseForSak(
                     sakId: UUID,
-                ) = services.dokumentAdresseService.also {
+                ) = services.journalpostAdresseService.also {
                     assertHarTilgangTilSak(sakId)
                 }.hentKlageDokumenterAdresseForSak(sakId)
 
@@ -1305,7 +1305,7 @@ open class AccessCheckProxy(
                 ) = assertTilgangTilSakOgHentDokument(dokumentId).fold(
                     ifLeft = { AdresseServiceFeil.FantIkkeDokument.left() },
                     ifRight = {
-                        services.dokumentAdresseService.hentAdresseForDokumentId(
+                        services.journalpostAdresseService.hentAdresseForDokumentId(
                             dokumentId = dokumentId,
                             journalpostId = journalpostId,
                         )

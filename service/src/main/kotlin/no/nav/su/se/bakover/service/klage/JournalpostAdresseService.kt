@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import java.time.LocalDate
 import java.util.UUID
 
-interface DokumentAdresseService {
+interface JournalpostAdresseService {
     suspend fun hentKlageDokumenterAdresseForSak(sakId: UUID): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>>
     suspend fun hentAdresseForDokumentId(
         dokumentId: UUID,

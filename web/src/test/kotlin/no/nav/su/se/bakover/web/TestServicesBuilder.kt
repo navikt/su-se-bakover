@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.service.klage.DokumentAdresseService
+import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
@@ -56,7 +56,7 @@ data object TestServicesBuilder {
         avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService = mock(),
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
-        dokumentAdresseService: DokumentAdresseService = mock(),
+        journalpostAdresseService: JournalpostAdresseService = mock(),
         reguleringAutomatiskServices: ReguleringAutomatiskService = mock(),
         reguleringManuellService: ReguleringManuellService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
@@ -92,7 +92,7 @@ data object TestServicesBuilder {
         avslåSøknadManglendeDokumentasjonService = avslåSøknadManglendeDokumentasjonService,
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
-        dokumentAdresseService = dokumentAdresseService,
+        journalpostAdresseService = journalpostAdresseService,
         reguleringAutomatiskService = reguleringAutomatiskServices,
         reguleringManuellService = reguleringManuellService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
