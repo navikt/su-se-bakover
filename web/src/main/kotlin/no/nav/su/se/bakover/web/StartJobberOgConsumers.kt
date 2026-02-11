@@ -335,11 +335,12 @@ private fun naisJobberOgConsumers(
         ),
 
         Pesysjobb.startJob(
-            initialDelay = Duration.ofSeconds(1),
-            periode = Duration.of(1, ChronoUnit.HOURS),
+            initialDelay = Duration.ofSeconds(5),
+            periode = Duration.of(2, ChronoUnit.HOURS),
             pesysjobb = services.pesysJobService,
             runJobCheck = runCheckFactory,
         ),
+
         SakstatistikkTilBigQuery.startJob(
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),

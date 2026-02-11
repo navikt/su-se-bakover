@@ -10,7 +10,8 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.client.pesys.PesysHttpClient
-import no.nav.su.se.bakover.client.pesys.ResponseDto
+import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
+import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -24,6 +25,8 @@ import org.mockito.kotlin.mock
 import java.time.LocalDate
 
 val testdata = """{ "resultat" : [ { "fnr" : "22503904369", "perioder" : [ { "netto" : 20983, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] }, { "fnr" : "01416304056", "perioder" : [ ] }, { "fnr" : "10435046563", "perioder" : [ { "netto" : 47292, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] }, { "fnr" : "01445407670", "perioder" : [ { "netto" : 32123, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 124028 } ] }, { "fnr" : "14445014177", "perioder" : [ { "netto" : 39642, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] }, { "fnr" : "24415045545", "perioder" : [ { "netto" : 47994, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] } ] }"""
+val testdataUfore =
+    """{ "resultat" : [ { "fnr" : "22503904369", "perioder" : [ { "netto" : 20983, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160, "oppjustertInntektEtterUfore": 12345 } ] } ] }"""
 
 class PesysHttpClientTest {
 
@@ -72,7 +75,28 @@ class PesysHttpClientTest {
 
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(hardkodetFnrs, LocalDate.now())
 
-            result.shouldBeRight(deserialize<ResponseDto>(testdata))
+            result.shouldBeRight(deserialize<ResponseDtoAlder>(testdata))
+        }
+    }
+
+    @Test
+    fun `Kan kalle pesys uføre med fnr liste i dag`() {
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                post(urlPathEqualTo("/api/uforetrygd/ekstern/supplerede-stonad/beregningsperioder"))
+                    .withQueryParam("fom", equalTo(LocalDate.now().toString()))
+                    .withHeader("Content-Type", containing("application/json"))
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(testdataUfore),
+                    ),
+            )
+
+            val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoUføre(hardkodetFnrs, LocalDate.now())
+
+            result.shouldBeRight(deserialize<ResponseDtoUføre>(testdataUfore))
         }
     }
 
