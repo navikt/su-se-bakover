@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 interface PesysJobService {
-    fun hentDatafraAlder()
+    fun hentDataFraAlder()
     fun hentDataFraUføre()
 }
 
@@ -15,7 +15,7 @@ class PesysJobServiceImpl(
 ) : PesysJobService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentDatafraAlder() {
+    override fun hentDataFraAlder() {
         log.info("ALDER: Henter data fra pesys for hardkodet fnrer alder")
         // TODO: Dette er testdata fra Dolly
         val hardkodetFnrs = listOf(
