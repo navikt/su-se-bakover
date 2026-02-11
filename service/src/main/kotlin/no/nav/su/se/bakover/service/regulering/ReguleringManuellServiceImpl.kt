@@ -127,6 +127,7 @@ class ReguleringManuellServiceImpl(
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse.left()
+        if (regulering.saksbehandler.navIdent == attestant.navIdent) return KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere.left()
         val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
         reguleringRepo.lagre(underkjentRegulering)
         return underkjentRegulering.right()

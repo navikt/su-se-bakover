@@ -272,13 +272,16 @@ sealed class ReguleringUnderBehandling :
                 Attestering.Underkjent(
                     attestant = attestant,
                     opprettet = Tidspunkt.now(clock),
-                    grunn = UnderkjentRegulering,
+                    grunn = UnderkjennelseGrunnRegulering.REGULERING_ER_FEIL,
                     kommentar = kommentar,
                 ),
             ),
         )
-        object UnderkjentRegulering : UnderkjennAttesteringsgrunn
     }
+}
+
+enum class UnderkjennelseGrunnRegulering : UnderkjennAttesteringsgrunn {
+    REGULERING_ER_FEIL,
 }
 
 data class FeilMedBeregningsgrunnlag(

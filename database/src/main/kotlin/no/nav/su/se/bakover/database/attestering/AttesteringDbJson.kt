@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.regulering.UnderkjennelseGrunnRegulering
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -51,6 +52,7 @@ sealed interface AttesteringDbJson {
                 "DOKUMENTASJON_MANGLER" -> UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER
                 "VEDTAKSBREVET_ER_FEIL" -> UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL
                 "ANDRE_FORHOLD" -> UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD
+                "REGULERING_ER_FEIL" -> UnderkjennelseGrunnRegulering.REGULERING_ER_FEIL
                 else -> throw IllegalStateException("Ukjent grunn - Kunne ikke mappe $grunn til ${UnderkjennAttesteringsgrunnBehandling::class.simpleName}")
             },
             kommentar = kommentar,
@@ -77,6 +79,7 @@ sealed interface AttesteringDbJson {
                 UnderkjennAttesteringsgrunnBehandling.DOKUMENTASJON_MANGLER -> "DOKUMENTASJON_MANGLER"
                 UnderkjennAttesteringsgrunnBehandling.VEDTAKSBREVET_ER_FEIL -> "VEDTAKSBREVET_ER_FEIL"
                 UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD -> "ANDRE_FORHOLD"
+                UnderkjennelseGrunnRegulering.REGULERING_ER_FEIL -> "REGULERING_ER_FEIL"
                 else -> throw IllegalStateException("Ukjent grunn - kunne ikke mappe $grunn til en database versjon")
             },
             kommentar = kommentar,
