@@ -51,7 +51,7 @@ class JournalpostAdresseServiceImpl(
     override suspend fun hentAdresseForDokumentId(
         dokumentId: UUID,
         journalpostId: JournalpostId,
-    ): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>> {
+    ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> {
         val dokument = dokumentRepo.hentDokument(dokumentId) ?: return AdresseServiceFeil.FantIkkeDokument.left()
         log.info("Hentet dokument fra database for dokumentId={}", dokumentId)
         val journalpostIdFraDb = dokument.journalpostId ?: run {
@@ -71,7 +71,7 @@ class JournalpostAdresseServiceImpl(
             )
             return AdresseServiceFeil.JournalpostIkkeKnyttetTilDokument.left()
         }
-        return hentDokumenterForJournalpost(journalpostId)
+        return hentUtsendingsinfoForJournalpost(journalpostId)
     }
 
     private suspend fun hentDokumenterForJournalpost(
@@ -119,6 +119,21 @@ class JournalpostAdresseServiceImpl(
                 dokument = innhold.bytes,
             )
         }
+    }
+
+    private suspend fun hentUtsendingsinfoForJournalpost(
+        journalpostId: JournalpostId,
+    ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> = either {
+        val journalpost = journalpostClient.hentJournalpostMedDokumenter(journalpostId)
+            .mapLeft { it.tilFeil() }
+            .bind()
+        log.info(
+            "Hentet journalpost med dokumentmetadata for utsendingsinfo. journalpostId={}",
+            journalpostId,
+        )
+        DokumentUtsendingsinfo(
+            utsendingsinfo = journalpost.utsendingsinfo,
+        )
     }
 
     private fun Klage.klageinstanshendelserOrEmpty(): Klageinstanshendelser {

@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.presentation.web.toJson
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.klage.AdresseServiceFeil
+import no.nav.su.se.bakover.service.klage.DokumentUtsendingsinfo
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.JournalpostMedDokumentPdfOgAdresse
 import java.util.Base64
@@ -150,11 +151,11 @@ internal fun Route.dokumentRoutes(
                     journalpostId = JournalpostId(journalpostId),
                 ).fold(
                     ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = { dokumenter ->
+                    ifRight = { adresse ->
                         call.svar(
                             Resultat.json(
                                 httpCode = HttpStatusCode.OK,
-                                json = dokumenter.toJson(),
+                                json = adresse.toJson(),
                             ),
                         )
                     },
@@ -198,6 +199,10 @@ private data class JournalPostDokumentMedPdf(
     val pdfBase64: String,
 )
 
+private data class DokumentUtsendingsinfoJson(
+    val utsendingsinfo: UtsendingsinfoJson?,
+)
+
 private data class UtsendingsinfoJson(
     val fysiskpostSendt: String?,
     val digitalpostSendt: String?,
@@ -205,6 +210,14 @@ private data class UtsendingsinfoJson(
 
 private fun List<JournalpostMedDokumentPdfOgAdresse>.toJson(): String {
     return serialize(this.map { it.toJson() })
+}
+
+private fun DokumentUtsendingsinfo.toJson(): String {
+    return serialize(
+        DokumentUtsendingsinfoJson(
+            utsendingsinfo = utsendingsinfo?.toJson(),
+        ),
+    )
 }
 
 private fun JournalpostMedDokumentPdfOgAdresse.toJson(): JournalPostDokumentMedPdf {

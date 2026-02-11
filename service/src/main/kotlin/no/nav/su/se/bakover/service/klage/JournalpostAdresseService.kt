@@ -11,8 +11,12 @@ interface JournalpostAdresseService {
     suspend fun hentAdresseForDokumentId(
         dokumentId: UUID,
         journalpostId: JournalpostId,
-    ): Either<AdresseServiceFeil, List<JournalpostMedDokumentPdfOgAdresse>>
+    ): Either<AdresseServiceFeil, DokumentUtsendingsinfo>
 }
+
+data class DokumentUtsendingsinfo(
+    val utsendingsinfo: Utsendingsinfo?,
+)
 
 @Suppress("ArrayInDataClass")
 data class JournalpostMedDokumentPdfOgAdresse(
