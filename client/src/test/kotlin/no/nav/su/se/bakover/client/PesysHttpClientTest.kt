@@ -9,14 +9,18 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.client.pesys.BeregningsperiodeDto
+import no.nav.su.se.bakover.client.pesys.BeregningsperioderIverksatteVedtakDto
 import no.nav.su.se.bakover.client.pesys.PesysHttpClient
 import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
 import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.PesysConfig
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -24,9 +28,88 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 
-val testdata = """{ "resultat" : [ { "fnr" : "22503904369", "perioder" : [ { "netto" : 20983, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] }, { "fnr" : "01416304056", "perioder" : [ ] }, { "fnr" : "10435046563", "perioder" : [ { "netto" : 47292, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] }, { "fnr" : "01445407670", "perioder" : [ { "netto" : 32123, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 124028 } ] }, { "fnr" : "14445014177", "perioder" : [ { "netto" : 39642, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] }, { "fnr" : "24415045545", "perioder" : [ { "netto" : 47994, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160 } ] } ] }"""
-val testdataUfore =
-    """{ "resultat" : [ { "fnr" : "22503904369", "perioder" : [ { "netto" : 20983, "fom" : "2025-05-01", "tom" : null, "grunnbelop" : 130160, "oppjustertInntektEtterUfore": 12345 } ] } ] }"""
+val expectedAlderResponse = ResponseDtoAlder(
+    resultat = listOf(
+        BeregningsperioderIverksatteVedtakDto(
+            fnr = "22503904369",
+            perioder = listOf(
+                BeregningsperiodeDto(
+                    netto = 20983,
+                    fom = LocalDate.parse("2025-05-01"),
+                    tom = null,
+                    grunnbelop = 130160,
+                ),
+            ),
+        ),
+        BeregningsperioderIverksatteVedtakDto(
+            fnr = "01416304056",
+            perioder = emptyList(),
+        ),
+        BeregningsperioderIverksatteVedtakDto(
+            fnr = "10435046563",
+            perioder = listOf(
+                BeregningsperiodeDto(
+                    netto = 47292,
+                    fom = LocalDate.parse("2025-05-01"),
+                    tom = null,
+                    grunnbelop = 130160,
+                ),
+            ),
+        ),
+        BeregningsperioderIverksatteVedtakDto(
+            fnr = "01445407670",
+            perioder = listOf(
+                BeregningsperiodeDto(
+                    netto = 32123,
+                    fom = LocalDate.parse("2025-05-01"),
+                    tom = null,
+                    grunnbelop = 124028,
+                ),
+            ),
+        ),
+        BeregningsperioderIverksatteVedtakDto(
+            fnr = "14445014177",
+            perioder = listOf(
+                BeregningsperiodeDto(
+                    netto = 39642,
+                    fom = LocalDate.parse("2025-05-01"),
+                    tom = null,
+                    grunnbelop = 130160,
+                ),
+            ),
+        ),
+        BeregningsperioderIverksatteVedtakDto(
+            fnr = "24415045545",
+            perioder = listOf(
+                BeregningsperiodeDto(
+                    netto = 47994,
+                    fom = LocalDate.parse("2025-05-01"),
+                    tom = null,
+                    grunnbelop = 130160,
+                ),
+            ),
+        ),
+    ),
+)
+val testdata = serialize(expectedAlderResponse)
+
+val expectedUforeResponse = ResponseDtoUføre(
+    resultat = listOf(
+        UføreBeregningsperioderPerPerson(
+            fnr = "22503904369",
+            perioder = listOf(
+                UføreBeregningsperiode(
+                    netto = 20983,
+                    fom = LocalDate.parse("2025-05-01"),
+                    tom = null,
+                    grunnbelop = 130160,
+                    oppjustertInntektEtterUfore = 12345,
+                ),
+            ),
+        ),
+    ),
+)
+val testdataUfore = serialize(expectedUforeResponse)
 
 class PesysHttpClientTest {
 
@@ -75,7 +158,7 @@ class PesysHttpClientTest {
 
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(hardkodetFnrs, LocalDate.now())
 
-            result.shouldBeRight(deserialize<ResponseDtoAlder>(testdata))
+            result.shouldBeRight(expectedAlderResponse)
         }
     }
 
@@ -96,7 +179,7 @@ class PesysHttpClientTest {
 
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoUføre(hardkodetFnrs, LocalDate.now())
 
-            result.shouldBeRight(deserialize<ResponseDtoUføre>(testdataUfore))
+            result.shouldBeRight(expectedUforeResponse)
         }
     }
 
