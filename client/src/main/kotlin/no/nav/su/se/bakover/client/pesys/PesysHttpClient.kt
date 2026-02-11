@@ -47,7 +47,7 @@ class PesysHttpClient(
     private val baseUrl = if (url.endsWith("/")) url else "$url/"
 
     val alderUri = "alderspensjon/vedtak/iverksatt" // + eks:  ?fom=2024-12-15"
-    val uforeUri = "api/uforetrygd/ekstern/supplerede-stonad/beregningsperioder"
+    val uforeUri = "uforetrygd/ekstern/supplerede-stonad/beregningsperioder"
     override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoAlder> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
