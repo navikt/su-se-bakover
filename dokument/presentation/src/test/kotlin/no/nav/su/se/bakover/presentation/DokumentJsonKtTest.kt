@@ -18,6 +18,7 @@ internal class DokumentJsonKtTest {
                 "tittel": "vedtak om json",
                 "dokument": "ZG9rdW1lbnRldA==",
                 "journalført": false,
+                "journalpostId": null,
                 "brevErBestilt": false
             }
         """.trimIndent()
@@ -43,6 +44,7 @@ internal class DokumentJsonKtTest {
                     "tittel": "vedtak om json",
                     "dokument": "ZG9rdW1lbnRldA==",
                     "journalført": false,
+                    "journalpostId": null,
                     "brevErBestilt": false
                 }
                ]
