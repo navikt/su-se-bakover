@@ -265,6 +265,11 @@ private fun AdresseServiceFeil.tilResultat(): Resultat {
             "Journalpost mangler brevbestilling, men er journalført. Normalt vil dette ta 5 minutter ekstra.",
             "journalpost_mangler_brevbestilling",
         )
+
+        AdresseServiceFeil.ErIkkeJournalført -> HttpStatusCode.NotFound.errorJson(
+            "Journalposten er ikke journalført, dette er steg 1 av 2 der steg 2 er brev distribuering. Normalt vil dette ta 5 minutter ekstra.",
+            "journalpost_mangler",
+        )
     }
 }
 
