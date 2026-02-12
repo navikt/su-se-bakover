@@ -11,9 +11,9 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
-import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -96,6 +96,7 @@ internal class DokumentRoutesKtTest {
     @Test
     fun `happy case`() {
         val dokumentId = UUID.randomUUID()
+        val pdf = minimumPdfAzeroPadded()
         val services = TestServicesBuilder.services(
             brev = mock {
                 on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.HentDokumenterForSøknad }) } doReturn listOf(
@@ -103,7 +104,7 @@ internal class DokumentRoutesKtTest {
                         id = dokumentId,
                         opprettet = Tidspunkt.EPOCH,
                         tittel = "en fin tittel",
-                        generertDokument = minimumPdfAzeroPadded(),
+                        generertDokument = pdf,
                         generertDokumentJson = "",
                     ),
                 )
@@ -125,20 +126,17 @@ internal class DokumentRoutesKtTest {
                         UUID.fromString("39f05293-39e0-47be-ba35-a7e0b233b630"),
                     ),
                 )
-                it.bodyAsText().shouldBeSimilarJsonTo(
-                    """
-                    [
-                        {
-                            "id": "$dokumentId",
-                            "tittel": "en fin tittel",
-                            "opprettet": "1970-01-01T00:00:00Z",
-                            "dokument": "${Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())}",
-                            "journalført": false,
-                            "brevErBestilt": false
-                        }
-                    ]
-                    """.trimIndent(),
+                val expected = listOf(
+                    DokumentResponseJson(
+                        id = dokumentId.toString(),
+                        tittel = "en fin tittel",
+                        opprettet = Tidspunkt.EPOCH.toString(),
+                        dokument = Base64.getEncoder().encodeToString(pdf.getContent()),
+                        journalført = false,
+                        brevErBestilt = false,
+                    ),
                 )
+                deserializeList<DokumentResponseJson>(it.bodyAsText()) shouldBe expected
             }
         }
     }
@@ -196,3 +194,13 @@ internal class DokumentRoutesKtTest {
         }
     }
 }
+
+private data class DokumentResponseJson(
+    val id: String,
+    val tittel: String,
+    val opprettet: String,
+    val dokument: String,
+    val journalført: Boolean,
+    val brevErBestilt: Boolean,
+    val journalpostId: String? = null,
+)

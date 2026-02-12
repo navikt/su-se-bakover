@@ -107,7 +107,7 @@ internal fun Application.setupKtorRoutes(
                     dokumentRoutes(
                         brevService = accessProtectedServices.brev,
                         distribuerDokumentService = distribuerDokumentService,
-                        klageinstansDokumentService = accessProtectedServices.klageinstansDokumentService,
+                        journalpostAdresseService = accessProtectedServices.journalpostAdresseService,
                     )
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)

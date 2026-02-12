@@ -92,7 +92,7 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
         ).right()
     }
 
-    override suspend fun hentDokument(
+    override suspend fun hentDokumentForJournalpost(
         journalpostId: JournalpostId,
         dokumentInfoId: String,
         variantFormat: String,

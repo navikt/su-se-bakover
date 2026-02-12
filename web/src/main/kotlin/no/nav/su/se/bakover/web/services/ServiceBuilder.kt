@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -20,8 +22,10 @@ import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.Kontrollsamtale
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
+import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
-import no.nav.su.se.bakover.service.klage.KlageinstansDokumentServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -155,6 +159,11 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             clock = clock,
         )
+        val journalpostAdresseService = JournalpostAdresseServiceImpl(
+            klageRepo = databaseRepos.klageRepo,
+            journalpostClient = clients.queryJournalpostClient,
+            dokumentRepo = databaseRepos.dokumentRepo,
+        )
         val klageServices = buildKlageServices(
             databaseRepos = databaseRepos,
             clients = clients,
@@ -215,7 +224,7 @@ data object ServiceBuilder {
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
-            klageinstansDokumentService = klageServices.klageinstansDokumentService,
+            journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
             reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
@@ -279,14 +288,13 @@ data object ServiceBuilder {
     )
 
     private data class ReguleringServices(
-        val reguleringManuellService: ReguleringManuellServiceImpl,
-        val reguleringAutomatiskService: ReguleringAutomatiskServiceImpl,
+        val reguleringManuellService: ReguleringManuellService,
+        val reguleringAutomatiskService: ReguleringAutomatiskService,
     )
 
     private data class KlageServices(
-        val klageService: KlageServiceImpl,
-        val klageinstanshendelseService: KlageinstanshendelseServiceImpl,
-        val klageinstansDokumentService: KlageinstansDokumentServiceImpl,
+        val klageService: KlageService,
+        val klageinstanshendelseService: KlageinstanshendelseService,
     )
 
     private fun DatabaseRepos.requirePostgresSessionFactory(): PostgresSessionFactory {
@@ -634,14 +642,9 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
-        val klageinstansDokumentService = KlageinstansDokumentServiceImpl(
-            klageRepo = databaseRepos.klageRepo,
-            journalpostClient = clients.queryJournalpostClient,
-        )
         return KlageServices(
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
-            klageinstansDokumentService = klageinstansDokumentService,
         )
     }
 

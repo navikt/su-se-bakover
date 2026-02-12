@@ -164,7 +164,7 @@ internal class QueryJournalpostHttpClient(
         )
     }
 
-    override suspend fun hentDokument(
+    override suspend fun hentDokumentForJournalpost(
         journalpostId: JournalpostId,
         dokumentInfoId: String,
         variantFormat: String,

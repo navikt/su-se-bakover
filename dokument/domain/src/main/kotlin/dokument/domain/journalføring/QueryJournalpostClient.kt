@@ -41,7 +41,7 @@ interface QueryJournalpostClient {
     /**
      * Henter fysisk dokument (rå bytes) fra SAF.
      */
-    suspend fun hentDokument(
+    suspend fun hentDokumentForJournalpost(
         journalpostId: JournalpostId,
         dokumentInfoId: String,
         variantFormat: String,
@@ -99,6 +99,7 @@ data class DokumentVariant(
     val filtype: String?,
 )
 
+@Suppress("ArrayInDataClass")
 data class DokumentInnhold(
     val bytes: ByteArray,
     val contentType: String?,
