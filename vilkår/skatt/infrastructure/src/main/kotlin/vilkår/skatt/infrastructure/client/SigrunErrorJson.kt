@@ -73,6 +73,12 @@ private data class SigrunErrorJson(
 }
 
 private fun String.tilSkatteoppslagFeil(inntektsår: Year): SkatteoppslagFeil {
+    if (!trimStart().startsWith("{")) {
+        return SkatteoppslagFeil.UkjentFeil(
+            RuntimeException("Ukjent feilmeldingsformat fra Sigrun; forventet JSON-objekt. Se sikkerlogg for detaljer."),
+        )
+    }
+
     return Either.catch {
         deserialize<SigrunErrorJson>(this).skeMessage?.tilSkatteoppslagFeil(inntektsår)
             ?: SkatteoppslagFeil.UkjentFeil(
@@ -92,6 +98,7 @@ internal fun håndterSigrunFeil(
     getRequest: HttpRequest?,
 ): SkatteoppslagFeil {
     val requestHeaders: HttpHeaders? = getRequest?.headers()
+    val requestMethod: String = getRequest?.method() ?: "Ukjent metode"
 
     val log = LoggerFactory.getLogger("SigrunErrorJson.kt")
 
@@ -103,9 +110,17 @@ internal fun håndterSigrunFeil(
 
         sikkerLogg.error(
             "Kall mot Sigrun/skatteetatens api feilet med statuskode $statusCode, Fnr: $fnr, Inntektsår: $inntektsår, Stadie: $stadie og følgende feil: $body. " +
-                "Request $getRequest er forespørselen mot skatteetaten som feilet. headere $requestHeaders",
+                "$requestMethod er forespørselen mot skatteetaten som feilet. headere $requestHeaders",
             throwable,
         )
+    }
+
+    if (statusCode in 500..599) {
+        return SkatteoppslagFeil.Nettverksfeil(RuntimeException("Fikk $statusCode fra Sigrun. Prøv igjen senere."))
+            .also {
+                // Gateway/proxy-feil er ofte HTML og bør behandles som midlertidige nettverksfeil.
+                logError(it.throwable)
+            }
     }
 
     return when (val feil = body.tilSkatteoppslagFeil(inntektsår)) {
@@ -116,21 +131,15 @@ internal fun håndterSigrunFeil(
         }
 
         is SkatteoppslagFeil.UkjentFeil -> {
-            if (statusCode == 403) {
-                SkatteoppslagFeil.ManglerRettigheter.also {
+            when (statusCode) {
+                403 -> SkatteoppslagFeil.ManglerRettigheter.also {
                     // Vi forventer ikke se denne, så vi logger som error inntil den blir plagsom.
                     logError()
                 }
-            }
-            if (statusCode == 503) {
-                SkatteoppslagFeil.Nettverksfeil(RuntimeException("Fikk 503 fra Sigrun. Prøv igjen senere."))
-                    .also {
-                        // Dersom denne kommer ofte, bør vi legge inn noe mer logikk. Melding til saksbehandler om at de kan prøve igjen? Retry? Bytte til warning?
-                        logError(it.throwable)
-                    }
-            } else {
-                logError(feil.throwable)
-                feil
+                else -> {
+                    logError(feil.throwable)
+                    feil
+                }
             }
         }
 
