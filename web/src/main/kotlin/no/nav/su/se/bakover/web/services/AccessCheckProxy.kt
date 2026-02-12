@@ -274,7 +274,6 @@ import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
-import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -1349,23 +1348,8 @@ open class AccessCheckProxy(
                     reguleringId: ReguleringId,
                     attestant: NavIdentBruker.Attestant,
                     kommentar: String,
-                    clock: Clock,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
-                    return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar, clock)
-                }
-
-                override fun regulerManuelt(
-                    reguleringId: ReguleringId,
-                    uføregrunnlag: List<Uføregrunnlag>,
-                    fradrag: List<Fradragsgrunnlag>,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-                    return services.reguleringManuellService.regulerManuelt(
-                        reguleringId,
-                        uføregrunnlag,
-                        fradrag,
-                        saksbehandler,
-                    )
+                    return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar)
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {

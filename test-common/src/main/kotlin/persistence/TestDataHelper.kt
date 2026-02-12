@@ -107,6 +107,7 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseFilPostg
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.beregn
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -570,7 +571,7 @@ class TestDataHelper(
             }.simulertUtbetaling
             val beregnetRegulering = regulering.tilBeregnet(beregning, simulering.simulering)
             beregnetRegulering.tilAttestering(saksbehandler)
-                .godkjenn(NavIdentBruker.Attestant(saksbehandler.navIdent), clock)
+                .godkjenn(NavIdentBruker.Attestant(attestant.navIdent), clock)
                 .let { iverksattAttestering ->
                     databaseRepos.reguleringRepo.lagre(iverksattAttestering)
                     sak.oppdaterRegulering(iverksattAttestering) to iverksattAttestering

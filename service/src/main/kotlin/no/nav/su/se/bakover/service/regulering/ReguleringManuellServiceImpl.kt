@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
@@ -19,14 +18,10 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
-import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
-import vilkår.vurderinger.domain.VilkårsvurderingerHarUlikePeriode
 import java.time.Clock
 
 class ReguleringManuellServiceImpl(
@@ -123,7 +118,6 @@ class ReguleringManuellServiceImpl(
         reguleringId: ReguleringId,
         attestant: NavIdentBruker.Attestant,
         kommentar: String,
-        clock: Clock,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse.left()
@@ -131,59 +125,6 @@ class ReguleringManuellServiceImpl(
         val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
         reguleringRepo.lagre(underkjentRegulering)
         return underkjentRegulering.right()
-    }
-
-    override fun regulerManuelt(
-        reguleringId: ReguleringId,
-        uføregrunnlag: List<Uføregrunnlag>,
-        fradrag: List<Fradragsgrunnlag>,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
-        if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
-
-        val sak = sakService.hentSak(sakId = regulering.sakId)
-            .getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
-        val fraOgMed = regulering.periode.fraOgMed
-        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-            fraOgMed = fraOgMed,
-            clock = clock,
-        )
-            .getOrElse { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
-
-        if (gjeldendeVedtaksdata.harStans()) {
-            return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
-        }
-
-        try {
-            return sak.opprettEllerOppdaterRegulering(
-                Måned.fra(fraOgMed),
-                clock,
-                Reguleringssupplement.empty(clock),
-                (grunnbeløpsendringer.last().verdi - grunnbeløpsendringer[grunnbeløpsendringer.size - 1].verdi).toBigDecimal(),
-            ).mapLeft {
-                throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
-            }.map { oppdatertRegulering ->
-                return oppdatertRegulering
-                    .copy(reguleringstype = oppdatertRegulering.reguleringstype)
-                    .leggTilBeregningsgrunnlag(
-                        saksbehandler = saksbehandler,
-                        fradragsgrunnlag = fradrag,
-                        uføregrunnlag = uføregrunnlag,
-                        clock = clock,
-                    ).getOrElse {
-                        return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
-                    }
-                    .let {
-                        reguleringService.behandleRegulering(it, sak)
-                            .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
-                    }
-            }
-        } catch (e: VilkårsvurderingerHarUlikePeriode) {
-            // Saksbehandler løser dette manuelt. Hvis det skjer ofte kan det vurderes en automatisk løsning.
-            log.error("Manuell regulering for sak=${sak.id} feilet på grunn av VilkårsvurderingerHarUlikePeriode", e)
-            return KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode.left()
-        }
     }
 
     override fun avslutt(

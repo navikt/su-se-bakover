@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
-import java.time.Clock
 
 sealed interface KunneIkkeHenteReguleringsgrunnlag {
     data object FantIkkeRegulering : KunneIkkeHenteReguleringsgrunnlag
@@ -68,15 +67,7 @@ interface ReguleringManuellService {
         reguleringId: ReguleringId,
         attestant: NavIdentBruker.Attestant,
         kommentar: String,
-        clock: Clock,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
     fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
-
-    fun regulerManuelt(
-        reguleringId: ReguleringId,
-        uføregrunnlag: List<Uføregrunnlag>,
-        fradrag: List<Fradragsgrunnlag>,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, IverksattRegulering>
 }
