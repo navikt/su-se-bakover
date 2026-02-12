@@ -106,7 +106,7 @@ class ReguleringManuellServiceImpl(
             sak,
             regulering.beregning,
         ).getOrElse {
-            KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+            return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
         }
 
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
