@@ -110,17 +110,15 @@ class DokumentHendelsePostgresRepo(
 
     override fun hentDokumentHendelserForSakId(sakId: UUID, sessionContext: SessionContext?): DokumentHendelser {
         return (hendelseRepo as HendelsePostgresRepo).let { repo ->
-            listOf(
-                GenerertDokument,
-                JournalførtDokument,
-                DistribuertDokument,
-            ).flatMap {
-                repo.hentHendelserForSakIdOgType(
-                    sakId = sakId,
-                    type = it,
-                    sessionContext = sessionContext,
-                ).map { it.toDokumentHendelse() }
-            }.let {
+            repo.hentHendelserForSakIdOgTyper(
+                sakId = sakId,
+                typer = listOf(
+                    GenerertDokument,
+                    JournalførtDokument,
+                    DistribuertDokument,
+                ),
+                sessionContext = sessionContext,
+            ).map { it.toDokumentHendelse() }.let {
                 DokumentHendelser.create(sakId = sakId, dokumenter = it)
             }
         }
