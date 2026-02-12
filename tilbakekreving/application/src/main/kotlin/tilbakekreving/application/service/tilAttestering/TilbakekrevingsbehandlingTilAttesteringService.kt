@@ -42,6 +42,7 @@ class TilbakekrevingsbehandlingTilAttesteringService(
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
             log.info("Tilbakekreving til attestering - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
+            return KunneIkkeSendeTilAttestering.UlikVersjon.left()
         }
         val behandling = (
             sak.behandlinger.tilbakekrevinger.hent(id)

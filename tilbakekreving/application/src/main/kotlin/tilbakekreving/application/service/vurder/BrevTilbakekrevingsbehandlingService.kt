@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
@@ -23,6 +24,7 @@ class BrevTilbakekrevingsbehandlingService(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val clock: Clock,
     private val fritekstService: FritekstService,
+    private val sessionFactory: SessionFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -39,6 +41,7 @@ class BrevTilbakekrevingsbehandlingService(
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
             log.info("Vedtaksbrev for tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
+            return KunneIkkeOppdatereVedtaksbrev.UlikVersjon.left()
         }
 
         fritekstService.lagreFritekst(
@@ -49,9 +52,11 @@ class BrevTilbakekrevingsbehandlingService(
                 fritekst = command.brevvalg.fritekst ?: "",
             ),
         )
-
-        return sak.oppdaterVedtaksbrev(command, clock).let { pair ->
-            pair.second.right()
+        val (hendelse, nyState) = sak.oppdaterVedtaksbrev(command, clock)
+        sessionFactory.withTransactionContext { tx ->
+            tilbakekrevingsbehandlingRepo.lagre(hendelse, meta = command.toDefaultHendelsesMetadata(), tx)
         }
+
+        return nyState.right()
     }
 }

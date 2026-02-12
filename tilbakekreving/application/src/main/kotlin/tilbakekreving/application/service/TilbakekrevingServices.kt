@@ -90,6 +90,7 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     clock = clock,
                     fritekstService = fritekstService,
+                    sessionFactory = sessionFactory,
                 ),
                 forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService = ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                     tilgangstyring = tilgangstyringService,
