@@ -37,6 +37,7 @@ sealed interface AdresseServiceFeil {
     data class KunneIkkeHenteDokument(val feil: dokument.domain.journalføring.KunneIkkeHenteDokument) : AdresseServiceFeil
     data object FantIkkeDokument : AdresseServiceFeil
     data object FantIkkeJournalpostForDokument : AdresseServiceFeil
+    data object ErIkkeJournalført : AdresseServiceFeil
     data object JournalpostIkkeKnyttetTilDokument : AdresseServiceFeil
     data object JournalpostManglerBrevbestilling : AdresseServiceFeil
 }

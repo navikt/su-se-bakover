@@ -54,6 +54,11 @@ class JournalpostAdresseServiceImpl(
     ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> {
         val dokument = dokumentRepo.hentDokument(dokumentId) ?: return AdresseServiceFeil.FantIkkeDokument.left()
         log.info("Hentet dokument fra database for dokumentId={}", dokumentId)
+
+        if (!dokument.erJournalført()) {
+            log.warn("Journalpost er ikke journalført")
+            return AdresseServiceFeil.ErIkkeJournalført.left()
+        }
         val journalpostIdFraDb = dokument.journalpostId
             ?: return AdresseServiceFeil.FantIkkeJournalpostForDokument.left().also {
                 log.error(
