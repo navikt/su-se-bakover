@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import common.presentation.beregning.FradragResponseJson
+import common.presentation.beregning.FradragResponseJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening
 import no.nav.su.se.bakover.domain.vilkår.pensjonsVilkår
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.PersonligOppmøteVilkårJson

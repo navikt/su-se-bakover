@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import arrow.core.right
+import common.presentation.beregning.FradragRequestJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson

@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.regulering
 
+import common.presentation.beregning.FradragRequestJson
+import common.presentation.grunnlag.UføregrunnlagJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -10,25 +12,31 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.web.routes.regulering.BeregnReguleringRequest
 
-internal fun manuellRegulering(
+internal fun beregnRegulering(
     reguleringsId: String,
-    oppdatertUføre: String,
-    oppdatertFradrag: String,
+    oppdatertUføre: List<UføregrunnlagJson>,
+    oppdatertFradrag: List<FradragRequestJson>,
     client: HttpClient,
 ) {
+    val request = BeregnReguleringRequest(
+        uføre = oppdatertUføre,
+        fradrag = oppdatertFradrag,
+    )
     return runBlocking {
         val correlationId = CorrelationId.generate()
         defaultRequest(
             HttpMethod.Post,
-            "/reguleringer/manuell/$reguleringsId",
+            "/reguleringer/manuell/$reguleringsId/beregn",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
             correlationId = correlationId.toString(),
-        ) { setBody("""{"fradrag": $oppdatertFradrag, "uføre": $oppdatertUføre}""") }.apply {
+        ) { setBody(serialize(request)) }.apply {
             withClue("manuell reglering feilet: ${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
             }

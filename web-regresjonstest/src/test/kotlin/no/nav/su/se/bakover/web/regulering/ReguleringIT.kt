@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.regulering
 
 import arrow.core.nonEmptyListOf
+import common.presentation.beregning.FradragRequestJson
+import common.presentation.grunnlag.UføregrunnlagJson
 import grunnbeløp.domain.Grunnbeløpsendring
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.testApplication
@@ -8,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.tid.fixedClock
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
@@ -22,6 +25,8 @@ import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.sak.hent.hentReguleringer
 import no.nav.su.se.bakover.web.sak.hent.hentSakForFnr
+import no.nav.su.se.bakover.web.sak.hent.hentSakId
+import no.nav.su.se.bakover.web.søknadsbehandling.GrunnlagJson
 import no.nav.su.se.bakover.web.søknadsbehandling.ReguleringJson
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.bosituasjonEpsJson
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
@@ -76,68 +81,6 @@ internal class ReguleringIT {
             }
         }
     }
-
-    /*
-    TODO bjg
-    @Test
-    fun `manuell regulering`() {
-        val fnrForSakSomSkalReguleres = Fnr.generer().toString()
-        withMigratedDb { dataSource ->
-            testApplication {
-                val appComponents = AppComponents.from(
-                    dataSource = dataSource,
-                    clockParam = fixedClock,
-                    applicationConfig = applicationConfig(),
-                )
-                application { testSusebakover(appComponents = appComponents) }
-                opprettInnvilgetSøknadsbehandling(
-                    fnr = fnrForSakSomSkalReguleres,
-                    client = this.client,
-                    appComponents = appComponents,
-                    fradrag = { sakId, behandlingId ->
-                        leggTilFradrag(
-                            sakId = sakId,
-                            behandlingId = behandlingId,
-                            client = this.client,
-                            body = {
-                                //language=json
-                                """{"fradrag": [{"periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},"type": "Alderspensjon","beløp": 10000.0,"utenlandskInntekt": null,"tilhører": "BRUKER"}]}""".trimIndent()
-                            },
-                        )
-                    },
-                )
-            }
-            testApplication {
-                val appComponents = AppComponents.from(
-                    dataSource = dataSource,
-                    clockParam = 21.mai(2021).fixedClock(),
-                    applicationConfig = applicationConfig(),
-                )
-                application { testSusebakover(appComponents = appComponents) }
-                regulerAutomatisk(mai(2021), this.client)
-                val sak = hentSakForFnr(fnrForSakSomSkalReguleres, client = this.client)
-                val sakId = hentSakId(sak)
-                val reguleringen = ReguleringJson.hentSingleReglering(hentReguleringer(sak))
-                val reguleringsId = ReguleringJson.id(reguleringen)
-                val uføregrunnlag = ReguleringJson.hentSingleUføregrunnlag(reguleringen)
-                val uføregrunnlagId = GrunnlagJson.id(uføregrunnlag)
-                val uføregrunnlagOpprettet = GrunnlagJson.opprettet(uføregrunnlag)
-
-                manuellRegulering(
-                    reguleringsId = reguleringsId,
-                    //language=json
-                    oppdatertUføre = """[{"forventetInntekt":25,"opprettet":"$uføregrunnlagOpprettet","uføregrad":100,"id":"$uføregrunnlagId","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]""".trimIndent(),
-                    //language=json
-                    oppdatertFradrag = """[{"beløp":10050,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"Alderspensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]""".trimIndent(),
-                    client = this.client,
-                )
-                val iverksattReg =
-                    hentSakForFnr(fnrForSakSomSkalReguleres, client = this.client).hentReguleringMedId(reguleringsId)
-                verifyRegulering(iverksattReg, reguleringsId, sakId, fnrForSakSomSkalReguleres)
-            }
-        }
-    }
-     */
 
     @Test
     fun `automatisk regulering med supplement - 1 går automatisk, 1 går til manuell`() {
@@ -473,6 +416,99 @@ internal class ReguleringIT {
                 appComponents.services.sak.hentSaker(fnrSak3).getOrFail().single().let {
                     it.vedtakListe.filterIsInstance<VedtakInnvilgetRegulering>().size shouldBe 0
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `manuell regulering`() {
+        val fnrForSakSomSkalReguleres = Fnr.generer().toString()
+        withMigratedDb { dataSource ->
+            testApplication {
+                val appComponents = AppComponents.from(
+                    dataSource = dataSource,
+                    clockParam = fixedClock,
+                    applicationConfig = applicationConfig(),
+                )
+                application { testSusebakover(appComponents = appComponents) }
+                opprettInnvilgetSøknadsbehandling(
+                    fnr = fnrForSakSomSkalReguleres,
+                    client = this.client,
+                    appComponents = appComponents,
+                    fradrag = { sakId, behandlingId ->
+                        leggTilFradrag(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            client = this.client,
+                            body = {
+                                //language=json
+                                """{"fradrag": [{"periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},"type": "Alderspensjon","beløp": 10000.0,"utenlandskInntekt": null,"tilhører": "BRUKER"}]}""".trimIndent()
+                            },
+                        )
+                    },
+                )
+            }
+            testApplication {
+                val appComponents = AppComponents.from(
+                    dataSource = dataSource,
+                    clockParam = 21.mai(2021).fixedClock(),
+                    applicationConfig = applicationConfig(),
+                )
+                application { testSusebakover(appComponents = appComponents) }
+                regulerAutomatisk(mai(2021), this.client)
+                val sak = hentSakForFnr(fnrForSakSomSkalReguleres, client = this.client)
+                val sakId = hentSakId(sak)
+                val reguleringen = ReguleringJson.hentSingleReglering(hentReguleringer(sak))
+                val reguleringsId = ReguleringJson.id(reguleringen)
+                val uføregrunnlag = ReguleringJson.hentSingleUføregrunnlag(reguleringen)
+                val uføregrunnlagId = GrunnlagJson.id(uføregrunnlag)
+                val uføregrunnlagOpprettet = GrunnlagJson.opprettet(uføregrunnlag)
+
+                beregnRegulering(
+                    reguleringsId = reguleringsId,
+                    oppdatertUføre = listOf(
+                        UføregrunnlagJson(
+                            id = uføregrunnlagId,
+                            opprettet = uføregrunnlagOpprettet,
+                            periode = PeriodeJson(
+                                fraOgMed = "2021-05-01",
+                                tilOgMed = "2021-12-31",
+                            ),
+                            uføregrad = 100,
+                            forventetInntekt = 25,
+                        ),
+                    ),
+                    oppdatertFradrag = listOf(
+                        FradragRequestJson(
+                            periode = PeriodeJson(
+                                fraOgMed = "2021-05-01",
+                                tilOgMed = "2021-12-31",
+                            ),
+                            type = "Alderspensjon",
+                            beskrivelse = null,
+                            beløp = 10050.0,
+                            utenlandskInntekt = null,
+                            tilhører = "BRUKER",
+
+                        ),
+                    ),
+                    client = this.client,
+                )
+                /*
+                manuellRegulering(
+                    reguleringsId = reguleringsId,
+                    //language=json
+                    oppdatertUføre = """[{"forventetInntekt":25,"opprettet":"$uføregrunnlagOpprettet","uføregrad":100,"id":"$uføregrunnlagId","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]""".trimIndent(),
+                    //language=json
+                    oppdatertFradrag = """[{"beløp":10050,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"Alderspensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]""".trimIndent(),
+                    client = this.client,
+                )
+                val iverksattReg =
+                    hentSakForFnr(fnrForSakSomSkalReguleres, client = this.client).hentReguleringMedId(reguleringsId)
+
+                verifyRegulering(iverksattReg, reguleringsId, sakId, fnrForSakSomSkalReguleres)
+
+                 */
             }
         }
     }

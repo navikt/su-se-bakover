@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import common.presentation.grunnlag.UføregrunnlagJson
+import common.presentation.grunnlag.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus

@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import common.presentation.grunnlag.UføregrunnlagJson
+import common.presentation.grunnlag.toJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
