@@ -45,7 +45,7 @@ class ReguleringServiceImpl(
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun behandleRegulering(
+    override fun behandleReguleringAutomatisk(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean,

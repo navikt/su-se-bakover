@@ -304,7 +304,7 @@ class ReguleringAutomatiskServiceImpl(
         sak: Sak,
         isLiveRun: Boolean,
     ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
-        return reguleringService.behandleRegulering(
+        return reguleringService.behandleReguleringAutomatisk(
             regulering,
             sak,
             isLiveRun,
