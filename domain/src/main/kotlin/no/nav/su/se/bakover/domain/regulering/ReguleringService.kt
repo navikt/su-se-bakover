@@ -13,7 +13,7 @@ sealed interface KunneIkkeFerdigstilleOgIverksette {
 }
 
 interface ReguleringService {
-    fun behandleRegulering(
+    fun behandleReguleringAutomatisk(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean = true,

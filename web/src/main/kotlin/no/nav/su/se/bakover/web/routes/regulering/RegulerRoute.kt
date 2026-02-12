@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -108,16 +109,12 @@ internal fun Route.reguler(
                 }
             }
         }
-        post {
-            authorize(Brukerrolle.Saksbehandler) {
-                data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
-                call.withReguleringId { id ->
-                    call.withBody<Body> { body ->
-                        sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
-                        reguleringManuellService.regulerManuelt(
+        route("attestering") {
+            post {
+                authorize(Brukerrolle.Saksbehandler) {
+                    call.withReguleringId { id ->
+                        reguleringManuellService.reguleringTilAttestering(
                             reguleringId = ReguleringId(id),
-                            uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                            fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -129,8 +126,46 @@ internal fun Route.reguler(
                     }
                 }
             }
+            post("godkjenn") {
+                authorize(Brukerrolle.Attestant) {
+                    call.withReguleringId { id ->
+                        reguleringManuellService.godkjennRegulering(
+                            reguleringId = ReguleringId(id),
+                            attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                                call.svar(Resultat.okJson())
+                            },
+                        )
+                    }
+                }
+            }
+            post("underkjenn") {
+                authorize(Brukerrolle.Attestant) {
+                    data class Body(val kommentar: String)
+                    call.withReguleringId { id ->
+                        call.withBody<Body> { body ->
+                            if (body.kommentar.isBlank()) {
+                                call.svar(ugyldigBody)
+                            }
+                            reguleringManuellService.underkjennRegulering(
+                                reguleringId = ReguleringId(id),
+                                attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
+                                kommentar = body.kommentar,
+                            ).fold(
+                                ifLeft = { call.svar(it.tilResultat()) },
+                                ifRight = {
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                                    call.svar(Resultat.okJson())
+                                },
+                            )
+                        }
+                    }
+                }
+            }
         }
-
         post("avslutt") {
             authorize(Brukerrolle.Saksbehandler) {
                 call.lesUUID("reguleringId").fold(
@@ -463,6 +498,25 @@ val reguleringFeiletUnderBeregening = HttpStatusCode.BadRequest.errorJson(
     "regulering_er_automatisk",
 )
 
+val reguleringFeilTilstandforAttestering = HttpStatusCode.BadRequest.errorJson(
+    "Kan ikke sette regulering til attestering. Må være i tilstand beregnet",
+    "regulering_feil_tilstand_attestering",
+)
+val reguleringFeilTilstandforIverksettelse = HttpStatusCode.BadRequest.errorJson(
+    "Kan ikke iverksette regulering. Må være i tilstand til attestering",
+    "regulering_feil_tilstand_iverksett",
+)
+
+val reguleringFeilTilstandforUnderkjennelse = HttpStatusCode.BadRequest.errorJson(
+    "Kan ikke underkjenne regulering. Må være i tilstand til attestering",
+    "regulering_feil_tilstand_underkjenn",
+)
+
+val reguleringSaksbehandlerKanIkkeAttestere = HttpStatusCode.BadRequest.errorJson(
+    "Saksbehandler som har behandlet regulering kan ikke attestere",
+    "regulering_saksbehandler_kan_ikke_attestere",
+)
+
 val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
     "Fant ikke gjeldende vedtaksdata",
     "fant_ikke_vedtaksdata",
@@ -503,4 +557,8 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
 
     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
     KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+    KunneIkkeRegulereManuelt.FeilTilstandForAttestering -> reguleringFeilTilstandforAttestering
+    KunneIkkeRegulereManuelt.FeilTilstandForIverksettelse -> reguleringFeilTilstandforIverksettelse
+    KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse -> reguleringFeilTilstandforUnderkjennelse
+    KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere -> reguleringSaksbehandlerKanIkkeAttestere
 }

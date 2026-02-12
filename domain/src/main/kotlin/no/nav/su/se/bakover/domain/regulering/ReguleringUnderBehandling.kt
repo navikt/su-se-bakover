@@ -4,9 +4,13 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.BehandlingMedAttestering
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.attestering.UnderkjennAttesteringsgrunn
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -25,7 +29,9 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
-sealed class ReguleringUnderBehandling : Regulering {
+sealed class ReguleringUnderBehandling :
+    Regulering,
+    BehandlingMedAttestering {
     override fun erÅpen() = true
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
@@ -83,6 +89,8 @@ sealed class ReguleringUnderBehandling : Regulering {
                     saksbehandler = saksbehandler,
                     grunnlagsdataOgVilkårsvurderinger = nyttGrunnlagOgvilkår,
                 )
+
+                is TilAttestering -> throw IkkeEndreUnderAttestering()
             }
         }.getOrElse {
             return FeilMedBeregningsgrunnlag(it).left()
@@ -99,6 +107,7 @@ sealed class ReguleringUnderBehandling : Regulering {
         return when (this) {
             is OpprettetRegulering -> copy(reguleringstype = reguleringstype)
             is BeregnetRegulering -> copy(reguleringstype = reguleringstype)
+            is TilAttestering -> throw IkkeEndreUnderAttestering()
         }
     }
 
@@ -136,9 +145,6 @@ sealed class ReguleringUnderBehandling : Regulering {
         }
     }
 
-    fun tilIverksatt(): IverksattRegulering =
-        IverksattRegulering(opprettetRegulering = this, beregning!!, simulering!!)
-
     fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {
         return AvsluttetRegulering(
             opprettetRegulering = this,
@@ -163,6 +169,7 @@ sealed class ReguleringUnderBehandling : Regulering {
         eksternSupplementRegulering = eksternSupplementRegulering,
         beregning = beregning,
         simulering = simulering,
+        attesteringer = attesteringer,
     )
 
     data class OpprettetRegulering(
@@ -179,6 +186,7 @@ sealed class ReguleringUnderBehandling : Regulering {
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
         override val eksternSupplementRegulering: EksternSupplementRegulering,
+        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling()
 
     data class BeregnetRegulering(
@@ -195,9 +203,89 @@ sealed class ReguleringUnderBehandling : Regulering {
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
         override val eksternSupplementRegulering: EksternSupplementRegulering,
-    ) : ReguleringUnderBehandling()
+        override val attesteringer: Attesteringshistorikk,
+    ) : ReguleringUnderBehandling() {
+        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler) = TilAttestering(
+            saksbehandler = saksbehandler,
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            reguleringstype = reguleringstype,
+            sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering,
+            beregning = beregning,
+            simulering = simulering,
+            attesteringer = attesteringer,
+        )
+    }
+
+    data class TilAttestering(
+        override val id: ReguleringId,
+        override val opprettet: Tidspunkt,
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
+        override val periode: Periode = grunnlagsdataOgVilkårsvurderinger.periode()!!,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val reguleringstype: Reguleringstype,
+        override val sakstype: Sakstype,
+        override val eksternSupplementRegulering: EksternSupplementRegulering,
+        override val attesteringer: Attesteringshistorikk,
+    ) : ReguleringUnderBehandling() {
+
+        fun godkjenn(attestant: NavIdentBruker.Attestant, clock: Clock): IverksattRegulering {
+            val godkjentRegulering = copy(
+                attesteringer = attesteringer.leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        attestant = attestant,
+                        opprettet = Tidspunkt.now(clock),
+                    ),
+                ),
+            )
+            return IverksattRegulering(godkjentRegulering, beregning, simulering)
+        }
+
+        fun underkjenn(
+            attestant: NavIdentBruker.Attestant,
+            kommentar: String,
+            clock: Clock,
+        ) = BeregnetRegulering(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            saksbehandler = saksbehandler,
+            reguleringstype = reguleringstype,
+            sakstype = sakstype,
+            eksternSupplementRegulering = eksternSupplementRegulering,
+            beregning = beregning,
+            simulering = simulering,
+            attesteringer = attesteringer.leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = attestant,
+                    opprettet = Tidspunkt.now(clock),
+                    grunn = UnderkjennelseGrunnRegulering.REGULERING_ER_FEIL,
+                    kommentar = kommentar,
+                ),
+            ),
+        )
+    }
+}
+
+enum class UnderkjennelseGrunnRegulering : UnderkjennAttesteringsgrunn {
+    REGULERING_ER_FEIL,
 }
 
 data class FeilMedBeregningsgrunnlag(
     val error: Throwable,
 )
+
+class IkkeEndreUnderAttestering : IllegalStateException("Skal ikke kunne endres under tilstand til attestering")

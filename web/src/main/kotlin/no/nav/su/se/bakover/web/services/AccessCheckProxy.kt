@@ -96,7 +96,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
-import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -1354,39 +1353,24 @@ open class AccessCheckProxy(
 
                 override fun reguleringTilAttestering(
                     reguleringId: ReguleringId,
-                    uføregrunnlag: List<Uføregrunnlag>,
-                    fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
-                    TODO("Not yet implemented")
+                ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.TilAttestering> {
+                    return services.reguleringManuellService.reguleringTilAttestering(reguleringId, saksbehandler)
                 }
 
                 override fun godkjennRegulering(
                     reguleringId: ReguleringId,
-                    attestant: NavIdentBruker.Saksbehandler,
+                    attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-                    TODO("Not yet implemented")
+                    return services.reguleringManuellService.godkjennRegulering(reguleringId, attestant)
                 }
 
                 override fun underkjennRegulering(
                     reguleringId: ReguleringId,
-                    attestant: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, OpprettetRegulering> {
-                    TODO("Not yet implemented")
-                }
-
-                override fun regulerManuelt(
-                    reguleringId: ReguleringId,
-                    uføregrunnlag: List<Uføregrunnlag>,
-                    fradrag: List<Fradragsgrunnlag>,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
-                    return services.reguleringManuellService.regulerManuelt(
-                        reguleringId,
-                        uføregrunnlag,
-                        fradrag,
-                        saksbehandler,
-                    )
+                    attestant: NavIdentBruker.Attestant,
+                    kommentar: String,
+                ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+                    return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar)
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {

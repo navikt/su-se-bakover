@@ -2,40 +2,30 @@ package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
-import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregning
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
-import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.nyReguleringssupplementFor
-import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
@@ -47,7 +37,6 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.application.utbetaling.UtbetalingService
@@ -63,58 +52,7 @@ internal class ReguleringManuellServiceImplTest {
 
     private val periodeMaiDes = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
 
-    @Test
-    fun `manuell behandling happy case`() {
-        val supplement = Reguleringssupplement(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            supplement = listOf(
-                nyReguleringssupplementFor(
-                    fnr = fnr,
-                    innhold = arrayOf(nyReguleringssupplementInnholdPerType(kategori = Fradragstype.OffentligPensjon.kategori)),
-                ),
-            ),
-            originalCsv = "",
-        )
-        val (sak, regulering) = innvilgetSøknadsbehandlingMedÅpenRegulering(
-            regulerFraOgMed = mai(2021),
-            supplement = supplement,
-            customGrunnlag = grunnlagsdataEnsligUtenFradrag(
-                periode = stønadsperiode2021.periode,
-                fradragsgrunnlag = listOf(
-                    offentligPensjonGrunnlag(8000.0, år(2021)),
-                ),
-                bosituasjon = nonEmptyListOf(
-                    bosituasjongrunnlagEnslig(
-                        periode = stønadsperiode2021.periode,
-                    ),
-                ),
-            ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
-        )
-
-        val reguleringService = lagReguleringManuellServiceImpl(sak)
-
-        val iverksattRegulering = reguleringService.regulerManuelt(
-            reguleringId = regulering.id,
-            uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
-            fradrag = listOf(offentligPensjonGrunnlag(5000.0, periodeMaiDes)),
-            saksbehandler = saksbehandler,
-        ).getOrFail()
-
-        iverksattRegulering.beregning.getFradrag() shouldBe listOf(
-            FradragFactory.nyFradragsperiode(
-                fradragstype = Fradragstype.OffentligPensjon,
-                månedsbeløp = 5000.0,
-                periode = periodeMaiDes,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
-            ),
-            FradragFactory.nyUføreFradrag(
-                forventetInntekt = 0,
-                periode = periodeMaiDes,
-            ),
-        )
-    }
+    // TODO bjg test hver metode
 
     @Test
     fun `manuell behandling av stans skal ikke være lov`() {
@@ -124,14 +62,30 @@ internal class ReguleringManuellServiceImplTest {
             clock = tikkendeKlokke,
         )
 
-        val reguleringService = lagReguleringManuellServiceImpl(sak)
-
-        reguleringService.regulerManuelt(
-            reguleringId = regulering.id,
-            uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
-            fradrag = listOf(offentligPensjonGrunnlag(8100.0, periodeMaiDes)),
+        val tilAttestering = ReguleringUnderBehandling.TilAttestering(
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+            id = regulering.id,
+            opprettet = regulering.opprettet,
+            sakId = regulering.sakId,
+            saksnummer = regulering.saksnummer,
+            fnr = regulering.fnr,
+            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+            reguleringstype = regulering.reguleringstype,
+            sakstype = regulering.sakstype,
+            eksternSupplementRegulering = regulering.eksternSupplementRegulering,
+            beregning = mock(),
+            simulering = mock(),
+            attesteringer = regulering.attesteringer,
+        )
+        val regulerManueltService = lagReguleringManuellServiceImpl(
+            sak,
+            scrambleUtbetaling = false,
+            reguleringRepo = mock<ReguleringRepo> {
+                on { hent(any()) } doReturn tilAttestering
+            },
+        )
+        val iverksattRegulering = regulerManueltService.godkjennRegulering(regulering.id, attestant)
+        iverksattRegulering shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
     }
 
     private fun offentligPensjonGrunnlag(beløp: Double, periode: Periode) =
@@ -153,8 +107,7 @@ private fun lagReguleringManuellServiceImpl(
     lagFeilutbetaling: Boolean = false,
     scrambleUtbetaling: Boolean = true,
     clock: Clock = tikkendeFixedClock(),
-): ReguleringManuellServiceImpl {
-    val sakMedEndringer = if (scrambleUtbetaling) {
+    sakMedEndringer: Sak = if (scrambleUtbetaling) {
         sak.copy(
             // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
             utbetalinger = Utbetalinger(
@@ -193,8 +146,13 @@ private fun lagReguleringManuellServiceImpl(
         )
     } else {
         sak
-    }
-
+    },
+    reguleringRepo: ReguleringRepo = mock<ReguleringRepo> {
+        on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
+        on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
+        on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+    },
+): ReguleringManuellServiceImpl {
     val nyUtbetaling = UtbetalingKlargjortForOversendelse(
         utbetaling = oversendtUtbetalingUtenKvittering(
             beregning = beregning(
@@ -206,11 +164,6 @@ private fun lagReguleringManuellServiceImpl(
             on { it.invoke(any()) } doReturn utbetalingsRequest.right()
         },
     )
-    val reguleringRepo = mock<ReguleringRepo> {
-        on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
-        on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
-        on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-    }
     val utbetalingService = mock<UtbetalingService> { service ->
         doAnswer { invocation ->
             simulerUtbetaling(

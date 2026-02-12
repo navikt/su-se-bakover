@@ -10,6 +10,7 @@ import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
@@ -44,7 +45,7 @@ class ReguleringServiceImpl(
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun behandleRegulering(
+    override fun behandleReguleringAutomatisk(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean,
@@ -53,7 +54,8 @@ class ReguleringServiceImpl(
             return it.left()
         }
 
-        val iverksattRegulering = simulertRegulering.tilIverksatt()
+        val iverksattRegulering = simulertRegulering.tilAttestering(regulering.saksbehandler)
+            .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
 
         if (isLiveRun) {
             lagreReguleringOgVedtakOgUtbetal(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
@@ -110,7 +112,7 @@ class ReguleringServiceImpl(
         }
     }
 
-    private fun simulerReguleringOgUtbetaling(
+    fun simulerReguleringOgUtbetaling(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         beregning: Beregning,
