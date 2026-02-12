@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 
@@ -24,4 +26,10 @@ interface ReguleringService {
         sak: Sak,
         clock: Clock,
     ): Either<KunneIkkeFerdigstilleOgIverksette, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>>
+
+    fun ferdigstillRegulering(
+        regulering: IverksattRegulering,
+        simulertUtbetaling: Utbetaling.SimulertUtbetaling,
+        sessionContext: TransactionContext? = null,
+    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, VedtakInnvilgetRegulering>
 }

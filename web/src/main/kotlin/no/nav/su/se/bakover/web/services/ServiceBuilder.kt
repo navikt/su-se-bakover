@@ -601,6 +601,8 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
             clock = clock,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
@@ -608,6 +610,8 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             reguleringService = reguleringService,
             clock = clock,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

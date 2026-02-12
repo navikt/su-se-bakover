@@ -455,6 +455,16 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                 )
             }
         }
+
+        is StatistikkEvent.Behandling.Regulering -> {
+            when (this) {
+                is StatistikkEvent.Behandling.Regulering.Avsluttet -> TODO()
+                is StatistikkEvent.Behandling.Regulering.Iverksatt -> TODO()
+                is StatistikkEvent.Behandling.Regulering.Opprettet -> TODO()
+                is StatistikkEvent.Behandling.Regulering.TilAttestering -> TODO()
+                is StatistikkEvent.Behandling.Regulering.Underkjent -> TODO()
+            }
+        }
     }
 }
 
