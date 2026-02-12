@@ -54,14 +54,14 @@ class JournalpostAdresseServiceImpl(
     ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> {
         val dokument = dokumentRepo.hentDokument(dokumentId) ?: return AdresseServiceFeil.FantIkkeDokument.left()
         log.info("Hentet dokument fra database for dokumentId={}", dokumentId)
-        val journalpostIdFraDb = dokument.journalpostId ?: run {
-            log.error(
-                "JournalpostId finnes ikke i dokument_distribusjon for dokumentId={}. journalpostId={}",
-                dokumentId,
-                journalpostId,
-            )
-            return@run AdresseServiceFeil.FantIkkeJournalpostForDokument.left()
-        }
+        val journalpostIdFraDb = dokument.journalpostId
+            ?: return AdresseServiceFeil.FantIkkeJournalpostForDokument.left().also {
+                log.error(
+                    "JournalpostId finnes ikke i dokument_distribusjon for dokumentId={}. journalpostId={}",
+                    dokumentId,
+                    journalpostId,
+                )
+            }
         if (journalpostIdFraDb != journalpostId.toString()) {
             log.warn(
                 "JournalpostId matcher ikke dokument_distribusjon for dokumentId={}. journalpostId={}, journalpostIdFraDb={}",
