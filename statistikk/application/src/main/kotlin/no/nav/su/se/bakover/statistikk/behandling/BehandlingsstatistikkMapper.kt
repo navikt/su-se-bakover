@@ -28,7 +28,7 @@ internal fun StatistikkEvent.Behandling.toBehandlingsstatistikkDto(
         is StatistikkEvent.Behandling.Revurdering -> this.toBehandlingsstatistikkDto(gitCommit, clock)
         is StatistikkEvent.Behandling.Stans -> this.toBehandlingsstatistikkDto(gitCommit, clock)
         is StatistikkEvent.Behandling.Gjenoppta -> this.toBehandlingsstatistikkDto(gitCommit, clock)
-        is StatistikkEvent.Behandling.Regulering -> TODO()
+        is StatistikkEvent.Behandling.Regulering -> throw IllegalStateException("Brukes ikke av gammel løsning")
     }.let {
         serializeAndValidate(it)
     }
