@@ -38,4 +38,5 @@ sealed interface AdresseServiceFeil {
     data object FantIkkeDokument : AdresseServiceFeil
     data object FantIkkeJournalpostForDokument : AdresseServiceFeil
     data object JournalpostIkkeKnyttetTilDokument : AdresseServiceFeil
+    data object JournalpostManglerBrevbestilling : AdresseServiceFeil
 }

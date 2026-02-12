@@ -260,6 +260,11 @@ private fun AdresseServiceFeil.tilResultat(): Resultat {
             "Fant ikke journalpost for dokument",
             "fant_ikke_journalpost_for_dokument",
         )
+
+        AdresseServiceFeil.JournalpostManglerBrevbestilling -> HttpStatusCode.NotFound.errorJson(
+            "Journalpost mangler brevbestilling, men er journalført. Normalt vil dette ta 5 minutter ekstra.",
+            "journalpost_mangler_brevbestilling",
+        )
     }
 }
 

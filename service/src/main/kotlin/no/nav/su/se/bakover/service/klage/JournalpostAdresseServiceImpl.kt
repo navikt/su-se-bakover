@@ -72,6 +72,11 @@ class JournalpostAdresseServiceImpl(
             return AdresseServiceFeil.JournalpostIkkeKnyttetTilDokument.left()
         }
 
+        if (!dokument.erBrevBestilt()) {
+            log.warn("Dokument har ikke en brevbestilt dokument. journalpostId={}, dokumentId={}", journalpostId, dokumentId)
+            return AdresseServiceFeil.JournalpostManglerBrevbestilling.left()
+        }
+
         return hentUtsendingsinfoForJournalpost(journalpostId)
     }
 
