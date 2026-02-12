@@ -409,7 +409,7 @@ internal class ReguleringPostgresRepo(
 
                 ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
                     opprettetRegulering = regulering,
-                    avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
+                    avsluttetTidspunkt = avsluttetReguleringJson?.tidspunkt ?: throw IllegalStateException("Avsluttet regulering mangler avsluttetReguleringJson"),
                     avsluttetAv = avsluttetReguleringJson.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
                 )
             }
