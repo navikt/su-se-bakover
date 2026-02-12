@@ -159,7 +159,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             clock = clock,
         )
-        val dokumentAdresseService = JournalpostAdresseServiceImpl(
+        val journalpostAdresseService = JournalpostAdresseServiceImpl(
             klageRepo = databaseRepos.klageRepo,
             journalpostClient = clients.queryJournalpostClient,
             dokumentRepo = databaseRepos.dokumentRepo,
@@ -224,7 +224,7 @@ data object ServiceBuilder {
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
-            journalpostAdresseService = dokumentAdresseService,
+            journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
             reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
