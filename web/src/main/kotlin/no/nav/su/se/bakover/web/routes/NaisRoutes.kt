@@ -6,6 +6,7 @@ import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -14,6 +15,8 @@ import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.lang.management.BufferPoolMXBean
+import java.lang.management.ManagementFactory
 
 private const val IS_ALIVE_PATH = "/isalive"
 private const val IS_READY_PATH = "/isready"
@@ -50,4 +53,22 @@ fun Application.installMetrics(prometheusMeterRegistry: PrometheusMeterRegistry)
             LogbackMetrics(),
         )
     }
+
+    registerDirectBufferMetrics(prometheusMeterRegistry)
+}
+
+private fun registerDirectBufferMetrics(prometheusMeterRegistry: PrometheusMeterRegistry) {
+    val directBufferPool = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean::class.java)
+        .firstOrNull { it.name.equals("direct", ignoreCase = true) }
+        ?: return
+
+    Gauge.builder("su.jvm.direct_buffer.used.bytes") { directBufferPool.memoryUsed.toDouble() }
+        .description("Used direct buffer memory in bytes")
+        .register(prometheusMeterRegistry)
+    Gauge.builder("su.jvm.direct_buffer.total_capacity.bytes") { directBufferPool.totalCapacity.toDouble() }
+        .description("Total direct buffer capacity in bytes")
+        .register(prometheusMeterRegistry)
+    Gauge.builder("su.jvm.direct_buffer.count") { directBufferPool.count.toDouble() }
+        .description("Number of direct buffers")
+        .register(prometheusMeterRegistry)
 }

@@ -36,6 +36,7 @@ import java.util.UUID
 
 private const val ID_PARAMETER = "id"
 private const val ID_TYPE_PARAMETER = "idType"
+
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
     distribuerDokumentService: DistribuerDokumentService,
@@ -120,7 +121,9 @@ internal fun Route.dokumentRoutes(
                 }
 
             journalpostAdresseService.hentKlageDokumenterMedAdresseForSak(sakUuid).fold(
-                ifLeft = { call.svar(it.tilResultat()) },
+                ifLeft = {
+                    call.svar(it.tilResultat())
+                },
                 ifRight = { dokumenter ->
                     call.svar(
                         Resultat.json(

@@ -133,6 +133,29 @@ class HendelsePostgresRepo(
         }
     }
 
+    fun hentHendelserForSakIdOgTyper(
+        sakId: UUID,
+        typer: List<Hendelsestype>,
+        sessionContext: SessionContext? = null,
+    ): List<PersistertHendelse> {
+        return dbMetrics.timeQuery("hentHendelserForSakIdOgTyper") {
+            sessionContext.withOptionalSession(sessionFactory) { session ->
+                """
+                    select hendelseId, data, hendelsestidspunkt, versjon, type, sakId, tidligereHendelseId, entitetId
+                    from hendelse
+                    where sakId = :sakId and type = ANY(:typer)
+                    order by versjon
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "sakId" to sakId,
+                        "typer" to typer.map { it.toString() }.toTypedArray(),
+                    ),
+                    session = session,
+                ) { toPersistertHendelse(it) }
+            }
+        }
+    }
+
     fun hentHendelserMedSaksnummerOgFnrForSakIdOgTyper(
         sakId: UUID,
         typer: List<Hendelsestype>,
