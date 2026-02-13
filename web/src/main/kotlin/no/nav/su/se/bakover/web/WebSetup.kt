@@ -247,11 +247,14 @@ private fun Application.setupKtorExceptionHandling(
         }
         exception<Throwable> { call, cause ->
             val alreadyLogged = call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) != null
-            if (!alreadyLogged) {
+            val isClientAbort = cause.isLikelyClientAbort()
+            if (!alreadyLogged && !isClientAbort) {
                 call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
                 log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             }
-            call.svar(Feilresponser.ukjentFeil)
+            if (!isClientAbort) {
+                call.svar(Feilresponser.ukjentFeil)
+            }
         }
     }
 }
