@@ -80,6 +80,7 @@ internal class QueryJournalpostHttpClient(
                 originalToken = brukerToken.value,
                 otherAppId = safConfig.clientId,
             ),
+            operationName = "hentJournalpost",
         ).fold(
             {
                 when (it) {
@@ -126,6 +127,7 @@ internal class QueryJournalpostHttpClient(
                 originalToken = brukerToken.value,
                 otherAppId = safConfig.clientId,
             ),
+            operationName = "hentJournalpostMedDokumenter",
         ).fold(
             { feil ->
                 when (feil) {
@@ -174,11 +176,20 @@ internal class QueryJournalpostHttpClient(
             originalToken = brukerToken.value,
             otherAppId = safConfig.clientId,
         )
+        val correlationId = getOrCreateCorrelationIdFromThreadLocal().toString()
+        val startedAt = System.nanoTime()
         val url = URI.create("${safConfig.url}/rest/hentdokument/$journalpostId/$dokumentInfoId/$variantFormat")
+        log.info(
+            "SAF REST start correlationId={} journalpostId={} dokumentInfoId={} variantFormat={}",
+            correlationId,
+            journalpostId,
+            dokumentInfoId,
+            variantFormat,
+        )
         val request = HttpRequest.newBuilder(url)
             .header("Authorization", "Bearer $token")
             .header("Nav-Consumer-Id", "su-se-bakover")
-            .header("Nav-Callid", getOrCreateCorrelationIdFromThreadLocal().toString())
+            .header("Nav-Callid", correlationId)
             .header("Accept", "*/*")
             .GET()
             .build()
@@ -186,8 +197,29 @@ internal class QueryJournalpostHttpClient(
         return Either.catch {
             client.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray()).await()
         }.mapLeft { throwable ->
+            val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+            log.error(
+                "SAF REST failure correlationId={} journalpostId={} dokumentInfoId={} variantFormat={} elapsedMs={}",
+                correlationId,
+                journalpostId,
+                dokumentInfoId,
+                variantFormat,
+                elapsedMs,
+                throwable,
+            )
             KunneIkkeHenteDokument.TekniskFeil(throwable.toString())
         }.flatMap { response ->
+            val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+            log.info(
+                "SAF REST response correlationId={} journalpostId={} dokumentInfoId={} variantFormat={} status={} elapsedMs={} bodyBytes={}",
+                correlationId,
+                journalpostId,
+                dokumentInfoId,
+                variantFormat,
+                response.statusCode(),
+                elapsedMs,
+                response.body().size,
+            )
             when (response.statusCode()) {
                 200 -> {
                     val headers = response.headers()
@@ -219,7 +251,11 @@ internal class QueryJournalpostHttpClient(
             ),
         )
         return runBlocking {
-            gqlRequest(request = request, token = azureAd.getSystemToken(safConfig.clientId)).mapLeft {
+            gqlRequest(
+                request = request,
+                token = azureAd.getSystemToken(safConfig.clientId),
+                operationName = "dokumentoversiktFagsak",
+            ).mapLeft {
                 KunneIkkeHenteJournalposter.ClientError.also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map {
                 it.data!!.dokumentoversiktFagsak.journalposter.map {
@@ -238,7 +274,11 @@ internal class QueryJournalpostHttpClient(
             ),
         )
         return runBlocking {
-            gqlRequest(request = request, token = azureAd.getSystemToken(safConfig.clientId)).fold(
+            gqlRequest(
+                request = request,
+                token = azureAd.getSystemToken(safConfig.clientId),
+                operationName = "dokumentoversiktBruker",
+            ).fold(
                 ifLeft = {
                     KunneIkkeHenteJournalposter.ClientError.also {
                         log.error("Feil: $it ved henting av journalposter for fagsystemId:$fagsystemId. Se sikkerlogg for mer info")
@@ -299,6 +339,7 @@ internal class QueryJournalpostHttpClient(
             gqlRequest(
                 request = request,
                 token = azureAd.getSystemToken(safConfig.clientId),
+                operationName = "dokumentoversiktFagsakKontrollnotat",
             ).mapLeft { error ->
                 KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
             }.map { response ->
@@ -322,21 +363,44 @@ internal class QueryJournalpostHttpClient(
     private suspend inline fun <reified Response : GraphQLHttpResponse> gqlRequest(
         request: GraphQLQuery<Response>,
         token: String,
+        operationName: String,
     ): Either<GraphQLApiFeil, Response> {
+        val correlationId = getOrCreateCorrelationIdFromThreadLocal().toString()
+        val startedAt = System.nanoTime()
+        log.info(
+            "SAF GraphQL start operationName={} correlationId={}",
+            operationName,
+            correlationId,
+        )
         return Either.catch {
             HttpRequest.newBuilder(graphQLUrl)
                 .header("Authorization", "Bearer $token")
                 .header("Content-Type", "application/json")
                 .header("Nav-Consumer-Id", "su-se-bakover")
+                .header("Nav-Callid", correlationId)
                 .POST(HttpRequest.BodyPublishers.ofString(serialize(request)))
                 .build()
                 .let { httpRequest ->
                     client.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).await()
                         .let { httpResponse ->
+                            val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+                            log.info(
+                                "SAF GraphQL response operationName={} correlationId={} status={} elapsedMs={}",
+                                operationName,
+                                correlationId,
+                                httpResponse.statusCode(),
+                                elapsedMs,
+                            )
                             if (httpResponse.isSuccess()) {
                                 // GraphQL returnerer 200 for det meste
                                 deserialize<Response>(httpResponse.body()).let { response ->
                                     if (response.hasErrors()) {
+                                        log.warn(
+                                            "SAF GraphQL errors operationName={} correlationId={} elapsedMs={}",
+                                            operationName,
+                                            correlationId,
+                                            elapsedMs,
+                                        )
                                         return response.mapGraphQLHttpFeil(request)
                                             .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
                                             .left()
@@ -346,6 +410,13 @@ internal class QueryJournalpostHttpClient(
                                 }
                             } else {
                                 // ting som ikke når helt til GraphQL - typisk 401 uten token eller lignende
+                                log.warn(
+                                    "SAF GraphQL non-success operationName={} correlationId={} status={} elapsedMs={}",
+                                    operationName,
+                                    correlationId,
+                                    httpResponse.statusCode(),
+                                    elapsedMs,
+                                )
                                 return GraphQLApiFeil.HttpFeil.Ukjent(
                                     request,
                                     """Status: ${httpResponse.statusCode()}, Body:${httpResponse.body()}""",
@@ -355,6 +426,14 @@ internal class QueryJournalpostHttpClient(
                         }
                 }
         }.mapLeft { throwable ->
+            val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+            log.error(
+                "SAF GraphQL failure operationName={} correlationId={} elapsedMs={}",
+                operationName,
+                correlationId,
+                elapsedMs,
+                throwable,
+            )
             GraphQLApiFeil.TekniskFeil(request, throwable.toString())
                 .also { sikkerLogg.warn("Feil: $it ved kall mot: $graphQLUrl") }
         }
