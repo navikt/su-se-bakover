@@ -229,6 +229,7 @@ class TilbakekrevingServices(
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     sessionFactory = sessionFactory,
                     clock = clock,
+                    fritekstService = fritekstService,
                 ),
                 annullerKravgrunnlagService = AnnullerKravgrunnlagService(
                     tilgangstyring = tilgangstyringService,

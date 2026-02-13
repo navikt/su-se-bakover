@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.sak.oppdaterVedtaksbrev
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
@@ -41,21 +42,37 @@ class BrevTilbakekrevingsbehandlingService(
             log.info("Vedtaksbrev for tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
             return KunneIkkeOppdatereVedtaksbrev.UlikVersjon.left()
         }
-
-        val (hendelse, nyState) = sak.oppdaterVedtaksbrev(command, clock)
+        val tilbakekreving = sak.hentTilbakekrevingsbehandling(command.behandlingId)
+            ?: throw IllegalStateException("Fant ikke tilbakekreving med id ${command.behandlingId}")
+        val eksisterendeBrevvalg = tilbakekreving.vedtaksbrevvalg
+        if (eksisterendeBrevvalg == null || eksisterendeBrevvalg::class != command.brevvalg::class) {
+            val (hendelse, nyState) = sak.oppdaterVedtaksbrev(command, clock)
+            fritekstService.lagreFritekst(
+                FritekstDomain(
+                    referanseId = command.behandlingId.value,
+                    sakId = command.sakId,
+                    type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+                    fritekst = command.brevvalg.fritekst ?: throw IllegalStateException("Vedtaksbrev må ha fritekst"),
+                ),
+            )
+            tilbakekrevingsbehandlingRepo.lagre(
+                hendelse,
+                meta = command.toDefaultHendelsesMetadata(),
+            )
+            return nyState.right()
+        }
         fritekstService.lagreFritekst(
             FritekstDomain(
                 referanseId = command.behandlingId.value,
                 sakId = command.sakId,
                 type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
-                fritekst = command.brevvalg.fritekst ?: "",
+                fritekst = command.brevvalg.fritekst ?: throw IllegalStateException("Vedtaksbrev må ha fritekst"),
             ),
         )
-        tilbakekrevingsbehandlingRepo.lagre(
-            hendelse,
-            meta = command.toDefaultHendelsesMetadata(),
-        )
 
-        return nyState.right()
+        return when (tilbakekreving) {
+            is UnderBehandling.MedKravgrunnlag.Utfylt -> tilbakekreving.right()
+            else -> throw IllegalStateException("Tilbakekrevingsbehandling er i feil tilstand under lagring av fritekst for vedtak")
+        }
     }
 }
