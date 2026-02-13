@@ -37,4 +37,23 @@ spec:
           labels:
             namespace: supstonad
             severity: critical
-
+        - alert: su-se-bakover-direct-buffer-hoy
+          # 75% av -XX:MaxDirectMemorySize=512m
+          expr: max(su_jvm_direct_buffer_used_bytes{app="su-se-bakover"}) > 402653184
+          for: 5m
+          annotations:
+            consequence: "su-se-bakover bruker høy andel direct-buffer minne i mer enn 5 minutter"
+            action: "Sjekk metrikker for `su_jvm_direct_buffer_used_bytes` og logger for backend-feil i `{{LOGS_URL_LOKI}}`"
+          labels:
+            namespace: supstonad
+            severity: warning
+        - alert: su-se-bakover-direct-buffer-kritisk
+          # 87.5% av -XX:MaxDirectMemorySize=512m
+          expr: max(su_jvm_direct_buffer_used_bytes{app="su-se-bakover"}) > 469762048
+          for: 2m
+          annotations:
+            consequence: "su-se-bakover er nær direct-buffer OOM"
+            action: "Undersøk pågående store responses/base64 payloads og vurder nedskalering av samtidighet eller høyere direct-memory"
+          labels:
+            namespace: supstonad
+            severity: critical
