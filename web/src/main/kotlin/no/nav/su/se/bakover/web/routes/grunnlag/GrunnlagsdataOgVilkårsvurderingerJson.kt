@@ -26,7 +26,7 @@ import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import vilkår.vurderinger.domain.Vilkårsvurderinger
 
-internal data class GrunnlagsdataOgVilkårsvurderingerJson(
+data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
     val lovligOpphold: LovligOppholdVilkårJson?,
     val fradrag: List<FradragResponseJson>,

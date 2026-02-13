@@ -10,19 +10,19 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.time.format.DateTimeFormatter
 
-internal data class UføreVilkårJson(
+data class UføreVilkårJson(
     val vurderinger: List<VurderingsperiodeUføreJson>,
     val resultat: UførevilkårStatus,
 )
 
-internal fun UføreVilkår.toJson(): UføreVilkårJson? {
+fun UføreVilkår.toJson(): UføreVilkårJson? {
     return when (this) {
         UføreVilkår.IkkeVurdert -> null
         is UføreVilkår.Vurdert -> this.toJson()
     }
 }
 
-internal fun VurderingsperiodeUføre.toJson() = VurderingsperiodeUføreJson(
+fun VurderingsperiodeUføre.toJson() = VurderingsperiodeUføreJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     resultat = vurdering.toUførhetStatusString(),
@@ -30,18 +30,18 @@ internal fun VurderingsperiodeUføre.toJson() = VurderingsperiodeUføreJson(
     periode = periode.toJson(),
 )
 
-internal fun UføreVilkår.Vurdert.toJson() = UføreVilkårJson(
+fun UføreVilkår.Vurdert.toJson() = UføreVilkårJson(
     vurderinger = vurderingsperioder.map { it.toJson() },
     resultat = vurdering.toUførhetStatusString(),
 )
 
-internal fun Vurdering.toUførhetStatusString() = when (this) {
+fun Vurdering.toUførhetStatusString() = when (this) {
     Vurdering.Avslag -> UførevilkårStatus.VilkårIkkeOppfylt
     Vurdering.Innvilget -> UførevilkårStatus.VilkårOppfylt
     Vurdering.Uavklart -> UførevilkårStatus.HarUføresakTilBehandling
 }
 
-internal data class VurderingsperiodeUføreJson(
+data class VurderingsperiodeUføreJson(
     val id: String,
     val opprettet: String,
     val resultat: UførevilkårStatus,

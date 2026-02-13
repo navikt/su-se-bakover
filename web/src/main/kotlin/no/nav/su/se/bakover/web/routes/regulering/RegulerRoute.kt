@@ -143,9 +143,8 @@ internal fun Route.reguler(
             }
             post("underkjenn") {
                 authorize(Brukerrolle.Attestant) {
-                    data class Body(val kommentar: String)
                     call.withReguleringId { id ->
-                        call.withBody<Body> { body ->
+                        call.withBody<UnderkjennReguleringBody> { body ->
                             if (body.kommentar.isBlank()) {
                                 call.svar(ugyldigBody)
                             }
@@ -439,6 +438,8 @@ internal fun Route.reguler(
 }
 
 data class BeregnReguleringRequest(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
+
+data class UnderkjennReguleringBody(val kommentar: String)
 
 private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this.map { it.toFradrag() }.separateEither()

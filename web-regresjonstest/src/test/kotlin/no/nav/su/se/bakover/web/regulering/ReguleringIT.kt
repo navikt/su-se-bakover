@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.web.regulering
 
 import arrow.core.nonEmptyListOf
 import common.presentation.beregning.FradragRequestJson
+import common.presentation.beregning.FradragResponseJson
 import common.presentation.grunnlag.UføregrunnlagJson
 import grunnbeløp.domain.Grunnbeløpsendring
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.domain.tid.fixedClock
@@ -14,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -23,6 +26,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.regulering.pesysFilCsvUforepTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.testSusebakover
+import no.nav.su.se.bakover.web.routes.grunnlag.VurderingsperiodeUføreJson
 import no.nav.su.se.bakover.web.sak.hent.hentReguleringer
 import no.nav.su.se.bakover.web.sak.hent.hentSakForFnr
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
@@ -451,7 +455,7 @@ internal class ReguleringIT {
             testApplication {
                 val appComponents = AppComponents.from(
                     dataSource = dataSource,
-                    clockParam = 21.mai(2021).fixedClock(),
+                    clockParam = TikkendeKlokke(21.mai(2021).fixedClock()),
                     applicationConfig = applicationConfig(),
                 )
                 application { testSusebakover(appComponents = appComponents) }
@@ -464,52 +468,143 @@ internal class ReguleringIT {
                 val uføregrunnlagId = GrunnlagJson.id(uføregrunnlag)
                 val uføregrunnlagOpprettet = GrunnlagJson.opprettet(uføregrunnlag)
 
+                val (gjeldendeVedtaksdata, reguleringFørBeregning) = hentRegulering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                )
+                reguleringFørBeregning.beregning shouldBe null
+                reguleringFørBeregning.simulering shouldBe null
+                reguleringFørBeregning.grunnlagsdataOgVilkårsvurderinger.fradrag shouldBe gjeldendeVedtaksdata.fradrag
+                reguleringFørBeregning.grunnlagsdataOgVilkårsvurderinger.uføre!!.vurderinger.sammenlignUføreGrunnlag(
+                    gjeldendeVedtaksdata.uføre!!.vurderinger.map { it.grunnlag!! },
+                )
+
+                val oppdatertUføre = listOf(
+                    UføregrunnlagJson(
+                        id = uføregrunnlagId,
+                        opprettet = uføregrunnlagOpprettet,
+                        periode = PeriodeJson(
+                            fraOgMed = "2021-05-01",
+                            tilOgMed = "2021-12-31",
+                        ),
+                        uføregrad = 100,
+                        forventetInntekt = 25,
+                    ),
+                )
+                val oppdatertFradrag = listOf(
+                    FradragRequestJson(
+                        periode = PeriodeJson(
+                            fraOgMed = "2021-05-01",
+                            tilOgMed = "2021-12-31",
+                        ),
+                        type = "Alderspensjon",
+                        beskrivelse = null,
+                        beløp = 10050.0,
+                        utenlandskInntekt = null,
+                        tilhører = "BRUKER",
+
+                    ),
+                )
                 beregnRegulering(
                     reguleringsId = reguleringsId,
-                    oppdatertUføre = listOf(
-                        UføregrunnlagJson(
-                            id = uføregrunnlagId,
-                            opprettet = uføregrunnlagOpprettet,
-                            periode = PeriodeJson(
-                                fraOgMed = "2021-05-01",
-                                tilOgMed = "2021-12-31",
-                            ),
-                            uføregrad = 100,
-                            forventetInntekt = 25,
-                        ),
-                    ),
-                    oppdatertFradrag = listOf(
-                        FradragRequestJson(
-                            periode = PeriodeJson(
-                                fraOgMed = "2021-05-01",
-                                tilOgMed = "2021-12-31",
-                            ),
-                            type = "Alderspensjon",
-                            beskrivelse = null,
-                            beløp = 10050.0,
-                            utenlandskInntekt = null,
-                            tilhører = "BRUKER",
-
-                        ),
-                    ),
+                    oppdatertUføre = oppdatertUføre,
+                    oppdatertFradrag = oppdatertFradrag,
                     client = this.client,
                 )
-                /*
-                manuellRegulering(
+                val beregnetRegulering = hentRegulering(
                     reguleringsId = reguleringsId,
-                    //language=json
-                    oppdatertUføre = """[{"forventetInntekt":25,"opprettet":"$uføregrunnlagOpprettet","uføregrad":100,"id":"$uføregrunnlagId","periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]""".trimIndent(),
-                    //language=json
-                    oppdatertFradrag = """[{"beløp":10050,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"Alderspensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"}}]""".trimIndent(),
+                    client = this.client,
+                ).regulering
+
+                beregnetRegulering.grunnlagsdataOgVilkårsvurderinger.uføre!!.vurderinger.sammenlignUføreGrunnlag(
+                    oppdatertUføre,
+                )
+                beregnetRegulering.grunnlagsdataOgVilkårsvurderinger.fradrag shouldBe oppdatertFradrag.toResponse()
+                val forventetFradragMedUføreSomForventetInntekt = oppdatertFradrag.toResponse() + listOf(
+                    FradragResponseJson(
+                        periode = oppdatertUføre.single().periode,
+                        type = "ForventetInntekt",
+                        beskrivelse = null,
+                        beløp = 2.0833333333333335,
+                        utenlandskInntekt = null,
+                        tilhører = "BRUKER",
+                    ),
+                )
+                beregnetRegulering.beregning!!.fradrag shouldBe forventetFradragMedUføreSomForventetInntekt
+                beregnetRegulering.beregning!!.månedsberegninger.size shouldBe 8
+                beregnetRegulering.beregning!!.månedsberegninger.forEach {
+                    it.satsbeløp shouldBe 21989
+                    it.grunnbeløp shouldBe 106399
+                    it.beløp shouldBe 11937
+                }
+                beregnetRegulering.simulering!!.totalOppsummering.sumFramtidigUtbetaling shouldBe 95496
+                // TODO bjg - verifiser at det ikke finnes noen attestering
+
+                reguleringTilAttestering(
+                    reguleringsId = reguleringsId,
                     client = this.client,
                 )
-                val iverksattReg =
-                    hentSakForFnr(fnrForSakSomSkalReguleres, client = this.client).hentReguleringMedId(reguleringsId)
+                val tilAttestering = hentRegulering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                ).regulering
+                tilAttestering.beregning shouldBe beregnetRegulering.beregning
+                tilAttestering.simulering shouldBe beregnetRegulering.simulering
+                // TODO bjg - verifiser at det ikke finnes noen attestering
 
-                verifyRegulering(iverksattReg, reguleringsId, sakId, fnrForSakSomSkalReguleres)
+                underkjennRegulering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                )
+                val underkjent = hentRegulering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                ).regulering
+                underkjent.beregning shouldBe beregnetRegulering.beregning
+                underkjent.simulering shouldBe beregnetRegulering.simulering
+                // TODO bjg - verifiser at det finnes en underkjent attestering
 
-                 */
+                reguleringTilAttestering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                )
+                iverksettRegulering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                )
+                val iverksatt = hentRegulering(
+                    reguleringsId = reguleringsId,
+                    client = this.client,
+                ).regulering
+                iverksatt.beregning shouldBe beregnetRegulering.beregning
+                iverksatt.simulering shouldBe beregnetRegulering.simulering
+                // TODO bjg - verifiser at det finnes en underkjent attestering og en godkjent
             }
         }
     }
+}
+
+fun List<VurderingsperiodeUføreJson>.sammenlignUføreGrunnlag(uføreGrunnlag: List<UføregrunnlagJson>) {
+    size shouldBe uføreGrunnlag.size
+    for (i in indices) {
+        val grunnlag = uføreGrunnlag[i]
+        this[i].grunnlag!! shouldBeEqualUsingFields {
+            excludedProperties = setOf(
+                UføregrunnlagJson::id,
+                UføregrunnlagJson::opprettet, // TODO bjg skal ikke opprettet være lik?
+            )
+            grunnlag
+        }
+    }
+}
+
+fun List<FradragRequestJson>.toResponse() = map {
+    FradragResponseJson(
+        periode = it.periode!!,
+        type = it.type,
+        beskrivelse = it.beskrivelse,
+        beløp = it.beløp,
+        utenlandskInntekt = it.utenlandskInntekt,
+        tilhører = it.tilhører,
+    )
 }

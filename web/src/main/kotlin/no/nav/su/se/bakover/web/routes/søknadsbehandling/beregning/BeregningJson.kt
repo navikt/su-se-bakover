@@ -7,7 +7,7 @@ import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import java.time.format.DateTimeFormatter
 
-internal data class BeregningJson(
+data class BeregningJson(
     val id: String,
     val opprettet: String,
     val fraOgMed: String,
@@ -17,7 +17,7 @@ internal data class BeregningJson(
     val begrunnelse: String?,
 )
 
-internal fun Beregning.toJson(): BeregningJson {
+fun Beregning.toJson(): BeregningJson {
     val epsInputFradragMap = getFradrag()
         .filter { it.tilhører == FradragTilhører.EPS }
         .flatMap { FradragFactory.periodiser(it) }

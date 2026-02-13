@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson.Com
 import no.nav.su.se.bakover.web.routes.regulering.json.EksternDataJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.regulering.json.FradragsperiodeJson.Companion.toJson
 
-internal data class EksternSupplementReguleringJson(
+data class EksternSupplementReguleringJson(
     val bruker: SupplementForJson? = null,
     val eps: List<SupplementForJson> = emptyList(),
 ) {
@@ -37,7 +37,7 @@ internal data class EksternSupplementReguleringJson(
     }
 }
 
-internal data class FradragsperiodeJson(
+data class FradragsperiodeJson(
     val fradragstype: FradragskategoriJson,
     val vedtaksperiodeEndring: VedtaksperiodeEndringJson?,
     val vedtaksperiodeRegulering: List<VedtaksperiodeReguleringJson>,
@@ -59,7 +59,7 @@ internal data class FradragsperiodeJson(
     }
 }
 
-internal data class SupplementForJson(
+data class SupplementForJson(
     val fnr: String,
     val fradragsperioder: List<FradragsperiodeJson>,
     val eksterneVedtaksdata: NonEmptyList<EksternDataJson>,

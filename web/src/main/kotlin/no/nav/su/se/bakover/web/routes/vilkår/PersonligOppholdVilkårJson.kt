@@ -19,7 +19,7 @@ import vilkår.personligoppmøte.domain.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.util.UUID
 
-internal fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock: Clock): PersonligOppmøteVilkår.Vurdert {
+fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock: Clock): PersonligOppmøteVilkår.Vurdert {
     return map { it.toDomain(clock) }.let {
         PersonligOppmøteVilkår.Vurdert(
             it.toNonEmptyList(),
@@ -27,7 +27,7 @@ internal fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock:
     }
 }
 
-internal fun KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.tilResultat(): Resultat {
+fun KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
         is KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.Underliggende -> {
@@ -38,7 +38,7 @@ internal fun KunneIkkeLeggeTilPersonligOppmøteVilkårForSøknadsbehandling.tilR
     }
 }
 
-internal fun KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.tilResultat(): Resultat {
+fun KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
@@ -58,7 +58,7 @@ internal fun KunneIkkeLeggeTilPersonligOppmøteVilkårForRevurdering.tilResultat
     }
 }
 
-internal data class LeggTilVurderingsperiodePersonligOppmøteJson(
+data class LeggTilVurderingsperiodePersonligOppmøteJson(
     val periode: PeriodeJson,
     val vurdering: PersonligOppmøteÅrsakJson,
 ) {
@@ -113,18 +113,18 @@ private fun PersonligOppmøteÅrsak.toJson(): String {
     }.toString()
 }
 
-internal data class PersonligOppmøteVilkårJson(
+data class PersonligOppmøteVilkårJson(
     val vurderinger: List<VurderingsperiodePersonligOppmøteJson>,
     val resultat: String,
 )
 
-internal data class VurderingsperiodePersonligOppmøteJson(
+data class VurderingsperiodePersonligOppmøteJson(
     val resultat: String,
     val vurdering: String,
     val periode: PeriodeJson,
 )
 
-internal fun PersonligOppmøteVilkår.toJson(): PersonligOppmøteVilkårJson? {
+fun PersonligOppmøteVilkår.toJson(): PersonligOppmøteVilkårJson? {
     return when (this) {
         PersonligOppmøteVilkår.IkkeVurdert -> {
             null
@@ -136,14 +136,14 @@ internal fun PersonligOppmøteVilkår.toJson(): PersonligOppmøteVilkårJson? {
     }
 }
 
-internal fun PersonligOppmøteVilkår.Vurdert.toJson(): PersonligOppmøteVilkårJson {
+fun PersonligOppmøteVilkår.Vurdert.toJson(): PersonligOppmøteVilkårJson {
     return PersonligOppmøteVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
         resultat = vurdering.toJson(),
     )
 }
 
-internal fun VurderingsperiodePersonligOppmøte.toJson(): VurderingsperiodePersonligOppmøteJson {
+fun VurderingsperiodePersonligOppmøte.toJson(): VurderingsperiodePersonligOppmøteJson {
     return VurderingsperiodePersonligOppmøteJson(
         resultat = vurdering.toJson(),
         vurdering = grunnlag.årsak.toJson(),

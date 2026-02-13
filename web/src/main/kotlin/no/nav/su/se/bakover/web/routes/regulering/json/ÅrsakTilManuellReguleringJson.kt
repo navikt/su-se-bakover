@@ -75,7 +75,7 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
         name = "DelvisOpphør",
     ),
 )
-internal sealed interface ÅrsakTilManuellReguleringJson {
+sealed interface ÅrsakTilManuellReguleringJson {
     val begrunnelse: String?
 
     data object FradragMåHåndteresManuelt : ÅrsakTilManuellReguleringJson {
@@ -170,10 +170,10 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson
 
     companion object {
-        internal fun Set<ÅrsakTilManuellRegulering>.toJson(): List<ÅrsakTilManuellReguleringJson> =
+        fun Set<ÅrsakTilManuellRegulering>.toJson(): List<ÅrsakTilManuellReguleringJson> =
             this.map { it.toJson() }
 
-        internal fun ÅrsakTilManuellRegulering.toJson(): ÅrsakTilManuellReguleringJson = when (this) {
+        fun ÅrsakTilManuellRegulering.toJson(): ÅrsakTilManuellReguleringJson = when (this) {
             is ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet -> AutomatiskSendingTilUtbetalingFeilet(
                 begrunnelse = this.begrunnelse,
             )

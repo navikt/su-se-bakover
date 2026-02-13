@@ -12,13 +12,13 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-internal data class FormuevilkårJson(
+data class FormuevilkårJson(
     val vurderinger: List<VurderingsperiodeFormueJson>,
     val resultat: FormuevilkårStatus?,
     val formuegrenser: List<FormuegrenseJson>,
 )
 
-internal data class VurderingsperiodeFormueJson(
+data class VurderingsperiodeFormueJson(
     val id: String,
     val opprettet: String,
     val resultat: FormuevilkårStatus,
@@ -26,7 +26,7 @@ internal data class VurderingsperiodeFormueJson(
     val periode: PeriodeJson,
 )
 
-internal fun FormueVilkår.toJson(formuegrenserFactory: FormuegrenserFactory): FormuevilkårJson {
+fun FormueVilkår.toJson(formuegrenserFactory: FormuegrenserFactory): FormuevilkårJson {
     return FormuevilkårJson(
         vurderinger = when (this) {
             is FormueVilkår.IkkeVurdert -> emptyList()
@@ -44,19 +44,19 @@ internal fun FormueVilkår.toJson(formuegrenserFactory: FormuegrenserFactory): F
     )
 }
 
-internal fun Vurdering.toFormueStatusString() = when (this) {
+fun Vurdering.toFormueStatusString() = when (this) {
     Vurdering.Avslag -> FormuevilkårStatus.VilkårIkkeOppfylt
     Vurdering.Innvilget -> FormuevilkårStatus.VilkårOppfylt
     Vurdering.Uavklart -> FormuevilkårStatus.MåInnhenteMerInformasjon
 }
 
-internal enum class FormuevilkårStatus {
+enum class FormuevilkårStatus {
     VilkårOppfylt,
     VilkårIkkeOppfylt,
     MåInnhenteMerInformasjon,
 }
 
-internal fun VurderingsperiodeFormue.toJson(): VurderingsperiodeFormueJson {
+fun VurderingsperiodeFormue.toJson(): VurderingsperiodeFormueJson {
     return VurderingsperiodeFormueJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -66,12 +66,12 @@ internal fun VurderingsperiodeFormue.toJson(): VurderingsperiodeFormueJson {
     )
 }
 
-internal data class FormuegrenseJson(
+data class FormuegrenseJson(
     val gyldigFra: String,
     val beløp: Int,
 )
 
-internal fun List<Pair<LocalDate, BigDecimal>>.toJson(): List<FormuegrenseJson> {
+fun List<Pair<LocalDate, BigDecimal>>.toJson(): List<FormuegrenseJson> {
     return this.map {
         FormuegrenseJson(
             gyldigFra = it.first.format(DateTimeFormatter.ISO_DATE),

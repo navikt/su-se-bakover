@@ -12,11 +12,35 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.routes.regulering.BeregnReguleringRequest
+import no.nav.su.se.bakover.web.routes.regulering.UnderkjennReguleringBody
+import no.nav.su.se.bakover.web.routes.regulering.json.ManuellReguleringVisningJson
+
+const val ATTESTANT = "Z990Attestant"
+
+internal fun hentRegulering(reguleringsId: String, client: HttpClient): ManuellReguleringVisningJson {
+    return runBlocking {
+        val correlationId = CorrelationId.generate()
+        val result = defaultRequest(
+            HttpMethod.Get,
+            "/reguleringer/manuell/$reguleringsId",
+            listOf(Brukerrolle.Saksbehandler),
+            client = client,
+            correlationId = correlationId.toString(),
+        )
+        result.apply {
+            withClue("manuell reglering feilet: ${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+        deserialize<ManuellReguleringVisningJson>(result.bodyAsText())
+    }
+}
 
 internal fun beregnRegulering(
     reguleringsId: String,
@@ -37,6 +61,64 @@ internal fun beregnRegulering(
             client = client,
             correlationId = correlationId.toString(),
         ) { setBody(serialize(request)) }.apply {
+            withClue("manuell reglering feilet: ${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+}
+
+internal fun reguleringTilAttestering(reguleringsId: String, client: HttpClient) {
+    return runBlocking {
+        val correlationId = CorrelationId.generate()
+        val result = defaultRequest(
+            HttpMethod.Post,
+            "/reguleringer/manuell/$reguleringsId/attestering",
+            listOf(Brukerrolle.Saksbehandler),
+            client = client,
+            correlationId = correlationId.toString(),
+        )
+        result.apply {
+            withClue("manuell reglering feilet: ${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+}
+
+internal fun underkjennRegulering(reguleringsId: String, client: HttpClient) {
+    return runBlocking {
+        val correlationId = CorrelationId.generate()
+        val result = defaultRequest(
+            HttpMethod.Post,
+            "/reguleringer/manuell/$reguleringsId/attestering/underkjenn",
+            listOf(Brukerrolle.Attestant),
+            client = client,
+            correlationId = correlationId.toString(),
+            navIdent = ATTESTANT,
+        ) {
+            setBody(serialize(UnderkjennReguleringBody("Kommentar")))
+        }
+        result.apply {
+            withClue("manuell reglering feilet: ${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+}
+
+internal fun iverksettRegulering(reguleringsId: String, client: HttpClient) {
+    return runBlocking {
+        val correlationId = CorrelationId.generate()
+        val result = defaultRequest(
+            HttpMethod.Post,
+            "/reguleringer/manuell/$reguleringsId/attestering/godkjenn",
+            listOf(Brukerrolle.Attestant),
+            client = client,
+            correlationId = correlationId.toString(),
+            navIdent = ATTESTANT,
+        )
+        result.apply {
             withClue("manuell reglering feilet: ${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
             }
@@ -72,5 +154,11 @@ fun verifyRegulering(
         }
     """.trimIndent()
 
-    actual.shouldBeSimilarJsonTo(expected, "beregning.id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id", "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.id", "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id")
+    actual.shouldBeSimilarJsonTo(
+        expected,
+        "beregning.id",
+        "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].id",
+        "grunnlagsdataOgVilkårsvurderinger.uføre.vurderinger[*].grunnlag.id",
+        "grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id",
+    )
 }

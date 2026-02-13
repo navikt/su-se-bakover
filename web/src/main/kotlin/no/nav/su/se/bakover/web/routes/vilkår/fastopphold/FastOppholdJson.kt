@@ -17,7 +17,7 @@ import vilkår.fastopphold.domain.VurderingsperiodeFastOppholdINorge
 import java.time.Clock
 import java.util.UUID
 
-internal fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, FastOppholdINorgeVilkår.Vurdert> {
+fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, FastOppholdINorgeVilkår.Vurdert> {
     return map { it.toDomain(clock) }
         .let { vurderingsperioder ->
             FastOppholdINorgeVilkår.Vurdert.tryCreate(
@@ -28,7 +28,7 @@ internal fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(clock: Clock
         }
 }
 
-internal fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
+fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
@@ -66,7 +66,7 @@ internal fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
     }
 }
 
-internal data class LeggTilVurderingsperiodeFastOppholdJson(
+data class LeggTilVurderingsperiodeFastOppholdJson(
     val periode: PeriodeJson,
     val vurdering: FastOppholdINorgeVurderingJson,
 ) {
@@ -95,17 +95,17 @@ enum class FastOppholdINorgeVurderingJson {
     }
 }
 
-internal data class FastOppholdINorgeVilkårJson(
+data class FastOppholdINorgeVilkårJson(
     val vurderinger: List<VurderingsperiodeFastOppholdINorgeJson>,
     val resultat: String,
 )
 
-internal data class VurderingsperiodeFastOppholdINorgeJson(
+data class VurderingsperiodeFastOppholdINorgeJson(
     val resultat: String,
     val periode: PeriodeJson,
 )
 
-internal fun FastOppholdINorgeVilkår.toJson(): FastOppholdINorgeVilkårJson? {
+fun FastOppholdINorgeVilkår.toJson(): FastOppholdINorgeVilkårJson? {
     return when (this) {
         FastOppholdINorgeVilkår.IkkeVurdert -> {
             null
@@ -117,14 +117,14 @@ internal fun FastOppholdINorgeVilkår.toJson(): FastOppholdINorgeVilkårJson? {
     }
 }
 
-internal fun FastOppholdINorgeVilkår.Vurdert.toJson(): FastOppholdINorgeVilkårJson {
+fun FastOppholdINorgeVilkår.Vurdert.toJson(): FastOppholdINorgeVilkårJson {
     return FastOppholdINorgeVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
         resultat = vurdering.toJson(),
     )
 }
 
-internal fun VurderingsperiodeFastOppholdINorge.toJson(): VurderingsperiodeFastOppholdINorgeJson {
+fun VurderingsperiodeFastOppholdINorge.toJson(): VurderingsperiodeFastOppholdINorgeJson {
     return VurderingsperiodeFastOppholdINorgeJson(
         resultat = vurdering.toJson(),
         periode = periode.toJson(),
