@@ -15,6 +15,7 @@ query($journalpostId: String!){
             varselSendt {
                 type
                 adresse
+                varslingstidspunkt
             }
         }
         dokumenter {

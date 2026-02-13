@@ -86,6 +86,7 @@ internal data class DigitalpostSendtResponse(
 internal data class VarselSendtResponse(
     val type: String?,
     val adresse: String?,
+    val varslingstidspunkt: String?,
 )
 
 internal data class DokumentInfoResponse(
