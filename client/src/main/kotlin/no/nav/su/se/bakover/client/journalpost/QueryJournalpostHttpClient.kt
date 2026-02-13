@@ -444,12 +444,35 @@ internal class QueryJournalpostHttpClient(
 private fun UtsendingsinfoResponse?.toUtsendingsinfoOrNull(): Utsendingsinfo? {
     if (this == null) return null
     val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt
-    val digitalpost = this.digitalpostSendt?.adresse
+    val digitalpost = if (this.digitalpostSendt == null) {
+        null
+    } else {
+        this.varselSendt.tilDigitalVarselAdresse() ?: this.digitalpostSendt.adresse
+    }
     if (fysiskpost == null && digitalpost == null) return null
     return Utsendingsinfo(
         fysiskpostSendt = fysiskpost,
         digitalpostSendt = digitalpost,
     )
+}
+
+private fun List<VarselSendtResponse>.tilDigitalVarselAdresse(): String? {
+    fun List<VarselSendtResponse>.adresserFor(type: String): List<String> {
+        return this.filter { it.type.equals(type, ignoreCase = true) }
+            .mapNotNull { it.adresse?.takeIf(String::isNotBlank) }
+            .distinct()
+    }
+
+    val epostAdresser = adresserFor("EPOST")
+    if (epostAdresser.isNotEmpty()) return epostAdresser.joinToString(", ")
+
+    val smsAdresser = adresserFor("SMS")
+    if (smsAdresser.isNotEmpty()) return smsAdresser.joinToString(", ")
+
+    return this.mapNotNull { it.adresse?.takeIf(String::isNotBlank) }
+        .distinct()
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(", ")
 }
 
 internal abstract class GraphQLHttpResponse {

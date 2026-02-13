@@ -12,6 +12,10 @@ query($journalpostId: String!){
             digitalpostSendt {
                 adresse
             }
+            varselSendt {
+                type
+                adresse
+            }
         }
         dokumenter {
             dokumentInfoId
