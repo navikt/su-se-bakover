@@ -32,7 +32,6 @@ class DokumentPostgresRepo(
     private val clock: Clock,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : DokumentRepo {
-
     private val joinDokumentOgDistribusjonQuery =
         "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where d.duplikatAv is null and d.er_kopi = false"
     private val joinDokumentOgDistribusjonQueryOgKopier =
@@ -136,16 +135,17 @@ class DokumentPostgresRepo(
                             dokumentHendelseRepo.hentFilFor(hendelseId, ct)
                         },
                     )
-                (
-                    ct.withSession {
-                        """
+
+                val dokumenterFraDokumenttabell = ct.withSession {
+                    """
                 $joinDokumentOgDistribusjonQueryOgKopier and sakId = :id
-                        """.trimIndent()
-                            .hentListe(mapOf("id" to sakId), it) {
-                                it.toDokumentMedStatus()
-                            }
-                    } + dokumenterFraHendelser
-                    ).sortedBy { it.opprettet.instant }
+                    """.trimIndent()
+                        .hentListe(mapOf("id" to sakId), it) {
+                            it.toDokumentMedStatus()
+                        }
+                }
+
+                (dokumenterFraDokumenttabell + dokumenterFraHendelser).sortedBy { it.opprettet.instant }
             }
         }
     }

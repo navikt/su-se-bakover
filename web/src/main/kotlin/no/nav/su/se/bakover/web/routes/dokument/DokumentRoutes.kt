@@ -11,7 +11,6 @@ import dokument.domain.journalføring.KunneIkkeHenteJournalpost
 import dokument.domain.journalføring.Utsendingsinfo
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.plugins.callid.callId
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -32,13 +31,11 @@ import no.nav.su.se.bakover.service.klage.AdresseServiceFeil
 import no.nav.su.se.bakover.service.klage.DokumentUtsendingsinfo
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.JournalpostMedDokumentPdfOgAdresse
-import org.slf4j.LoggerFactory
 import java.util.Base64
 import java.util.UUID
 
 private const val ID_PARAMETER = "id"
 private const val ID_TYPE_PARAMETER = "idType"
-private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.routes.dokument.DokumentRoutes")
 
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
@@ -89,43 +86,15 @@ internal fun Route.dokumentRoutes(
                     }
                 }
 
-            val startedAt = System.nanoTime()
-            log.info(
-                "Start /dokumenter correlationId={} id={} idType={}",
-                call.callId,
-                id,
-                type,
-            )
-            val dokumenter = try {
-                brevService.hentDokumenterFor(parameters.toDomain())
-            } catch (e: Throwable) {
-                val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
-                log.error(
-                    "Failed /dokumenter correlationId={} id={} idType={} elapsedMs={}",
-                    call.callId,
-                    id,
-                    type,
-                    elapsedMs,
-                    e,
-                )
-                throw e
-            }
-
-            val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
-            log.info(
-                "Done /dokumenter correlationId={} id={} idType={} antallDokumenter={} elapsedMs={}",
-                call.callId,
-                id,
-                type,
-                dokumenter.size,
-                elapsedMs,
-            )
-            call.svar(
-                Resultat.json(
-                    httpCode = HttpStatusCode.OK,
-                    json = dokumenter.toJson(),
-                ),
-            )
+            brevService.hentDokumenterFor(parameters.toDomain())
+                .let { dokumenter ->
+                    call.svar(
+                        Resultat.json(
+                            httpCode = HttpStatusCode.OK,
+                            json = dokumenter.toJson(),
+                        ),
+                    )
+                }
         }
     }
 
@@ -151,47 +120,11 @@ internal fun Route.dokumentRoutes(
                     )
                 }
 
-            val startedAt = System.nanoTime()
-            log.info(
-                "Start /dokumenter/eksterne correlationId={} sakId={}",
-                call.callId,
-                sakUuid,
-            )
-            val result = try {
-                journalpostAdresseService.hentKlageDokumenterMedAdresseForSak(sakUuid)
-            } catch (e: Throwable) {
-                val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
-                log.error(
-                    "Failed /dokumenter/eksterne correlationId={} sakId={} elapsedMs={}",
-                    call.callId,
-                    sakUuid,
-                    elapsedMs,
-                    e,
-                )
-                throw e
-            }
-
-            result.fold(
+            journalpostAdresseService.hentKlageDokumenterMedAdresseForSak(sakUuid).fold(
                 ifLeft = {
-                    val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
-                    log.warn(
-                        "Done /dokumenter/eksterne with domain error correlationId={} sakId={} feilType={} elapsedMs={}",
-                        call.callId,
-                        sakUuid,
-                        it::class.simpleName,
-                        elapsedMs,
-                    )
                     call.svar(it.tilResultat())
                 },
                 ifRight = { dokumenter ->
-                    val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
-                    log.info(
-                        "Done /dokumenter/eksterne correlationId={} sakId={} antallDokumenter={} elapsedMs={}",
-                        call.callId,
-                        sakUuid,
-                        dokumenter.size,
-                        elapsedMs,
-                    )
                     call.svar(
                         Resultat.json(
                             httpCode = HttpStatusCode.OK,
