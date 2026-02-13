@@ -19,6 +19,8 @@ import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.Utsendingsinfo
+import dokument.domain.journalføring.Utsendingskanal
+import dokument.domain.journalføring.VarselSendt
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.cache.newCache
@@ -42,6 +44,10 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 // docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
 // queries: https://confluence.adeo.no/display/BOA/saf+-+Queries
@@ -443,36 +449,48 @@ internal class QueryJournalpostHttpClient(
 
 private fun UtsendingsinfoResponse?.toUtsendingsinfoOrNull(): Utsendingsinfo? {
     if (this == null) return null
-    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt
-    val digitalpost = if (this.digitalpostSendt == null) {
-        null
-    } else {
-        this.varselSendt.tilDigitalVarselAdresse() ?: this.digitalpostSendt.adresse
-    }
-    if (fysiskpost == null && digitalpost == null) return null
+    val now = Instant.now()
+    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt?.trim()?.takeIf { it.isNotEmpty() }
+    val digitalpost = this.digitalpostSendt != null
+    val varselSendt = this.varselSendt.mapNotNull { it.toDomainOrNull(now) }
+    val prioritertKanal = when {
+        fysiskpost != null -> Utsendingskanal.FYSISKPOST
+        digitalpost -> Utsendingskanal.DIGITALPOST
+        varselSendt.isNotEmpty() -> Utsendingskanal.VARSEL
+        else -> null
+    } ?: return null
+
     return Utsendingsinfo(
         fysiskpostSendt = fysiskpost,
         digitalpostSendt = digitalpost,
+        varselSendt = varselSendt,
+        prioritertKanal = prioritertKanal,
     )
 }
 
-private fun List<VarselSendtResponse>.tilDigitalVarselAdresse(): String? {
-    fun List<VarselSendtResponse>.adresserFor(type: String): List<String> {
-        return this.filter { it.type.equals(type, ignoreCase = true) }
-            .mapNotNull { it.adresse?.takeIf(String::isNotBlank) }
-            .distinct()
-    }
+private fun String?.clean(): String? {
+    return this?.trim()?.takeIf { it.isNotEmpty() }
+}
 
-    val epostAdresser = adresserFor("EPOST")
-    if (epostAdresser.isNotEmpty()) return epostAdresser.joinToString(", ")
+private fun VarselSendtResponse.toDomainOrNull(now: Instant): VarselSendt? {
+    val adresse = adresse.clean() ?: return null
+    val varslingstidspunkt = varslingstidspunkt.clean()
+    return VarselSendt(
+        type = type.clean() ?: "UKJENT",
+        adresse = adresse,
+        varslingstidspunkt = varslingstidspunkt,
+        passert40TimerSidenVarsling = varslingstidspunkt
+            ?.toInstantOrNull()
+            ?.let { it.isBefore(now.minus(Duration.ofHours(40))) },
+    )
+}
 
-    val smsAdresser = adresserFor("SMS")
-    if (smsAdresser.isNotEmpty()) return smsAdresser.joinToString(", ")
-
-    return this.mapNotNull { it.adresse?.takeIf(String::isNotBlank) }
-        .distinct()
-        .takeIf { it.isNotEmpty() }
-        ?.joinToString(", ")
+private fun String.toInstantOrNull(): Instant? {
+    return runCatching {
+        OffsetDateTime.parse(this).toInstant()
+    }.recoverCatching {
+        LocalDateTime.parse(this).atZone(ZoneId.of("Europe/Oslo")).toInstant()
+    }.getOrNull()
 }
 
 internal abstract class GraphQLHttpResponse {

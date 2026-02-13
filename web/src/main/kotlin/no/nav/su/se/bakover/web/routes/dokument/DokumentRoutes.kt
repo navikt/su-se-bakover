@@ -208,7 +208,16 @@ private data class DokumentUtsendingsinfoJson(
 
 private data class UtsendingsinfoJson(
     val fysiskpostSendt: String?,
-    val digitalpostSendt: String?,
+    val digitalpostSendt: Boolean,
+    val varselSendt: List<VarselSendtJson>,
+    val prioritertKanal: String,
+)
+
+private data class VarselSendtJson(
+    val type: String,
+    val adresse: String,
+    val varslingstidspunkt: String?,
+    val passert40TimerSidenVarsling: Boolean?,
 )
 
 private fun List<JournalpostMedDokumentPdfOgAdresse>.toJson(): String {
@@ -242,6 +251,15 @@ private fun Utsendingsinfo.toJson(): UtsendingsinfoJson {
     return UtsendingsinfoJson(
         fysiskpostSendt = fysiskpostSendt,
         digitalpostSendt = digitalpostSendt,
+        varselSendt = varselSendt.map {
+            VarselSendtJson(
+                type = it.type,
+                adresse = it.adresse,
+                varslingstidspunkt = it.varslingstidspunkt,
+                passert40TimerSidenVarsling = it.passert40TimerSidenVarsling,
+            )
+        },
+        prioritertKanal = prioritertKanal.name,
     )
 }
 

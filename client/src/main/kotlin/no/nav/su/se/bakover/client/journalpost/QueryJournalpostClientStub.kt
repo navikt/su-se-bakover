@@ -20,6 +20,7 @@ import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.Utsendingsinfo
+import dokument.domain.journalføring.Utsendingskanal
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -73,7 +74,9 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
             datoOpprettet = LocalDate.of(2020, 1, 1),
             utsendingsinfo = Utsendingsinfo(
                 fysiskpostSendt = "Stubveien 1\n0001 Oslo\nNORGE",
-                digitalpostSendt = null,
+                digitalpostSendt = false,
+                varselSendt = emptyList(),
+                prioritertKanal = Utsendingskanal.FYSISKPOST,
             ),
             dokumenter = listOf(
                 DokumentInfoMedVarianter(
