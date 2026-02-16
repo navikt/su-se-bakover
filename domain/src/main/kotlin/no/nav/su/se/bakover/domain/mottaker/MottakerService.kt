@@ -30,6 +30,11 @@ interface MottakerService {
     fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, Unit>
 }
 
+enum class BrevtypeMottaker {
+    VEDTAKSBREV,
+    FORHANDSVARSEL,
+}
+
 sealed interface FeilkoderMottaker {
     data object KanIkkeLagreMottaker : FeilkoderMottaker
     data object KanIkkeOppdatereMottaker : FeilkoderMottaker
@@ -72,13 +77,30 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.SØKNAD ->
                 !vedtakRepo.finnesVedtakForSøknadsbehandlingId(SøknadsbehandlingId(mottaker.referanseId))
 
-            ReferanseTypeMottaker.VEDTAK ->
-                dokumentRepo.hentForVedtak(mottaker.referanseId).isEmpty()
-
             // De andre typene støtter ikke flere mottakere og kan ha flere per revurderingid som ødelegger bindingen mot mottakertabellen siden man ikke har noen unik id å knytte det mot.
             // Du kan til og med ha flere av samme typen per revurdering så her må man tilpasse om det skal støttes.
             ReferanseTypeMottaker.REVURDERING ->
-                !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
+                when (mottaker.brevtype) {
+                    BrevtypeMottaker.VEDTAKSBREV ->
+                        !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
+
+                    BrevtypeMottaker.FORHANDSVARSEL ->
+                        dokumentRepo.hentForRevurdering(mottaker.referanseId).none {
+                            it is Dokument.MedMetadata.Informasjon.Viktig
+                        }
+                }
+
+            ReferanseTypeMottaker.TILBAKEKREVING ->
+                when (mottaker.brevtype) {
+                    // Tilbakekrevingsvedtak har fortsatt dokumenthendelsesløp og kan ikke valideres presist her ennå.
+                    BrevtypeMottaker.VEDTAKSBREV -> true
+
+                    BrevtypeMottaker.FORHANDSVARSEL ->
+                        dokumentRepo.hentForSak(mottaker.sakId).none {
+                            it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
+                                it is Dokument.MedMetadata.Informasjon.Viktig
+                        }
+                }
 
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
@@ -130,17 +152,21 @@ class MottakerServiceImpl(
                 ReferanseTypeMottaker.SØKNAD ->
                     dokumentRepo.hentForSøknad(mottaker.referanseId)
 
-                // TODO: usikkert om noen knytning direkte mot vedtak skal forekomme da vedtaket ikke er opprettet når vi legger knytningen mot mottaker
-                ReferanseTypeMottaker.VEDTAK ->
-                    dokumentRepo.hentForVedtak(mottaker.referanseId)
-
                 ReferanseTypeMottaker.REVURDERING ->
-                    dokumentRepo.hentForRevurdering(mottaker.referanseId).filter {
-                        when (it) {
-                            is Dokument.MedMetadata.Informasjon.Annet -> false
-                            is Dokument.MedMetadata.Informasjon.Viktig -> false
-                            is Dokument.MedMetadata.Vedtak -> true
+                    dokumentRepo.hentForRevurdering(mottaker.referanseId).filter { dokument ->
+                        when (mottaker.brevtype) {
+                            BrevtypeMottaker.VEDTAKSBREV -> dokument is Dokument.MedMetadata.Vedtak
+                            BrevtypeMottaker.FORHANDSVARSEL -> dokument is Dokument.MedMetadata.Informasjon.Viktig
                         }
+                    }
+
+                ReferanseTypeMottaker.TILBAKEKREVING ->
+                    dokumentRepo.hentForSak(mottaker.sakId).filter { dokument ->
+                        dokument.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
+                            when (mottaker.brevtype) {
+                                BrevtypeMottaker.VEDTAKSBREV -> dokument is Dokument.MedMetadata.Vedtak
+                                BrevtypeMottaker.FORHANDSVARSEL -> dokument is Dokument.MedMetadata.Informasjon.Viktig
+                            }
                     }
 
                 ReferanseTypeMottaker.KLAGE ->
@@ -188,6 +214,7 @@ sealed interface MottakerRequest {
     val sakId: String
     val referanseId: String
     val referanseType: String
+    val brevtype: String
 
     fun validerFelles(): List<String> {
         val feil = mutableListOf<String>()
@@ -216,6 +243,16 @@ sealed interface MottakerRequest {
                 ReferanseTypeMottaker.valueOf(referanseType.uppercase())
             }.getOrElse {
                 feil += "Ugyldig referanseType: $referanseType"
+            }
+        }
+
+        if (brevtype.isBlank()) {
+            feil += "brevtype mangler"
+        } else {
+            runCatching {
+                BrevtypeMottaker.valueOf(brevtype.uppercase())
+            }.getOrElse {
+                feil += "Ugyldig brevtype: $brevtype"
             }
         }
 
@@ -277,6 +314,7 @@ data class OppdaterMottaker(
     override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
+    override val brevtype: String = BrevtypeMottaker.VEDTAKSBREV.name,
 ) : MottakerRequest {
 
     private fun erGyldig(): List<String> {
@@ -300,7 +338,8 @@ data class OppdaterMottaker(
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
-                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
+                    brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
                 ).right()
             } else {
                 MottakerFnrDomain(
@@ -310,7 +349,8 @@ data class OppdaterMottaker(
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
-                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
+                    brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
                 ).right()
             }
         } else {
@@ -327,6 +367,7 @@ data class LagreMottaker(
     override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
+    override val brevtype: String = BrevtypeMottaker.VEDTAKSBREV.name,
 ) : MottakerRequest {
     private fun erGyldig(): List<String> {
         val feil = mutableListOf<String>()
@@ -345,7 +386,8 @@ data class LagreMottaker(
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
-                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
+                    brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
                 ).right()
             } else {
                 MottakerFnrDomain(
@@ -354,7 +396,8 @@ data class LagreMottaker(
                     adresse = adresse.toDomain(),
                     sakId = UUID.fromString(sakId),
                     referanseId = UUID.fromString(referanseId),
-                    referanseType = ReferanseTypeMottaker.valueOf(referanseType),
+                    referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
+                    brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
                 ).right()
             }
         } else {
@@ -366,6 +409,7 @@ data class LagreMottaker(
 class MottakerIdentifikator(
     val referanseType: ReferanseTypeMottaker,
     val referanseId: UUID,
+    val brevtype: BrevtypeMottaker = BrevtypeMottaker.VEDTAKSBREV,
 )
 
 sealed interface MottakerDomain {
@@ -375,6 +419,7 @@ sealed interface MottakerDomain {
     val sakId: UUID
     val referanseId: UUID
     val referanseType: ReferanseTypeMottaker
+    val brevtype: BrevtypeMottaker
 }
 
 data class MottakerOrgnummerDomain(
@@ -384,6 +429,7 @@ data class MottakerOrgnummerDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
+    override val brevtype: BrevtypeMottaker = BrevtypeMottaker.VEDTAKSBREV,
     val orgnummer: String,
 ) : MottakerDomain
 
@@ -394,12 +440,13 @@ data class MottakerFnrDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
+    override val brevtype: BrevtypeMottaker = BrevtypeMottaker.VEDTAKSBREV,
     val foedselsnummer: Fnr,
 ) : MottakerDomain
 
 enum class ReferanseTypeMottaker {
     SØKNAD,
-    VEDTAK, // Tror ikke denne går å støtte da behandlingen er knyttet opp mot vedtak men som kun opprettes etter iverksatt så vi har ingen binding til den før det er for sent
     REVURDERING,
+    TILBAKEKREVING,
     KLAGE, // special case
 }

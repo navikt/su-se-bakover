@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
@@ -37,10 +38,12 @@ data class MottakerRepoImpl(
                 from mottaker
                 where referanse_type = :referanse_type
                   and referanse_id = :referanse_id
+                  and brevtype = :brevtype
                 """.trimIndent().hent(
                     mapOf(
                         "referanse_type" to mottakerIdentifikator.referanseType.name,
                         "referanse_id" to mottakerIdentifikator.referanseId,
+                        "brevtype" to mottakerIdentifikator.brevtype.name,
                     ),
                     session,
                 ) { rowToMottaker(it) }
@@ -67,7 +70,8 @@ data class MottakerRepoImpl(
                 adresse,
                 sakid,
                 referanse_type,
-                referanse_id
+                referanse_id,
+                brevtype
             ) values (
                 :id,
                 :navn,
@@ -76,7 +80,8 @@ data class MottakerRepoImpl(
                 :adresse::jsonb,
                 :sakid,
                 :referanse_type,
-                :referanse_id
+                :referanse_id,
+                :brevtype
             )
                 """.trimIndent().insert(
                     mapOf(
@@ -88,6 +93,7 @@ data class MottakerRepoImpl(
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
                         "referanse_id" to mottaker.referanseId,
+                        "brevtype" to mottaker.brevtype.name,
                     ),
                     session,
                 )
@@ -114,7 +120,8 @@ data class MottakerRepoImpl(
                 adresse = :adresse::jsonb,
                 sakid = :sakid,
                 referanse_type = :referanse_type,
-                referanse_id = :referanse_id
+                referanse_id = :referanse_id,
+                brevtype = :brevtype
             where id = :id
                 """.trimIndent().oppdatering(
                     mapOf(
@@ -126,6 +133,7 @@ data class MottakerRepoImpl(
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
                         "referanse_id" to mottaker.referanseId,
+                        "brevtype" to mottaker.brevtype.name,
                     ),
                     session,
                 )
@@ -162,6 +170,9 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
+                brevtype = row.stringOrNull("brevtype")
+                    ?.let { BrevtypeMottaker.valueOf(it) }
+                    ?: BrevtypeMottaker.VEDTAKSBREV,
             )
 
             orgnr != null -> MottakerOrgnummerDomain(
@@ -172,6 +183,9 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
+                brevtype = row.stringOrNull("brevtype")
+                    ?.let { BrevtypeMottaker.valueOf(it) }
+                    ?: BrevtypeMottaker.VEDTAKSBREV,
             )
 
             else -> error(

@@ -54,8 +54,8 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                     tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallOppdatertOppgaveHendelser = 1,
                     antallGenererteForhåndsvarsler = 1,
-                    antallJournalførteDokumenter = 1,
-                    antallDistribuertDokumenter = 1,
+                    antallJournalførteDokumenter = 0,
+                    antallDistribuertDokumenter = 0,
                 )
                 // Vi sletter statusen på jobben, men ikke selve oppgavehendelsen for å verifisere at vi ikke oppretter duplikate oppgaver i disse tilfellene.
                 appComponents.slettOppdatertOppgaveKonsumentJobb()
@@ -67,8 +67,8 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
                     tidligereUtførteSideeffekter = tidligereUtførteSideeffekter,
                     antallOppdatertOppgaveHendelser = 1,
                     antallGenererteForhåndsvarsler = 1,
-                    antallJournalførteDokumenter = 1,
-                    antallDistribuertDokumenter = 1,
+                    antallJournalførteDokumenter = 0,
+                    antallDistribuertDokumenter = 0,
                 )
             }
             val sakEtterKallJson = hentSak(sakId, client)
@@ -77,7 +77,7 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
 
             if (verifiserRespons) {
                 if (utførSideeffekter) {
-                    saksversjonEtter shouldBe saksversjon + 5 // hendelse + oppdatert oppgave + generering av brev + journalført + distribuert
+                    saksversjonEtter shouldBe saksversjon + 2 // hendelse + oppdatert oppgave
                 } else {
                     saksversjonEtter shouldBe saksversjon + 1 // kun hendelsen
                 }

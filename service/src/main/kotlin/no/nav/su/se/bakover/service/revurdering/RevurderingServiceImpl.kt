@@ -745,6 +745,7 @@ class RevurderingServiceImpl(
         if (fritekst == null) {
             return KunneIkkeForhåndsvarsle.ManglerFritekst.left()
         }
+        // TODO: ekstramottaker revurdering
         return revurdering.lagForhåndsvarsel(
             fritekst = fritekst,
             utførtAv = utførtAv,
@@ -772,7 +773,7 @@ class RevurderingServiceImpl(
                         revurdering = revurdering,
                         transactionContext = tx,
                     )
-                    prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+                    oppdaterOppgaveForhåndsvarsel(
                         revurderingId = revurdering.id,
                         oppgaveId = revurdering.oppgaveId,
                         utførtAv = utførtAv,
@@ -792,7 +793,7 @@ class RevurderingServiceImpl(
         }
     }
 
-    private fun prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+    private fun oppdaterOppgaveForhåndsvarsel(
         revurderingId: RevurderingId,
         oppgaveId: OppgaveId,
         utførtAv: NavIdentBruker.Saksbehandler,

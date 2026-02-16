@@ -138,10 +138,8 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     brevService = brevService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
-                    dokumentHendelseRepo = dokumentHendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     sessionFactory = sessionFactory,
-                    clock = clock,
                 ),
                 opprettOppgaveForTilbakekrevingshendelserKonsument = OpprettOppgaveForTilbakekrevingshendelserKonsument(
                     sakService = sakService,
@@ -161,6 +159,7 @@ class TilbakekrevingServices(
                     sakStatistikkRepo = sakStatistikkRepo,
                 ),
                 visUtsendtForhåndsvarselbrevForTilbakekrevingService = VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
+                    brevService = brevService,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                 ),
                 underkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
