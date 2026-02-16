@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.time.Clock
+import java.time.ZoneId
 
 internal class JournalpostHttpClientTest {
 
@@ -224,10 +226,14 @@ internal fun setupClient(
         on { onBehalfOfToken(any(), any()) } doReturn "onBehalfOfToken"
         on { getSystemToken(any()) } doReturn "systemToken"
     },
+    clock: Clock = Clock.systemUTC(),
+    localDateTimeFallbackZoneId: ZoneId = ZoneId.of("Europe/Oslo"),
 ) = QueryJournalpostHttpClient(
     safConfig = safConfig,
     azureAd = azureAd,
     suMetrics = mock(),
+    clock = clock,
+    localDateTimeFallbackZoneId = localDateTimeFallbackZoneId,
 )
 
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

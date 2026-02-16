@@ -19,6 +19,7 @@ import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.Utsendingsinfo
+import dokument.domain.journalføring.VarselSendt
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.cache.newCache
@@ -41,15 +42,24 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 // docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
 // queries: https://confluence.adeo.no/display/BOA/saf+-+Queries
 // journalpost query: https://confluence.adeo.no/display/BOA/Query%3A+journalpost
+private val DEFAULT_LOCAL_DATE_TIME_FALLBACK_ZONE_ID: ZoneId = ZoneId.of("Europe/Oslo")
+
 internal class QueryJournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
     private val suMetrics: SuMetrics,
+    private val clock: Clock = Clock.systemUTC(),
+    private val localDateTimeFallbackZoneId: ZoneId = DEFAULT_LOCAL_DATE_TIME_FALLBACK_ZONE_ID,
     private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(
         cacheName = "erTilknyttetSak",
         expireAfterWrite = Duration.ofHours(1),
@@ -145,7 +155,10 @@ internal class QueryJournalpostHttpClient(
                         journalpostId = JournalpostId(jp.journalpostId),
                         tittel = jp.tittel,
                         datoOpprettet = jp.datoOpprettet,
-                        utsendingsinfo = jp.utsendingsinfo.toUtsendingsinfoOrNull(),
+                        utsendingsinfo = jp.utsendingsinfo.toUtsendingsinfoOrNull(
+                            now = Instant.now(clock),
+                            localDateTimeFallbackZoneId = localDateTimeFallbackZoneId,
+                        ),
                         dokumenter = jp.dokumenter.map { doc ->
                             DokumentInfoMedVarianter(
                                 dokumentInfoId = doc.dokumentInfoId,
@@ -441,15 +454,50 @@ internal class QueryJournalpostHttpClient(
     }
 }
 
-private fun UtsendingsinfoResponse?.toUtsendingsinfoOrNull(): Utsendingsinfo? {
+private fun UtsendingsinfoResponse?.toUtsendingsinfoOrNull(
+    now: Instant,
+    localDateTimeFallbackZoneId: ZoneId,
+): Utsendingsinfo? {
     if (this == null) return null
-    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt
-    val digitalpost = this.digitalpostSendt?.adresse
-    if (fysiskpost == null && digitalpost == null) return null
+    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt.clean()
+    val digitalpost = this.digitalpostSendt != null
+    val varselSendt = this.varselSendt.mapNotNull { it.toDomainOrNull(now, localDateTimeFallbackZoneId) }
+    if (fysiskpost == null && !digitalpost && varselSendt.isEmpty()) return null
+
     return Utsendingsinfo(
         fysiskpostSendt = fysiskpost,
         digitalpostSendt = digitalpost,
+        varselSendt = varselSendt,
     )
+}
+
+private fun String?.clean(): String? {
+    return this?.trim()?.takeIf { it.isNotEmpty() }
+}
+
+private fun VarselSendtResponse.toDomainOrNull(
+    now: Instant,
+    localDateTimeFallbackZoneId: ZoneId,
+): VarselSendt? {
+    val type = type.clean() ?: return null
+    val adresse = adresse.clean() ?: return null
+    val varslingstidspunkt = varslingstidspunkt.clean()
+    return VarselSendt(
+        type = type,
+        adresse = adresse,
+        varslingstidspunkt = varslingstidspunkt,
+        passert40TimerSidenVarsling = varslingstidspunkt
+            ?.toInstantOrNull(localDateTimeFallbackZoneId)
+            ?.isBefore(now.minus(Duration.ofHours(40))),
+    )
+}
+
+private fun String.toInstantOrNull(localDateTimeFallbackZoneId: ZoneId): Instant? {
+    return runCatching {
+        OffsetDateTime.parse(this).toInstant()
+    }.recoverCatching {
+        LocalDateTime.parse(this).atZone(localDateTimeFallbackZoneId).toInstant()
+    }.getOrNull()
 }
 
 internal abstract class GraphQLHttpResponse {

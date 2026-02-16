@@ -10,7 +10,12 @@ query($journalpostId: String!){
                 adressetekstKonvolutt
             }
             digitalpostSendt {
+                __typename
+            }
+            varselSendt {
+                type
                 adresse
+                varslingstidspunkt
             }
         }
         dokumenter {

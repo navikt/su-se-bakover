@@ -95,6 +95,7 @@ data class ProdClientsBuilder(
             safConfig = applicationConfig.clientsConfig.safConfig,
             azureAd = azureAd,
             suMetrics = suMetrics,
+            clock = clock,
         )
 
         return Clients(

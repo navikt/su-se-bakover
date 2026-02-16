@@ -114,7 +114,8 @@ internal class JournalpostAdresseServiceImplTest {
             }
             val utsendingsinfo = Utsendingsinfo(
                 fysiskpostSendt = "2024-01-01",
-                digitalpostSendt = null,
+                digitalpostSendt = false,
+                varselSendt = emptyList(),
             )
             val journalpost = JournalpostMedDokumenter(
                 journalpostId = journalpostId,
