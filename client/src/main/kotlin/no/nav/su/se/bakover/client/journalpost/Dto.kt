@@ -80,7 +80,8 @@ internal data class FysiskpostSendtResponse(
 )
 
 internal data class DigitalpostSendtResponse(
-    val adresse: String?,
+    @param:JsonProperty("__typename")
+    val typeName: String?,
 )
 
 internal data class VarselSendtResponse(
