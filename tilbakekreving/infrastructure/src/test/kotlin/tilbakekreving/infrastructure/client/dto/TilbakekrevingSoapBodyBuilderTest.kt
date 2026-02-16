@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.test.xml.shouldBeSimilarXmlTo
 import org.junit.jupiter.api.Test
 import tilbakekreving.infrastructure.client.buildTilbakekrevingSoapRequest
 import økonomi.domain.Fagområde
+import økonomi.domain.KlasseKode
 
 internal class TilbakekrevingSoapBodyBuilderTest {
     @Test
@@ -18,7 +19,7 @@ internal class TilbakekrevingSoapBodyBuilderTest {
         ).getOrFail().shouldBeSimilarXmlTo(
             expectedXml(
                 ytelseKlassekode = Fagområde.SUUFORE.name,
-                feilKlassekode = "KL_KODE_FEIL_INNT",
+                feilKlassekode = KlasseKode.KL_KODE_FEIL_INNT.name,
             ),
             true,
         )
@@ -33,7 +34,7 @@ internal class TilbakekrevingSoapBodyBuilderTest {
         ).getOrFail().shouldBeSimilarXmlTo(
             expectedXml(
                 ytelseKlassekode = Fagområde.SUALDER.name,
-                feilKlassekode = "KL_KODE_FEIL",
+                feilKlassekode = KlasseKode.KL_KODE_FEIL.name,
             ),
             true,
         )
