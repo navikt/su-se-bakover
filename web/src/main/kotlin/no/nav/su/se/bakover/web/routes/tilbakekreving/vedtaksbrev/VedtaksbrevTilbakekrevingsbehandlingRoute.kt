@@ -107,4 +107,7 @@ internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
 internal fun KunneIkkeOppdatereVedtaksbrev.tilResultat(): Resultat = when (this) {
     is KunneIkkeOppdatereVedtaksbrev.IkkeTilgang -> ikkeTilgangTilSak
     KunneIkkeOppdatereVedtaksbrev.UlikVersjon -> Feilresponser.utdatertVersjon
+    KunneIkkeOppdatereVedtaksbrev.FantIkkeSak -> Feilresponser.fantIkkeSak
+    KunneIkkeOppdatereVedtaksbrev.FantIkkeTilbakekrevingsbehandling -> Feilresponser.fantIkkeTilbakekrevingsbehandling
+    KunneIkkeOppdatereVedtaksbrev.ManglerFritekst -> Feilresponser.manglerFritekstTilbakekreving
 }

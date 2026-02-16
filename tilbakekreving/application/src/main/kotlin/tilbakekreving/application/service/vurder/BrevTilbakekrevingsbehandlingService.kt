@@ -27,6 +27,23 @@ class BrevTilbakekrevingsbehandlingService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private fun lagreFritekstTilbakekreving(
+        command: OppdaterVedtaksbrevCommand,
+    ): Either<KunneIkkeOppdatereVedtaksbrev, Unit> {
+        val fritekst = command.brevvalg.fritekst ?: run {
+            log.warn("Vedtaksbrev for tilbakekreving har ingen fritekst, lagrer ikke fritekst for sakId={}, behandlingId={}, command={}", command.sakId, command.behandlingId, command)
+            return KunneIkkeOppdatereVedtaksbrev.ManglerFritekst.left()
+        }
+        fritekstService.lagreFritekst(
+            FritekstDomain(
+                referanseId = command.behandlingId.value,
+                sakId = command.sakId,
+                type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+                fritekst = fritekst,
+            ),
+        )
+        return Unit.right()
+    }
     fun lagreBrevtekst(
         command: OppdaterVedtaksbrevCommand,
     ): Either<KunneIkkeOppdatereVedtaksbrev, UnderBehandling.MedKravgrunnlag.Utfylt> {
@@ -35,44 +52,39 @@ class BrevTilbakekrevingsbehandlingService(
             return KunneIkkeOppdatereVedtaksbrev.IkkeTilgang(it).left()
         }
 
-        val sak = sakService.hentSak(sakId).getOrElse {
-            throw IllegalStateException("Kunne ikke oppdatere vedtaksbrev for tilbakekrevingsbehandling, fant ikke sak. Kommandoen var: $command")
+        val sak = sakService.hentSak(sakId).getOrElse { feil ->
+            log.error("Kunne ikke oppdatere vedtaksbrev for tilbakekrevingsbehandling, fant ikke sak. sakId={}, command={}", sakId, command, feil)
+            return KunneIkkeOppdatereVedtaksbrev.FantIkkeSak.left()
         }
         if (sak.versjon != command.klientensSisteSaksversjon) {
             log.info("Vedtaksbrev for tilbakekreving - Sakens versjon (${sak.versjon}) er ulik saksbehandlers versjon. Command: $command")
             return KunneIkkeOppdatereVedtaksbrev.UlikVersjon.left()
         }
         val tilbakekreving = sak.hentTilbakekrevingsbehandling(command.behandlingId)
-            ?: throw IllegalStateException("Fant ikke tilbakekreving med id ${command.behandlingId}")
+            ?: run {
+                "Fant ikke tilbakekreving med id ${command.behandlingId}"
+                log.error("Fant ikke tilbakekrevingsbehandling for sakId={}, behandlingId={}", command.sakId, command.behandlingId)
+                return KunneIkkeOppdatereVedtaksbrev.FantIkkeTilbakekrevingsbehandling.left()
+            }
+
         val eksisterendeBrevvalg = tilbakekreving.vedtaksbrevvalg
         if (eksisterendeBrevvalg == null || eksisterendeBrevvalg::class != command.brevvalg::class) {
             val (hendelse, nyState) = sak.oppdaterVedtaksbrev(command, clock)
-            fritekstService.lagreFritekst(
-                FritekstDomain(
-                    referanseId = command.behandlingId.value,
-                    sakId = command.sakId,
-                    type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
-                    fritekst = command.brevvalg.fritekst ?: throw IllegalStateException("Vedtaksbrev må ha fritekst"),
-                ),
-            )
+
+            val resultat = lagreFritekstTilbakekreving(command)
+            resultat.onLeft { return it.left() }
+
             tilbakekrevingsbehandlingRepo.lagre(
                 hendelse,
                 meta = command.toDefaultHendelsesMetadata(),
             )
             return nyState.right()
         }
-        fritekstService.lagreFritekst(
-            FritekstDomain(
-                referanseId = command.behandlingId.value,
-                sakId = command.sakId,
-                type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
-                fritekst = command.brevvalg.fritekst ?: throw IllegalStateException("Vedtaksbrev må ha fritekst"),
-            ),
-        )
+        lagreFritekstTilbakekreving(command)
 
         return when (tilbakekreving) {
             is UnderBehandling.MedKravgrunnlag.Utfylt -> tilbakekreving.right()
-            else -> throw IllegalStateException("Tilbakekrevingsbehandling er i feil tilstand under lagring av fritekst for vedtak")
+            else -> throw IllegalStateException("Tilbakekrevingsbehandling er i feil tilstand=${tilbakekreving::class.simpleName}, " + "sakId=${command.sakId}, " + "behandlingId=${command.behandlingId.value}, ")
         }
     }
 }
