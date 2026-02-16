@@ -7,7 +7,6 @@ import dokument.domain.DokumentRepo
 import dokument.domain.journalføring.JournalpostMedDokumenter
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.Utsendingsinfo
-import dokument.domain.journalføring.Utsendingskanal
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -117,7 +116,6 @@ internal class JournalpostAdresseServiceImplTest {
                 fysiskpostSendt = "2024-01-01",
                 digitalpostSendt = false,
                 varselSendt = emptyList(),
-                prioritertKanal = Utsendingskanal.FYSISKPOST,
             )
             val journalpost = JournalpostMedDokumenter(
                 journalpostId = journalpostId,

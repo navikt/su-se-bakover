@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.getOrElse
 import com.github.tomakehurst.wiremock.client.WireMock
-import dokument.domain.journalføring.Utsendingskanal
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.runBlocking
@@ -49,7 +48,6 @@ internal class HentJournalpostMedDokumenterTest {
 
             val utsendingsinfo = journalpost.utsendingsinfo ?: fail("Forventet utsendingsinfo")
             utsendingsinfo.digitalpostSendt shouldBe true
-            utsendingsinfo.prioritertKanal shouldBe Utsendingskanal.DIGITALPOST
 
             String(serveEvents.requests.first().request.body) shouldContain "__typename"
         }
@@ -155,6 +153,56 @@ internal class HentJournalpostMedDokumenterTest {
             val varsel = journalpost.utsendingsinfo?.varselSendt ?: fail("Forventet varsel")
             varsel[0].passert40TimerSidenVarsling shouldBe false
             varsel[1].passert40TimerSidenVarsling shouldBe null
+        }
+    }
+
+    @Test
+    fun `setter null ved manglende varslingstidspunkt og false ved eksakt 40 timer`() {
+        startedWireMockServerWithCorrelationId {
+            val fixedNow = OffsetDateTime.of(2026, 2, 16, 12, 0, 0, 0, ZoneOffset.UTC)
+            val eksakt40TimerSiden = fixedNow.minusHours(40).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+            stubFor(
+                token("Bearer onBehalfOfToken")
+                    .willReturn(
+                        WireMock.ok(
+                            serialize(
+                                hentJournalpostMedDokumenterResponse(
+                                    journalpostId = "454037807",
+                                    utsendingsinfo = UtsendingsinfoResponse(
+                                        fysiskpostSendt = null,
+                                        digitalpostSendt = null,
+                                        varselSendt = listOf(
+                                            VarselSendtResponse(
+                                                type = "SMS",
+                                                adresse = "+4793333333",
+                                                varslingstidspunkt = null,
+                                            ),
+                                            VarselSendtResponse(
+                                                type = "EPOST",
+                                                adresse = "boundary@example.com",
+                                                varslingstidspunkt = eksakt40TimerSiden,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+            )
+
+            val journalpost = runBlocking {
+                setupClient(
+                    baseUrl = baseUrl(),
+                    clock = Clock.fixed(fixedNow.toInstant(), ZoneId.of("UTC")),
+                ).hentJournalpostMedDokumenter(JournalpostId("454037807"))
+            }.getOrElse {
+                fail("Forventet success, fikk feil: $it")
+            }
+
+            val varsel = journalpost.utsendingsinfo?.varselSendt ?: fail("Forventet varsel")
+            varsel[0].passert40TimerSidenVarsling shouldBe null
+            varsel[1].passert40TimerSidenVarsling shouldBe false
         }
     }
 }

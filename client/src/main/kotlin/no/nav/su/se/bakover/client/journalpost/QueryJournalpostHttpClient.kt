@@ -19,7 +19,6 @@ import dokument.domain.journalføring.KunneIkkeSjekkKontrollnotatMottatt
 import dokument.domain.journalføring.KunneIkkeSjekkeTilknytningTilSak
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.Utsendingsinfo
-import dokument.domain.journalføring.Utsendingskanal
 import dokument.domain.journalføring.VarselSendt
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
@@ -460,21 +459,15 @@ private fun UtsendingsinfoResponse?.toUtsendingsinfoOrNull(
     localDateTimeFallbackZoneId: ZoneId,
 ): Utsendingsinfo? {
     if (this == null) return null
-    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt?.trim()?.takeIf { it.isNotEmpty() }
+    val fysiskpost = this.fysiskpostSendt?.adressetekstKonvolutt.clean()
     val digitalpost = this.digitalpostSendt != null
     val varselSendt = this.varselSendt.mapNotNull { it.toDomainOrNull(now, localDateTimeFallbackZoneId) }
-    val prioritertKanal = when {
-        fysiskpost != null -> Utsendingskanal.FYSISKPOST
-        digitalpost -> Utsendingskanal.DIGITALPOST
-        varselSendt.isNotEmpty() -> Utsendingskanal.VARSEL
-        else -> null
-    } ?: return null
+    if (fysiskpost == null && !digitalpost && varselSendt.isEmpty()) return null
 
     return Utsendingsinfo(
         fysiskpostSendt = fysiskpost,
         digitalpostSendt = digitalpost,
         varselSendt = varselSendt,
-        prioritertKanal = prioritertKanal,
     )
 }
 
@@ -486,15 +479,16 @@ private fun VarselSendtResponse.toDomainOrNull(
     now: Instant,
     localDateTimeFallbackZoneId: ZoneId,
 ): VarselSendt? {
+    val type = type.clean() ?: return null
     val adresse = adresse.clean() ?: return null
     val varslingstidspunkt = varslingstidspunkt.clean()
     return VarselSendt(
-        type = type.clean() ?: "UKJENT",
+        type = type,
         adresse = adresse,
         varslingstidspunkt = varslingstidspunkt,
         passert40TimerSidenVarsling = varslingstidspunkt
             ?.toInstantOrNull(localDateTimeFallbackZoneId)
-            ?.let { it.isBefore(now.minus(Duration.ofHours(40))) },
+            ?.isBefore(now.minus(Duration.ofHours(40))),
     )
 }
 

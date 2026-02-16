@@ -210,7 +210,6 @@ private data class UtsendingsinfoJson(
     val fysiskpostSendt: String?,
     val digitalpostSendt: Boolean,
     val varselSendt: List<VarselSendtJson>,
-    val prioritertKanal: String,
 )
 
 private data class VarselSendtJson(
@@ -259,7 +258,6 @@ private fun Utsendingsinfo.toJson(): UtsendingsinfoJson {
                 passert40TimerSidenVarsling = it.passert40TimerSidenVarsling,
             )
         },
-        prioritertKanal = prioritertKanal.name,
     )
 }
 

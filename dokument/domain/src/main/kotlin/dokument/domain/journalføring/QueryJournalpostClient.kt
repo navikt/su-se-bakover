@@ -85,14 +85,7 @@ data class Utsendingsinfo(
     val fysiskpostSendt: String?,
     val digitalpostSendt: Boolean,
     val varselSendt: List<VarselSendt>,
-    val prioritertKanal: Utsendingskanal,
 )
-
-enum class Utsendingskanal {
-    FYSISKPOST,
-    DIGITALPOST,
-    VARSEL,
-}
 
 data class VarselSendt(
     val type: String,
