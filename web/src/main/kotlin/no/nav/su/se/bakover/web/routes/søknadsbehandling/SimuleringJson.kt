@@ -5,13 +5,13 @@ import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringsOppsummering
 import java.time.LocalDate
 
-internal data class UtbetalingJson(
+data class UtbetalingJson(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val beløp: Int,
     val type: String,
 )
-internal data class SimuleringJson(
+data class SimuleringJson(
     val totalOppsummering: PeriodeOppsummeringJson,
     val periodeOppsummering: List<PeriodeOppsummeringJson> = emptyList(),
 ) {
@@ -27,19 +27,19 @@ internal data class SimuleringJson(
     }
 }
 
-internal fun SimuleringsOppsummering.toJson(): SimuleringsOppsummeringJson {
+fun SimuleringsOppsummering.toJson(): SimuleringsOppsummeringJson {
     return SimuleringsOppsummeringJson(
         totalOppsummering = totalOppsummering.toJson(),
         periodeOppsummering = periodeOppsummering.map { it.toJson() },
     )
 }
 
-internal data class SimuleringsOppsummeringJson(
+data class SimuleringsOppsummeringJson(
     val totalOppsummering: PeriodeOppsummeringJson,
     val periodeOppsummering: List<PeriodeOppsummeringJson>,
 )
 
-internal fun PeriodeOppsummering.toJson(): PeriodeOppsummeringJson {
+fun PeriodeOppsummering.toJson(): PeriodeOppsummeringJson {
     return PeriodeOppsummeringJson(
         fraOgMed = periode.fraOgMed,
         tilOgMed = periode.tilOgMed,
@@ -53,7 +53,7 @@ internal fun PeriodeOppsummering.toJson(): PeriodeOppsummeringJson {
     )
 }
 
-internal data class PeriodeOppsummeringJson(
+data class PeriodeOppsummeringJson(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val sumTilUtbetaling: Int,

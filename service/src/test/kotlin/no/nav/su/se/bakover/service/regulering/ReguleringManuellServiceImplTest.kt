@@ -191,5 +191,7 @@ private fun lagReguleringManuellServiceImpl(
         reguleringRepo = reguleringRepo,
         clock = clock,
         reguleringService = reguleringService,
+        sessionFactory = sessionFactory,
+        statistikkService = mock(),
     )
 }

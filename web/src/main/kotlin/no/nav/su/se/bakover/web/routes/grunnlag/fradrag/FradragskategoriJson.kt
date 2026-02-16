@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag.fradrag
 
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
-internal enum class FradragskategoriJson {
+enum class FradragskategoriJson {
     Alderspensjon,
     Annet,
     Omstillingsstønad,

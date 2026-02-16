@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.VurderingInst
 import vilkår.common.domain.Vurdering
 import java.time.Clock
 
-internal data class LeggTilVurderingsperiodeInstitusjonsoppholdJson(
+data class LeggTilVurderingsperiodeInstitusjonsoppholdJson(
     val vurderingsperioder: List<VurderingsperiodeInstitusjonsoppholdJson>,
 ) {
     fun toDomain(clock: Clock): Either<Resultat, InstitusjonsoppholdVilkår.Vurdert> {
@@ -36,7 +36,7 @@ internal data class LeggTilVurderingsperiodeInstitusjonsoppholdJson(
     }
 }
 
-internal data class VurderingsperiodeInstitusjonsoppholdJson(
+data class VurderingsperiodeInstitusjonsoppholdJson(
     val periode: PeriodeJson,
     val vurdering: VurderingInstitusjonsoppholdJson,
 )
@@ -66,7 +66,7 @@ enum class VurderingInstitusjonsoppholdJson {
     }
 }
 
-internal data class InstitusjonsoppholdJson(
+data class InstitusjonsoppholdJson(
     val resultat: VurderingInstitusjonsoppholdJson,
     val vurderingsperioder: List<VurderingsperiodeInstitusjonsoppholdJson>,
 ) {

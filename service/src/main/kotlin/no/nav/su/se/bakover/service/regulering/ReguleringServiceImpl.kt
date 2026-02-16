@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
@@ -58,7 +60,7 @@ class ReguleringServiceImpl(
             .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
 
         if (isLiveRun) {
-            lagreReguleringOgVedtakOgUtbetal(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+            ferdigstillRegulering(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
         }
 
         return iverksattRegulering.right()
@@ -161,12 +163,13 @@ class ReguleringServiceImpl(
             }
     }
 
-    private fun lagreReguleringOgVedtakOgUtbetal(
+    override fun ferdigstillRegulering(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Unit> {
+        sessionContext: TransactionContext?,
+    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
         return Either.catch {
-            sessionFactory.withTransactionContext { tx ->
+            sessionFactory.withTransactionContext(sessionContext) { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     simulertUtbetaling,
                     tx,
@@ -193,8 +196,8 @@ class ReguleringServiceImpl(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(it),
                         )
                     }
+                vedtak
             }
-            Unit
         }.mapLeft {
             log.error(
                 "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",

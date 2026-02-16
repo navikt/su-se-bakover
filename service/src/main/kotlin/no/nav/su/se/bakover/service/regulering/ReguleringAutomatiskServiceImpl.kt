@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.split
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
@@ -24,6 +25,8 @@ import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.math.BigDecimal
@@ -35,6 +38,8 @@ class ReguleringAutomatiskServiceImpl(
     private val clock: Clock,
     private val satsFactory: SatsFactory,
     private val reguleringService: ReguleringServiceImpl,
+    private val statistikkService: SakStatistikkService,
+    private val sessionFactory: SessionFactory,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -315,7 +320,12 @@ class ReguleringAutomatiskServiceImpl(
                     is KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
                     is KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
                 }
-                reguleringRepo.lagre(regulering.endreTilManuell(message))
+                sessionFactory.withTransactionContext { tx ->
+                    val manuellOpprettet = regulering.endreTilManuell(message)
+                    reguleringRepo.lagre(manuellOpprettet, tx)
+                    val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+                    statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Opprettet(manuellOpprettet, relatertId), tx)
+                }
             }
         }
     }

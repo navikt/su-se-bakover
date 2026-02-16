@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
-internal data class ReguleringJson(
+data class ReguleringJson(
     val id: UUID,
     val fnr: String,
     val opprettet: Tidspunkt,
@@ -56,7 +56,7 @@ internal data class ReguleringJson(
     }
 }
 
-internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJson(
+fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJson(
     id = id.value,
     fnr = fnr.toString(),
     opprettet = opprettet,
@@ -95,11 +95,11 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
     sakstype = sakstype.toJson(),
 )
 
-internal data class ManuellReguleringVisningJson(
+data class ManuellReguleringVisningJson(
     val gjeldendeVedtaksdata: GrunnlagsdataOgVilkårsvurderingerJson,
     val regulering: ReguleringJson,
 )
-internal fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
+fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
     gjeldendeVedtaksdata = gjeldendeVedtaksdata.toJson(formuegrenserFactory),
     regulering = regulering.toJson(formuegrenserFactory),
 )

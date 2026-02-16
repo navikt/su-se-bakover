@@ -7,6 +7,10 @@ import no.nav.su.se.bakover.domain.klage.FerdigstiltOmgjortKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -23,6 +27,7 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Opphørsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -100,7 +105,7 @@ sealed interface StatistikkEvent {
         }
 
         sealed interface Revurdering : Behandling {
-            val revurdering: no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+            val revurdering: AbstraktRevurdering
 
             data class Opprettet(
                 override val revurdering: OpprettetRevurdering,
@@ -192,6 +197,7 @@ sealed interface StatistikkEvent {
                 override val klage: OpprettetKlage,
                 val relatertId: UUID,
             ) : Klage
+
             data class Oversendt(override val klage: OversendtKlage) : Klage
             data class FerdigstiltOmgjøring(override val klage: FerdigstiltOmgjortKlage) : Klage
             data class Avvist(
@@ -202,6 +208,33 @@ sealed interface StatistikkEvent {
             }
 
             data class Avsluttet(override val klage: AvsluttetKlage) : Klage
+        }
+
+        sealed interface Regulering : Behandling {
+            val regulering: no.nav.su.se.bakover.domain.regulering.Regulering
+
+            data class Opprettet(
+                override val regulering: ReguleringUnderBehandling,
+                val relatertId: UUID? = null,
+            ) : Regulering
+
+            data class TilAttestering(
+                override val regulering: ReguleringUnderBehandling.TilAttestering,
+            ) : Regulering
+
+            data class Underkjent(
+                override val regulering: ReguleringUnderBehandling.BeregnetRegulering,
+            ) : Regulering
+
+            data class Iverksatt(
+                override val regulering: IverksattRegulering,
+                val vedtak: VedtakInnvilgetRegulering,
+            ) : Regulering
+
+            data class Avsluttet(
+                override val regulering: AvsluttetRegulering,
+                val saksbehandler: NavIdentBruker.Saksbehandler,
+            ) : Regulering
         }
     }
 }

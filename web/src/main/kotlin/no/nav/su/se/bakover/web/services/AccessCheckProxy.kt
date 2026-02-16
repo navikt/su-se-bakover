@@ -1314,7 +1314,7 @@ open class AccessCheckProxy(
             reguleringManuellService = object : ReguleringManuellService {
                 override fun avslutt(
                     reguleringId: ReguleringId,
-                    avsluttetAv: NavIdentBruker,
+                    avsluttetAv: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
                     return services.reguleringManuellService.avslutt(reguleringId, avsluttetAv)
                 }
