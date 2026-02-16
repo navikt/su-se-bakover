@@ -59,6 +59,7 @@ import java.lang.management.ManagementFactory
 import java.nio.channels.ClosedChannelException
 import java.time.Clock
 import java.time.format.DateTimeParseException
+import java.util.Locale
 
 internal fun Application.setupKtor(
     services: Services,
@@ -263,7 +264,7 @@ private data class DirectBufferStats(
     val maxDirectMemoryBytes: Long?,
 ) {
     val usedMiB: String
-        get() = formatMiB(usedBytes)
+        get() = DirectMemoryMetrics.formatMiB(usedBytes)
 
     val usedPercentOfMax: Long?
         get() = maxDirectMemoryBytes
@@ -283,39 +284,44 @@ private fun getDirectBufferStats(): DirectBufferStats? {
 }
 
 private fun getConfiguredMaxDirectMemoryBytes(): Long? {
-    val configuredMaxDirectMemory = ManagementFactory.getRuntimeMXBean().inputArguments
-        .firstOrNull { it.startsWith("-XX:MaxDirectMemorySize=") }
-        ?.substringAfter("=")
-        ?: return null
-
-    return parseJvmMemorySizeToBytes(configuredMaxDirectMemory)
+    return DirectMemoryMetrics.getConfiguredMaxDirectMemoryBytes(ManagementFactory.getRuntimeMXBean().inputArguments)
 }
 
-private fun parseJvmMemorySizeToBytes(value: String): Long? {
-    val normalized = value.trim()
-    if (normalized.isEmpty()) return null
+internal object DirectMemoryMetrics {
+    fun getConfiguredMaxDirectMemoryBytes(inputArguments: List<String>): Long? {
+        val configuredMaxDirectMemory = inputArguments
+            .firstOrNull { it.startsWith("-XX:MaxDirectMemorySize=") }
+            ?.substringAfter("=")
+            ?: return null
 
-    val match = Regex("""(?i)^(\d+)([kmgt]?)b?$""").matchEntire(normalized)
-    val amount = match?.groupValues?.get(1)?.toLongOrNull() ?: normalized.toLongOrNull() ?: return null
-    val unit = match?.groupValues?.get(2)?.lowercase() ?: ""
-    if (amount < 0) return null
-
-    val multiplier = when (unit) {
-        "" -> 1L
-        "k" -> 1024L
-        "m" -> 1024L * 1024L
-        "g" -> 1024L * 1024L * 1024L
-        "t" -> 1024L * 1024L * 1024L * 1024L
-        else -> return null
+        return parseJvmMemorySizeToBytes(configuredMaxDirectMemory)
     }
 
-    if (amount > Long.MAX_VALUE / multiplier) return null
-    return amount * multiplier
-}
+    fun parseJvmMemorySizeToBytes(value: String): Long? {
+        val normalized = value.trim()
+        if (normalized.isEmpty()) return null
 
-private fun formatMiB(bytes: Long): String {
-    val mib = bytes.toDouble() / (1024.0 * 1024.0)
-    return String.format("%.1f", mib)
+        val match = Regex("""(?i)^(\d+)([kmgt]?)b?$""").matchEntire(normalized)
+        val amount = match?.groupValues?.get(1)?.toLongOrNull() ?: return null
+        val unit = match.groupValues[2].lowercase()
+
+        val multiplier = when (unit) {
+            "" -> 1L
+            "k" -> 1024L
+            "m" -> 1024L * 1024L
+            "g" -> 1024L * 1024L * 1024L
+            "t" -> 1024L * 1024L * 1024L * 1024L
+            else -> return null
+        }
+
+        if (amount > Long.MAX_VALUE / multiplier) return null
+        return amount * multiplier
+    }
+
+    fun formatMiB(bytes: Long): String {
+        val mib = bytes.toDouble() / (1024.0 * 1024.0)
+        return String.format(Locale.ROOT, "%.1f", mib)
+    }
 }
 
 private fun Throwable.isLikelyClientAbort(): Boolean {
