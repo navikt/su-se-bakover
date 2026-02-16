@@ -76,7 +76,7 @@ internal fun buildTilbakekrevingSoapRequest(
                 }</ns3:kodeSkyld>
         </ns3:tilbakekrevingsbelop>
         <ns3:tilbakekrevingsbelop>
-          <ns3:kodeKlasse>${fagområde.toFeilKlassekode()}</ns3:kodeKlasse>
+          <ns3:kodeKlasse>${fagområde.toFeilKlassekode().name}</ns3:kodeKlasse>
           <ns3:belopOpprUtbet>0.00</ns3:belopOpprUtbet>
           <ns3:belopNy>${
                     max(
@@ -106,9 +106,9 @@ internal fun buildTilbakekrevingSoapRequest(
     }
 }
 
-private fun Fagområde.toFeilKlassekode(): String {
+private fun Fagområde.toFeilKlassekode(): KlasseKode {
     return when (this) {
-        Fagområde.SUALDER -> KlasseKode.KL_KODE_FEIL.name
-        Fagområde.SUUFORE -> KlasseKode.KL_KODE_FEIL_INNT.name
+        Fagområde.SUALDER -> KlasseKode.KL_KODE_FEIL
+        Fagområde.SUUFORE -> KlasseKode.KL_KODE_FEIL_INNT
     }
 }
