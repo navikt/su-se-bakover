@@ -59,6 +59,7 @@ import java.lang.management.ManagementFactory
 import java.nio.channels.ClosedChannelException
 import java.time.Clock
 import java.time.format.DateTimeParseException
+import java.util.Locale
 
 internal fun Application.setupKtor(
     services: Services,
@@ -168,14 +169,13 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
                 call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
                 val directBufferStats = getDirectBufferStats()
                 call.application.log.error(
-                    "Call failed method={} path={} correlationId={} status={} directBufferUsedBytes={} directBufferCapacityBytes={} directBufferCount={}",
+                    "Call failed method={} path={} correlationId={} status={} directBufferUsedMiB={} directBufferUsedPercent={}",
                     call.request.httpMethod,
                     call.request.path(),
                     call.callId,
                     call.response.status()?.value,
-                    directBufferStats?.usedBytes,
-                    directBufferStats?.totalCapacityBytes,
-                    directBufferStats?.count,
+                    directBufferStats?.usedMiB,
+                    directBufferStats?.usedPercentOfMax,
                     cause,
                 )
             }
@@ -260,10 +260,17 @@ private fun Application.setupKtorExceptionHandling(
 }
 
 private data class DirectBufferStats(
-    val count: Long,
     val usedBytes: Long,
-    val totalCapacityBytes: Long,
-)
+    val maxDirectMemoryBytes: Long?,
+) {
+    val usedMiB: String
+        get() = DirectMemoryMetrics.formatMiB(usedBytes)
+
+    val usedPercentOfMax: Long?
+        get() = maxDirectMemoryBytes
+            ?.takeIf { it > 0 }
+            ?.let { (usedBytes * 100) / it }
+}
 
 private fun getDirectBufferStats(): DirectBufferStats? {
     val direct = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean::class.java)
@@ -271,10 +278,50 @@ private fun getDirectBufferStats(): DirectBufferStats? {
         ?: return null
 
     return DirectBufferStats(
-        count = direct.count,
         usedBytes = direct.memoryUsed,
-        totalCapacityBytes = direct.totalCapacity,
+        maxDirectMemoryBytes = getConfiguredMaxDirectMemoryBytes(),
     )
+}
+
+private fun getConfiguredMaxDirectMemoryBytes(): Long? {
+    return DirectMemoryMetrics.getConfiguredMaxDirectMemoryBytes(ManagementFactory.getRuntimeMXBean().inputArguments)
+}
+
+internal object DirectMemoryMetrics {
+    fun getConfiguredMaxDirectMemoryBytes(inputArguments: List<String>): Long? {
+        val configuredMaxDirectMemory = inputArguments
+            .firstOrNull { it.startsWith("-XX:MaxDirectMemorySize=") }
+            ?.substringAfter("=")
+            ?: return null
+
+        return parseJvmMemorySizeToBytes(configuredMaxDirectMemory)
+    }
+
+    fun parseJvmMemorySizeToBytes(value: String): Long? {
+        val normalized = value.trim()
+        if (normalized.isEmpty()) return null
+
+        val match = Regex("""(?i)^(\d+)([kmgt]?)b?$""").matchEntire(normalized)
+        val amount = match?.groupValues?.get(1)?.toLongOrNull() ?: return null
+        val unit = match.groupValues[2].lowercase()
+
+        val multiplier = when (unit) {
+            "" -> 1L
+            "k" -> 1024L
+            "m" -> 1024L * 1024L
+            "g" -> 1024L * 1024L * 1024L
+            "t" -> 1024L * 1024L * 1024L * 1024L
+            else -> return null
+        }
+
+        if (amount > Long.MAX_VALUE / multiplier) return null
+        return amount * multiplier
+    }
+
+    fun formatMiB(bytes: Long): String {
+        val mib = bytes.toDouble() / (1024.0 * 1024.0)
+        return String.format(Locale.ROOT, "%.1f", mib)
+    }
 }
 
 private fun Throwable.isLikelyClientAbort(): Boolean {
