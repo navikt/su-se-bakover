@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -27,6 +28,8 @@ import no.nav.su.se.bakover.test.regulering.pesysFilCsvUforepTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.routes.grunnlag.VurderingsperiodeUføreJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragBody
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
 import no.nav.su.se.bakover.web.sak.hent.hentReguleringer
 import no.nav.su.se.bakover.web.sak.hent.hentSakForFnr
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
@@ -435,6 +438,18 @@ internal class ReguleringIT {
                     applicationConfig = applicationConfig(),
                 )
                 application { testSusebakover(appComponents = appComponents) }
+                val fradrag = FradragBody(
+                    listOf(
+                        FradragsgrunnlagJson(
+                            periode = PeriodeJson("2021-01-01", "2021-12-31"),
+                            type = "Alderspensjon",
+                            beløp = 10000.0,
+                            utenlandskInntekt = null,
+                            tilhører = "BRUKER",
+                            beskrivelse = null,
+                        ),
+                    ),
+                )
                 opprettInnvilgetSøknadsbehandling(
                     fnr = fnrForSakSomSkalReguleres,
                     client = this.client,
@@ -445,8 +460,7 @@ internal class ReguleringIT {
                             behandlingId = behandlingId,
                             client = this.client,
                             body = {
-                                //language=json
-                                """{"fradrag": [{"periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},"type": "Alderspensjon","beløp": 10000.0,"utenlandskInntekt": null,"tilhører": "BRUKER"}]}""".trimIndent()
+                                serialize(fradrag)
                             },
                         )
                     },

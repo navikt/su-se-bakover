@@ -50,46 +50,11 @@ internal fun Route.leggTilGrunnlagFradrag(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class Body(
-        val fradrag: List<FradragsgrunnlagJson>,
-    ) {
-        fun toCommand(behandlingId: UUID, clock: Clock): Either<Resultat, LeggTilFradragsgrunnlagRequest> =
-            LeggTilFradragsgrunnlagRequest(
-                behandlingId = SøknadsbehandlingId(behandlingId),
-                fradragsgrunnlag = fradrag.map { fradrag ->
-                    Fradragsgrunnlag.tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(clock),
-                        fradrag = FradragFactory.nyFradragsperiode(
-                            periode = fradrag.periode.toPeriodeOrResultat().getOrElse { feilResultat ->
-                                return feilResultat.left()
-                            },
-                            fradragstype = fradrag.type.let {
-                                Fradragstype.tryParse(it, fradrag.beskrivelse).getOrElse {
-                                    return Behandlingsfeilresponser.ugyldigFradragstype.left()
-                                }
-                            },
-                            månedsbeløp = fradrag.beløp,
-                            utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
-                                ?.getOrElse { feilResultat ->
-                                    return feilResultat.left()
-                                },
-                            tilhører = fradrag.tilhører.let { FradragTilhører.valueOf(it) },
-                        ),
-                    ).getOrElse {
-                        return when (it) {
-                            Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype.left()
-                        }
-                    }
-                },
-            ).right()
-    }
-
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<FradragBody> { body ->
                         call.svar(
                             body.toCommand(behandlingId, clock).flatMap { command ->
                                 behandlingService.leggTilFradragsgrunnlag(
@@ -109,6 +74,41 @@ internal fun Route.leggTilGrunnlagFradrag(
             }
         }
     }
+}
+
+data class FradragBody(
+    val fradrag: List<FradragsgrunnlagJson>,
+) {
+    fun toCommand(behandlingId: UUID, clock: Clock): Either<Resultat, LeggTilFradragsgrunnlagRequest> =
+        LeggTilFradragsgrunnlagRequest(
+            behandlingId = SøknadsbehandlingId(behandlingId),
+            fradragsgrunnlag = fradrag.map { fradrag ->
+                Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        periode = fradrag.periode.toPeriodeOrResultat().getOrElse { feilResultat ->
+                            return feilResultat.left()
+                        },
+                        fradragstype = fradrag.type.let {
+                            Fradragstype.tryParse(it, fradrag.beskrivelse).getOrElse {
+                                return Behandlingsfeilresponser.ugyldigFradragstype.left()
+                            }
+                        },
+                        månedsbeløp = fradrag.beløp,
+                        utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
+                            ?.getOrElse { feilResultat ->
+                                return feilResultat.left()
+                            },
+                        tilhører = fradrag.tilhører.let { FradragTilhører.valueOf(it) },
+                    ),
+                ).getOrElse {
+                    return when (it) {
+                        Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype.left()
+                    }
+                }
+            },
+        ).right()
 }
 
 internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
@@ -133,7 +133,7 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
     }
 }
 
-private data class FradragsgrunnlagJson(
+data class FradragsgrunnlagJson(
     val periode: PeriodeJson,
     val type: String,
     val beskrivelse: String?,
