@@ -314,7 +314,7 @@ data class OppdaterMottaker(
     override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
-    override val brevtype: String = BrevtypeMottaker.VEDTAKSBREV.name,
+    override val brevtype: String,
 ) : MottakerRequest {
 
     private fun erGyldig(): List<String> {
@@ -367,7 +367,7 @@ data class LagreMottaker(
     override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
-    override val brevtype: String = BrevtypeMottaker.VEDTAKSBREV.name,
+    override val brevtype: String,
 ) : MottakerRequest {
     private fun erGyldig(): List<String> {
         val feil = mutableListOf<String>()
@@ -409,7 +409,7 @@ data class LagreMottaker(
 class MottakerIdentifikator(
     val referanseType: ReferanseTypeMottaker,
     val referanseId: UUID,
-    val brevtype: BrevtypeMottaker = BrevtypeMottaker.VEDTAKSBREV,
+    val brevtype: BrevtypeMottaker,
 )
 
 sealed interface MottakerDomain {
@@ -429,7 +429,7 @@ data class MottakerOrgnummerDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
-    override val brevtype: BrevtypeMottaker = BrevtypeMottaker.VEDTAKSBREV,
+    override val brevtype: BrevtypeMottaker,
     val orgnummer: String,
 ) : MottakerDomain
 
@@ -440,7 +440,7 @@ data class MottakerFnrDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
-    override val brevtype: BrevtypeMottaker = BrevtypeMottaker.VEDTAKSBREV,
+    override val brevtype: BrevtypeMottaker,
     val foedselsnummer: Fnr,
 ) : MottakerDomain
 

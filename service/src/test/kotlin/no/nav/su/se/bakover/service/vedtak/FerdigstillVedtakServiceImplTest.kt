@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -277,6 +278,7 @@ internal class FerdigstillVedtakServiceImplTest {
             sakId = sak.id,
             referanseId = vedtak.behandling.id.value,
             referanseType = ReferanseTypeMottaker.REVURDERING,
+            brevtype = BrevtypeMottaker.VEDTAKSBREV,
         )
 
         FerdigstillVedtakServiceMocks(
@@ -338,7 +340,15 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent) },
             )
 
-            verify(mottakerService).hentMottaker(any(), any(), anyOrNull())
+            verify(mottakerService).hentMottaker(
+                argThat {
+                    it.referanseType shouldBe ReferanseTypeMottaker.REVURDERING
+                    it.referanseId shouldBe vedtak.behandling.id.value
+                    it.brevtype shouldBe BrevtypeMottaker.VEDTAKSBREV
+                },
+                argThat { it shouldBe sak.id },
+                eq(TestSessionFactory.transactionContext),
+            )
 
             org.mockito.kotlin.verifyNoMoreInteractions(
                 oppgaveService,

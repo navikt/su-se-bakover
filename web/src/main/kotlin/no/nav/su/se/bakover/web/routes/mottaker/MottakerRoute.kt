@@ -8,6 +8,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
@@ -30,66 +32,74 @@ internal fun Route.mottakerRoutes(
         runCatching { BrevtypeMottaker.valueOf(this.uppercase()) }.getOrNull()
     route(MOTTAKER_PATH) {
         get("/{sakId}/{referanseType}/{referanseId}") {
-            call.withSakId { sakId ->
-                val referanseType = call.parameters["referanseType"]
-                    ?.tilReferanseTypeMottaker()
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseType")
+            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                call.withSakId { sakId ->
+                    val referanseType = call.parameters["referanseType"]
+                        ?.tilReferanseTypeMottaker()
+                        ?: return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseType")
 
-                val referanseId = call.parameters["referanseId"]
-                    ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseId")
+                    val referanseId = call.parameters["referanseId"]
+                        ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                        ?: return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseId")
 
-                val brevtypeParam = call.parameters["brevtype"]
-                val brevtype = brevtypeParam?.tilBrevtypeMottaker()
-                    ?: if (brevtypeParam == null) {
-                        BrevtypeMottaker.VEDTAKSBREV
+                    val brevtypeParam = call.parameters["brevtype"]
+                    val brevtype = brevtypeParam?.tilBrevtypeMottaker()
+                        ?: if (brevtypeParam == null) {
+                            BrevtypeMottaker.VEDTAKSBREV
+                        } else {
+                            return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig brevtype")
+                        }
+
+                    val mottaker = mottakerService.hentMottaker(
+                        MottakerIdentifikator(referanseType, referanseId, brevtype),
+                        sakId = sakId,
+                    )
+                    val mottakerUtenFeil = mottaker.getOrElse { return@withSakId call.respond(HttpStatusCode.BadRequest, it) }
+
+                    if (mottakerUtenFeil == null) {
+                        call.respond(HttpStatusCode.NotFound)
                     } else {
-                        return@get call.respond(HttpStatusCode.BadRequest, "Ugyldig brevtype")
+                        call.respond(mottakerUtenFeil)
                     }
-
-                val mottaker = mottakerService.hentMottaker(
-                    MottakerIdentifikator(referanseType, referanseId, brevtype),
-                    sakId = sakId,
-                )
-                val mottakerUtenFeil = mottaker.getOrElse { return@get call.respond(HttpStatusCode.BadRequest, it) }
-
-                if (mottakerUtenFeil == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                } else {
-                    call.respond(mottakerUtenFeil)
                 }
             }
         }
 
         post("/{sakId}/lagre") {
-            call.withSakId { sakId ->
-                call.withBody<LagreMottaker> { mottaker ->
-                    val mottakerLagret = mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
-                        return@withBody call.respond(HttpStatusCode.BadRequest, it)
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withSakId { sakId ->
+                    call.withBody<LagreMottaker> { mottaker ->
+                        val mottakerLagret = mottakerService.lagreMottaker(mottaker = mottaker, sakId).getOrElse {
+                            return@withBody call.respond(HttpStatusCode.BadRequest, it)
+                        }
+                        call.respond(HttpStatusCode.Created, serialize(mottakerLagret))
                     }
-                    call.respond(HttpStatusCode.Created, serialize(mottakerLagret))
                 }
             }
         }
 
         put("/{sakId}/oppdater") {
-            call.withSakId { sakId ->
-                call.withBody<OppdaterMottaker> { mottaker ->
-                    mottakerService.oppdaterMottaker(mottaker = mottaker, sakId).getOrElse {
-                        return@withBody call.respond(HttpStatusCode.BadRequest, it)
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withSakId { sakId ->
+                    call.withBody<OppdaterMottaker> { mottaker ->
+                        mottakerService.oppdaterMottaker(mottaker = mottaker, sakId).getOrElse {
+                            return@withBody call.respond(HttpStatusCode.BadRequest, it)
+                        }
+                        call.respond(HttpStatusCode.OK)
                     }
-                    call.respond(HttpStatusCode.OK)
                 }
             }
         }
 
         post("/{sakId}/slett") {
-            call.withSakId { sakId ->
-                call.withBody<MottakerIdentifikator> { identifikator ->
-                    mottakerService.slettMottaker(identifikator, sakId).getOrElse {
-                        return@withBody call.respond(HttpStatusCode.BadRequest, it)
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withSakId { sakId ->
+                    call.withBody<MottakerIdentifikator> { identifikator ->
+                        mottakerService.slettMottaker(identifikator, sakId).getOrElse {
+                            return@withBody call.respond(HttpStatusCode.BadRequest, it)
+                        }
+                        call.respond(HttpStatusCode.NoContent)
                     }
-                    call.respond(HttpStatusCode.NoContent)
                 }
             }
         }

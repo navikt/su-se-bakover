@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -1010,6 +1011,7 @@ class RevurderingServiceImpl(
                 mottakerIdentifikator = MottakerIdentifikator(
                     ReferanseTypeMottaker.REVURDERING,
                     referanseId = response.vedtak.behandling.id.value,
+                    brevtype = BrevtypeMottaker.VEDTAKSBREV,
                 ),
                 sakId = response.vedtak.behandling.sakId,
             )

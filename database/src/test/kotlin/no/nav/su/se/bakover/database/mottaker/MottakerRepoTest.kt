@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.mottaker
 
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -37,10 +38,11 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
             sakId = sak.id,
             referanseId = referanseId,
             referanseType = referanseType,
+            brevtype = BrevtypeMottaker.VEDTAKSBREV,
         )
         repo.lagreMottaker(mottaker)
         repo.lagreMottaker(mottaker.copy(referanseId = UUID.randomUUID(), id = UUID.randomUUID())) // For å sjekke at ting går fint med en random annen ref
-        val ident = MottakerIdentifikator(referanseType, referanseId)
+        val ident = MottakerIdentifikator(referanseType, referanseId, BrevtypeMottaker.VEDTAKSBREV)
         val hentetMottaker = repo.hentMottaker(ident)
         hentetMottaker shouldBe mottaker
         val nyMottaker = mottaker.copy(navn = "ny person")

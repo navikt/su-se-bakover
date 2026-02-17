@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
@@ -196,7 +197,15 @@ class FerdigstillVedtakServiceImpl(
             // SOS TODO: RM deenne kan slettes etter https://github.com/navikt/su-se-bakover/pull/2547 går i prod og har stått 24 t
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
-                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
+                    mottakerService.hentMottaker(
+                        MottakerIdentifikator(
+                            ReferanseTypeMottaker.REVURDERING,
+                            referanseId = vedtak.behandling.id.value,
+                            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+                        ),
+                        vedtak.sakId,
+                        transactionContext,
+                    ).getOrElse { null }
                 }
                 else -> null
             }
