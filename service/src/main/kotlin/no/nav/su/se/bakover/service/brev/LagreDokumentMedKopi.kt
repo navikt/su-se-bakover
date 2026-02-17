@@ -16,48 +16,50 @@ fun lagreDokumentMedKopi(
     mottakerIdentifikator: MottakerIdentifikator,
     sakId: UUID,
 ): (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
+    fun hentMottaker() = mottakerService.hentMottaker(
+        mottakerIdentifikator,
+        sakId,
+        tx,
+    ).getOrElse { null }
+
+    fun identifikatorForMottaker(mottaker: no.nav.su.se.bakover.domain.mottaker.MottakerDomain): String {
+        return when (mottaker) {
+            is MottakerFnrDomain -> mottaker.foedselsnummer.toString()
+            is MottakerOrgnummerDomain -> mottaker.orgnummer
+        }
+    }
+
     val kopi =
         when (dokument) {
-            is Dokument.MedMetadata.Vedtak,
-            is Dokument.MedMetadata.Informasjon.Viktig,
-            -> {
-                val mottaker = mottakerService.hentMottaker(
-                    mottakerIdentifikator,
-                    sakId,
-                    tx,
-                ).getOrElse { null }
-
-                if (mottaker != null) {
-                    val identifikator = when (mottaker) {
-                        is MottakerFnrDomain -> mottaker.foedselsnummer.toString()
-                        is MottakerOrgnummerDomain -> mottaker.orgnummer
-                    }
-
-                    when (dokument) {
-                        is Dokument.MedMetadata.Vedtak ->
-                            dokument.copy(
-                                id = UUID.randomUUID(),
-                                tittel = dokument.tittel + "(KOPI)",
-                                erKopi = true,
-                                ekstraMottaker = identifikator,
-                                navnEkstraMottaker = mottaker.navn,
-                                distribueringsadresse = mottaker.adresse,
-                            )
-
-                        is Dokument.MedMetadata.Informasjon.Viktig ->
-                            dokument.copy(
-                                id = UUID.randomUUID(),
-                                tittel = dokument.tittel + "(KOPI)",
-                                erKopi = true,
-                                ekstraMottaker = identifikator,
-                                navnEkstraMottaker = mottaker.navn,
-                                distribueringsadresse = mottaker.adresse,
-                            )
-
-                        is Dokument.MedMetadata.Informasjon.Annet -> null
-                    }
-                } else {
+            is Dokument.MedMetadata.Vedtak -> {
+                val mottaker = hentMottaker()
+                if (mottaker == null) {
                     null
+                } else {
+                    dokument.copy(
+                        id = UUID.randomUUID(),
+                        tittel = dokument.tittel + "(KOPI)",
+                        erKopi = true,
+                        ekstraMottaker = identifikatorForMottaker(mottaker),
+                        navnEkstraMottaker = mottaker.navn,
+                        distribueringsadresse = mottaker.adresse,
+                    )
+                }
+            }
+
+            is Dokument.MedMetadata.Informasjon.Viktig -> {
+                val mottaker = hentMottaker()
+                if (mottaker == null) {
+                    null
+                } else {
+                    dokument.copy(
+                        id = UUID.randomUUID(),
+                        tittel = dokument.tittel + "(KOPI)",
+                        erKopi = true,
+                        ekstraMottaker = identifikatorForMottaker(mottaker),
+                        navnEkstraMottaker = mottaker.navn,
+                        distribueringsadresse = mottaker.adresse,
+                    )
                 }
             }
 
