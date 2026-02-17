@@ -91,7 +91,7 @@ internal class MottakerRouteTest {
     fun `lagre krever saksbehandler`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
-        val request = lagreMottakerRequest(sakId = sakId, referanseId = referanseId)
+        val request = lagreMottakerRequest(referanseId = referanseId)
         val mottakerService = mock<MottakerService> {
             on { lagreMottaker(any(), any()) } doReturn
                 MottakerFnrDomain(
@@ -170,7 +170,6 @@ internal class MottakerRouteTest {
                         "postnummer":"1234",
                         "poststed":"OSLO"
                       },
-                      "sakId":"$sakId",
                       "referanseId":"$referanseId",
                       "referanseType":"REVURDERING"
                     }
@@ -186,7 +185,7 @@ internal class MottakerRouteTest {
     fun `oppdater krever saksbehandler`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
-        val request = oppdaterMottakerRequest(sakId = sakId, referanseId = referanseId)
+        val request = oppdaterMottakerRequest(referanseId = referanseId)
         val mottakerService = mock<MottakerService> {
             on { oppdaterMottaker(any(), any()) } doReturn Unit.right()
         }
@@ -251,7 +250,6 @@ internal class MottakerRouteTest {
                         "postnummer":"1234",
                         "poststed":"OSLO"
                       },
-                      "sakId":"$sakId",
                       "referanseId":"$referanseId",
                       "referanseType":"REVURDERING"
                     }
@@ -336,7 +334,7 @@ internal class MottakerRouteTest {
         verifyNoInteractions(mottakerService)
     }
 
-    private fun lagreMottakerRequest(sakId: UUID, referanseId: UUID): LagreMottaker {
+    private fun lagreMottakerRequest(referanseId: UUID): LagreMottaker {
         return LagreMottaker(
             navn = "Test Testesen",
             foedselsnummer = "01010112345",
@@ -348,14 +346,13 @@ internal class MottakerRouteTest {
                 postnummer = "1234",
                 poststed = "OSLO",
             ),
-            sakId = sakId.toString(),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.name,
             brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
         )
     }
 
-    private fun oppdaterMottakerRequest(sakId: UUID, referanseId: UUID): OppdaterMottaker {
+    private fun oppdaterMottakerRequest(referanseId: UUID): OppdaterMottaker {
         return OppdaterMottaker(
             id = UUID.randomUUID().toString(),
             navn = "Test Testesen",
@@ -368,7 +365,6 @@ internal class MottakerRouteTest {
                 postnummer = "1234",
                 poststed = "OSLO",
             ),
-            sakId = sakId.toString(),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.name,
             brevtype = BrevtypeMottaker.VEDTAKSBREV.name,

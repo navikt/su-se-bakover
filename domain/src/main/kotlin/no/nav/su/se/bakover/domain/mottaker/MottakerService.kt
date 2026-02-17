@@ -111,7 +111,7 @@ class MottakerServiceImpl(
         mottaker: LagreMottaker,
         sakId: UUID,
     ): Either<FeilkoderMottaker, MottakerDomain> {
-        val mottakerValidert = mottaker.toDomain().getOrElse {
+        val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
@@ -127,7 +127,7 @@ class MottakerServiceImpl(
         mottaker: OppdaterMottaker,
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
-        val mottakerValidert = mottaker.toDomain().getOrElse {
+        val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
@@ -147,6 +147,9 @@ class MottakerServiceImpl(
             log.info("Fant ikke mottaker for type ${mottakerIdentifikator.referanseType} id: ${mottakerIdentifikator.referanseId} ingenting å slette")
             return Unit.right()
         } else {
+            if (mottaker.sakId != sakId) {
+                return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
+            }
             // Kun revurderinger kan ha flere brev registrert på seg av andre typer. Fant bare [INFORMASJON_VIKTIG] -> [Dokument.MedMetadata.Informasjon.Viktig] med duplikater for revurderinger i prod
             val dokument = when (mottaker.referanseType) {
                 ReferanseTypeMottaker.SØKNAD ->
@@ -211,7 +214,6 @@ sealed interface MottakerRequest {
     val foedselsnummer: String?
     val orgnummer: String?
     val adresse: DistribueringsadresseRequest
-    val sakId: String
     val referanseId: String
     val referanseType: String
     val brevtype: String
@@ -225,10 +227,6 @@ sealed interface MottakerRequest {
 
         feil += validerFnrEllerOrgnummer(this)
         feil += validerAdresse(adresse)
-
-        if (sakId.isBlank()) {
-            feil += "sakId mangler"
-        }
 
         if (referanseId.isBlank()) {
             feil += "referanseId mangler"
@@ -311,7 +309,6 @@ data class OppdaterMottaker(
     override val foedselsnummer: String? = null,
     override val orgnummer: String? = null,
     override val adresse: DistribueringsadresseRequest,
-    override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
     override val brevtype: String,
@@ -327,7 +324,7 @@ data class OppdaterMottaker(
         return feil
     }
 
-    fun toDomain(): Either<List<String>, MottakerDomain> {
+    fun toDomain(sakId: UUID): Either<List<String>, MottakerDomain> {
         val erGyldig = this.erGyldig()
         return if (erGyldig.isEmpty()) {
             if (foedselsnummer == null) {
@@ -336,7 +333,7 @@ data class OppdaterMottaker(
                     navn = navn,
                     orgnummer = orgnummer!!,
                     adresse = adresse.toDomain(),
-                    sakId = UUID.fromString(sakId),
+                    sakId = sakId,
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
                     brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
@@ -347,7 +344,7 @@ data class OppdaterMottaker(
                     navn = navn,
                     foedselsnummer = Fnr.tryCreate(foedselsnummer)!!,
                     adresse = adresse.toDomain(),
-                    sakId = UUID.fromString(sakId),
+                    sakId = sakId,
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
                     brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
@@ -364,7 +361,6 @@ data class LagreMottaker(
     override val foedselsnummer: String? = null,
     override val orgnummer: String? = null,
     override val adresse: DistribueringsadresseRequest,
-    override val sakId: String,
     override val referanseId: String,
     override val referanseType: String,
     override val brevtype: String,
@@ -376,7 +372,7 @@ data class LagreMottaker(
         return feil
     }
 
-    fun toDomain(): Either<List<String>, MottakerDomain> {
+    fun toDomain(sakId: UUID): Either<List<String>, MottakerDomain> {
         val erGyldig = this.erGyldig()
         return if (erGyldig.isEmpty()) {
             if (foedselsnummer == null) {
@@ -384,7 +380,7 @@ data class LagreMottaker(
                     navn = navn,
                     orgnummer = orgnummer!!,
                     adresse = adresse.toDomain(),
-                    sakId = UUID.fromString(sakId),
+                    sakId = sakId,
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
                     brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
@@ -394,7 +390,7 @@ data class LagreMottaker(
                     navn = navn,
                     foedselsnummer = Fnr.tryCreate(foedselsnummer)!!,
                     adresse = adresse.toDomain(),
-                    sakId = UUID.fromString(sakId),
+                    sakId = sakId,
                     referanseId = UUID.fromString(referanseId),
                     referanseType = ReferanseTypeMottaker.valueOf(referanseType.uppercase()),
                     brevtype = BrevtypeMottaker.valueOf(brevtype.uppercase()),
