@@ -35,10 +35,10 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
         val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
 
         val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-        val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget().second
-        val klage = testDataHelper.persisterKlageOversendt(
-            vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        )
+        val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget(
+            sakOgVedtak = sak to vedtak,
+        ).second
+        val klage = testDataHelper.persisterKlageOversendt(vedtak = vedtak)
 
         // Dette er en snarvei for å teste alle referansene til et dokument og ikke noe som vil oppstå naturlig.
         val original = Dokument.MedMetadata.Vedtak(
@@ -132,8 +132,9 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
     fun `hentForSak inkluderer kopier for informasjon viktig`() {
         val testDataHelper = TestDataHelper(dataSource)
         val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
-        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-        val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget().second
+        val (sak, revurdering) = testDataHelper.persisterRevurderingIverksattInnvilget().let {
+            it.first to it.second
+        }
 
         val original = Dokument.MedMetadata.Informasjon.Viktig(
             id = UUID.randomUUID(),
