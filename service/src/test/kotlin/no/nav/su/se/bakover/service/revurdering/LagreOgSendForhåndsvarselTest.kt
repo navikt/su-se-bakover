@@ -34,7 +34,7 @@ import org.mockito.kotlin.verify
 internal class LagreOgSendForhåndsvarselTest {
 
     @Test
-    fun `lagre og send forhåndsvarsel henter mottaker med forhandsvarselbrevtype og lagrer kopi`() {
+    fun `lagreOgSendForhandsvarsel henter mottaker med FORHANDSVARSEL og lagrer original og kopi`() {
         val (sak, revurdering) = simulertRevurdering()
         val dokumentUtenMetadata = dokumentUtenMetadataInformasjonViktig()
 

@@ -119,7 +119,7 @@ class ForhåndsvarselKomponentTest {
     }
 
     @Test
-    fun `journalforer og distribuerer original og kopi for forhandsvarsel med ekstra mottaker`() {
+    fun `forhandsvarsel med ekstra mottaker journalfores og distribueres for original og kopi`() {
         withKomptestApplication(
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
