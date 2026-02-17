@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.komponenttest
 
+import arrow.core.getOrElse
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.brev.HentDokumenterForIdType
@@ -12,6 +13,12 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
+import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
+import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeType
@@ -22,6 +29,8 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import tilgangstyring.application.TilgangstyringService
 import java.util.UUID
 
 class ForhåndsvarselKomponentTest {
@@ -55,6 +64,122 @@ class ForhåndsvarselKomponentTest {
                         forhåndsvarsel.metadata.sakId shouldBe UUID.fromString(sakid)
                     }
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `oppretter kopi av forhandsvarsel for ekstra mottaker`() {
+        withKomptestApplication(
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
+        ) { appComponents ->
+            val (sakid, revurderingId) = simulertRevurdering(this.client, appComponents)
+            val ekstraMottakerFnr = Fnr.generer()
+
+            appComponents.services.mottakerService.lagreMottaker(
+                mottaker = LagreMottaker(
+                    navn = "Ekstra mottaker",
+                    foedselsnummer = ekstraMottakerFnr.toString(),
+                    adresse = DistribueringsadresseRequest(
+                        adresselinje1 = "Ekstragate 1",
+                        adresselinje2 = null,
+                        adresselinje3 = null,
+                        postnummer = "0001",
+                        poststed = "Oslo",
+                    ),
+                    referanseId = revurderingId,
+                    referanseType = ReferanseTypeMottaker.REVURDERING.name,
+                    brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+                ),
+                sakId = UUID.fromString(sakid),
+            ).getOrElse {
+                fail("Kunne ikke lagre ekstra mottaker for forhåndsvarsel")
+            }
+
+            sendForhåndsvarsel(
+                sakId = sakid,
+                behandlingId = revurderingId,
+                client = this.client,
+            )
+
+            val forhåndsvarsler = appComponents.services.brev.hentDokumenterFor(
+                HentDokumenterForIdType.HentDokumenterForSak(UUID.fromString(sakid)),
+            ).filterIsInstance<Dokument.MedMetadata.Informasjon.Viktig>().filter {
+                it.metadata.revurderingId == UUID.fromString(revurderingId)
+            }
+
+            forhåndsvarsler shouldHaveSize 2
+            forhåndsvarsler.count { it.erKopi } shouldBe 1
+
+            val kopi = forhåndsvarsler.first { it.erKopi }
+            kopi.ekstraMottaker shouldBe ekstraMottakerFnr.toString()
+            kopi.navnEkstraMottaker shouldBe "Ekstra mottaker"
+            kopi.distribusjonstype shouldBe Distribusjonstype.VIKTIG
+        }
+    }
+
+    @Test
+    fun `journalforer og distribuerer original og kopi for forhandsvarsel med ekstra mottaker`() {
+        withKomptestApplication(
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
+        ) { appComponents ->
+            val (sakid, revurderingId) = simulertRevurdering(this.client, appComponents)
+            val ekstraMottakerFnr = Fnr.generer()
+
+            appComponents.services.mottakerService.lagreMottaker(
+                mottaker = LagreMottaker(
+                    navn = "Ekstra mottaker",
+                    foedselsnummer = ekstraMottakerFnr.toString(),
+                    adresse = DistribueringsadresseRequest(
+                        adresselinje1 = "Ekstragate 1",
+                        adresselinje2 = null,
+                        adresselinje3 = null,
+                        postnummer = "0001",
+                        poststed = "Oslo",
+                    ),
+                    referanseId = revurderingId,
+                    referanseType = ReferanseTypeMottaker.REVURDERING.name,
+                    brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+                ),
+                sakId = UUID.fromString(sakid),
+            ).getOrElse {
+                fail("Kunne ikke lagre ekstra mottaker for forhåndsvarsel")
+            }
+
+            sendForhåndsvarsel(
+                sakId = sakid,
+                behandlingId = revurderingId,
+                client = this.client,
+            )
+
+            val journalførDokumentService = JournalførDokumentService(
+                journalførBrevClient = appComponents.clients.journalførClients.brev,
+                dokumentRepo = appComponents.databaseRepos.dokumentRepo,
+                sakService = appComponents.services.sak,
+            )
+            val distribuerDokumentService = DistribuerDokumentService(
+                dokDistFordeling = appComponents.clients.dokDistFordeling,
+                dokumentRepo = appComponents.databaseRepos.dokumentRepo,
+                dokumentHendelseRepo = appComponents.databaseRepos.dokumentHendelseRepo,
+                distribuerDokumentHendelserKonsument = appComponents.dokumentHendelseKomponenter.services.distribuerDokumentHendelserKonsument,
+                tilgangstyringService = TilgangstyringService(appComponents.services.person),
+                clock = appComponents.clock,
+            )
+
+            journalførDokumentService.journalfør()
+            distribuerDokumentService.distribuer()
+
+            val forhåndsvarsler = appComponents.services.brev.hentDokumenterFor(
+                HentDokumenterForIdType.HentDokumenterForSak(UUID.fromString(sakid)),
+            ).filterIsInstance<Dokument.MedMetadata.Informasjon.Viktig>().filter {
+                it.metadata.revurderingId == UUID.fromString(revurderingId)
+            }
+
+            forhåndsvarsler.shouldHaveSize(2)
+            forhåndsvarsler.count { it.erKopi } shouldBe 1
+            forhåndsvarsler.forEach {
+                it.erJournalført() shouldBe true
+                it.erBrevBestilt() shouldBe true
             }
         }
     }

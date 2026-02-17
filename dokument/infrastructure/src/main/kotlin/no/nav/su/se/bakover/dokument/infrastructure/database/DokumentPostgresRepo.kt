@@ -385,6 +385,9 @@ class DokumentPostgresRepo(
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
+                erKopi = erKopi,
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
             )
 
             DokumentKategori.INFORMASJON_ANNET -> Dokument.MedMetadata.Informasjon.Annet(
@@ -452,14 +455,14 @@ class DokumentPostgresRepo(
     }
 
     private fun Dokument.MedMetadata.erKopi(): Boolean {
-        return (this as? Dokument.MedMetadata.Vedtak)?.erKopi ?: false
+        return this.erKopi
     }
 
     private fun Dokument.MedMetadata.ekstraMottaker(): String? {
-        return (this as? Dokument.MedMetadata.Vedtak)?.ekstraMottaker
+        return this.ekstraMottaker
     }
 
     private fun Dokument.MedMetadata.navnEkstraMottaker(): String? {
-        return (this as? Dokument.MedMetadata.Vedtak)?.navnEkstraMottaker
+        return this.navnEkstraMottaker
     }
 }

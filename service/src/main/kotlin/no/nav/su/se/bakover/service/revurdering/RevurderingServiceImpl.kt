@@ -746,7 +746,16 @@ class RevurderingServiceImpl(
         if (fritekst == null) {
             return KunneIkkeForhåndsvarsle.ManglerFritekst.left()
         }
-        // TODO: ekstramottaker revurdering
+        val lagreDokumentMedKopi = lagreDokumentMedKopi(
+            brevService = brevService,
+            mottakerService = mottakerService,
+            mottakerIdentifikator = MottakerIdentifikator(
+                referanseType = ReferanseTypeMottaker.REVURDERING,
+                referanseId = revurdering.id.value,
+                brevtype = BrevtypeMottaker.FORHANDSVARSEL,
+            ),
+            sakId = revurdering.sakId,
+        )
         return revurdering.lagForhåndsvarsel(
             fritekst = fritekst,
             utførtAv = utførtAv,
@@ -759,8 +768,8 @@ class RevurderingServiceImpl(
         }.flatMap { dokumentUtenMetadata ->
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
-                    brevService.lagreDokument(
-                        dokument = dokumentUtenMetadata.leggTilMetadata(
+                    lagreDokumentMedKopi(
+                        dokumentUtenMetadata.leggTilMetadata(
                             Dokument.Metadata(
                                 sakId = revurdering.sakId,
                                 revurderingId = revurdering.id.value,
@@ -768,7 +777,7 @@ class RevurderingServiceImpl(
                             // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
                             distribueringsadresse = null,
                         ),
-                        transactionContext = tx,
+                        tx,
                     )
                     revurderingRepo.lagre(
                         revurdering = revurdering,

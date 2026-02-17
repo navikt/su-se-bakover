@@ -93,6 +93,9 @@ sealed interface Dokument {
         val metadata: Metadata
         val distribusjonstype: Distribusjonstype
         val distribusjonstidspunkt get() = Distribusjonstidspunkt.KJERNETID
+        val erKopi: Boolean get() = false
+        val ekstraMottaker: String? get() = null // kan være fnr eller orgnummer
+        val navnEkstraMottaker: String? get() = null
 
         /**
          * Spesifisering av adressen som brevet skal sendes til. Hvis denne er lagt på, vil brevet alltid bli sendt ut av dokdist.
@@ -115,9 +118,9 @@ sealed interface Dokument {
             override val generertDokumentJson: String,
             override val distribueringsadresse: Distribueringsadresse?,
             override val metadata: Metadata,
-            val erKopi: Boolean = false,
-            val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
-            val navnEkstraMottaker: String? = null,
+            override val erKopi: Boolean = false,
+            override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
+            override val navnEkstraMottaker: String? = null,
         ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 
@@ -148,6 +151,9 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
+                override val erKopi: Boolean = false,
+                override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
+                override val navnEkstraMottaker: String? = null,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.VIKTIG
 
