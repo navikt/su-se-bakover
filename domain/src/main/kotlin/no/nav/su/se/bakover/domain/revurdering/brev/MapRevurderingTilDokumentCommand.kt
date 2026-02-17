@@ -35,7 +35,7 @@ fun Revurdering.lagDokumentKommando(
         is UnderkjentRevurdering.Opphørt -> opphør(satsFactory, clock, fritekst)
         is AvsluttetRevurdering -> {
             val avsluttetSaksbehandler = this.avsluttetAv as? NavIdentBruker.Saksbehandler ?: error(
-                "AvsluttetRevurdering.avsluttetAv må være NavIdenBruker.Saksbehandler, men var " +
+                "AvsluttetRevurdering.avsluttetAv må være NavIdentBruker.Saksbehandler, men var " +
                     (this.avsluttetAv?.let { it::class.simpleName } ?: "null"),
             )
             AvsluttRevurderingDokumentCommand(
