@@ -3,7 +3,6 @@ package tilbakekreving.application.service.forhåndsvarsel
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.extensions.isFirstNull
@@ -14,17 +13,11 @@ import tilbakekreving.domain.forhåndsvarsel.KunneIkkeHenteUtsendtForhåndsvarse
 import tilbakekreving.domain.forhåndsvarsel.VisUtsendtForhåndsvarselbrevCommand
 
 class VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
-    private val brevService: BrevService,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun hent(command: VisUtsendtForhåndsvarselbrevCommand): Either<KunneIkkeHenteUtsendtForhåndsvarsel, PdfA> {
-        when (val dokument = brevService.hentDokument(command.dokumentId)) {
-            is Either.Right -> return dokument.value.generertDokument.right()
-            is Either.Left -> Unit
-        }
-
         val dokumentOgFil = dokumentHendelseRepo.hentHendelseOgFilForDokumentId(command.dokumentId)
 
         return dokumentOgFil.wheneverEitherIsNull(

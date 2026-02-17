@@ -8,6 +8,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import org.junit.jupiter.api.Test
@@ -42,7 +43,8 @@ internal class MottakerServiceTest {
                 actual.adresse == expected.adresse.toDomain() &&
                 actual.sakId.toString() == expected.sakId &&
                 actual.referanseId.toString() == expected.referanseId &&
-                actual.referanseType.name == expected.referanseType
+                actual.referanseType.name == expected.referanseType &&
+                actual.brevtype.name == expected.brevtype
         }
 
     private fun vedtakRepoSomIkkeHarVedtak(): VedtakRepo =
@@ -454,6 +456,94 @@ internal class MottakerServiceTest {
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verify(mottakerRepo, times(1)).slettMottaker(any())
 
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan ikke lagre mottaker for revurdering forhandsvarsel nar forhandsvarselbrev allerede finnes`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForRevurdering(referanseId) } doReturn listOf(
+                dokumentUtenMetadataInformasjonViktig().leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = sakId,
+                        revurderingId = referanseId,
+                    ),
+                    distribueringsadresse = null,
+                ),
+            )
+        }
+
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            sakId = sakId.toString(),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+        )
+
+        service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
+            it shouldBe FeilkoderMottaker.KanIkkeLagreMottaker
+        }
+
+        verify(dokumentRepo).hentForRevurdering(referanseId)
+        verify(mottakerRepo, times(0)).lagreMottaker(any())
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan ikke lagre mottaker for tilbakekreving forhandsvarsel nar forhandsvarselbrev allerede finnes`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForSak(sakId) } doReturn listOf(
+                dokumentUtenMetadataInformasjonViktig().leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = sakId,
+                        tilbakekrevingsbehandlingId = referanseId,
+                    ),
+                    distribueringsadresse = null,
+                ),
+            )
+        }
+
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            sakId = sakId.toString(),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.TILBAKEKREVING.toString(),
+            brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+        )
+
+        service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
+            it shouldBe FeilkoderMottaker.KanIkkeLagreMottaker
+        }
+
+        verify(dokumentRepo).hentForSak(sakId)
+        verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 }

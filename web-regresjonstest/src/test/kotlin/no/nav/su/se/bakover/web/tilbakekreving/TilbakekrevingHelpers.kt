@@ -20,30 +20,24 @@ import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsva
 import tilbakekreving.application.service.consumer.LukkOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OppdaterOppgaveForTilbakekrevingshendelserKonsument
 import tilbakekreving.application.service.consumer.OpprettOppgaveForTilbakekrevingshendelserKonsument
+import tilbakekreving.domain.ForhåndsvarsletTilbakekrevingsbehandlingHendelse
 import tilbakekreving.domain.IverksattHendelse
 import java.util.UUID
 
 internal fun AppComponents.hentUtførteSideeffekter(sakId: String): UtførteSideeffekter {
-    val sakIdSomUUID = UUID.fromString(sakId)
     val dokumentHendelser =
-        this.databaseRepos.dokumentHendelseRepo.hentDokumentHendelserForSakId(sakIdSomUUID).flatMap {
+        this.databaseRepos.dokumentHendelseRepo.hentDokumentHendelserForSakId(UUID.fromString(sakId)).flatMap {
             it.dokumenter
         }
-    val antallGenererteForhåndsvarsler = this.databaseRepos.hendelsekonsumenterRepo.let {
-        (it as HendelsekonsumenterPostgresRepo).sessionFactory.withSession {
-            """
-                select * from hendelse_konsument where konsumentId = 'GenererDokumentForForhåndsvarselTilbakekrevingKonsument'
-            """.trimIndent().hentListe(emptyMap(), it) {
-                it.string("hendelseId")
-            }.size
-        }
-    }
-    val oppgaveHendelser = this.databaseRepos.oppgaveHendelseRepo.hentForSak(sakIdSomUUID)
+    val oppgaveHendelser = this.databaseRepos.oppgaveHendelseRepo.hentForSak(UUID.fromString(sakId))
     return UtførteSideeffekter(
         antallOpprettetOppgaver = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Opprettet>().size,
         antallOppdatertOppgaveHendelser = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Oppdatert>().size,
         antallLukketOppgaver = oppgaveHendelser.filterIsInstance<OppgaveHendelse.Lukket>().size,
-        antallGenererteForhåndsvarsler = antallGenererteForhåndsvarsler,
+        // TODO jah: Denne/disse er generell og vil kræsje med vedtaksbrevet.
+        antallGenererteForhåndsvarsler = dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().map {
+            this.tilbakekrevingskomponenter.repos.tilbakekrevingsbehandlingRepo.hentHendelse(it.relatertHendelse)
+        }.filterIsInstance<ForhåndsvarsletTilbakekrevingsbehandlingHendelse>().size,
         antallGenererteVedtaksbrev = dokumentHendelser.filterIsInstance<GenerertDokumentHendelse>().map {
             this.tilbakekrevingskomponenter.repos.tilbakekrevingsbehandlingRepo.hentHendelse(it.relatertHendelse)
         }.filterIsInstance<IverksattHendelse>().size,
@@ -105,7 +99,7 @@ internal fun AppComponents.kjørAlleVerifiseringer(
     this.verifiserDistribuerteDokumenterKonsument(antallDistribuertDokumenter + tidligereUtførteSideeffekter.antallDistribuertDokumenter)
     this.verifiserDokumentHendelser(
         sakId = sakId,
-        antallGenererteDokumenter = antallGenererteVedtaksbrev + tidligereUtførteSideeffekter.antallGenererteVedtaksbrev,
+        antallGenererteDokumenter = antallGenererteForhåndsvarsler + antallGenererteVedtaksbrev + tidligereUtførteSideeffekter.antallGenererteForhåndsvarsler + tidligereUtførteSideeffekter.antallGenererteVedtaksbrev,
         antallJournalførteDokumenter = antallJournalførteDokumenter + tidligereUtførteSideeffekter.antallJournalførteDokumenter,
         antallDistribuerteDokumenter = antallDistribuertDokumenter + tidligereUtførteSideeffekter.antallDistribuertDokumenter,
     )
