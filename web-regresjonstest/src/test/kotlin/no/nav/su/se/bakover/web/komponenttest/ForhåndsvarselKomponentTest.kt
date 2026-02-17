@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
@@ -89,7 +89,7 @@ class ForhåndsvarselKomponentTest {
                     ),
                     referanseId = revurderingId,
                     referanseType = ReferanseTypeMottaker.REVURDERING.name,
-                    brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+                    brevtype = MottakerDokumentkontekst.FORHANDSVARSEL.name,
                 ),
                 sakId = UUID.fromString(sakid),
             ).getOrElse {
@@ -139,7 +139,7 @@ class ForhåndsvarselKomponentTest {
                     ),
                     referanseId = revurderingId,
                     referanseType = ReferanseTypeMottaker.REVURDERING.name,
-                    brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+                    brevtype = MottakerDokumentkontekst.FORHANDSVARSEL.name,
                 ),
                 sakId = UUID.fromString(sakid),
             ).getOrElse {

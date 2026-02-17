@@ -4,7 +4,7 @@ import arrow.core.getOrElse
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
@@ -26,7 +26,7 @@ fun lagreVedtaksbrevMedKopi(
         mottakerIdentifikator = MottakerIdentifikator(
             referanseType = referanseType,
             referanseId = referanseId,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = MottakerDokumentkontekst.VEDTAK,
         ),
         sakId = sakId,
     )
@@ -45,7 +45,7 @@ fun lagreForhandsvarselMedKopi(
         mottakerIdentifikator = MottakerIdentifikator(
             referanseType = referanseType,
             referanseId = referanseId,
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL,
+            brevtype = MottakerDokumentkontekst.FORHANDSVARSEL,
         ),
         sakId = sakId,
     )

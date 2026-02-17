@@ -7,7 +7,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -45,7 +45,7 @@ internal class LagreOgSendForhåndsvarselTest {
             sakId = sak.id,
             referanseId = revurdering.id.value,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL,
+            brevtype = MottakerDokumentkontekst.FORHANDSVARSEL,
         )
 
         val brevService = mock<BrevService> {
@@ -82,7 +82,7 @@ internal class LagreOgSendForhåndsvarselTest {
             argThat {
                 referanseType == ReferanseTypeMottaker.REVURDERING &&
                     referanseId == revurdering.id.value &&
-                    brevtype == BrevtypeMottaker.FORHANDSVARSEL
+                    brevtype == MottakerDokumentkontekst.FORHANDSVARSEL
             },
             eq(sak.id),
             anyOrNull(),

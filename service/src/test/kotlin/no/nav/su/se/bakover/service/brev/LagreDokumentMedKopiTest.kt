@@ -4,7 +4,7 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.test.dokumentMedMetadataVedtak
@@ -21,7 +21,7 @@ import java.util.UUID
 internal class LagreDokumentMedKopiTest {
 
     @Test
-    fun `lagreVedtaksbrevMedKopi bruker VEDTAKSBREV i mottakeroppslag`() {
+    fun `lagreVedtaksbrevMedKopi bruker VEDTAK i mottakeroppslag`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
         val tx = mock<TransactionContext>()
@@ -49,7 +49,7 @@ internal class LagreDokumentMedKopiTest {
             argThat {
                 referanseType == ReferanseTypeMottaker.REVURDERING &&
                     this.referanseId == referanseId &&
-                    brevtype == BrevtypeMottaker.VEDTAKSBREV
+                    brevtype == MottakerDokumentkontekst.VEDTAK
             },
             eq(sakId),
             eq(tx),
@@ -88,7 +88,7 @@ internal class LagreDokumentMedKopiTest {
             argThat {
                 referanseType == ReferanseTypeMottaker.REVURDERING &&
                     this.referanseId == referanseId &&
-                    brevtype == BrevtypeMottaker.FORHANDSVARSEL
+                    brevtype == MottakerDokumentkontekst.FORHANDSVARSEL
             },
             eq(sakId),
             eq(tx),

@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
@@ -28,8 +28,8 @@ internal fun Route.mottakerRoutes(
 ) {
     fun String.tilReferanseTypeMottaker(): ReferanseTypeMottaker? =
         runCatching { ReferanseTypeMottaker.valueOf(this.uppercase()) }.getOrNull()
-    fun String.tilBrevtypeMottaker(): BrevtypeMottaker? =
-        runCatching { BrevtypeMottaker.valueOf(this.uppercase()) }.getOrNull()
+    fun String.tilMottakerDokumentkontekst(): MottakerDokumentkontekst? =
+        runCatching { MottakerDokumentkontekst.valueOf(this.uppercase()) }.getOrNull()
     route(MOTTAKER_PATH) {
         get("/{sakId}/{referanseType}/{referanseId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
@@ -43,9 +43,9 @@ internal fun Route.mottakerRoutes(
                         ?: return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseId")
 
                     val brevtypeParam = call.parameters["brevtype"]
-                    val brevtype = brevtypeParam?.tilBrevtypeMottaker()
+                    val brevtype = brevtypeParam?.tilMottakerDokumentkontekst()
                         ?: if (brevtypeParam == null) {
-                            BrevtypeMottaker.VEDTAKSBREV
+                            MottakerDokumentkontekst.VEDTAK
                         } else {
                             return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig brevtype")
                         }
