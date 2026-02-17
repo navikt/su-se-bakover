@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
 import dokument.domain.GenererDokumentCommand
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -32,13 +33,19 @@ fun Revurdering.lagDokumentKommando(
         is IverksattRevurdering.Opphørt -> opphør(satsFactory, clock, fritekst)
         is UnderkjentRevurdering.Innvilget -> lagKommando(satsFactory, fritekst)
         is UnderkjentRevurdering.Opphørt -> opphør(satsFactory, clock, fritekst)
-        is AvsluttetRevurdering -> AvsluttRevurderingDokumentCommand(
-            fødselsnummer = this.fnr,
-            saksnummer = this.saksnummer,
-            sakstype = this.sakstype,
-            saksbehandler = saksbehandler,
-            fritekst = fritekst,
-        )
+        is AvsluttetRevurdering -> {
+            val avsluttetSaksbehandler = this.avsluttetAv as? NavIdentBruker.Saksbehandler ?: error(
+                "AvsluttetRevurdering.avsluttetAv må være NavIdenBruker.Saksbehandler, men var " +
+                    (this.avsluttetAv?.let { it::class.simpleName } ?: "null"),
+            )
+            AvsluttRevurderingDokumentCommand(
+                fødselsnummer = this.fnr,
+                saksnummer = this.saksnummer,
+                sakstype = this.sakstype,
+                saksbehandler = avsluttetSaksbehandler,
+                fritekst = fritekst,
+            )
+        }
     }
 }
 
