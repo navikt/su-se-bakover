@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
-import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -21,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
-import no.nav.su.se.bakover.service.brev.lagreDokumentMedKopi
+import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
@@ -79,14 +77,12 @@ class IverksettSøknadsbehandlingServiceImpl(
     override fun iverksett(
         iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
     ) {
-        val lagreDokumentMedKopi = lagreDokumentMedKopi(
+        // TODO: hvor settes dokument?
+        val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.SØKNAD,
-                referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
-                brevtype = BrevtypeMottaker.VEDTAKSBREV,
-            ),
+            referanseType = ReferanseTypeMottaker.SØKNAD,
+            referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
             sakId = iverksattSøknadsbehandlingResponse.vedtak.behandling.sakId,
         )
 
@@ -97,7 +93,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             lagreVedtak = vedtakService::lagreITransaksjon,
             statistikkObservers = observers,
             opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
-            lagreDokumentMedKopi = lagreDokumentMedKopi,
+            lagreDokumentMedKopi = lagreVedtaksbrevMedKopi,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
             lagreSakstatistikk = { statistikk, tx ->
                 sakStatistikkService.lagre(statistikk, tx)

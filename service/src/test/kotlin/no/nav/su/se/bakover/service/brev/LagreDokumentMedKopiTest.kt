@@ -1,42 +1,97 @@
 package no.nav.su.se.bakover.service.brev
 
+import arrow.core.right
+import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
-import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
-import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
+import no.nav.su.se.bakover.test.dokumentMedMetadataVedtak
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class LagreDokumentMedKopiTest {
 
     @Test
-    fun `informasjon annet henter ikke mottaker og lagrer kun original`() {
+    fun `lagreVedtaksbrevMedKopi bruker VEDTAKSBREV i mottakeroppslag`() {
         val sakId = UUID.randomUUID()
-        val tx = TestSessionFactory.transactionContext
-        val dokument = dokumentMedMetadataInformasjonAnnet(sakId = sakId)
-        val brevService = mock<BrevService>()
-        val mottakerService = mock<MottakerService>()
+        val referanseId = UUID.randomUUID()
+        val tx = mock<TransactionContext>()
+        val dokument = dokumentMedMetadataVedtak(
+            sakId = sakId,
+            vedtakId = UUID.randomUUID(),
+        )
 
-        lagreDokumentMedKopi(
+        val brevService = mock<BrevService>()
+        val mottakerService = mock<MottakerService> {
+            on { hentMottaker(any(), any(), any()) } doReturn null.right()
+        }
+
+        val lagre = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            mottakerIdentifikator = MottakerIdentifikator(
-                referanseType = ReferanseTypeMottaker.SØKNAD,
-                referanseId = UUID.randomUUID(),
-                brevtype = BrevtypeMottaker.VEDTAKSBREV,
-            ),
+            referanseType = ReferanseTypeMottaker.REVURDERING,
+            referanseId = referanseId,
             sakId = sakId,
-        )(dokument, tx)
+        )
 
-        verifyNoInteractions(mottakerService)
-        verify(brevService).lagreDokument(dokument, tx)
-        verifyNoMoreInteractions(brevService)
+        lagre(dokument, tx)
+
+        verify(mottakerService).hentMottaker(
+            argThat {
+                referanseType == ReferanseTypeMottaker.REVURDERING &&
+                    this.referanseId == referanseId &&
+                    brevtype == BrevtypeMottaker.VEDTAKSBREV
+            },
+            eq(sakId),
+            eq(tx),
+        )
+    }
+
+    @Test
+    fun `lagreForhandsvarselMedKopi bruker FORHANDSVARSEL i mottakeroppslag`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val tx = mock<TransactionContext>()
+        val dokument = dokumentUtenMetadataInformasjonViktig().leggTilMetadata(
+            metadata = Dokument.Metadata(
+                sakId = sakId,
+                revurderingId = referanseId,
+            ),
+            distribueringsadresse = null,
+        )
+
+        val brevService = mock<BrevService>()
+        val mottakerService = mock<MottakerService> {
+            on { hentMottaker(any(), any(), any()) } doReturn null.right()
+        }
+
+        val lagre = lagreForhandsvarselMedKopi(
+            brevService = brevService,
+            mottakerService = mottakerService,
+            referanseType = ReferanseTypeMottaker.REVURDERING,
+            referanseId = referanseId,
+            sakId = sakId,
+        )
+
+        lagre(dokument, tx)
+
+        verify(mottakerService).hentMottaker(
+            argThat {
+                referanseType == ReferanseTypeMottaker.REVURDERING &&
+                    this.referanseId == referanseId &&
+                    brevtype == BrevtypeMottaker.FORHANDSVARSEL
+            },
+            eq(sakId),
+            eq(tx),
+        )
     }
 }

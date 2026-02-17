@@ -4,25 +4,66 @@ import arrow.core.getOrElse
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import java.util.UUID
 
-fun lagreDokumentMedKopi(
+fun lagreVedtaksbrevMedKopi(
+    brevService: BrevService,
+    mottakerService: MottakerService,
+    referanseType: ReferanseTypeMottaker,
+    referanseId: UUID,
+    sakId: UUID,
+): (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit {
+    return lagreDokumentMedKopiInternal(
+        brevService = brevService,
+        mottakerService = mottakerService,
+        mottakerIdentifikator = MottakerIdentifikator(
+            referanseType = referanseType,
+            referanseId = referanseId,
+            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+        ),
+        sakId = sakId,
+    )
+}
+
+fun lagreForhandsvarselMedKopi(
+    brevService: BrevService,
+    mottakerService: MottakerService,
+    referanseType: ReferanseTypeMottaker,
+    referanseId: UUID,
+    sakId: UUID,
+): (Dokument.MedMetadata.Informasjon.Viktig, TransactionContext) -> Unit {
+    return lagreDokumentMedKopiInternal(
+        brevService = brevService,
+        mottakerService = mottakerService,
+        mottakerIdentifikator = MottakerIdentifikator(
+            referanseType = referanseType,
+            referanseId = referanseId,
+            brevtype = BrevtypeMottaker.FORHANDSVARSEL,
+        ),
+        sakId = sakId,
+    )
+}
+
+private fun <D : Dokument.MedMetadata> lagreDokumentMedKopiInternal(
     brevService: BrevService,
     mottakerService: MottakerService,
     mottakerIdentifikator: MottakerIdentifikator,
     sakId: UUID,
-): (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
+): (D, TransactionContext) -> Unit = { dokument, tx ->
     fun hentMottaker() = mottakerService.hentMottaker(
         mottakerIdentifikator,
         sakId,
         tx,
     ).getOrElse { null }
 
-    fun identifikatorForMottaker(mottaker: no.nav.su.se.bakover.domain.mottaker.MottakerDomain): String {
+    fun identifikatorForMottaker(mottaker: MottakerDomain): String {
         return when (mottaker) {
             is MottakerFnrDomain -> mottaker.foedselsnummer.toString()
             is MottakerOrgnummerDomain -> mottaker.orgnummer

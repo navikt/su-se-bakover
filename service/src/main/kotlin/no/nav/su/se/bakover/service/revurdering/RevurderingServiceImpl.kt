@@ -13,6 +13,7 @@ import behandling.revurdering.domain.formue.KunneIkkeLeggeTilFormue
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -29,8 +30,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
-import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
@@ -111,7 +110,8 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.service.brev.lagreDokumentMedKopi
+import no.nav.su.se.bakover.service.brev.lagreForhandsvarselMedKopi
+import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
@@ -746,14 +746,11 @@ class RevurderingServiceImpl(
         if (fritekst == null) {
             return KunneIkkeForhåndsvarsle.ManglerFritekst.left()
         }
-        val lagreDokumentMedKopi = lagreDokumentMedKopi(
+        val lagreForhandsvarselMedKopi = lagreForhandsvarselMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            mottakerIdentifikator = MottakerIdentifikator(
-                referanseType = ReferanseTypeMottaker.REVURDERING,
-                referanseId = revurdering.id.value,
-                brevtype = BrevtypeMottaker.FORHANDSVARSEL,
-            ),
+            referanseType = ReferanseTypeMottaker.REVURDERING,
+            referanseId = revurdering.id.value,
             sakId = revurdering.sakId,
         )
         return revurdering.lagForhåndsvarsel(
@@ -766,17 +763,27 @@ class RevurderingServiceImpl(
                 KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(it)
             }
         }.flatMap { dokumentUtenMetadata ->
+            val dokument = when (dokumentUtenMetadata) {
+                is Dokument.UtenMetadata.Informasjon.Viktig -> {
+                    dokumentUtenMetadata.leggTilMetadata(
+                        Dokument.Metadata(
+                            sakId = revurdering.sakId,
+                            revurderingId = revurdering.id.value,
+                        ),
+                        // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
+                        distribueringsadresse = null,
+                    )
+                }
+                else -> {
+                    log.error("Forventet forhåndsvarsel-dokument av typen Informasjon.Viktig, men fikk ${dokumentUtenMetadata::class.simpleName}")
+                    return@flatMap KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
+                }
+            }
+
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
-                    lagreDokumentMedKopi(
-                        dokumentUtenMetadata.leggTilMetadata(
-                            Dokument.Metadata(
-                                sakId = revurdering.sakId,
-                                revurderingId = revurdering.id.value,
-                            ),
-                            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-                            distribueringsadresse = null,
-                        ),
+                    lagreForhandsvarselMedKopi(
+                        dokument,
                         tx,
                     )
                     revurderingRepo.lagre(
@@ -1014,14 +1021,11 @@ class RevurderingServiceImpl(
             satsFactory = satsFactory,
             fritekst = fritekst,
         ).flatMap { response ->
-            val lagreDokumentMedKopi = lagreDokumentMedKopi(
+            val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
                 brevService = brevService,
                 mottakerService = mottakerService,
-                mottakerIdentifikator = MottakerIdentifikator(
-                    ReferanseTypeMottaker.REVURDERING,
-                    referanseId = response.vedtak.behandling.id.value,
-                    brevtype = BrevtypeMottaker.VEDTAKSBREV,
-                ),
+                referanseType = ReferanseTypeMottaker.REVURDERING,
+                referanseId = response.vedtak.behandling.id.value,
                 sakId = response.vedtak.behandling.sakId,
             )
             response.ferdigstillIverksettelseITransaksjon(
@@ -1035,7 +1039,7 @@ class RevurderingServiceImpl(
                 lagreSakstatistikk = { statistikkHendelse, tx ->
                     sakStatistikkService.lagre(statistikkHendelse, tx)
                 },
-                lagreDokumentMedKopi = lagreDokumentMedKopi,
+                lagreDokumentMedKopi = lagreVedtaksbrevMedKopi,
             ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }
