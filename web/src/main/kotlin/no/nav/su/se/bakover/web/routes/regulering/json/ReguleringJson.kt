@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.routes.regulering.json
 
+import behandling.domain.BehandlingMedAttestering
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -40,6 +43,7 @@ data class ReguleringJson(
     val saksbehandler: String,
     val avsluttet: Avsluttet?,
     val sakstype: String,
+    val attesteringer: List<AttesteringJson>,
 ) {
     data class Avsluttet(val tidspunkt: Tidspunkt)
     enum class Status {
@@ -93,12 +97,17 @@ fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJs
         is IverksattRegulering, is ReguleringUnderBehandling -> null
     },
     sakstype = sakstype.toJson(),
+    attesteringer = when (this) {
+        is BehandlingMedAttestering -> attesteringer.toJson()
+        else -> emptyList()
+    },
 )
 
 data class ManuellReguleringVisningJson(
     val gjeldendeVedtaksdata: GrunnlagsdataOgVilkårsvurderingerJson,
     val regulering: ReguleringJson,
 )
+
 fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
     gjeldendeVedtaksdata = gjeldendeVedtaksdata.toJson(formuegrenserFactory),
     regulering = regulering.toJson(formuegrenserFactory),
