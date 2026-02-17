@@ -6,7 +6,6 @@ import dokument.domain.hendelser.DokumentHendelse
 import dokument.domain.hendelser.GenerertDokumentHendelse
 import dokument.domain.hendelser.JournalførtDokumentHendelse
 import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
-import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.util.UUID
@@ -45,14 +44,6 @@ data class DokumentHendelser(
         return serier.singleOrNullOrThrow {
             it.dokumenter.map { it.hendelseId }.contains(hendelseId)
         }
-    }
-
-    fun hentDokumentIdForJournalpostId(journalpostId: JournalpostId): UUID? {
-        return serier.mapNotNull { it.hentDokumentIdForJournalpostId(journalpostId) }.singleOrNull()
-    }
-
-    fun hentGenererte(): List<GenerertDokumentHendelse> {
-        return serier.flatMap { it.dokumenter }.filterIsInstance<GenerertDokumentHendelse>()
     }
 
     fun tilDokumenterMedMetadata(

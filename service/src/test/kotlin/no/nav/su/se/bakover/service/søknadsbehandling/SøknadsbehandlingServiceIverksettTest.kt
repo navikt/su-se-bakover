@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -653,6 +654,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = sak.id,
                 referanseId = innvilgetTilAttestering.id.value,
                 referanseType = ReferanseTypeMottaker.SØKNAD,
+                brevtype = BrevtypeMottaker.VEDTAKSBREV,
             )
 
             val serviceAndMocks = ServiceAndMocks(

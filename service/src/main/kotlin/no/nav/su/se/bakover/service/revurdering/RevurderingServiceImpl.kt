@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -745,6 +746,7 @@ class RevurderingServiceImpl(
         if (fritekst == null) {
             return KunneIkkeForhåndsvarsle.ManglerFritekst.left()
         }
+        // TODO: ekstramottaker revurdering
         return revurdering.lagForhåndsvarsel(
             fritekst = fritekst,
             utførtAv = utførtAv,
@@ -772,7 +774,7 @@ class RevurderingServiceImpl(
                         revurdering = revurdering,
                         transactionContext = tx,
                     )
-                    prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+                    oppdaterOppgaveForhåndsvarsel(
                         revurderingId = revurdering.id,
                         oppgaveId = revurdering.oppgaveId,
                         utførtAv = utførtAv,
@@ -792,7 +794,7 @@ class RevurderingServiceImpl(
         }
     }
 
-    private fun prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+    private fun oppdaterOppgaveForhåndsvarsel(
         revurderingId: RevurderingId,
         oppgaveId: OppgaveId,
         utførtAv: NavIdentBruker.Saksbehandler,
@@ -1009,6 +1011,7 @@ class RevurderingServiceImpl(
                 mottakerIdentifikator = MottakerIdentifikator(
                     ReferanseTypeMottaker.REVURDERING,
                     referanseId = response.vedtak.behandling.id.value,
+                    brevtype = BrevtypeMottaker.VEDTAKSBREV,
                 ),
                 sakId = response.vedtak.behandling.sakId,
             )
