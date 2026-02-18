@@ -215,9 +215,7 @@ sealed interface Dokument {
         val revurderingId: UUID? = null,
         val klageId: UUID? = null,
         val tilbakekrevingsbehandlingId: UUID? = null,
-        // TODO jah: Sjekk hvorfor vi ikke bruker JournalpostId her
         val journalpostId: String? = null,
-        // TODO jah: Sjekk hvorfor vi ikke bruker BrevbestillingId her
         val brevbestillingId: String? = null,
     )
 }

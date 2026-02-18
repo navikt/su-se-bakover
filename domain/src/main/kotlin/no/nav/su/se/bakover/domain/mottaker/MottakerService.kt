@@ -84,6 +84,12 @@ class MottakerServiceImpl(
                     MottakerDokumentkontekst.VEDTAK ->
                         !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
 
+                    // TODO: denne blir feil hvis man noengang kan ha andre dokumenter av typen viktig tilknyttet en behandling, vedtaksbrev er noe annet det kan alltid bare være ett. Men skal vi lagre ned brevtypen
+                    // Man kan ha maks et forhåndsvarsel per behandlingsløp men men kan ha andre Dokument.MedMetadata.Informasjon.Viktig så må guarde oss mot det ett sted her
+                    /*
+                    dokument har ingen unik constraint på ...), kun PK på id: V96__dokumenter_og_distribusjon.sql (line 1).
+Derfor kan flere dokumenter av samme type knyttes til samme referanse.
+                     */
                     MottakerDokumentkontekst.FORHANDSVARSEL ->
                         dokumentRepo.hentForRevurdering(mottaker.referanseId).none {
                             it is Dokument.MedMetadata.Informasjon.Viktig

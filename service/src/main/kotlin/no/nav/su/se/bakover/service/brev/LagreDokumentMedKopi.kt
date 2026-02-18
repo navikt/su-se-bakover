@@ -58,12 +58,12 @@ fun lagreForhandsvarselMedKopi(
     )
 }
 
-private fun <D : Dokument.MedMetadata> lagreDokumentMedKopiInternal(
+private fun lagreDokumentMedKopiInternal(
     brevService: BrevService,
     mottakerService: MottakerService,
     mottakerIdentifikator: MottakerIdentifikator,
     sakId: UUID,
-): (D, TransactionContext) -> Unit = { dokument, tx ->
+): (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
     fun hentMottaker() = mottakerService.hentMottaker(
         mottakerIdentifikator,
         sakId,
@@ -86,17 +86,10 @@ private fun <D : Dokument.MedMetadata> lagreDokumentMedKopiInternal(
         )
     }
 
-    fun <T : Dokument.MedMetadata> opprettKopiHvisMottakerFinnes(
-        dokument: T,
-        lagKopi: T.(MottakerKopiData) -> T,
-    ): T? {
-        return hentMottakerKopiData()?.let { dokument.lagKopi(it) }
-    }
-
     fun Dokument.MedMetadata.Vedtak.kopiForMottaker(mottaker: MottakerKopiData): Dokument.MedMetadata.Vedtak {
         return copy(
             id = UUID.randomUUID(),
-            tittel = tittel + "(KOPI)",
+            tittel = "$tittel (KOPI)",
             erKopi = true,
             ekstraMottaker = mottaker.identifikator,
             navnEkstraMottaker = mottaker.navn,
@@ -109,7 +102,7 @@ private fun <D : Dokument.MedMetadata> lagreDokumentMedKopiInternal(
     ): Dokument.MedMetadata.Informasjon.Viktig {
         return copy(
             id = UUID.randomUUID(),
-            tittel = tittel + "(KOPI)",
+            tittel = "$tittel (KOPI)",
             erKopi = true,
             ekstraMottaker = mottaker.identifikator,
             navnEkstraMottaker = mottaker.navn,
@@ -117,13 +110,25 @@ private fun <D : Dokument.MedMetadata> lagreDokumentMedKopiInternal(
         )
     }
 
+    fun opprettKopiHvisMottakerFinnes(
+        dokument: Dokument.MedMetadata,
+    ): Dokument.MedMetadata? {
+        return hentMottakerKopiData()?.let { mottaker ->
+            when (dokument) {
+                is Dokument.MedMetadata.Informasjon.Annet -> null
+                is Dokument.MedMetadata.Informasjon.Viktig -> dokument.kopiForMottaker(mottaker)
+                is Dokument.MedMetadata.Vedtak -> dokument.kopiForMottaker(mottaker)
+            }
+        }
+    }
+
     val kopi =
         when (dokument) {
             is Dokument.MedMetadata.Vedtak ->
-                opprettKopiHvisMottakerFinnes(dokument, Dokument.MedMetadata.Vedtak::kopiForMottaker)
+                opprettKopiHvisMottakerFinnes(dokument)
 
             is Dokument.MedMetadata.Informasjon.Viktig ->
-                opprettKopiHvisMottakerFinnes(dokument, Dokument.MedMetadata.Informasjon.Viktig::kopiForMottaker)
+                opprettKopiHvisMottakerFinnes(dokument)
 
             is Dokument.MedMetadata.Informasjon.Annet -> null
         }
