@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.getOrElse
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
@@ -33,7 +33,7 @@ fun lagreVedtaksbrevMedKopi(
         mottakerIdentifikator = MottakerIdentifikator(
             referanseType = referanseType,
             referanseId = referanseId,
-            brevtype = MottakerDokumentkontekst.VEDTAK,
+            brevtype = DokumentFormaal.VEDTAK,
         ),
         sakId = sakId,
     )
@@ -52,7 +52,7 @@ fun lagreForhandsvarselMedKopi(
         mottakerIdentifikator = MottakerIdentifikator(
             referanseType = referanseType,
             referanseId = referanseId,
-            brevtype = MottakerDokumentkontekst.FORHANDSVARSEL,
+            brevtype = DokumentFormaal.FORHANDSVARSEL,
         ),
         sakId = sakId,
     )

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.dokumentMapper
 
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import dokument.domain.pdf.PdfInnhold
@@ -37,6 +38,7 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
+            dokumentFormaal = DokumentFormaal.VEDTAK,
         )
 
         is ForhåndsvarselDokumentCommand,
@@ -47,6 +49,13 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
+            dokumentFormaal = when (command) {
+                is ForhåndsvarselDokumentCommand,
+                is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
+                -> DokumentFormaal.FORHANDSVARSEL
+
+                else -> DokumentFormaal.ANNET
+            },
         )
 
         is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring,
@@ -56,6 +65,7 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
+            dokumentFormaal = DokumentFormaal.ANNET,
         )
 
         is FritekstDokumentCommand -> {
@@ -64,18 +74,21 @@ fun PdfA.tilDokument(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
+                    dokumentFormaal = DokumentFormaal.VEDTAK,
                 )
 
                 Distribusjonstype.VIKTIG -> informasjonViktig(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
+                    dokumentFormaal = DokumentFormaal.ANNET,
                 )
 
                 Distribusjonstype.ANNET -> informasjonAnnet(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
+                    dokumentFormaal = DokumentFormaal.ANNET,
                 )
             }
         }
@@ -85,18 +98,21 @@ fun PdfA.tilDokument(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
+                dokumentFormaal = DokumentFormaal.ANNET,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
+                dokumentFormaal = DokumentFormaal.VEDTAK,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> vedtak(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
+                dokumentFormaal = DokumentFormaal.VEDTAK,
             )
         }
 
@@ -108,34 +124,40 @@ private fun PdfA.vedtak(
     id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
+    dokumentFormaal: DokumentFormaal?,
 ) = Dokument.UtenMetadata.Vedtak(
     id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
+    dokumentFormaal = dokumentFormaal,
 )
 
 private fun PdfA.informasjonViktig(
     id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
+    dokumentFormaal: DokumentFormaal?,
 ) = Dokument.UtenMetadata.Informasjon.Viktig(
     id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
+    dokumentFormaal = dokumentFormaal,
 )
 
 private fun PdfA.informasjonAnnet(
     id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
+    dokumentFormaal: DokumentFormaal?,
 ) = Dokument.UtenMetadata.Informasjon.Annet(
     id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
+    dokumentFormaal = dokumentFormaal,
 )

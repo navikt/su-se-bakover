@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -654,7 +654,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = sak.id,
                 referanseId = innvilgetTilAttestering.id.value,
                 referanseType = ReferanseTypeMottaker.SØKNAD,
-                brevtype = MottakerDokumentkontekst.VEDTAK,
+                brevtype = DokumentFormaal.VEDTAK,
             )
 
             val serviceAndMocks = ServiceAndMocks(

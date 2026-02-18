@@ -21,6 +21,7 @@ sealed interface Dokument {
 
     // Denne kommer kun fra generering av PDF uten metadata så den er ikke ferdig
     sealed interface UtenMetadata : Dokument {
+        val dokumentFormaal: DokumentFormaal?
 
         fun leggTilMetadata(metadata: Metadata, distribueringsadresse: Distribueringsadresse?): MedMetadata
 
@@ -30,6 +31,7 @@ sealed interface Dokument {
             override val tittel: String,
             override val generertDokument: PdfA,
             override val generertDokumentJson: String,
+            override val dokumentFormaal: DokumentFormaal? = null,
         ) : UtenMetadata {
             override fun leggTilMetadata(
                 metadata: Metadata,
@@ -59,6 +61,7 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
+                override val dokumentFormaal: DokumentFormaal? = null,
             ) : Informasjon {
                 override fun leggTilMetadata(
                     metadata: Metadata,
@@ -74,6 +77,7 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
+                override val dokumentFormaal: DokumentFormaal? = null,
             ) : Informasjon {
                 override fun leggTilMetadata(
                     metadata: Metadata,
@@ -93,6 +97,7 @@ sealed interface Dokument {
         val metadata: Metadata
         val distribusjonstype: Distribusjonstype
         val distribusjonstidspunkt get() = Distribusjonstidspunkt.KJERNETID
+        val dokumentFormaal: DokumentFormaal? get() = null
         val erKopi: Boolean get() = false
         val ekstraMottaker: String? get() = null // kan være fnr eller orgnummer
         val navnEkstraMottaker: String? get() = null
@@ -118,6 +123,7 @@ sealed interface Dokument {
             override val generertDokumentJson: String,
             override val distribueringsadresse: Distribueringsadresse?,
             override val metadata: Metadata,
+            override val dokumentFormaal: DokumentFormaal? = null,
             override val erKopi: Boolean = false,
             override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
             override val navnEkstraMottaker: String? = null,
@@ -136,6 +142,7 @@ sealed interface Dokument {
                 generertDokumentJson = utenMetadata.generertDokumentJson,
                 distribueringsadresse = distribueringsadresse,
                 metadata = metadata,
+                dokumentFormaal = utenMetadata.dokumentFormaal,
             )
         }
 
@@ -151,6 +158,7 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
+                override val dokumentFormaal: DokumentFormaal? = null,
                 override val erKopi: Boolean = false,
                 override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
                 override val navnEkstraMottaker: String? = null,
@@ -169,6 +177,7 @@ sealed interface Dokument {
                     generertDokumentJson = utenMetadata.generertDokumentJson,
                     distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
+                    dokumentFormaal = utenMetadata.dokumentFormaal,
                 )
             }
 
@@ -180,6 +189,7 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
+                override val dokumentFormaal: DokumentFormaal? = null,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.ANNET
 
@@ -195,6 +205,7 @@ sealed interface Dokument {
                     generertDokumentJson = utenMetadata.generertDokumentJson,
                     distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
+                    dokumentFormaal = utenMetadata.dokumentFormaal,
                 )
             }
         }

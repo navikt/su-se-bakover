@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.mottaker
 
+import dokument.domain.DokumentFormaal
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
@@ -171,8 +171,8 @@ data class MottakerRepoImpl(
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
                 brevtype = row.stringOrNull("brevtype")
-                    ?.let { MottakerDokumentkontekst.valueOf(it) }
-                    ?: MottakerDokumentkontekst.VEDTAK,
+                    ?.let { DokumentFormaal.valueOf(it) }
+                    ?: DokumentFormaal.VEDTAK,
             )
 
             orgnr != null -> MottakerOrgnummerDomain(
@@ -184,8 +184,8 @@ data class MottakerRepoImpl(
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
                 brevtype = row.stringOrNull("brevtype")
-                    ?.let { MottakerDokumentkontekst.valueOf(it) }
-                    ?: MottakerDokumentkontekst.VEDTAK,
+                    ?.let { DokumentFormaal.valueOf(it) }
+                    ?: DokumentFormaal.VEDTAK,
             )
 
             else -> error(

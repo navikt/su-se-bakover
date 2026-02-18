@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
@@ -278,7 +278,7 @@ internal class FerdigstillVedtakServiceImplTest {
             sakId = sak.id,
             referanseId = vedtak.behandling.id.value,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = MottakerDokumentkontekst.VEDTAK,
+            brevtype = DokumentFormaal.VEDTAK,
         )
 
         FerdigstillVedtakServiceMocks(
@@ -344,7 +344,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat {
                     it.referanseType shouldBe ReferanseTypeMottaker.REVURDERING
                     it.referanseId shouldBe vedtak.behandling.id.value
-                    it.brevtype shouldBe MottakerDokumentkontekst.VEDTAK
+                    it.brevtype shouldBe DokumentFormaal.VEDTAK
                 },
                 argThat { it shouldBe sak.id },
                 eq(TestSessionFactory.transactionContext),

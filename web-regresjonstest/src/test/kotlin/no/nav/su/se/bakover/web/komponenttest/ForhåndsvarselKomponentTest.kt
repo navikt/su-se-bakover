@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.komponenttest
 import arrow.core.getOrElse
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
@@ -89,7 +89,7 @@ class ForhåndsvarselKomponentTest {
                     ),
                     referanseId = revurderingId,
                     referanseType = ReferanseTypeMottaker.REVURDERING.name,
-                    brevtype = MottakerDokumentkontekst.FORHANDSVARSEL.name,
+                    brevtype = DokumentFormaal.FORHANDSVARSEL.name,
                 ),
                 sakId = UUID.fromString(sakid),
             ).getOrElse {
@@ -139,7 +139,7 @@ class ForhåndsvarselKomponentTest {
                     ),
                     referanseId = revurderingId,
                     referanseType = ReferanseTypeMottaker.REVURDERING.name,
-                    brevtype = MottakerDokumentkontekst.FORHANDSVARSEL.name,
+                    brevtype = DokumentFormaal.FORHANDSVARSEL.name,
                 ),
                 sakId = UUID.fromString(sakid),
             ).getOrElse {

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure.database
 
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
@@ -51,6 +52,7 @@ class DokumentPostgresRepo(
                     generertDokument,
                     generertDokumentJson,
                     type,
+                    dokument_formaal,
                     tittel,
                     søknadId,
                     vedtakId,
@@ -67,6 +69,7 @@ class DokumentPostgresRepo(
                     :generertDokument,
                     to_json(:generertDokumentJson::json),
                     :type,
+                    :dokumentFormaal,
                     :tittel,
                     :soknadId,
                     :vedtakId,
@@ -91,6 +94,7 @@ class DokumentPostgresRepo(
                                 is Dokument.MedMetadata.Informasjon.Annet -> DokumentKategori.INFORMASJON_ANNET
                                 is Dokument.MedMetadata.Vedtak -> DokumentKategori.VEDTAK
                             }.toString(),
+                            "dokumentFormaal" to dokument.dokumentFormaal?.name,
                             "tittel" to dokument.tittel,
                             "soknadId" to dokument.metadata.søknadId,
                             "vedtakId" to dokument.metadata.vedtakId,
@@ -351,6 +355,7 @@ class DokumentPostgresRepo(
 
     private fun Row.toDokumentMedStatus(): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
+        val dokumentFormaal = stringOrNull("dokument_formaal")?.let { DokumentFormaal.valueOf(it) }
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
         val innhold = PdfA(bytes("generertDokument"))
@@ -385,6 +390,7 @@ class DokumentPostgresRepo(
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
+                dokumentFormaal = dokumentFormaal,
                 erKopi = erKopi,
                 ekstraMottaker = ekstraMottaker,
                 navnEkstraMottaker = navnEkstraMottaker,
@@ -406,6 +412,7 @@ class DokumentPostgresRepo(
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
+                dokumentFormaal = dokumentFormaal,
             )
 
             DokumentKategori.VEDTAK -> Dokument.MedMetadata.Vedtak(
@@ -424,6 +431,7 @@ class DokumentPostgresRepo(
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
                 ),
+                dokumentFormaal = dokumentFormaal,
                 erKopi = erKopi,
                 ekstraMottaker = ekstraMottaker,
                 navnEkstraMottaker = navnEkstraMottaker,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.mottaker
 
 import arrow.core.getOrElse
+import dokument.domain.DokumentFormaal
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
@@ -28,8 +28,9 @@ internal fun Route.mottakerRoutes(
 ) {
     fun String.tilReferanseTypeMottaker(): ReferanseTypeMottaker? =
         runCatching { ReferanseTypeMottaker.valueOf(this.uppercase()) }.getOrNull()
-    fun String.tilMottakerDokumentkontekst(): MottakerDokumentkontekst? =
-        runCatching { MottakerDokumentkontekst.valueOf(this.uppercase()) }.getOrNull()
+    fun String.tilBrevtypeForMottaker(): DokumentFormaal? =
+        runCatching { DokumentFormaal.valueOf(this.uppercase()) }.getOrNull()
+            ?.takeIf { it == DokumentFormaal.VEDTAK || it == DokumentFormaal.FORHANDSVARSEL }
     route(MOTTAKER_PATH) {
         get("/{sakId}/{referanseType}/{referanseId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
@@ -43,9 +44,9 @@ internal fun Route.mottakerRoutes(
                         ?: return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseId")
 
                     val brevtypeParam = call.parameters["brevtype"]
-                    val brevtype = brevtypeParam?.tilMottakerDokumentkontekst()
+                    val brevtype = brevtypeParam?.tilBrevtypeForMottaker()
                         ?: if (brevtypeParam == null) {
-                            MottakerDokumentkontekst.VEDTAK
+                            DokumentFormaal.VEDTAK
                         } else {
                             return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig brevtype")
                         }

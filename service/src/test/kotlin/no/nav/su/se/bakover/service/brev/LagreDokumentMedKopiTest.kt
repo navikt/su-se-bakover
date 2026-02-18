@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.test.dokumentMedMetadataVedtak
@@ -49,7 +49,7 @@ internal class LagreDokumentMedKopiTest {
             argThat {
                 referanseType == ReferanseTypeMottaker.REVURDERING &&
                     this.referanseId == referanseId &&
-                    brevtype == MottakerDokumentkontekst.VEDTAK
+                    brevtype == DokumentFormaal.VEDTAK
             },
             eq(sakId),
             eq(tx),
@@ -88,7 +88,7 @@ internal class LagreDokumentMedKopiTest {
             argThat {
                 referanseType == ReferanseTypeMottaker.REVURDERING &&
                     this.referanseId == referanseId &&
-                    brevtype == MottakerDokumentkontekst.FORHANDSVARSEL
+                    brevtype == DokumentFormaal.FORHANDSVARSEL
             },
             eq(sakId),
             eq(tx),

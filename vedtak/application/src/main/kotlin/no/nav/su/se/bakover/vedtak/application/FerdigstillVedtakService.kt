@@ -7,13 +7,13 @@ import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
 import behandling.domain.Stønadsbehandling
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
@@ -201,7 +201,7 @@ class FerdigstillVedtakServiceImpl(
                         MottakerIdentifikator(
                             ReferanseTypeMottaker.REVURDERING,
                             referanseId = vedtak.behandling.id.value,
-                            brevtype = MottakerDokumentkontekst.VEDTAK,
+                            brevtype = DokumentFormaal.VEDTAK,
                         ),
                         vedtak.sakId,
                         transactionContext,

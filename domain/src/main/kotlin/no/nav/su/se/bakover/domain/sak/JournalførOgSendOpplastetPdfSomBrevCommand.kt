@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.sak
 
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
+import dokument.domain.DokumentFormaal
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -21,6 +22,12 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
     fun opprettDokumentMedMetadata(clock: Clock): Dokument.MedMetadata {
         // TODO - enkel løsning, men det er ikke ønskelig at domenet skal forholde seg til json
         val generertDokumentJson = createJson()
+        val dokumentFormaal = when (this.distribusjonstype) {
+            Distribusjonstype.VEDTAK -> DokumentFormaal.VEDTAK
+            Distribusjonstype.VIKTIG, // TODO: formålet her er uvisst eller kan vi dedusere det fra noe annet i req? nope
+            Distribusjonstype.ANNET,
+            -> DokumentFormaal.ANNET
+        }
 
         return when (this.distribusjonstype) {
             Distribusjonstype.VEDTAK -> Dokument.MedMetadata.Vedtak(
@@ -30,6 +37,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     tittel = journaltittel,
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
+                    dokumentFormaal = dokumentFormaal,
                 ),
                 metadata = Dokument.Metadata(sakId = this.sakId), // Dette er dust for da kan jeg ikke vite hvilket dokument
                 distribueringsadresse = this.distribueringsadresse,
@@ -42,6 +50,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     tittel = journaltittel,
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
+                    dokumentFormaal = dokumentFormaal,
                 ),
                 metadata = Dokument.Metadata(sakId = this.sakId),
                 distribueringsadresse = this.distribueringsadresse,
@@ -54,6 +63,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     tittel = journaltittel,
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
+                    dokumentFormaal = dokumentFormaal,
                 ),
                 metadata = Dokument.Metadata(sakId = this.sakId),
                 distribueringsadresse = this.distribueringsadresse,

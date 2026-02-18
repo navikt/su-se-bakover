@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.mottaker
 
 import arrow.core.right
+import dokument.domain.DokumentFormaal
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
-import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
@@ -88,6 +88,29 @@ internal class MottakerRouteTest {
     }
 
     @Test
+    fun `get feiler nar brevtype er annet`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerService = mock<MottakerService>()
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services().copy(mottakerService = mottakerService),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Get,
+                uri = "/mottaker/$sakId/REVURDERING/$referanseId?brevtype=ANNET",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ).status shouldBe HttpStatusCode.BadRequest
+        }
+
+        verifyNoInteractions(mottakerService)
+    }
+
+    @Test
     fun `lagre krever saksbehandler`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -107,7 +130,7 @@ internal class MottakerRouteTest {
                     sakId = sakId,
                     referanseId = referanseId,
                     referanseType = ReferanseTypeMottaker.REVURDERING,
-                    brevtype = MottakerDokumentkontekst.VEDTAK,
+                    brevtype = DokumentFormaal.VEDTAK,
                 ).right()
         }
 
@@ -268,7 +291,7 @@ internal class MottakerRouteTest {
         val request = MottakerIdentifikator(
             referanseType = ReferanseTypeMottaker.REVURDERING,
             referanseId = referanseId,
-            brevtype = MottakerDokumentkontekst.VEDTAK,
+            brevtype = DokumentFormaal.VEDTAK,
         )
         val mottakerService = mock<MottakerService> {
             on { slettMottaker(any(), any()) } doReturn Unit.right()
@@ -348,7 +371,7 @@ internal class MottakerRouteTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.name,
-            brevtype = MottakerDokumentkontekst.VEDTAK.name,
+            brevtype = DokumentFormaal.VEDTAK.name,
         )
     }
 
@@ -367,7 +390,7 @@ internal class MottakerRouteTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.name,
-            brevtype = MottakerDokumentkontekst.VEDTAK.name,
+            brevtype = DokumentFormaal.VEDTAK.name,
         )
     }
 }
