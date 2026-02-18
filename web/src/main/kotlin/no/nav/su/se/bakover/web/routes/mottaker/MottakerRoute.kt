@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.mottaker
 
 import arrow.core.getOrElse
-import dokument.domain.DokumentFormaal
+import dokument.domain.Brevtype
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -28,9 +28,9 @@ internal fun Route.mottakerRoutes(
 ) {
     fun String.tilReferanseTypeMottaker(): ReferanseTypeMottaker? =
         runCatching { ReferanseTypeMottaker.valueOf(this.uppercase()) }.getOrNull()
-    fun String.tilBrevtypeForMottaker(): DokumentFormaal? =
-        runCatching { DokumentFormaal.valueOf(this.uppercase()) }.getOrNull()
-            ?.takeIf { it == DokumentFormaal.VEDTAK || it == DokumentFormaal.FORHANDSVARSEL }
+    fun String.tilBrevtypeForMottaker(): Brevtype? =
+        Brevtype.fraString(this)
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL }
     route(MOTTAKER_PATH) {
         get("/{sakId}/{referanseType}/{referanseId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
@@ -43,13 +43,8 @@ internal fun Route.mottakerRoutes(
                         ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                         ?: return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende referanseId")
 
-                    val brevtypeParam = call.parameters["brevtype"]
-                    val brevtype = brevtypeParam?.tilBrevtypeForMottaker()
-                        ?: if (brevtypeParam == null) {
-                            DokumentFormaal.VEDTAK
-                        } else {
-                            return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig brevtype")
-                        }
+                    val brevtype = call.parameters["brevtype"]?.tilBrevtypeForMottaker()
+                        ?: return@withSakId call.respond(HttpStatusCode.BadRequest, "Ugyldig eller manglende brevtype")
 
                     val mottaker = mottakerService.hentMottaker(
                         MottakerIdentifikator(referanseType, referanseId, brevtype),

@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.DokumentFormaal
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumenttilstand
 import dokument.domain.KunneIkkeLageDokument
@@ -654,7 +654,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = sak.id,
                 referanseId = innvilgetTilAttestering.id.value,
                 referanseType = ReferanseTypeMottaker.SØKNAD,
-                brevtype = DokumentFormaal.VEDTAK,
+                brevtype = Brevtype.VEDTAK,
             )
 
             val serviceAndMocks = ServiceAndMocks(

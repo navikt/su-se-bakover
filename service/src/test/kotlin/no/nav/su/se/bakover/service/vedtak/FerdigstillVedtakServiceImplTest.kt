@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.DokumentFormaal
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
@@ -278,7 +278,7 @@ internal class FerdigstillVedtakServiceImplTest {
             sakId = sak.id,
             referanseId = vedtak.behandling.id.value,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = DokumentFormaal.VEDTAK,
+            brevtype = Brevtype.VEDTAK,
         )
 
         FerdigstillVedtakServiceMocks(
@@ -344,7 +344,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat {
                     it.referanseType shouldBe ReferanseTypeMottaker.REVURDERING
                     it.referanseId shouldBe vedtak.behandling.id.value
-                    it.brevtype shouldBe DokumentFormaal.VEDTAK
+                    it.brevtype shouldBe Brevtype.VEDTAK
                 },
                 argThat { it shouldBe sak.id },
                 eq(TestSessionFactory.transactionContext),

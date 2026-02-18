@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.getOrElse
+import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
-import dokument.domain.DokumentFormaal
 import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -89,7 +89,7 @@ class ForhåndsvarselKomponentTest {
                     ),
                     referanseId = revurderingId,
                     referanseType = ReferanseTypeMottaker.REVURDERING.name,
-                    brevtype = DokumentFormaal.FORHANDSVARSEL.name,
+                    brevtype = Brevtype.FORHANDSVARSEL.name,
                 ),
                 sakId = UUID.fromString(sakid),
             ).getOrElse {
@@ -139,7 +139,7 @@ class ForhåndsvarselKomponentTest {
                     ),
                     referanseId = revurderingId,
                     referanseType = ReferanseTypeMottaker.REVURDERING.name,
-                    brevtype = DokumentFormaal.FORHANDSVARSEL.name,
+                    brevtype = Brevtype.FORHANDSVARSEL.name,
                 ),
                 sakId = UUID.fromString(sakid),
             ).getOrElse {

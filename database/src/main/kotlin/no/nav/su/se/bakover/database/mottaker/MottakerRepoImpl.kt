@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.mottaker
 
-import dokument.domain.DokumentFormaal
+import dokument.domain.Brevtype
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -171,8 +171,8 @@ data class MottakerRepoImpl(
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
                 brevtype = row.stringOrNull("brevtype")
-                    ?.let { DokumentFormaal.valueOf(it) }
-                    ?: DokumentFormaal.VEDTAK,
+                    ?.let { Brevtype.valueOf(it) }
+                    ?: Brevtype.VEDTAK,
             )
 
             orgnr != null -> MottakerOrgnummerDomain(
@@ -184,8 +184,8 @@ data class MottakerRepoImpl(
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
                 brevtype = row.stringOrNull("brevtype")
-                    ?.let { DokumentFormaal.valueOf(it) }
-                    ?: DokumentFormaal.VEDTAK,
+                    ?.let { Brevtype.valueOf(it) }
+                    ?: Brevtype.VEDTAK,
             )
 
             else -> error(

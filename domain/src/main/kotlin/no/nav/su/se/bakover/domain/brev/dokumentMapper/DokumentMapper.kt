@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.dokumentMapper
 
+import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
-import dokument.domain.DokumentFormaal
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
 import dokument.domain.pdf.PdfInnhold
@@ -38,7 +38,7 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
-            dokumentFormaal = DokumentFormaal.VEDTAK,
+            brevtype = Brevtype.VEDTAK,
         )
 
         is ForhåndsvarselDokumentCommand,
@@ -49,12 +49,12 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
-            dokumentFormaal = when (command) {
+            brevtype = when (command) {
                 is ForhåndsvarselDokumentCommand,
                 is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
-                -> DokumentFormaal.FORHANDSVARSEL
+                -> Brevtype.FORHANDSVARSEL
 
-                else -> DokumentFormaal.ANNET
+                else -> Brevtype.ANNET
             },
         )
 
@@ -65,7 +65,7 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
-            dokumentFormaal = DokumentFormaal.ANNET,
+            brevtype = Brevtype.ANNET,
         )
 
         is FritekstDokumentCommand -> {
@@ -74,21 +74,21 @@ fun PdfA.tilDokument(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
-                    dokumentFormaal = DokumentFormaal.VEDTAK,
+                    brevtype = Brevtype.VEDTAK,
                 )
 
                 Distribusjonstype.VIKTIG -> informasjonViktig(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
-                    dokumentFormaal = DokumentFormaal.ANNET,
+                    brevtype = Brevtype.ANNET,
                 )
 
                 Distribusjonstype.ANNET -> informasjonAnnet(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
-                    dokumentFormaal = DokumentFormaal.ANNET,
+                    brevtype = Brevtype.ANNET,
                 )
             }
         }
@@ -98,21 +98,21 @@ fun PdfA.tilDokument(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
-                dokumentFormaal = DokumentFormaal.ANNET,
+                brevtype = Brevtype.ANNET,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
-                dokumentFormaal = DokumentFormaal.VEDTAK,
+                brevtype = Brevtype.VEDTAK,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst -> vedtak(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
-                dokumentFormaal = DokumentFormaal.VEDTAK,
+                brevtype = Brevtype.VEDTAK,
             )
         }
 
@@ -124,40 +124,40 @@ private fun PdfA.vedtak(
     id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
-    dokumentFormaal: DokumentFormaal?,
+    brevtype: Brevtype?,
 ) = Dokument.UtenMetadata.Vedtak(
     id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
-    dokumentFormaal = dokumentFormaal,
+    brevtype = brevtype,
 )
 
 private fun PdfA.informasjonViktig(
     id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
-    dokumentFormaal: DokumentFormaal?,
+    brevtype: Brevtype?,
 ) = Dokument.UtenMetadata.Informasjon.Viktig(
     id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
-    dokumentFormaal = dokumentFormaal,
+    brevtype = brevtype,
 )
 
 private fun PdfA.informasjonAnnet(
     id: UUID = UUID.randomUUID(),
     clock: Clock,
     pdfInnhold: PdfInnhold,
-    dokumentFormaal: DokumentFormaal?,
+    brevtype: Brevtype?,
 ) = Dokument.UtenMetadata.Informasjon.Annet(
     id = id,
     opprettet = Tidspunkt.now(clock),
     tittel = pdfInnhold.pdfTemplate.tittel(),
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
-    dokumentFormaal = dokumentFormaal,
+    brevtype = brevtype,
 )

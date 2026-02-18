@@ -6,8 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
 import behandling.domain.Stønadsbehandling
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.DokumentFormaal
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -201,7 +201,7 @@ class FerdigstillVedtakServiceImpl(
                         MottakerIdentifikator(
                             ReferanseTypeMottaker.REVURDERING,
                             referanseId = vedtak.behandling.id.value,
-                            brevtype = DokumentFormaal.VEDTAK,
+                            brevtype = Brevtype.VEDTAK,
                         ),
                         vedtak.sakId,
                         transactionContext,

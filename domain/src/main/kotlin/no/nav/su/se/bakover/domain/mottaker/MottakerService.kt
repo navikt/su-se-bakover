@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.DokumentFormaal
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -32,14 +32,14 @@ interface MottakerService {
 }
 
 private val tillatteBrevtyperForMottaker = setOf(
-    DokumentFormaal.VEDTAK,
-    DokumentFormaal.FORHANDSVARSEL,
+    Brevtype.VEDTAK,
+    Brevtype.FORHANDSVARSEL,
 )
 
-private fun DokumentFormaal.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
+private fun Brevtype.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
 
-private fun String.tilBrevtypeForMottaker(): DokumentFormaal? =
-    runCatching { DokumentFormaal.valueOf(this.uppercase()) }.getOrNull()
+private fun String.tilBrevtypeForMottaker(): Brevtype? =
+    Brevtype.fraString(this)
         ?.takeIf { it.erTillattForMottaker() }
 
 private fun ugyldigBrevtypeMelding(brevtype: String): String =
@@ -61,7 +61,7 @@ class MottakerServiceImpl(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     private fun erGyldigBrevtype(
-        brevtype: DokumentFormaal,
+        brevtype: Brevtype,
     ): Boolean = brevtype.erTillattForMottaker()
 
     /**
@@ -94,23 +94,23 @@ class MottakerServiceImpl(
 
             ReferanseTypeMottaker.REVURDERING ->
                 when (mottaker.brevtype) {
-                    DokumentFormaal.VEDTAK ->
+                    Brevtype.VEDTAK ->
                         !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
 
-                    DokumentFormaal.FORHANDSVARSEL ->
+                    Brevtype.FORHANDSVARSEL ->
                         dokumentRepo.hentForRevurdering(mottaker.referanseId).none {
-                            it.dokumentFormaal == DokumentFormaal.FORHANDSVARSEL
+                            it.brevtype == Brevtype.FORHANDSVARSEL
                         }
 
-                    DokumentFormaal.ANNET -> false
+                    Brevtype.ANNET -> false
                 }
 
             /*ReferanseTypeMottaker.TILBAKEKREVING ->
                 when (mottaker.brevtype) {
                     // Tilbakekrevingsvedtak har fortsatt dokumenthendelsesløp og kan ikke valideres presist her ennå.
-                    DokumentFormaal.VEDTAK -> true
+                    Brevtype.VEDTAK -> true
 
-                    DokumentFormaal.FORHANDSVARSEL ->
+                    Brevtype.FORHANDSVARSEL ->
                         dokumentRepo.hentForSak(mottaker.sakId).none {
                             it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
                                 it is Dokument.MedMetadata.Informasjon.Viktig
@@ -182,10 +182,10 @@ class MottakerServiceImpl(
                 ReferanseTypeMottaker.REVURDERING ->
                     dokumentRepo.hentForRevurdering(mottaker.referanseId).filter { dokument ->
                         when (mottaker.brevtype) {
-                            DokumentFormaal.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
-                            DokumentFormaal.FORHANDSVARSEL ->
-                                dokument.dokumentFormaal == DokumentFormaal.FORHANDSVARSEL
-                            DokumentFormaal.ANNET -> false
+                            Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
+                            Brevtype.FORHANDSVARSEL ->
+                                dokument.brevtype == Brevtype.FORHANDSVARSEL
+                            Brevtype.ANNET -> false
                         }
                     }
 
@@ -195,8 +195,8 @@ class MottakerServiceImpl(
                     dokumentRepo.hentForSak(mottaker.sakId).filter { dokument ->
                         dokument.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
                             when (mottaker.brevtype) {
-                                DokumentFormaal.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
-                                DokumentFormaal.FORHANDSVARSEL -> dokument is Dokument.MedMetadata.Informasjon.Viktig
+                                Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
+                                Brevtype.FORHANDSVARSEL -> dokument is Dokument.MedMetadata.Informasjon.Viktig
                             }
                     }
 
@@ -437,7 +437,7 @@ data class LagreMottaker(
 class MottakerIdentifikator(
     val referanseType: ReferanseTypeMottaker,
     val referanseId: UUID,
-    val brevtype: DokumentFormaal,
+    val brevtype: Brevtype,
 )
 
 sealed interface MottakerDomain {
@@ -447,7 +447,7 @@ sealed interface MottakerDomain {
     val sakId: UUID
     val referanseId: UUID
     val referanseType: ReferanseTypeMottaker
-    val brevtype: DokumentFormaal
+    val brevtype: Brevtype
 }
 
 data class MottakerOrgnummerDomain(
@@ -457,7 +457,7 @@ data class MottakerOrgnummerDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
-    override val brevtype: DokumentFormaal,
+    override val brevtype: Brevtype,
     val orgnummer: String,
 ) : MottakerDomain
 
@@ -468,7 +468,7 @@ data class MottakerFnrDomain(
     override val sakId: UUID,
     override val referanseId: UUID,
     override val referanseType: ReferanseTypeMottaker,
-    override val brevtype: DokumentFormaal,
+    override val brevtype: Brevtype,
     val foedselsnummer: Fnr,
 ) : MottakerDomain
 

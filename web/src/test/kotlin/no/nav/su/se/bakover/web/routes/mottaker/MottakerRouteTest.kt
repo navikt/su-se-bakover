@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.mottaker
 
 import arrow.core.right
-import dokument.domain.DokumentFormaal
+import dokument.domain.Brevtype
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -111,6 +111,29 @@ internal class MottakerRouteTest {
     }
 
     @Test
+    fun `get feiler nar brevtype mangler`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerService = mock<MottakerService>()
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services().copy(mottakerService = mottakerService),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Get,
+                uri = "/mottaker/$sakId/REVURDERING/$referanseId",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ).status shouldBe HttpStatusCode.BadRequest
+        }
+
+        verifyNoInteractions(mottakerService)
+    }
+
+    @Test
     fun `lagre krever saksbehandler`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -130,7 +153,7 @@ internal class MottakerRouteTest {
                     sakId = sakId,
                     referanseId = referanseId,
                     referanseType = ReferanseTypeMottaker.REVURDERING,
-                    brevtype = DokumentFormaal.VEDTAK,
+                    brevtype = Brevtype.VEDTAK,
                 ).right()
         }
 
@@ -291,7 +314,7 @@ internal class MottakerRouteTest {
         val request = MottakerIdentifikator(
             referanseType = ReferanseTypeMottaker.REVURDERING,
             referanseId = referanseId,
-            brevtype = DokumentFormaal.VEDTAK,
+            brevtype = Brevtype.VEDTAK,
         )
         val mottakerService = mock<MottakerService> {
             on { slettMottaker(any(), any()) } doReturn Unit.right()
@@ -371,7 +394,7 @@ internal class MottakerRouteTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.name,
-            brevtype = DokumentFormaal.VEDTAK.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
     }
 
@@ -390,7 +413,7 @@ internal class MottakerRouteTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.name,
-            brevtype = DokumentFormaal.VEDTAK.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
     }
 }
