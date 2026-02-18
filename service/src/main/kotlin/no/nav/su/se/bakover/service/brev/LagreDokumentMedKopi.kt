@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.getOrElse
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
+import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.mottaker.MottakerDokumentkontekst
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
@@ -12,6 +13,12 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import java.util.UUID
+
+private data class MottakerKopiData(
+    val identifikator: String,
+    val navn: String,
+    val adresse: Distribueringsadresse,
+)
 
 fun lagreVedtaksbrevMedKopi(
     brevService: BrevService,
@@ -70,39 +77,53 @@ private fun <D : Dokument.MedMetadata> lagreDokumentMedKopiInternal(
         }
     }
 
+    fun hentMottakerKopiData(): MottakerKopiData? {
+        val mottaker = hentMottaker() ?: return null
+        return MottakerKopiData(
+            identifikator = identifikatorForMottaker(mottaker),
+            navn = mottaker.navn,
+            adresse = mottaker.adresse,
+        )
+    }
+
+    fun <T : Dokument.MedMetadata> opprettKopiHvisMottakerFinnes(
+        dokument: T,
+        lagKopi: T.(MottakerKopiData) -> T,
+    ): T? {
+        return hentMottakerKopiData()?.let { dokument.lagKopi(it) }
+    }
+
+    fun Dokument.MedMetadata.Vedtak.kopiForMottaker(mottaker: MottakerKopiData): Dokument.MedMetadata.Vedtak {
+        return copy(
+            id = UUID.randomUUID(),
+            tittel = tittel + "(KOPI)",
+            erKopi = true,
+            ekstraMottaker = mottaker.identifikator,
+            navnEkstraMottaker = mottaker.navn,
+            distribueringsadresse = mottaker.adresse,
+        )
+    }
+
+    fun Dokument.MedMetadata.Informasjon.Viktig.kopiForMottaker(
+        mottaker: MottakerKopiData,
+    ): Dokument.MedMetadata.Informasjon.Viktig {
+        return copy(
+            id = UUID.randomUUID(),
+            tittel = tittel + "(KOPI)",
+            erKopi = true,
+            ekstraMottaker = mottaker.identifikator,
+            navnEkstraMottaker = mottaker.navn,
+            distribueringsadresse = mottaker.adresse,
+        )
+    }
+
     val kopi =
         when (dokument) {
-            is Dokument.MedMetadata.Vedtak -> {
-                val mottaker = hentMottaker()
-                if (mottaker == null) {
-                    null
-                } else {
-                    dokument.copy(
-                        id = UUID.randomUUID(),
-                        tittel = dokument.tittel + "(KOPI)",
-                        erKopi = true,
-                        ekstraMottaker = identifikatorForMottaker(mottaker),
-                        navnEkstraMottaker = mottaker.navn,
-                        distribueringsadresse = mottaker.adresse,
-                    )
-                }
-            }
+            is Dokument.MedMetadata.Vedtak ->
+                opprettKopiHvisMottakerFinnes(dokument, Dokument.MedMetadata.Vedtak::kopiForMottaker)
 
-            is Dokument.MedMetadata.Informasjon.Viktig -> {
-                val mottaker = hentMottaker()
-                if (mottaker == null) {
-                    null
-                } else {
-                    dokument.copy(
-                        id = UUID.randomUUID(),
-                        tittel = dokument.tittel + "(KOPI)",
-                        erKopi = true,
-                        ekstraMottaker = identifikatorForMottaker(mottaker),
-                        navnEkstraMottaker = mottaker.navn,
-                        distribueringsadresse = mottaker.adresse,
-                    )
-                }
-            }
+            is Dokument.MedMetadata.Informasjon.Viktig ->
+                opprettKopiHvisMottakerFinnes(dokument, Dokument.MedMetadata.Informasjon.Viktig::kopiForMottaker)
 
             is Dokument.MedMetadata.Informasjon.Annet -> null
         }

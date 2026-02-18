@@ -90,7 +90,7 @@ class MottakerServiceImpl(
                         }
                 }
 
-            ReferanseTypeMottaker.TILBAKEKREVING ->
+            /*ReferanseTypeMottaker.TILBAKEKREVING ->
                 when (mottaker.brevtype) {
                     // Tilbakekrevingsvedtak har fortsatt dokumenthendelsesløp og kan ikke valideres presist her ennå.
                     MottakerDokumentkontekst.VEDTAK -> true
@@ -104,6 +104,8 @@ class MottakerServiceImpl(
 
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
+
+             */
         }
     }
 
@@ -163,7 +165,9 @@ class MottakerServiceImpl(
                         }
                     }
 
-                ReferanseTypeMottaker.TILBAKEKREVING ->
+                /*ReferanseTypeMottaker.TILBAKEKREVING ->
+
+
                     dokumentRepo.hentForSak(mottaker.sakId).filter { dokument ->
                         dokument.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
                             when (mottaker.brevtype) {
@@ -174,6 +178,8 @@ class MottakerServiceImpl(
 
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId)
+
+                 */
             }
             if (dokument.isNotEmpty()) {
                 log.info("Kan ikke slette mottaker da det finnes et brev for referansen")
@@ -443,6 +449,6 @@ data class MottakerFnrDomain(
 enum class ReferanseTypeMottaker {
     SØKNAD,
     REVURDERING,
-    TILBAKEKREVING,
-    KLAGE, // special case
+    // TILBAKEKREVING,
+    // KLAGE
 }

@@ -406,7 +406,7 @@ internal class MottakerServiceTest {
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
-    @Test
+/*    @Test
     fun `Kan ikke lagre mottaker for klage nar dokument finnes`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -443,7 +443,7 @@ internal class MottakerServiceTest {
         verify(dokumentRepo).hentForKlage(referanseId)
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
-    }
+    }*/
 
     @Test
     fun `Kan lagre mottaker for revurdering selvom brev av annen type enn vedtak finnes på revurderingen`() {
@@ -792,7 +792,7 @@ internal class MottakerServiceTest {
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
-    @Test
+    /*@Test
     fun `Kan ikke lagre mottaker for tilbakekreving forhandsvarsel nar forhandsvarselbrev allerede finnes`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -887,4 +887,6 @@ internal class MottakerServiceTest {
         verify(mottakerRepo, times(0)).slettMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
+
+     */
 }
