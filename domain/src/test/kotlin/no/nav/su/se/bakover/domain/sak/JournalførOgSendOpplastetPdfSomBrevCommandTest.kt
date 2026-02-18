@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.sak
 
+import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.distribuering.Distribueringsadresse
@@ -37,6 +38,7 @@ class JournalførOgSendOpplastetPdfSomBrevCommandTest {
                         generertDokument = vedtaksCommand.pdf,
                         //language=json
                         generertDokumentJson = """{"saksbehandler":"saksbehandler","journaltittel":"tittel på journalposten","distribueringsadresse":{"adresselinje1":"Gondor","adresselinje2":"calls","adresselinje3":"for","postnummer":"aid","poststed":"And Rohan will answer"},"distribusjonstype":"VEDTAK","kommentar":"Pdf er lastet opp manuelt. Innholdet i brevet er ukjent"}""",
+                        brevtype = Brevtype.VEDTAK,
                     ),
                     metadata = Dokument.Metadata(sakId = vedtaksCommand.sakId),
                     distribueringsadresse = vedtaksCommand.distribueringsadresse,
@@ -55,6 +57,7 @@ class JournalførOgSendOpplastetPdfSomBrevCommandTest {
                     generertDokument = viktigCommand.pdf,
                     //language=json
                     generertDokumentJson = """{"saksbehandler":"saksbehandler","journaltittel":"tittel på journalposten","distribueringsadresse":null,"distribusjonstype":"VIKTIG","kommentar":"Pdf er lastet opp manuelt. Innholdet i brevet er ukjent"}""",
+                    brevtype = Brevtype.ANNET,
                 ),
                 metadata = Dokument.Metadata(sakId = viktigCommand.sakId),
                 distribueringsadresse = viktigCommand.distribueringsadresse,
@@ -71,6 +74,7 @@ class JournalførOgSendOpplastetPdfSomBrevCommandTest {
                     generertDokument = annetCommand.pdf,
                     //language=json
                     generertDokumentJson = """{"saksbehandler":"saksbehandler","journaltittel":"tittel på journalposten","distribueringsadresse":null,"distribusjonstype":"ANNET","kommentar":"Pdf er lastet opp manuelt. Innholdet i brevet er ukjent"}""",
+                    brevtype = Brevtype.ANNET,
                 ),
                 metadata = Dokument.Metadata(sakId = annetCommand.sakId),
                 distribueringsadresse = annetCommand.distribueringsadresse,
