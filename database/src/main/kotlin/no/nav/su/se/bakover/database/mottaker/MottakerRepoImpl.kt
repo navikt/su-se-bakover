@@ -160,6 +160,11 @@ data class MottakerRepoImpl(
     private fun rowToMottaker(row: Row): MottakerDomain {
         val fnr = row.stringOrNull("foedselsnummer")
         val orgnr = row.stringOrNull("orgnummer")
+        val brevtypeRaw = row.stringOrNull("brevtype")
+            ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} mangler brevtype")
+        val brevtype = Brevtype.fraString(brevtypeRaw)
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL }
+            ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} har ugyldig brevtype=$brevtypeRaw")
 
         return when {
             fnr != null -> MottakerFnrDomain(
@@ -170,9 +175,7 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
-                brevtype = row.stringOrNull("brevtype")
-                    ?.let { Brevtype.valueOf(it) }
-                    ?: Brevtype.VEDTAK,
+                brevtype = brevtype,
             )
 
             orgnr != null -> MottakerOrgnummerDomain(
@@ -183,9 +186,7 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
-                brevtype = row.stringOrNull("brevtype")
-                    ?.let { Brevtype.valueOf(it) }
-                    ?: Brevtype.VEDTAK,
+                brevtype = brevtype,
             )
 
             else -> error(

@@ -356,8 +356,7 @@ class DokumentPostgresRepo(
     private fun Row.toDokumentMedStatus(): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
         val brevtype =
-            stringOrNull("brevtype")?.let { Brevtype.valueOf(it) }
-                ?: stringOrNull("dokument_formaal")?.let { Brevtype.valueOf(it) }
+            stringOrNull("brevtype")?.let { Brevtype.fraString(it) }
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
         val innhold = PdfA(bytes("generertDokument"))
