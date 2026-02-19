@@ -87,4 +87,69 @@ internal class JournalførBrevHttpClientTest {
             },
         )
     }
+
+    @Test
+    fun `kan journalfore informasjon viktig med ekstra mottaker`() {
+        val mock = mock<JournalførHttpClient> {
+            on { opprettJournalpost(any()) } doReturn JournalpostId("1").right()
+        }
+        val client = JournalførBrevHttpClient(mock)
+        val fnr = Fnr.generer()
+        val ekstraMottaker = Fnr.generer()
+        val metadata = Dokument.Metadata(
+            sakId = UUID.randomUUID(),
+            revurderingId = UUID.randomUUID(),
+        )
+        val dokumentId = UUID.randomUUID()
+        val generertDokumentJson = "{}"
+        client.journalførBrev(
+            JournalførBrevCommand(
+                saksnummer = saksnummer,
+                sakstype = Sakstype.UFØRE,
+                dokument = Dokument.MedMetadata.Informasjon.Viktig(
+                    id = dokumentId,
+                    opprettet = fixedTidspunkt,
+                    tittel = "tittel",
+                    generertDokument = minimumPdfAzeroPadded(),
+                    generertDokumentJson = generertDokumentJson,
+                    metadata = metadata,
+                    distribueringsadresse = null,
+                    ekstraMottaker = ekstraMottaker.toString(),
+                    navnEkstraMottaker = "Ekstra Mottaker",
+                ),
+                fnr = fnr,
+            ),
+        ) shouldBe JournalpostId("1").right()
+
+        verify(mock).opprettJournalpost(
+            argThat {
+                it shouldBe JournalførJsonRequest(
+                    tittel = "tittel",
+                    journalpostType = JournalPostType.UTGAAENDE,
+                    tema = "SUP",
+                    kanal = null,
+                    behandlingstema = "ab0431",
+                    journalfoerendeEnhet = "4815",
+                    avsenderMottaker = AvsenderMottakerFnr(
+                        id = ekstraMottaker.toString(),
+                        navn = "Ekstra Mottaker",
+                    ),
+                    bruker = Bruker(id = fnr.toString()),
+                    sak = Fagsak(saksnummer.toString()),
+                    dokumenter = listOf(
+                        JournalpostDokument(
+                            tittel = "tittel",
+                            brevkode = "XX.YY-ZZ",
+                            dokumentvarianter = listOf(
+                                DokumentVariant.ArkivPDF(Base64.getEncoder().encodeToString(minimumPdfAzeroPadded().getContent())),
+                                DokumentVariant.OriginalJson(Base64.getEncoder().encodeToString(generertDokumentJson.toByteArray())),
+                            ),
+                        ),
+                    ),
+                    datoDokument = fixedTidspunkt,
+                    eksternReferanseId = dokumentId.toString(),
+                )
+            },
+        )
+    }
 }

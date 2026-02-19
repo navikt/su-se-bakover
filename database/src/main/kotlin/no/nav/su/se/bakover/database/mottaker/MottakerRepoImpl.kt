@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.mottaker
 
+import dokument.domain.Brevtype
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.mottaker.BrevtypeMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
@@ -160,6 +160,11 @@ data class MottakerRepoImpl(
     private fun rowToMottaker(row: Row): MottakerDomain {
         val fnr = row.stringOrNull("foedselsnummer")
         val orgnr = row.stringOrNull("orgnummer")
+        val brevtypeRaw = row.stringOrNull("brevtype")
+            ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} mangler brevtype")
+        val brevtype = Brevtype.fraString(brevtypeRaw)
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL }
+            ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} har ugyldig brevtype=$brevtypeRaw")
 
         return when {
             fnr != null -> MottakerFnrDomain(
@@ -170,9 +175,7 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
-                brevtype = row.stringOrNull("brevtype")
-                    ?.let { BrevtypeMottaker.valueOf(it) }
-                    ?: BrevtypeMottaker.VEDTAKSBREV,
+                brevtype = brevtype,
             )
 
             orgnr != null -> MottakerOrgnummerDomain(
@@ -183,9 +186,7 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
-                brevtype = row.stringOrNull("brevtype")
-                    ?.let { BrevtypeMottaker.valueOf(it) }
-                    ?: BrevtypeMottaker.VEDTAKSBREV,
+                brevtype = brevtype,
             )
 
             else -> error(

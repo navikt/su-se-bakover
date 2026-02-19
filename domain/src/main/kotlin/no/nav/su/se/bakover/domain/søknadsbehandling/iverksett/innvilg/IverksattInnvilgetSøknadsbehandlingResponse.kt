@@ -31,7 +31,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
     override val vedtak: VedtakInnvilgetSøknadsbehandling,
     val statistikk: Nel<StatistikkEvent>,
     val utbetaling: Utbetaling.SimulertUtbetaling,
-    val dokument: Dokument.MedMetadata,
+    val dokument: Dokument.MedMetadata.Vedtak,
     val clock: Clock,
 ) : IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Innvilget> {
 
@@ -47,7 +47,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
         statistikkObservers: List<StatistikkEventObserver>,
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
         // disse er kun i bruk for avslag, men den må være med hvis vi ikke skal trekke domenelogikk ut i domenet. På sikt bør disse gjøres asynkront.
-        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,

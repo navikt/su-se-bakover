@@ -61,18 +61,28 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
                 clock = clock,
             ).let { vedtak ->
                 val dokument = if (vedtak.skalGenerereDokumentVedFerdigstillelse()) {
-                    genererPdf(vedtak.behandling.lagDokumentKommando(satsFactory, clock, fritekst))
+                    val dokumentUtenMetadata = genererPdf(vedtak.behandling.lagDokumentKommando(satsFactory, clock, fritekst))
                         .getOrElse { return KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeGenerereDokument(it).left() }
-                        .leggTilMetadata(
-                            Dokument.Metadata(
-                                sakId = vedtak.behandling.sakId,
-                                søknadId = null,
-                                vedtakId = vedtak.id,
-                                revurderingId = null,
-                            ),
-                            // SOS: vi bruker dokdist sin adresse for fnr på journalposten
-                            distribueringsadresse = null,
-                        )
+
+                    when (dokumentUtenMetadata) {
+                        is Dokument.UtenMetadata.Vedtak -> {
+                            dokumentUtenMetadata.leggTilMetadata(
+                                Dokument.Metadata(
+                                    sakId = vedtak.behandling.sakId,
+                                    søknadId = null,
+                                    vedtakId = vedtak.id,
+                                    revurderingId = null,
+                                ),
+                                // SOS: vi bruker dokdist sin adresse for fnr på journalposten
+                                distribueringsadresse = null,
+                            )
+                        }
+                        is Dokument.UtenMetadata.Informasjon -> {
+                            return KunneIkkeIverksetteRevurdering.Saksfeil.KunneIkkeGenerereDokument(
+                                KunneIkkeLageDokument.FeilVedGenereringAvPdf,
+                            ).left()
+                        }
+                    }
                 } else {
                     null
                 }

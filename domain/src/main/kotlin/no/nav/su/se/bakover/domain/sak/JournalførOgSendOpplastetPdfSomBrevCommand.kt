@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.sak
 
+import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.distribuering.Distribueringsadresse
@@ -21,6 +22,11 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
     fun opprettDokumentMedMetadata(clock: Clock): Dokument.MedMetadata {
         // TODO - enkel løsning, men det er ikke ønskelig at domenet skal forholde seg til json
         val generertDokumentJson = createJson()
+        val brevtype = when (this.distribusjonstype) {
+            Distribusjonstype.VEDTAK -> Brevtype.OPPLASTET_PDF_VEDTAK
+            Distribusjonstype.VIKTIG -> Brevtype.OPPLASTET_PDF_VIKTIG
+            Distribusjonstype.ANNET -> Brevtype.OPPLASTET_PDF_ANNET
+        }
 
         return when (this.distribusjonstype) {
             Distribusjonstype.VEDTAK -> Dokument.MedMetadata.Vedtak(
@@ -30,6 +36,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     tittel = journaltittel,
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
+                    brevtype = brevtype,
                 ),
                 metadata = Dokument.Metadata(sakId = this.sakId), // Dette er dust for da kan jeg ikke vite hvilket dokument
                 distribueringsadresse = this.distribueringsadresse,
@@ -42,6 +49,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     tittel = journaltittel,
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
+                    brevtype = brevtype,
                 ),
                 metadata = Dokument.Metadata(sakId = this.sakId),
                 distribueringsadresse = this.distribueringsadresse,
@@ -54,6 +62,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
                     tittel = journaltittel,
                     generertDokument = pdf,
                     generertDokumentJson = generertDokumentJson,
+                    brevtype = brevtype,
                 ),
                 metadata = Dokument.Metadata(sakId = this.sakId),
                 distribueringsadresse = this.distribueringsadresse,

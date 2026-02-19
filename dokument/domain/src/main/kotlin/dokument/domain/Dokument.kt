@@ -21,6 +21,7 @@ sealed interface Dokument {
 
     // Denne kommer kun fra generering av PDF uten metadata så den er ikke ferdig
     sealed interface UtenMetadata : Dokument {
+        val brevtype: Brevtype?
 
         fun leggTilMetadata(metadata: Metadata, distribueringsadresse: Distribueringsadresse?): MedMetadata
 
@@ -30,6 +31,7 @@ sealed interface Dokument {
             override val tittel: String,
             override val generertDokument: PdfA,
             override val generertDokumentJson: String,
+            override val brevtype: Brevtype? = null,
         ) : UtenMetadata {
             override fun leggTilMetadata(
                 metadata: Metadata,
@@ -59,6 +61,7 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
+                override val brevtype: Brevtype? = null,
             ) : Informasjon {
                 override fun leggTilMetadata(
                     metadata: Metadata,
@@ -74,6 +77,7 @@ sealed interface Dokument {
                 override val tittel: String,
                 override val generertDokument: PdfA,
                 override val generertDokumentJson: String,
+                override val brevtype: Brevtype? = null,
             ) : Informasjon {
                 override fun leggTilMetadata(
                     metadata: Metadata,
@@ -93,6 +97,10 @@ sealed interface Dokument {
         val metadata: Metadata
         val distribusjonstype: Distribusjonstype
         val distribusjonstidspunkt get() = Distribusjonstidspunkt.KJERNETID
+        val brevtype: Brevtype? get() = null
+        val erKopi: Boolean get() = false
+        val ekstraMottaker: String? get() = null // kan være fnr eller orgnummer
+        val navnEkstraMottaker: String? get() = null
 
         /**
          * Spesifisering av adressen som brevet skal sendes til. Hvis denne er lagt på, vil brevet alltid bli sendt ut av dokdist.
@@ -115,9 +123,10 @@ sealed interface Dokument {
             override val generertDokumentJson: String,
             override val distribueringsadresse: Distribueringsadresse?,
             override val metadata: Metadata,
-            val erKopi: Boolean = false,
-            val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
-            val navnEkstraMottaker: String? = null,
+            override val brevtype: Brevtype? = null,
+            override val erKopi: Boolean = false,
+            override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
+            override val navnEkstraMottaker: String? = null,
         ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
 
@@ -133,6 +142,7 @@ sealed interface Dokument {
                 generertDokumentJson = utenMetadata.generertDokumentJson,
                 distribueringsadresse = distribueringsadresse,
                 metadata = metadata,
+                brevtype = utenMetadata.brevtype,
             )
         }
 
@@ -148,6 +158,10 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
+                override val brevtype: Brevtype? = null,
+                override val erKopi: Boolean = false,
+                override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
+                override val navnEkstraMottaker: String? = null,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.VIKTIG
 
@@ -163,6 +177,7 @@ sealed interface Dokument {
                     generertDokumentJson = utenMetadata.generertDokumentJson,
                     distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
+                    brevtype = utenMetadata.brevtype,
                 )
             }
 
@@ -174,6 +189,7 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
+                override val brevtype: Brevtype? = null,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.ANNET
 
@@ -189,6 +205,7 @@ sealed interface Dokument {
                     generertDokumentJson = utenMetadata.generertDokumentJson,
                     distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
+                    brevtype = utenMetadata.brevtype,
                 )
             }
         }
@@ -209,9 +226,7 @@ sealed interface Dokument {
         val revurderingId: UUID? = null,
         val klageId: UUID? = null,
         val tilbakekrevingsbehandlingId: UUID? = null,
-        // TODO jah: Sjekk hvorfor vi ikke bruker JournalpostId her
         val journalpostId: String? = null,
-        // TODO jah: Sjekk hvorfor vi ikke bruker BrevbestillingId her
         val brevbestillingId: String? = null,
     )
 }

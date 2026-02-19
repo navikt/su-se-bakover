@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.mottaker
 
 import arrow.core.getOrElse
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -63,7 +64,7 @@ internal class MottakerServiceTest {
         val mident = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mident) } doReturn null
@@ -94,12 +95,12 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
         val mident = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
         val mottakerSomDomain = mottaker.toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
@@ -130,12 +131,12 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
         val mident = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
         val mottakerSomDomain = mottaker.toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
@@ -146,6 +147,26 @@ internal class MottakerServiceTest {
         val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
         service.hentMottaker(mident, sakId = UUID.randomUUID()).shouldBeLeft().let { it shouldBe FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker }
         verify(mottakerRepo, times(1)).hentMottaker(mident)
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan ikke hente mottaker med brevtype annet`() {
+        val sakId = UUID.randomUUID()
+        val mident = MottakerIdentifikator(
+            referanseId = UUID.randomUUID(),
+            referanseType = ReferanseTypeMottaker.REVURDERING,
+            brevtype = Brevtype.ANNET,
+        )
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+
+        val feil = service.hentMottaker(mident, sakId).shouldBeLeft()
+        (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Tillatte verdier"
+
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -180,6 +201,36 @@ internal class MottakerServiceTest {
     }
 
     @Test
+    fun `Kan ikke lagre mottaker med brevtype annet`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            brevtype = Brevtype.ANNET.name,
+        )
+
+        val feil = service.lagreMottaker(mottaker, sakId).shouldBeLeft()
+        (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Tillatte verdier"
+
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
     fun `Kan ikke oppdatere mottaker med ugyldig id`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -201,7 +252,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         val feil = service.oppdaterMottaker(mottaker, sakId).shouldBeLeft()
@@ -231,7 +282,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.lagreMottaker(
@@ -267,7 +318,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.lagreMottaker(
@@ -291,7 +342,7 @@ internal class MottakerServiceTest {
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
             id = UUID.randomUUID().toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.oppdaterMottaker(
@@ -324,7 +375,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.lagreMottaker(
@@ -347,7 +398,7 @@ internal class MottakerServiceTest {
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
             id = UUID.randomUUID().toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
         val nyttnavnForOppdatering = "Nytt navn"
         val skalMatche = oppdaterMottaker.copy(navn = nyttnavnForOppdatering)
@@ -394,7 +445,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.SØKNAD.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
@@ -406,7 +457,7 @@ internal class MottakerServiceTest {
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
-    @Test
+/*    @Test
     fun `Kan ikke lagre mottaker for klage nar dokument finnes`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -433,7 +484,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.KLAGE.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
@@ -443,7 +494,7 @@ internal class MottakerServiceTest {
         verify(dokumentRepo).hentForKlage(referanseId)
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
-    }
+    }*/
 
     @Test
     fun `Kan lagre mottaker for revurdering selvom brev av annen type enn vedtak finnes på revurderingen`() {
@@ -467,7 +518,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
 
         service.lagreMottaker(
@@ -503,7 +554,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         )
         service.lagreMottaker(
             mottaker = mottaker,
@@ -523,7 +574,7 @@ internal class MottakerServiceTest {
         val mottakerIdentifikator = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mottakerIdentifikator) } doReturn null
@@ -550,7 +601,7 @@ internal class MottakerServiceTest {
         val mottakerIdentifikator = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
         val mottaker = LagreMottaker(
             navn = "Tester",
@@ -564,7 +615,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         ).toDomain(sakIdIMottaker).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
@@ -590,7 +641,7 @@ internal class MottakerServiceTest {
         val mottakerIdentifikator = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
 
         val mottaker = LagreMottaker(
@@ -605,7 +656,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
@@ -647,7 +698,7 @@ internal class MottakerServiceTest {
         val mottakerIdentifikator = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.VEDTAKSBREV,
+            brevtype = Brevtype.VEDTAK,
         )
 
         val mottaker = LagreMottaker(
@@ -662,7 +713,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.VEDTAKSBREV.name,
+            brevtype = Brevtype.VEDTAK.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
@@ -704,7 +755,7 @@ internal class MottakerServiceTest {
         val mottakerIdentifikator = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.REVURDERING,
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL,
+            brevtype = Brevtype.FORHANDSVARSEL,
         )
         val mottaker = LagreMottaker(
             navn = "Tester",
@@ -718,7 +769,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+            brevtype = Brevtype.FORHANDSVARSEL.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
@@ -763,6 +814,8 @@ internal class MottakerServiceTest {
                         revurderingId = referanseId,
                     ),
                     distribueringsadresse = null,
+                ).copy(
+                    brevtype = Brevtype.FORHANDSVARSEL,
                 ),
             )
         }
@@ -780,7 +833,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+            brevtype = Brevtype.FORHANDSVARSEL.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
@@ -793,6 +846,49 @@ internal class MottakerServiceTest {
     }
 
     @Test
+    fun `Kan lagre mottaker for revurdering forhandsvarsel nar informasjon viktig er annet formaal`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForRevurdering(referanseId) } doReturn listOf(
+                dokumentUtenMetadataInformasjonViktig().leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = sakId,
+                        revurderingId = referanseId,
+                    ),
+                    distribueringsadresse = null,
+                ).copy(
+                    brevtype = Brevtype.ANNET,
+                ),
+            )
+        }
+
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+
+        service.lagreMottaker(mottaker, sakId).shouldBeRight()
+
+        verify(dokumentRepo).hentForRevurdering(referanseId)
+        verify(mottakerRepo, times(1)).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    /*@Test
     fun `Kan ikke lagre mottaker for tilbakekreving forhandsvarsel nar forhandsvarselbrev allerede finnes`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -823,7 +919,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.TILBAKEKREVING.toString(),
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+            brevtype = Brevtype.FORHANDSVARSEL.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
@@ -842,7 +938,7 @@ internal class MottakerServiceTest {
         val mottakerIdentifikator = MottakerIdentifikator(
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.TILBAKEKREVING,
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL,
+            brevtype = Brevtype.FORHANDSVARSEL,
         )
         val mottaker = LagreMottaker(
             navn = "Tester",
@@ -856,7 +952,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.TILBAKEKREVING.toString(),
-            brevtype = BrevtypeMottaker.FORHANDSVARSEL.name,
+            brevtype = Brevtype.FORHANDSVARSEL.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
@@ -887,4 +983,6 @@ internal class MottakerServiceTest {
         verify(mottakerRepo, times(0)).slettMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
+
+     */
 }

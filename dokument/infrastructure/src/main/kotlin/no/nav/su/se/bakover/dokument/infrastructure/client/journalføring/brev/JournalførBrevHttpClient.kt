@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev
 
 import arrow.core.Either
-import dokument.domain.Dokument
+import dokument.domain.Dokument.MedMetadata
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -21,24 +21,18 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBru
 
 internal object MottakerPolicy {
     fun bestemMottaker(
-        dokument: Dokument,
+        dokument: MedMetadata,
         søkerFnr: Fnr,
     ): Avsender =
-        when (dokument) {
-            is Dokument.MedMetadata.Vedtak ->
-                dokument.ekstraMottaker
-                    ?.let { ident ->
-                        if (Fnr.tryCreate(ident) != null) {
-                            AvsenderMottakerFnr(ident, dokument.navnEkstraMottaker)
-                        } else {
-                            AvsenderMottakerOrgnr(ident, dokument.navnEkstraMottaker)
-                        }
-                    }
-                    ?: AvsenderMottakerFnr(søkerFnr.toString(), dokument.navnEkstraMottaker)
-
-            else ->
-                AvsenderMottakerFnr(søkerFnr.toString())
-        }
+        dokument.ekstraMottaker
+            ?.let { ident ->
+                if (Fnr.tryCreate(ident) != null) {
+                    AvsenderMottakerFnr(ident, dokument.navnEkstraMottaker)
+                } else {
+                    AvsenderMottakerOrgnr(ident, dokument.navnEkstraMottaker)
+                }
+            }
+            ?: AvsenderMottakerFnr(søkerFnr.toString(), dokument.navnEkstraMottaker)
 }
 
 internal class JournalførBrevHttpClient(private val client: JournalførHttpClient) : JournalførBrevClient {
