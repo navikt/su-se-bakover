@@ -28,7 +28,7 @@ sealed interface KunneIkkeRegulereManuelt {
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
     data object ReguleringHarUtdatertePeriode : KunneIkkeRegulereManuelt
     data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
-    data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt
+    data class KunneIkkeFerdigstille(val feil: KunneIkkeBehandleRegulering) : KunneIkkeRegulereManuelt
 }
 
 sealed interface KunneIkkeAvslutte {

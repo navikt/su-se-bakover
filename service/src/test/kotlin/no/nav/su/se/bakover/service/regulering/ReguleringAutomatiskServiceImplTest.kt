@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
@@ -175,7 +175,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
 
@@ -272,7 +272,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
         }
 
@@ -300,7 +300,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2023), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
-                it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                     .left()
             }
         }
@@ -474,8 +474,8 @@ internal class ReguleringAutomatiskServiceImplTest {
 
         reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
             it.size shouldBe 1
-            it.first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere,
+            it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
+                KunneIkkeBehandleRegulering.KunneIkkeSimulere,
             ).left()
         }
     }
@@ -524,6 +524,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 startDatoRegulering = mai(2021),
                 supplement = Reguleringssupplement.empty(fixedClock),
                 dryRunNyttGrunnbeløp = null,
+                lagreManuelle = false,
             ),
         )
 
@@ -593,6 +594,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     omregningsfaktor = BigDecimal(1.049807),
                     grunnbeløp = 106399,
                 ),
+                lagreManuelle = false,
             ),
         )
 

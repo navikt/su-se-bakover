@@ -87,7 +87,7 @@ import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -1377,7 +1377,7 @@ open class AccessCheckProxy(
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
                     supplement: Reguleringssupplement,
-                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
                     return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, supplement)
                 }
 

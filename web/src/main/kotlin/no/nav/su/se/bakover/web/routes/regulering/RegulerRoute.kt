@@ -287,6 +287,7 @@ internal fun Route.reguler(
                             var ikrafttredelse = ""
                             var grunnbeløp = ""
                             var omregningsfaktor = ""
+                            var lagreManuelle = ""
 
                             parts.forEachPart {
                                 when (it) {
@@ -300,6 +301,7 @@ internal fun Route.reguler(
                                             "gjeldendeSatsFra" -> gjeldendeSatsFra = it.value
                                             "grunnbeløp" -> grunnbeløp = it.value
                                             "omregningsfaktor" -> omregningsfaktor = it.value
+                                            "lagreManuelle" -> lagreManuelle = it.value
 
                                             else -> Feilresponser.ukjentMultipartFormDataField
                                         }
@@ -345,6 +347,7 @@ internal fun Route.reguler(
                                 gjeldendeSatsFra = LocalDate.parse(gjeldendeSatsFra),
                                 dryRunNyttGrunnbeløp = dryRunNyttGrunnbeløp,
                                 supplement = supplement,
+                                lagreManuelle = lagreManuelle.toBoolean(),
                             )
 
                             launch {
