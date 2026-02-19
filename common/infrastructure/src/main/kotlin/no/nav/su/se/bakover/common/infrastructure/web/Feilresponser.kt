@@ -18,6 +18,16 @@ data object Feilresponser {
         "fant_ikke_sak",
     )
 
+    val fantIkkeTilbakekrevingsbehandling = NotFound.errorJson(
+        "Fant ikke tilbakekreving",
+        "fant_ikke_tilbakekreving",
+    )
+
+    val manglerFritekstTilbakekreving = NotFound.errorJson(
+        "Mangler fritekst for tilbakekreving",
+        "mangler_fritekst_tilbakekreving",
+    )
+
     val fantIkkeVedtak = NotFound.errorJson(
         "Fant ikke vedtak",
         "fant_ikke_vedtak",

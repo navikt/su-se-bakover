@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -43,6 +45,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val fritekstService: FritekstService,
 ) : Hendelseskonsument {
 
     override val konsumentId = HendelseskonsumentId("GenererVedtaksbrevTilbakekrevingKonsument")
@@ -139,6 +142,11 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
     ): Either<KunneIkkeLageDokument, Pair<GenerertDokumentHendelse, HendelseFil>> {
+        val fritekst = fritekstService.hentFritekst(
+            referanseId = behandling.id.value,
+            type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+        ).map { it.fritekst }.getOrElse { "" }
+
         val command = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
             fødselsnummer = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
@@ -147,7 +155,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             sakId = sakInfo.sakId,
             saksbehandler = behandling.forrigeSteg.sendtTilAttesteringAv,
             attestant = iverksattHendelse.utførtAv,
-            fritekst = (behandling.vedtaksbrevvalg as Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.MedFritekst).fritekst,
+            fritekst = fritekst,
             vurderingerMedKrav = behandling.vurderingerMedKrav,
             skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
         )
