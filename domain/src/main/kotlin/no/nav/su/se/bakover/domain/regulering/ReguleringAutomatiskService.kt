@@ -5,25 +5,26 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
-sealed interface KunneIkkeOppretteRegulering {
-    data object FantIkkeSak : KunneIkkeOppretteRegulering
-    data object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering
+sealed interface KunneIkkeRegulereAutomatisk {
+    data object FantIkkeSak : KunneIkkeRegulereAutomatisk
+    data object FørerIkkeTilEnEndring : KunneIkkeRegulereAutomatisk
+
     data class KunneIkkeHenteEllerOppretteRegulering(
         val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering,
-    ) : KunneIkkeOppretteRegulering
+    ) : KunneIkkeRegulereAutomatisk
 
-    data class KunneIkkeRegulereAutomatisk(
-        val feil: KunneIkkeFerdigstilleOgIverksette,
-    ) : KunneIkkeOppretteRegulering
+    data class KunneIkkeBehandleAutomatisk(
+        val feil: KunneIkkeBehandleRegulering,
+    ) : KunneIkkeRegulereAutomatisk
 
-    data object UkjentFeil : KunneIkkeOppretteRegulering
+    data object UkjentFeil : KunneIkkeRegulereAutomatisk
 }
 
 interface ReguleringAutomatiskService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
         supplement: Reguleringssupplement,
-    ): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+    ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>>
 
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,

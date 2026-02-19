@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
@@ -51,7 +51,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean,
-    ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
+    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
         val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
             return it.left()
         }
@@ -70,7 +70,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         clock: Clock,
-    ): Either<KunneIkkeFerdigstilleOgIverksette, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
+    ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregn(
             satsFactory = satsFactory,
             begrunnelse = null,
@@ -81,7 +81,7 @@ class ReguleringServiceImpl(
                 "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
                 kunneikkeBeregne.feil,
             )
-            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne.left()
+            return KunneIkkeBehandleRegulering.KunneIkkeBeregne.left()
         }
         val simulertUtbetaling = simulerReguleringOgUtbetaling(
             regulering,
@@ -89,7 +89,7 @@ class ReguleringServiceImpl(
             beregning,
         ).getOrElse {
             log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
-            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere.left()
+            return KunneIkkeBehandleRegulering.KunneIkkeSimulere.left()
         }
         return Pair(regulering.tilBeregnet(beregning, simulertUtbetaling.simulering), simulertUtbetaling).right()
     }
@@ -167,7 +167,7 @@ class ReguleringServiceImpl(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
         sessionContext: TransactionContext?,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
+    ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
         return Either.catch {
             sessionFactory.withTransactionContext(sessionContext) { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
@@ -207,9 +207,9 @@ class ReguleringServiceImpl(
                 it,
             )
             if (it is IverksettTransactionException) {
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(it.feil)
+                KunneIkkeBehandleRegulering.KunneIkkeUtbetale(it.feil)
             } else {
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(
+                KunneIkkeBehandleRegulering.KunneIkkeUtbetale(
                     KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it),
                 )
             }

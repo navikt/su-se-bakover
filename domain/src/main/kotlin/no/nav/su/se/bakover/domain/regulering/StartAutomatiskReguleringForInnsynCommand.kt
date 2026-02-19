@@ -33,6 +33,7 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val dryRunNyttGrunnbeløp: DryRunNyttGrunnbeløp?,
     val supplement: Reguleringssupplement,
     val overrideableGrunnbeløpsendringer: NonEmptyList<Grunnbeløpsendring> = grunnbeløpsendringer,
+    val lagreManuelle: Boolean = false,
 ) {
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(
