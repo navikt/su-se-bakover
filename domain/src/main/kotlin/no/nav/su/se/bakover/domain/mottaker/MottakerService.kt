@@ -102,7 +102,7 @@ class MottakerServiceImpl(
                             it.brevtype == Brevtype.FORHANDSVARSEL
                         }
 
-                    Brevtype.ANNET -> false
+                    else -> false
                 }
 
             /*ReferanseTypeMottaker.TILBAKEKREVING ->
@@ -185,7 +185,7 @@ class MottakerServiceImpl(
                             Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
                             Brevtype.FORHANDSVARSEL ->
                                 dokument.brevtype == Brevtype.FORHANDSVARSEL
-                            Brevtype.ANNET -> false
+                            else -> false
                         }
                     }
 

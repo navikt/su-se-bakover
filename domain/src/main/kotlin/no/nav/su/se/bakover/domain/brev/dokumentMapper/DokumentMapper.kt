@@ -54,6 +54,9 @@ fun PdfA.tilDokument(
                 is ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
                 -> Brevtype.FORHANDSVARSEL
 
+                is InnkallingTilKontrollsamtaleDokumentCommand -> Brevtype.INNKALLING_KONTROLLSAMTALE
+                is PåminnelseNyStønadsperiodeDokumentCommand -> Brevtype.PÅMINNELSE_NY_STØNADSPERIODE
+
                 else -> Brevtype.ANNET
             },
         )
@@ -65,7 +68,12 @@ fun PdfA.tilDokument(
             id = id,
             clock = clock,
             pdfInnhold = pdfInnhold,
-            brevtype = Brevtype.ANNET,
+            brevtype = when (command) {
+                is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> Brevtype.KLAGE
+                is AvsluttRevurderingDokumentCommand -> Brevtype.REVURDERING_AVSLUTTET
+                is TrukketSøknadDokumentCommand -> Brevtype.SØKNAD_TRUKKET
+                else -> Brevtype.ANNET
+            },
         )
 
         is FritekstDokumentCommand -> {
@@ -74,21 +82,21 @@ fun PdfA.tilDokument(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
-                    brevtype = Brevtype.VEDTAK,
+                    brevtype = Brevtype.FRITEKST_VEDTAK,
                 )
 
                 Distribusjonstype.VIKTIG -> informasjonViktig(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
-                    brevtype = Brevtype.ANNET,
+                    brevtype = Brevtype.FRITEKST_VIKTIG,
                 )
 
                 Distribusjonstype.ANNET -> informasjonAnnet(
                     id = id,
                     clock = clock,
                     pdfInnhold = pdfInnhold,
-                    brevtype = Brevtype.ANNET,
+                    brevtype = Brevtype.FRITEKST_ANNET,
                 )
             }
         }
@@ -98,7 +106,7 @@ fun PdfA.tilDokument(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
-                brevtype = Brevtype.ANNET,
+                brevtype = Brevtype.AVVIST_SØKNAD,
             )
 
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev.UtenFritekst -> vedtak(
@@ -112,7 +120,7 @@ fun PdfA.tilDokument(
                 id = id,
                 clock = clock,
                 pdfInnhold = pdfInnhold,
-                brevtype = Brevtype.VEDTAK,
+                brevtype = Brevtype.FRITEKST_VEDTAK,
             )
         }
 

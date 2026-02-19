@@ -89,6 +89,7 @@ class DokumentPostgresRepo(
                             "generertDokument" to dokument.generertDokument.getContent(),
                             // Dette er allerede gyldig json lagret som en String.
                             "generertDokumentJson" to dokument.generertDokumentJson,
+                            // Type er bare distribusjonstype
                             "type" to when (dokument) {
                                 is Dokument.MedMetadata.Informasjon.Viktig -> DokumentKategori.INFORMASJON_VIKTIG
                                 is Dokument.MedMetadata.Informasjon.Annet -> DokumentKategori.INFORMASJON_ANNET
@@ -440,6 +441,7 @@ class DokumentPostgresRepo(
         }
     }
 
+    // Wrapper for distribusjonstype se [Distribusjonstype]
     private enum class DokumentKategori {
         INFORMASJON_VIKTIG,
         INFORMASJON_ANNET,

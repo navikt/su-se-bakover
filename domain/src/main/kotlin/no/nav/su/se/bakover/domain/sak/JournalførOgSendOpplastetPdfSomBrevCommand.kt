@@ -23,10 +23,9 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
         // TODO - enkel løsning, men det er ikke ønskelig at domenet skal forholde seg til json
         val generertDokumentJson = createJson()
         val brevtype = when (this.distribusjonstype) {
-            Distribusjonstype.VEDTAK -> Brevtype.VEDTAK
-            Distribusjonstype.VIKTIG, // TODO: formålet her er uvisst eller kan vi dedusere det fra noe annet i req? nope
-            Distribusjonstype.ANNET,
-            -> Brevtype.ANNET
+            Distribusjonstype.VEDTAK -> Brevtype.OPPLASTET_PDF_VEDTAK
+            Distribusjonstype.VIKTIG -> Brevtype.OPPLASTET_PDF_VIKTIG
+            Distribusjonstype.ANNET -> Brevtype.OPPLASTET_PDF_ANNET
         }
 
         return when (this.distribusjonstype) {
