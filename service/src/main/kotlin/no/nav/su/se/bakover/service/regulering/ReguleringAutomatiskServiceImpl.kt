@@ -80,10 +80,7 @@ class ReguleringAutomatiskServiceImpl(
                 satsFactory = factory,
                 supplement = command.supplement,
                 omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
-                testRun = ReguleringTestRun(
-                    isLiveRun = false,
-                    lagreManuelle = command.lagreManuelle,
-                ),
+                testRun = ReguleringTestRun(command.lagreManuelle),
             )
         }.onLeft {
             log.error(
@@ -103,7 +100,7 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         supplement: Reguleringssupplement,
         omregningsfaktor: BigDecimal,
-        testRun: ReguleringTestRun = ReguleringTestRun(isLiveRun = true),
+        testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
         return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Regulering for saksnummer $saksnummer: Starter")
@@ -132,7 +129,7 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         supplement: Reguleringssupplement,
         omregningsfaktor: BigDecimal,
-        testRun: ReguleringTestRun,
+        testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, Regulering> {
         val sak = this
 
@@ -163,12 +160,12 @@ class ReguleringAutomatiskServiceImpl(
             return KunneIkkeRegulereAutomatisk.FørerIkkeTilEnEndring.left()
         }
 
-        if (testRun.isLiveRun || testRun.lagreManuelleSelvOmIkkeLive(regulering)) {
+        if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
             reguleringRepo.lagre(regulering)
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, testRun.isLiveRun)
+            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil) }
         } else {
@@ -345,8 +342,7 @@ class ReguleringAutomatiskServiceImpl(
 * Konfigurasjon av automatisk regulering for å kunne teste på ulike måter.
 */
 private data class ReguleringTestRun(
-    val isLiveRun: Boolean,
-    val lagreManuelle: Boolean = isLiveRun,
+    val lagreManuelle: Boolean = false,
 ) {
     /*
      * Det kan være ønskelig å få opprettet manuelle reguleringer uten å faktisk innføre et nytt grunnbeløp i systemet.
@@ -354,6 +350,6 @@ private data class ReguleringTestRun(
      * Selve reguleringen vil benytte eksisterende beløp etter den er opprettet men behovet er først og fremst å få
      * den manuelle reguleringen opprettet for å teste flyt ikke beregning.
      */
-    fun lagreManuelleSelvOmIkkeLive(regulering: Regulering) =
+    fun lagreManuelleUnderDryRun(regulering: Regulering) =
         ApplicationConfig.isNotProd() && lagreManuelle && regulering.reguleringstype is Reguleringstype.MANUELL
 }
