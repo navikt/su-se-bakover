@@ -344,14 +344,14 @@ class ReguleringAutomatiskServiceImpl(
 /*
 * Konfigurasjon av automatisk regulering for å kunne teste på ulike måter.
 */
-data class ReguleringTestRun(
+private data class ReguleringTestRun(
     val isLiveRun: Boolean,
     val lagreManuelle: Boolean = isLiveRun,
 ) {
     /*
      * Det kan være ønskelig å få opprettet manuelle reguleringer uten å faktisk innføre et nytt grunnbeløp i systemet.
      * Da kan dry run med kunstig grunnbeløp benyttes med valget om å lagre manuelle reguleringer.
-     * Selve reguleringen vil benytte eksisterende beløper etter den er opprettet men behovet er først og fremst å få
+     * Selve reguleringen vil benytte eksisterende beløp etter den er opprettet men behovet er først og fremst å få
      * den manuelle reguleringen opprettet for å teste flyt ikke beregning.
      */
     fun lagreManuelleSelvOmIkkeLive(regulering: Regulering) =
