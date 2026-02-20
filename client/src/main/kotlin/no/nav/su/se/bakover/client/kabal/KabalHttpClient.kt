@@ -94,7 +94,7 @@ class KabalHttpClient(
                 log.error("Feil ved oversendelse til Kabal/KA: Ukjent feil", throwable)
                 sikkerLogg.error("Feil ved oversendelse til Kabal/KA: Ukjent feil. requestBody=$requestBody", throwable)
             }
-            KunneIkkeOversendeTilKlageinstans
+            return KunneIkkeOversendeTilKlageinstans.left()
         }.flatten()
     }
 }

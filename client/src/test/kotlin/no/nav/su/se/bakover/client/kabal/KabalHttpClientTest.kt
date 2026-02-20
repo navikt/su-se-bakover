@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -129,6 +130,56 @@ internal class KabalHttpClientTest {
 
             JSONAssert.assertEquals(expectedRequest, actualRequest, true)
         }
+    }
+
+    @Test
+    fun `Token error case`() {
+        val oathMock = mock<AzureAd> {
+            on { getSystemToken(any()) } doThrow RuntimeException("boom")
+        }
+
+        val client = KabalHttpClient(
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                clientId = "kabalClientId",
+                url = "http://localhost:9999",
+            ),
+            exchange = oathMock,
+        )
+
+        client.sendTilKlageinstans(
+            klage = klage,
+            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
+        ) shouldBe KunneIkkeOversendeTilKlageinstans.left()
+
+        verify(oathMock).getSystemToken(
+            otherAppId = argThat { it shouldBe "kabalClientId" },
+        )
+        verifyNoMoreInteractions(oathMock)
+    }
+
+    @Test
+    fun `Unknown exception case`() {
+        val oathMock = mock<AzureAd> {
+            on { getSystemToken(any()) } doReturn "token"
+        }
+
+        val client = KabalHttpClient(
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                clientId = "kabalClientId",
+                url = "http://[",
+            ),
+            exchange = oathMock,
+        )
+
+        client.sendTilKlageinstans(
+            klage = klage,
+            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
+        ) shouldBe KunneIkkeOversendeTilKlageinstans.left()
+
+        verify(oathMock).getSystemToken(
+            otherAppId = argThat { it shouldBe "kabalClientId" },
+        )
+        verifyNoMoreInteractions(oathMock)
     }
 
     @Test
