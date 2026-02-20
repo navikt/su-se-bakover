@@ -164,7 +164,8 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
             if (
                 call.shouldLogCall() &&
                 call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null &&
-                !cause.isLikelyClientAbort()
+                !cause.isLikelyClientAbort() &&
+                !cause.isHandledAndMappedToNonServerError()
             ) {
                 call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
                 val directBufferStats = getDirectBufferStats()
@@ -256,6 +257,17 @@ private fun Application.setupKtorExceptionHandling(
                 call.svar(Feilresponser.ukjentFeil)
             }
         }
+    }
+}
+
+private fun Throwable.isHandledAndMappedToNonServerError(): Boolean {
+    return when (this) {
+        is Tilgangssjekkfeil ->
+            this.feil is KunneIkkeHentePerson.FantIkkePerson ||
+                this.feil is KunneIkkeHentePerson.IkkeTilgangTilPerson
+        is UgyldigFnrException -> true
+        is DateTimeParseException -> true
+        else -> false
     }
 }
 

@@ -12,10 +12,13 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.slf4j.LoggerFactory
+import person.domain.KunneIkkeHentePerson
 
 // LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
 @Execution(value = ExecutionMode.SAME_THREAD)
@@ -80,6 +83,80 @@ class WebSetupLoggingTest {
                 .map { it.formattedMessage }
 
             errorMessages.filter { it.contains("5xx response: GET /test/status-500 status=500") }
+                .size shouldBe 1
+        } finally {
+            detachTestAppender(appender, loggers)
+        }
+    }
+
+    @Test
+    fun `should not log call failed for tilgangssjekkfeil`() {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val loggers = attachTestAppender(appender)
+
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    routing {
+                        get("/test/tilgangssjekkfeil") {
+                            throw Tilgangssjekkfeil(
+                                feil = KunneIkkeHentePerson.FantIkkePerson,
+                                fnr = Fnr("12345678910"),
+                            )
+                        }
+                    }
+                }
+
+                val response = client.get("/test/tilgangssjekkfeil")
+                response.status shouldBe HttpStatusCode.NotFound
+            }
+
+            val errorMessages = appender.list
+                .filter { it.level == Level.ERROR }
+                .map { it.formattedMessage }
+            val warnMessages = appender.list
+                .filter { it.level == Level.WARN }
+                .map { it.formattedMessage }
+
+            errorMessages.filter { it.contains("Call failed method=GET path=/test/tilgangssjekkfeil") }
+                .shouldContainExactly(emptyList())
+
+            warnMessages.filter { it.contains("[Tilgangssjekk] Fant ikke person") }
+                .size shouldBe 1
+        } finally {
+            detachTestAppender(appender, loggers)
+        }
+    }
+
+    @Test
+    fun `should log call failed for tilgangssjekkfeil ukjent`() {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val loggers = attachTestAppender(appender)
+
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    routing {
+                        get("/test/tilgangssjekkfeil-ukjent") {
+                            throw Tilgangssjekkfeil(
+                                feil = KunneIkkeHentePerson.Ukjent,
+                                fnr = Fnr("12345678910"),
+                            )
+                        }
+                    }
+                }
+
+                val response = client.get("/test/tilgangssjekkfeil-ukjent")
+                response.status shouldBe HttpStatusCode.InternalServerError
+            }
+
+            val errorMessages = appender.list
+                .filter { it.level == Level.ERROR }
+                .map { it.formattedMessage }
+
+            errorMessages.filter { it.contains("Call failed method=GET path=/test/tilgangssjekkfeil-ukjent") }
                 .size shouldBe 1
         } finally {
             detachTestAppender(appender, loggers)
