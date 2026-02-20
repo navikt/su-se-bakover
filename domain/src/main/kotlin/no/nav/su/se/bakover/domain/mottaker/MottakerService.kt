@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Brevtype
-import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -34,6 +33,7 @@ interface MottakerService {
 private val tillatteBrevtyperForMottaker = setOf(
     Brevtype.VEDTAK,
     Brevtype.FORHANDSVARSEL,
+    Brevtype.KLAGE,
 )
 
 private fun Brevtype.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
@@ -105,22 +105,8 @@ class MottakerServiceImpl(
                     else -> false
                 }
 
-            /*ReferanseTypeMottaker.TILBAKEKREVING ->
-                when (mottaker.brevtype) {
-                    // Tilbakekrevingsvedtak har fortsatt dokumenthendelsesløp og kan ikke valideres presist her ennå.
-                    Brevtype.VEDTAK -> true
-
-                    Brevtype.FORHANDSVARSEL ->
-                        dokumentRepo.hentForSak(mottaker.sakId).none {
-                            it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
-                                it is Dokument.MedMetadata.Informasjon.Viktig
-                        }
-                }
-
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
-
-             */
         }
     }
 
@@ -174,7 +160,6 @@ class MottakerServiceImpl(
             if (mottaker.sakId != sakId) {
                 return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
             }
-            // Kun revurderinger kan ha flere brev registrert på seg av andre typer. Fant bare [INFORMASJON_VIKTIG] -> [Dokument.MedMetadata.Informasjon.Viktig] med duplikater for revurderinger i prod
             val dokument = when (mottaker.referanseType) {
                 ReferanseTypeMottaker.SØKNAD ->
                     dokumentRepo.hentForSøknad(mottaker.referanseId)
@@ -182,29 +167,18 @@ class MottakerServiceImpl(
                 ReferanseTypeMottaker.REVURDERING ->
                     dokumentRepo.hentForRevurdering(mottaker.referanseId).filter { dokument ->
                         when (mottaker.brevtype) {
-                            Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
+                            Brevtype.VEDTAK -> dokument.brevtype == Brevtype.VEDTAK
                             Brevtype.FORHANDSVARSEL ->
                                 dokument.brevtype == Brevtype.FORHANDSVARSEL
+                            Brevtype.KLAGE -> dokument.brevtype == Brevtype.KLAGE
                             else -> false
                         }
                     }
 
-                /*ReferanseTypeMottaker.TILBAKEKREVING ->
-
-
-                    dokumentRepo.hentForSak(mottaker.sakId).filter { dokument ->
-                        dokument.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
-                            when (mottaker.brevtype) {
-                                Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
-                                Brevtype.FORHANDSVARSEL -> dokument is Dokument.MedMetadata.Informasjon.Viktig
-                            }
-                    }
-
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId)
-
-                 */
             }
+
             if (dokument.isNotEmpty()) {
                 log.info("Kan ikke slette mottaker da det finnes et brev for referansen")
                 return FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
@@ -475,6 +449,7 @@ data class MottakerFnrDomain(
 enum class ReferanseTypeMottaker {
     SØKNAD,
     REVURDERING,
+
     // TILBAKEKREVING,
-    // KLAGE
+    KLAGE,
 }

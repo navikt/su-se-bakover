@@ -30,7 +30,7 @@ internal fun Route.mottakerRoutes(
         runCatching { ReferanseTypeMottaker.valueOf(this.uppercase()) }.getOrNull()
     fun String.tilBrevtypeForMottaker(): Brevtype? =
         Brevtype.fraString(this)
-            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL }
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL || it == Brevtype.KLAGE }
     route(MOTTAKER_PATH) {
         get("/{sakId}/{referanseType}/{referanseId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
