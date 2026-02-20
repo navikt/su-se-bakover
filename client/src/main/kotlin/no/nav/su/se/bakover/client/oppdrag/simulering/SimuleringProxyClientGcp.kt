@@ -95,12 +95,19 @@ class SimuleringProxyClientGcp(
             failure = {
                 val feil = when (response.statusCode) {
                     500 -> {
-                        log.error("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage}")
+                        log.warn("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage}")
                         try {
                             val dto = jacksonObjectMapper()
                                 .readValue(response.data, SimuleringErrorDto::class.java)
                             val mappetFeil = mapError(dto.code)
-                            log.error("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
+                            when (mappetFeil) {
+                                SimuleringFeilet.UtenforÅpningstid -> {
+                                    log.warn("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
+                                }
+                                else -> {
+                                    log.error("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage} feilkode: $mappetFeil")
+                                }
+                            }
                             mappetFeil
                         } catch (e: Exception) {
                             log.error(
