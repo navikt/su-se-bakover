@@ -78,11 +78,11 @@ class WebSetupLoggingTest {
                 response.status shouldBe HttpStatusCode.InternalServerError
             }
 
-            val errorMessages = appender.list
-                .filter { it.level == Level.ERROR }
+            val warnMessages = appender.list
+                .filter { it.level == Level.WARN }
                 .map { it.formattedMessage }
 
-            errorMessages.filter { it.contains("5xx response: GET /test/status-500 status=500") }
+            warnMessages.filter { it.contains("5xx response: GET /test/status-500 status=500") }
                 .size shouldBe 1
         } finally {
             detachTestAppender(appender, loggers)
