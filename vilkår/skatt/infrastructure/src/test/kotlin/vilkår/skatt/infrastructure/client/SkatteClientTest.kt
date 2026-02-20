@@ -200,6 +200,39 @@ internal class SkatteClientTest {
     }
 
     @Test
+    fun `401 med ikke-json body mapper til mangler rettigheter`() {
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                WireMock.post(WireMock.urlPathEqualTo("/api/v2/summertskattegrunnlag"))
+                    .willReturn(
+                        WireMock.aResponse()
+                            .withHeader("Content-Type", "text/html")
+                            .withStatus(401)
+                            .withResponseBody(
+                                Body("<html><body>Unauthorized</body></html>"),
+                            ),
+                    ),
+            )
+
+            val år = Year.of(2021)
+            client(baseUrl()).hentSamletSkattegrunnlag(
+                fnr = fnr,
+                år = år,
+            ) shouldBe SamletSkattegrunnlagForÅr(
+                utkast = SamletSkattegrunnlagForÅrOgStadie.Utkast(
+                    oppslag = KunneIkkeHenteSkattemelding.ManglerRettigheter.left(),
+                    inntektsår = år,
+                ),
+                oppgjør = SamletSkattegrunnlagForÅrOgStadie.Oppgjør(
+                    oppslag = KunneIkkeHenteSkattemelding.ManglerRettigheter.left(),
+                    inntektsår = år,
+                ),
+                år = år,
+            )
+        }
+    }
+
+    @Test
     fun `403 med ikke-json body mapper til mangler rettigheter`() {
         startedWireMockServerWithCorrelationId {
             stubFor(

@@ -132,7 +132,7 @@ internal fun håndterSigrunFeil(
 
         is SkatteoppslagFeil.UkjentFeil -> {
             when (statusCode) {
-                403 -> SkatteoppslagFeil.ManglerRettigheter.also {
+                401, 403 -> SkatteoppslagFeil.ManglerRettigheter.also {
                     // Vi forventer ikke se denne, så vi logger som error inntil den blir plagsom.
                     logError()
                 }
