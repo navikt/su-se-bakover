@@ -2,6 +2,7 @@ package dokument.domain.brev
 
 import arrow.core.Either
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -14,6 +15,7 @@ interface BrevService {
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
     fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata>
+    fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf>
 
     /** Krever transactionContext siden vi gjør 2 inserts. */
     fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext? = null)

@@ -5,6 +5,7 @@ import arrow.core.right
 import behandling.klage.domain.KlageId
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.FantIkkeDokument
@@ -279,6 +280,43 @@ internal class BrevServiceImplTest {
             val actual = it.brevService.hentDokument(dokumentId)
             actual shouldBe FantIkkeDokument.left()
             verify(it.dokumentRepo).hentDokument(argThat { it shouldBe dokumentId })
+            it.verifyNoMoreInteraction()
+        }
+    }
+
+    @Test
+    fun `henter dokument-pdf med id`() {
+        val dokumentId = UUID.randomUUID()
+        val pdf = DokumentPdf(
+            sakId = UUID.randomUUID(),
+            tittel = "tittel",
+            generertDokument = minimumPdfAzeroPadded(),
+        )
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumentPdf(any()) } doReturn pdf
+        }
+        ServiceOgMocks(
+            dokumentRepo = dokumentRepo,
+        ).let {
+            val actual = it.brevService.hentDokumentPdf(dokumentId)
+            actual shouldBe pdf.right()
+            verify(it.dokumentRepo).hentDokumentPdf(argThat { it shouldBe dokumentId })
+            it.verifyNoMoreInteraction()
+        }
+    }
+
+    @Test
+    fun `left dersom dokument-pdf med id ikke finnes`() {
+        val dokumentId = UUID.randomUUID()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentDokumentPdf(any()) } doReturn null
+        }
+        ServiceOgMocks(
+            dokumentRepo = dokumentRepo,
+        ).let {
+            val actual = it.brevService.hentDokumentPdf(dokumentId)
+            actual shouldBe FantIkkeDokument.left()
+            verify(it.dokumentRepo).hentDokumentPdf(argThat { it shouldBe dokumentId })
             it.verifyNoMoreInteraction()
         }
     }

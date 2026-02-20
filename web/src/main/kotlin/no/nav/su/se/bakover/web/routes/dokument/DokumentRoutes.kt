@@ -9,7 +9,9 @@ import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.journalføring.KunneIkkeHenteDokument
 import dokument.domain.journalføring.KunneIkkeHenteJournalpost
 import dokument.domain.journalføring.Utsendingsinfo
+import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
@@ -167,10 +169,10 @@ internal fun Route.dokumentRoutes(
         }
     }
 
-    get("/dokumenter/{dokumentId}") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+    get("/dokumenter/{dokumentId}/pdf") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withDokumentId { id ->
-                brevService.hentDokument(id).fold(
+                brevService.hentDokumentPdf(id).fold(
                     ifLeft = {
                         call.svar(
                             HttpStatusCode.NotFound.errorJson(
@@ -180,7 +182,14 @@ internal fun Route.dokumentRoutes(
                         )
                     },
                     ifRight = {
-                        call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf)
+                        val fileName = "${it.tittel}.pdf"
+                        call.response.headers.append(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.Inline
+                                .withParameter(ContentDisposition.Parameters.FileName, fileName)
+                                .toString(),
+                        )
+                        call.respondBytes(it.generertDokument.unsafeBytes(), ContentType.Application.Pdf)
                     },
                 )
             }

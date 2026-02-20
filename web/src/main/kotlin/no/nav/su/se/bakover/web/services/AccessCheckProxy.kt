@@ -14,6 +14,7 @@ import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -527,6 +528,10 @@ open class AccessCheckProxy(
 
                 override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
                     return assertTilgangTilSakOgHentDokument(id)
+                }
+
+                override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
+                    return assertTilgangTilSakOgHentDokumentPdf(id)
                 }
 
                 override fun lagreDokument(
@@ -1678,6 +1683,18 @@ open class AccessCheckProxy(
             },
             ifRight = {
                 assertHarTilgangTilSak(it.metadata.sakId)
+                it.right()
+            },
+        )
+    }
+
+    private fun assertTilgangTilSakOgHentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
+        return services.brev.hentDokumentPdf(id).fold(
+            ifLeft = {
+                it.left()
+            },
+            ifRight = {
+                assertHarTilgangTilSak(it.sakId)
                 it.right()
             },
         )
