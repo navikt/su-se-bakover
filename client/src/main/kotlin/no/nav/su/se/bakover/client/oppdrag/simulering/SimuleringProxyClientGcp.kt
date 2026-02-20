@@ -95,7 +95,6 @@ class SimuleringProxyClientGcp(
             failure = {
                 val feil = when (response.statusCode) {
                     500 -> {
-                        log.warn("500: Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} ${response.responseMessage}")
                         try {
                             val dto = jacksonObjectMapper()
                                 .readValue(response.data, SimuleringErrorDto::class.java)
