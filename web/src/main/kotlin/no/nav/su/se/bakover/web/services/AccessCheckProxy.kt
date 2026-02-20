@@ -423,7 +423,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentSakForVedtak(vedtakId: UUID): Sak {
+                override fun hentSakForVedtak(vedtakId: UUID): Sak? {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -1672,8 +1672,8 @@ open class AccessCheckProxy(
         personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertTilgangTilSakOgHentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
-        return services.brev.hentDokumentPdf(id).fold(
+    private fun assertTilgangTilSakOgHentDokumentPdf(dokumentId: UUID): Either<FantIkkeDokument, DokumentPdf> {
+        return services.brev.hentDokumentPdf(dokumentId).fold(
             ifLeft = {
                 it.left()
             },
