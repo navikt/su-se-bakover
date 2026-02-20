@@ -58,17 +58,37 @@ fun lagreForhandsvarselMedKopi(
     )
 }
 
+fun lagreKlagebrevMedKopi(
+    brevService: BrevService,
+    mottakerService: MottakerService,
+    referanseId: UUID,
+    sakId: UUID,
+): (Dokument.MedMetadata, TransactionContext) -> Unit {
+    return lagreDokumentMedKopiInternal(
+        brevService = brevService,
+        mottakerService = mottakerService,
+        mottakerIdentifikator = MottakerIdentifikator(
+            referanseType = ReferanseTypeMottaker.KLAGE,
+            referanseId = referanseId,
+            brevtype = Brevtype.KLAGE,
+        ),
+        sakId = sakId,
+    )
+}
+
 private fun lagreDokumentMedKopiInternal(
     brevService: BrevService,
     mottakerService: MottakerService,
     mottakerIdentifikator: MottakerIdentifikator,
     sakId: UUID,
 ): (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
-    fun hentMottaker() = mottakerService.hentMottaker(
-        mottakerIdentifikator,
-        sakId,
-        tx,
-    ).getOrElse { null }
+    fun hentMottaker(): MottakerDomain? {
+        return mottakerService.hentMottaker(
+            mottakerIdentifikator = mottakerIdentifikator,
+            sakId = sakId,
+            transactionContext = tx,
+        ).getOrElse { null }
+    }
 
     fun identifikatorForMottaker(mottaker: MottakerDomain): String {
         return when (mottaker) {
@@ -77,13 +97,17 @@ private fun lagreDokumentMedKopiInternal(
         }
     }
 
-    fun hentMottakerKopiData(): MottakerKopiData? {
-        val mottaker = hentMottaker() ?: return null
-        return MottakerKopiData(
-            identifikator = identifikatorForMottaker(mottaker),
-            navn = mottaker.navn,
-            adresse = mottaker.adresse,
-        )
+    fun hentMottakerKopiData(): List<MottakerKopiData> {
+        return hentMottaker()
+            ?.let { mottaker ->
+                listOf(
+                    MottakerKopiData(
+                        identifikator = identifikatorForMottaker(mottaker),
+                        navn = mottaker.navn,
+                        adresse = mottaker.adresse,
+                    ),
+                )
+            } ?: emptyList()
     }
 
     fun Dokument.MedMetadata.Vedtak.kopiForMottaker(mottaker: MottakerKopiData): Dokument.MedMetadata.Vedtak {
@@ -110,19 +134,32 @@ private fun lagreDokumentMedKopiInternal(
         )
     }
 
+    fun Dokument.MedMetadata.Informasjon.Annet.kopiForMottaker(
+        mottaker: MottakerKopiData,
+    ): Dokument.MedMetadata.Informasjon.Annet {
+        return copy(
+            id = UUID.randomUUID(),
+            tittel = "$tittel (KOPI)",
+            erKopi = true,
+            ekstraMottaker = mottaker.identifikator,
+            navnEkstraMottaker = mottaker.navn,
+            distribueringsadresse = mottaker.adresse,
+        )
+    }
+
     fun opprettKopiHvisMottakerFinnes(
         dokument: Dokument.MedMetadata,
-    ): Dokument.MedMetadata? {
-        return hentMottakerKopiData()?.let { mottaker ->
+    ): List<Dokument.MedMetadata> {
+        return hentMottakerKopiData().map { mottaker ->
             when (dokument) {
-                is Dokument.MedMetadata.Informasjon.Annet -> null
+                is Dokument.MedMetadata.Informasjon.Annet -> dokument.kopiForMottaker(mottaker)
                 is Dokument.MedMetadata.Informasjon.Viktig -> dokument.kopiForMottaker(mottaker)
                 is Dokument.MedMetadata.Vedtak -> dokument.kopiForMottaker(mottaker)
             }
         }
     }
 
-    val kopi =
+    val kopier =
         when (dokument) {
             is Dokument.MedMetadata.Vedtak ->
                 opprettKopiHvisMottakerFinnes(dokument)
@@ -130,10 +167,11 @@ private fun lagreDokumentMedKopiInternal(
             is Dokument.MedMetadata.Informasjon.Viktig ->
                 opprettKopiHvisMottakerFinnes(dokument)
 
-            is Dokument.MedMetadata.Informasjon.Annet -> null
+            is Dokument.MedMetadata.Informasjon.Annet ->
+                opprettKopiHvisMottakerFinnes(dokument)
         }
 
-    if (kopi != null) {
+    kopier.forEach { kopi ->
         brevService.lagreDokument(kopi, tx)
     }
 

@@ -457,7 +457,39 @@ internal class MottakerServiceTest {
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
-/*    @Test
+    @Test
+    fun `Kan lagre mottaker for klage nar ingen dokument finnes`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForKlage(referanseId) } doReturn emptyList()
+        }
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.KLAGE.toString(),
+            brevtype = Brevtype.KLAGE.name,
+        )
+
+        service.lagreMottaker(mottaker, sakId).shouldBeRight()
+
+        verify(dokumentRepo).hentForKlage(referanseId)
+        verify(mottakerRepo).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
     fun `Kan ikke lagre mottaker for klage nar dokument finnes`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -465,10 +497,12 @@ internal class MottakerServiceTest {
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
         val dokumentRepo = mock<DokumentRepo> {
             on { hentForKlage(referanseId) } doReturn listOf(
-                dokumentUtenMetadataInformasjonViktig().leggTilMetadata(
-                    metadata = Dokument.Metadata(sakId = sakId),
-                    distribueringsadresse = null,
-                ),
+                dokumentUtenMetadataInformasjonViktig()
+                    .copy(brevtype = Brevtype.KLAGE)
+                    .leggTilMetadata(
+                        metadata = Dokument.Metadata(sakId = sakId, klageId = referanseId),
+                        distribueringsadresse = null,
+                    ),
             )
         }
         val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
@@ -484,7 +518,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.KLAGE.toString(),
-            brevtype = Brevtype.VEDTAK.name,
+            brevtype = Brevtype.KLAGE.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
@@ -494,7 +528,7 @@ internal class MottakerServiceTest {
         verify(dokumentRepo).hentForKlage(referanseId)
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
-    }*/
+    }
 
     @Test
     fun `Kan lagre mottaker for revurdering selvom brev av annen type enn vedtak finnes på revurderingen`() {
@@ -669,6 +703,7 @@ internal class MottakerServiceTest {
             generertDokumentJson = """{"some":"json"}""",
             metadata = Dokument.Metadata(sakId = sakId, revurderingId = referanseId),
             distribueringsadresse = null,
+            brevtype = Brevtype.VEDTAK,
         )
 
         val dokumentRepo = mock<DokumentRepo> {

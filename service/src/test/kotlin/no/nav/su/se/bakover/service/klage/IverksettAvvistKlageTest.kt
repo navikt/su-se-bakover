@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.Dokumenttilstand
 import io.kotest.matchers.shouldBe
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -299,6 +301,15 @@ internal class IverksettAvvistKlageTest {
                 it shouldBe expectedVedtak!!
             },
             tx = argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.mottakerService).hentMottaker(
+            argThat {
+                it.referanseType == ReferanseTypeMottaker.KLAGE &&
+                    it.referanseId == klage.id.value &&
+                    it.brevtype == Brevtype.VEDTAK
+            },
+            argThat { it shouldBe klage.sakId },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {

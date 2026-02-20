@@ -190,6 +190,9 @@ sealed interface Dokument {
                 override val distribueringsadresse: Distribueringsadresse?,
                 override val metadata: Metadata,
                 override val brevtype: Brevtype? = null,
+                override val erKopi: Boolean = false,
+                override val ekstraMottaker: String? = null, // kan være fnr eller orgnummer
+                override val navnEkstraMottaker: String? = null,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.ANNET
 

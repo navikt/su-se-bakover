@@ -170,6 +170,7 @@ data object ServiceBuilder {
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
             clock = clock,
+            mottakerService = mottakerService,
         )
         val iverksettSøknadsbehandlingService = buildIverksettSøknadsbehandlingService(
             databaseRepos = databaseRepos,
@@ -625,6 +626,7 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
         vedtakService: VedtakServiceImpl,
         clock: Clock,
+        mottakerService: MottakerServiceImpl,
     ): KlageServices {
         val klageService = KlageServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -634,6 +636,7 @@ data object ServiceBuilder {
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = kjerneTjenester.oppgaveService,
+            mottakerService = mottakerService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,

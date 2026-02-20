@@ -444,6 +444,9 @@ class DokumentPostgresRepo(
                     journalpostId = journalpostId,
                 ),
                 brevtype = brevtype,
+                erKopi = erKopi,
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
             )
 
             DokumentKategori.VEDTAK -> Dokument.MedMetadata.Vedtak(
