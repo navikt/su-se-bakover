@@ -187,7 +187,7 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
 
         val status = call.response.status() ?: return@intercept
         if (status.value >= 500 && call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null) {
-            call.application.log.error(
+            call.application.log.warn(
                 "5xx response: {} {} status={}",
                 call.request.httpMethod,
                 call.request.path(),
