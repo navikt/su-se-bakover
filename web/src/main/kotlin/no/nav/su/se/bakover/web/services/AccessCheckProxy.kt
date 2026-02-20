@@ -14,6 +14,7 @@ import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -525,8 +526,8 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-                    return assertTilgangTilSakOgHentDokument(id)
+                override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
+                    return assertTilgangTilSakOgHentDokumentPdf(id)
                 }
 
                 override fun lagreDokument(
@@ -1301,7 +1302,7 @@ open class AccessCheckProxy(
                 override suspend fun hentAdresseForDokumentIdForInterneDokumenter(
                     dokumentId: UUID,
                     journalpostId: JournalpostId,
-                ) = assertTilgangTilSakOgHentDokument(dokumentId).fold(
+                ) = assertTilgangTilSakOgHentDokumentPdf(dokumentId).fold(
                     ifLeft = { AdresseServiceFeil.FantIkkeDokument.left() },
                     ifRight = {
                         services.journalpostAdresseService.hentAdresseForDokumentIdForInterneDokumenter(
@@ -1671,13 +1672,13 @@ open class AccessCheckProxy(
         personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertTilgangTilSakOgHentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-        return services.brev.hentDokument(id).fold(
+    private fun assertTilgangTilSakOgHentDokumentPdf(dokumentId: UUID): Either<FantIkkeDokument, DokumentPdf> {
+        return services.brev.hentDokumentPdf(dokumentId).fold(
             ifLeft = {
                 it.left()
             },
             ifRight = {
-                assertHarTilgangTilSak(it.metadata.sakId)
+                assertHarTilgangTilSak(it.sakId)
                 it.right()
             },
         )

@@ -7,6 +7,7 @@ interface DokumentRepo {
     /** Krever transactionContext siden vi gjør 2 inserts. */
     fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext? = null)
     fun hentDokument(dokumentId: UUID): Dokument.MedMetadata?
+    fun hentDokumentPdf(dokumentId: UUID): DokumentPdf?
     fun hentForSak(sakId: UUID): List<Dokument.MedMetadata>
     fun hentForSøknad(id: UUID): List<Dokument.MedMetadata>
     fun hentForVedtak(id: UUID): List<Dokument.MedMetadata>

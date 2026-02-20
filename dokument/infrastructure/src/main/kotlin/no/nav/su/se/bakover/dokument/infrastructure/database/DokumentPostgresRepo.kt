@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.dokument.infrastructure.database
 
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import dokument.domain.hendelser.DokumentHendelseRepo
+import dokument.domain.hendelser.GenerertDokumentHendelse
 import kotliquery.Row
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.backoff.Failures
@@ -128,6 +130,33 @@ class DokumentPostgresRepo(
             sessionFactory.withSession { session ->
                 hentDokument(dokumentId, session)
             }
+        }
+    }
+
+    override fun hentDokumentPdf(dokumentId: UUID): DokumentPdf? {
+        return dbMetrics.timeQuery("hentDokumentPdfForDokumentId") {
+            sessionFactory.withSession { session ->
+                """
+                select d.sakid, d.tittel, d.generertDokument
+                from dokument d
+                where d.id = :id and d.duplikatAv is null
+                """.trimIndent()
+                    .hent(mapOf("id" to dokumentId), session) {
+                        DokumentPdf(
+                            sakId = it.uuid("sakid"),
+                            tittel = it.string("tittel"),
+                            generertDokument = PdfA(it.bytes("generertDokument")),
+                        )
+                    }
+            }
+        } ?: dokumentHendelseRepo.hentHendelseOgFilForDokumentId(dokumentId).let { (hendelse, fil) ->
+            val generertDokumentHendelse = hendelse as? GenerertDokumentHendelse ?: return@let null
+            val pdf = fil?.fil ?: return@let null
+            DokumentPdf(
+                sakId = generertDokumentHendelse.sakId,
+                tittel = generertDokumentHendelse.dokumentUtenFil.tittel,
+                generertDokument = pdf,
+            )
         }
     }
 

@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
@@ -59,8 +60,8 @@ class BrevServiceImpl(
             }
     }
 
-    override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-        return dokumentRepo.hentDokument(id)?.right() ?: FantIkkeDokument.left()
+    override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
+        return dokumentRepo.hentDokumentPdf(id)?.right() ?: FantIkkeDokument.left()
     }
 
     override fun lagreDokument(

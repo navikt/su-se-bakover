@@ -18,4 +18,7 @@ class PdfA(private val content: ByteArray) {
 
     override fun hashCode(): Int = content.contentHashCode()
     fun getContent(): ByteArray = content.clone()
+
+    /** For IO only. Caller must not mutate the returned array. */
+    fun unsafeBytes(): ByteArray = content
 }
