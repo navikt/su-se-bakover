@@ -145,7 +145,6 @@ internal class DokumentRoutesKtTest {
                         tittel = "en fin tittel",
                         opprettet = Tidspunkt.EPOCH.toString(),
                         type = "ANNET",
-                        pdfUrl = "/api/dokumenter/$dokumentId/pdf",
                         journalført = false,
                         brevErBestilt = false,
                         brevbestillingId = null,
@@ -153,6 +152,7 @@ internal class DokumentRoutesKtTest {
                 )
                 val body = it.bodyAsText()
                 body.shouldNotContain("\"dokument\"")
+                body.shouldNotContain("\"pdfUrl\"")
                 deserializeList<DokumentResponseJson>(body) shouldBe expected
             }
         }
@@ -289,7 +289,6 @@ private data class DokumentResponseJson(
     val tittel: String,
     val opprettet: String,
     val type: String,
-    val pdfUrl: String,
     val journalført: Boolean,
     val brevErBestilt: Boolean,
     val journalpostId: String? = null,

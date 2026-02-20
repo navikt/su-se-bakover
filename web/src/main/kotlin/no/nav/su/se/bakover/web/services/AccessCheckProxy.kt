@@ -423,7 +423,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentSakForVedtak(vedtakId: UUID): Sak? {
+                override fun hentSakForVedtak(vedtakId: UUID): Sak {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -524,10 +524,6 @@ open class AccessCheckProxy(
                     id: UUID,
                 ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
                     kastKanKunKallesFraAnnenService()
-                }
-
-                override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-                    return assertTilgangTilSakOgHentDokument(id)
                 }
 
                 override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
@@ -1306,7 +1302,7 @@ open class AccessCheckProxy(
                 override suspend fun hentAdresseForDokumentIdForInterneDokumenter(
                     dokumentId: UUID,
                     journalpostId: JournalpostId,
-                ) = assertTilgangTilSakOgHentDokument(dokumentId).fold(
+                ) = assertTilgangTilSakOgHentDokumentPdf(dokumentId).fold(
                     ifLeft = { AdresseServiceFeil.FantIkkeDokument.left() },
                     ifRight = {
                         services.journalpostAdresseService.hentAdresseForDokumentIdForInterneDokumenter(
@@ -1674,18 +1670,6 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilKlage(klageId: KlageId) {
         personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
-    }
-
-    private fun assertTilgangTilSakOgHentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-        return services.brev.hentDokument(id).fold(
-            ifLeft = {
-                it.left()
-            },
-            ifRight = {
-                assertHarTilgangTilSak(it.metadata.sakId)
-                it.right()
-            },
-        )
     }
 
     private fun assertTilgangTilSakOgHentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {

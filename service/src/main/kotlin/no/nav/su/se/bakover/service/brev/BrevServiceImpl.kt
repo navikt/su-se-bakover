@@ -60,10 +60,6 @@ class BrevServiceImpl(
             }
     }
 
-    override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-        return dokumentRepo.hentDokument(id)?.right() ?: FantIkkeDokument.left()
-    }
-
     override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
         return dokumentRepo.hentDokumentPdf(id)?.right() ?: FantIkkeDokument.left()
     }

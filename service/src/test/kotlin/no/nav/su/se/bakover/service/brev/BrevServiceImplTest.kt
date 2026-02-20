@@ -13,7 +13,6 @@ import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
-import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
@@ -248,38 +246,6 @@ internal class BrevServiceImplTest {
             ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
             verify(it.identClient).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `henter dokument med id`() {
-        val dokumentId = UUID.randomUUID()
-        val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokument(any()) } doReturn dokumentMedMetadataInformasjonAnnet()
-        }
-        ServiceOgMocks(
-            dokumentRepo = dokumentRepo,
-        ).let {
-            val actual = it.brevService.hentDokument(dokumentId)
-            actual.shouldBeRight()
-            verify(it.dokumentRepo).hentDokument(argThat { it shouldBe dokumentId })
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `left dersom dokument med id ikke finnes`() {
-        val dokumentId = UUID.randomUUID()
-        val dokumentRepo = mock<DokumentRepo> {
-            on { hentDokument(any()) } doReturn null
-        }
-        ServiceOgMocks(
-            dokumentRepo = dokumentRepo,
-        ).let {
-            val actual = it.brevService.hentDokument(dokumentId)
-            actual shouldBe FantIkkeDokument.left()
-            verify(it.dokumentRepo).hentDokument(argThat { it shouldBe dokumentId })
             it.verifyNoMoreInteraction()
         }
     }

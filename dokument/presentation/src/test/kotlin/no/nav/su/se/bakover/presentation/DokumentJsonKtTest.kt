@@ -43,7 +43,6 @@ internal class DokumentJsonKtTest {
                     "opprettet": "1970-01-01T00:00:00Z",
                     "tittel": "vedtak om json",
                     "type": "VEDTAK",
-                    "pdfUrl": "/api/dokumenter/5ea19f74-7363-47ee-a8d7-5abf3a261817/pdf",
                     "journalført": false,
                     "journalpostId": null,
                     "brevErBestilt": false,
