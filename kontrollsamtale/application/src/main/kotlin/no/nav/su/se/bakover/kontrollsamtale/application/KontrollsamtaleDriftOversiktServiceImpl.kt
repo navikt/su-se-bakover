@@ -36,7 +36,7 @@ class KontrollsamtaleDriftOversiktServiceImpl(
             ),
             utgåttMåned = KontrollsamtaleMånedOversikt(
                 antallInnkallinger = utgåtteKontrollsamtaler.size,
-                sakerMedStans = sakerMedStans,
+                sakerMedStans = sakerMedStans.map { it.toString() },
             ),
         )
     }
