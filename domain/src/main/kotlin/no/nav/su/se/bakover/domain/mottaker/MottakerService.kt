@@ -33,7 +33,7 @@ interface MottakerService {
 private val tillatteBrevtyperForMottaker = setOf(
     Brevtype.VEDTAK,
     Brevtype.FORHANDSVARSEL,
-    Brevtype.KLAGE,
+    Brevtype.OVERSENDELSE_KA,
 )
 
 private fun Brevtype.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
@@ -44,6 +44,11 @@ private fun String.tilBrevtypeForMottaker(): Brevtype? =
 
 private fun ugyldigBrevtypeMelding(brevtype: String): String =
     "Ugyldig brevtype for mottaker: $brevtype. Tillatte verdier: ${tillatteBrevtyperForMottaker.joinToString { it.name }}"
+
+private fun ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+    referanseType: ReferanseTypeMottaker,
+    brevtype: Brevtype,
+): String = "Ugyldig kombinasjon referanseType=$referanseType og brevtype=$brevtype"
 
 sealed interface FeilkoderMottaker {
     data object KanIkkeLagreMottaker : FeilkoderMottaker
@@ -64,6 +69,17 @@ class MottakerServiceImpl(
         brevtype: Brevtype,
     ): Boolean = brevtype.erTillattForMottaker()
 
+    private fun erGyldigKombinasjonReferanseTypeOgBrevtype(
+        referanseType: ReferanseTypeMottaker,
+        brevtype: Brevtype,
+    ): Boolean {
+        return when (referanseType) {
+            ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
+            ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
+            ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
+        }
+    }
+
     /**
      * Alle dokumenter som kun har sakid men ingen annen id kan ikke ha flere mottakere da de er "automatiske"
      * Eller manuelle brev som er opprettet direkte på saken uten annen tilknytning og kan ikke unikt identifiseres
@@ -76,6 +92,14 @@ class MottakerServiceImpl(
     ): Either<FeilkoderMottaker, MottakerDomain?> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name)).left()
+        }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerIdentifikator.referanseType, mottakerIdentifikator.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerIdentifikator.referanseType,
+                    brevtype = mottakerIdentifikator.brevtype,
+                ),
+            ).left()
         }
         val hentetMottaker = mottakerRepo.hentMottaker(mottakerIdentifikator, transactionContext)?.let {
             if (it.sakId != sakId) {
@@ -117,6 +141,14 @@ class MottakerServiceImpl(
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerValidert.referanseType,
+                    brevtype = mottakerValidert.brevtype,
+                ),
+            ).left()
+        }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
             mottakerRepo.lagreMottaker(mottakerValidert)
@@ -136,6 +168,14 @@ class MottakerServiceImpl(
         if (!erGyldigBrevtype(mottakerValidert.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerValidert.brevtype.name)).left()
         }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerValidert.referanseType,
+                    brevtype = mottakerValidert.brevtype,
+                ),
+            ).left()
+        }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
             mottakerRepo.oppdaterMottaker(mottakerValidert).right()
@@ -150,6 +190,14 @@ class MottakerServiceImpl(
     ): Either<FeilkoderMottaker, Unit> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name)).left()
+        }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerIdentifikator.referanseType, mottakerIdentifikator.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerIdentifikator.referanseType,
+                    brevtype = mottakerIdentifikator.brevtype,
+                ),
+            ).left()
         }
 
         val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)
@@ -170,7 +218,6 @@ class MottakerServiceImpl(
                             Brevtype.VEDTAK -> dokument.brevtype == Brevtype.VEDTAK
                             Brevtype.FORHANDSVARSEL ->
                                 dokument.brevtype == Brevtype.FORHANDSVARSEL
-                            Brevtype.KLAGE -> dokument.brevtype == Brevtype.KLAGE
                             else -> false
                         }
                     }

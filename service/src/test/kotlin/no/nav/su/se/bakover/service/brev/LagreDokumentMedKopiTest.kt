@@ -103,7 +103,7 @@ internal class LagreDokumentMedKopiTest {
     }
 
     @Test
-    fun `lagreKlagebrevMedKopi bruker KLAGE og lager kopi for mottaker`() {
+    fun `lagreKlagebrevMedKopi bruker OVERSENDELSE_KA og lager kopi for mottaker`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
         val tx = mock<TransactionContext>()
@@ -128,7 +128,7 @@ internal class LagreDokumentMedKopiTest {
             sakId = sakId,
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.KLAGE,
-            brevtype = Brevtype.KLAGE,
+            brevtype = Brevtype.OVERSENDELSE_KA,
         )
 
         val brevService = mock<BrevService>()
@@ -149,7 +149,7 @@ internal class LagreDokumentMedKopiTest {
             argThat {
                 referanseType == ReferanseTypeMottaker.KLAGE &&
                     this.referanseId == referanseId &&
-                    brevtype == Brevtype.KLAGE
+                    brevtype == Brevtype.OVERSENDELSE_KA
             },
             eq(sakId),
             eq(tx),

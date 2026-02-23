@@ -3,8 +3,11 @@ package dokument.domain
 enum class Brevtype {
     VEDTAK,
     FORHANDSVARSEL,
+    OVERSENDELSE_KA,
     INNKALLING_KONTROLLSAMTALE,
     PÅMINNELSE_NY_STØNADSPERIODE,
+
+    // Legacy-verdi for historiske rader/gradvis migrering.
     KLAGE,
     REVURDERING_AVSLUTTET,
     SØKNAD_TRUKKET,
@@ -16,7 +19,6 @@ enum class Brevtype {
     OPPLASTET_PDF_VIKTIG,
     OPPLASTET_PDF_ANNET,
 
-    // Legacy-verdi for historiske rader/gradvis migrering.
     ANNET,
     ;
 

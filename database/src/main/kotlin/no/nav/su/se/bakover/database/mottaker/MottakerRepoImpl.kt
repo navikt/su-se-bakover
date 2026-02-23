@@ -161,7 +161,7 @@ data class MottakerRepoImpl(
         val brevtypeRaw = row.stringOrNull("brevtype")
             ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} mangler brevtype")
         val brevtype = Brevtype.fraString(brevtypeRaw)
-            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL || it == Brevtype.KLAGE }
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL || it == Brevtype.OVERSENDELSE_KA }
             ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} har ugyldig brevtype=$brevtypeRaw")
 
         return when {

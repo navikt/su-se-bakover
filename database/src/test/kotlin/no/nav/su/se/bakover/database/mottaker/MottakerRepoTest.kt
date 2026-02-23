@@ -62,7 +62,7 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
         val ident = MottakerIdentifikator(
             referanseType = ReferanseTypeMottaker.KLAGE,
             referanseId = referanseId,
-            brevtype = Brevtype.KLAGE,
+            brevtype = Brevtype.OVERSENDELSE_KA,
         )
 
         val mottaker1 = MottakerFnrDomain(
@@ -78,7 +78,7 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
             sakId = sak.id,
             referanseId = referanseId,
             referanseType = ReferanseTypeMottaker.KLAGE,
-            brevtype = Brevtype.KLAGE,
+            brevtype = Brevtype.OVERSENDELSE_KA,
         )
 
         repo.lagreMottaker(mottaker1)

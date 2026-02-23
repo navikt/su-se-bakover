@@ -70,7 +70,7 @@ fun lagreKlagebrevMedKopi(
         mottakerIdentifikator = MottakerIdentifikator(
             referanseType = ReferanseTypeMottaker.KLAGE,
             referanseId = referanseId,
-            brevtype = Brevtype.KLAGE,
+            brevtype = Brevtype.OVERSENDELSE_KA,
         ),
         sakId = sakId,
     )

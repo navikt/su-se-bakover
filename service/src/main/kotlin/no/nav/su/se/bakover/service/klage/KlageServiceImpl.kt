@@ -369,6 +369,7 @@ class KlageServiceImpl(
             ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().onLeft {
                 log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak $vedtakId (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
+
         val lagreKlagebrevMedKopi = lagreKlagebrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,

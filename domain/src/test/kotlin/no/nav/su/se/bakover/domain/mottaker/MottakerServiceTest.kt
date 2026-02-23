@@ -479,7 +479,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.KLAGE.toString(),
-            brevtype = Brevtype.KLAGE.name,
+            brevtype = Brevtype.OVERSENDELSE_KA.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeRight()
@@ -498,7 +498,7 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo> {
             on { hentForKlage(referanseId) } doReturn listOf(
                 dokumentUtenMetadataInformasjonViktig()
-                    .copy(brevtype = Brevtype.KLAGE)
+                    .copy(brevtype = Brevtype.OVERSENDELSE_KA)
                     .leggTilMetadata(
                         metadata = Dokument.Metadata(sakId = sakId, klageId = referanseId),
                         distribueringsadresse = null,
@@ -518,7 +518,7 @@ internal class MottakerServiceTest {
             ),
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.KLAGE.toString(),
-            brevtype = Brevtype.KLAGE.name,
+            brevtype = Brevtype.OVERSENDELSE_KA.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft().let {
