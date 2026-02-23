@@ -7,6 +7,7 @@ import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.KlageId
 import behandling.klage.domain.Klagehjemler
 import behandling.klage.domain.VurderingerTilKlage
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import io.kotest.assertions.fail
@@ -27,6 +28,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -549,6 +551,15 @@ internal class OversendKlageTest {
             klage = argThat { it shouldBe expectedKlage },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
         )
+        verify(mocks.mottakerService).hentMottaker(
+            argThat {
+                it.referanseType == ReferanseTypeMottaker.KLAGE &&
+                    it.referanseId == klage.id.value &&
+                    it.brevtype == Brevtype.OVERSENDELSE_KA
+            },
+            argThat { it shouldBe sak.id },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Informasjon.Annet(
@@ -663,6 +674,15 @@ internal class OversendKlageTest {
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+        )
+        verify(mocks.mottakerService).hentMottaker(
+            argThat {
+                it.referanseType == ReferanseTypeMottaker.KLAGE &&
+                    it.referanseId == klage.id.value &&
+                    it.brevtype == Brevtype.OVERSENDELSE_KA
+            },
+            argThat { it shouldBe sak.id },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {

@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Brevtype
-import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -34,6 +33,7 @@ interface MottakerService {
 private val tillatteBrevtyperForMottaker = setOf(
     Brevtype.VEDTAK,
     Brevtype.FORHANDSVARSEL,
+    Brevtype.OVERSENDELSE_KA,
 )
 
 private fun Brevtype.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
@@ -44,6 +44,11 @@ private fun String.tilBrevtypeForMottaker(): Brevtype? =
 
 private fun ugyldigBrevtypeMelding(brevtype: String): String =
     "Ugyldig brevtype for mottaker: $brevtype. Tillatte verdier: ${tillatteBrevtyperForMottaker.joinToString { it.name }}"
+
+private fun ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+    referanseType: ReferanseTypeMottaker,
+    brevtype: Brevtype,
+): String = "Ugyldig kombinasjon referanseType=$referanseType og brevtype=$brevtype"
 
 sealed interface FeilkoderMottaker {
     data object KanIkkeLagreMottaker : FeilkoderMottaker
@@ -64,6 +69,17 @@ class MottakerServiceImpl(
         brevtype: Brevtype,
     ): Boolean = brevtype.erTillattForMottaker()
 
+    private fun erGyldigKombinasjonReferanseTypeOgBrevtype(
+        referanseType: ReferanseTypeMottaker,
+        brevtype: Brevtype,
+    ): Boolean {
+        return when (referanseType) {
+            ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
+            ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
+            ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
+        }
+    }
+
     /**
      * Alle dokumenter som kun har sakid men ingen annen id kan ikke ha flere mottakere da de er "automatiske"
      * Eller manuelle brev som er opprettet direkte på saken uten annen tilknytning og kan ikke unikt identifiseres
@@ -76,6 +92,14 @@ class MottakerServiceImpl(
     ): Either<FeilkoderMottaker, MottakerDomain?> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name)).left()
+        }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerIdentifikator.referanseType, mottakerIdentifikator.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerIdentifikator.referanseType,
+                    brevtype = mottakerIdentifikator.brevtype,
+                ),
+            ).left()
         }
         val hentetMottaker = mottakerRepo.hentMottaker(mottakerIdentifikator, transactionContext)?.let {
             if (it.sakId != sakId) {
@@ -105,22 +129,8 @@ class MottakerServiceImpl(
                     else -> false
                 }
 
-            /*ReferanseTypeMottaker.TILBAKEKREVING ->
-                when (mottaker.brevtype) {
-                    // Tilbakekrevingsvedtak har fortsatt dokumenthendelsesløp og kan ikke valideres presist her ennå.
-                    Brevtype.VEDTAK -> true
-
-                    Brevtype.FORHANDSVARSEL ->
-                        dokumentRepo.hentForSak(mottaker.sakId).none {
-                            it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
-                                it is Dokument.MedMetadata.Informasjon.Viktig
-                        }
-                }
-
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
-
-             */
         }
     }
 
@@ -130,6 +140,14 @@ class MottakerServiceImpl(
     ): Either<FeilkoderMottaker, MottakerDomain> {
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
+        }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerValidert.referanseType,
+                    brevtype = mottakerValidert.brevtype,
+                ),
+            ).left()
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
@@ -150,6 +168,14 @@ class MottakerServiceImpl(
         if (!erGyldigBrevtype(mottakerValidert.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerValidert.brevtype.name)).left()
         }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerValidert.referanseType,
+                    brevtype = mottakerValidert.brevtype,
+                ),
+            ).left()
+        }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
             mottakerRepo.oppdaterMottaker(mottakerValidert).right()
@@ -165,6 +191,14 @@ class MottakerServiceImpl(
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name)).left()
         }
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerIdentifikator.referanseType, mottakerIdentifikator.brevtype)) {
+            return FeilkoderMottaker.UgyldigMottakerRequest(
+                ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
+                    referanseType = mottakerIdentifikator.referanseType,
+                    brevtype = mottakerIdentifikator.brevtype,
+                ),
+            ).left()
+        }
 
         val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)
         return if (mottaker == null) {
@@ -174,7 +208,6 @@ class MottakerServiceImpl(
             if (mottaker.sakId != sakId) {
                 return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
             }
-            // Kun revurderinger kan ha flere brev registrert på seg av andre typer. Fant bare [INFORMASJON_VIKTIG] -> [Dokument.MedMetadata.Informasjon.Viktig] med duplikater for revurderinger i prod
             val dokument = when (mottaker.referanseType) {
                 ReferanseTypeMottaker.SØKNAD ->
                     dokumentRepo.hentForSøknad(mottaker.referanseId)
@@ -182,29 +215,17 @@ class MottakerServiceImpl(
                 ReferanseTypeMottaker.REVURDERING ->
                     dokumentRepo.hentForRevurdering(mottaker.referanseId).filter { dokument ->
                         when (mottaker.brevtype) {
-                            Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
+                            Brevtype.VEDTAK -> dokument.brevtype == Brevtype.VEDTAK
                             Brevtype.FORHANDSVARSEL ->
                                 dokument.brevtype == Brevtype.FORHANDSVARSEL
                             else -> false
                         }
                     }
 
-                /*ReferanseTypeMottaker.TILBAKEKREVING ->
-
-
-                    dokumentRepo.hentForSak(mottaker.sakId).filter { dokument ->
-                        dokument.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId &&
-                            when (mottaker.brevtype) {
-                                Brevtype.VEDTAK -> dokument is Dokument.MedMetadata.Vedtak
-                                Brevtype.FORHANDSVARSEL -> dokument is Dokument.MedMetadata.Informasjon.Viktig
-                            }
-                    }
-
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId)
-
-                 */
             }
+
             if (dokument.isNotEmpty()) {
                 log.info("Kan ikke slette mottaker da det finnes et brev for referansen")
                 return FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
@@ -475,6 +496,7 @@ data class MottakerFnrDomain(
 enum class ReferanseTypeMottaker {
     SØKNAD,
     REVURDERING,
+
     // TILBAKEKREVING,
-    // KLAGE
+    KLAGE,
 }

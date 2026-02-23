@@ -69,7 +69,7 @@ fun PdfA.tilDokument(
             clock = clock,
             pdfInnhold = pdfInnhold,
             brevtype = when (command) {
-                is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> Brevtype.KLAGE
+                is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> Brevtype.OVERSENDELSE_KA
                 is AvsluttRevurderingDokumentCommand -> Brevtype.REVURDERING_AVSLUTTET
                 is TrukketSøknadDokumentCommand -> Brevtype.SØKNAD_TRUKKET
                 else -> Brevtype.ANNET

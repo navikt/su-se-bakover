@@ -24,9 +24,6 @@ data class MottakerRepoImpl(
     private val dbMetrics: DbMetrics,
 ) : MottakerRepo {
 
-    /**
-     * Skal bare være en mottaker per "behandling" + type, skal vi støtte flere må denne skrives om til å hente ut flere
-     */
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         transactionContext: TransactionContext?,
@@ -46,7 +43,8 @@ data class MottakerRepoImpl(
                         "brevtype" to mottakerIdentifikator.brevtype.name,
                     ),
                     session,
-                ) { rowToMottaker(it) }
+                    { rowToMottaker(it) },
+                )
             }
         }
 
@@ -163,7 +161,7 @@ data class MottakerRepoImpl(
         val brevtypeRaw = row.stringOrNull("brevtype")
             ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} mangler brevtype")
         val brevtype = Brevtype.fraString(brevtypeRaw)
-            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL }
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL || it == Brevtype.OVERSENDELSE_KA }
             ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} har ugyldig brevtype=$brevtypeRaw")
 
         return when {
