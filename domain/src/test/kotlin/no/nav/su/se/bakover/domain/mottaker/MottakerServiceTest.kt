@@ -171,6 +171,26 @@ internal class MottakerServiceTest {
     }
 
     @Test
+    fun `Kan ikke hente mottaker med OVERSENDELSE_KA for revurdering`() {
+        val sakId = UUID.randomUUID()
+        val mident = MottakerIdentifikator(
+            referanseId = UUID.randomUUID(),
+            referanseType = ReferanseTypeMottaker.REVURDERING,
+            brevtype = Brevtype.OVERSENDELSE_KA,
+        )
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+
+        val feil = service.hentMottaker(mident, sakId).shouldBeLeft()
+        (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Ugyldig kombinasjon"
+
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
     fun `Kan ikke lagre mottaker med ugyldig brevtype`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
@@ -226,6 +246,96 @@ internal class MottakerServiceTest {
 
         val feil = service.lagreMottaker(mottaker, sakId).shouldBeLeft()
         (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Tillatte verdier"
+
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan ikke lagre mottaker med OVERSENDELSE_KA for revurdering`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            brevtype = Brevtype.OVERSENDELSE_KA.name,
+        )
+
+        val feil = service.lagreMottaker(mottaker, sakId).shouldBeLeft()
+        (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Ugyldig kombinasjon"
+
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan ikke lagre mottaker med OVERSENDELSE_KA for søknad`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.SØKNAD.toString(),
+            brevtype = Brevtype.OVERSENDELSE_KA.name,
+        )
+
+        val feil = service.lagreMottaker(mottaker, sakId).shouldBeLeft()
+        (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Ugyldig kombinasjon"
+
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan ikke lagre mottaker med FORHANDSVARSEL for klage`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.KLAGE.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+
+        val feil = service.lagreMottaker(mottaker, sakId).shouldBeLeft()
+        (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Ugyldig kombinasjon"
 
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
