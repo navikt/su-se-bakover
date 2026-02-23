@@ -14,7 +14,7 @@ internal fun Route.kontrollsamtalerDriftRoute(
     service: KontrollsamtaleDriftOversiktService,
 ) {
     get("$DRIFT_PATH/kontrollsamtaler") {
-        authorize(Brukerrolle.Drift) {
+        authorize(Brukerrolle.Drift, Brukerrolle.Saksbehandler) {
             val result = service.hentKontrollsamtaleOversikt()
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(result)))
         }
