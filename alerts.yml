@@ -20,8 +20,8 @@ spec:
             namespace: supstonad
             severity: critical
         - alert: su-se-bakover-pods-available
-          expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
-          for: 1m
+          expr: kube_deployment_status_replicas_available{namespace="supstonad",deployment="su-se-bakover"} == 0
+          for: 3m
           annotations:
             consequence: "Tilgjengelige kubernetes pods for su-se-bakover er mindre enn 1"
             action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }}` for logger"
