@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -114,7 +115,7 @@ class ReguleringAutomatiskServiceImpl(
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
             }
-            // TODO bjg raskere måte å sjekke om ikke løpende uten å hente hele saken per sak?
+            // TODO bjg raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes?
             sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                 when (feil) {
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
@@ -140,16 +141,13 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         val supplFraIntegrasjon = reguleringssupplementService.hentAutomatiske(
-            månedforrRegulering = fraOgMedMåned.fraOgMed,
+            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
             saker = sakerSomSkalReguleresEllerIkke.filterRights(),
         )
 
         return sakerSomSkalReguleresEllerIkke.map {
-            // TODO alleSaker er SakInfoeller en KunneIkkeRegulere som mappes videre bare??? eller skal den ignoreeresdfsfasdfa
-            // TODO mulig å sjekke løpende uten hele saken??
-            it.mapLeft { it }.flatMap { sak ->
-                log.info("Regulering for saksnummer $sak.saksnummer: Starter")
-                // TODO bjg endre kjør til å ta i mot gjeldendeVedtaksdata...
+            it.flatMap { sak ->
+                log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
                 sak.kjørForSak(
                     fraOgMedMåned = fraOgMedMåned,
                     satsFactory = satsFactory,
@@ -173,28 +171,6 @@ class ReguleringAutomatiskServiceImpl(
     ): Either<KunneIkkeRegulereAutomatisk, Regulering> {
         val sak = this
 
-        /*
-        val reguleringLok = Regulering.opprettRegulering(
-            id = reguleringsId,
-            opprettet = opprettet,
-            sakId = id,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-            clock = clock,
-            sakstype = type,
-            eksternSupplementRegulering = utledReguleringssupplement(
-                brukerFnr = this.fnr,
-                bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
-                supplement = supplement,
-            ),
-            omregningsfaktor = omregningsfaktor,
-        ).mapLeft {
-            Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
-        }
-
-         */
-
         val regulering = sak.opprettEllerOppdaterRegulering(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
@@ -202,6 +178,8 @@ class ReguleringAutomatiskServiceImpl(
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+
+            // TODO bjg - dette er nå redundat og kan fjernes
             when (feil) {
                 Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
                     "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",

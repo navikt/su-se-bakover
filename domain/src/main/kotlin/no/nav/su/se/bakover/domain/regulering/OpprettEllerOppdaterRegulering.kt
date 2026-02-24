@@ -94,7 +94,6 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned: Måned, clock: Clo
         if (it.count() != 1) return Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
     }.single()
 
-    // TODO bjg må trekkes ut til før integrasjon/supplement-oppbygging
     return this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
         log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
         return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()

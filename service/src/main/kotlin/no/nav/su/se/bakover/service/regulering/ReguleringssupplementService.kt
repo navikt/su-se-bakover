@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -22,22 +23,21 @@ class ReguleringssupplementService(
 ) {
 
     fun hentAutomatiske(
-        fraOgMedMåned: Måned,
+        reguleringsMåned: Måned,
         saker: List<Sak>,
     ): Reguleringssupplement {
         // TODO feilhåndtering..
+        val månedFørRegulering = reguleringsMåned.fraOgMed.minusMonths(1)
 
         val fnrList = saker.map { sak ->
-            sak.hentGjeldendeVedtaksdata(periode = fraOgMedMåned, clock = clock).mapLeft { feil ->
-                feil
-            }.map { gjeldendeVedtaksdata ->
+            sak.hentGjeldendeVedtaksdata(periode = reguleringsMåned, clock = clock).map { gjeldendeVedtaksdata ->
                 listOf(sak.fnr) + gjeldendeVedtaksdata.grunnlagsdata.eps
             }
         }.filterRights().flatten()
 
         val uføre = pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = fnrList,
-            dato = fraOgMedMåned.fraOgMed.minusMonths(1),
+            dato = månedFørRegulering,
         ).getOrElse {
             // TODO
             throw Exception("")
@@ -45,32 +45,32 @@ class ReguleringssupplementService(
         val uføreSuppl = uføre.map {
             ReguleringssupplementFor(
                 fnr = Fnr(it.fnr),
-                perType = it.perioder.map { vedteksPeriode ->
+                perType = it.perioder.map { vedtaksperiode ->
                     ReguleringssupplementFor.PerType(
                         kategori = Fradragstype.Kategori.Uføretrygd,
                         vedtak = nonEmptyListOf(
                             Eksternvedtak.Endring(
-                                periode = PeriodeMedOptionalTilOgMed(vedteksPeriode.fom, vedteksPeriode.tom),
+                                periode = PeriodeMedOptionalTilOgMed(vedtaksperiode.fom, vedtaksperiode.tom),
                                 fradrag = nonEmptyListOf(
                                     ReguleringssupplementFor.PerType.Fradragsperiode(
-                                        fraOgMed = vedteksPeriode.fom,
-                                        tilOgMed = vedteksPeriode.tom,
-                                        beløp = vedteksPeriode.netto,
+                                        fraOgMed = vedtaksperiode.fom,
+                                        tilOgMed = vedtaksperiode.tom,
+                                        beløp = vedtaksperiode.netto,
                                         vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
                                         eksterndata = TODO(),
                                     ),
                                 ),
-                                beløp = vedteksPeriode.netto,
+                                beløp = vedtaksperiode.netto,
                             ),
                         ),
                     )
-                },
+                }.toNonEmptyList(),
             )
         }
 
         val alder = pesysClient.hentVedtakForPersonPaaDatoAlder(
             fnrList = fnrList,
-            dato = fraOgMedMåned.fraOgMed.minusMonths(1),
+            dato = månedFørRegulering,
         ).getOrElse {
             // TODO
             throw Exception("")
@@ -78,26 +78,26 @@ class ReguleringssupplementService(
         val alderSuppl = alder.map {
             ReguleringssupplementFor(
                 fnr = Fnr(it.fnr),
-                perType = it.perioder.map { vedteksPeriode ->
+                perType = it.perioder.map { vedtaksperiode ->
                     ReguleringssupplementFor.PerType(
-                        kategori = Fradragstype.Kategori.Uføretrygd,
+                        kategori = Fradragstype.Kategori.Alderspensjon,
                         vedtak = nonEmptyListOf(
                             Eksternvedtak.Endring(
-                                periode = PeriodeMedOptionalTilOgMed(vedteksPeriode.fom, vedteksPeriode.tom),
+                                periode = PeriodeMedOptionalTilOgMed(vedtaksperiode.fom, vedtaksperiode.tom),
                                 fradrag = nonEmptyListOf(
                                     ReguleringssupplementFor.PerType.Fradragsperiode(
-                                        fraOgMed = vedteksPeriode.fom,
-                                        tilOgMed = vedteksPeriode.tom,
-                                        beløp = vedteksPeriode.netto,
+                                        fraOgMed = vedtaksperiode.fom,
+                                        tilOgMed = vedtaksperiode.tom,
+                                        beløp = vedtaksperiode.netto,
                                         vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
                                         eksterndata = TODO(),
                                     ),
                                 ),
-                                beløp = vedteksPeriode.netto,
+                                beløp = vedtaksperiode.netto,
                             ),
                         ),
                     )
-                },
+                }.toNonEmptyList(),
             )
         }
 
