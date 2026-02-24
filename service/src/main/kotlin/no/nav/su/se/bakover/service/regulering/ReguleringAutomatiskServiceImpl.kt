@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -43,6 +44,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
+    private val reguleringssupplementService: ReguleringssupplementService,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -137,6 +139,11 @@ class ReguleringAutomatiskServiceImpl(
             sak.right()
         }
 
+        val supplFraIntegrasjon = reguleringssupplementService.hentAutomatiske(
+            månedforrRegulering = fraOgMedMåned.fraOgMed,
+            saker = sakerSomSkalReguleresEllerIkke.filterRights(),
+        )
+
         return sakerSomSkalReguleresEllerIkke.map {
             // TODO alleSaker er SakInfoeller en KunneIkkeRegulere som mappes videre bare??? eller skal den ignoreeresdfsfasdfa
             // TODO mulig å sjekke løpende uten hele saken??
@@ -146,7 +153,7 @@ class ReguleringAutomatiskServiceImpl(
                 sak.kjørForSak(
                     fraOgMedMåned = fraOgMedMåned,
                     satsFactory = satsFactory,
-                    supplement = supplement,
+                    supplement = supplFraIntegrasjon,
                     omregningsfaktor = omregningsfaktor,
                     testRun = testRun,
                 )

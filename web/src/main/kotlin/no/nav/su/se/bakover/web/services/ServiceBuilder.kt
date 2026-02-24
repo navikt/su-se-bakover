@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringssupplementService
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -157,6 +158,7 @@ data object ServiceBuilder {
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
             satsFactory = satsFactory,
+            clients = clients,
             clock = clock,
         )
         val journalpostAdresseService = JournalpostAdresseServiceImpl(
@@ -587,6 +589,7 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
         vedtakService: VedtakServiceImpl,
         satsFactory: SatsFactory,
+        clients: Clients,
         clock: Clock,
     ): ReguleringServices {
         val reguleringService = ReguleringServiceImpl(
@@ -605,6 +608,10 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
         )
+        val reguleringssupplementService = ReguleringssupplementService(
+            pesysClient = clients.pesysklient,
+            clock = clock,
+        )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
@@ -613,6 +620,7 @@ data object ServiceBuilder {
             clock = clock,
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
+            reguleringssupplementService = reguleringssupplementService,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
