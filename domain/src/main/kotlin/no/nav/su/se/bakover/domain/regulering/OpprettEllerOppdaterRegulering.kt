@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.epsTilPeriode
@@ -33,7 +35,8 @@ fun Sak.opprettEllerOppdaterRegulering(
     // TODO - kan heller ta en funksjon som gir EksternSupplementRegulering som parameter
     supplement: Reguleringssupplement,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, ReguleringUnderBehandling.OpprettetRegulering> {
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
+    // TODO bjg fjern dette da eksisterende regulering skal føre til manuell håndtering
     val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
         .let { r ->
             when (r.size) {
@@ -49,24 +52,9 @@ fun Sak.opprettEllerOppdaterRegulering(
             }
         }
 
-    val periode = vedtakstidslinje(
-        fraOgMed = _fraOgMedMåned,
-    ).let { tidslinje ->
-        (tidslinje ?: emptyList())
-            .filterNot { it.erOpphør() }
-            .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
-            .minsteAntallSammenhengendePerioder()
-            .ifEmpty {
-                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_fraOgMedMåned")
-                return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-            }
-    }.also {
-        if (it.count() != 1) return Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
-    }.single()
-
-    val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
-        log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+    // TODO bjg heller passere dette som parameter da det gjøres tidligere i flyt?
+    val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdataForRegulering(_fraOgMedMåned, clock).getOrElse {
+        return it.left()
     }
 
     return Regulering.opprettRegulering(
@@ -78,6 +66,7 @@ fun Sak.opprettEllerOppdaterRegulering(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
+        // TODO bjg kan endres?
         eksternSupplementRegulering = utledReguleringssupplement(
             brukerFnr = this.fnr,
             bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
@@ -87,6 +76,29 @@ fun Sak.opprettEllerOppdaterRegulering(
     ).mapLeft {
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }
+}
+
+fun Sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned: Måned, clock: Clock): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, GjeldendeVedtaksdata> {
+    val periode = vedtakstidslinje(
+        fraOgMed = fraOgMedMåned,
+    ).let { tidslinje ->
+        (tidslinje ?: emptyList())
+            .filterNot { it.erOpphør() }
+            .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
+            .minsteAntallSammenhengendePerioder()
+            .ifEmpty {
+                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $fraOgMedMåned")
+                return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+            }
+    }.also {
+        if (it.count() != 1) return Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
+    }.single()
+
+    // TODO bjg må trekkes ut til før integrasjon/supplement-oppbygging
+    return this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
+        log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
+        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+    }.right()
 }
 
 private fun utledReguleringssupplement(

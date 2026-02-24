@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
+import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -102,22 +104,53 @@ class ReguleringAutomatiskServiceImpl(
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
-        return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
-            log.info("Regulering for saksnummer $saksnummer: Starter")
-
+        val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
+        val sakerSomSkalReguleresEllerIkke = alleSaker.map { (sakid, saksnummer, _) ->
             val sak: Sak = Either.catch {
                 sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
             }.getOrElse {
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
             }
-            sak.kjørForSak(
-                fraOgMedMåned = fraOgMedMåned,
-                satsFactory = satsFactory,
-                supplement = supplement,
-                omregningsfaktor = omregningsfaktor,
-                testRun = testRun,
-            )
+            // TODO bjg raskere måte å sjekke om ikke løpende uten å hente hele saken per sak?
+            sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
+                when (feil) {
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
+                    )
+
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                    )
+                }
+
+                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+            }
+
+            sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+                when (r.size) {
+                    0 -> {}
+                    1 -> return@map KunneIkkeRegulereAutomatisk.FørerIkkeTilEnEndring.left() // TODO egen feiltype
+                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                }
+            }
+            sak.right()
+        }
+
+        return sakerSomSkalReguleresEllerIkke.map {
+            // TODO alleSaker er SakInfoeller en KunneIkkeRegulere som mappes videre bare??? eller skal den ignoreeresdfsfasdfa
+            // TODO mulig å sjekke løpende uten hele saken??
+            it.mapLeft { it }.flatMap { sak ->
+                log.info("Regulering for saksnummer $sak.saksnummer: Starter")
+                // TODO bjg endre kjør til å ta i mot gjeldendeVedtaksdata...
+                sak.kjørForSak(
+                    fraOgMedMåned = fraOgMedMåned,
+                    satsFactory = satsFactory,
+                    supplement = supplement,
+                    omregningsfaktor = omregningsfaktor,
+                    testRun = testRun,
+                )
+            }
         }
             .also {
                 logResultat(it)
@@ -132,6 +165,28 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, Regulering> {
         val sak = this
+
+        /*
+        val reguleringLok = Regulering.opprettRegulering(
+            id = reguleringsId,
+            opprettet = opprettet,
+            sakId = id,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+            clock = clock,
+            sakstype = type,
+            eksternSupplementRegulering = utledReguleringssupplement(
+                brukerFnr = this.fnr,
+                bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+                supplement = supplement,
+            ),
+            omregningsfaktor = omregningsfaktor,
+        ).mapLeft {
+            Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
+        }
+
+         */
 
         val regulering = sak.opprettEllerOppdaterRegulering(
             fraOgMedMåned = fraOgMedMåned,
