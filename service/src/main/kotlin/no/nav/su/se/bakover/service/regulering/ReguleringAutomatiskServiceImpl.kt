@@ -133,7 +133,7 @@ class ReguleringAutomatiskServiceImpl(
             sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                 when (r.size) {
                     0 -> {}
-                    1 -> return@map KunneIkkeRegulereAutomatisk.FørerIkkeTilEnEndring.left() // TODO egen feiltype
+                    1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
                     else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                 }
             }
