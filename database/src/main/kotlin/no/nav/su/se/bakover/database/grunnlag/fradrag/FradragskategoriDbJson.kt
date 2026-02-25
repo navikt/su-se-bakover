@@ -6,6 +6,7 @@ internal enum class FradragskategoriDbJson {
     Alderspensjon,
     Annet,
     Omstillingsstønad,
+    Overgangsstønad,
     Arbeidsavklaringspenger,
     Arbeidsinntekt,
     AvtalefestetPensjon,
@@ -38,6 +39,7 @@ internal enum class FradragskategoriDbJson {
         Alderspensjon -> Fradragstype.Kategori.Alderspensjon
         Annet -> Fradragstype.Kategori.Annet
         Omstillingsstønad -> Fradragstype.Kategori.Omstillingsstønad
+        Overgangsstønad -> Fradragstype.Kategori.Overgangsstønad
         Arbeidsavklaringspenger -> Fradragstype.Kategori.Arbeidsavklaringspenger
         Arbeidsinntekt -> Fradragstype.Kategori.Arbeidsinntekt
         AvkortingUtenlandsopphold -> Fradragstype.Kategori.AvkortingUtenlandsopphold
@@ -71,6 +73,7 @@ internal enum class FradragskategoriDbJson {
             Fradragstype.Kategori.Alderspensjon -> Alderspensjon
             Fradragstype.Kategori.Annet -> Annet
             Fradragstype.Kategori.Omstillingsstønad -> Omstillingsstønad
+            Fradragstype.Kategori.Overgangsstønad -> Overgangsstønad
             Fradragstype.Kategori.Arbeidsavklaringspenger -> Arbeidsavklaringspenger
             Fradragstype.Kategori.Arbeidsinntekt -> Arbeidsinntekt
             Fradragstype.Kategori.AvkortingUtenlandsopphold -> AvkortingUtenlandsopphold
