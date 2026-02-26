@@ -24,7 +24,8 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
+import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
@@ -128,7 +129,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
-    supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
     gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -139,7 +139,8 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, supplement, gVerdiØkning).getOrFail()
+    val sakerMedRegulerteFradragEksternKilde = SakerMedRegulerteFradragEksternKilde(emptyList())
+    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(regulerFraOgMed, clock, sakerMedRegulerteFradragEksternKilde, gVerdiØkning).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -150,17 +151,17 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
-    supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
     gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(
+    val sakerMedRegulerteFradragEksternKilde = SakerMedRegulerteFradragEksternKilde(emptyList())
+    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        supplement = supplement,
+        sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 

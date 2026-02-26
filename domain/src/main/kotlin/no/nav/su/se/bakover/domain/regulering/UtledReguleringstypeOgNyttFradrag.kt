@@ -15,8 +15,14 @@ import kotlin.math.absoluteValue
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
+// TODO flytt i egen fil?
+data class SakerMedRegulerteFradragEksternKilde(
+    val regulerteFradragEksternKilde: List<RegulerteFradragEksternKilde>,
+)
+
 data class RegulerteFradragEksternKilde(
     // TODO vil nå bare kunne bruker for enten eller? Må kunne kombineres?
+    val saksnummer: Saksnummer,
     val forBruker: NyttFradragEksternKilde,
     val forEps: List<NyttFradragEksternKilde>,
 )

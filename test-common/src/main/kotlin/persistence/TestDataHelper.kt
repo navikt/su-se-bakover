@@ -55,8 +55,8 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -523,7 +523,6 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
-        supplement: Reguleringssupplement = Reguleringssupplement.empty(clock),
         gVerdiØkning: BigDecimal = BigDecimal(100),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
@@ -537,10 +536,10 @@ class TestDataHelper(
             sakOgSøknad = sakOgSøknad,
             søknadsbehandling = søknadsbehandling,
         ).first.let { sak ->
-            sak.opprettEllerOppdaterRegulering(
+            sak.opprettReguleringForAutomatiskEllerManuellBehandling(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                supplement = supplement,
+                sakerMedRegulerteFradragEksternKilde = SakerMedRegulerteFradragEksternKilde(emptyList()),
                 omregningsfaktor = gVerdiØkning,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)

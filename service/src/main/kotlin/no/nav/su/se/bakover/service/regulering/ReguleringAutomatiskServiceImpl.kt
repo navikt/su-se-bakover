@@ -23,10 +23,11 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
-import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
+import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
@@ -45,7 +46,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
-    private val reguleringssupplementService: ReguleringssupplementService,
+    private val reguleringHentEksterneReguleringerService: ReguleringHentEksterneReguleringerService,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -103,7 +104,7 @@ class ReguleringAutomatiskServiceImpl(
     private fun start(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement,
+        supplement: Reguleringssupplement, // TODO bjg fjern
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
@@ -141,7 +142,7 @@ class ReguleringAutomatiskServiceImpl(
             sak.right()
         }
 
-        val supplFraIntegrasjon = reguleringssupplementService.hentAutomatiske(
+        val sakerMedRegulerteFradragEksternKilde = reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
             reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
             saker = sakerSomSkalReguleresEllerIkke.filterRights(),
         )
@@ -152,7 +153,7 @@ class ReguleringAutomatiskServiceImpl(
                 sak.kjørForSak(
                     fraOgMedMåned = fraOgMedMåned,
                     satsFactory = satsFactory,
-                    supplement = supplFraIntegrasjon,
+                    sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
                     omregningsfaktor = omregningsfaktor,
                     testRun = testRun,
                 )
@@ -166,16 +167,16 @@ class ReguleringAutomatiskServiceImpl(
     private fun Sak.kjørForSak(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement,
+        sakerMedRegulerteFradragEksternKilde: SakerMedRegulerteFradragEksternKilde,
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, Regulering> {
         val sak = this
 
-        val regulering = sak.opprettEllerOppdaterRegulering(
+        val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
-            supplement = supplement,
+            sakerMedRegulerteFradragEksternKilde,
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
@@ -255,7 +256,7 @@ class ReguleringAutomatiskServiceImpl(
 
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
         val antallAutomatiskPgaSupplemement = rights.count {
-            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty())
+            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering?.bruker != null || it.eksternSupplementRegulering!!.eps.isNotEmpty())
         }
         val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
 

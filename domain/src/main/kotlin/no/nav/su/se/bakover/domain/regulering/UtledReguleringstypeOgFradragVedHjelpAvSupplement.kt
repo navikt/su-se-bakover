@@ -18,7 +18,7 @@ import kotlin.math.absoluteValue
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
-// TODO AUTO-REG-26 gammel utledning skal slettes!
+// TODO AUTO-REG-26 gammel utledning hele filen skal slettes!
 
 fun utledReguleringstypeOgFradragVedHjelpAvSupplement(
     fradrag: List<Fradragsgrunnlag>,

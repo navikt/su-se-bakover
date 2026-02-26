@@ -5,73 +5,46 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.bosituasjon.domain.grunnlag.epsTilPeriode
 import java.math.BigDecimal
 import java.time.Clock
 
 private val log = LoggerFactory.getLogger("opprettEllerOppdaterRegulering")
 
-/**
- * Iverksatte regulering vil ikke bli oppdatert
- *
- * @param omregningsfaktor Se https://www.nav.no/grunnbelopet F.eks fra 2022 (111477) ( til 2023 (118620kr) så var omregningsfaktoren 118620/111477 = 1.064076
- *
- * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
- */
-fun Sak.opprettEllerOppdaterRegulering(
+/*
+Oppretter en reguleringsbehandling og vurderer om den kan gjennomføres automatisk
+TODO bjg mer beskrivelse
+*/
+fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     fraOgMedMåned: Måned,
     clock: Clock,
-    // TODO - kan heller ta en funksjon som gir EksternSupplementRegulering som parameter
-    supplement: Reguleringssupplement,
+    sakerMedRegulerteFradragEksternKilde: SakerMedRegulerteFradragEksternKilde,
     omregningsfaktor: BigDecimal,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
-    // TODO bjg fjern dette da eksisterende regulering skal føre til manuell håndtering
-    val (reguleringsId, opprettet, _fraOgMedMåned) = reguleringer.filterIsInstance<OpprettetRegulering>()
-        .let { r ->
-            when (r.size) {
-                0 -> Triple(ReguleringId.generer(), Tidspunkt.now(clock), fraOgMedMåned)
+    if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
+        throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
+    }
 
-                1 -> Triple(
-                    r.first().id,
-                    r.first().opprettet,
-                    minOf(fraOgMedMåned, Måned.fra(r.first().periode.fraOgMed)),
-                )
-
-                else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-            }
-        }
-
-    // TODO bjg heller passere dette som parameter da det gjøres tidligere i flyt?
-    val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdataForRegulering(_fraOgMedMåned, clock).getOrElse {
+    // TODO bjg heller passere dette som parameter da det gjøres tidligere i flyt
+    val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse {
         return it.left()
     }
 
+    val regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde.regulerteFradragEksternKilde.singleOrNull {
+        it.saksnummer == saksnummer
+    } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
     return Regulering.opprettRegulering(
-        id = reguleringsId,
-        opprettet = opprettet,
         sakId = id,
         saksnummer = saksnummer,
         fnr = fnr,
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
-        // TODO bjg endres
-        eksternSupplementRegulering = utledReguleringssupplement(
-            brukerFnr = this.fnr,
-            bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
-            supplement = supplement,
-        ),
+        regulerteFradragEksternKilde = regulerteFradragEksternKilde,
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
         // TODO AUTO-REG-26 kan dette forbedres?
@@ -79,7 +52,10 @@ fun Sak.opprettEllerOppdaterRegulering(
     }
 }
 
-fun Sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned: Måned, clock: Clock): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, GjeldendeVedtaksdata> {
+fun Sak.hentGjeldendeVedtaksdataForRegulering(
+    fraOgMedMåned: Måned,
+    clock: Clock,
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, GjeldendeVedtaksdata> {
     val periode = vedtakstidslinje(
         fraOgMed = fraOgMedMåned,
     ).let { tidslinje ->
@@ -99,21 +75,4 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned: Måned, clock: Clo
         log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
         return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
     }.right()
-}
-
-private fun utledReguleringssupplement(
-    brukerFnr: Fnr,
-    bosituasjon: List<Bosituasjon>,
-    supplement: Reguleringssupplement,
-): EksternSupplementRegulering {
-    val supplementForBruker = supplement.getFor(brukerFnr)
-    val epsTilPeriode: Map<Fnr, List<Periode>> = bosituasjon.epsTilPeriode()
-    val supplementForEps: List<ReguleringssupplementFor> = epsTilPeriode.mapNotNull { (eps, _) ->
-        supplement.getFor(eps)
-    }
-    return EksternSupplementRegulering(
-        supplementId = supplement.id,
-        bruker = supplementForBruker,
-        eps = supplementForEps,
-    )
 }

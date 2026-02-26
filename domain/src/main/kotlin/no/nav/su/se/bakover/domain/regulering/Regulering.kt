@@ -75,7 +75,7 @@ sealed interface Regulering : Stønadsbehandling {
      * Supplementet inneholder informasjon som skal brukes for å oppdatere grunnlagene
      * Supplementet hentes fra eksterne kilder
      */
-    val eksternSupplementRegulering: EksternSupplementRegulering // TODO bjg børe kunne bli nullable og kun gjelde hvis det er før/etter nytt api?
+    val eksternSupplementRegulering: EksternSupplementRegulering? // TODO bjg børe kunne bli nullable og kun gjelde hvis det er før/etter nytt api?
 
     fun erÅpen(): Boolean
 
@@ -87,7 +87,6 @@ sealed interface Regulering : Stønadsbehandling {
          * @param clock Brukes kun dersom [opprettet] ikke sendes inn.
          */
         fun opprettRegulering(
-
             id: ReguleringId = ReguleringId.generer(),
             sakId: UUID,
             saksnummer: Saksnummer,
@@ -96,7 +95,7 @@ sealed interface Regulering : Stønadsbehandling {
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
-            eksternSupplementRegulering: EksternSupplementRegulering,
+            regulerteFradragEksternKilde: RegulerteFradragEksternKilde,
             omregningsfaktor: BigDecimal,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, ReguleringUnderBehandling.OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer =
@@ -111,10 +110,9 @@ sealed interface Regulering : Stønadsbehandling {
             val bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjonSomFullstendig()
 
             // TODO bjg egen metode..
-            val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradragVedHjelpAvSupplement(
+            val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradrag(
                 fradrag = fradrag,
-                bosituasjon = bosituasjon,
-                eksternSupplementRegulering = eksternSupplementRegulering,
+                regulerteFradragEksternKilde = regulerteFradragEksternKilde,
                 omregningsfaktor = omregningsfaktor,
                 saksnummer = saksnummer,
             )
@@ -138,7 +136,8 @@ sealed interface Regulering : Stønadsbehandling {
                 simulering = null,
                 reguleringstype = reguleringstype,
                 sakstype = sakstype,
-                eksternSupplementRegulering = eksternSupplementRegulering, // TODO bjg nullable??
+                // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO bjg - må lagres...
+                // eksternSupplementRegulering = eksternSupplementRegulering, // TODO bjg nullable??
             ).right()
         }
 

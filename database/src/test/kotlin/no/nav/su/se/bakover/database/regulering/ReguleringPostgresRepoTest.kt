@@ -18,18 +18,12 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandli
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
-import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fnrUnder67
-import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.nyReguleringssupplement
-import no.nav.su.se.bakover.test.nyReguleringssupplementFor
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import satser.domain.Satskategori
@@ -117,6 +111,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         hentRegulering.first() shouldBe regulering
     }
 
+    /*
+    TODO bjg utgår
     @Test
     fun `lagre og hent en opprettet regulering (automatisk) med supplement (søkers)`() {
         val testDataHelper = TestDataHelper(dataSource)
@@ -161,6 +157,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
 
         hentRegulering shouldBe regulering
     }
+     */
 
     @Test
     fun `lagre og hent en iverksatt regulering`() {

@@ -186,7 +186,8 @@ sealed class ReguleringUnderBehandling :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
-        override val eksternSupplementRegulering: EksternSupplementRegulering,
+        override val eksternSupplementRegulering: EksternSupplementRegulering? = null,
+
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling()
 
@@ -203,7 +204,7 @@ sealed class ReguleringUnderBehandling :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
-        override val eksternSupplementRegulering: EksternSupplementRegulering,
+        override val eksternSupplementRegulering: EksternSupplementRegulering?,
         override val attesteringer: Attesteringshistorikk,
     ) : ReguleringUnderBehandling() {
         fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler) = TilAttestering(
@@ -236,7 +237,7 @@ sealed class ReguleringUnderBehandling :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
-        override val eksternSupplementRegulering: EksternSupplementRegulering,
+        override val eksternSupplementRegulering: EksternSupplementRegulering?,
         override val attesteringer: Attesteringshistorikk,
     ) : ReguleringUnderBehandling() {
 
