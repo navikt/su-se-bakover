@@ -111,6 +111,7 @@ sealed class ReguleringUnderBehandling :
         }
     }
 
+    // TODO AUTO-REG-26 Utgår?
     fun oppdaterMedSupplement(
         eksternSupplementRegulering: EksternSupplementRegulering,
         omregningsfaktor: BigDecimal,

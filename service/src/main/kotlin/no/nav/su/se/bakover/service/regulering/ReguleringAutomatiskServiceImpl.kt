@@ -300,6 +300,7 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
+    // TODO AUTO-REG-26 Utgår?
     override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
         reguleringRepo.lagre(supplement)
