@@ -32,8 +32,10 @@ class ReguleringssupplementService(
         val fnrList = saker.map { sak ->
             sak.hentGjeldendeVedtaksdata(periode = reguleringsMåned, clock = clock).map { gjeldendeVedtaksdata ->
                 listOf(sak.fnr) + gjeldendeVedtaksdata.grunnlagsdata.eps
-            }
+            } // TODO distinct
         }.filterRights().flatten()
+
+        // TODO Må resultat fra uføre og alder mappes til et fnr? Trolig ja, spesielt når vi henter aap ??
 
         val uføre = pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = fnrList,
@@ -42,13 +44,14 @@ class ReguleringssupplementService(
             // TODO
             throw Exception("")
         }.resultat
+
         val uføreSuppl = uføre.map {
             ReguleringssupplementFor(
                 fnr = Fnr(it.fnr),
-                perType = it.perioder.map { vedtaksperiode ->
+                perType = nonEmptyListOf(
                     ReguleringssupplementFor.PerType(
                         kategori = Fradragstype.Kategori.Uføretrygd,
-                        vedtak = nonEmptyListOf(
+                        vedtak = it.perioder.map { vedtaksperiode ->
                             Eksternvedtak.Endring(
                                 periode = PeriodeMedOptionalTilOgMed(vedtaksperiode.fom, vedtaksperiode.tom),
                                 fradrag = nonEmptyListOf(
@@ -61,10 +64,10 @@ class ReguleringssupplementService(
                                     ),
                                 ),
                                 beløp = vedtaksperiode.netto,
-                            ),
-                        ),
-                    )
-                }.toNonEmptyList(),
+                            )
+                        }.toNonEmptyList(),
+                    ),
+                ),
             )
         }
 

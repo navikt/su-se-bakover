@@ -66,7 +66,7 @@ fun Sak.opprettEllerOppdaterRegulering(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
-        // TODO bjg kan endres?
+        // TODO bjg endres
         eksternSupplementRegulering = utledReguleringssupplement(
             brukerFnr = this.fnr,
             bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
@@ -74,6 +74,7 @@ fun Sak.opprettEllerOppdaterRegulering(
         ),
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
+        // TODO AUTO-REG-26 kan dette forbedres?
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }
 }

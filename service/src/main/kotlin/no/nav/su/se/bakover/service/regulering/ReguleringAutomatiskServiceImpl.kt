@@ -115,7 +115,7 @@ class ReguleringAutomatiskServiceImpl(
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
             }
-            // TODO bjg raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes?
+            // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
             sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                 when (feil) {
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
@@ -131,6 +131,7 @@ class ReguleringAutomatiskServiceImpl(
             }
 
             sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+
                 when (r.size) {
                     0 -> {}
                     1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
@@ -194,6 +195,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         // TODO jah: Flytt inn i sak.opprettEllerOppdaterRegulering(...)
+        // TODO AUTO-REG-26 er dette beste løsning for eksisterende reguleringer?
         if (!blirBeregningEndret(sak, regulering, satsFactory, clock)) {
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
             log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
@@ -361,6 +363,7 @@ class ReguleringAutomatiskServiceImpl(
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
                 }
+                // TODO AUTO-REG-26 alltid manuell hvis feiler?
                 sessionFactory.withTransactionContext { tx ->
                     val manuellOpprettet = regulering.endreTilManuell(message)
                     reguleringRepo.lagre(manuellOpprettet, tx)
