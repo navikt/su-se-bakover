@@ -197,8 +197,33 @@ internal data class PersonhendelseJson(
                 dødsdato = data.doedsfall?.doedsdato?.fraPersonhendelseDatoTilLocalDate(),
             )
 
-            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse
-            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse
+            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse(
+                angittFlyttedato = data.bostedsadresse?.angittFlyttedato?.fraPersonhendelseDatoTilLocalDate(),
+                gyldigFraOgMed = data.bostedsadresse?.gyldigFraOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                gyldigTilOgMed = data.bostedsadresse?.gyldigTilOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                coAdressenavn = data.bostedsadresse?.coAdressenavn,
+                adressetype = when {
+                    data.bostedsadresse?.vegadresse != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE
+                    data.bostedsadresse?.matrikkeladresse != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.MATRIKKELADRESSE
+                    data.bostedsadresse?.utenlandskAdresse != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UTENLANDSK_ADRESSE
+                    data.bostedsadresse?.ukjentBosted != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UKJENT_BOSTED
+                    else -> null
+                },
+            )
+            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = data.kontaktadresse?.gyldigFraOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                gyldigTilOgMed = data.kontaktadresse?.gyldigTilOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                type = data.kontaktadresse?.type,
+                coAdressenavn = data.kontaktadresse?.coAdressenavn,
+                adressetype = when {
+                    data.kontaktadresse?.postboksadresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE
+                    data.kontaktadresse?.vegadresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE
+                    data.kontaktadresse?.postadresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTADRESSE_I_FRITT_FORMAT
+                    data.kontaktadresse?.utenlandskAdresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE
+                    data.kontaktadresse?.utenlandsAdresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
+                    else -> null
+                },
+            )
             OpplysningstypeForPersonhendelse.SIVILSTAND.value -> Personhendelse.Hendelse.Sivilstand(
                 type = SivilstandTyper.fromString(data.sivilstand?.type).getOrElse {
                     throw IllegalArgumentException("Personhendelse: Ukjent sivilstandstype: ${it.value} for hendelsesid $hendelseId, partisjon $partition og offset $offset")

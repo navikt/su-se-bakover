@@ -108,7 +108,7 @@ internal class OppgavebeskrivelseMapperTest {
     @Test
     fun `mapper bostedsadresse riktig`() {
         val nyHendelse = nyPersonhendelseKnyttetTilSak(
-            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
             Endring i bostedsadresse
@@ -124,7 +124,7 @@ internal class OppgavebeskrivelseMapperTest {
         val fnr = Fnr.generer()
         val nyHendelse = nyPersonhendelseKnyttetTilSak(
             fnr = fnr,
-            hendelse = Personhendelse.Hendelse.Kontaktadresse,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(),
             gjelderEps = true,
         )
         OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """

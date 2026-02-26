@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.test.fixedClock
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import person.domain.SivilstandTyper
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -188,7 +190,13 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
         val hendelse = Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(
+                angittFlyttedato = fixedLocalDate,
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                coAdressenavn = "co-adresse",
+                adressetype = Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE,
+            ),
             metadata = Personhendelse.Metadata(
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelseId = hendelseId,
@@ -226,6 +234,13 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
             key = "someKey",
             personidenter = nonEmptyListOf(aktørId, fnr.toString()),
             eksternOpprettet = null,
+        )
+        deserialize<BostedsadresseLagretJson>(hentHendelse(id, dataSource)!!) shouldBe BostedsadresseLagretJson(
+            angittFlyttedato = fixedLocalDate,
+            gyldigFraOgMed = fixedLocalDate,
+            gyldigTilOgMed = fixedLocalDate,
+            coAdressenavn = "co-adresse",
+            adressetype = "vegadresse",
         )
     }
 
@@ -235,7 +250,13 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
         val hendelse = Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.Kontaktadresse,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                type = "Innland",
+                coAdressenavn = "co-adresse",
+                adressetype = Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE,
+            ),
             metadata = Personhendelse.Metadata(
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelseId = hendelseId,
@@ -274,6 +295,91 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
             personidenter = nonEmptyListOf(aktørId, fnr.toString()),
             eksternOpprettet = null,
         )
+        deserialize<KontaktadresseLagretJson>(hentHendelse(id, dataSource)!!) shouldBe KontaktadresseLagretJson(
+            gyldigFraOgMed = fixedLocalDate,
+            gyldigTilOgMed = fixedLocalDate,
+            type = "Innland",
+            coAdressenavn = "co-adresse",
+            adressetype = "postboksadresse",
+        )
+    }
+
+    @Test
+    fun `Kan hente legacy tom hendelse for bostedsadresse`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
+        val hendelse = Personhendelse.IkkeTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(
+                angittFlyttedato = fixedLocalDate,
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                coAdressenavn = "co-adresse",
+                adressetype = Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE,
+            ),
+            metadata = Personhendelse.Metadata(
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                hendelseId = hendelseId,
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "someKey",
+                eksternOpprettet = null,
+            ),
+        )
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+        val id = UUID.randomUUID()
+        val lagret = hendelse.tilknyttSak(
+            id,
+            SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+            false,
+            fixedTidspunkt,
+        )
+
+        repo.lagre(lagret)
+        oppdaterHendelseTilTomJson(id, dataSource)
+
+        repo.hent(id) shouldBe lagret.copy(hendelse = Personhendelse.Hendelse.Bostedsadresse.EMPTY)
+    }
+
+    @Test
+    fun `Kan hente legacy tom hendelse for kontaktadresse`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
+        val hendelse = Personhendelse.IkkeTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                type = "Innland",
+                coAdressenavn = "co-adresse",
+                adressetype = Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE,
+            ),
+            metadata = Personhendelse.Metadata(
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                hendelseId = hendelseId,
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "someKey",
+                eksternOpprettet = null,
+            ),
+        )
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+        val id = UUID.randomUUID()
+        val lagret = hendelse.tilknyttSak(
+            id,
+            SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+            false,
+            fixedTidspunkt,
+        )
+
+        repo.lagre(lagret)
+        oppdaterHendelseTilTomJson(id, dataSource)
+
+        repo.hent(id) shouldBe lagret.copy(hendelse = Personhendelse.Hendelse.Kontaktadresse.EMPTY)
     }
 
     @Test
@@ -568,4 +674,48 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
                 }
         }
     }
+
+    private fun hentHendelse(id: UUID, dataSource: DataSource): String? {
+        return dataSource.withSession { session ->
+            """
+                select hendelse from personhendelse
+                where id = :id
+            """.trimIndent()
+                .hent(
+                    mapOf("id" to id),
+                    session,
+                ) {
+                    it.string("hendelse")
+                }
+        }
+    }
+
+    private fun oppdaterHendelseTilTomJson(id: UUID, dataSource: DataSource) {
+        dataSource.withSession { session ->
+            """
+                update personhendelse
+                set hendelse = '{}'::jsonb
+                where id = :id
+            """.trimIndent().insert(
+                mapOf("id" to id),
+                session,
+            )
+        }
+    }
+
+    private data class BostedsadresseLagretJson(
+        val angittFlyttedato: LocalDate? = null,
+        val gyldigFraOgMed: LocalDate? = null,
+        val gyldigTilOgMed: LocalDate? = null,
+        val coAdressenavn: String? = null,
+        val adressetype: String? = null,
+    )
+
+    private data class KontaktadresseLagretJson(
+        val gyldigFraOgMed: LocalDate? = null,
+        val gyldigTilOgMed: LocalDate? = null,
+        val type: String? = null,
+        val coAdressenavn: String? = null,
+        val adressetype: String? = null,
+    )
 }

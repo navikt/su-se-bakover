@@ -129,14 +129,61 @@ sealed interface Personhendelse {
         }
 
         /**
-         * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse">Dokumentasjonen</a>
+         * @see https://pdl-docs.ansatt.nav.no/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse
          * */
-        data object Bostedsadresse : Hendelse
+        data class Bostedsadresse(
+            val angittFlyttedato: LocalDate? = null,
+            val gyldigFraOgMed: LocalDate? = null,
+            val gyldigTilOgMed: LocalDate? = null,
+            val coAdressenavn: String? = null,
+            val adressetype: Adressetype? = null,
+        ) : Hendelse {
+            enum class Adressetype {
+                VEGADRESSE,
+                MATRIKKELADRESSE,
+                UTENLANDSK_ADRESSE,
+                UKJENT_BOSTED,
+            }
+
+            companion object {
+                val EMPTY = Bostedsadresse(
+                    angittFlyttedato = null,
+                    gyldigFraOgMed = null,
+                    gyldigTilOgMed = null,
+                    coAdressenavn = null,
+                    adressetype = null,
+                )
+            }
+        }
 
         /**
-         * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-kontaktAdresse">Dokumentasjonen</a>
+         * @see https://pdl-docs.ansatt.nav.no/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse
          * */
-        data object Kontaktadresse : Hendelse
+        data class Kontaktadresse(
+            val gyldigFraOgMed: LocalDate? = null,
+            val gyldigTilOgMed: LocalDate? = null,
+            val type: String? = null,
+            val coAdressenavn: String? = null,
+            val adressetype: Adressetype? = null,
+        ) : Hendelse {
+            enum class Adressetype {
+                POSTBOKSADRESSE,
+                VEGADRESSE,
+                POSTADRESSE_I_FRITT_FORMAT,
+                UTENLANDSK_ADRESSE,
+                UTENLANDSK_ADRESSE_I_FRITT_FORMAT,
+            }
+
+            companion object {
+                val EMPTY = Kontaktadresse(
+                    gyldigFraOgMed = null,
+                    gyldigTilOgMed = null,
+                    type = null,
+                    coAdressenavn = null,
+                    adressetype = null,
+                )
+            }
+        }
     }
 
     /** Metadata rundt hendelsen
