@@ -56,8 +56,46 @@ internal data object PersonhendelseMapper {
                     ).right()
             }
 
-            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.right()
-            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.right()
+            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> {
+                (
+                    personhendelse.getBostedsadresse().map {
+                        Personhendelse.Hendelse.Bostedsadresse(
+                            angittFlyttedato = it.getAngittFlyttedato().orNull(),
+                            gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
+                            gyldigTilOgMed = it.getGyldigTilOgMed().orNull(),
+                            coAdressenavn = it.getCoAdressenavn().orNull(),
+                            adressetype = when {
+                                it.getVegadresse().isPresent -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE
+                                it.getMatrikkeladresse().isPresent -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.MATRIKKELADRESSE
+                                it.getUtenlandskAdresse().isPresent -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UTENLANDSK_ADRESSE
+                                it.getUkjentBosted().isPresent -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UKJENT_BOSTED
+                                else -> null
+                            },
+                        )
+                    }.orNull() ?: Personhendelse.Hendelse.Bostedsadresse.EMPTY
+                    ).right()
+            }
+
+            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> {
+                (
+                    personhendelse.getKontaktadresse().map {
+                        Personhendelse.Hendelse.Kontaktadresse(
+                            gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
+                            gyldigTilOgMed = it.getGyldigTilOgMed().orNull(),
+                            type = it.type,
+                            coAdressenavn = it.getCoAdressenavn().orNull(),
+                            adressetype = when {
+                                it.getPostboksadresse().isPresent -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE
+                                it.getVegadresse().isPresent -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE
+                                it.getPostadresseIFrittFormat().isPresent -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTADRESSE_I_FRITT_FORMAT
+                                it.getUtenlandskAdresse().isPresent -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE
+                                it.getUtenlandskAdresseIFrittFormat().isPresent -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
+                                else -> null
+                            },
+                        )
+                    }.orNull() ?: Personhendelse.Hendelse.Kontaktadresse.EMPTY
+                    ).right()
+            }
             else -> {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }

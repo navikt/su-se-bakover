@@ -394,12 +394,12 @@ internal class PersonhendelseServiceImplTest {
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse2,
                 aktørId = AktørId("456"),
-                hendelse = Personhendelse.Hendelse.Bostedsadresse,
+                hendelse = Personhendelse.Hendelse.Bostedsadresse(),
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse3,
                 aktørId = AktørId("789"),
-                hendelse = Personhendelse.Hendelse.Kontaktadresse,
+                hendelse = Personhendelse.Hendelse.Kontaktadresse(),
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse4,

@@ -163,6 +163,7 @@ class PersonhendelseServiceImpl(
             }
     }
 
+    // TODO: denne må vel kunne slettes? ingen kommentar om noe fornuftig som kan forklare det her
     override fun dryRunPersonhendelser(
         fraOgMed: Måned,
         personhendelser: List<Personhendelse.IkkeTilknyttetSak>,
