@@ -4,6 +4,7 @@ import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
+import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.pesys.PesysClient
@@ -47,6 +48,7 @@ data class Clients(
     val queryJournalpostClient: QueryJournalpostClient,
     val skatteOppslag: Skatteoppslag,
     val pesysklient: PesysClient,
+    val aapApiInternClient: AapApiInternClient,
     val suProxyClient: SUProxyClient,
 )
 

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
@@ -99,6 +100,7 @@ class StubClientsBuilder(
             skatteOppslag = SkatteClientStub(clock).also { log.warn("********** Using stub for ${SkatteClient::class.java} **********") },
             suProxyClient = SuProxyClientStub(),
             pesysklient = PesysclientStub(),
+            aapApiInternClient = AapApiInternClientStub(),
         )
     }
 }

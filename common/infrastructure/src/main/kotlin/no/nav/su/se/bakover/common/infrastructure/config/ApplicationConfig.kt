@@ -207,6 +207,7 @@ data class ApplicationConfig(
         val kodeverkConfig: KodeverkConfig,
         val skjermingConfig: SkjermingConfig,
         val pesysConfig: PesysConfig,
+        val aapApiInternConfig: AapApiInternConfig,
         val suProxyConfig: SuProxyConfig,
     ) {
         companion object {
@@ -224,6 +225,7 @@ data class ApplicationConfig(
                 skjermingConfig = SkjermingConfig.createFromEnvironmentVariables(),
                 suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
                 pesysConfig = PesysConfig.createFromEnvironmentVariables(),
+                aapApiInternConfig = AapApiInternConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -239,6 +241,7 @@ data class ApplicationConfig(
                 kodeverkConfig = KodeverkConfig.createLocalConfig(),
                 skjermingConfig = SkjermingConfig.createLocalConfig(),
                 pesysConfig = PesysConfig.createLocalConfig(),
+                aapApiInternConfig = AapApiInternConfig.createLocalConfig(),
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
             )
         }
@@ -424,6 +427,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = PesysConfig(
                     url = "PESYS_URL",
                     clientId = "PESYS_CLIENT_ID",
+                )
+            }
+        }
+
+        data class AapApiInternConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = AapApiInternConfig(
+                    url = getEnvironmentVariableOrThrow("AAP_API_INTERN_URL"),
+                    clientId = getEnvironmentVariableOrThrow("AAP_API_INTERN_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = AapApiInternConfig(
+                    url = "AAP_API_INTERN_URL",
+                    clientId = "AAP_API_INTERN_CLIENT_ID",
                 )
             }
         }

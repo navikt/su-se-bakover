@@ -85,6 +85,9 @@ spec:
         - application: supstonad-proxy
           namespace: supstonad
           cluster: prod-fss
+        - application: api-intern
+          namespace: aap
+          cluster: prod-gcp
         - application: skjermede-personer-pip # namespace hører til denne. Ikke legg til ny app i mellom.
           namespace: nom
           cluster: prod-gcp
@@ -149,6 +152,10 @@ spec:
     #Denne inneholder servicebruker passord og brukernavn da vault ikke støttes i GCP - serviceuser og serviceuserpw
     - secret: supstonad-servicebruker
   env:
+    - name: AAP_API_INTERN_URL
+      value: "http://api-intern.aap"
+    - name: AAP_API_INTERN_CLIENT_ID
+      value: "api://prod-gcp.aap.api-intern"
     - name: PESYS_URL
       value: "https://pensjon-pen.prod-fss-pub.nais.io/pen/api/"
     - name: PESYS_CLIENT_ID

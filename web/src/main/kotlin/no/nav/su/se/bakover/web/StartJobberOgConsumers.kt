@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
 import no.nav.su.se.bakover.web.services.FssProxyJob
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
+import no.nav.su.se.bakover.web.services.aap.Aapjobb
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
@@ -332,6 +333,13 @@ private fun naisJobberOgConsumers(
             initialDelay = Duration.of(1, ChronoUnit.SECONDS),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             client = clients.suProxyClient,
+        ),
+
+        Aapjobb.startJob(
+            initialDelay = Duration.ofSeconds(10),
+            periode = Duration.of(2, ChronoUnit.HOURS),
+            aapJobService = services.aapJobService,
+            runJobCheck = runCheckFactory,
         ),
 
         Pesysjobb.startJob(

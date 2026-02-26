@@ -1,0 +1,111 @@
+package no.nav.su.se.bakover.client
+
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.containing
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
+import no.nav.su.se.bakover.client.aap.MaksimumRequestDto
+import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
+import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
+import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import java.time.LocalDate
+
+class AapApiInternHttpClientTest {
+    private fun mockAzureAd() = mock<AzureAd> {
+        on { getSystemToken(any()) } doReturn "token"
+    }
+
+    private fun createClient(baseUrl: String, azureAd: AzureAd = mockAzureAd()): AapApiInternHttpClient {
+        return AapApiInternHttpClient(
+            azureAd = azureAd,
+            url = "$baseUrl/",
+            clientId = "api://dev-gcp.aap.api-intern",
+        )
+    }
+
+    @Test
+    fun `kan hente maksimum for en person`() {
+        startedWireMockServerWithCorrelationId {
+            val fraOgMedDato = LocalDate.parse("2025-04-01")
+            val tilOgMedDato = LocalDate.parse("2025-04-30")
+            val fnr = Fnr("22503904369")
+
+            val expectedRequest = serialize(
+                MaksimumRequestDto(
+                    fraOgMedDato = fraOgMedDato,
+                    personidentifikator = fnr.toString(),
+                    tilOgMedDato = tilOgMedDato,
+                ),
+            )
+            val expectedResponse = MaksimumResponseDto(
+                vedtak = listOf(
+                    MaksimumVedtakDto(
+                        vedtakId = "vedtak-1",
+                        kildesystem = "KELVIN",
+                    ),
+                ),
+            )
+
+            stubFor(
+                post(urlPathEqualTo("/maksimum"))
+                    .withHeader("Content-Type", containing("application/json"))
+                    .withHeader("Accept", containing("application/json"))
+                    .withHeader("nav-callid", equalTo("correlationId"))
+                    .withHeader("x-correlation-id", equalTo("correlationId"))
+                    .withRequestBody(equalToJson(expectedRequest))
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(serialize(expectedResponse)),
+                    ),
+            )
+
+            val result = createClient(baseUrl()).hentMaksimum(fnr, fraOgMedDato, tilOgMedDato)
+
+            result.shouldBeRight(expectedResponse)
+        }
+    }
+
+    @Test
+    fun `feiler med klientfeil hvis api returnerer feilstatus`() {
+        startedWireMockServerWithCorrelationId {
+            val errorMessage = "Noe gikk galt"
+            stubFor(
+                post(urlPathEqualTo("/maksimum"))
+                    .willReturn(
+                        aResponse()
+                            .withStatus(500)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(errorMessage),
+                    ),
+            )
+
+            val result = createClient(baseUrl()).hentMaksimum(
+                fnr = Fnr("22503904369"),
+                fraOgMedDato = LocalDate.now(),
+                tilOgMedDato = LocalDate.now(),
+            )
+
+            result.shouldBeLeft().let { error: ClientError ->
+                error.httpStatus shouldBe 500
+                error.message shouldContain errorMessage
+            }
+        }
+    }
+}
