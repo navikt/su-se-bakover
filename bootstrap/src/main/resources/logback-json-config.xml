@@ -9,8 +9,8 @@
             <includeMdcKeyName>TOKENTYPE</includeMdcKeyName>
             <includeMdcKeyName>ROLES</includeMdcKeyName>
             <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
-                <maxDepthPerThrowable>100</maxDepthPerThrowable>   <!-- eller 60/100 -->
-                <maxLength>16384</maxLength>
+                <maxDepthPerThrowable>100</maxDepthPerThrowable>
+                <maxLength>11000</maxLength>
                 <rootCauseFirst>true</rootCauseFirst>
                 <shortenedClassNameLength>20</shortenedClassNameLength>
                 <exclude>^sun\.</exclude>
