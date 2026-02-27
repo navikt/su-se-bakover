@@ -67,7 +67,7 @@ class AapApiInternHttpClientTest {
                         barnetillegg = 0,
                         beregningsgrunnlag = 0,
                         dagsats = 0,
-                        dagsatsEtterUforeReduksjon = 0,
+                        dagsatsEtterUføreReduksjon = 0,
                         kildesystem = "ARENA",
                         opphorsAarsak = "string",
                         periode = MaksimumPeriodeDto(

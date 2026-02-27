@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.aap
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
@@ -117,9 +116,7 @@ data class MaksimumVedtakDto(
     val barnetillegg: Int? = null,
     val beregningsgrunnlag: Int? = null,
     val dagsats: Int? = null,
-    @param:JsonProperty("dagsatsEtterUføreReduksjon")
-    @get:JsonProperty("dagsatsEtterUføreReduksjon")
-    val dagsatsEtterUforeReduksjon: Int? = null,
+    val dagsatsEtterUføreReduksjon: Int? = null,
     val opphorsAarsak: String? = null,
     val periode: MaksimumPeriodeDto? = null,
     val rettighetsType: String? = null,
