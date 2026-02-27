@@ -134,8 +134,6 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-  secureLogs:
-    enabled: true
   leaderElection: true
   kafka:
     pool: nav-dev
