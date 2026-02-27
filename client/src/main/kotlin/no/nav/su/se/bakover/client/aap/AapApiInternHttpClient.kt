@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.aap
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.HttpStatusCode
@@ -36,7 +37,7 @@ class AapApiInternClientStub : AapApiInternClient {
 
 class AapApiInternHttpClient(
     private val azureAd: AzureAd,
-    private val url: String,
+    url: String,
     private val clientId: String,
 ) : AapApiInternClient {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -106,6 +107,27 @@ data class MaksimumResponseDto(
 )
 
 data class MaksimumVedtakDto(
+    val barnMedStonad: Int? = null,
+    val barnetillegg: Int? = null,
+    val beregningsgrunnlag: Int? = null,
+    val dagsats: Int? = null,
+    @param:JsonProperty("dagsatsEtterUføreReduksjon")
+    @get:JsonProperty("dagsatsEtterUføreReduksjon")
+    val dagsatsEtterUforeReduksjon: Int? = null,
+    val opphorsAarsak: String? = null,
+    val periode: MaksimumPeriodeDto? = null,
+    val rettighetsType: String? = null,
+    val saksnummer: String? = null,
+    val samordningsId: String? = null,
+    val status: String? = null,
     val vedtakId: String? = null,
     val kildesystem: String? = null,
+    val vedtaksTypeKode: String? = null,
+    val vedtaksTypeNavn: String? = null,
+    val vedtaksdato: LocalDate? = null,
+)
+
+data class MaksimumPeriodeDto(
+    val fraOgMedDato: LocalDate? = null,
+    val tilOgMedDato: LocalDate? = null,
 )

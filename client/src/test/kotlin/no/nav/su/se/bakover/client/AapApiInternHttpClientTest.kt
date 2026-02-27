@@ -11,6 +11,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
+import no.nav.su.se.bakover.client.aap.MaksimumPeriodeDto
 import no.nav.su.se.bakover.client.aap.MaksimumRequestDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
 import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
@@ -55,8 +56,25 @@ class AapApiInternHttpClientTest {
             val expectedResponse = MaksimumResponseDto(
                 vedtak = listOf(
                     MaksimumVedtakDto(
-                        vedtakId = "vedtak-1",
-                        kildesystem = "KELVIN",
+                        barnMedStonad = 0,
+                        barnetillegg = 0,
+                        beregningsgrunnlag = 0,
+                        dagsats = 0,
+                        dagsatsEtterUforeReduksjon = 0,
+                        kildesystem = "ARENA",
+                        opphorsAarsak = "string",
+                        periode = MaksimumPeriodeDto(
+                            fraOgMedDato = LocalDate.parse("2025-04-01"),
+                            tilOgMedDato = LocalDate.parse("2025-04-01"),
+                        ),
+                        rettighetsType = "string",
+                        saksnummer = "string",
+                        samordningsId = "string",
+                        status = "string",
+                        vedtakId = "string",
+                        vedtaksTypeKode = "string",
+                        vedtaksTypeNavn = "string",
+                        vedtaksdato = LocalDate.parse("2025-04-01"),
                     ),
                 ),
             )
@@ -72,7 +90,35 @@ class AapApiInternHttpClientTest {
                         aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
-                            .withBody(serialize(expectedResponse)),
+                            .withBody(
+                                """
+                                {
+                                  "vedtak": [
+                                    {
+                                      "barnMedStonad": 0,
+                                      "barnetillegg": 0,
+                                      "beregningsgrunnlag": 0,
+                                      "dagsats": 0,
+                                      "dagsatsEtterUføreReduksjon": 0,
+                                      "kildesystem": "ARENA",
+                                      "opphorsAarsak": "string",
+                                      "periode": {
+                                        "fraOgMedDato": "2025-04-01",
+                                        "tilOgMedDato": "2025-04-01"
+                                      },
+                                      "rettighetsType": "string",
+                                      "saksnummer": "string",
+                                      "samordningsId": "string",
+                                      "status": "string",
+                                      "vedtakId": "string",
+                                      "vedtaksTypeKode": "string",
+                                      "vedtaksTypeNavn": "string",
+                                      "vedtaksdato": "2025-04-01"
+                                    }
+                                  ]
+                                }
+                                """.trimIndent(),
+                            ),
                     ),
             )
 
