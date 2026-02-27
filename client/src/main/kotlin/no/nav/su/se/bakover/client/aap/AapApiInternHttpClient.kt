@@ -6,7 +6,10 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -16,6 +19,8 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+
+private const val NAV_CALL_ID_HEADER = "nav-callid"
 
 interface AapApiInternClient {
     fun hentMaksimum(
@@ -54,10 +59,11 @@ class AapApiInternHttpClient(
         val (_, response, result) = "$baseUrl$maksimumUri"
             .httpPost()
             .authentication().bearer(azureAd.getSystemToken(clientId))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header("nav-callid", callId)
-            .header("x-correlation-id", callId)
+            .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+            // NAV API contract uses this lowercase header name.
+            .header(NAV_CALL_ID_HEADER, callId)
+            .header(CORRELATION_ID_HEADER, callId)
             .body(
                 serialize(
                     MaksimumRequestDto(

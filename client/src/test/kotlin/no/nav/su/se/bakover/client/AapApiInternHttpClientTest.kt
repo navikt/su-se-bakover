@@ -10,11 +10,14 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.aap.MaksimumPeriodeDto
 import no.nav.su.se.bakover.client.aap.MaksimumRequestDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
 import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
+import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
@@ -27,6 +30,10 @@ import org.mockito.kotlin.mock
 import java.time.LocalDate
 
 class AapApiInternHttpClientTest {
+    companion object {
+        private const val NAV_CALL_ID_HEADER = "nav-callid"
+    }
+
     private fun mockAzureAd() = mock<AzureAd> {
         on { getSystemToken(any()) } doReturn "token"
     }
@@ -81,15 +88,15 @@ class AapApiInternHttpClientTest {
 
             stubFor(
                 post(urlPathEqualTo("/maksimum"))
-                    .withHeader("Content-Type", containing("application/json"))
-                    .withHeader("Accept", containing("application/json"))
-                    .withHeader("nav-callid", equalTo("correlationId"))
-                    .withHeader("x-correlation-id", equalTo("correlationId"))
+                    .withHeader(HttpHeaders.ContentType, containing(ContentType.Application.Json.toString()))
+                    .withHeader(HttpHeaders.Accept, containing(ContentType.Application.Json.toString()))
+                    .withHeader(NAV_CALL_ID_HEADER, equalTo("correlationId"))
+                    .withHeader(CORRELATION_ID_HEADER, equalTo("correlationId"))
                     .withRequestBody(equalToJson(expectedRequest))
                     .willReturn(
                         aResponse()
                             .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
+                            .withHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                             .withBody(
                                 """
                                 {
@@ -137,7 +144,7 @@ class AapApiInternHttpClientTest {
                     .willReturn(
                         aResponse()
                             .withStatus(500)
-                            .withHeader("Content-Type", "application/json")
+                            .withHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                             .withBody(errorMessage),
                     ),
             )

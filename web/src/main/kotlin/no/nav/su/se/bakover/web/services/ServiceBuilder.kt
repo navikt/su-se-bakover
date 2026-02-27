@@ -260,7 +260,7 @@ data object ServiceBuilder {
                 clock = clock,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
-            aapJobService = AapJobServiceImpl(client = clients.aapApiInternClient),
+            aapJobService = AapJobServiceImpl(client = clients.aapApiInternClient, clock = clock),
             sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
