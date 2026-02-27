@@ -96,8 +96,8 @@ private fun Regulering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKate
                 when (årsak) {
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> årsak.toCSVLoggableString(
                         saksnummer = saksnummer,
-                        supplementBruker = this.eksternSupplementRegulering.bruker,
-                        supplementEps = this.eksternSupplementRegulering.eps,
+                        supplementBruker = this.eksternSupplementRegulering?.bruker,
+                        supplementEps = this.eksternSupplementRegulering?.eps ?: emptyList(),
                     )
 
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering -> årsak.toCSVLoggableString(

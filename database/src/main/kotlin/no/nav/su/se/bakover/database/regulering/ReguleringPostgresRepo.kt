@@ -253,7 +253,7 @@ internal class ReguleringPostgresRepo(
                                 is IverksattRegulering -> null
                                 is ReguleringUnderBehandling -> null
                             },
-                            "reguleringsupplement" to regulering.eksternSupplementRegulering.toDbJson(),
+                            "reguleringsupplement" to regulering.eksternSupplementRegulering?.toDbJson(),
                             "attestering" to when (regulering) {
                                 is AvsluttetRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is IverksattRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()

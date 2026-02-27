@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
@@ -158,6 +159,7 @@ data object ServiceBuilder {
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
             satsFactory = satsFactory,
+            clients = clients,
             clock = clock,
         )
         val journalpostAdresseService = JournalpostAdresseServiceImpl(
@@ -589,6 +591,7 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
         vedtakService: VedtakServiceImpl,
         satsFactory: SatsFactory,
+        clients: Clients,
         clock: Clock,
     ): ReguleringServices {
         val reguleringService = ReguleringServiceImpl(
@@ -607,6 +610,10 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
         )
+        val reguleringHentEksterneReguleringerService = ReguleringHentEksterneReguleringerService(
+            pesysClient = clients.pesysklient,
+            clock = clock,
+        )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
@@ -615,6 +622,7 @@ data object ServiceBuilder {
             clock = clock,
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
+            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

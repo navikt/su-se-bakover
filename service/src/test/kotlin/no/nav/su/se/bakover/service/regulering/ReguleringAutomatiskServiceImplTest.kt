@@ -348,7 +348,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = august(2021),
                 /* Manuell regulering */
-                supplement = supplement,
+                // supplement = supplement, // TODO bjg
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Fradragsgrunnlag.create(
@@ -407,7 +407,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = januar(2021),
                 /* Manuell regulering */
-                supplement = supplement,
+                // supplement = supplement, // TODO bjg
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Fradragsgrunnlag.create(
@@ -518,6 +518,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
             statistikkService = mock(),
             sessionFactory = sessionMock,
+            reguleringHentEksterneReguleringerService = TODO(), // TODO bjg
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -581,6 +582,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             clock = clock,
+            reguleringHentEksterneReguleringerService = mock(),
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -706,6 +708,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
+            reguleringHentEksterneReguleringerService = mock(),
         )
     }
 }

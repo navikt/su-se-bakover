@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -20,9 +23,11 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
+import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
-import no.nav.su.se.bakover.domain.regulering.opprettEllerOppdaterRegulering
+import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
@@ -41,6 +46,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
+    private val reguleringHentEksterneReguleringerService: ReguleringHentEksterneReguleringerService,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -98,26 +104,60 @@ class ReguleringAutomatiskServiceImpl(
     private fun start(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement,
+        supplement: Reguleringssupplement, // TODO bjg fjern
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
-        return sakService.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
-            log.info("Regulering for saksnummer $saksnummer: Starter")
-
+        val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
+        val sakerSomSkalReguleresEllerIkke = alleSaker.map { (sakid, saksnummer, _) ->
             val sak: Sak = Either.catch {
                 sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
             }.getOrElse {
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
             }
-            sak.kjørForSak(
-                fraOgMedMåned = fraOgMedMåned,
-                satsFactory = satsFactory,
-                supplement = supplement,
-                omregningsfaktor = omregningsfaktor,
-                testRun = testRun,
-            )
+            // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
+            sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
+                when (feil) {
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
+                    )
+
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                    )
+                }
+
+                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+            }
+
+            sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+
+                when (r.size) {
+                    0 -> {}
+                    1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
+                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                }
+            }
+            sak.right()
+        }
+
+        val sakerMedRegulerteFradragEksternKilde = reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
+            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+            saker = sakerSomSkalReguleresEllerIkke.filterRights(),
+        )
+
+        return sakerSomSkalReguleresEllerIkke.map {
+            it.flatMap { sak ->
+                log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
+                sak.kjørForSak(
+                    fraOgMedMåned = fraOgMedMåned,
+                    satsFactory = satsFactory,
+                    sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+                    omregningsfaktor = omregningsfaktor,
+                    testRun = testRun,
+                )
+            }
         }
             .also {
                 logResultat(it)
@@ -127,19 +167,21 @@ class ReguleringAutomatiskServiceImpl(
     private fun Sak.kjørForSak(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement,
+        sakerMedRegulerteFradragEksternKilde: SakerMedRegulerteFradragEksternKilde,
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, Regulering> {
         val sak = this
 
-        val regulering = sak.opprettEllerOppdaterRegulering(
+        val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
-            supplement = supplement,
+            sakerMedRegulerteFradragEksternKilde,
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+
+            // TODO bjg - dette er nå redundat og kan fjernes
             when (feil) {
                 Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
                     "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
@@ -154,6 +196,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         // TODO jah: Flytt inn i sak.opprettEllerOppdaterRegulering(...)
+        // TODO AUTO-REG-26 er dette beste løsning for eksisterende reguleringer?
         if (!blirBeregningEndret(sak, regulering, satsFactory, clock)) {
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
             log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
@@ -213,7 +256,7 @@ class ReguleringAutomatiskServiceImpl(
 
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
         val antallAutomatiskPgaSupplemement = rights.count {
-            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering.bruker != null || it.eksternSupplementRegulering.eps.isNotEmpty())
+            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering?.bruker != null || it.eksternSupplementRegulering!!.eps.isNotEmpty())
         }
         val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
 
@@ -258,6 +301,7 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
+    // TODO AUTO-REG-26 Utgår?
     override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
         reguleringRepo.lagre(supplement)
@@ -321,6 +365,7 @@ class ReguleringAutomatiskServiceImpl(
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
                 }
+                // TODO AUTO-REG-26 alltid manuell hvis feiler?
                 sessionFactory.withTransactionContext { tx ->
                     val manuellOpprettet = regulering.endreTilManuell(message)
                     reguleringRepo.lagre(manuellOpprettet, tx)
