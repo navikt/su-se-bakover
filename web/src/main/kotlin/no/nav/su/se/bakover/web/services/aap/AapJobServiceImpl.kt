@@ -25,6 +25,8 @@ class AapJobServiceImpl(
             "01445407670",
             "14445014177",
             "24415045545",
+            "29518429009", // Begge skal ha løpende ytelse og har levert meldekort
+            "27479517784", // Begge skal ha løpende ytelse og har levert meldekort
         ).map { Fnr(it) }
 
         val tilOgMedDato = LocalDate.now(clock)
