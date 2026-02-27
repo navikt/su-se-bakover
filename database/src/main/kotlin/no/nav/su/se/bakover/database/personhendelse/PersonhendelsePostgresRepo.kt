@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -211,6 +212,7 @@ internal class PersonhendelsePostgresRepo(
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
         opprettet = tidspunkt("opprettet"),
         gjelderEps = boolean("gjelderEps"),
+        pdlOppsummering = hentPdlOppsummering(),
     )
 
     private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
@@ -231,6 +233,32 @@ internal class PersonhendelsePostgresRepo(
             null -> this.toIkkeSendtTilOppgave()
             else -> this.toSendtTilOppgave(OppgaveId(oppgaveId))
         }
+
+    private fun Row.hentPdlOppsummering(): Personhendelse.PdlOppsummering? {
+        val vurdertTidspunkt = tidspunktOrNull("pdl_vurdert_tidspunkt")
+        val snapshot = stringOrNull("pdl_snapshot")?.let { deserialize<PdlSnapshotForOppgaveJson>(it) }
+        val diff = stringOrNull("pdl_diff")?.let { deserialize<PdlDiffForOppgaveJson>(it) }
+
+        if (vurdertTidspunkt == null && snapshot == null && diff == null) return null
+
+        return Personhendelse.PdlOppsummering(
+            vurdertTidspunkt = vurdertTidspunkt,
+            harBostedsadresseNå = snapshot?.harBostedsadresse ?: diff?.harBostedsadresseNå,
+            harKontaktadresseNå = snapshot?.harKontaktadresse ?: diff?.harKontaktadresseNå,
+            begrunnelse = diff?.begrunnelse,
+        )
+    }
+
+    private data class PdlSnapshotForOppgaveJson(
+        val harBostedsadresse: Boolean? = null,
+        val harKontaktadresse: Boolean? = null,
+    )
+
+    private data class PdlDiffForOppgaveJson(
+        val begrunnelse: String? = null,
+        val harBostedsadresseNå: Boolean? = null,
+        val harKontaktadresseNå: Boolean? = null,
+    )
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {
         PersonhendelseType.DØDSFALL.value -> {

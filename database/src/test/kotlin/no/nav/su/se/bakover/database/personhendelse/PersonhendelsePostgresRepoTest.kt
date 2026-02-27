@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.personhendelse
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -435,7 +436,12 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         )
 
         repo.hentPersonhendelserUtenPdlVurdering() shouldBe emptyList()
-        repo.hentPersonhendelserKlareForOppgave() shouldBe listOf(hendelse)
+        val klarForOppgave = repo.hentPersonhendelserKlareForOppgave().single()
+        klarForOppgave.copy(pdlOppsummering = null) shouldBe hendelse
+        klarForOppgave.pdlOppsummering?.harBostedsadresseNå shouldBe null
+        klarForOppgave.pdlOppsummering?.harKontaktadresseNå shouldBe true
+        klarForOppgave.pdlOppsummering?.begrunnelse shouldBe "test"
+        klarForOppgave.pdlOppsummering?.vurdertTidspunkt shouldNotBe null
 
         val pdlSnapshot = hentPdlSnapshot(id, dataSource)
         val pdlDiff = hentPdlDiff(id, dataSource)

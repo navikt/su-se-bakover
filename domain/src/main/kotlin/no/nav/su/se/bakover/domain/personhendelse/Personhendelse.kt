@@ -60,6 +60,7 @@ sealed interface Personhendelse {
             override val antallFeiledeForsøk: Int,
             override val opprettet: Tidspunkt,
             override val gjelderEps: Boolean,
+            val pdlOppsummering: PdlOppsummering? = null,
         ) : TilknyttetSak {
             fun tilSendtTilOppgave(oppgaveId: OppgaveId) =
                 SendtTilOppgave(
@@ -203,5 +204,16 @@ sealed interface Personhendelse {
         /** Kafkameldinger kommer som key-value pairs (keyen inneholder aktørid) */
         val key: String,
         val eksternOpprettet: Tidspunkt?,
+    )
+
+    /**
+     * Minimal oppsummering av PDL-vurderingen brukt til oppgavebeskrivelse.
+     * Skal kun inneholde overlapp/fasit-signaler, ikke full adressepayload.
+     */
+    data class PdlOppsummering(
+        val vurdertTidspunkt: Tidspunkt?,
+        val harBostedsadresseNå: Boolean?,
+        val harKontaktadresseNå: Boolean?,
+        val begrunnelse: String?,
     )
 }
