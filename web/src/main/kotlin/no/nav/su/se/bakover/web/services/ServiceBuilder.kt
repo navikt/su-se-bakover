@@ -248,6 +248,7 @@ data object ServiceBuilder {
             personhendelseService = PersonhendelseServiceImpl(
                 sakRepo = databaseRepos.sak,
                 personhendelseRepo = databaseRepos.personhendelseRepo,
+                personService = kjerneTjenester.personService,
                 vedtakService = vedtakService,
                 oppgaveServiceImpl = kjerneTjenester.oppgaveService,
                 clock = clock,

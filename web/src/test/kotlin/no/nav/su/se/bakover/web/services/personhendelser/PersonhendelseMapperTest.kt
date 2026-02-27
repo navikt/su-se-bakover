@@ -338,7 +338,13 @@ internal class PersonhendelseMapperTest {
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(
+                angittFlyttedato = fixedLocalDate,
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                coAdressenavn = "coAdressenavn",
+                adressetype = Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE,
+            ),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 personidenter = personhendelse.personidenter.toNonEmptyList(),
@@ -389,7 +395,13 @@ internal class PersonhendelseMapperTest {
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.Kontaktadresse,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                type = "innland",
+                coAdressenavn = "coAdressenavn",
+                adressetype = Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE,
+            ),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 personidenter = personhendelse.personidenter.toNonEmptyList(),

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.personhendelse
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -92,9 +94,83 @@ internal class PersonhendelsePostgresRepo(
                         left join sak s on s.id = p.sakId
                     where
                         oppgaveId is null and antallFeiledeForsøk < 3
+                    limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
                     row.toIkkeSendtTilOppgave()
                 }
+            }
+        }
+    }
+
+    override fun hentPersonhendelserUtenPdlVurdering(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        return dbMetrics.timeQuery("hentPersonhendelserUtenPdlVurdering") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        p.*, s.saksnummer as saksnummer
+                    from
+                        personhendelse p
+                        left join sak s on s.id = p.sakId
+                    where
+                        oppgaveId is null
+                        and pdl_vurdert = false
+                        and antallFeiledeForsøk < 3
+                    limit 50
+                """.trimIndent().hentListe(mapOf(), session) { row ->
+                    row.toIkkeSendtTilOppgave()
+                }
+            }
+        }
+    }
+
+    override fun hentPersonhendelserKlareForOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        return dbMetrics.timeQuery("hentPersonhendelserKlareForOppgave") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        p.*, s.saksnummer as saksnummer
+                    from
+                        personhendelse p
+                        left join sak s on s.id = p.sakId
+                    where
+                        oppgaveId is null
+                        and pdl_vurdert = true
+                        and pdl_relevant = true
+                        and antallFeiledeForsøk < 3
+                    limit 50
+                """.trimIndent().hentListe(mapOf(), session) { row ->
+                    row.toIkkeSendtTilOppgave()
+                }
+            }
+        }
+    }
+
+    override fun oppdaterPdlVurdering(vurderinger: List<PersonhendelseRepo.PdlVurdering>) {
+        val vurderingstidspunkt = Tidspunkt.now(clock)
+        sessionFactory.withSession { session ->
+            vurderinger.forEach { vurdering ->
+                """
+                    update personhendelse
+                    set
+                        pdl_vurdert = true,
+                        pdl_relevant = :pdlRelevant,
+                        pdl_vurdert_tidspunkt = :pdlVurdertTidspunkt,
+                        pdl_snapshot = :pdlSnapshot::jsonb,
+                        pdl_diff = :pdlDiff::jsonb,
+                        endret = :endret
+                    where
+                        id = :id
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to vurdering.id,
+                        "pdlRelevant" to vurdering.relevant,
+                        "pdlVurdertTidspunkt" to vurderingstidspunkt,
+                        "pdlSnapshot" to vurdering.pdlSnapshot,
+                        "pdlDiff" to vurdering.pdlDiff,
+                        "endret" to vurderingstidspunkt,
+                    ),
+                    session,
+                )
             }
         }
     }
@@ -136,6 +212,7 @@ internal class PersonhendelsePostgresRepo(
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
         opprettet = tidspunkt("opprettet"),
         gjelderEps = boolean("gjelderEps"),
+        pdlOppsummering = hentPdlOppsummering(),
     )
 
     private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
@@ -157,6 +234,32 @@ internal class PersonhendelsePostgresRepo(
             else -> this.toSendtTilOppgave(OppgaveId(oppgaveId))
         }
 
+    private fun Row.hentPdlOppsummering(): Personhendelse.PdlOppsummering? {
+        val vurdertTidspunkt = tidspunktOrNull("pdl_vurdert_tidspunkt")
+        val snapshot = stringOrNull("pdl_snapshot")?.let { deserialize<PdlSnapshotForOppgaveJson>(it) }
+        val diff = stringOrNull("pdl_diff")?.let { deserialize<PdlDiffForOppgaveJson>(it) }
+
+        if (vurdertTidspunkt == null && snapshot == null && diff == null) return null
+
+        return Personhendelse.PdlOppsummering(
+            vurdertTidspunkt = vurdertTidspunkt,
+            harBostedsadresseNå = snapshot?.harBostedsadresse ?: diff?.harBostedsadresseNå,
+            harKontaktadresseNå = snapshot?.harKontaktadresse ?: diff?.harKontaktadresseNå,
+            begrunnelse = diff?.begrunnelse,
+        )
+    }
+
+    private data class PdlSnapshotForOppgaveJson(
+        val harBostedsadresse: Boolean? = null,
+        val harKontaktadresse: Boolean? = null,
+    )
+
+    private data class PdlDiffForOppgaveJson(
+        val begrunnelse: String? = null,
+        val harBostedsadresseNå: Boolean? = null,
+        val harKontaktadresseNå: Boolean? = null,
+    )
+
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {
         PersonhendelseType.DØDSFALL.value -> {
             deserialize<HendelseJson.DødsfallJson>(string("hendelse")).toDomain()
@@ -170,8 +273,17 @@ internal class PersonhendelsePostgresRepo(
             deserialize<HendelseJson.SivilstandJson>(string("hendelse")).toDomain()
         }
 
-        PersonhendelseType.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse
-        PersonhendelseType.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse
+        PersonhendelseType.BOSTEDSADRESSE.value -> {
+            // Legacy-rader kan ha {} her (fra tiden før vi persisterte adressefeltene).
+            // BostedsadresseJson har nullable defaults, så {} blir lest kompatibelt.
+            deserialize<HendelseJson.BostedsadresseJson>(string("hendelse")).toDomain()
+        }
+
+        PersonhendelseType.KONTAKTADRESSE.value -> {
+            // Legacy-rader kan ha {} her (fra tiden før vi persisterte adressefeltene).
+            // KontaktadresseJson har nullable defaults, så {} blir lest kompatibelt.
+            deserialize<HendelseJson.KontaktadresseJson>(string("hendelse")).toDomain()
+        }
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
 
@@ -256,9 +368,44 @@ internal class PersonhendelsePostgresRepo(
             }
         }
 
-        data object BostedsadresseJson : HendelseJson
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        data class BostedsadresseJson(
+            val angittFlyttedato: LocalDate? = null,
+            val gyldigFraOgMed: LocalDate? = null,
+            val gyldigTilOgMed: LocalDate? = null,
+            val coAdressenavn: String? = null,
+            val adressetype: String? = null,
+        ) : HendelseJson {
+            enum class Adressetype(val value: String) {
+                VEGADRESSE("vegadresse"),
+                MATRIKKELADRESSE("matrikkeladresse"),
+                UTENLANDSK_ADRESSE("utenlandsk_adresse"),
+                UKJENT_BOSTED("ukjent_bosted"),
+                ;
 
-        data object KontaktadresseJson : HendelseJson
+                companion object
+            }
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        data class KontaktadresseJson(
+            val gyldigFraOgMed: LocalDate? = null,
+            val gyldigTilOgMed: LocalDate? = null,
+            val type: String? = null,
+            val coAdressenavn: String? = null,
+            val adressetype: String? = null,
+        ) : HendelseJson {
+            enum class Adressetype(val value: String) {
+                POSTBOKSADRESSE("postboksadresse"),
+                VEGADRESSE("vegadresse"),
+                POSTADRESSE_I_FRITT_FORMAT("postadresse_i_fritt_format"),
+                UTENLANDSK_ADRESSE("utenlandsk_adresse"),
+                UTENLANDSK_ADRESSE_I_FRITT_FORMAT("utenlandsk_adresse_i_fritt_format"),
+                ;
+
+                companion object
+            }
+        }
 
         fun toDomain(): Personhendelse.Hendelse = when (this) {
             is DødsfallJson -> Personhendelse.Hendelse.Dødsfall(dødsdato)
@@ -283,8 +430,38 @@ internal class PersonhendelsePostgresRepo(
                 bekreftelsesdato = bekreftelsesdato,
             )
 
-            is BostedsadresseJson -> Personhendelse.Hendelse.Bostedsadresse
-            is KontaktadresseJson -> Personhendelse.Hendelse.Kontaktadresse
+            is BostedsadresseJson -> Personhendelse.Hendelse.Bostedsadresse(
+                angittFlyttedato = angittFlyttedato,
+                gyldigFraOgMed = gyldigFraOgMed,
+                gyldigTilOgMed = gyldigTilOgMed,
+                coAdressenavn = coAdressenavn,
+                adressetype = adressetype?.let { raw ->
+                    when (raw) {
+                        BostedsadresseJson.Adressetype.VEGADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE
+                        BostedsadresseJson.Adressetype.MATRIKKELADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.MATRIKKELADRESSE
+                        BostedsadresseJson.Adressetype.UTENLANDSK_ADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UTENLANDSK_ADRESSE
+                        BostedsadresseJson.Adressetype.UKJENT_BOSTED.value -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UKJENT_BOSTED
+                        else -> null
+                    }
+                },
+            )
+
+            is KontaktadresseJson -> Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = gyldigFraOgMed,
+                gyldigTilOgMed = gyldigTilOgMed,
+                type = type,
+                coAdressenavn = coAdressenavn,
+                adressetype = adressetype?.let { raw ->
+                    when (raw) {
+                        KontaktadresseJson.Adressetype.POSTBOKSADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE
+                        KontaktadresseJson.Adressetype.VEGADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE
+                        KontaktadresseJson.Adressetype.POSTADRESSE_I_FRITT_FORMAT.value -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTADRESSE_I_FRITT_FORMAT
+                        KontaktadresseJson.Adressetype.UTENLANDSK_ADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE
+                        KontaktadresseJson.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT.value -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
+                        else -> null
+                    }
+                },
+            )
         }
 
         companion object {
@@ -311,8 +488,36 @@ internal class PersonhendelsePostgresRepo(
                     bekreftelsesdato = bekreftelsesdato,
                 )
 
-                is Personhendelse.Hendelse.Bostedsadresse -> BostedsadresseJson
-                is Personhendelse.Hendelse.Kontaktadresse -> KontaktadresseJson
+                is Personhendelse.Hendelse.Bostedsadresse -> BostedsadresseJson(
+                    angittFlyttedato = angittFlyttedato,
+                    gyldigFraOgMed = gyldigFraOgMed,
+                    gyldigTilOgMed = gyldigTilOgMed,
+                    coAdressenavn = coAdressenavn,
+                    adressetype = adressetype?.let {
+                        when (it) {
+                            Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE -> BostedsadresseJson.Adressetype.VEGADRESSE
+                            Personhendelse.Hendelse.Bostedsadresse.Adressetype.MATRIKKELADRESSE -> BostedsadresseJson.Adressetype.MATRIKKELADRESSE
+                            Personhendelse.Hendelse.Bostedsadresse.Adressetype.UTENLANDSK_ADRESSE -> BostedsadresseJson.Adressetype.UTENLANDSK_ADRESSE
+                            Personhendelse.Hendelse.Bostedsadresse.Adressetype.UKJENT_BOSTED -> BostedsadresseJson.Adressetype.UKJENT_BOSTED
+                        }.value
+                    },
+                )
+
+                is Personhendelse.Hendelse.Kontaktadresse -> KontaktadresseJson(
+                    gyldigFraOgMed = gyldigFraOgMed,
+                    gyldigTilOgMed = gyldigTilOgMed,
+                    type = type,
+                    coAdressenavn = coAdressenavn,
+                    adressetype = adressetype?.let {
+                        when (it) {
+                            Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE -> KontaktadresseJson.Adressetype.POSTBOKSADRESSE
+                            Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE -> KontaktadresseJson.Adressetype.VEGADRESSE
+                            Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTADRESSE_I_FRITT_FORMAT -> KontaktadresseJson.Adressetype.POSTADRESSE_I_FRITT_FORMAT
+                            Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE -> KontaktadresseJson.Adressetype.UTENLANDSK_ADRESSE
+                            Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT -> KontaktadresseJson.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
+                        }.value
+                    },
+                )
             }
         }
     }

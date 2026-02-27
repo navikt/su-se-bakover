@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -45,6 +46,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import person.domain.Person
 import person.domain.PersonService
 import java.util.UUID
 
@@ -78,6 +80,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = mock(),
             personhendelseRepo = personhendelseRepoMock,
+            personService = mock(),
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -129,6 +132,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personService = mock(),
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -170,6 +174,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personService = personServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
             vedtakService = vedtakServiceMock,
@@ -200,11 +205,13 @@ internal class PersonhendelseServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
-            on { hentPersonhendelserUtenOppgave() } doReturn listOf(personhendelse)
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(personhendelse)
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
+        val personServiceMock = mock<PersonService>()
 
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForBrukerFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
@@ -213,6 +220,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personService = personServiceMock,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -220,7 +228,8 @@ internal class PersonhendelseServiceImplTest {
         personhendelseService.opprettOppgaverForPersonhendelser()
 
         verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
@@ -243,6 +252,7 @@ internal class PersonhendelseServiceImplTest {
             personhendelseRepoMock,
             sakRepoMock,
             vedtakServiceMock,
+            personServiceMock,
         )
     }
 
@@ -255,11 +265,13 @@ internal class PersonhendelseServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
-            on { hentPersonhendelserUtenOppgave() } doReturn listOf(personhendelse)
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(personhendelse)
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
+        val personServiceMock = mock<PersonService>()
 
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForBrukerFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
@@ -268,6 +280,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personService = personServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             vedtakService = vedtakServiceMock,
             clock = fixedClock,
@@ -275,7 +288,8 @@ internal class PersonhendelseServiceImplTest {
         personhendelseService.opprettOppgaverForPersonhendelser()
 
         verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
         verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
@@ -300,6 +314,7 @@ internal class PersonhendelseServiceImplTest {
             personhendelseRepoMock,
             sakRepoMock,
             vedtakServiceMock,
+            personServiceMock,
         )
     }
 
@@ -373,6 +388,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personService = personServiceMock,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -394,12 +410,12 @@ internal class PersonhendelseServiceImplTest {
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse2,
                 aktørId = AktørId("456"),
-                hendelse = Personhendelse.Hendelse.Bostedsadresse,
+                hendelse = Personhendelse.Hendelse.Bostedsadresse(),
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse3,
                 aktørId = AktørId("789"),
-                hendelse = Personhendelse.Hendelse.Kontaktadresse,
+                hendelse = Personhendelse.Hendelse.Kontaktadresse(),
             ),
             nyPersonhendelseIkkeKnyttetTilSak(
                 fnr = fnrPersonhendelse4,
@@ -570,6 +586,120 @@ internal class PersonhendelseServiceImplTest {
         )
     }
 
+    @Test
+    fun `setter pdl_relevant for adressehendelser etter sannhetstabell`() {
+        val fnrOpprettetKontakt = Fnr.generer()
+        val fnrOpphortKontakt = Fnr.generer()
+        val fnrKorrigertBosted = Fnr.generer()
+        val fnrAnnullertBosted = Fnr.generer()
+
+        val kontaktOpprettet = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(),
+            fnr = fnrOpprettetKontakt,
+        )
+        val kontaktOpphort = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(),
+            fnr = fnrOpphortKontakt,
+        )
+        val bostedKorrigert = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.KORRIGERT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrKorrigertBosted,
+        )
+        val bostedAnnullert = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.ANNULLERT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrAnnullertBosted,
+        )
+        val ikkeVurderte = listOf(kontaktOpprettet, kontaktOpphort, bostedKorrigert, bostedAnnullert)
+
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn ikkeVurderte
+            on { hentPersonhendelserKlareForOppgave() } doReturn emptyList()
+        }
+        val personServiceMock = mock<PersonService>()
+        val sakRepoMock = mock<SakRepo>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val vedtakServiceMock = mock<VedtakService>()
+
+        whenever(personServiceMock.hentPersonMedSystembruker(fnrOpprettetKontakt)).thenReturn(
+            personMedAdresser(
+                fnr = fnrOpprettetKontakt,
+                harBostedsadresse = false,
+                harKontaktadresse = true,
+            ).right(),
+        )
+        whenever(personServiceMock.hentPersonMedSystembruker(fnrOpphortKontakt)).thenReturn(
+            personMedAdresser(
+                fnr = fnrOpphortKontakt,
+                harBostedsadresse = false,
+                harKontaktadresse = true,
+            ).right(),
+        )
+        whenever(personServiceMock.hentPersonMedSystembruker(fnrKorrigertBosted)).thenReturn(
+            personMedAdresser(
+                fnr = fnrKorrigertBosted,
+                harBostedsadresse = false,
+                harKontaktadresse = false,
+            ).right(),
+        )
+        whenever(personServiceMock.hentPersonMedSystembruker(fnrAnnullertBosted)).thenReturn(
+            personMedAdresser(
+                fnr = fnrAnnullertBosted,
+                harBostedsadresse = false,
+                harKontaktadresse = false,
+            ).right(),
+        )
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personService = personServiceMock,
+            vedtakService = vedtakServiceMock,
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        /*
+         * ASCII-sannhetstabell for adressetype-gating:
+         *
+         * +----------------------+-------------------+----------------------+
+         * | Endringstype         | Adresse finnes nå | pdl_relevant         |
+         * +----------------------+-------------------+----------------------+
+         * | OPPRETTET/KORRIGERT  | true              | true                 |
+         * | OPPRETTET/KORRIGERT  | false             | false                |
+         * | OPPHØRT/ANNULLERT    | true              | false                |
+         * | OPPHØRT/ANNULLERT    | false             | true                 |
+         * +----------------------+-------------------+----------------------+
+         */
+        val vurderinger = argumentCaptor<List<PersonhendelseRepo.PdlVurdering>>()
+        verify(personhendelseRepoMock).oppdaterPdlVurdering(vurderinger.capture())
+        val relevanteById = vurderinger.firstValue.associate { it.id to it.relevant }
+
+        relevanteById[kontaktOpprettet.id] shouldBe true
+        relevanteById[kontaktOpphort.id] shouldBe false
+        relevanteById[bostedKorrigert.id] shouldBe false
+        relevanteById[bostedAnnullert.id] shouldBe true
+
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
+        verify(personServiceMock).hentPersonMedSystembruker(fnrOpprettetKontakt)
+        verify(personServiceMock).hentPersonMedSystembruker(fnrOpphortKontakt)
+        verify(personServiceMock).hentPersonMedSystembruker(fnrKorrigertBosted)
+        verify(personServiceMock).hentPersonMedSystembruker(fnrAnnullertBosted)
+        verifyNoMoreInteractions(
+            personhendelseRepoMock,
+            personServiceMock,
+            sakRepoMock,
+            oppgaveServiceMock,
+            vedtakServiceMock,
+        )
+    }
+
     private fun lagNyPersonhendelse(
         fnr: Fnr = Fnr.generer(),
     ) = Personhendelse.IkkeTilknyttetSak(
@@ -611,4 +741,79 @@ internal class PersonhendelseServiceImplTest {
             opprettet = fixedTidspunkt,
             gjelderEps = false,
         )
+
+    private fun lagAdressePersonhendelseTilknyttetSak(
+        endringstype: Personhendelse.Endringstype,
+        hendelse: Personhendelse.Hendelse,
+        fnr: Fnr,
+    ): Personhendelse.TilknyttetSak.IkkeSendtTilOppgave {
+        return Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
+            endringstype = endringstype,
+            hendelse = hendelse,
+            id = UUID.randomUUID(),
+            saksnummer = Saksnummer(2021),
+            sakId = UUID.randomUUID(),
+            metadata = Personhendelse.Metadata(
+                hendelseId = UUID.randomUUID().toString(),
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "PDL",
+                key = "key",
+                personidenter = listOf(fnr.toString(), "1234567890123").toNonEmptyList(),
+                eksternOpprettet = null,
+            ),
+            antallFeiledeForsøk = 0,
+            opprettet = fixedTidspunkt,
+            gjelderEps = false,
+        )
+    }
+
+    private fun personMedAdresser(
+        fnr: Fnr,
+        harBostedsadresse: Boolean,
+        harKontaktadresse: Boolean,
+    ): Person {
+        val adresser = buildList {
+            if (harBostedsadresse) {
+                add(
+                    Person.Adresse(
+                        adresselinje = null,
+                        poststed = null,
+                        bruksenhet = null,
+                        kommune = null,
+                        landkode = null,
+                        adressetype = "Bostedsadresse",
+                        adresseformat = "Vegadresse",
+                    ),
+                )
+            }
+            if (harKontaktadresse) {
+                add(
+                    Person.Adresse(
+                        adresselinje = null,
+                        poststed = null,
+                        bruksenhet = null,
+                        kommune = null,
+                        landkode = null,
+                        adressetype = "Kontaktadresse",
+                        adresseformat = "Vegadresse",
+                    ),
+                )
+            }
+        }
+
+        return Person(
+            ident = Ident(
+                fnr = fnr,
+                aktørId = AktørId("1234567890123"),
+            ),
+            navn = Person.Navn(
+                fornavn = "Tore",
+                mellomnavn = null,
+                etternavn = "Testesen",
+            ),
+            adresse = adresser,
+        )
+    }
 }
