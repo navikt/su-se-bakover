@@ -7,8 +7,10 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
+import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -383,6 +385,65 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
     }
 
     @Test
+    fun `kan vurdere personhendelse mot pdl og deretter hente den som klar for oppgave`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+        val id = UUID.randomUUID()
+        val hendelse = Personhendelse.IkkeTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = fixedLocalDate,
+                gyldigTilOgMed = fixedLocalDate,
+                type = "Innland",
+                coAdressenavn = "co-adresse",
+                adressetype = Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE,
+            ),
+            metadata = Personhendelse.Metadata(
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                hendelseId = UUID.randomUUID().toString(),
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "someKey",
+                eksternOpprettet = null,
+            ),
+        ).tilknyttSak(
+            id = id,
+            sakIdSaksnummerFnr = SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+            gjelderEps = false,
+            opprettet = fixedTidspunkt,
+        )
+
+        repo.lagre(hendelse)
+
+        repo.hentPersonhendelserUtenPdlVurdering() shouldBe listOf(hendelse)
+        repo.hentPersonhendelserKlareForOppgave() shouldBe emptyList()
+
+        val snapshot = """{"fnr":"${sak.fnr}","harKontaktadresse":true}"""
+        val diff = """{"relevant":true,"begrunnelse":"test"}"""
+        repo.oppdaterPdlVurdering(
+            listOf(
+                PersonhendelseRepo.PdlVurdering(
+                    id = id,
+                    relevant = true,
+                    pdlSnapshot = snapshot,
+                    pdlDiff = diff,
+                ),
+            ),
+        )
+
+        repo.hentPersonhendelserUtenPdlVurdering() shouldBe emptyList()
+        repo.hentPersonhendelserKlareForOppgave() shouldBe listOf(hendelse)
+
+        val pdlSnapshot = hentPdlSnapshot(id, dataSource)
+        val pdlDiff = hentPdlDiff(id, dataSource)
+        jsonNode(pdlSnapshot!!) shouldBe jsonNode(snapshot)
+        jsonNode(pdlDiff!!) shouldBe jsonNode(diff)
+    }
+
+    @Test
     fun `kan lagre et set med ulike hendelser`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
@@ -700,6 +761,36 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
                 mapOf("id" to id),
                 session,
             )
+        }
+    }
+
+    private fun hentPdlSnapshot(id: UUID, dataSource: DataSource): String? {
+        return dataSource.withSession { session ->
+            """
+                select pdl_snapshot from personhendelse
+                where id = :id
+            """.trimIndent()
+                .hent(
+                    mapOf("id" to id),
+                    session,
+                ) {
+                    it.stringOrNull("pdl_snapshot")
+                }
+        }
+    }
+
+    private fun hentPdlDiff(id: UUID, dataSource: DataSource): String? {
+        return dataSource.withSession { session ->
+            """
+                select pdl_diff from personhendelse
+                where id = :id
+            """.trimIndent()
+                .hent(
+                    mapOf("id" to id),
+                    session,
+                ) {
+                    it.stringOrNull("pdl_diff")
+                }
         }
     }
 

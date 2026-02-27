@@ -101,6 +101,79 @@ internal class PersonhendelsePostgresRepo(
         }
     }
 
+    override fun hentPersonhendelserUtenPdlVurdering(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        return dbMetrics.timeQuery("hentPersonhendelserUtenPdlVurdering") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        p.*, s.saksnummer as saksnummer
+                    from
+                        personhendelse p
+                        left join sak s on s.id = p.sakId
+                    where
+                        oppgaveId is null
+                        and pdl_vurdert = false
+                        and antallFeiledeForsøk < 3
+                    limit 50
+                """.trimIndent().hentListe(mapOf(), session) { row ->
+                    row.toIkkeSendtTilOppgave()
+                }
+            }
+        }
+    }
+
+    override fun hentPersonhendelserKlareForOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        return dbMetrics.timeQuery("hentPersonhendelserKlareForOppgave") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        p.*, s.saksnummer as saksnummer
+                    from
+                        personhendelse p
+                        left join sak s on s.id = p.sakId
+                    where
+                        oppgaveId is null
+                        and pdl_vurdert = true
+                        and pdl_relevant = true
+                        and antallFeiledeForsøk < 3
+                    limit 50
+                """.trimIndent().hentListe(mapOf(), session) { row ->
+                    row.toIkkeSendtTilOppgave()
+                }
+            }
+        }
+    }
+
+    override fun oppdaterPdlVurdering(vurderinger: List<PersonhendelseRepo.PdlVurdering>) {
+        val vurderingstidspunkt = Tidspunkt.now(clock)
+        sessionFactory.withSession { session ->
+            vurderinger.forEach { vurdering ->
+                """
+                    update personhendelse
+                    set
+                        pdl_vurdert = true,
+                        pdl_relevant = :pdlRelevant,
+                        pdl_vurdert_tidspunkt = :pdlVurdertTidspunkt,
+                        pdl_snapshot = :pdlSnapshot::jsonb,
+                        pdl_diff = :pdlDiff::jsonb,
+                        endret = :endret
+                    where
+                        id = :id
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to vurdering.id,
+                        "pdlRelevant" to vurdering.relevant,
+                        "pdlVurdertTidspunkt" to vurderingstidspunkt,
+                        "pdlSnapshot" to vurdering.pdlSnapshot,
+                        "pdlDiff" to vurdering.pdlDiff,
+                        "endret" to vurderingstidspunkt,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
     override fun inkrementerAntallFeiledeForsøk(personhendelse: List<Personhendelse.TilknyttetSak>) {
         val multiLineQuery: String = personhendelse.joinToString("\n") {
             "update personhendelse set antallFeiledeForsøk = antallFeiledeForsøk + 1 where id = '${it.id}';"
