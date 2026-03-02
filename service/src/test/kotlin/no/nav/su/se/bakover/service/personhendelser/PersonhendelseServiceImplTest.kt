@@ -279,7 +279,8 @@ internal class PersonhendelseServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
-            on { hentPersonhendelserUtenOppgave() } doReturn listOf(dødsfall, utflytting)
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(dødsfall, utflytting)
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -288,6 +289,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -296,7 +300,8 @@ internal class PersonhendelseServiceImplTest {
         personhendelseService.opprettOppgaverForPersonhendelser()
 
         verify(sakRepoMock, times(1)).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
         val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
         verify(oppgaveServiceMock, times(2)).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
         oppgaveCaptor.allValues.map { it as OppgaveConfig.Personhendelse }.map { it.personhendelse.toSet() } shouldBe listOf(
@@ -320,19 +325,20 @@ internal class PersonhendelseServiceImplTest {
         val bostedsadresse1 = lagPersonhendelseTilknyttetSak(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
         )
         val bostedsadresse2 = lagPersonhendelseTilknyttetSak(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
         )
 
         val sakRepoMock = mock<SakRepo> {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
-            on { hentPersonhendelserUtenOppgave() } doReturn listOf(bostedsadresse1, bostedsadresse2)
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(bostedsadresse1, bostedsadresse2)
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -341,6 +347,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -349,7 +358,8 @@ internal class PersonhendelseServiceImplTest {
         personhendelseService.opprettOppgaverForPersonhendelser()
 
         verify(sakRepoMock, times(1)).hentSak(argThat<UUID> { it shouldBe sak.id })
-        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
         val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
         verify(oppgaveServiceMock, times(2)).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
         oppgaveCaptor.allValues.map { it as OppgaveConfig.Personhendelse }.map { it.personhendelse.toSet() } shouldBe listOf(

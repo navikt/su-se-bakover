@@ -432,7 +432,7 @@ internal class OppgaveHttpClientTest {
                         saksnummer = saksnummer,
                         fnr = fnr,
                         sakstype = sakstype,
-                        hendelse = Personhendelse.Hendelse.Bostedsadresse,
+                        hendelse = Personhendelse.Hendelse.Bostedsadresse(),
                     ),
                 ),
                 fnr = fnr,
