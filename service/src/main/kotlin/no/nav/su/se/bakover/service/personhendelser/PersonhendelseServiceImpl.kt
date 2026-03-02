@@ -310,7 +310,6 @@ class PersonhendelseServiceImpl(
                 val treffAdresse = matchendeAdresseForHendelse?.toOppgaveAdresse()
 
                 val snapshot = PdlSnapshot(
-                    fnr = fnr.toString(),
                     harBostedsadresse = harBostedsadresseNå,
                     harKontaktadresse = harKontaktadresseNå,
                     gjeldendeBostedsadresser = gjeldendeBostedsadresser,
@@ -454,7 +453,6 @@ class PersonhendelseServiceImpl(
     }
 
     private data class PdlSnapshot(
-        val fnr: String,
         val harBostedsadresse: Boolean,
         val harKontaktadresse: Boolean?,
         val gjeldendeBostedsadresser: List<PdlAdresseSnapshot> = emptyList(),
