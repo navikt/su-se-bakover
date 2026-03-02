@@ -65,10 +65,10 @@ class KontrollsamtaleServiceImpl(
         }
 
         if (person.erDød()) {
-            log.info("Person er død for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
+            log.warn("Person er død for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
             val utbetalingstidslinje = sak.utbetalingstidslinje()
             if (utbetalingstidslinje != null && utbetalingstidslinje.periode.tilOgMed.isAfter(LocalDate.now(clock))) {
-                log.error("Død person har utbetaling frem etter dødsfall, må sjekkes manuelt")
+                log.error("Død person har utbetaling frem etter dødsfall, må sjekkes manuelt. sakId $sakId, saksnummer ${sak.saksnummer}")
             }
             kontrollsamtaleRepo.lagre(
                 kontrollsamtale = kontrollsamtale.annuller().getOrElse {
