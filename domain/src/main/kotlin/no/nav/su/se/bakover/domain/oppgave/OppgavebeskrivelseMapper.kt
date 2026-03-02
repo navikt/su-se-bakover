@@ -21,6 +21,14 @@ data object OppgavebeskrivelseMapper {
     fun map(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String =
         personhendelser.sortedBy { it.opprettet.instant }.joinToString("\n\n") { mapOne(it) }
 
+    fun mapHendelsestyper(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String {
+        return personhendelser
+            .map { it.hendelse.toTypekode() }
+            .toSet()
+            .sorted()
+            .joinToString(", ")
+    }
+
     fun mapOne(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave): String =
         when (val hendelse = personhendelse.hendelse) {
             is Personhendelse.Hendelse.Dødsfall -> {
@@ -101,5 +109,15 @@ data object OppgavebeskrivelseMapper {
         -> "Klagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt."
 
         is AvsluttetKlageinstansUtfall.Retur -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
+    }
+
+    private fun Personhendelse.Hendelse.toTypekode(): String {
+        return when (this) {
+            is Personhendelse.Hendelse.Dødsfall -> "DODSFALL"
+            is Personhendelse.Hendelse.Sivilstand -> "SIVILSTAND"
+            is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
+            is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE"
+            is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE"
+        }
     }
 }

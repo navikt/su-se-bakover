@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
@@ -43,6 +44,7 @@ sealed interface OppgaveConfig {
     val clock: Clock
     val aktivDato: LocalDate
     val fristFerdigstillelse: LocalDate
+    val prioritet: String get() = "NORM"
     val beskrivelse: String get() = " Saksnummer : $saksreferanse"
 
     /**
@@ -175,8 +177,11 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+        override val prioritet: String = if (personhendelse.any { it.hendelse.skalHaHøyPrioritet() }) "HOY" else "NORM"
         override val beskrivelse: String
-            get() = super.beskrivelse + "\nPersonhendelse: ${OppgavebeskrivelseMapper.map(personhendelse)}"
+            get() = super.beskrivelse +
+                "\nPersonhendelsestyper: ${OppgavebeskrivelseMapper.mapHendelsestyper(personhendelse)}" +
+                "\nPersonhendelse: ${OppgavebeskrivelseMapper.map(personhendelse)}"
 
         init {
             if (tilordnetRessurs != null) {
@@ -386,5 +391,18 @@ sealed interface OppgaveConfig {
             override val behandlingstema: Behandlingstema = sakstype.toBehandlingstema()
             override val oppgavetype = Oppgavetype.ATTESTERING
         }
+    }
+}
+
+private fun Personhendelse.Hendelse.skalHaHøyPrioritet(): Boolean {
+    return when (this) {
+        is Personhendelse.Hendelse.Dødsfall,
+        is Personhendelse.Hendelse.Sivilstand,
+        is Personhendelse.Hendelse.UtflyttingFraNorge,
+        -> true
+
+        is Personhendelse.Hendelse.Bostedsadresse,
+        is Personhendelse.Hendelse.Kontaktadresse,
+        -> false
     }
 }

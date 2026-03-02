@@ -153,13 +153,17 @@ class PersonhendelseServiceImpl(
     override fun opprettOppgaverForPersonhendelser() {
         val personhendelser = personhendelseRepo.hentPersonhendelserUtenOppgave()
         personhendelser.groupBy { it.sakId }
-            .forEach loop@{ (sakId, personhendelser) ->
+            .forEach loop@{ (sakId, personhendelserPåSak) ->
                 val sak = sakRepo.hentSak(sakId)
                 if (sak == null) {
-                    log.error("Fant ikke sak for personhendelser med id'er: ${personhendelser.map { it.id }}")
+                    log.error("Fant ikke sak for personhendelser med id'er: ${personhendelserPåSak.map { it.id }}")
                     return@loop // continue
                 }
-                opprettOppgaveForSak(sak, personhendelser.toNonEmptyList())
+                personhendelserPåSak.groupBy { it.grupperingsnøkkelForOppgave() }
+                    .values
+                    .forEach { personhendelser ->
+                        opprettOppgaveForSak(sak, personhendelser.toNonEmptyList())
+                    }
             }
     }
 
@@ -205,5 +209,15 @@ class PersonhendelseServiceImpl(
                 )
                 personhendelseRepo.inkrementerAntallFeiledeForsøk(personhendelser)
             }
+    }
+
+    private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.grupperingsnøkkelForOppgave(): String {
+        return when (hendelse) {
+            is Personhendelse.Hendelse.Dødsfall -> "DODSFALL"
+            is Personhendelse.Hendelse.Sivilstand -> "SIVILSTAND"
+            is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
+            is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE:$id"
+            is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE:$id"
+        }
     }
 }
