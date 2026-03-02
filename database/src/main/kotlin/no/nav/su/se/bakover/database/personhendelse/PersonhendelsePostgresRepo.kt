@@ -91,28 +91,6 @@ internal class PersonhendelsePostgresRepo(
         }
     }
 
-    @Deprecated(
-        message = "Erstattet av hentPersonhendelserUtenPdlVurdering og hentPersonhendelserKlareForOppgave.",
-    )
-    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
-        return dbMetrics.timeQuery("hentPersonhendelserUtenOppgave") {
-            sessionFactory.withSession { session ->
-                """
-                    select
-                        p.*, s.saksnummer as saksnummer
-                    from
-                        personhendelse p
-                        left join sak s on s.id = p.sakId
-                    where
-                        oppgaveId is null and antallFeiledeForsøk < 3
-                    limit 50
-                """.trimIndent().hentListe(mapOf(), session) { row ->
-                    row.toIkkeSendtTilOppgave()
-                }
-            }
-        }
-    }
-
     override fun hentPersonhendelserUtenPdlVurdering(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
         return dbMetrics.timeQuery("hentPersonhendelserUtenPdlVurdering") {
             sessionFactory.withSession { session ->
