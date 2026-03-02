@@ -250,6 +250,13 @@ class PersonhendelseServiceImpl(
         }
     }
 
+    /**
+     * Vurdering av bostedsadressehendelse mot PDL:
+     * - [KunneIkkeHentePerson.FantIkkePerson]: vi lagrer en vurdering som ikke relevant (ingen retry).
+     * - [KunneIkkeHentePerson.IkkeTilgangTilPerson] / [KunneIkkeHentePerson.Ukjent]: vi returnerer null,
+     *   slik at hendelsen forblir `pdl_vurdert=false` og plukkes opp igjen i neste jobbkjøring (retry).
+     * - Success: vi lagrer vanlig PDL-vurdering med snapshot/diff.
+     */
     private fun vurderBostedsadressehendelseMotPdl(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
     ): PersonhendelseRepo.PdlVurdering? {
@@ -279,6 +286,7 @@ class PersonhendelseServiceImpl(
                             personhendelse.id,
                             feil,
                         )
+                        // Ikke persister vurdering nå -> blir hentet igjen via hentPersonhendelserUtenPdlVurdering().
                         null
                     }
                 }
