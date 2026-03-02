@@ -245,6 +245,7 @@ class PersonhendelseServiceImpl(
             -> vurderingUtenPdlOppslag(
                 personhendelse = personhendelse,
                 begrunnelse = "Hendelsetype vurderes uten PDL-sjekk.",
+                hendelsestype = personhendelse.hendelse.javaClass.simpleName,
             )
         }
     }
@@ -346,7 +347,7 @@ class PersonhendelseServiceImpl(
     private fun vurderingUtenPdlOppslag(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
         begrunnelse: String,
-        hendelsestype: String = personhendelse.hendelse::class.simpleName ?: "Ukjent",
+        hendelsestype: String,
     ): PersonhendelseRepo.PdlVurdering {
         return PersonhendelseRepo.PdlVurdering(
             id = personhendelse.id,
