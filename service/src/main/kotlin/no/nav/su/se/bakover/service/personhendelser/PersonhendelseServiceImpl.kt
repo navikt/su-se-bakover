@@ -19,16 +19,15 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
+import person.domain.AdresseopplysningerMedMetadata
 import person.domain.KunneIkkeHentePerson
-import person.domain.Person
-import person.domain.PersonService
 import java.time.Clock
 import java.util.UUID
 
 class PersonhendelseServiceImpl(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
-    private val personService: PersonService,
+    private val hentBostedsadresseMedMetadataForSystembruker: (Fnr) -> Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata>,
     private val vedtakService: VedtakService,
     private val oppgaveServiceImpl: OppgaveService,
     private val clock: Clock,
@@ -233,8 +232,26 @@ class PersonhendelseServiceImpl(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
     ): PersonhendelseRepo.PdlVurdering? {
         return when (personhendelse.hendelse) {
-            is Personhendelse.Hendelse.Bostedsadresse -> vurderAdressehendelseMotPdl(personhendelse, Adressekategori.BOSTEDSADRESSE)
-            is Personhendelse.Hendelse.Kontaktadresse -> vurderAdressehendelseMotPdl(personhendelse, Adressekategori.KONTAKTADRESSE)
+            is Personhendelse.Hendelse.Bostedsadresse -> vurderBostedsadressehendelseMotPdl(personhendelse)
+            is Personhendelse.Hendelse.Kontaktadresse -> PersonhendelseRepo.PdlVurdering(
+                id = personhendelse.id,
+                relevant = true,
+                pdlSnapshot = null,
+                pdlDiff = serialize(
+                    PdlDiff(
+                        hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
+                        endringstype = personhendelse.endringstype.name,
+                        relevant = true,
+                        begrunnelse = "PDL-gating brukes kun for bostedsadresse.",
+                        reasons = listOf("Kontaktadresse vurderes uten PDL-gating."),
+                        changedFields = emptyList(),
+                        gjelderEps = personhendelse.gjelderEps,
+                        harBostedsadresseNå = null,
+                        harKontaktadresseNå = null,
+                        korrelertPåGjeldendeForekomst = false,
+                    ),
+                ),
+            )
             else -> PersonhendelseRepo.PdlVurdering(
                 id = personhendelse.id,
                 relevant = true,
@@ -245,18 +262,20 @@ class PersonhendelseServiceImpl(
                         endringstype = personhendelse.endringstype.name,
                         relevant = true,
                         begrunnelse = "Hendelsetype vurderes uten PDL-gating.",
+                        reasons = listOf("Hendelsetype vurderes uten PDL-gating."),
+                        changedFields = emptyList(),
                         gjelderEps = personhendelse.gjelderEps,
                         harBostedsadresseNå = null,
                         harKontaktadresseNå = null,
+                        korrelertPåGjeldendeForekomst = false,
                     ),
                 ),
             )
         }
     }
 
-    private fun vurderAdressehendelseMotPdl(
+    private fun vurderBostedsadressehendelseMotPdl(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
-        adressekategori: Adressekategori,
     ): PersonhendelseRepo.PdlVurdering? {
         val fnr = personhendelse.metadata.personidenter.firstNotNullOfOrNull { Fnr.tryCreate(it) }
         if (fnr == null) {
@@ -270,15 +289,18 @@ class PersonhendelseServiceImpl(
                         endringstype = personhendelse.endringstype.name,
                         relevant = false,
                         begrunnelse = "Mangler fnr i metadata.personidenter, kan ikke slå opp i PDL.",
+                        reasons = listOf("Mangler fnr i metadata.personidenter, kan ikke slå opp i PDL."),
+                        changedFields = emptyList(),
                         gjelderEps = personhendelse.gjelderEps,
                         harBostedsadresseNå = null,
                         harKontaktadresseNå = null,
+                        korrelertPåGjeldendeForekomst = false,
                     ),
                 ),
             )
         }
 
-        return personService.hentPersonMedSystembruker(fnr).fold(
+        return hentBostedsadresseMedMetadataForSystembruker(fnr).fold(
             ifLeft = { feil ->
                 when (feil) {
                     KunneIkkeHentePerson.FantIkkePerson -> {
@@ -292,9 +314,12 @@ class PersonhendelseServiceImpl(
                                     endringstype = personhendelse.endringstype.name,
                                     relevant = false,
                                     begrunnelse = "Person ikke funnet i PDL.",
+                                    reasons = listOf("Person ikke funnet i PDL."),
+                                    changedFields = emptyList(),
                                     gjelderEps = personhendelse.gjelderEps,
                                     harBostedsadresseNå = null,
                                     harKontaktadresseNå = null,
+                                    korrelertPåGjeldendeForekomst = false,
                                 ),
                             ),
                         )
@@ -312,73 +337,54 @@ class PersonhendelseServiceImpl(
                     }
                 }
             },
-            ifRight = { person ->
-                val harBostedsadresseNå = person.harAdressetype(BOSTEDSADRESSE_PDL_TYPE)
-                val harKontaktadresseNå = person.harAdressetype(KONTAKTADRESSE_PDL_TYPE)
-                /*
-                 * PDL-gate for adressehendelser:
-                 * - OPPRETTET/KORRIGERT er relevant kun hvis adressetypen finnes i gjeldende PDL-tilstand.
-                 * - ANNULLERT/OPPHØRT er relevant kun hvis adressetypen ikke finnes i gjeldende PDL-tilstand.
-                 *
-                 * Hensikt:
-                 * - filtrere bort forsinkede/out-of-order hendelser som ikke stemmer med "nåtilstand",
-                 * - unngå oppgaveoppretting når PDL ikke støtter det hendelsen påstår nå.
-                 *
-                 * Merk: dette er en relevansvurdering mot nåtilstand, ikke en historisk før/etter-diff.
-                 */
-                val relevant = when (adressekategori) {
-                    Adressekategori.BOSTEDSADRESSE -> when (personhendelse.endringstype) {
-                        Personhendelse.Endringstype.OPPRETTET,
-                        Personhendelse.Endringstype.KORRIGERT,
-                        -> harBostedsadresseNå
-
-                        Personhendelse.Endringstype.ANNULLERT,
-                        Personhendelse.Endringstype.OPPHØRT,
-                        -> !harBostedsadresseNå
-                    }
-
-                    Adressekategori.KONTAKTADRESSE -> when (personhendelse.endringstype) {
-                        Personhendelse.Endringstype.OPPRETTET,
-                        Personhendelse.Endringstype.KORRIGERT,
-                        -> harKontaktadresseNå
-
-                        Personhendelse.Endringstype.ANNULLERT,
-                        Personhendelse.Endringstype.OPPHØRT,
-                        -> !harKontaktadresseNå
-                    }
+            ifRight = { adresseopplysninger ->
+                val alleAdresser = adresseopplysninger.bostedsadresser
+                val gjeldendeAdresser = alleAdresser.filter { !it.historisk }
+                val gjeldendeAdresseForHendelse = gjeldendeAdresser.firstOrNull {
+                    it.hendelseIder.contains(personhendelse.metadata.hendelseId)
                 }
 
+                val gjeldendeBostedsadresser = adresseopplysninger.bostedsadresser
+                    .filter { !it.historisk }
+                    .map { it.toPdlAdresseSnapshot() }
+                val gjeldendeKontaktadresser = adresseopplysninger.kontaktadresser
+                    .filter { !it.historisk }
+                    .map { it.toPdlAdresseSnapshot() }
+                val harBostedsadresseNå = gjeldendeBostedsadresser.isNotEmpty()
+                val harKontaktadresseNå = gjeldendeKontaktadresser.isNotEmpty()
+
+                val beslutning = vurderBostedsadressebeslutning(
+                    endringstype = personhendelse.endringstype,
+                    hendelseId = personhendelse.metadata.hendelseId,
+                    tidligereHendelseId = personhendelse.metadata.tidligereHendelseId,
+                    nåForekomst = gjeldendeAdresseForHendelse,
+                    historiskeOgGjeldendeForekomster = alleAdresser,
+                )
+
                 val snapshot = PdlSnapshot(
-                    fnr = person.ident.fnr.toString(),
+                    fnr = fnr.toString(),
                     harBostedsadresse = harBostedsadresseNå,
                     harKontaktadresse = harKontaktadresseNå,
-                    adresser = person.adresse.orEmpty().map {
-                        PdlAdresseSnapshot(
-                            adressetype = it.adressetype,
-                            adresseformat = it.adresseformat,
-                            adresselinje = it.adresselinje,
-                            postnummer = it.poststed?.postnummer,
-                            landkode = it.landkode,
-                        )
-                    },
+                    gjeldendeBostedsadresser = gjeldendeBostedsadresser,
+                    gjeldendeKontaktadresser = gjeldendeKontaktadresser,
                 )
 
                 PersonhendelseRepo.PdlVurdering(
                     id = personhendelse.id,
-                    relevant = relevant,
+                    relevant = beslutning.relevant,
                     pdlSnapshot = serialize(snapshot),
                     pdlDiff = serialize(
                         PdlDiff(
                             hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
                             endringstype = personhendelse.endringstype.name,
-                            relevant = relevant,
-                            begrunnelse = when (adressekategori) {
-                                Adressekategori.BOSTEDSADRESSE -> "Vurdert mot gjeldende bostedsadresse i PDL."
-                                Adressekategori.KONTAKTADRESSE -> "Vurdert mot gjeldende kontaktadresse i PDL."
-                            },
+                            relevant = beslutning.relevant,
+                            begrunnelse = beslutning.reasons.joinToString(" | "),
+                            reasons = beslutning.reasons,
+                            changedFields = beslutning.changedFields,
                             gjelderEps = personhendelse.gjelderEps,
                             harBostedsadresseNå = harBostedsadresseNå,
                             harKontaktadresseNå = harKontaktadresseNå,
+                            korrelertPåGjeldendeForekomst = gjeldendeAdresseForHendelse != null,
                         ),
                     ),
                 )
@@ -386,26 +392,73 @@ class PersonhendelseServiceImpl(
         )
     }
 
-    private fun Person.harAdressetype(adressetype: String): Boolean = adresse.orEmpty().any { it.adressetype == adressetype }
+    /**
+     * Regler for bostedsadresse:
+     * 1) Hendelsen må korreleres mot en gjeldende forekomst (metadata.historisk=false + hendelseId-match).
+     * 2) OPPRETTET er relevant når korrelasjonen treffer gjeldende forekomst.
+     * 3) KORRIGERT sammenligner før/etter kun på gateadresse(adressenavn+husnummer+husbokstav) og postnummer.
+     * 4) Kosmetiske forskjeller i tekst (case/whitespace) ignoreres.
+     * 5) OPPHØRT/ANNULLERT er ikke relevante for flytting.
+     */
+    private fun vurderBostedsadressebeslutning(
+        endringstype: Personhendelse.Endringstype,
+        hendelseId: String,
+        tidligereHendelseId: String?,
+        nåForekomst: AdresseopplysningerMedMetadata.Adresseopplysning?,
+        historiskeOgGjeldendeForekomster: List<AdresseopplysningerMedMetadata.Adresseopplysning>,
+    ): Adressebeslutning {
+        if (nåForekomst == null) {
+            return Adressebeslutning(
+                relevant = false,
+                reasons = listOf("HendelseId=$hendelseId finnes ikke på gjeldende adresseforekomst i PDL."),
+            )
+        }
 
-    private enum class Adressekategori {
-        BOSTEDSADRESSE,
-        KONTAKTADRESSE,
+        return when (endringstype) {
+            Personhendelse.Endringstype.OPPRETTET ->
+                Adressebeslutning(
+                    relevant = true,
+                    reasons = listOf("OPPRETTET korrelert mot gjeldende adresseforekomst."),
+                )
+
+            Personhendelse.Endringstype.KORRIGERT -> {
+                if (tidligereHendelseId == null) {
+                    return Adressebeslutning(
+                        relevant = false,
+                        reasons = listOf("KORRIGERT mangler tidligereHendelseId."),
+                    )
+                }
+
+                val førFraPdl = historiskeOgGjeldendeForekomster.firstOrNull {
+                    it.hendelseIder.contains(tidligereHendelseId)
+                } ?: return Adressebeslutning(
+                    relevant = false,
+                    reasons = listOf("KORRIGERT mangler før-forekomst i PDL-historikk for tidligereHendelseId=$tidligereHendelseId."),
+                )
+
+                val changedFields = finnEndredeFelter(førFraPdl, nåForekomst)
+                Adressebeslutning(
+                    relevant = changedFields.isNotEmpty(),
+                    reasons = listOf("KORRIGERT vurdert med før-forekomst fra PDL-historikk."),
+                    changedFields = changedFields,
+                )
+            }
+
+            Personhendelse.Endringstype.OPPHØRT,
+            Personhendelse.Endringstype.ANNULLERT,
+            -> Adressebeslutning(
+                relevant = false,
+                reasons = listOf("${endringstype.name} er ikke relevant for flytting/reell adresseendring."),
+            )
+        }
     }
 
     private data class PdlSnapshot(
         val fnr: String,
         val harBostedsadresse: Boolean,
         val harKontaktadresse: Boolean,
-        val adresser: List<PdlAdresseSnapshot>,
-    )
-
-    private data class PdlAdresseSnapshot(
-        val adressetype: String,
-        val adresseformat: String,
-        val adresselinje: String?,
-        val postnummer: String?,
-        val landkode: String?,
+        val gjeldendeBostedsadresser: List<PdlAdresseSnapshot> = emptyList(),
+        val gjeldendeKontaktadresser: List<PdlAdresseSnapshot> = emptyList(),
     )
 
     private data class PdlDiff(
@@ -413,14 +466,59 @@ class PersonhendelseServiceImpl(
         val endringstype: String,
         val relevant: Boolean,
         val begrunnelse: String,
+        val reasons: List<String>,
+        val changedFields: List<String>,
         val gjelderEps: Boolean,
         val harBostedsadresseNå: Boolean?,
         val harKontaktadresseNå: Boolean?,
+        val korrelertPåGjeldendeForekomst: Boolean,
     )
 
+    private data class Adressebeslutning(
+        val relevant: Boolean,
+        val reasons: List<String>,
+        val changedFields: List<String> = emptyList(),
+    )
+
+    private data class PdlAdresseSnapshot(
+        val gateadresse: String? = null,
+        val postnummer: String? = null,
+    )
+
+    private fun AdresseopplysningerMedMetadata.Adresseopplysning.toPdlAdresseSnapshot(): PdlAdresseSnapshot {
+        return PdlAdresseSnapshot(
+            gateadresse = gateadresse,
+            postnummer = postnummer,
+        )
+    }
+
+    private fun finnEndredeFelter(
+        før: AdresseopplysningerMedMetadata.Adresseopplysning,
+        nå: AdresseopplysningerMedMetadata.Adresseopplysning,
+    ): List<String> {
+        val changedFields = mutableListOf<String>()
+        if (før.gateadresse.normalizeText() != nå.gateadresse.normalizeText()) changedFields.add("gateadresse")
+        if (før.postnummer.normalizePostnummer() != nå.postnummer.normalizePostnummer()) changedFields.add("postnummer")
+        return changedFields
+    }
+
+    private fun String?.normalizeText(): String? {
+        if (this == null) return null
+        return trim()
+            .replace(WHITESPACE_REGEX, " ")
+            .lowercase()
+            .ifBlank { null }
+    }
+
+    private fun String?.normalizePostnummer(): String? {
+        if (this == null) return null
+        return trim()
+            .replace(WHITESPACE_REGEX, "")
+            .ifBlank { null }
+    }
+
     companion object {
-        private const val BOSTEDSADRESSE_PDL_TYPE = "Bostedsadresse"
-        private const val KONTAKTADRESSE_PDL_TYPE = "Kontaktadresse"
+        private val WHITESPACE_REGEX = "\\s+".toRegex()
     }
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.grupperingsnøkkelForOppgave(): String {

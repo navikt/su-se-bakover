@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import person.domain.AdresseopplysningerMedMetadata
 import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -47,6 +48,19 @@ internal class PersonClient(
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
         return pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
+    }
+
+    fun bostedsadresseMedMetadataForSystembruker(
+        fnr: Fnr,
+    ): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> {
+        return pdlClient.bostedsadresseMedMetadataForSystembruker(fnr).map { data ->
+            AdresseopplysningerMedMetadata(
+                bostedsadresser = data.bostedsadresser.map { adresse ->
+                    adresse.toDomainAdresseopplysning(token = JwtToken.SystemToken)
+                },
+                kontaktadresser = emptyList(),
+            )
+        }
     }
 
     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
@@ -126,6 +140,22 @@ internal class PersonClient(
         kommunenummer = kommunenummer,
         kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer, token).getOrNull(),
     )
+
+    private fun PdlBostedsadresseMedMetadata.Adresseopplysning.toDomainAdresseopplysning(
+        token: JwtToken,
+    ): AdresseopplysningerMedMetadata.Adresseopplysning {
+        val poststedFraKodeverk = postnummer?.let { postnr ->
+            config.kodeverk.hentPoststed(postnr, token).getOrNull()
+        }
+        return AdresseopplysningerMedMetadata.Adresseopplysning(
+            historisk = historisk,
+            hendelseIder = hendelseIder,
+            gateadresse = gateadresse,
+            postnummer = postnummer,
+            poststed = poststedFraKodeverk ?: poststed,
+            matrikkelId = matrikkelId,
+        )
+    }
 
     private fun hentKontaktinfo(fnr: Fnr): Kontaktinfo? {
         return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(

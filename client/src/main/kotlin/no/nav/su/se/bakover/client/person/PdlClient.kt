@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.client.person
 
 import Bostedsadresse
 import Kontaktadresse
+import Matrikkeladresse
 import Oppholdsadresse
+import Vegadresse
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
@@ -50,6 +52,8 @@ internal class PdlClient(
 
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql")?.readText()!!
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql")?.readText()!!
+    private val hentBostedsadresseMedMetadataQuery =
+        this::class.java.getResource("/hentBostedsadresseMedMetadata.graphql")?.readText()!!
 
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
@@ -61,6 +65,31 @@ internal class PdlClient(
     fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
         return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery)
             .flatMap { mapResponse(it) }
+    }
+
+    fun bostedsadresseMedMetadataForSystembruker(
+        fnr: Fnr,
+    ): Either<KunneIkkeHentePerson, PdlBostedsadresseMedMetadata> {
+        return kallPDLMedSystembruker<BostedsadresseResponseData>(
+            fnr = fnr,
+            query = hentBostedsadresseMedMetadataQuery,
+            historikk = true,
+        ).map { response ->
+            val person = response.hentPerson ?: return FantIkkePerson.left()
+            PdlBostedsadresseMedMetadata(
+                bostedsadresser = person.bostedsadresse.map { adresse ->
+                    PdlBostedsadresseMedMetadata.Adresseopplysning(
+                        historisk = adresse.metadata.historisk,
+                        hendelseIder = adresse.metadata.endringer.mapNotNull { it.hendelseId },
+                        gateadresse = adresse.vegadresse?.somGateadresse(),
+                        postnummer = adresse.vegadresse?.postnummer
+                            ?: adresse.matrikkeladresse?.postnummer,
+                        poststed = null,
+                        matrikkelId = adresse.matrikkeladresse?.matrikkelId,
+                    )
+                },
+            )
+        }
     }
 
     private fun mapResponse(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
@@ -136,8 +165,12 @@ internal class PdlClient(
             aktørId = hentIdenter.identer.first { it.gruppe == AKTORID && !it.historisk }.ident.let { AktørId(it) },
         )
 
-    private inline fun <reified T> kallPDLMedSystembruker(fnr: Fnr, query: String): Either<KunneIkkeHentePerson, T> {
-        val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
+    private inline fun <reified T> kallPDLMedSystembruker(
+        fnr: Fnr,
+        query: String,
+        historikk: Boolean = false,
+    ): Either<KunneIkkeHentePerson, T> {
+        val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString(), historikk = historikk))
         val token = config.azureAd.getSystemToken(config.vars.clientId)
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
             .header("Authorization", "Bearer $token")
@@ -258,6 +291,10 @@ internal data class PersonResponseData(
     val hentIdenter: HentIdenter?,
 )
 
+internal data class BostedsadresseResponseData(
+    val hentPerson: HentPersonBostedsadresse?,
+)
+
 internal data class HentPerson(
     val navn: List<NavnResponse>,
     val telefonnummer: List<TelefonnummerResponse>,
@@ -270,6 +307,10 @@ internal data class HentPerson(
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val doedsfall: List<Doedsfall>,
+)
+
+internal data class HentPersonBostedsadresse(
+    val bostedsadresse: List<BostedsadresseMedMetadataResponse>,
 )
 
 internal data class NavnResponse(
@@ -294,6 +335,15 @@ internal data class Statsborgerskap(
 internal data class Metadata(
     val master: String,
     val historisk: Boolean,
+)
+
+internal data class MetadataMedEndringerResponse(
+    val historisk: Boolean,
+    val endringer: List<EndringResponse>,
+)
+
+internal data class EndringResponse(
+    val hendelseId: String?,
 )
 
 internal data class HentIdenter(
@@ -328,3 +378,29 @@ internal data class VergemaalEllerFremtidsfullmakt(
 internal data class Doedsfall(
     val doedsdato: LocalDate?,
 )
+
+internal data class BostedsadresseMedMetadataResponse(
+    val metadata: MetadataMedEndringerResponse,
+    val vegadresse: Vegadresse?,
+    val matrikkeladresse: Matrikkeladresse?,
+)
+
+internal data class PdlBostedsadresseMedMetadata(
+    val bostedsadresser: List<Adresseopplysning>,
+) {
+    data class Adresseopplysning(
+        val historisk: Boolean,
+        val hendelseIder: List<String>,
+        val gateadresse: String?,
+        val postnummer: String?,
+        val poststed: String?,
+        val matrikkelId: Long?,
+    )
+}
+
+private fun Vegadresse.somGateadresse(): String? {
+    return listOfNotNull(
+        adressenavn?.trim()?.takeUnless { it.isBlank() },
+        (husnummer.orEmpty() + husbokstav.orEmpty()).trim().takeUnless { it.isBlank() },
+    ).joinToString(" ").ifBlank { null }
+}

@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -46,8 +45,8 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
-import person.domain.Person
-import person.domain.PersonService
+import person.domain.AdresseopplysningerMedMetadata
+import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class PersonhendelseServiceImplTest {
@@ -80,7 +79,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = mock(),
             personhendelseRepo = personhendelseRepoMock,
-            personService = mock(),
+            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -132,7 +131,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            personService = mock(),
+            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -170,11 +169,10 @@ internal class PersonhendelseServiceImplTest {
             on { hentForBrukerFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn emptyList()
             on { hentForEpsFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn emptyList()
         }
-        val personServiceMock = mock<PersonService>()
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            personService = personServiceMock,
+            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
             vedtakService = vedtakServiceMock,
@@ -192,7 +190,6 @@ internal class PersonhendelseServiceImplTest {
             sakRepoMock,
             oppgaveServiceMock,
             vedtakServiceMock,
-            personServiceMock,
         )
     }
 
@@ -211,8 +208,6 @@ internal class PersonhendelseServiceImplTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
         }
-        val personServiceMock = mock<PersonService>()
-
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForBrukerFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
@@ -220,7 +215,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            personService = personServiceMock,
+            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -252,7 +247,6 @@ internal class PersonhendelseServiceImplTest {
             personhendelseRepoMock,
             sakRepoMock,
             vedtakServiceMock,
-            personServiceMock,
         )
     }
 
@@ -377,8 +371,6 @@ internal class PersonhendelseServiceImplTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgaveMedSystembruker(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
-        val personServiceMock = mock<PersonService>()
-
         val vedtakServiceMock = mock<VedtakService> {
             on { hentForBrukerFødselsnumreOgFraOgMedMåned(any(), any()) } doReturn sak.vedtakListe.toVedtaksammendrag()
         }
@@ -386,7 +378,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            personService = personServiceMock,
+            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
             oppgaveServiceImpl = oppgaveServiceMock,
             vedtakService = vedtakServiceMock,
             clock = fixedClock,
@@ -420,7 +412,6 @@ internal class PersonhendelseServiceImplTest {
             personhendelseRepoMock,
             sakRepoMock,
             vedtakServiceMock,
-            personServiceMock,
         )
     }
 
@@ -489,12 +480,10 @@ internal class PersonhendelseServiceImplTest {
         val sakRepoMock = mock<SakRepo>()
         val personhendelseRepoMock = mock<PersonhendelseRepo> {}
         val oppgaveServiceMock = mock<OppgaveService> {}
-        val personServiceMock = mock<PersonService>()
-
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            personService = personServiceMock,
+            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -688,81 +677,207 @@ internal class PersonhendelseServiceImplTest {
             sakRepoMock,
             oppgaveServiceMock,
             vedtakServiceMock,
-            personServiceMock,
         )
     }
 
     @Test
-    fun `setter pdl_relevant for adressehendelser etter sannhetstabell`() {
+    fun `bostedsadressevurdering korrelerer mot gjeldende forekomst og filtrerer vask, mens kontaktadresse ikke PDL-gates`() {
         val fnrOpprettetKontakt = Fnr.generer()
+        val fnrOpprettetKontaktIkkeGjeldende = Fnr.generer()
+        val fnrKorrigertKosmetisk = Fnr.generer()
+        val fnrKorrigertReell = Fnr.generer()
+        val fnrKorrigertFallback = Fnr.generer()
         val fnrOpphortKontakt = Fnr.generer()
-        val fnrKorrigertBosted = Fnr.generer()
         val fnrAnnullertBosted = Fnr.generer()
+
+        val hendelseIdKontaktOpprett = UUID.randomUUID().toString()
+        val hendelseIdKontaktIkkeGjeldende = UUID.randomUUID().toString()
+        val hendelseIdKorrigertKosmetisk = UUID.randomUUID().toString()
+        val hendelseIdKorrigertReell = UUID.randomUUID().toString()
+        val hendelseIdKorrigertFallback = UUID.randomUUID().toString()
+        val hendelseIdOpphort = UUID.randomUUID().toString()
+        val hendelseIdAnnullert = UUID.randomUUID().toString()
+
+        val tidligereHendelseIdKosmetisk = UUID.randomUUID().toString()
+        val tidligereHendelseIdReell = UUID.randomUUID().toString()
+        val tidligereHendelseIdFallback = UUID.randomUUID().toString()
 
         val kontaktOpprettet = lagAdressePersonhendelseTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Kontaktadresse(),
             fnr = fnrOpprettetKontakt,
+            hendelseId = hendelseIdKontaktOpprett,
+        )
+        val kontaktOpprettetIkkeGjeldende = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Kontaktadresse(),
+            fnr = fnrOpprettetKontaktIkkeGjeldende,
+            hendelseId = hendelseIdKontaktIkkeGjeldende,
+        )
+        val bostedKorrigertKosmetisk = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.KORRIGERT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrKorrigertKosmetisk,
+            hendelseId = hendelseIdKorrigertKosmetisk,
+            tidligereHendelseId = tidligereHendelseIdKosmetisk,
+        )
+        val bostedKorrigertReell = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.KORRIGERT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrKorrigertReell,
+            hendelseId = hendelseIdKorrigertReell,
+            tidligereHendelseId = tidligereHendelseIdReell,
+        )
+        val bostedKorrigertFallback = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.KORRIGERT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrKorrigertFallback,
+            hendelseId = hendelseIdKorrigertFallback,
+            tidligereHendelseId = tidligereHendelseIdFallback,
         )
         val kontaktOpphort = lagAdressePersonhendelseTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPHØRT,
             hendelse = Personhendelse.Hendelse.Kontaktadresse(),
             fnr = fnrOpphortKontakt,
-        )
-        val bostedKorrigert = lagAdressePersonhendelseTilknyttetSak(
-            endringstype = Personhendelse.Endringstype.KORRIGERT,
-            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
-            fnr = fnrKorrigertBosted,
+            hendelseId = hendelseIdOpphort,
         )
         val bostedAnnullert = lagAdressePersonhendelseTilknyttetSak(
             endringstype = Personhendelse.Endringstype.ANNULLERT,
             hendelse = Personhendelse.Hendelse.Bostedsadresse(),
             fnr = fnrAnnullertBosted,
+            hendelseId = hendelseIdAnnullert,
         )
-        val ikkeVurderte = listOf(kontaktOpprettet, kontaktOpphort, bostedKorrigert, bostedAnnullert)
+        val ikkeVurderte = listOf(
+            kontaktOpprettet,
+            kontaktOpprettetIkkeGjeldende,
+            bostedKorrigertKosmetisk,
+            bostedKorrigertReell,
+            bostedKorrigertFallback,
+            kontaktOpphort,
+            bostedAnnullert,
+        )
 
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
             on { hentPersonhendelserUtenPdlVurdering() } doReturn ikkeVurderte
             on { hentPersonhendelserKlareForOppgave() } doReturn emptyList()
         }
-        val personServiceMock = mock<PersonService>()
         val sakRepoMock = mock<SakRepo>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val vedtakServiceMock = mock<VedtakService>()
-
-        whenever(personServiceMock.hentPersonMedSystembruker(fnrOpprettetKontakt)).thenReturn(
-            personMedAdresser(
-                fnr = fnrOpprettetKontakt,
-                harBostedsadresse = false,
-                harKontaktadresse = true,
+        val adresseopplysningerPerFnr = mapOf(
+            fnrOpprettetKontakt to adresseopplysninger(
+                bosted = emptyList(),
+                kontakt = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseIdKontaktOpprett),
+                        gateadresse = "Testveien 2",
+                        postnummer = "0550",
+                        poststed = "Oslo",
+                    ),
+                ),
             ).right(),
-        )
-        whenever(personServiceMock.hentPersonMedSystembruker(fnrOpphortKontakt)).thenReturn(
-            personMedAdresser(
-                fnr = fnrOpphortKontakt,
-                harBostedsadresse = false,
-                harKontaktadresse = true,
+            fnrOpprettetKontaktIkkeGjeldende to adresseopplysninger(
+                bosted = emptyList(),
+                kontakt = listOf(
+                    Adresseforekomst(
+                        historisk = true,
+                        hendelseIder = listOf(hendelseIdKontaktIkkeGjeldende),
+                        gateadresse = "Gammelveien 1",
+                        postnummer = "0570",
+                        poststed = "Oslo",
+                    ),
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(UUID.randomUUID().toString()),
+                        gateadresse = "Nåveien 2",
+                        postnummer = "0570",
+                        poststed = "Oslo",
+                    ),
+                ),
             ).right(),
-        )
-        whenever(personServiceMock.hentPersonMedSystembruker(fnrKorrigertBosted)).thenReturn(
-            personMedAdresser(
-                fnr = fnrKorrigertBosted,
-                harBostedsadresse = false,
-                harKontaktadresse = false,
+            fnrKorrigertKosmetisk to adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = true,
+                        hendelseIder = listOf(tidligereHendelseIdKosmetisk),
+                        gateadresse = "SKJULSTADVEGEN   1",
+                        postnummer = "1234",
+                        poststed = "OSLO",
+                    ),
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseIdKorrigertKosmetisk),
+                        gateadresse = "Skjulstadvegen 1",
+                        postnummer = "1234",
+                        poststed = "Oslo",
+                    ),
+                ),
+                kontakt = emptyList(),
             ).right(),
-        )
-        whenever(personServiceMock.hentPersonMedSystembruker(fnrAnnullertBosted)).thenReturn(
-            personMedAdresser(
-                fnr = fnrAnnullertBosted,
-                harBostedsadresse = false,
-                harKontaktadresse = false,
+            fnrKorrigertReell to adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = true,
+                        hendelseIder = listOf(tidligereHendelseIdReell),
+                        gateadresse = "Skjulstadvegen 1",
+                        postnummer = "1111",
+                        poststed = "Oslo",
+                    ),
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseIdKorrigertReell),
+                        gateadresse = "Skjulstadvegen 1",
+                        postnummer = "2222",
+                        poststed = "Oslo",
+                    ),
+                ),
+                kontakt = emptyList(),
+            ).right(),
+            fnrKorrigertFallback to adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseIdKorrigertFallback),
+                        gateadresse = "Nyveien 10",
+                        postnummer = "3333",
+                        poststed = "Oslo",
+                    ),
+                ),
+                kontakt = emptyList(),
+            ).right(),
+            fnrOpphortKontakt to adresseopplysninger(
+                bosted = emptyList(),
+                kontakt = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseIdOpphort),
+                        gateadresse = "Eksisterende 5",
+                        postnummer = "0570",
+                        poststed = "Oslo",
+                    ),
+                ),
+            ).right(),
+            fnrAnnullertBosted to adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseIdAnnullert),
+                        gateadresse = "Annullertveien 1",
+                        postnummer = "0500",
+                        poststed = "Oslo",
+                    ),
+                ),
+                kontakt = emptyList(),
             ).right(),
         )
 
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            personService = personServiceMock,
+            hentBostedsadresseMedMetadataForSystembruker = { fnr ->
+                adresseopplysningerPerFnr[fnr] ?: KunneIkkeHentePerson.FantIkkePerson.left()
+            },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -770,36 +885,22 @@ internal class PersonhendelseServiceImplTest {
 
         personhendelseService.opprettOppgaverForPersonhendelser()
 
-        /*
-         * ASCII-sannhetstabell for adressetype-gating:
-         *
-         * +----------------------+-------------------+----------------------+
-         * | Endringstype         | Adresse finnes nå | pdl_relevant         |
-         * +----------------------+-------------------+----------------------+
-         * | OPPRETTET/KORRIGERT  | true              | true                 |
-         * | OPPRETTET/KORRIGERT  | false             | false                |
-         * | OPPHØRT/ANNULLERT    | true              | false                |
-         * | OPPHØRT/ANNULLERT    | false             | true                 |
-         * +----------------------+-------------------+----------------------+
-         */
         val vurderinger = argumentCaptor<List<PersonhendelseRepo.PdlVurdering>>()
         verify(personhendelseRepoMock).oppdaterPdlVurdering(vurderinger.capture())
         val relevanteById = vurderinger.firstValue.associate { it.id to it.relevant }
 
         relevanteById[kontaktOpprettet.id] shouldBe true
-        relevanteById[kontaktOpphort.id] shouldBe false
-        relevanteById[bostedKorrigert.id] shouldBe false
-        relevanteById[bostedAnnullert.id] shouldBe true
+        relevanteById[kontaktOpprettetIkkeGjeldende.id] shouldBe true
+        relevanteById[bostedKorrigertKosmetisk.id] shouldBe false
+        relevanteById[bostedKorrigertReell.id] shouldBe true
+        relevanteById[bostedKorrigertFallback.id] shouldBe false
+        relevanteById[kontaktOpphort.id] shouldBe true
+        relevanteById[bostedAnnullert.id] shouldBe false
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
-        verify(personServiceMock).hentPersonMedSystembruker(fnrOpprettetKontakt)
-        verify(personServiceMock).hentPersonMedSystembruker(fnrOpphortKontakt)
-        verify(personServiceMock).hentPersonMedSystembruker(fnrKorrigertBosted)
-        verify(personServiceMock).hentPersonMedSystembruker(fnrAnnullertBosted)
         verifyNoMoreInteractions(
             personhendelseRepoMock,
-            personServiceMock,
             sakRepoMock,
             oppgaveServiceMock,
             vedtakServiceMock,
@@ -853,6 +954,8 @@ internal class PersonhendelseServiceImplTest {
         endringstype: Personhendelse.Endringstype,
         hendelse: Personhendelse.Hendelse,
         fnr: Fnr,
+        hendelseId: String = UUID.randomUUID().toString(),
+        tidligereHendelseId: String? = null,
     ): Personhendelse.TilknyttetSak.IkkeSendtTilOppgave {
         return Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
             endringstype = endringstype,
@@ -861,8 +964,8 @@ internal class PersonhendelseServiceImplTest {
             saksnummer = Saksnummer(2021),
             sakId = UUID.randomUUID(),
             metadata = Personhendelse.Metadata(
-                hendelseId = UUID.randomUUID().toString(),
-                tidligereHendelseId = null,
+                hendelseId = hendelseId,
+                tidligereHendelseId = tidligereHendelseId,
                 offset = 0,
                 partisjon = 0,
                 master = "PDL",
@@ -876,51 +979,33 @@ internal class PersonhendelseServiceImplTest {
         )
     }
 
-    private fun personMedAdresser(
-        fnr: Fnr,
-        harBostedsadresse: Boolean,
-        harKontaktadresse: Boolean,
-    ): Person {
-        val adresser = buildList {
-            if (harBostedsadresse) {
-                add(
-                    Person.Adresse(
-                        adresselinje = null,
-                        poststed = null,
-                        bruksenhet = null,
-                        kommune = null,
-                        landkode = null,
-                        adressetype = "Bostedsadresse",
-                        adresseformat = "Vegadresse",
-                    ),
-                )
-            }
-            if (harKontaktadresse) {
-                add(
-                    Person.Adresse(
-                        adresselinje = null,
-                        poststed = null,
-                        bruksenhet = null,
-                        kommune = null,
-                        landkode = null,
-                        adressetype = "Kontaktadresse",
-                        adresseformat = "Vegadresse",
-                    ),
-                )
-            }
-        }
-
-        return Person(
-            ident = Ident(
-                fnr = fnr,
-                aktørId = AktørId("1234567890123"),
-            ),
-            navn = Person.Navn(
-                fornavn = "Tore",
-                mellomnavn = null,
-                etternavn = "Testesen",
-            ),
-            adresse = adresser,
+    private fun adresseopplysninger(
+        bosted: List<Adresseforekomst>,
+        kontakt: List<Adresseforekomst>,
+    ): AdresseopplysningerMedMetadata {
+        return AdresseopplysningerMedMetadata(
+            bostedsadresser = bosted.map { it.toDomain() },
+            kontaktadresser = kontakt.map { it.toDomain() },
         )
+    }
+
+    private data class Adresseforekomst(
+        val historisk: Boolean,
+        val hendelseIder: List<String>,
+        val gateadresse: String?,
+        val postnummer: String?,
+        val poststed: String?,
+        val matrikkelId: Long? = null,
+    ) {
+        fun toDomain(): AdresseopplysningerMedMetadata.Adresseopplysning {
+            return AdresseopplysningerMedMetadata.Adresseopplysning(
+                historisk = historisk,
+                hendelseIder = hendelseIder,
+                gateadresse = gateadresse,
+                postnummer = postnummer,
+                poststed = poststed,
+                matrikkelId = matrikkelId,
+            )
+        }
     }
 }
