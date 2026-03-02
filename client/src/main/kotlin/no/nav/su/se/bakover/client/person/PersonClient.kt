@@ -154,6 +154,16 @@ internal class PersonClient(
             postnummer = postnummer,
             poststed = poststedFraKodeverk ?: poststed,
             matrikkelId = matrikkelId,
+            folkeregistermetadata = folkeregistermetadata?.let {
+                AdresseopplysningerMedMetadata.Folkeregistermetadata(
+                    ajourholdstidspunkt = it.ajourholdstidspunkt,
+                    gyldighetstidspunkt = it.gyldighetstidspunkt,
+                    opphoerstidspunkt = it.opphoerstidspunkt,
+                    kilde = it.kilde,
+                    aarsak = it.aarsak,
+                    sekvens = it.sekvens,
+                )
+            },
         )
     }
 

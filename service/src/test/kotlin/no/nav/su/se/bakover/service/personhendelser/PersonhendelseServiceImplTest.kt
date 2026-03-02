@@ -6,6 +6,7 @@ import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -681,9 +682,10 @@ internal class PersonhendelseServiceImplTest {
     }
 
     @Test
-    fun `bostedsadressevurdering korrelerer mot gjeldende forekomst og filtrerer vask, mens kontaktadresse ikke PDL-gates`() {
+    fun `bostedsadressevurdering fanger også historiske treff, filtrerer vask, og merker tilbake i tid`() {
         val fnrOpprettetKontakt = Fnr.generer()
         val fnrOpprettetKontaktIkkeGjeldende = Fnr.generer()
+        val fnrBostedOpprettetHistorisk = Fnr.generer()
         val fnrKorrigertKosmetisk = Fnr.generer()
         val fnrKorrigertReell = Fnr.generer()
         val fnrKorrigertFallback = Fnr.generer()
@@ -692,6 +694,7 @@ internal class PersonhendelseServiceImplTest {
 
         val hendelseIdKontaktOpprett = UUID.randomUUID().toString()
         val hendelseIdKontaktIkkeGjeldende = UUID.randomUUID().toString()
+        val hendelseIdBostedHistorisk = UUID.randomUUID().toString()
         val hendelseIdKorrigertKosmetisk = UUID.randomUUID().toString()
         val hendelseIdKorrigertReell = UUID.randomUUID().toString()
         val hendelseIdKorrigertFallback = UUID.randomUUID().toString()
@@ -713,6 +716,14 @@ internal class PersonhendelseServiceImplTest {
             hendelse = Personhendelse.Hendelse.Kontaktadresse(),
             fnr = fnrOpprettetKontaktIkkeGjeldende,
             hendelseId = hendelseIdKontaktIkkeGjeldende,
+        )
+        val bostedOpprettetHistorisk = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(
+                gyldigFraOgMed = fixedLocalDate.minusDays(10),
+            ),
+            fnr = fnrBostedOpprettetHistorisk,
+            hendelseId = hendelseIdBostedHistorisk,
         )
         val bostedKorrigertKosmetisk = lagAdressePersonhendelseTilknyttetSak(
             endringstype = Personhendelse.Endringstype.KORRIGERT,
@@ -750,6 +761,7 @@ internal class PersonhendelseServiceImplTest {
         val ikkeVurderte = listOf(
             kontaktOpprettet,
             kontaktOpprettetIkkeGjeldende,
+            bostedOpprettetHistorisk,
             bostedKorrigertKosmetisk,
             bostedKorrigertReell,
             bostedKorrigertFallback,
@@ -795,6 +807,25 @@ internal class PersonhendelseServiceImplTest {
                         poststed = "Oslo",
                     ),
                 ),
+            ).right(),
+            fnrBostedOpprettetHistorisk to adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = true,
+                        hendelseIder = listOf(hendelseIdBostedHistorisk),
+                        gateadresse = "Gamlegate 4",
+                        postnummer = "0123",
+                        poststed = "Oslo",
+                    ),
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(UUID.randomUUID().toString()),
+                        gateadresse = "Någate 5",
+                        postnummer = "0456",
+                        poststed = "Oslo",
+                    ),
+                ),
+                kontakt = emptyList(),
             ).right(),
             fnrKorrigertKosmetisk to adresseopplysninger(
                 bosted = listOf(
@@ -891,11 +922,19 @@ internal class PersonhendelseServiceImplTest {
 
         relevanteById[kontaktOpprettet.id] shouldBe true
         relevanteById[kontaktOpprettetIkkeGjeldende.id] shouldBe true
+        relevanteById[bostedOpprettetHistorisk.id] shouldBe true
         relevanteById[bostedKorrigertKosmetisk.id] shouldBe false
         relevanteById[bostedKorrigertReell.id] shouldBe true
         relevanteById[bostedKorrigertFallback.id] shouldBe false
         relevanteById[kontaktOpphort.id] shouldBe true
         relevanteById[bostedAnnullert.id] shouldBe false
+
+        val historiskBostedVurdering = vurderinger.firstValue.single { it.id == bostedOpprettetHistorisk.id }
+        val historiskBostedDiff = historiskBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for historisk bostedsvurdering")
+        historiskBostedDiff shouldContain "\"korrelertPåGjeldendeForekomst\":false"
+        historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
+        historiskBostedDiff shouldContain "\"gjelderTilbakeITid\":true"
+        historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
@@ -996,6 +1035,7 @@ internal class PersonhendelseServiceImplTest {
         val postnummer: String?,
         val poststed: String?,
         val matrikkelId: Long? = null,
+        val folkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     ) {
         fun toDomain(): AdresseopplysningerMedMetadata.Adresseopplysning {
             return AdresseopplysningerMedMetadata.Adresseopplysning(
@@ -1005,6 +1045,7 @@ internal class PersonhendelseServiceImplTest {
                 postnummer = postnummer,
                 poststed = poststed,
                 matrikkelId = matrikkelId,
+                folkeregistermetadata = folkeregistermetadata,
             )
         }
     }

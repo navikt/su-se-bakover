@@ -86,6 +86,16 @@ internal class PdlClient(
                             ?: adresse.matrikkeladresse?.postnummer,
                         poststed = null,
                         matrikkelId = adresse.matrikkeladresse?.matrikkelId,
+                        folkeregistermetadata = adresse.folkeregistermetadata?.let {
+                            PdlBostedsadresseMedMetadata.Folkeregistermetadata(
+                                ajourholdstidspunkt = it.ajourholdstidspunkt,
+                                gyldighetstidspunkt = it.gyldighetstidspunkt,
+                                opphoerstidspunkt = it.opphoerstidspunkt,
+                                kilde = it.kilde,
+                                aarsak = it.aarsak,
+                                sekvens = it.sekvens,
+                            )
+                        },
                     )
                 },
             )
@@ -380,14 +390,33 @@ internal data class Doedsfall(
 )
 
 internal data class BostedsadresseMedMetadataResponse(
+    val folkeregistermetadata: FolkeregistermetadataResponse?,
     val metadata: MetadataMedEndringerResponse,
     val vegadresse: Vegadresse?,
     val matrikkeladresse: Matrikkeladresse?,
 )
 
+internal data class FolkeregistermetadataResponse(
+    val ajourholdstidspunkt: String?,
+    val gyldighetstidspunkt: String?,
+    val opphoerstidspunkt: String?,
+    val kilde: String?,
+    val aarsak: String?,
+    val sekvens: Int?,
+)
+
 internal data class PdlBostedsadresseMedMetadata(
     val bostedsadresser: List<Adresseopplysning>,
 ) {
+    data class Folkeregistermetadata(
+        val ajourholdstidspunkt: String?,
+        val gyldighetstidspunkt: String?,
+        val opphoerstidspunkt: String?,
+        val kilde: String?,
+        val aarsak: String?,
+        val sekvens: Int?,
+    )
+
     data class Adresseopplysning(
         val historisk: Boolean,
         val hendelseIder: List<String>,
@@ -395,6 +424,7 @@ internal data class PdlBostedsadresseMedMetadata(
         val postnummer: String?,
         val poststed: String?,
         val matrikkelId: Long?,
+        val folkeregistermetadata: Folkeregistermetadata?,
     )
 }
 

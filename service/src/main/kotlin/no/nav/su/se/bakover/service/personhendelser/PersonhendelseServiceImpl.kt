@@ -249,6 +249,9 @@ class PersonhendelseServiceImpl(
                         harBostedsadresseNå = null,
                         harKontaktadresseNå = null,
                         korrelertPåGjeldendeForekomst = false,
+                        korrelertPåHistoriskForekomst = false,
+                        gjelderTilbakeITid = null,
+                        pdlTreffAdresse = null,
                     ),
                 ),
             )
@@ -268,6 +271,9 @@ class PersonhendelseServiceImpl(
                         harBostedsadresseNå = null,
                         harKontaktadresseNå = null,
                         korrelertPåGjeldendeForekomst = false,
+                        korrelertPåHistoriskForekomst = false,
+                        gjelderTilbakeITid = null,
+                        pdlTreffAdresse = null,
                     ),
                 ),
             )
@@ -295,6 +301,9 @@ class PersonhendelseServiceImpl(
                         harBostedsadresseNå = null,
                         harKontaktadresseNå = null,
                         korrelertPåGjeldendeForekomst = false,
+                        korrelertPåHistoriskForekomst = false,
+                        gjelderTilbakeITid = null,
+                        pdlTreffAdresse = null,
                     ),
                 ),
             )
@@ -320,6 +329,9 @@ class PersonhendelseServiceImpl(
                                     harBostedsadresseNå = null,
                                     harKontaktadresseNå = null,
                                     korrelertPåGjeldendeForekomst = false,
+                                    korrelertPåHistoriskForekomst = false,
+                                    gjelderTilbakeITid = null,
+                                    pdlTreffAdresse = null,
                                 ),
                             ),
                         )
@@ -339,10 +351,11 @@ class PersonhendelseServiceImpl(
             },
             ifRight = { adresseopplysninger ->
                 val alleAdresser = adresseopplysninger.bostedsadresser
-                val gjeldendeAdresser = alleAdresser.filter { !it.historisk }
-                val gjeldendeAdresseForHendelse = gjeldendeAdresser.firstOrNull {
+                val matchendeAdresseForHendelse = alleAdresser.firstOrNull {
                     it.hendelseIder.contains(personhendelse.metadata.hendelseId)
                 }
+                val gjeldendeAdresseForHendelse = matchendeAdresseForHendelse?.takeIf { !it.historisk }
+                val historiskAdresseForHendelse = matchendeAdresseForHendelse?.takeIf { it.historisk }
 
                 val gjeldendeBostedsadresser = adresseopplysninger.bostedsadresser
                     .filter { !it.historisk }
@@ -357,9 +370,11 @@ class PersonhendelseServiceImpl(
                     endringstype = personhendelse.endringstype,
                     hendelseId = personhendelse.metadata.hendelseId,
                     tidligereHendelseId = personhendelse.metadata.tidligereHendelseId,
-                    nåForekomst = gjeldendeAdresseForHendelse,
+                    matchendeForekomst = matchendeAdresseForHendelse,
                     historiskeOgGjeldendeForekomster = alleAdresser,
                 )
+                val gjelderTilbakeITid = historiskAdresseForHendelse != null
+                val treffAdresse = matchendeAdresseForHendelse?.toOppgaveAdresse()
 
                 val snapshot = PdlSnapshot(
                     fnr = fnr.toString(),
@@ -385,6 +400,9 @@ class PersonhendelseServiceImpl(
                             harBostedsadresseNå = harBostedsadresseNå,
                             harKontaktadresseNå = harKontaktadresseNå,
                             korrelertPåGjeldendeForekomst = gjeldendeAdresseForHendelse != null,
+                            korrelertPåHistoriskForekomst = historiskAdresseForHendelse != null,
+                            gjelderTilbakeITid = gjelderTilbakeITid,
+                            pdlTreffAdresse = treffAdresse,
                         ),
                     ),
                 )
@@ -394,8 +412,8 @@ class PersonhendelseServiceImpl(
 
     /**
      * Regler for bostedsadresse:
-     * 1) Hendelsen må korreleres mot en gjeldende forekomst (metadata.historisk=false + hendelseId-match).
-     * 2) OPPRETTET er relevant når korrelasjonen treffer gjeldende forekomst.
+     * 1) Hendelsen må korreleres mot en bostedsadresseforekomst (hendelseId-match).
+     * 2) OPPRETTET er relevant ved treff, også når forekomsten er historisk (ikke gjeldende).
      * 3) KORRIGERT sammenligner før/etter kun på gateadresse(adressenavn+husnummer+husbokstav) og postnummer.
      * 4) Kosmetiske forskjeller i tekst (case/whitespace) ignoreres.
      * 5) OPPHØRT/ANNULLERT er ikke relevante for flytting.
@@ -404,13 +422,13 @@ class PersonhendelseServiceImpl(
         endringstype: Personhendelse.Endringstype,
         hendelseId: String,
         tidligereHendelseId: String?,
-        nåForekomst: AdresseopplysningerMedMetadata.Adresseopplysning?,
+        matchendeForekomst: AdresseopplysningerMedMetadata.Adresseopplysning?,
         historiskeOgGjeldendeForekomster: List<AdresseopplysningerMedMetadata.Adresseopplysning>,
     ): Adressebeslutning {
-        if (nåForekomst == null) {
+        if (matchendeForekomst == null) {
             return Adressebeslutning(
                 relevant = false,
-                reasons = listOf("HendelseId=$hendelseId finnes ikke på gjeldende adresseforekomst i PDL."),
+                reasons = listOf("HendelseId=$hendelseId finnes ikke på bostedsadresseforekomst i PDL."),
             )
         }
 
@@ -418,7 +436,13 @@ class PersonhendelseServiceImpl(
             Personhendelse.Endringstype.OPPRETTET ->
                 Adressebeslutning(
                     relevant = true,
-                    reasons = listOf("OPPRETTET korrelert mot gjeldende adresseforekomst."),
+                    reasons = listOf(
+                        if (matchendeForekomst.historisk) {
+                            "OPPRETTET korrelert mot historisk (ikke gjeldende) adresseforekomst."
+                        } else {
+                            "OPPRETTET korrelert mot gjeldende adresseforekomst."
+                        },
+                    ),
                 )
 
             Personhendelse.Endringstype.KORRIGERT -> {
@@ -436,7 +460,7 @@ class PersonhendelseServiceImpl(
                     reasons = listOf("KORRIGERT mangler før-forekomst i PDL-historikk for tidligereHendelseId=$tidligereHendelseId."),
                 )
 
-                val changedFields = finnEndredeFelter(førFraPdl, nåForekomst)
+                val changedFields = finnEndredeFelter(førFraPdl, matchendeForekomst)
                 Adressebeslutning(
                     relevant = changedFields.isNotEmpty(),
                     reasons = listOf("KORRIGERT vurdert med før-forekomst fra PDL-historikk."),
@@ -472,6 +496,9 @@ class PersonhendelseServiceImpl(
         val harBostedsadresseNå: Boolean?,
         val harKontaktadresseNå: Boolean?,
         val korrelertPåGjeldendeForekomst: Boolean,
+        val korrelertPåHistoriskForekomst: Boolean,
+        val gjelderTilbakeITid: Boolean?,
+        val pdlTreffAdresse: String?,
     )
 
     private data class Adressebeslutning(
@@ -483,13 +510,21 @@ class PersonhendelseServiceImpl(
     private data class PdlAdresseSnapshot(
         val gateadresse: String? = null,
         val postnummer: String? = null,
+        val folkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     )
 
     private fun AdresseopplysningerMedMetadata.Adresseopplysning.toPdlAdresseSnapshot(): PdlAdresseSnapshot {
         return PdlAdresseSnapshot(
             gateadresse = gateadresse,
             postnummer = postnummer,
+            folkeregistermetadata = folkeregistermetadata,
         )
+    }
+
+    private fun AdresseopplysningerMedMetadata.Adresseopplysning.toOppgaveAdresse(): String? {
+        val gate = gateadresse?.trim()?.takeUnless { it.isBlank() }
+        val postnr = postnummer?.trim()?.takeUnless { it.isBlank() }
+        return listOfNotNull(gate, postnr).joinToString(", ").ifBlank { null }
     }
 
     private fun finnEndredeFelter(

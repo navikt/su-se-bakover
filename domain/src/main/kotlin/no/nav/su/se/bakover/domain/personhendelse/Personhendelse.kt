@@ -215,5 +215,9 @@ sealed interface Personhendelse {
         val harBostedsadresseNå: Boolean?,
         val harKontaktadresseNå: Boolean?,
         val begrunnelse: String?,
+        val korrelertPåGjeldendeForekomst: Boolean? = null,
+        val korrelertPåHistoriskForekomst: Boolean? = null,
+        val gjelderTilbakeITid: Boolean? = null,
+        val pdlTreffAdresse: String? = null,
     )
 }

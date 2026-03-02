@@ -2,6 +2,14 @@
 query($ident: ID!, $historikk: Boolean!) {
     hentPerson(ident: $ident) {
         bostedsadresse(historikk: $historikk) {
+            folkeregistermetadata {
+                ajourholdstidspunkt
+                gyldighetstidspunkt
+                opphoerstidspunkt
+                kilde
+                aarsak
+                sekvens
+            }
             metadata {
                 historisk
                 endringer {

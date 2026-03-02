@@ -246,6 +246,10 @@ internal class PersonhendelsePostgresRepo(
             harBostedsadresseNå = snapshot?.harBostedsadresse ?: diff?.harBostedsadresseNå,
             harKontaktadresseNå = snapshot?.harKontaktadresse ?: diff?.harKontaktadresseNå,
             begrunnelse = diff?.begrunnelse,
+            korrelertPåGjeldendeForekomst = diff?.korrelertPåGjeldendeForekomst,
+            korrelertPåHistoriskForekomst = diff?.korrelertPåHistoriskForekomst,
+            gjelderTilbakeITid = diff?.gjelderTilbakeITid,
+            pdlTreffAdresse = diff?.pdlTreffAdresse,
         )
     }
 
@@ -258,6 +262,10 @@ internal class PersonhendelsePostgresRepo(
         val begrunnelse: String? = null,
         val harBostedsadresseNå: Boolean? = null,
         val harKontaktadresseNå: Boolean? = null,
+        val korrelertPåGjeldendeForekomst: Boolean? = null,
+        val korrelertPåHistoriskForekomst: Boolean? = null,
+        val gjelderTilbakeITid: Boolean? = null,
+        val pdlTreffAdresse: String? = null,
     )
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {

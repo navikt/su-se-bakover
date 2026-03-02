@@ -92,6 +92,13 @@ data object OppgavebeskrivelseMapper {
             oppsummering.vurdertTidspunkt?.let { add("\tPDL vurdert tidspunkt: ${it.toOppgaveFormat()}") }
             oppsummering.harBostedsadresseNå?.let { add("\tPDL har bostedsadresse nå: ${if (it) "Ja" else "Nei"}") }
             oppsummering.harKontaktadresseNå?.let { add("\tPDL har kontaktadresse nå: ${if (it) "Ja" else "Nei"}") }
+            if (oppsummering.korrelertPåHistoriskForekomst == true) {
+                add("\tPDL-treff er historisk (ikke gjeldende) bostedsadresse.")
+            }
+            if (oppsummering.gjelderTilbakeITid == true) {
+                add("\tHendelsen gjelder tilbake i tid.")
+            }
+            oppsummering.pdlTreffAdresse?.takeIf { it.isNotBlank() }?.let { add("\tPDL treff-adresse: $it") }
             oppsummering.begrunnelse?.takeIf { it.isNotBlank() }?.let { add("\tPDL-vurdering: $it") }
         }
         return if (linjer.isEmpty()) "" else linjer.joinToString(separator = "\n", postfix = "\n")

@@ -162,4 +162,37 @@ internal class OppgavebeskrivelseMapperTest {
             	Tidligere hendelseid: Ingen tidligere
         """.trimIndent()
     }
+
+    @Test
+    fun `mapper historisk bostedsadresse og tilbake i tid i oppgavebeskrivelse`() {
+        val nyHendelse = nyPersonhendelseKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+        ).copy(
+            pdlOppsummering = Personhendelse.PdlOppsummering(
+                vurdertTidspunkt = fixedTidspunkt,
+                harBostedsadresseNå = true,
+                harKontaktadresseNå = false,
+                begrunnelse = "OPPRETTET korrelert mot historisk (ikke gjeldende) adresseforekomst.",
+                korrelertPåGjeldendeForekomst = false,
+                korrelertPåHistoriskForekomst = true,
+                gjelderTilbakeITid = true,
+                pdlTreffAdresse = "Gamlegate 4, 0123",
+            ),
+        )
+
+        OppgavebeskrivelseMapper.mapOne(nyHendelse) shouldBe """
+            Endring i bostedsadresse
+            	PDL vurdert tidspunkt: 01.01.2021 02:02
+            	PDL har bostedsadresse nå: Ja
+            	PDL har kontaktadresse nå: Nei
+            	PDL-treff er historisk (ikke gjeldende) bostedsadresse.
+            	Hendelsen gjelder tilbake i tid.
+            	PDL treff-adresse: Gamlegate 4, 0123
+            	PDL-vurdering: OPPRETTET korrelert mot historisk (ikke gjeldende) adresseforekomst.
+            	Hendelsestidspunkt: 01.01.2021 02:02
+            	Endringstype: OPPRETTET
+            	HendelseId: ${nyHendelse.id}
+            	Tidligere hendelseid: Ingen tidligere
+        """.trimIndent()
+    }
 }
