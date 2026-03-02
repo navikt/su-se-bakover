@@ -57,6 +57,13 @@ internal class PdlClientWithCache(
         }
     }
 
+    // Unngår cache oppslag her da vi agerer på hendelse
+    fun bostedsadresseMedMetadataForSystembruker(
+        fnr: Fnr,
+    ): Either<KunneIkkeHentePerson, PdlBostedsadresseMedMetadata> {
+        return pdlClient.bostedsadresseMedMetadataForSystembruker(fnr)
+    }
+
     fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return aktørIdCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
             pdlClient.aktørIdMedSystembruker(fnr)

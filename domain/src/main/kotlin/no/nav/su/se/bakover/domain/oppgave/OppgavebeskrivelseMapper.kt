@@ -54,8 +54,19 @@ data object OppgavebeskrivelseMapper {
                     personhendelse.leggTilMetadataBeskrivelse()
             }
 
-            is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse\n" + personhendelse.leggtilGjelderEpsBeskrivelse() + personhendelse.leggTilMetadataBeskrivelse()
-            is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse\n" + personhendelse.leggtilGjelderEpsBeskrivelse() + personhendelse.leggTilMetadataBeskrivelse()
+            is Personhendelse.Hendelse.Bostedsadresse -> {
+                "Endring i bostedsadresse\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
+                    personhendelse.leggTilPdlFasitBeskrivelse() +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
+
+            is Personhendelse.Hendelse.Kontaktadresse -> {
+                "Endring i kontaktadresse\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
+                    personhendelse.leggTilPdlFasitBeskrivelse() +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
         }
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggtilGjelderEpsBeskrivelse(): String {
@@ -73,6 +84,21 @@ data object OppgavebeskrivelseMapper {
             "\tEndringstype: ${this.endringstype}\n" +
             "\tHendelseId: ${this.id}\n" +
             "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}"
+    }
+
+    private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggTilPdlFasitBeskrivelse(): String {
+        val oppsummering = this.pdlOppsummering ?: return ""
+        val linjer = buildList {
+            oppsummering.vurdertTidspunkt?.let { add("\tPDL vurdert tidspunkt: ${it.toOppgaveFormat()}") }
+            oppsummering.harBostedsadresseNå?.let { add("\tPDL har bostedsadresse nå: ${if (it) "Ja" else "Nei"}") }
+            oppsummering.harKontaktadresseNå?.let { add("\tPDL har kontaktadresse nå: ${if (it) "Ja" else "Nei"}") }
+            if (oppsummering.korrelertPåHistoriskForekomst == true) {
+                add("\tPDL-treff er historisk (ikke gjeldende) bostedsadresse.")
+            }
+            oppsummering.pdlTreffAdresse?.takeIf { it.isNotBlank() }?.let { add("\tHendelsen traff adresse i PDL: $it") }
+            oppsummering.begrunnelse?.takeIf { it.isNotBlank() }?.let { add("\tPDL-vurdering: $it") }
+        }
+        return if (linjer.isEmpty()) "" else linjer.joinToString(separator = "\n", postfix = "\n")
     }
 
     private fun SivilstandTyper.toReadableName() = when (this) {

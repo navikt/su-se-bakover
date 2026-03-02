@@ -28,6 +28,7 @@ import kotliquery.action.ListResultQueryAction
 import kotliquery.action.NullableResultQueryAction
 import kotliquery.action.UpdateQueryAction
 import kotliquery.param
+import kotliquery.queryOf
 import kotliquery.sqlType
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
@@ -204,6 +205,43 @@ open class Session(
         warningForTransactionMode()
         return using(createPreparedStatement(query)) { stmt ->
             stmt.executeUpdate()
+        }
+    }
+
+    fun batchPreparedStatement(
+        statement: String,
+        paramsRows: List<List<Any?>>,
+    ): List<Int> {
+        warningForTransactionMode()
+        if (paramsRows.isEmpty()) return emptyList()
+
+        return using(connection.underlying.prepareStatement(statement)) { stmt ->
+            paramsRows.forEach { params ->
+                stmt.clearParameters()
+                params.forEachIndexed { index, value ->
+                    stmt.setTypedParam(index + 1, value.param())
+                }
+                stmt.addBatch()
+            }
+            stmt.executeBatch().toList()
+        }
+    }
+
+    fun batchPreparedNamedStatement(
+        statement: String,
+        namedParamRows: List<Map<String, Any?>>,
+    ): List<Int> {
+        warningForTransactionMode()
+        if (namedParamRows.isEmpty()) return emptyList()
+
+        val firstQuery = queryOf(statement = statement, paramMap = namedParamRows.first())
+        return using(connection.underlying.prepareStatement(firstQuery.cleanStatement)) { stmt ->
+            namedParamRows.forEach { row ->
+                stmt.clearParameters()
+                populateParams(queryOf(statement = statement, paramMap = row), stmt)
+                stmt.addBatch()
+            }
+            stmt.executeBatch().toList()
         }
     }
 
