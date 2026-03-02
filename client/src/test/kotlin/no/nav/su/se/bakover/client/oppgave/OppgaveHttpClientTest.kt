@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgavePrioritet
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -396,7 +397,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
                 fristFerdigstillelse = LocalDate.of(2021, 1, 8),
-                prioritet = "HOY",
+                prioritet = OppgavePrioritet.HOY,
             )
             val response = hentOppgaveResponse(
                 oppgavetype = oppgave.oppgavetype.value,
@@ -446,7 +447,7 @@ internal class OppgaveHttpClientTest {
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
                 fristFerdigstillelse = LocalDate.of(2021, 1, 8),
-                prioritet = "NORM",
+                prioritet = OppgavePrioritet.NORM,
             )
             val response = hentOppgaveResponse(
                 oppgavetype = oppgave.oppgavetype.value,
@@ -623,7 +624,7 @@ internal class OppgaveHttpClientTest {
         behandlingstema: Behandlingstema?,
         aktivDato: LocalDate = LocalDate.of(2021, 1, 1),
         fristFerdigstillelse: LocalDate = LocalDate.of(2021, 1, 31),
-        prioritet: String = "NORM",
+        prioritet: OppgavePrioritet = OppgavePrioritet.NORM,
         tilordnetRessurs: Saksbehandler? = null,
     ): String {
         return serialize(

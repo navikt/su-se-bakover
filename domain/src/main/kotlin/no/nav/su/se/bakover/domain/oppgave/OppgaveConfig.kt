@@ -44,7 +44,7 @@ sealed interface OppgaveConfig {
     val clock: Clock
     val aktivDato: LocalDate
     val fristFerdigstillelse: LocalDate
-    val prioritet: String get() = "NORM"
+    val prioritet: OppgavePrioritet get() = OppgavePrioritet.NORM
     val beskrivelse: String get() = " Saksnummer : $saksreferanse"
 
     /**
@@ -177,7 +177,8 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
-        override val prioritet: String = if (personhendelse.any { it.hendelse.skalHaHøyPrioritet() }) "HOY" else "NORM"
+        override val prioritet: OppgavePrioritet =
+            if (personhendelse.any { it.hendelse.skalHaHøyPrioritet() }) OppgavePrioritet.HOY else OppgavePrioritet.NORM
         override val beskrivelse: String
             get() = super.beskrivelse +
                 "\nPersonhendelsestyper: ${OppgavebeskrivelseMapper.mapHendelsestyper(personhendelse)}" +
