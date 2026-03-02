@@ -247,6 +247,112 @@ internal class PersonhendelseServiceImplTest {
     }
 
     @Test
+    internal fun `oppretter separate oppgaver per hendelsestype for samme sak`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val dødsfall = lagPersonhendelseTilknyttetSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
+        )
+        val utflytting = lagPersonhendelseTilknyttetSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
+        )
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenOppgave() } doReturn listOf(dødsfall, utflytting)
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        verify(sakRepoMock, times(1)).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(oppgaveServiceMock, times(2)).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        oppgaveCaptor.allValues.map { it as OppgaveConfig.Personhendelse }.map { it.personhendelse.toSet() } shouldBe listOf(
+            setOf(dødsfall),
+            setOf(utflytting),
+        )
+
+        val lagretCaptor = argumentCaptor<List<Personhendelse.TilknyttetSak.SendtTilOppgave>>()
+        verify(personhendelseRepoMock, times(2)).lagre(lagretCaptor.capture())
+        lagretCaptor.allValues.flatten().map { it.id }.toSet() shouldBe setOf(dødsfall.id, utflytting.id)
+        verifyNoMoreInteractions(
+            oppgaveServiceMock,
+            personhendelseRepoMock,
+            sakRepoMock,
+        )
+    }
+
+    @Test
+    internal fun `slår ikke sammen bostedsadressehendelser for samme sak`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val bostedsadresse1 = lagPersonhendelseTilknyttetSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+        )
+        val bostedsadresse2 = lagPersonhendelseTilknyttetSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse,
+        )
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenOppgave() } doReturn listOf(bostedsadresse1, bostedsadresse2)
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        verify(sakRepoMock, times(1)).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(oppgaveServiceMock, times(2)).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        oppgaveCaptor.allValues.map { it as OppgaveConfig.Personhendelse }.map { it.personhendelse.toSet() } shouldBe listOf(
+            setOf(bostedsadresse1),
+            setOf(bostedsadresse2),
+        )
+
+        val lagretCaptor = argumentCaptor<List<Personhendelse.TilknyttetSak.SendtTilOppgave>>()
+        verify(personhendelseRepoMock, times(2)).lagre(lagretCaptor.capture())
+        lagretCaptor.allValues.flatten().map { it.id }.toSet() shouldBe setOf(bostedsadresse1.id, bostedsadresse2.id)
+        verifyNoMoreInteractions(
+            oppgaveServiceMock,
+            personhendelseRepoMock,
+            sakRepoMock,
+        )
+    }
+
+    @Test
     internal fun `inkrementerer antall forsøk dersom oppretting av oppgave feiler`() {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
         val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id, saksnummer = sak.saksnummer)
@@ -590,10 +696,11 @@ internal class PersonhendelseServiceImplTest {
     private fun lagPersonhendelseTilknyttetSak(
         sakId: UUID = UUID.randomUUID(),
         saksnummer: Saksnummer = Saksnummer(2021),
+        hendelse: Personhendelse.Hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
     ) =
         Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
+            hendelse = hendelse,
             id = UUID.randomUUID(),
             saksnummer = saksnummer,
             sakId = sakId,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.left
+import arrow.core.nonEmptySetOf
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
@@ -21,6 +22,8 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgavePrioritet
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -28,6 +31,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nyPersonhendelseKnyttetTilSak
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
@@ -368,6 +372,106 @@ internal class OppgaveHttpClientTest {
     }
 
     @Test
+    fun `oppretter personhendelseoppgave med høy prioritet for dødsfall`() {
+        val sakstype = Sakstype.ALDER
+        startedWireMockServerWithCorrelationId {
+            val oppgave = OppgaveConfig.Personhendelse(
+                saksnummer = saksnummer,
+                personhendelse = nonEmptySetOf(
+                    nyPersonhendelseKnyttetTilSak(
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        sakstype = sakstype,
+                        hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now(fixedClock)),
+                    ),
+                ),
+                fnr = fnr,
+                clock = fixedClock,
+                sakstype = sakstype,
+            )
+            val expectedRequest = createOppgaveRequest(
+                journalpostId = null,
+                saksreferanse = saksnummer.toString(),
+                beskrivelse = oppgave.beskrivelse,
+                oppgavetype = oppgave.oppgavetype.value,
+                behandlingstype = "ae0028",
+                behandlingstema = sakstype.toBehandlingstema(),
+                fristFerdigstillelse = LocalDate.of(2021, 1, 8),
+                prioritet = OppgavePrioritet.HOY,
+            )
+            val response = hentOppgaveResponse(
+                oppgavetype = oppgave.oppgavetype.value,
+                behandlingstype = "ae0028",
+                beskrivelse = oppgave.beskrivelse,
+            )
+            stubOppgave(expectedRequest, response)
+
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
+            val actual = clientogAzure.client.opprettOppgave(oppgave).getOrFail()
+
+            val expected = nyOppgaveHttpKallResponse(
+                oppgaveId = oppgaveId,
+                oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE,
+                request = expectedRequest,
+                response = response,
+                beskrivelse = oppgave.beskrivelse,
+            )
+
+            assertOppgaveEquals(actual, expected)
+        }
+    }
+
+    @Test
+    fun `oppretter personhendelseoppgave med normal prioritet for adresseendring`() {
+        val sakstype = Sakstype.ALDER
+        startedWireMockServerWithCorrelationId {
+            val oppgave = OppgaveConfig.Personhendelse(
+                saksnummer = saksnummer,
+                personhendelse = nonEmptySetOf(
+                    nyPersonhendelseKnyttetTilSak(
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        sakstype = sakstype,
+                        hendelse = Personhendelse.Hendelse.Bostedsadresse,
+                    ),
+                ),
+                fnr = fnr,
+                clock = fixedClock,
+                sakstype = sakstype,
+            )
+            val expectedRequest = createOppgaveRequest(
+                journalpostId = null,
+                saksreferanse = saksnummer.toString(),
+                beskrivelse = oppgave.beskrivelse,
+                oppgavetype = oppgave.oppgavetype.value,
+                behandlingstype = "ae0028",
+                behandlingstema = sakstype.toBehandlingstema(),
+                fristFerdigstillelse = LocalDate.of(2021, 1, 8),
+                prioritet = OppgavePrioritet.NORM,
+            )
+            val response = hentOppgaveResponse(
+                oppgavetype = oppgave.oppgavetype.value,
+                behandlingstype = "ae0028",
+                beskrivelse = oppgave.beskrivelse,
+            )
+            stubOppgave(expectedRequest, response)
+
+            val clientogAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
+            val actual = clientogAzure.client.opprettOppgave(oppgave).getOrFail()
+
+            val expected = nyOppgaveHttpKallResponse(
+                oppgaveId = oppgaveId,
+                oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE,
+                request = expectedRequest,
+                response = response,
+                beskrivelse = oppgave.beskrivelse,
+            )
+
+            assertOppgaveEquals(actual, expected)
+        }
+    }
+
+    @Test
     fun `oppretter STADFESTELSE-oppgave for klageinstanshendelse`() {
         val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
@@ -520,7 +624,7 @@ internal class OppgaveHttpClientTest {
         behandlingstema: Behandlingstema?,
         aktivDato: LocalDate = LocalDate.of(2021, 1, 1),
         fristFerdigstillelse: LocalDate = LocalDate.of(2021, 1, 31),
-        prioritet: String = "NORM",
+        prioritet: OppgavePrioritet = OppgavePrioritet.NORM,
         tilordnetRessurs: Saksbehandler? = null,
     ): String {
         return serialize(
