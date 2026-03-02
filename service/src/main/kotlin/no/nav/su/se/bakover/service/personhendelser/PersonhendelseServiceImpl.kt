@@ -392,8 +392,8 @@ class PersonhendelseServiceImpl(
      * 2) OPPRETTET er relevant ved treff, også når forekomsten er historisk (ikke gjeldende).
      * 3) KORRIGERT sammenligner før/etter kun på gateadresse(adressenavn+husnummer+husbokstav) og postnummer.
      * 4) Kosmetiske forskjeller i tekst (case/whitespace) ignoreres.
-     * 5) OPPHØRT er nå relevant=true ved treff.
-     * 6) OPPHØRT/ANNULLERT er ikke relevante for flytting.
+     * 5) OPPHØRT er relevant=true ved treff (kan bety flytting som påvirker ytelse).
+     * 6) ANNULLERT er ikke relevant for flytting/reell adresseendring.
      */
     private fun vurderBostedsadressebeslutning(
         endringstype: Personhendelse.Endringstype,

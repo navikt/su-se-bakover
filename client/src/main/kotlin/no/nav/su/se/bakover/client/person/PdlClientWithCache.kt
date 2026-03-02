@@ -57,6 +57,7 @@ internal class PdlClientWithCache(
         }
     }
 
+    // Unngår cache oppslag her da vi agerer på hendelse
     fun bostedsadresseMedMetadataForSystembruker(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, PdlBostedsadresseMedMetadata> {
