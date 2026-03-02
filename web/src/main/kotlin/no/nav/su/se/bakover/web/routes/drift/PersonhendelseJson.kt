@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
@@ -169,7 +170,8 @@ internal data class PersonhendelseJson(
             val vegadresse: Vegadresse?,
             val postadresseIFrittFormat: PostadresseIFrittFormat?,
             val utenlandskAdresse: UtenlandskAdresse?,
-            val utenlandsAdresseIFrittFormat: String?,
+            @param:JsonAlias("utenlandsAdresseIFrittFormat")
+            val utenlandskAdresseIFrittFormat: String?,
         ) {
             data class PostadresseIFrittFormat(
                 val adresselinje1: String?,
@@ -220,7 +222,7 @@ internal data class PersonhendelseJson(
                     data.kontaktadresse?.vegadresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE
                     data.kontaktadresse?.postadresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTADRESSE_I_FRITT_FORMAT
                     data.kontaktadresse?.utenlandskAdresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE
-                    data.kontaktadresse?.utenlandsAdresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
+                    data.kontaktadresse?.utenlandskAdresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
                     else -> null
                 },
             )

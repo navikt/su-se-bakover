@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import arrow.core.Either
+import arrow.core.left
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.brev.JournalførBrevClient
@@ -54,12 +55,8 @@ data class Clients(
     val pesysklient: PesysClient,
     val aapApiInternClient: AapApiInternClient,
     val suProxyClient: SUProxyClient,
-    val hentBostedsadresseMedMetadataForSystembruker: (Fnr) -> Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> = {
-        error(
-            "Mangler wiring av hentBostedsadresseMedMetadataForSystembruker i Clients. " +
-                "Sett funksjonen i ClientsBuilder/ProdClientsBuilder.",
-        )
-    },
+    val hentBostedsadresseMedMetadataForSystembruker: (Fnr) -> Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
+        { KunneIkkeHentePerson.Ukjent.left() },
 )
 
 /**

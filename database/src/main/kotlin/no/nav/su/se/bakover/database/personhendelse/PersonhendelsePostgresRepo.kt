@@ -70,19 +70,29 @@ internal class PersonhendelsePostgresRepo(
     }
 
     override fun lagre(personhendelse: List<Personhendelse.TilknyttetSak.SendtTilOppgave>) {
-        val multiLineQuery: String = personhendelse.joinToString("\n") {
-            "update personhendelse set oppgaveId = '${it.oppgaveId}', endret = :endret where id = '${it.id}';"
-        }
+        if (personhendelse.isEmpty()) return
         sessionFactory.withSession { session ->
-            multiLineQuery.insert(
+            val endret = Tidspunkt.now(clock)
+            val sql =
+                """
+                    update personhendelse
+                    set oppgaveId = :oppgaveId, endret = :endret
+                    where id = :id
+                """.trimIndent()
+            val rows = personhendelse.map { hendelse ->
                 mapOf(
-                    "endret" to Tidspunkt.now(clock),
-                ),
-                session,
-            )
+                    "oppgaveId" to hendelse.oppgaveId.toString(),
+                    "endret" to endret,
+                    "id" to hendelse.id,
+                )
+            }
+            session.batchPreparedNamedStatement(sql, rows)
         }
     }
 
+    @Deprecated(
+        message = "Erstattet av hentPersonhendelserUtenPdlVurdering og hentPersonhendelserKlareForOppgave.",
+    )
     override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
         return dbMetrics.timeQuery("hentPersonhendelserUtenOppgave") {
             sessionFactory.withSession { session ->
@@ -146,9 +156,10 @@ internal class PersonhendelsePostgresRepo(
     }
 
     override fun oppdaterPdlVurdering(vurderinger: List<PersonhendelseRepo.PdlVurdering>) {
+        if (vurderinger.isEmpty()) return
         val vurderingstidspunkt = Tidspunkt.now(clock)
         sessionFactory.withSession { session ->
-            vurderinger.forEach { vurdering ->
+            val sql =
                 """
                     update personhendelse
                     set
@@ -160,27 +171,36 @@ internal class PersonhendelsePostgresRepo(
                         endret = :endret
                     where
                         id = :id
-                """.trimIndent().insert(
-                    mapOf(
-                        "id" to vurdering.id,
-                        "pdlRelevant" to vurdering.relevant,
-                        "pdlVurdertTidspunkt" to vurderingstidspunkt,
-                        "pdlSnapshot" to vurdering.pdlSnapshot,
-                        "pdlDiff" to vurdering.pdlDiff,
-                        "endret" to vurderingstidspunkt,
-                    ),
-                    session,
+                """.trimIndent()
+            val rows = vurderinger.map { vurdering ->
+                mapOf(
+                    "pdlRelevant" to vurdering.relevant,
+                    "pdlVurdertTidspunkt" to vurderingstidspunkt,
+                    "pdlSnapshot" to vurdering.pdlSnapshot,
+                    "pdlDiff" to vurdering.pdlDiff,
+                    "endret" to vurderingstidspunkt,
+                    "id" to vurdering.id,
                 )
             }
+            session.batchPreparedNamedStatement(sql, rows)
         }
     }
 
     override fun inkrementerAntallFeiledeForsøk(personhendelse: List<Personhendelse.TilknyttetSak>) {
-        val multiLineQuery: String = personhendelse.joinToString("\n") {
-            "update personhendelse set antallFeiledeForsøk = antallFeiledeForsøk + 1 where id = '${it.id}';"
-        }
+        if (personhendelse.isEmpty()) return
         sessionFactory.withSession { session ->
-            multiLineQuery.insert(emptyMap(), session)
+            val sql =
+                """
+                    update personhendelse
+                    set antallFeiledeForsøk = antallFeiledeForsøk + 1
+                    where id = :id
+                """.trimIndent()
+            val rows = personhendelse.map { hendelse ->
+                mapOf(
+                    "id" to hendelse.id,
+                )
+            }
+            session.batchPreparedNamedStatement(sql, rows)
         }
     }
 

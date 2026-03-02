@@ -577,7 +577,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
     }
 
     @Test
-    fun `Skal kun hente personhendelser uten oppgaveId`() {
+    fun `Skal kun hente personhendelser uten oppgaveId via nye hentemetoder`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
         val id1 = UUID.randomUUID()
@@ -619,7 +619,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
 
         repo.lagre(nonEmptyListOf(hendelse1KnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId"))))
 
-        repo.hentPersonhendelserUtenOppgave() shouldBe listOf(
+        repo.hentPersonhendelserUtenPdlVurdering() shouldBe listOf(
             hendelse2.tilknyttSak(
                 id2,
                 SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
@@ -627,6 +627,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
                 fixedTidspunkt,
             ),
         )
+        repo.hentPersonhendelserKlareForOppgave() shouldBe emptyList()
     }
 
     @Test
@@ -677,7 +678,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(hendelse2TilknyttetSak))
         repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(hendelse2TilknyttetSak))
 
-        repo.hentPersonhendelserUtenOppgave() shouldBe listOf(hendelse1TilknyttetSak)
+        repo.hentPersonhendelserUtenPdlVurdering() shouldBe listOf(hendelse1TilknyttetSak)
     }
 
     @Test

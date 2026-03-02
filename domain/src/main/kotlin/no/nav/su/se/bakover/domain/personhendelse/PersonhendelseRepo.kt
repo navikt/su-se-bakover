@@ -12,6 +12,10 @@ interface PersonhendelseRepo {
 
     fun lagre(personhendelse: List<Personhendelse.TilknyttetSak.SendtTilOppgave>)
     fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave)
+
+    @Deprecated(
+        message = "Erstattet av hentPersonhendelserUtenPdlVurdering og hentPersonhendelserKlareForOppgave.",
+    )
     fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>
     fun hentPersonhendelserUtenPdlVurdering(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>
     fun hentPersonhendelserKlareForOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>

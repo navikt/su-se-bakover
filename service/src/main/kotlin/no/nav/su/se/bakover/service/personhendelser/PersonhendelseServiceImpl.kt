@@ -222,90 +222,38 @@ class PersonhendelseServiceImpl(
         val personhendelser = personhendelseRepo.hentPersonhendelserUtenPdlVurdering()
         if (personhendelser.isEmpty()) return
 
-        val vurderinger = personhendelser.mapNotNull { vurderPersonhendelseMotPdl(it) }
-        if (vurderinger.isNotEmpty()) {
-            personhendelseRepo.oppdaterPdlVurdering(vurderinger)
-        }
+        val vurderinger = personhendelser.map { vurderPersonhendelseMotPdl(it) }
+        personhendelseRepo.oppdaterPdlVurdering(vurderinger)
     }
 
     private fun vurderPersonhendelseMotPdl(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
-    ): PersonhendelseRepo.PdlVurdering? {
+    ): PersonhendelseRepo.PdlVurdering {
         return when (personhendelse.hendelse) {
             is Personhendelse.Hendelse.Bostedsadresse -> vurderBostedsadressehendelseMotPdl(personhendelse)
-            is Personhendelse.Hendelse.Kontaktadresse -> PersonhendelseRepo.PdlVurdering(
-                id = personhendelse.id,
-                relevant = true,
-                pdlSnapshot = null,
-                pdlDiff = serialize(
-                    PdlDiff(
-                        hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
-                        endringstype = personhendelse.endringstype.name,
-                        relevant = true,
-                        begrunnelse = "PDL-gating brukes kun for bostedsadresse.",
-                        reasons = listOf("Kontaktadresse vurderes uten PDL-gating."),
-                        changedFields = emptyList(),
-                        gjelderEps = personhendelse.gjelderEps,
-                        harBostedsadresseNå = null,
-                        harKontaktadresseNå = null,
-                        korrelertPåGjeldendeForekomst = false,
-                        korrelertPåHistoriskForekomst = false,
-                        gjelderTilbakeITid = null,
-                        pdlTreffAdresse = null,
-                    ),
-                ),
+            is Personhendelse.Hendelse.Kontaktadresse -> vurderingUtenPdlGating(
+                personhendelse = personhendelse,
+                hendelsestype = "Kontaktadresse",
+                begrunnelse = "Kontaktadresse vurderes uten PDL-gating.",
             )
-            else -> PersonhendelseRepo.PdlVurdering(
-                id = personhendelse.id,
-                relevant = true,
-                pdlSnapshot = null,
-                pdlDiff = serialize(
-                    PdlDiff(
-                        hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
-                        endringstype = personhendelse.endringstype.name,
-                        relevant = true,
-                        begrunnelse = "Hendelsetype vurderes uten PDL-gating.",
-                        reasons = listOf("Hendelsetype vurderes uten PDL-gating."),
-                        changedFields = emptyList(),
-                        gjelderEps = personhendelse.gjelderEps,
-                        harBostedsadresseNå = null,
-                        harKontaktadresseNå = null,
-                        korrelertPåGjeldendeForekomst = false,
-                        korrelertPåHistoriskForekomst = false,
-                        gjelderTilbakeITid = null,
-                        pdlTreffAdresse = null,
-                    ),
-                ),
+            is Personhendelse.Hendelse.Dødsfall,
+            is Personhendelse.Hendelse.Sivilstand,
+            is Personhendelse.Hendelse.UtflyttingFraNorge,
+            -> vurderingUtenPdlGating(
+                personhendelse = personhendelse,
+                begrunnelse = "Hendelsetype vurderes uten PDL-gating.",
             )
         }
     }
 
     private fun vurderBostedsadressehendelseMotPdl(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
-    ): PersonhendelseRepo.PdlVurdering? {
+    ): PersonhendelseRepo.PdlVurdering {
         val fnr = personhendelse.metadata.personidenter.firstNotNullOfOrNull { Fnr.tryCreate(it) }
         if (fnr == null) {
-            return PersonhendelseRepo.PdlVurdering(
-                id = personhendelse.id,
-                relevant = false,
-                pdlSnapshot = null,
-                pdlDiff = serialize(
-                    PdlDiff(
-                        hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
-                        endringstype = personhendelse.endringstype.name,
-                        relevant = false,
-                        begrunnelse = "Mangler fnr i metadata.personidenter, kan ikke slå opp i PDL.",
-                        reasons = listOf("Mangler fnr i metadata.personidenter, kan ikke slå opp i PDL."),
-                        changedFields = emptyList(),
-                        gjelderEps = personhendelse.gjelderEps,
-                        harBostedsadresseNå = null,
-                        harKontaktadresseNå = null,
-                        korrelertPåGjeldendeForekomst = false,
-                        korrelertPåHistoriskForekomst = false,
-                        gjelderTilbakeITid = null,
-                        pdlTreffAdresse = null,
-                    ),
-                ),
+            return ikkeRelevantVurdering(
+                personhendelse = personhendelse,
+                begrunnelse = "Mangler fnr i metadata.personidenter, kan ikke slå opp i PDL.",
             )
         }
 
@@ -313,27 +261,9 @@ class PersonhendelseServiceImpl(
             ifLeft = { feil ->
                 when (feil) {
                     KunneIkkeHentePerson.FantIkkePerson -> {
-                        PersonhendelseRepo.PdlVurdering(
-                            id = personhendelse.id,
-                            relevant = false,
-                            pdlSnapshot = null,
-                            pdlDiff = serialize(
-                                PdlDiff(
-                                    hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
-                                    endringstype = personhendelse.endringstype.name,
-                                    relevant = false,
-                                    begrunnelse = "Person ikke funnet i PDL.",
-                                    reasons = listOf("Person ikke funnet i PDL."),
-                                    changedFields = emptyList(),
-                                    gjelderEps = personhendelse.gjelderEps,
-                                    harBostedsadresseNå = null,
-                                    harKontaktadresseNå = null,
-                                    korrelertPåGjeldendeForekomst = false,
-                                    korrelertPåHistoriskForekomst = false,
-                                    gjelderTilbakeITid = null,
-                                    pdlTreffAdresse = null,
-                                ),
-                            ),
+                        ikkeRelevantVurdering(
+                            personhendelse = personhendelse,
+                            begrunnelse = "Person ikke funnet i PDL.",
                         )
                     }
 
@@ -341,11 +271,15 @@ class PersonhendelseServiceImpl(
                     KunneIkkeHentePerson.Ukjent,
                     -> {
                         log.warn(
-                            "Kunne ikke vurdere personhendelse {} mot PDL nå. Feil: {}. Hopper over for retry senere.",
+                            "Kunne ikke vurdere personhendelse {} mot PDL nå. Feil: {}. Slipper hendelsen videre uten PDL-gating.",
                             personhendelse.id,
                             feil,
                         )
-                        null
+                        vurderingUtenPdlGating(
+                            personhendelse = personhendelse,
+                            hendelsestype = "Bostedsadresse",
+                            begrunnelse = "Kunne ikke vurdere bostedsadresse mot PDL (feil=$feil). Slipper hendelsen videre uten PDL-gating.",
+                        )
                     }
                 }
             },
@@ -360,11 +294,10 @@ class PersonhendelseServiceImpl(
                 val gjeldendeBostedsadresser = adresseopplysninger.bostedsadresser
                     .filter { !it.historisk }
                     .map { it.toPdlAdresseSnapshot() }
-                val gjeldendeKontaktadresser = adresseopplysninger.kontaktadresser
-                    .filter { !it.historisk }
+                val alleBostedsadresser = adresseopplysninger.bostedsadresser
                     .map { it.toPdlAdresseSnapshot() }
                 val harBostedsadresseNå = gjeldendeBostedsadresser.isNotEmpty()
-                val harKontaktadresseNå = gjeldendeKontaktadresser.isNotEmpty()
+                val harKontaktadresseNå: Boolean? = null
 
                 val beslutning = vurderBostedsadressebeslutning(
                     endringstype = personhendelse.endringstype,
@@ -381,7 +314,7 @@ class PersonhendelseServiceImpl(
                     harBostedsadresse = harBostedsadresseNå,
                     harKontaktadresse = harKontaktadresseNå,
                     gjeldendeBostedsadresser = gjeldendeBostedsadresser,
-                    gjeldendeKontaktadresser = gjeldendeKontaktadresser,
+                    alleBostedsadresser = alleBostedsadresser,
                 )
 
                 PersonhendelseRepo.PdlVurdering(
@@ -403,10 +336,54 @@ class PersonhendelseServiceImpl(
                             korrelertPåHistoriskForekomst = historiskAdresseForHendelse != null,
                             gjelderTilbakeITid = gjelderTilbakeITid,
                             pdlTreffAdresse = treffAdresse,
+                            pdlTreffFolkeregistermetadata = matchendeAdresseForHendelse?.folkeregistermetadata,
                         ),
                     ),
                 )
             },
+        )
+    }
+
+    private fun vurderingUtenPdlGating(
+        personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
+        begrunnelse: String,
+        hendelsestype: String = personhendelse.hendelse::class.simpleName ?: "Ukjent",
+    ): PersonhendelseRepo.PdlVurdering {
+        return PersonhendelseRepo.PdlVurdering(
+            id = personhendelse.id,
+            relevant = true,
+            pdlSnapshot = null,
+            pdlDiff = serialize(
+                PdlDiff(
+                    hendelsestype = hendelsestype,
+                    endringstype = personhendelse.endringstype.name,
+                    relevant = true,
+                    begrunnelse = begrunnelse,
+                    reasons = listOf(begrunnelse),
+                    gjelderEps = personhendelse.gjelderEps,
+                ),
+            ),
+        )
+    }
+
+    private fun ikkeRelevantVurdering(
+        personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
+        begrunnelse: String,
+    ): PersonhendelseRepo.PdlVurdering {
+        return PersonhendelseRepo.PdlVurdering(
+            id = personhendelse.id,
+            relevant = false,
+            pdlSnapshot = null,
+            pdlDiff = serialize(
+                PdlDiff(
+                    hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
+                    endringstype = personhendelse.endringstype.name,
+                    relevant = false,
+                    begrunnelse = begrunnelse,
+                    reasons = listOf(begrunnelse),
+                    gjelderEps = personhendelse.gjelderEps,
+                ),
+            ),
         )
     }
 
@@ -480,9 +457,9 @@ class PersonhendelseServiceImpl(
     private data class PdlSnapshot(
         val fnr: String,
         val harBostedsadresse: Boolean,
-        val harKontaktadresse: Boolean,
+        val harKontaktadresse: Boolean?,
         val gjeldendeBostedsadresser: List<PdlAdresseSnapshot> = emptyList(),
-        val gjeldendeKontaktadresser: List<PdlAdresseSnapshot> = emptyList(),
+        val alleBostedsadresser: List<PdlAdresseSnapshot> = emptyList(),
     )
 
     private data class PdlDiff(
@@ -490,15 +467,16 @@ class PersonhendelseServiceImpl(
         val endringstype: String,
         val relevant: Boolean,
         val begrunnelse: String,
-        val reasons: List<String>,
-        val changedFields: List<String>,
+        val reasons: List<String> = emptyList(),
+        val changedFields: List<String> = emptyList(),
         val gjelderEps: Boolean,
-        val harBostedsadresseNå: Boolean?,
-        val harKontaktadresseNå: Boolean?,
-        val korrelertPåGjeldendeForekomst: Boolean,
-        val korrelertPåHistoriskForekomst: Boolean,
-        val gjelderTilbakeITid: Boolean?,
-        val pdlTreffAdresse: String?,
+        val harBostedsadresseNå: Boolean? = null,
+        val harKontaktadresseNå: Boolean? = null,
+        val korrelertPåGjeldendeForekomst: Boolean = false,
+        val korrelertPåHistoriskForekomst: Boolean = false,
+        val gjelderTilbakeITid: Boolean? = null,
+        val pdlTreffAdresse: String? = null,
+        val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     )
 
     private data class Adressebeslutning(
@@ -508,6 +486,8 @@ class PersonhendelseServiceImpl(
     )
 
     private data class PdlAdresseSnapshot(
+        val historisk: Boolean,
+        val hendelseIder: List<String>,
         val gateadresse: String? = null,
         val postnummer: String? = null,
         val folkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
@@ -515,6 +495,8 @@ class PersonhendelseServiceImpl(
 
     private fun AdresseopplysningerMedMetadata.Adresseopplysning.toPdlAdresseSnapshot(): PdlAdresseSnapshot {
         return PdlAdresseSnapshot(
+            historisk = historisk,
+            hendelseIder = hendelseIder,
             gateadresse = gateadresse,
             postnummer = postnummer,
             folkeregistermetadata = folkeregistermetadata,

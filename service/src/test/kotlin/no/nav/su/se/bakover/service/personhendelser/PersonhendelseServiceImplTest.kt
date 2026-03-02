@@ -816,6 +816,14 @@ internal class PersonhendelseServiceImplTest {
                         gateadresse = "Gamlegate 4",
                         postnummer = "0123",
                         poststed = "Oslo",
+                        folkeregistermetadata = AdresseopplysningerMedMetadata.Folkeregistermetadata(
+                            ajourholdstidspunkt = "2026-02-28T10:15:30",
+                            gyldighetstidspunkt = "2026-02-10T00:00:00",
+                            opphoerstidspunkt = null,
+                            kilde = "Matrikkelen",
+                            aarsak = "Adresseoppdatering",
+                            sekvens = 42,
+                        ),
                     ),
                     Adresseforekomst(
                         historisk = false,
@@ -935,6 +943,14 @@ internal class PersonhendelseServiceImplTest {
         historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
         historiskBostedDiff shouldContain "\"gjelderTilbakeITid\":true"
         historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
+        historiskBostedDiff shouldContain "\"pdlTreffFolkeregistermetadata\""
+        historiskBostedDiff shouldContain "\"kilde\":\"Matrikkelen\""
+        historiskBostedDiff shouldContain "\"aarsak\":\"Adresseoppdatering\""
+
+        val historiskBostedSnapshot = historiskBostedVurdering.pdlSnapshot ?: error("Mangler pdlSnapshot for historisk bostedsvurdering")
+        historiskBostedSnapshot shouldContain "\"alleBostedsadresser\""
+        historiskBostedSnapshot shouldContain "\"hendelseIder\":[\"$hendelseIdBostedHistorisk\"]"
+        historiskBostedSnapshot shouldContain "\"folkeregistermetadata\""
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
