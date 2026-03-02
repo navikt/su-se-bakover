@@ -84,8 +84,6 @@ internal class PdlClient(
                         gateadresse = adresse.vegadresse?.somGateadresse(),
                         postnummer = adresse.vegadresse?.postnummer
                             ?: adresse.matrikkeladresse?.postnummer,
-                        poststed = null,
-                        matrikkelId = adresse.matrikkeladresse?.matrikkelId,
                         folkeregistermetadata = adresse.folkeregistermetadata?.let {
                             PdlBostedsadresseMedMetadata.Folkeregistermetadata(
                                 ajourholdstidspunkt = it.ajourholdstidspunkt,
@@ -420,10 +418,9 @@ internal data class PdlBostedsadresseMedMetadata(
     data class Adresseopplysning(
         val historisk: Boolean,
         val hendelseIder: List<String>,
+        // gateadresse = adressenavn + husnummer + husbokstav
         val gateadresse: String?,
         val postnummer: String?,
-        val poststed: String?,
-        val matrikkelId: Long?,
         val folkeregistermetadata: Folkeregistermetadata?,
     )
 }

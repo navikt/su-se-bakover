@@ -217,7 +217,7 @@ sealed interface Personhendelse {
         val begrunnelse: String?,
         val korrelertPåGjeldendeForekomst: Boolean? = null,
         val korrelertPåHistoriskForekomst: Boolean? = null,
-        val gjelderTilbakeITid: Boolean? = null,
+        val pdlTreffErHistorisk: Boolean? = null,
         val pdlTreffAdresse: String? = null,
     )
 }

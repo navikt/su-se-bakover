@@ -2,7 +2,6 @@ package person.domain
 
 data class AdresseopplysningerMedMetadata(
     val bostedsadresser: List<Adresseopplysning>,
-    val kontaktadresser: List<Adresseopplysning>,
 ) {
     data class Folkeregistermetadata(
         val ajourholdstidspunkt: String?,
@@ -16,10 +15,9 @@ data class AdresseopplysningerMedMetadata(
     data class Adresseopplysning(
         val historisk: Boolean,
         val hendelseIder: List<String>,
+        // gateadresse = adressenavn + husnummer + husbokstav
         val gateadresse: String?,
         val postnummer: String?,
-        val poststed: String?,
-        val matrikkelId: Long?,
         val folkeregistermetadata: Folkeregistermetadata?,
     )
 }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.personhendelse
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonInclude
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
@@ -268,7 +269,7 @@ internal class PersonhendelsePostgresRepo(
             begrunnelse = diff?.begrunnelse,
             korrelertPåGjeldendeForekomst = diff?.korrelertPåGjeldendeForekomst,
             korrelertPåHistoriskForekomst = diff?.korrelertPåHistoriskForekomst,
-            gjelderTilbakeITid = diff?.gjelderTilbakeITid,
+            pdlTreffErHistorisk = diff?.pdlTreffErHistorisk,
             pdlTreffAdresse = diff?.pdlTreffAdresse,
         )
     }
@@ -284,7 +285,8 @@ internal class PersonhendelsePostgresRepo(
         val harKontaktadresseNå: Boolean? = null,
         val korrelertPåGjeldendeForekomst: Boolean? = null,
         val korrelertPåHistoriskForekomst: Boolean? = null,
-        val gjelderTilbakeITid: Boolean? = null,
+        @param:JsonAlias("gjelderTilbakeITid")
+        val pdlTreffErHistorisk: Boolean? = null,
         val pdlTreffAdresse: String? = null,
     )
 

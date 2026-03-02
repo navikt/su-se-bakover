@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import arrow.core.Either
-import arrow.core.left
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.brev.JournalførBrevClient
@@ -15,14 +13,11 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import person.domain.AdresseopplysningerMedMetadata
 import person.domain.IdentClient
-import person.domain.KunneIkkeHentePerson
 import person.domain.PersonOppslag
 import vilkår.skatt.domain.Skatteoppslag
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakClient
@@ -55,8 +50,6 @@ data class Clients(
     val pesysklient: PesysClient,
     val aapApiInternClient: AapApiInternClient,
     val suProxyClient: SUProxyClient,
-    val hentBostedsadresseMedMetadataForSystembruker: (Fnr) -> Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
-        { KunneIkkeHentePerson.Ukjent.left() },
 )
 
 /**

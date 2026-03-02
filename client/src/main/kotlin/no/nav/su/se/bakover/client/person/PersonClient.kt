@@ -50,15 +50,14 @@ internal class PersonClient(
         return pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
     }
 
-    fun bostedsadresseMedMetadataForSystembruker(
+    override fun bostedsadresseMedMetadataForSystembruker(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> {
         return pdlClient.bostedsadresseMedMetadataForSystembruker(fnr).map { data ->
             AdresseopplysningerMedMetadata(
                 bostedsadresser = data.bostedsadresser.map { adresse ->
-                    adresse.toDomainAdresseopplysning(token = JwtToken.SystemToken)
+                    adresse.toDomainAdresseopplysning()
                 },
-                kontaktadresser = emptyList(),
             )
         }
     }
@@ -141,19 +140,12 @@ internal class PersonClient(
         kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer, token).getOrNull(),
     )
 
-    private fun PdlBostedsadresseMedMetadata.Adresseopplysning.toDomainAdresseopplysning(
-        token: JwtToken,
-    ): AdresseopplysningerMedMetadata.Adresseopplysning {
-        val poststedFraKodeverk = postnummer?.let { postnr ->
-            config.kodeverk.hentPoststed(postnr, token).getOrNull()
-        }
+    private fun PdlBostedsadresseMedMetadata.Adresseopplysning.toDomainAdresseopplysning(): AdresseopplysningerMedMetadata.Adresseopplysning {
         return AdresseopplysningerMedMetadata.Adresseopplysning(
             historisk = historisk,
             hendelseIder = hendelseIder,
             gateadresse = gateadresse,
             postnummer = postnummer,
-            poststed = poststedFraKodeverk ?: poststed,
-            matrikkelId = matrikkelId,
             folkeregistermetadata = folkeregistermetadata?.let {
                 AdresseopplysningerMedMetadata.Folkeregistermetadata(
                     ajourholdstidspunkt = it.ajourholdstidspunkt,

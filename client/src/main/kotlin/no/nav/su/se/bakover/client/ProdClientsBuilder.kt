@@ -171,7 +171,6 @@ data class ProdClientsBuilder(
                 clientId = applicationConfig.clientsConfig.aapApiInternConfig.clientId,
             ),
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
-            hentBostedsadresseMedMetadataForSystembruker = personOppslag::bostedsadresseMedMetadataForSystembruker,
         )
     }
 }

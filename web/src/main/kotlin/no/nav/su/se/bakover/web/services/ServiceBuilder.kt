@@ -249,7 +249,7 @@ data object ServiceBuilder {
             personhendelseService = PersonhendelseServiceImpl(
                 sakRepo = databaseRepos.sak,
                 personhendelseRepo = databaseRepos.personhendelseRepo,
-                hentBostedsadresseMedMetadataForSystembruker = clients.hentBostedsadresseMedMetadataForSystembruker,
+                personOppslag = clients.personOppslag,
                 vedtakService = vedtakService,
                 oppgaveServiceImpl = kjerneTjenester.oppgaveService,
                 clock = clock,

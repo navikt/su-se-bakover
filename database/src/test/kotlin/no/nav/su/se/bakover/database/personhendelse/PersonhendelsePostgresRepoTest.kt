@@ -424,7 +424,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
 
         val snapshot = """{"fnr":"${sak.fnr}","harKontaktadresse":true}"""
         val diff =
-            """{"relevant":true,"begrunnelse":"test","korrelertPåGjeldendeForekomst":false,"korrelertPåHistoriskForekomst":true,"gjelderTilbakeITid":true,"pdlTreffAdresse":"Gamlegate 4, 0123"}"""
+            """{"relevant":true,"begrunnelse":"test","korrelertPåGjeldendeForekomst":false,"korrelertPåHistoriskForekomst":true,"pdlTreffErHistorisk":true,"pdlTreffAdresse":"Gamlegate 4, 0123"}"""
         repo.oppdaterPdlVurdering(
             listOf(
                 PersonhendelseRepo.PdlVurdering(
@@ -444,7 +444,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         klarForOppgave.pdlOppsummering?.begrunnelse shouldBe "test"
         klarForOppgave.pdlOppsummering?.korrelertPåGjeldendeForekomst shouldBe false
         klarForOppgave.pdlOppsummering?.korrelertPåHistoriskForekomst shouldBe true
-        klarForOppgave.pdlOppsummering?.gjelderTilbakeITid shouldBe true
+        klarForOppgave.pdlOppsummering?.pdlTreffErHistorisk shouldBe true
         klarForOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe "Gamlegate 4, 0123"
         klarForOppgave.pdlOppsummering?.vurdertTidspunkt shouldNotBe null
 

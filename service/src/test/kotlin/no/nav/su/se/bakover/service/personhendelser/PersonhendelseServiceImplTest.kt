@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -48,6 +49,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import person.domain.AdresseopplysningerMedMetadata
 import person.domain.KunneIkkeHentePerson
+import person.domain.PersonOppslag
 import java.util.UUID
 
 internal class PersonhendelseServiceImplTest {
@@ -80,7 +82,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = mock(),
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -132,7 +136,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -173,7 +179,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
             vedtakService = vedtakServiceMock,
@@ -216,7 +224,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -379,7 +389,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             oppgaveServiceImpl = oppgaveServiceMock,
             vedtakService = vedtakServiceMock,
             clock = fixedClock,
@@ -484,7 +496,9 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { KunneIkkeHentePerson.Ukjent.left() },
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             clock = fixedClock,
@@ -779,34 +793,9 @@ internal class PersonhendelseServiceImplTest {
         val adresseopplysningerPerFnr = mapOf(
             fnrOpprettetKontakt to adresseopplysninger(
                 bosted = emptyList(),
-                kontakt = listOf(
-                    Adresseforekomst(
-                        historisk = false,
-                        hendelseIder = listOf(hendelseIdKontaktOpprett),
-                        gateadresse = "Testveien 2",
-                        postnummer = "0550",
-                        poststed = "Oslo",
-                    ),
-                ),
             ).right(),
             fnrOpprettetKontaktIkkeGjeldende to adresseopplysninger(
                 bosted = emptyList(),
-                kontakt = listOf(
-                    Adresseforekomst(
-                        historisk = true,
-                        hendelseIder = listOf(hendelseIdKontaktIkkeGjeldende),
-                        gateadresse = "Gammelveien 1",
-                        postnummer = "0570",
-                        poststed = "Oslo",
-                    ),
-                    Adresseforekomst(
-                        historisk = false,
-                        hendelseIder = listOf(UUID.randomUUID().toString()),
-                        gateadresse = "Nåveien 2",
-                        postnummer = "0570",
-                        poststed = "Oslo",
-                    ),
-                ),
             ).right(),
             fnrBostedOpprettetHistorisk to adresseopplysninger(
                 bosted = listOf(
@@ -815,7 +804,6 @@ internal class PersonhendelseServiceImplTest {
                         hendelseIder = listOf(hendelseIdBostedHistorisk),
                         gateadresse = "Gamlegate 4",
                         postnummer = "0123",
-                        poststed = "Oslo",
                         folkeregistermetadata = AdresseopplysningerMedMetadata.Folkeregistermetadata(
                             ajourholdstidspunkt = "2026-02-28T10:15:30",
                             gyldighetstidspunkt = "2026-02-10T00:00:00",
@@ -830,10 +818,8 @@ internal class PersonhendelseServiceImplTest {
                         hendelseIder = listOf(UUID.randomUUID().toString()),
                         gateadresse = "Någate 5",
                         postnummer = "0456",
-                        poststed = "Oslo",
                     ),
                 ),
-                kontakt = emptyList(),
             ).right(),
             fnrKorrigertKosmetisk to adresseopplysninger(
                 bosted = listOf(
@@ -842,17 +828,14 @@ internal class PersonhendelseServiceImplTest {
                         hendelseIder = listOf(tidligereHendelseIdKosmetisk),
                         gateadresse = "SKJULSTADVEGEN   1",
                         postnummer = "1234",
-                        poststed = "OSLO",
                     ),
                     Adresseforekomst(
                         historisk = false,
                         hendelseIder = listOf(hendelseIdKorrigertKosmetisk),
                         gateadresse = "Skjulstadvegen 1",
                         postnummer = "1234",
-                        poststed = "Oslo",
                     ),
                 ),
-                kontakt = emptyList(),
             ).right(),
             fnrKorrigertReell to adresseopplysninger(
                 bosted = listOf(
@@ -861,17 +844,14 @@ internal class PersonhendelseServiceImplTest {
                         hendelseIder = listOf(tidligereHendelseIdReell),
                         gateadresse = "Skjulstadvegen 1",
                         postnummer = "1111",
-                        poststed = "Oslo",
                     ),
                     Adresseforekomst(
                         historisk = false,
                         hendelseIder = listOf(hendelseIdKorrigertReell),
                         gateadresse = "Skjulstadvegen 1",
                         postnummer = "2222",
-                        poststed = "Oslo",
                     ),
                 ),
-                kontakt = emptyList(),
             ).right(),
             fnrKorrigertFallback to adresseopplysninger(
                 bosted = listOf(
@@ -880,22 +860,11 @@ internal class PersonhendelseServiceImplTest {
                         hendelseIder = listOf(hendelseIdKorrigertFallback),
                         gateadresse = "Nyveien 10",
                         postnummer = "3333",
-                        poststed = "Oslo",
                     ),
                 ),
-                kontakt = emptyList(),
             ).right(),
             fnrOpphortKontakt to adresseopplysninger(
                 bosted = emptyList(),
-                kontakt = listOf(
-                    Adresseforekomst(
-                        historisk = false,
-                        hendelseIder = listOf(hendelseIdOpphort),
-                        gateadresse = "Eksisterende 5",
-                        postnummer = "0570",
-                        poststed = "Oslo",
-                    ),
-                ),
             ).right(),
             fnrAnnullertBosted to adresseopplysninger(
                 bosted = listOf(
@@ -904,18 +873,19 @@ internal class PersonhendelseServiceImplTest {
                         hendelseIder = listOf(hendelseIdAnnullert),
                         gateadresse = "Annullertveien 1",
                         postnummer = "0500",
-                        poststed = "Oslo",
                     ),
                 ),
-                kontakt = emptyList(),
             ).right(),
         )
 
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
-            hentBostedsadresseMedMetadataForSystembruker = { fnr ->
-                adresseopplysningerPerFnr[fnr] ?: KunneIkkeHentePerson.FantIkkePerson.left()
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(any()) } doAnswer {
+                    val fnr = it.getArgument<Fnr>(0)
+                    adresseopplysningerPerFnr[fnr] ?: KunneIkkeHentePerson.FantIkkePerson.left()
+                }
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
@@ -941,7 +911,7 @@ internal class PersonhendelseServiceImplTest {
         val historiskBostedDiff = historiskBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for historisk bostedsvurdering")
         historiskBostedDiff shouldContain "\"korrelertPåGjeldendeForekomst\":false"
         historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
-        historiskBostedDiff shouldContain "\"gjelderTilbakeITid\":true"
+        historiskBostedDiff shouldContain "\"pdlTreffErHistorisk\":true"
         historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
         historiskBostedDiff shouldContain "\"pdlTreffFolkeregistermetadata\""
         historiskBostedDiff shouldContain "\"kilde\":\"Matrikkelen\""
@@ -956,6 +926,50 @@ internal class PersonhendelseServiceImplTest {
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
         verifyNoMoreInteractions(
             personhendelseRepoMock,
+            sakRepoMock,
+            oppgaveServiceMock,
+            vedtakServiceMock,
+        )
+    }
+
+    @Test
+    fun `bostedsadresse med PDL-feil blir stående uvurdert for retry`() {
+        val fnr = Fnr.generer()
+        val bostedOpprettet = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnr,
+        )
+
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn listOf(bostedOpprettet)
+            on { hentPersonhendelserKlareForOppgave() } doReturn emptyList()
+        }
+        val personOppslag = mock<PersonOppslag> {
+            on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+        }
+        val sakRepoMock = mock<SakRepo>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val vedtakServiceMock = mock<VedtakService>()
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslag,
+            vedtakService = vedtakServiceMock,
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
+        verify(personhendelseRepoMock, times(0)).oppdaterPdlVurdering(any())
+        verify(personOppslag).bostedsadresseMedMetadataForSystembruker(fnr)
+        verifyNoMoreInteractions(
+            personhendelseRepoMock,
+            personOppslag,
             sakRepoMock,
             oppgaveServiceMock,
             vedtakServiceMock,
@@ -1036,11 +1050,9 @@ internal class PersonhendelseServiceImplTest {
 
     private fun adresseopplysninger(
         bosted: List<Adresseforekomst>,
-        kontakt: List<Adresseforekomst>,
     ): AdresseopplysningerMedMetadata {
         return AdresseopplysningerMedMetadata(
             bostedsadresser = bosted.map { it.toDomain() },
-            kontaktadresser = kontakt.map { it.toDomain() },
         )
     }
 
@@ -1049,8 +1061,6 @@ internal class PersonhendelseServiceImplTest {
         val hendelseIder: List<String>,
         val gateadresse: String?,
         val postnummer: String?,
-        val poststed: String?,
-        val matrikkelId: Long? = null,
         val folkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     ) {
         fun toDomain(): AdresseopplysningerMedMetadata.Adresseopplysning {
@@ -1059,8 +1069,6 @@ internal class PersonhendelseServiceImplTest {
                 hendelseIder = hendelseIder,
                 gateadresse = gateadresse,
                 postnummer = postnummer,
-                poststed = poststed,
-                matrikkelId = matrikkelId,
                 folkeregistermetadata = folkeregistermetadata,
             )
         }

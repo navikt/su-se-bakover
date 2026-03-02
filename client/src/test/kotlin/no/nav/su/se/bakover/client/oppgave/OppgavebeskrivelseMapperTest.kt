@@ -175,7 +175,7 @@ internal class OppgavebeskrivelseMapperTest {
                 begrunnelse = "OPPRETTET korrelert mot historisk (ikke gjeldende) adresseforekomst.",
                 korrelertPåGjeldendeForekomst = false,
                 korrelertPåHistoriskForekomst = true,
-                gjelderTilbakeITid = true,
+                pdlTreffErHistorisk = true,
                 pdlTreffAdresse = "Gamlegate 4, 0123",
             ),
         )
@@ -186,8 +186,7 @@ internal class OppgavebeskrivelseMapperTest {
             	PDL har bostedsadresse nå: Ja
             	PDL har kontaktadresse nå: Nei
             	PDL-treff er historisk (ikke gjeldende) bostedsadresse.
-            	Hendelsen gjelder tilbake i tid.
-            	PDL treff-adresse: Gamlegate 4, 0123
+            	Hendelsen traff adresse i PDL: Gamlegate 4, 0123
             	PDL-vurdering: OPPRETTET korrelert mot historisk (ikke gjeldende) adresseforekomst.
             	Hendelsestidspunkt: 01.01.2021 02:02
             	Endringstype: OPPRETTET

@@ -95,10 +95,7 @@ data object OppgavebeskrivelseMapper {
             if (oppsummering.korrelertPåHistoriskForekomst == true) {
                 add("\tPDL-treff er historisk (ikke gjeldende) bostedsadresse.")
             }
-            if (oppsummering.gjelderTilbakeITid == true) {
-                add("\tHendelsen gjelder tilbake i tid.")
-            }
-            oppsummering.pdlTreffAdresse?.takeIf { it.isNotBlank() }?.let { add("\tPDL treff-adresse: $it") }
+            oppsummering.pdlTreffAdresse?.takeIf { it.isNotBlank() }?.let { add("\tHendelsen traff adresse i PDL: $it") }
             oppsummering.begrunnelse?.takeIf { it.isNotBlank() }?.let { add("\tPDL-vurdering: $it") }
         }
         return if (linjer.isEmpty()) "" else linjer.joinToString(separator = "\n", postfix = "\n")
