@@ -455,17 +455,16 @@ class PersonhendelseServiceImpl(
                         grunnlag = listOf("${endringstype.name} på gjeldende bostedsadresse kan påvirke ytelse."),
                     )
                 } else {
-                    // Dette er også FOM datoen(gyldighetstidspunkt)  på adressen som har endret seg
-                    val gyldighetstidspunkt = matchendeForekomst.folkeregistermetadata.gyldighetsaar()
+                    val gyldighetsaar = matchendeForekomst.folkeregistermetadata.gyldighetsaar()
                     val suInnfoertAar = 2020
-                    val relevantHistoriskOpphoer = gyldighetstidspunkt != null && gyldighetstidspunkt > suInnfoertAar
+                    val relevantHistoriskOpphoer = gyldighetsaar != null && gyldighetsaar > suInnfoertAar
                     Adressebeslutning(
                         relevant = relevantHistoriskOpphoer,
                         grunnlag = listOf(
                             if (relevantHistoriskOpphoer) {
-                                "${endringstype.name} på historisk bostedsadresse er relevant når gyldighetsår er etter 2020 (gyldighetsår=$gyldighetstidspunkt)."
+                                "${endringstype.name} på historisk bostedsadresse er relevant når gyldighetsår er etter 2020 (gyldighetsår=$gyldighetsaar)."
                             } else {
-                                "${endringstype.name} på historisk bostedsadresse er ikke relevant når gyldighetsår er 2020 eller eldre/mangler (gyldighetsår=${gyldighetstidspunkt ?: "ukjent"})."
+                                "${endringstype.name} på historisk bostedsadresse er ikke relevant når gyldighetsår er 2020 eller eldre/mangler (gyldighetsår=${gyldighetsaar ?: "ukjent"})."
                             },
                         ),
                     )
