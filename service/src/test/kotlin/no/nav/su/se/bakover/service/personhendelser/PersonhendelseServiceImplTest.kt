@@ -986,6 +986,113 @@ internal class PersonhendelseServiceImplTest {
         )
     }
 
+    @Test
+    fun `OPPHØRT er kun relevant for gjeldende eller historisk etter 2020`() {
+        val fnrOpphortGjeldende = Fnr.generer()
+        val fnrOpphortHistoriskEtter2020 = Fnr.generer()
+        val fnrOpphortHistoriskFoerEllerLik2020 = Fnr.generer()
+
+        val hendelseIdOpphortGjeldende = UUID.randomUUID().toString()
+        val hendelseIdOpphortHistoriskEtter2020 = UUID.randomUUID().toString()
+        val hendelseIdOpphortHistoriskFoerEllerLik2020 = UUID.randomUUID().toString()
+
+        val opphortGjeldende = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrOpphortGjeldende,
+            hendelseId = hendelseIdOpphortGjeldende,
+        )
+        val opphortHistoriskEtter2020 = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrOpphortHistoriskEtter2020,
+            hendelseId = hendelseIdOpphortHistoriskEtter2020,
+        )
+        val opphortHistoriskFoerEllerLik2020 = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrOpphortHistoriskFoerEllerLik2020,
+            hendelseId = hendelseIdOpphortHistoriskFoerEllerLik2020,
+        )
+
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn listOf(
+                opphortGjeldende,
+                opphortHistoriskEtter2020,
+                opphortHistoriskFoerEllerLik2020,
+            )
+            on { hentPersonhendelserKlareForOppgave() } doReturn emptyList()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = mock(),
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(fnrOpphortGjeldende) } doReturn adresseopplysninger(
+                    bosted = listOf(
+                        Adresseforekomst(
+                            historisk = false,
+                            hendelseIder = listOf(hendelseIdOpphortGjeldende),
+                            gateadresse = "Gjeldendeveien 1",
+                            postnummer = "0001",
+                        ),
+                    ),
+                ).right()
+
+                on { bostedsadresseMedMetadataForSystembruker(fnrOpphortHistoriskEtter2020) } doReturn adresseopplysninger(
+                    bosted = listOf(
+                        Adresseforekomst(
+                            historisk = true,
+                            hendelseIder = listOf(hendelseIdOpphortHistoriskEtter2020),
+                            gateadresse = "Historiskveien 2",
+                            postnummer = "0002",
+                            folkeregistermetadata = AdresseopplysningerMedMetadata.Folkeregistermetadata(
+                                ajourholdstidspunkt = "2021-01-01T00:00:00",
+                                gyldighetstidspunkt = "2021-01-01T00:00:00",
+                                opphoerstidspunkt = "2021-12-31T00:00:00",
+                                kilde = "Dolly",
+                                aarsak = null,
+                                sekvens = null,
+                            ),
+                        ),
+                    ),
+                ).right()
+
+                on { bostedsadresseMedMetadataForSystembruker(fnrOpphortHistoriskFoerEllerLik2020) } doReturn adresseopplysninger(
+                    bosted = listOf(
+                        Adresseforekomst(
+                            historisk = true,
+                            hendelseIder = listOf(hendelseIdOpphortHistoriskFoerEllerLik2020),
+                            gateadresse = "Gammelveien 3",
+                            postnummer = "0003",
+                            folkeregistermetadata = AdresseopplysningerMedMetadata.Folkeregistermetadata(
+                                ajourholdstidspunkt = "2020-01-01T00:00:00",
+                                gyldighetstidspunkt = "2020-01-01T00:00:00",
+                                opphoerstidspunkt = "2020-12-31T00:00:00",
+                                kilde = "Dolly",
+                                aarsak = null,
+                                sekvens = null,
+                            ),
+                        ),
+                    ),
+                ).right()
+            },
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        val vurderinger = argumentCaptor<List<PersonhendelseRepo.PdlVurdering>>()
+        verify(personhendelseRepoMock).oppdaterPdlVurdering(vurderinger.capture())
+
+        val vurderingPerId = vurderinger.firstValue.associateBy { it.id }
+        vurderingPerId[opphortGjeldende.id]?.relevant shouldBe true
+        vurderingPerId[opphortHistoriskEtter2020.id]?.relevant shouldBe true
+        vurderingPerId[opphortHistoriskFoerEllerLik2020.id]?.relevant shouldBe false
+    }
+
     private fun lagNyPersonhendelse(
         fnr: Fnr = Fnr.generer(),
     ) = Personhendelse.IkkeTilknyttetSak(
