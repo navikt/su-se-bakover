@@ -43,6 +43,12 @@ class BrevTilbakekrevingsbehandlingService(
                     fritekst = fritekst,
                 ),
             )
+        } else {
+            fritekstService.slettFritekst(
+                referanseId = command.behandlingId.value,
+                type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+                sakId = command.sakId,
+            )
         }
         return Unit.right()
     }
