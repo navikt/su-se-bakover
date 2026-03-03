@@ -400,7 +400,7 @@ class PersonhendelseServiceImpl(
      * 2) OPPRETTET er relevant ved treff, også når forekomsten er historisk (ikke gjeldende).
      * 3) KORRIGERT sammenligner før/etter kun på gateadresse(adressenavn+husnummer+husbokstav) og postnummer.
      * 4) Kosmetiske forskjeller i tekst (case/whitespace) ignoreres.
-     * 5) OPPHØRT er relevant=true ved treff (kan bety flytting som påvirker ytelse).
+     * 5) OPPHØRT er kun relevant for gjeldende forekomst, eller historisk forekomst med gyldighetsår > 2020.
      * 6) ANNULLERT er ikke relevant for flytting/reell adresseendring.
      */
     private fun vurderBostedsadressebeslutning(
@@ -448,10 +448,27 @@ class PersonhendelseServiceImpl(
             }
 
             Personhendelse.Endringstype.OPPHØRT,
-            -> Adressebeslutning(
-                relevant = true,
-                grunnlag = listOf("${endringstype.name} kan bety flytting som påvirker ytelse."),
-            )
+            -> {
+                if (!matchendeForekomst.historisk) {
+                    Adressebeslutning(
+                        relevant = true,
+                        grunnlag = listOf("${endringstype.name} på gjeldende bostedsadresse kan påvirke ytelse."),
+                    )
+                } else {
+                    val gyldighetsaar = matchendeForekomst.folkeregistermetadata.gyldighetsaar()
+                    val relevantHistoriskOpphoer = gyldighetsaar != null && gyldighetsaar > SU_INNFOERT_AAR
+                    Adressebeslutning(
+                        relevant = relevantHistoriskOpphoer,
+                        grunnlag = listOf(
+                            if (relevantHistoriskOpphoer) {
+                                "${endringstype.name} på historisk bostedsadresse er relevant når gyldighetsår er etter $SU_INNFOERT_AAR (gyldighetsår=$gyldighetsaar)."
+                            } else {
+                                "${endringstype.name} på historisk bostedsadresse er ikke relevant når gyldighetsår er $SU_INNFOERT_AAR eller eldre/mangler (gyldighetsår=${gyldighetsaar ?: "ukjent"})."
+                            },
+                        ),
+                    )
+                }
+            }
             Personhendelse.Endringstype.ANNULLERT,
             -> Adressebeslutning(
                 relevant = false,
@@ -540,7 +557,14 @@ class PersonhendelseServiceImpl(
             .ifBlank { null }
     }
 
+    private fun AdresseopplysningerMedMetadata.Folkeregistermetadata?.gyldighetsaar(): Int? {
+        return this?.gyldighetstidspunkt
+            ?.take(4)
+            ?.toIntOrNull()
+    }
+
     companion object {
+        private const val SU_INNFOERT_AAR = 2020
         private val WHITESPACE_REGEX = "\\s+".toRegex()
     }
 
