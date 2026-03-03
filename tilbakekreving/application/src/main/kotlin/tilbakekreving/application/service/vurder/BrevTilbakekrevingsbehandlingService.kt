@@ -30,18 +30,20 @@ class BrevTilbakekrevingsbehandlingService(
     private fun lagreFritekstTilbakekreving(
         command: OppdaterVedtaksbrevCommand,
     ): Either<KunneIkkeOppdatereVedtaksbrev, Unit> {
-        val fritekst = command.brevvalg.fritekst ?: run {
-            log.warn("Vedtaksbrev for tilbakekreving har ingen fritekst, lagrer ikke fritekst for sakId={}, behandlingId={}, command={}", command.sakId, command.behandlingId, command)
-            return KunneIkkeOppdatereVedtaksbrev.ManglerFritekst.left()
+        if (command.brevvalg.skalSendeBrev()) {
+            val fritekst = command.brevvalg.fritekst ?: run {
+                log.warn("Vedtaksbrev for tilbakekreving har ingen fritekst, lagrer ikke fritekst for sakId={}, behandlingId={}, command={}", command.sakId, command.behandlingId, command)
+                return KunneIkkeOppdatereVedtaksbrev.ManglerFritekst.left()
+            }
+            fritekstService.lagreFritekst(
+                FritekstDomain(
+                    referanseId = command.behandlingId.value,
+                    sakId = command.sakId,
+                    type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
+                    fritekst = fritekst,
+                ),
+            )
         }
-        fritekstService.lagreFritekst(
-            FritekstDomain(
-                referanseId = command.behandlingId.value,
-                sakId = command.sakId,
-                type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
-                fritekst = fritekst,
-            ),
-        )
         return Unit.right()
     }
     fun lagreBrevtekst(
