@@ -456,15 +456,14 @@ class PersonhendelseServiceImpl(
                     )
                 } else {
                     val gyldighetsaar = matchendeForekomst.folkeregistermetadata.gyldighetsaar()
-                    val suInnfoertAar = 2020
-                    val relevantHistoriskOpphoer = gyldighetsaar != null && gyldighetsaar > suInnfoertAar
+                    val relevantHistoriskOpphoer = gyldighetsaar != null && gyldighetsaar > SU_INNFOERT_AAR
                     Adressebeslutning(
                         relevant = relevantHistoriskOpphoer,
                         grunnlag = listOf(
                             if (relevantHistoriskOpphoer) {
-                                "${endringstype.name} på historisk bostedsadresse er relevant når gyldighetsår er etter 2020 (gyldighetsår=$gyldighetsaar)."
+                                "${endringstype.name} på historisk bostedsadresse er relevant når gyldighetsår er etter $SU_INNFOERT_AAR (gyldighetsår=$gyldighetsaar)."
                             } else {
-                                "${endringstype.name} på historisk bostedsadresse er ikke relevant når gyldighetsår er 2020 eller eldre/mangler (gyldighetsår=${gyldighetsaar ?: "ukjent"})."
+                                "${endringstype.name} på historisk bostedsadresse er ikke relevant når gyldighetsår er $SU_INNFOERT_AAR eller eldre/mangler (gyldighetsår=${gyldighetsaar ?: "ukjent"})."
                             },
                         ),
                     )
@@ -565,6 +564,7 @@ class PersonhendelseServiceImpl(
     }
 
     companion object {
+        private const val SU_INNFOERT_AAR = 2020
         private val WHITESPACE_REGEX = "\\s+".toRegex()
     }
 
