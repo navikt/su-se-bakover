@@ -29,7 +29,7 @@ data class RegulerteFradragEksternKilde(
 
 data class NyttFradragEksternKilde(
     // val periode: PeriodeMedOptionalTilOgMed TODO nødvendig?
-    // TODO må være double
+    // TODO må være double eller BigDecimal?
     val førRegulering: Int,
     val etterRegulering: Int,
     // TODO kategori elns?

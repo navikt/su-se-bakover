@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 internal class OpprettEllerOppdaterReguleringKtTest {
 /*
- TODO bjg  - Må erstattes!
+ TODO AUTO-REG-26 - skal erstattes
 
     @Test
     fun `kan ikke regulere sak uten vedtak`() {

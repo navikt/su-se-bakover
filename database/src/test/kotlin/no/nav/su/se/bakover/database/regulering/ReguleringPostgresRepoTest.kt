@@ -112,7 +112,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     /*
-    TODO bjg utgår
+    TODO AUTO-REG-26 - kan legges til igjen hvis det skal benyttes supplement som backupløsning
     @Test
     fun `lagre og hent en opprettet regulering (automatisk) med supplement (søkers)`() {
         val testDataHelper = TestDataHelper(dataSource)
