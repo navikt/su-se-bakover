@@ -29,6 +29,7 @@ sealed class Fradragstype {
         Arbeidsavklaringspenger,
         Arbeidsinntekt,
         Omstillingsstønad,
+        Overgangsstønad,
 
         // AFP
         AvtalefestetPensjon,
@@ -77,6 +78,11 @@ sealed class Fradragstype {
         override val kategori: Kategori = Kategori.Omstillingsstønad
         override val måJusteresVedGEndring: Boolean = true
         override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
+    }
+
+    data object Overgangsstønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.Overgangsstønad
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     data class Annet(val beskrivelse: String) : Fradragstype() {

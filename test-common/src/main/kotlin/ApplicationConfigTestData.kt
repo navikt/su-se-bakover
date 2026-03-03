@@ -95,6 +95,7 @@ fun applicationConfig() = ApplicationConfig(
             clientId = "skjermingClientId",
         ),
         pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
+        aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
         suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(

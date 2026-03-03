@@ -59,6 +59,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
+import no.nav.su.se.bakover.web.services.aap.AapJobServiceImpl
 import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
 import person.domain.PersonService
 import satser.domain.SatsFactory
@@ -250,6 +251,7 @@ data object ServiceBuilder {
             personhendelseService = PersonhendelseServiceImpl(
                 sakRepo = databaseRepos.sak,
                 personhendelseRepo = databaseRepos.personhendelseRepo,
+                personOppslag = clients.personOppslag,
                 vedtakService = vedtakService,
                 oppgaveServiceImpl = kjerneTjenester.oppgaveService,
                 clock = clock,
@@ -261,6 +263,7 @@ data object ServiceBuilder {
                 clock = clock,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
+            aapJobService = AapJobServiceImpl(client = clients.aapApiInternClient, clock = clock),
             sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),

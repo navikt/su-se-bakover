@@ -29,7 +29,7 @@ internal class UtløptFristForKontrollsamtaleContextTest {
             val d = UUID.fromString("35f1e52c-02b6-4dbe-9060-3abc01be30e4")
             val e = UUID.fromString("5bb58c56-668b-46f6-847e-51b306782098")
             val utestående = listOf(a, b, c, d, e)
-            ctx.uprosesserte { utestående } shouldBe utestående.toSet()
+            ctx.uprosesserte(utestående) shouldBe utestående.toSet()
             ctx.prosessert(a, fixedClock)
                 .ikkeMøtt(b, fixedClock)
                 .feilet(c, "c1feil", fixedClock)
@@ -95,7 +95,7 @@ internal class UtløptFristForKontrollsamtaleContextTest {
                     it.møtt() shouldBe setOf(a, d)
                     it.ikkeMøtt() shouldBe setOf(b, c)
                 }
-                .uprosesserte { listOf(a, b, c, d, e) }.also {
+                .uprosesserte(listOf(a, b, c, d, e)).also {
                     it shouldBe emptySet()
                 }
         }

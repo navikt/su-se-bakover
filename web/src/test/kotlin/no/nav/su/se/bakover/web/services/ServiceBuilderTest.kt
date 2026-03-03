@@ -82,6 +82,7 @@ internal class ServiceBuilderTest {
                 queryJournalpostClient = mock(),
                 skatteOppslag = mock(),
                 pesysklient = mock(),
+                aapApiInternClient = mock(),
                 suProxyClient = mock(),
             ),
             clock = Clock.systemUTC(),

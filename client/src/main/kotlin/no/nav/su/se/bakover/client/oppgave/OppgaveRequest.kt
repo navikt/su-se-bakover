@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import no.nav.su.se.bakover.domain.oppgave.OppgavePrioritet
 import java.time.LocalDate
 
 internal data class OppgaveRequest(
@@ -13,7 +14,7 @@ internal data class OppgaveRequest(
     val behandlingstype: String,
     val aktivDato: LocalDate,
     val fristFerdigstillelse: LocalDate,
-    val prioritet: String,
+    val prioritet: OppgavePrioritet,
     val tilordnetRessurs: String?,
     val tildeltEnhetsnr: String?,
 ) {

@@ -329,10 +329,6 @@ internal class QueryJournalpostHttpClient(
         val kontrollnotatTittel = "NAV SU Kontrollnotat"
         val dokumentasjonAvOppfølgingsamtaleTittel = "Dokumentasjon av oppfølgingssamtale"
 
-        fun String.inneholder(string: String): Boolean {
-            return this.contains(string)
-        }
-
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = getQueryFrom("/dokumentoversiktFagsakQuery.graphql"),
             variables = HentJournalposterForSakVariables(
@@ -357,8 +353,8 @@ internal class QueryJournalpostHttpClient(
                     .lastOrNull {
                         periode.inneholder(it.datoOpprettet) &&
                             (
-                                it.tittel.inneholder(kontrollnotatTittel) ||
-                                    it.tittel.inneholder(
+                                it.tittel.contains(kontrollnotatTittel) ||
+                                    it.tittel.contains(
                                         dokumentasjonAvOppfølgingsamtaleTittel,
                                     )
                                 )

@@ -30,6 +30,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import person.domain.AdresseopplysningerMedMetadata
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -85,6 +86,9 @@ class RoutesTest {
                                 throw RuntimeException("thrown exception")
 
                             override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+                                throw RuntimeException("thrown exception")
+
+                            override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
                                 throw RuntimeException("thrown exception")
 
                             override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.person.Fnr
@@ -169,7 +170,8 @@ internal data class PersonhendelseJson(
             val vegadresse: Vegadresse?,
             val postadresseIFrittFormat: PostadresseIFrittFormat?,
             val utenlandskAdresse: UtenlandskAdresse?,
-            val utenlandsAdresseIFrittFormat: String?,
+            @param:JsonAlias("utenlandsAdresseIFrittFormat")
+            val utenlandskAdresseIFrittFormat: String?,
         ) {
             data class PostadresseIFrittFormat(
                 val adresselinje1: String?,
@@ -197,8 +199,33 @@ internal data class PersonhendelseJson(
                 dødsdato = data.doedsfall?.doedsdato?.fraPersonhendelseDatoTilLocalDate(),
             )
 
-            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse
-            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse
+            OpplysningstypeForPersonhendelse.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse(
+                angittFlyttedato = data.bostedsadresse?.angittFlyttedato?.fraPersonhendelseDatoTilLocalDate(),
+                gyldigFraOgMed = data.bostedsadresse?.gyldigFraOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                gyldigTilOgMed = data.bostedsadresse?.gyldigTilOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                coAdressenavn = data.bostedsadresse?.coAdressenavn,
+                adressetype = when {
+                    data.bostedsadresse?.vegadresse != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.VEGADRESSE
+                    data.bostedsadresse?.matrikkeladresse != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.MATRIKKELADRESSE
+                    data.bostedsadresse?.utenlandskAdresse != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UTENLANDSK_ADRESSE
+                    data.bostedsadresse?.ukjentBosted != null -> Personhendelse.Hendelse.Bostedsadresse.Adressetype.UKJENT_BOSTED
+                    else -> null
+                },
+            )
+            OpplysningstypeForPersonhendelse.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse(
+                gyldigFraOgMed = data.kontaktadresse?.gyldigFraOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                gyldigTilOgMed = data.kontaktadresse?.gyldigTilOgMed?.fraPersonhendelseDatoTilLocalDate(),
+                type = data.kontaktadresse?.type,
+                coAdressenavn = data.kontaktadresse?.coAdressenavn,
+                adressetype = when {
+                    data.kontaktadresse?.postboksadresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTBOKSADRESSE
+                    data.kontaktadresse?.vegadresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.VEGADRESSE
+                    data.kontaktadresse?.postadresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.POSTADRESSE_I_FRITT_FORMAT
+                    data.kontaktadresse?.utenlandskAdresse != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE
+                    data.kontaktadresse?.utenlandskAdresseIFrittFormat != null -> Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
+                    else -> null
+                },
+            )
             OpplysningstypeForPersonhendelse.SIVILSTAND.value -> Personhendelse.Hendelse.Sivilstand(
                 type = SivilstandTyper.fromString(data.sivilstand?.type).getOrElse {
                     throw IllegalArgumentException("Personhendelse: Ukjent sivilstandstype: ${it.value} for hendelsesid $hendelseId, partisjon $partition og offset $offset")
