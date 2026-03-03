@@ -82,7 +82,8 @@ sealed class Fradragstype {
 
     data object Overgangsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Overgangsstønad
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data class Annet(val beskrivelse: String) : Fradragstype() {
