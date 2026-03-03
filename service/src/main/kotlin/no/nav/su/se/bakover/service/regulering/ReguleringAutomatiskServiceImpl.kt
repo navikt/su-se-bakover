@@ -256,7 +256,7 @@ class ReguleringAutomatiskServiceImpl(
 
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
         val antallAutomatiskPgaSupplemement = rights.count {
-            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering?.bruker != null || it.eksternSupplementRegulering!!.eps.isNotEmpty())
+            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering?.bruker != null || it.eksternSupplementRegulering?.eps?.isNotEmpty() == true)
         }
         val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
 

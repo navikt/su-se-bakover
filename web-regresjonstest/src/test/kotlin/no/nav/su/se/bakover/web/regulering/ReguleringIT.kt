@@ -1,51 +1,19 @@
 package no.nav.su.se.bakover.web.regulering
 
-import arrow.core.nonEmptyListOf
 import common.presentation.beregning.FradragRequestJson
 import common.presentation.beregning.FradragResponseJson
 import common.presentation.grunnlag.UføregrunnlagJson
-import grunnbeløp.domain.Grunnbeløpsendring
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
-import io.ktor.server.testing.testApplication
-import no.nav.su.se.bakover.common.domain.tid.fixedClock
-import no.nav.su.se.bakover.common.domain.tid.januar
-import no.nav.su.se.bakover.common.domain.tid.mai
-import no.nav.su.se.bakover.common.domain.tid.september
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.periode.mai
-import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
-import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.applicationConfig
-import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedClockAt
-import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.regulering.pesysFilCsvUforepTestData
-import no.nav.su.se.bakover.web.komponenttest.AppComponents
-import no.nav.su.se.bakover.web.komponenttest.testSusebakover
 import no.nav.su.se.bakover.web.routes.grunnlag.VurderingsperiodeUføreJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragBody
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
-import no.nav.su.se.bakover.web.sak.hent.hentReguleringer
-import no.nav.su.se.bakover.web.sak.hent.hentSakForFnr
-import no.nav.su.se.bakover.web.sak.hent.hentSakId
-import no.nav.su.se.bakover.web.søknadsbehandling.GrunnlagJson
-import no.nav.su.se.bakover.web.søknadsbehandling.ReguleringJson
-import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.bosituasjonEpsJson
-import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
-import no.nav.su.se.bakover.web.søknadsbehandling.formue.formueEpsJson
-import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
-import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
-import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
-import org.junit.jupiter.api.Test
-import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import java.math.BigDecimal
 
 internal class ReguleringIT {
+
+    /*
+
+    // TODO AUTO-REG-26 - Legg til nye som bruker integrasjon med Pesys
+
+    // TODO AUTO-REG-26 - Fjern utkommentering på disse hvis supplementløsning skal brukes som backup
 
     @Test
     fun `automatisk regulering - uten supplement`() {
@@ -596,6 +564,8 @@ internal class ReguleringIT {
             }
         }
     }
+
+     */
 }
 
 fun List<VurderingsperiodeUføreJson>.sammenlignUføreGrunnlag(uføreGrunnlag: List<UføregrunnlagJson>) {

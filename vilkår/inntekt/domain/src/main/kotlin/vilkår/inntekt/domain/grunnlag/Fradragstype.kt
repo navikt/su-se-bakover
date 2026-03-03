@@ -9,7 +9,10 @@ import arrow.core.right
 sealed class Fradragstype {
 
     abstract val kategori: Kategori
-    abstract val måJusteresManueltVedGEndring: Boolean
+    abstract val måJusteresVedGEndring: Boolean
+
+    // vil være tilfelle hvis reguelert fradrag kan hentes fra kilde
+    abstract val kanJusteresAutomatisk: Boolean
 
     override fun toString(): String {
         return kategori.toString()
@@ -66,132 +69,158 @@ sealed class Fradragstype {
 
     data object Alderspensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Alderspensjon
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = true
     }
 
     data object Omstillingsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Omstillingsstønad
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data class Annet(val beskrivelse: String) : Fradragstype() {
         override val kategori: Kategori = Kategori.Annet
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Arbeidsavklaringspenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsavklaringspenger
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = true
     }
 
     data object Arbeidsinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsinntekt
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object AvtalefestetPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.AvtalefestetPensjon
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object AvtalefestetPensjonPrivat : Fradragstype() {
         override val kategori: Kategori = Kategori.AvtalefestetPensjonPrivat
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object BidragEtterEkteskapsloven : Fradragstype() {
         override val kategori: Kategori = Kategori.BidragEtterEkteskapsloven
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Dagpenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Dagpenger
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Fosterhjemsgodtgjørelse : Fradragstype() {
         override val kategori: Kategori = Kategori.Fosterhjemsgodtgjørelse
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Gjenlevendepensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Gjenlevendepensjon
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Introduksjonsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Introduksjonsstønad
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Kapitalinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Kapitalinntekt
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Kontantstøtte : Fradragstype() {
         override val kategori: Kategori = Kategori.Kontantstøtte
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Kvalifiseringsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Kvalifiseringsstønad
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object NAVytelserTilLivsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.NAVytelserTilLivsopphold
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object OffentligPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.OffentligPensjon
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object PrivatPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.PrivatPensjon
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Sosialstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Sosialstønad
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object StatensLånekasse : Fradragstype() {
         override val kategori: Kategori = Kategori.StatensLånekasse
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object SupplerendeStønad : Fradragstype() {
         override val kategori: Kategori = Kategori.SupplerendeStønad
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Sykepenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Sykepenger
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Tiltakspenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Tiltakspenger
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Ventestønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Ventestønad
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object Uføretrygd : Fradragstype() {
         override val kategori: Kategori = Kategori.Uføretrygd
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = true
     }
 
     data object ForventetInntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.ForventetInntekt
-        override val måJusteresManueltVedGEndring: Boolean = true
+        override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     /**
@@ -199,17 +228,20 @@ sealed class Fradragstype {
      */
     data object AvkortingUtenlandsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.AvkortingUtenlandsopphold
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object BeregnetFradragEPS : Fradragstype() {
         override val kategori: Kategori = Kategori.BeregnetFradragEPS
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     data object UnderMinstenivå : Fradragstype() {
         override val kategori: Kategori = Kategori.UnderMinstenivå
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresVedGEndring: Boolean = false
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 
     companion object {

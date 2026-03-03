@@ -20,10 +20,12 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.NyttFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
@@ -139,8 +141,13 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = SakerMedRegulerteFradragEksternKilde(emptyList())
-    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(regulerFraOgMed, clock, sakerMedRegulerteFradragEksternKilde, gVerdiØkning).getOrFail()
+    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
+    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+        regulerFraOgMed,
+        clock,
+        sakerMedRegulerteFradragEksternKilde,
+        gVerdiØkning,
+    ).getOrFail()
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -157,7 +164,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = SakerMedRegulerteFradragEksternKilde(emptyList())
+    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
@@ -493,3 +500,20 @@ fun nyÅrsakYtelseErMidlertidigStanset(
     begrunnelse: String = "Begrunnelse",
 ): ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset =
     ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
+
+fun reguleringsgrunnlagFraEksternKilde(
+    sak: Sak,
+    førRegulering: Int = 100,
+    etterRegulering: Int = 110,
+) = SakerMedRegulerteFradragEksternKilde(
+    listOf(
+        RegulerteFradragEksternKilde(
+            saksnummer = sak.saksnummer,
+            forBruker = NyttFradragEksternKilde(
+                førRegulering = førRegulering,
+                etterRegulering = etterRegulering,
+            ),
+            forEps = emptyList(),
+        ),
+    ),
+)

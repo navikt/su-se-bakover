@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import java.time.Clock
 
+// TODO AUTO-REG-26  WIP
 class ReguleringHentEksterneReguleringerService(
     private val pesysClient: PesysClient,
     private val clock: Clock,

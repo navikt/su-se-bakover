@@ -18,7 +18,7 @@ import kotlin.math.absoluteValue
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
-// TODO AUTO-REG-26 gammel utledning hele filen skal slettes!
+// TODO AUTO-REG-26 gammel utledning av fradrag - bevares for en mulig backup skulle integrasjon feile
 
 fun utledReguleringstypeOgFradragVedHjelpAvSupplement(
     fradrag: List<Fradragsgrunnlag>,
@@ -116,7 +116,7 @@ fun utledReguleringstypeOgFradragIndre(
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     require(originaleFradragsgrunnlag.all { it.fradrag.tilhører == fradragTilhører })
 
-    if (!fradragstype.måJusteresManueltVedGEndring) {
+    if (!fradragstype.måJusteresVedGEndring) {
         return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag
     }
 
@@ -180,7 +180,7 @@ private fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
     ) {
         // Dette er den vanligste casen for manuell regulering, vi trenger ikke logge disse tilfellene.
         val regtype =
-            if (fradragstype.måJusteresManueltVedGEndring) {
+            if (fradragstype.måJusteresVedGEndring) {
                 manuellReg(
                     ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
                         fradragskategori = fradragstype.kategori,

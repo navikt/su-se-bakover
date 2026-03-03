@@ -24,11 +24,12 @@ data class RegulerteFradragEksternKilde(
     // TODO vil nå bare kunne bruker for enten eller? Må kunne kombineres?
     val saksnummer: Saksnummer,
     val forBruker: NyttFradragEksternKilde,
-    val forEps: List<NyttFradragEksternKilde>,
+    val forEps: List<NyttFradragEksternKilde>, // TODO AUTO-REG-26 hvordan håndteres flere eps over tid?
 )
 
 data class NyttFradragEksternKilde(
     // val periode: PeriodeMedOptionalTilOgMed TODO nødvendig?
+    // TODO må være double
     val førRegulering: Int,
     val etterRegulering: Int,
     // TODO kategori elns?
@@ -111,8 +112,17 @@ fun utledReguleringstypeOgFradrag(
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     require(originaleFradragsgrunnlag.all { it.fradrag.tilhører == fradragTilhører })
 
-    if (!fradragstype.måJusteresManueltVedGEndring) {
+    if (!fradragstype.måJusteresVedGEndring) {
         return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag
+    }
+    if (!fradragstype.kanJusteresAutomatisk) {
+        return Reguleringstype.MANUELL(
+            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+                fradragskategori = fradragstype.kategori,
+                fradragTilhører = fradragTilhører,
+                begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} kan ikke hentes automatisk",
+            ),
+        ) to originaleFradragsgrunnlag
     }
 
     if (originaleFradragsgrunnlag.size > 1) {

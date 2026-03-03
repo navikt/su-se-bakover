@@ -269,11 +269,11 @@ private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtt
                 .let { mapOf(this.kategori to it) }
         },
         isTrue = {
-            val supplementForBrukerForFradrag = supplementBruker!!.getForKategori(this.fradragskategori)!!
+            val supplementForBrukerForFradrag = supplementBruker?.getForKategori(this.fradragskategori)
             val bruttoBeløpFraAprilVedtak =
-                supplementForBrukerForFradrag.endringsvedtak?.eksterneData()?.first()?.bruttoYtelse ?: ""
+                supplementForBrukerForFradrag?.endringsvedtak?.eksterneData()?.first()?.bruttoYtelse ?: ""
             val nettoBeløpFraAprilVedtak =
-                supplementForBrukerForFradrag.endringsvedtak?.eksterneData()?.first()?.nettoYtelse ?: ""
+                supplementForBrukerForFradrag?.endringsvedtak?.eksterneData()?.first()?.nettoYtelse ?: ""
             mapOf(
                 this.kategori to this.toCSVLoggableString(
                     saksnummer = saksnummer,

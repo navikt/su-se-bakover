@@ -77,6 +77,7 @@ sealed interface ÅrsakTilManuellRegulering {
             override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.MerEnn1Eps
         }
 
+        // TODO AUTO-REG-26 - Vil i ny løsning være "finnes ikke integrasjon" elns
         data class SupplementInneholderIkkeFradraget(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
