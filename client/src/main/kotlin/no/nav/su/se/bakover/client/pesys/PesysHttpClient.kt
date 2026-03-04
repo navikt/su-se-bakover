@@ -22,22 +22,6 @@ interface PesysClient {
     fun hentVedtakForPersonPaaDatoUføre(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoUføre>
 }
 
-class PesysclientStub : PesysClient {
-    override fun hentVedtakForPersonPaaDatoAlder(
-        fnrList: List<Fnr>,
-        dato: LocalDate,
-    ): Either<ClientError, ResponseDtoAlder> {
-        return ResponseDtoAlder(emptyList()).right()
-    }
-
-    override fun hentVedtakForPersonPaaDatoUføre(
-        fnrList: List<Fnr>,
-        dato: LocalDate,
-    ): Either<ClientError, ResponseDtoUføre> {
-        return ResponseDtoUføre(emptyList()).right()
-    }
-}
-
 class PesysHttpClient(
     private val azureAd: AzureAd,
     private val url: String,
