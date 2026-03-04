@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
-import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
@@ -54,7 +53,6 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Søknadsinnhol
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdException
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
@@ -63,7 +61,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
-import java.time.format.DateTimeParseException
 
 const val SØKNAD_PATH = "/soknad"
 data class AvslagBody(val fritekst: String)
@@ -90,18 +87,7 @@ internal fun Route.søknadRoutes(
                         return@withBody
                     }
 
-                    val søknadsinnholdResultat = try {
-                        søknadsinnholdJson.toSøknadsinnhold()
-                    } catch (e: UgyldigSøknadsinnholdException) {
-                        call.svar(listOf(e.tilUgyldigSøknadsinnholdInput()).tilUgyldigSøknadsinnholdResultat())
-                        return@withBody
-                    } catch (e: DateTimeParseException) {
-                        call.svar(listOf(e.tilUgyldigSøknadsinnholdInput()).tilUgyldigSøknadsinnholdResultat())
-                        return@withBody
-                    } catch (e: UgyldigFnrException) {
-                        call.svar(listOf(e.tilUgyldigSøknadsinnholdInput()).tilUgyldigSøknadsinnholdResultat())
-                        return@withBody
-                    }
+                    val søknadsinnholdResultat = søknadsinnholdJson.toSøknadsinnhold()
 
                     søknadsinnholdResultat.fold(
                         { call.svar(it.tilResultat()) },
@@ -338,24 +324,6 @@ internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat
     )
 }
 
-private fun UgyldigSøknadsinnholdException.tilUgyldigSøknadsinnholdInput(): UgyldigSøknadsinnholdInput =
-    UgyldigSøknadsinnholdInput(
-        felt = felt,
-        begrunnelse = begrunnelse,
-    )
-
-private fun DateTimeParseException.tilUgyldigSøknadsinnholdInput(): UgyldigSøknadsinnholdInput =
-    UgyldigSøknadsinnholdInput(
-        felt = "dato",
-        begrunnelse = "ugyldig datoformat",
-    )
-
-private fun UgyldigFnrException.tilUgyldigSøknadsinnholdInput(): UgyldigSøknadsinnholdInput =
-    UgyldigSøknadsinnholdInput(
-        felt = "fnr",
-        begrunnelse = "ugyldig fødselsnummer",
-    )
-
 fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
     KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt, KunneIkkeOppretteSøknad.FeilSakstype -> Forbidden.errorJson(
@@ -370,6 +338,15 @@ private fun KunneIkkeLageSøknadinnhold.tilResultat() = when (this) {
     is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
     is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
     is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb ->
+        underliggendeFeil
+            .map {
+                UgyldigSøknadsinnholdInput(
+                    felt = it.felt,
+                    begrunnelse = it.begrunnelse,
+                )
+            }
+            .tilUgyldigSøknadsinnholdResultat()
 }
 
 private fun FeilVedOpprettelseAvSøknadinnhold.tilResultat() = when (this) {

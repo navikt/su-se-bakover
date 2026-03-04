@@ -1,5 +1,10 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.Oppholdstillatelse
 
 data class OppholdstillatelseJson(
@@ -9,24 +14,33 @@ data class OppholdstillatelseJson(
     val statsborgerskapAndreLand: Boolean,
     val statsborgerskapAndreLandFritekst: String? = null,
 ) {
-    fun toOppholdstillatelse() = Oppholdstillatelse.tryCreate(
-        erNorskStatsborger = erNorskStatsborger,
-        harOppholdstillatelse = harOppholdstillatelse,
-        oppholdstillatelseType = typeOppholdstillatelse?.let {
-            toOppholdstillatelseType(it)
-        },
-        statsborgerskapAndreLand = statsborgerskapAndreLand,
-        statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
-    )
+    fun toOppholdstillatelse(): Either<FeilVedOpprettelseAvOppholdstillatelseJson, Oppholdstillatelse> {
+        val oppholdstillatelseType = typeOppholdstillatelse?.let {
+            toOppholdstillatelseType(it).getOrElse {
+                return FeilVedOpprettelseAvOppholdstillatelseJson.UgyldigInput(it).left()
+            }
+        }
 
-    private fun toOppholdstillatelseType(str: String): Oppholdstillatelse.OppholdstillatelseType {
+        return Oppholdstillatelse.tryCreate(
+            erNorskStatsborger = erNorskStatsborger,
+            harOppholdstillatelse = harOppholdstillatelse,
+            oppholdstillatelseType = oppholdstillatelseType,
+            statsborgerskapAndreLand = statsborgerskapAndreLand,
+            statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
+        ).fold(
+            { FeilVedOpprettelseAvOppholdstillatelseJson.DomeneFeil(it).left() },
+            { it.right() },
+        )
+    }
+
+    private fun toOppholdstillatelseType(str: String): Either<UgyldigSøknadsinnholdInputFraJson, Oppholdstillatelse.OppholdstillatelseType> {
         return when (str) {
-            "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG
-            "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
-            else -> throw UgyldigSøknadsinnholdException(
+            "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG.right()
+            "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT.right()
+            else -> UgyldigSøknadsinnholdInputFraJson(
                 felt = "oppholdstillatelse.typeOppholdstillatelse",
                 begrunnelse = "Ukjent verdi: $str",
-            )
+            ).left()
         }
     }
 
@@ -47,4 +61,9 @@ private fun Oppholdstillatelse.OppholdstillatelseType.toJson(): String {
         Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG -> "midlertidig"
         Oppholdstillatelse.OppholdstillatelseType.PERMANENT -> "permanent"
     }
+}
+
+sealed interface FeilVedOpprettelseAvOppholdstillatelseJson {
+    data class DomeneFeil(val underliggendeFeil: FeilVedOpprettelseAvOppholdstillatelse) : FeilVedOpprettelseAvOppholdstillatelseJson
+    data class UgyldigInput(val underliggendeFeil: UgyldigSøknadsinnholdInputFraJson) : FeilVedOpprettelseAvOppholdstillatelseJson
 }

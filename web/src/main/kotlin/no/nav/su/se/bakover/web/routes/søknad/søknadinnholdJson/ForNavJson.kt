@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.ktor.server.application.ApplicationCall
@@ -19,7 +23,7 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = ForNavJson.Papirsøknad::class, name = "Papirsøknad"),
 )
 sealed interface ForNavJson {
-    fun toForNav(): ForNav
+    fun toForNav(): Either<UgyldigSøknadsinnholdInputFraJson, ForNav>
 
     fun identBruker(call: ApplicationCall) = when (this) {
         is DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
@@ -29,20 +33,23 @@ sealed interface ForNavJson {
     data class DigitalSøknad(
         val harFullmektigEllerVerge: String? = null,
     ) : ForNavJson {
-        override fun toForNav() = ForNav.DigitalSøknad(
-            harFullmektigEllerVerge?.let {
-                vergeMålType(it)
-            },
-        )
+        override fun toForNav(): Either<UgyldigSøknadsinnholdInputFraJson, ForNav> {
+            val vergemål = harFullmektigEllerVerge?.let {
+                vergeMålType(it).getOrElse {
+                    return it.left()
+                }
+            }
+            return ForNav.DigitalSøknad(vergemål).right()
+        }
 
-        private fun vergeMålType(str: String): ForNav.DigitalSøknad.Vergemål {
+        private fun vergeMålType(str: String): Either<UgyldigSøknadsinnholdInputFraJson, ForNav.DigitalSøknad.Vergemål> {
             return when (str) {
-                "fullmektig" -> ForNav.DigitalSøknad.Vergemål.FULLMEKTIG
-                "verge" -> ForNav.DigitalSøknad.Vergemål.VERGE
-                else -> throw UgyldigSøknadsinnholdException(
+                "fullmektig" -> ForNav.DigitalSøknad.Vergemål.FULLMEKTIG.right()
+                "verge" -> ForNav.DigitalSøknad.Vergemål.VERGE.right()
+                else -> UgyldigSøknadsinnholdInputFraJson(
                     felt = "forNav.harFullmektigEllerVerge",
                     begrunnelse = "Ukjent verdi: $str",
-                )
+                ).left()
             }
         }
     }
@@ -52,20 +59,25 @@ sealed interface ForNavJson {
         val grunnForPapirinnsending: String,
         val annenGrunn: String?,
     ) : ForNavJson {
-        override fun toForNav() = ForNav.Papirsøknad(
-            mottaksdatoForSøknad,
-            grunn(grunnForPapirinnsending),
-            annenGrunn,
-        )
+        override fun toForNav(): Either<UgyldigSøknadsinnholdInputFraJson, ForNav> {
+            val grunn = grunn(grunnForPapirinnsending).getOrElse {
+                return it.left()
+            }
+            return ForNav.Papirsøknad(
+                mottaksdatoForSøknad,
+                grunn,
+                annenGrunn,
+            ).right()
+        }
 
-        private fun grunn(str: String): ForNav.Papirsøknad.GrunnForPapirinnsending =
+        private fun grunn(str: String): Either<UgyldigSøknadsinnholdInputFraJson, ForNav.Papirsøknad.GrunnForPapirinnsending> =
             if (enumContains<ForNav.Papirsøknad.GrunnForPapirinnsending>(str)) {
-                ForNav.Papirsøknad.GrunnForPapirinnsending.valueOf(str)
+                ForNav.Papirsøknad.GrunnForPapirinnsending.valueOf(str).right()
             } else {
-                throw UgyldigSøknadsinnholdException(
+                UgyldigSøknadsinnholdInputFraJson(
                     felt = "forNav.grunnForPapirinnsending",
                     begrunnelse = "Ukjent verdi: $str",
-                )
+                ).left()
             }
     }
 

@@ -40,6 +40,22 @@ internal class SøknadsinnholdInputValidatorTest {
     }
 
     @Test
+    fun `returnerer kun første feil per felt`() {
+        val søknad = gyldigUføreSøknad().copy(
+            inntektOgPensjon = InntektOgPensjonJson(
+                andreYtelserINav = "hei\u0000<script>",
+            ),
+        )
+
+        val feilForFelt = SøknadsinnholdInputValidator
+            .valider(søknad)
+            .filter { it.felt == "inntektOgPensjon.andreYtelserINav" }
+
+        feilForFelt.size shouldBe 1
+        feilForFelt.first().begrunnelse shouldBe "inneholder kontrolltegn"
+    }
+
+    @Test
     fun `godtar norske bokstaver og tillatte skilletegn`() {
         val søknad = gyldigUføreSøknad().copy(
             inntektOgPensjon = InntektOgPensjonJson(

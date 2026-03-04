@@ -61,7 +61,7 @@ internal object SøknadsinnholdInputValidator {
 
         søknadsinnhold.boforhold.borPåAdresse?.let { adresse ->
             validerTekst("boforhold.borPåAdresse.adresselinje", adresse.adresselinje, maksLengde = 200)
-            validerTekst("boforhold.borPåAdresse.postnummer", adresse.postnummer, maksLengde = 10)
+            validerTekst("boforhold.borPåAdresse.postnummer", adresse.postnummer, maksLengde = 4)
             validerTekst("boforhold.borPåAdresse.poststed", adresse.poststed, maksLengde = 100)
             validerTekst("boforhold.borPåAdresse.bruksenhet", adresse.bruksenhet, maksLengde = 20)
         }
@@ -89,7 +89,7 @@ internal object SøknadsinnholdInputValidator {
         validerTekst("$sti.eiendomBrukesTil", formue.eiendomBrukesTil, maksLengde = 1000)
 
         formue.kjøretøy?.forEachIndexed { index, kjøretøy ->
-            validerTekst("$sti.kjøretøy[$index].kjøretøyDeEier", kjøretøy.kjøretøyDeEier, maksLengde = 100)
+            validerTekst("$sti.kjøretøy.$index.kjøretøyDeEier", kjøretøy.kjøretøyDeEier, maksLengde = 100)
         }
     }
 
@@ -101,12 +101,12 @@ internal object SøknadsinnholdInputValidator {
         validerTekst("$sti.søktAndreYtelserIkkeBehandletBegrunnelse", inntektOgPensjon.søktAndreYtelserIkkeBehandletBegrunnelse, maksLengde = 1000)
 
         inntektOgPensjon.trygdeytelserIUtlandet?.forEachIndexed { index, ytelse ->
-            validerTekst("$sti.trygdeytelserIUtlandet[$index].type", ytelse.type, maksLengde = 200)
-            validerTekst("$sti.trygdeytelserIUtlandet[$index].valuta", ytelse.valuta, maksLengde = 50)
+            validerTekst("$sti.trygdeytelserIUtlandet.$index.type", ytelse.type, maksLengde = 200)
+            validerTekst("$sti.trygdeytelserIUtlandet.$index.valuta", ytelse.valuta, maksLengde = 50)
         }
 
         inntektOgPensjon.pensjon?.forEachIndexed { index, pensjon ->
-            validerTekst("$sti.pensjon[$index].ordning", pensjon.ordning, maksLengde = 200)
+            validerTekst("$sti.pensjon.$index.ordning", pensjon.ordning, maksLengde = 200)
         }
     }
 
@@ -117,22 +117,20 @@ internal object SøknadsinnholdInputValidator {
     ) {
         if (verdi == null) return
 
-        if (verdi.length > maksLengde) {
-            add(UgyldigSøknadsinnholdInput(felt, "for lang verdi"))
+        val begrunnelse = when {
+            verdi.length > maksLengde -> "for lang verdi"
+            verdi.inneholderForbudteKontrolltegn() -> "inneholder kontrolltegn"
+            verdi.inneholderTegnUtenforTillattTegnsett() -> "inneholder tegn utenfor tillatt tegnsett"
+            verdi.harMistenkeligInnhold() -> "inneholder mistenkelig innhold"
+            else -> null
         }
-        if (verdi.inneholderForbudteKontrolltegn()) {
-            add(UgyldigSøknadsinnholdInput(felt, "inneholder kontrolltegn"))
-        }
-        if (verdi.inneholderTegnUtenforTillattTegnsett()) {
-            add(UgyldigSøknadsinnholdInput(felt, "inneholder tegn utenfor tillatt tegnsett"))
-        }
-        if (verdi.harMistenkeligInnhold()) {
-            add(UgyldigSøknadsinnholdInput(felt, "inneholder mistenkelig innhold"))
+
+        if (begrunnelse != null) {
+            add(UgyldigSøknadsinnholdInput(felt, begrunnelse))
         }
     }
 
     private fun String.harMistenkeligInnhold(): Boolean {
-        if (this.contains('<') || this.contains('>')) return true
         return mistenkeligeMønstre.any { it.containsMatchIn(this) }
     }
 
