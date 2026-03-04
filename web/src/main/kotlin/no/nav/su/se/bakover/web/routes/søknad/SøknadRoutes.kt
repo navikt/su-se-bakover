@@ -14,6 +14,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.behandlingMåHaSaksebehandler
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
+import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
@@ -49,7 +51,12 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.FeilVedLukkSøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdException
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -57,6 +64,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
+import java.time.format.DateTimeParseException
 
 const val SØKNAD_PATH = "/soknad"
 data class AvslagBody(val fritekst: String)
@@ -72,7 +80,31 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { type ->
                 call.withBody<SøknadsinnholdJson> { søknadsinnholdJson ->
-                    søknadsinnholdJson.toSøknadsinnhold().fold(
+                    validerSøknadstypePathMotBody(type, søknadsinnholdJson)?.let {
+                        call.svar(it)
+                        return@withBody
+                    }
+
+                    val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
+                    if (ugyldigeFelt.isNotEmpty()) {
+                        call.svar(ugyldigeFelt.tilUgyldigSøknadsinnholdResultat())
+                        return@withBody
+                    }
+
+                    val søknadsinnholdResultat = try {
+                        søknadsinnholdJson.toSøknadsinnhold()
+                    } catch (e: UgyldigSøknadsinnholdException) {
+                        call.svar(listOf(e.tilUgyldigSøknadsinnholdInput()).tilUgyldigSøknadsinnholdResultat())
+                        return@withBody
+                    } catch (e: DateTimeParseException) {
+                        call.svar(listOf(e.tilUgyldigSøknadsinnholdInput()).tilUgyldigSøknadsinnholdResultat())
+                        return@withBody
+                    } catch (e: UgyldigFnrException) {
+                        call.svar(listOf(e.tilUgyldigSøknadsinnholdInput()).tilUgyldigSøknadsinnholdResultat())
+                        return@withBody
+                    }
+
+                    søknadsinnholdResultat.fold(
                         { call.svar(it.tilResultat()) },
                         {
                             søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
@@ -241,6 +273,82 @@ internal fun Route.søknadRoutes(
         }
     }
 }
+
+internal fun validerSøknadstypePathMotBody(
+    typeFraPath: String,
+    søknadsinnholdJson: SøknadsinnholdJson,
+): Resultat? {
+    val pathType = when (typeFraPath.lowercase()) {
+        "alder" -> SøknadstypePath.ALDER
+        "ufore", "uføre" -> SøknadstypePath.UFORE
+        else -> return BadRequest.errorJson("Ukjent søknadstype i path", "ukjent_soknadstype_i_path")
+    }
+
+    val bodyType = when (søknadsinnholdJson) {
+        is SøknadsinnholdAlderJson -> SøknadstypePath.ALDER
+        is SøknadsinnholdUføreJson -> SøknadstypePath.UFORE
+    }
+
+    return if (pathType != bodyType) {
+        BadRequest.errorJson(
+            "Søknadstype i path matcher ikke body",
+            "soknadstype_i_path_matcher_ikke_body",
+        )
+    } else {
+        null
+    }
+}
+
+private enum class SøknadstypePath {
+    ALDER,
+    UFORE,
+}
+
+internal const val UGYLDIG_SOKNADSINNHOLD_INPUT_CODE = "ugyldig_soknadsinnhold_input"
+
+private data class UgyldigSøknadsinnholdValideringFeilResponse(
+    val message: String,
+    val code: String,
+    val errors: List<ErrorJson>,
+)
+
+internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
+    val errors = map {
+        ErrorJson(
+            message = "Ugyldig input i felt ${it.felt}: ${it.begrunnelse}",
+            code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+        )
+    }
+
+    return Resultat.json(
+        httpCode = BadRequest,
+        json = serialize(
+            UgyldigSøknadsinnholdValideringFeilResponse(
+                message = "Ugyldig søknadsinnhold",
+                code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+                errors = errors,
+            ),
+        ),
+    )
+}
+
+private fun UgyldigSøknadsinnholdException.tilUgyldigSøknadsinnholdInput(): UgyldigSøknadsinnholdInput =
+    UgyldigSøknadsinnholdInput(
+        felt = felt,
+        begrunnelse = begrunnelse,
+    )
+
+private fun DateTimeParseException.tilUgyldigSøknadsinnholdInput(): UgyldigSøknadsinnholdInput =
+    UgyldigSøknadsinnholdInput(
+        felt = "dato",
+        begrunnelse = "ugyldig datoformat",
+    )
+
+private fun UgyldigFnrException.tilUgyldigSøknadsinnholdInput(): UgyldigSøknadsinnholdInput =
+    UgyldigSøknadsinnholdInput(
+        felt = "fnr",
+        begrunnelse = "ugyldig fødselsnummer",
+    )
 
 fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson

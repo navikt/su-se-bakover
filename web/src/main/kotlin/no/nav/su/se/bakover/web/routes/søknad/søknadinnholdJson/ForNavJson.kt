@@ -39,7 +39,10 @@ sealed interface ForNavJson {
             return when (str) {
                 "fullmektig" -> ForNav.DigitalSøknad.Vergemål.FULLMEKTIG
                 "verge" -> ForNav.DigitalSøknad.Vergemål.VERGE
-                else -> throw IllegalArgumentException("Vergemål er ugyldig")
+                else -> throw UgyldigSøknadsinnholdException(
+                    felt = "forNav.harFullmektigEllerVerge",
+                    begrunnelse = "ukjent verdi",
+                )
             }
         }
     }
@@ -59,7 +62,10 @@ sealed interface ForNavJson {
             if (enumContains<ForNav.Papirsøknad.GrunnForPapirinnsending>(str)) {
                 ForNav.Papirsøknad.GrunnForPapirinnsending.valueOf(str)
             } else {
-                throw IllegalArgumentException("Ugyldig grunn")
+                throw UgyldigSøknadsinnholdException(
+                    felt = "forNav.grunnForPapirinnsending",
+                    begrunnelse = "ukjent verdi",
+                )
             }
     }
 

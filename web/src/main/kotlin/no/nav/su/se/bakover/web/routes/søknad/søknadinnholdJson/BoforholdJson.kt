@@ -37,7 +37,10 @@ data class BoforholdJson(
                 bruksenhet = borPåAdresse.bruksenhet,
             )
             ingenAdresseGrunn != null -> OppgittAdresse.IngenAdresse(ingenAdresseGrunn)
-            else -> throw IllegalArgumentException("Prøvde å opprette boforhold med borPåAdresse, og ingenAdressegrunn som null")
+            else -> throw UgyldigSøknadsinnholdException(
+                felt = "boforhold.borPåAdresse",
+                begrunnelse = "borPåAdresse eller ingenAdresseGrunn må være satt",
+            )
         }
 
         return Boforhold.tryCreate(
@@ -57,7 +60,10 @@ data class BoforholdJson(
             "EKTEMAKE_SAMBOER" -> Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
             "VOKSNE_BARN" -> Boforhold.DelerBoligMed.VOKSNE_BARN
             "ANNEN_VOKSEN" -> Boforhold.DelerBoligMed.ANNEN_VOKSEN
-            else -> throw IllegalArgumentException("delerBoligMed feltet er ugyldig")
+            else -> throw UgyldigSøknadsinnholdException(
+                felt = "boforhold.delerBoligMed",
+                begrunnelse = "ukjent verdi",
+            )
         }
     }
 

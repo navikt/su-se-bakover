@@ -23,7 +23,10 @@ data class OppholdstillatelseJson(
         return when (str) {
             "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG
             "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
-            else -> throw IllegalArgumentException("Ikke gyldig oppholdstillatelse type")
+            else -> throw UgyldigSøknadsinnholdException(
+                felt = "oppholdstillatelse.typeOppholdstillatelse",
+                begrunnelse = "ukjent verdi",
+            )
         }
     }
 
