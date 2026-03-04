@@ -161,7 +161,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
-            reguleringRepo.lagre(regulering)
+            lagreRegulering(sak, regulering)
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
@@ -321,19 +321,20 @@ class ReguleringAutomatiskServiceImpl(
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
                 }
-                sessionFactory.withTransactionContext { tx ->
-                    val manuellOpprettet = regulering.endreTilManuell(message)
-                    reguleringRepo.lagre(manuellOpprettet, tx)
-                    val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
-                    statistikkService.lagre(
-                        StatistikkEvent.Behandling.Regulering.Opprettet(
-                            manuellOpprettet,
-                            relatertId,
-                        ),
-                        tx,
-                    )
-                }
+                val manuellOpprettet = regulering.endreTilManuell(message)
+                lagreRegulering(sak, manuellOpprettet)
             }
+        }
+    }
+
+    private fun lagreRegulering(sak: Sak, regulering: ReguleringUnderBehandling) {
+        sessionFactory.withTransactionContext { tx ->
+            reguleringRepo.lagre(regulering, tx)
+            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+            statistikkService.lagre(
+                StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
+                tx,
+            )
         }
     }
 }
