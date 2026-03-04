@@ -29,14 +29,21 @@ fun nyDigitalSøknad(
     client: HttpClient,
     sakstype: Sakstype = Sakstype.UFØRE,
 ): String {
-    return nySøknad(
-        requestJson = when (sakstype) {
-            Sakstype.UFØRE -> NySøknadJson.Request.nyDigitalSøknad(fnr)
-            Sakstype.ALDER -> NySøknadJson.Request.nyDigitalAlderssøknad(fnr, SharedRegressionTestData.epsFnr)
-        },
-        brukerrolle = Brukerrolle.Veileder,
-        client = client,
-    )
+    return when (sakstype) {
+        Sakstype.UFØRE -> nySøknad(
+            requestJson = NySøknadJson.Request.nyDigitalSøknad(fnr),
+            endpoint = "/soknad/ufore",
+            brukerrolle = Brukerrolle.Veileder,
+            client = client,
+        )
+
+        Sakstype.ALDER -> nySøknad(
+            requestJson = NySøknadJson.Request.nyDigitalAlderssøknad(fnr, SharedRegressionTestData.epsFnr),
+            endpoint = "/soknad/alder",
+            brukerrolle = Brukerrolle.Veileder,
+            client = client,
+        )
+    }
 }
 
 fun nyDigitalAlderssøknad(
@@ -104,6 +111,7 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
 ): String {
     return nySøknad(
         requestJson = requestJson,
+        endpoint = "/soknad/ufore",
         brukerrolle = brukerrolle,
         client = this.client,
     ).also {
@@ -128,6 +136,7 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
  */
 private fun nySøknad(
     requestJson: String,
+    endpoint: String,
     // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
     brukerrolle: Brukerrolle,
     client: HttpClient,
@@ -135,7 +144,7 @@ private fun nySøknad(
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "/soknad/ufore",
+            endpoint,
             listOf(brukerrolle),
             client = client,
         ) {
@@ -155,19 +164,10 @@ private fun nyAlderssøknad(
     brukerrolle: Brukerrolle,
     client: HttpClient,
 ): String {
-    return runBlocking {
-        defaultRequest(
-            HttpMethod.Post,
-            "/soknad/alder",
-            listOf(brukerrolle),
-            client = client,
-        ) {
-            setBody(requestJson)
-        }.apply {
-            withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
-                contentType() shouldBe ContentType.parse("application/json")
-            }
-        }.bodyAsText()
-    }
+    return nySøknad(
+        requestJson = requestJson,
+        endpoint = "/soknad/alder",
+        brukerrolle = brukerrolle,
+        client = client,
+    )
 }
