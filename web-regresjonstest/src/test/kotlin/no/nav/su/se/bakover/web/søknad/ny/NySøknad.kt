@@ -51,11 +51,12 @@ fun nyDigitalAlderssøknad(
     epsFnr: String = SharedRegressionTestData.epsFnr,
     client: HttpClient,
 ): String {
-    return nyAlderssøknad(
+    return nySøknad(
         requestJson = NySøknadJson.Request.nyDigitalAlderssøknad(
             brukerFnr = brukerFnr,
             epsFnr = epsFnr,
         ),
+        endpoint = "/soknad/alder",
         brukerrolle = Brukerrolle.Veileder,
         client = client,
     )
@@ -156,18 +157,4 @@ private fun nySøknad(
             }
         }.bodyAsText()
     }
-}
-
-private fun nyAlderssøknad(
-    requestJson: String,
-    // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
-    brukerrolle: Brukerrolle,
-    client: HttpClient,
-): String {
-    return nySøknad(
-        requestJson = requestJson,
-        endpoint = "/soknad/alder",
-        brukerrolle = brukerrolle,
-        client = client,
-    )
 }
