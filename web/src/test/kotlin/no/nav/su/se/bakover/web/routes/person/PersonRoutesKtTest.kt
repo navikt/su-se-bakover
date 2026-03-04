@@ -150,6 +150,7 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
                         KunneIkkeHentePerson.Ukjent.left()
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
@@ -187,6 +188,7 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
                         KunneIkkeHentePerson.FantIkkePerson.left()
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
@@ -224,6 +226,7 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
                         KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
                     override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")

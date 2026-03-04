@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import person.domain.AdresseopplysningerMedMetadata
 import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -62,6 +63,9 @@ data class PersonOppslagStub(
         }
 
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+
+    override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
+        KunneIkkeHentePerson.Ukjent.left()
 
     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
         nyTestPerson(fnr).let {

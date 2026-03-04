@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import common.presentation.beregning.FradragResponseJson
+import common.presentation.beregning.FradragResponseJson.Companion.toJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.inntekt.domain.grunnlag.FradragFactory

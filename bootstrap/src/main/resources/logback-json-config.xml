@@ -9,9 +9,8 @@
             <includeMdcKeyName>TOKENTYPE</includeMdcKeyName>
             <includeMdcKeyName>ROLES</includeMdcKeyName>
             <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
-                <!-- Making stacktraces shorter, because see https://doc.nais.io/observability/logs/examples#issues-with-long-log-messages -->
-                <maxDepthPerThrowable>20</maxDepthPerThrowable>
-                <maxLength>4096</maxLength>
+                <maxDepthPerThrowable>100</maxDepthPerThrowable>
+                <maxLength>11000</maxLength>
                 <rootCauseFirst>true</rootCauseFirst>
                 <shortenedClassNameLength>20</shortenedClassNameLength>
                 <exclude>^sun\.</exclude>

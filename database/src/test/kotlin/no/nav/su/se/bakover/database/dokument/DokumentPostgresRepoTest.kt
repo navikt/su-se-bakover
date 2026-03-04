@@ -35,10 +35,10 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
         val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
 
         val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-        val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget().second
-        val klage = testDataHelper.persisterKlageOversendt(
-            vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        )
+        val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget(
+            sakOgVedtak = sak to vedtak,
+        ).second
+        val klage = testDataHelper.persisterKlageOversendt(vedtak = vedtak)
 
         // Dette er en snarvei for å teste alle referansene til et dokument og ikke noe som vil oppstå naturlig.
         val original = Dokument.MedMetadata.Vedtak(
@@ -126,6 +126,50 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
         val hentetKopi = dokumentRepo.hentDokument(kopi.id) as Dokument.MedMetadata.Vedtak
         hentetKopi.erKopi shouldBe true
         hentetKopi.ekstraMottaker shouldBe kopi.ekstraMottaker
+    }
+
+    @Test
+    fun `hentForSak inkluderer kopier for informasjon viktig`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
+        val (sak, revurdering) = testDataHelper.persisterRevurderingIverksattInnvilget().let {
+            it.first to it.second
+        }
+
+        val original = Dokument.MedMetadata.Informasjon.Viktig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            tittel = "forhandsvarsel",
+            generertDokument = minimumPdfAzeroPadded(),
+            generertDokumentJson = """{"some": "json"}""",
+            metadata = Dokument.Metadata(
+                sakId = sak.id,
+                revurderingId = revurdering.id.value,
+            ),
+            distribueringsadresse = null,
+        )
+
+        val kopi = original.copy(
+            id = UUID.randomUUID(),
+            tittel = "${original.tittel} (KOPI)",
+            erKopi = true,
+            ekstraMottaker = "12345678910",
+            navnEkstraMottaker = "Kopi Person",
+            distribueringsadresse = nyDistribueringsAdresse(),
+        )
+
+        dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
+        dokumentRepo.lagre(kopi, testDataHelper.sessionFactory.newTransactionContext())
+
+        val forSak = dokumentRepo.hentForSak(sak.id)
+        forSak shouldHaveSize 2
+        forSak.filterIsInstance<Dokument.MedMetadata.Informasjon.Viktig>().count { it.erKopi } shouldBe 1
+        dokumentRepo.hentForRevurdering(revurdering.id.value) shouldHaveSize 1
+
+        val hentetKopi = dokumentRepo.hentDokument(kopi.id) as Dokument.MedMetadata.Informasjon.Viktig
+        hentetKopi.erKopi shouldBe true
+        hentetKopi.ekstraMottaker shouldBe kopi.ekstraMottaker
+        hentetKopi.navnEkstraMottaker shouldBe kopi.navnEkstraMottaker
     }
 
     @Test

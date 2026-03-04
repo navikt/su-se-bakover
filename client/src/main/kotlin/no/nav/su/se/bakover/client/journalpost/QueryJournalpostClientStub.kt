@@ -73,7 +73,8 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
             datoOpprettet = LocalDate.of(2020, 1, 1),
             utsendingsinfo = Utsendingsinfo(
                 fysiskpostSendt = "Stubveien 1\n0001 Oslo\nNORGE",
-                digitalpostSendt = null,
+                digitalpostSendt = false,
+                varselSendt = emptyList(),
             ),
             dokumenter = listOf(
                 DokumentInfoMedVarianter(

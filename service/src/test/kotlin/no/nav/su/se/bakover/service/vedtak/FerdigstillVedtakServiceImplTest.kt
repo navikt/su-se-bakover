@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -277,6 +278,7 @@ internal class FerdigstillVedtakServiceImplTest {
             sakId = sak.id,
             referanseId = vedtak.behandling.id.value,
             referanseType = ReferanseTypeMottaker.REVURDERING,
+            brevtype = Brevtype.VEDTAK,
         )
 
         FerdigstillVedtakServiceMocks(
@@ -338,7 +340,15 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(vedtak.attestant.navIdent) },
             )
 
-            verify(mottakerService).hentMottaker(any(), any(), anyOrNull())
+            verify(mottakerService).hentMottaker(
+                argThat {
+                    it.referanseType shouldBe ReferanseTypeMottaker.REVURDERING
+                    it.referanseId shouldBe vedtak.behandling.id.value
+                    it.brevtype shouldBe Brevtype.VEDTAK
+                },
+                argThat { it shouldBe sak.id },
+                eq(TestSessionFactory.transactionContext),
+            )
 
             org.mockito.kotlin.verifyNoMoreInteractions(
                 oppgaveService,

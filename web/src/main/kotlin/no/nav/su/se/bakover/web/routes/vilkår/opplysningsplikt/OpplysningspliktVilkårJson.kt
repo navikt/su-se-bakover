@@ -16,16 +16,16 @@ import vilkår.opplysningsplikt.domain.VurderingsperiodeOpplysningsplikt
 import java.time.Clock
 import java.util.UUID
 
-internal data class OpplysningspliktVilkårJson(
+data class OpplysningspliktVilkårJson(
     val vurderinger: List<VurderingsperiodeOpplysningspliktVilkårJson>,
 )
 
-internal enum class OpplysningspliktBeskrivelseJson {
+enum class OpplysningspliktBeskrivelseJson {
     TilstrekkeligDokumentasjon,
     UtilstrekkeligDokumentasjon,
 }
 
-internal data class VurderingsperiodeOpplysningspliktVilkårJson(
+data class VurderingsperiodeOpplysningspliktVilkårJson(
     val periode: PeriodeJson,
     val beskrivelse: OpplysningspliktBeskrivelseJson,
 ) {
@@ -54,7 +54,7 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
     }
 }
 
-internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(
+fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(
     clock: Clock,
 ): Either<KunneIkkeLeggeTilOpplysningsplikt, OpplysningspliktVilkår.Vurdert> {
     val vurderingsperioder = this.map { json ->
@@ -66,7 +66,7 @@ internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(
         .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
 }
 
-internal fun OpplysningspliktVilkår.toJson(): OpplysningspliktVilkårJson? {
+fun OpplysningspliktVilkår.toJson(): OpplysningspliktVilkårJson? {
     return when (this) {
         OpplysningspliktVilkår.IkkeVurdert -> {
             null
@@ -78,20 +78,20 @@ internal fun OpplysningspliktVilkår.toJson(): OpplysningspliktVilkårJson? {
     }
 }
 
-internal fun OpplysningspliktVilkår.Vurdert.toJson(): OpplysningspliktVilkårJson {
+fun OpplysningspliktVilkår.Vurdert.toJson(): OpplysningspliktVilkårJson {
     return OpplysningspliktVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
     )
 }
 
-internal fun VurderingsperiodeOpplysningsplikt.toJson(): VurderingsperiodeOpplysningspliktVilkårJson {
+fun VurderingsperiodeOpplysningsplikt.toJson(): VurderingsperiodeOpplysningspliktVilkårJson {
     return VurderingsperiodeOpplysningspliktVilkårJson(
         periode = periode.toJson(),
         beskrivelse = grunnlag.beskrivelse.toJson(),
     )
 }
 
-internal fun OpplysningspliktBeskrivelse.toJson(): OpplysningspliktBeskrivelseJson {
+fun OpplysningspliktBeskrivelse.toJson(): OpplysningspliktBeskrivelseJson {
     return when (this) {
         OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> {
             OpplysningspliktBeskrivelseJson.TilstrekkeligDokumentasjon

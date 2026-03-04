@@ -83,7 +83,15 @@ data class JournalpostMedDokumenter(
 
 data class Utsendingsinfo(
     val fysiskpostSendt: String?,
-    val digitalpostSendt: String?,
+    val digitalpostSendt: Boolean,
+    val varselSendt: List<VarselSendt>,
+)
+
+data class VarselSendt(
+    val type: String,
+    val adresse: String,
+    val varslingstidspunkt: String?,
+    val passert40TimerSidenVarsling: Boolean?,
 )
 
 data class DokumentInfoMedVarianter(

@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.web.routes.grunnlag.fradrag
 
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
-internal enum class FradragskategoriJson {
+enum class FradragskategoriJson {
     Alderspensjon,
     Annet,
     Omstillingsstønad,
+    Overgangsstønad,
     Arbeidsavklaringspenger,
     Arbeidsinntekt,
     AvtalefestetPensjon,
@@ -39,6 +40,7 @@ internal enum class FradragskategoriJson {
             Fradragstype.Kategori.Alderspensjon -> Alderspensjon
             Fradragstype.Kategori.Annet -> Annet
             Fradragstype.Kategori.Omstillingsstønad -> Omstillingsstønad
+            Fradragstype.Kategori.Overgangsstønad -> Overgangsstønad
             Fradragstype.Kategori.Arbeidsavklaringspenger -> Arbeidsavklaringspenger
             Fradragstype.Kategori.Arbeidsinntekt -> Arbeidsinntekt
             Fradragstype.Kategori.AvkortingUtenlandsopphold -> AvkortingUtenlandsopphold

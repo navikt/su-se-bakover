@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
@@ -95,6 +96,7 @@ data class ProdClientsBuilder(
             safConfig = applicationConfig.clientsConfig.safConfig,
             azureAd = azureAd,
             suMetrics = suMetrics,
+            clock = clock,
         )
 
         return Clients(
@@ -162,6 +164,11 @@ data class ProdClientsBuilder(
                 azureAd = azureAd,
                 url = applicationConfig.clientsConfig.pesysConfig.url,
                 clientId = applicationConfig.clientsConfig.pesysConfig.clientId,
+            ),
+            aapApiInternClient = AapApiInternHttpClient(
+                azureAd = azureAd,
+                url = applicationConfig.clientsConfig.aapApiInternConfig.url,
+                clientId = applicationConfig.clientsConfig.aapApiInternConfig.clientId,
             ),
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
         )

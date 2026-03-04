@@ -28,7 +28,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
     override val sak: Sak,
     override val vedtak: Opphørsvedtak,
     override val utbetaling: Utbetaling.SimulertUtbetaling,
-    override val dokument: Dokument.MedMetadata?,
+    override val dokument: Dokument.MedMetadata.Vedtak?,
     val clock: Clock,
 ) : IverksettRevurderingResponse<Opphørsvedtak> {
     override fun ferdigstillIverksettelseITransaksjon(
@@ -38,7 +38,7 @@ data class IverksettOpphørtRevurderingMedUtbetalingResponse(
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
-        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {

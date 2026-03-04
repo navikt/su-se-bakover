@@ -69,7 +69,6 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
     }
 
     return this.mapNotNull { adressetype ->
-        // TODO ai: Se om man kan førenkle
         when (adressetype) {
             is Bostedsadresse ->
                 listOfNotNull(

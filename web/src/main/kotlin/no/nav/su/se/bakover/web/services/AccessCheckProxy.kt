@@ -14,6 +14,7 @@ import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -87,7 +88,7 @@ import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -249,6 +250,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import no.nav.su.se.bakover.web.services.aap.AapJobService
 import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
@@ -525,8 +527,8 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-                    return assertTilgangTilSakOgHentDokument(id)
+                override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
+                    return assertTilgangTilSakOgHentDokumentPdf(id)
                 }
 
                 override fun lagreDokument(
@@ -1301,7 +1303,7 @@ open class AccessCheckProxy(
                 override suspend fun hentAdresseForDokumentIdForInterneDokumenter(
                     dokumentId: UUID,
                     journalpostId: JournalpostId,
-                ) = assertTilgangTilSakOgHentDokument(dokumentId).fold(
+                ) = assertTilgangTilSakOgHentDokumentPdf(dokumentId).fold(
                     ifLeft = { AdresseServiceFeil.FantIkkeDokument.left() },
                     ifRight = {
                         services.journalpostAdresseService.hentAdresseForDokumentIdForInterneDokumenter(
@@ -1314,7 +1316,7 @@ open class AccessCheckProxy(
             reguleringManuellService = object : ReguleringManuellService {
                 override fun avslutt(
                     reguleringId: ReguleringId,
-                    avsluttetAv: NavIdentBruker,
+                    avsluttetAv: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
                     return services.reguleringManuellService.avslutt(reguleringId, avsluttetAv)
                 }
@@ -1377,7 +1379,7 @@ open class AccessCheckProxy(
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
                     supplement: Reguleringssupplement,
-                ): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
                     return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, supplement)
                 }
 
@@ -1571,6 +1573,12 @@ open class AccessCheckProxy(
                     // NO-OP
                 }
             },
+            aapJobService = object : AapJobService {
+                override fun hentMaksimum() {
+                    throw RuntimeException("Skal ikke kalle AAP-jobb fra routes")
+                    // NO-OP
+                }
+            },
             sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
                 override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
                     services.sakstatistikkBigQueryService.lastTilBigQuery(fraOgMed, tilOgMed)
@@ -1671,13 +1679,13 @@ open class AccessCheckProxy(
         personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertTilgangTilSakOgHentDokument(id: UUID): Either<FantIkkeDokument, Dokument.MedMetadata> {
-        return services.brev.hentDokument(id).fold(
+    private fun assertTilgangTilSakOgHentDokumentPdf(dokumentId: UUID): Either<FantIkkeDokument, DokumentPdf> {
+        return services.brev.hentDokumentPdf(dokumentId).fold(
             ifLeft = {
                 it.left()
             },
             ifRight = {
-                assertHarTilgangTilSak(it.metadata.sakId)
+                assertHarTilgangTilSak(it.sakId)
                 it.right()
             },
         )

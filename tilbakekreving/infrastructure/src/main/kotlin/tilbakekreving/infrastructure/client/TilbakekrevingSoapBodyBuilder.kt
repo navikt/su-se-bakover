@@ -16,6 +16,7 @@ import tilbakekreving.infrastructure.client.dto.TilbakekrevingsHjemmel
 import tilbakekreving.infrastructure.client.dto.Tilbakekrevingsresultat
 import tilbakekreving.infrastructure.client.dto.TilbakekrevingsÅrsak
 import økonomi.domain.Fagområde
+import økonomi.domain.KlasseKode
 import kotlin.math.max
 
 private val log = LoggerFactory.getLogger("tilbakekreving.infrastructure.client.buildTilbakekrevingSoapRequest")
@@ -75,7 +76,7 @@ internal fun buildTilbakekrevingSoapRequest(
                 }</ns3:kodeSkyld>
         </ns3:tilbakekrevingsbelop>
         <ns3:tilbakekrevingsbelop>
-          <ns3:kodeKlasse>KL_KODE_FEIL_INNT</ns3:kodeKlasse>
+          <ns3:kodeKlasse>${fagområde.toFeilKlassekode().name}</ns3:kodeKlasse>
           <ns3:belopOpprUtbet>0.00</ns3:belopOpprUtbet>
           <ns3:belopNy>${
                     max(
@@ -102,5 +103,12 @@ internal fun buildTilbakekrevingSoapRequest(
             it,
         )
         KunneIkkeSendeTilbakekrevingsvedtak.KlarteIkkeSerialisereRequest
+    }
+}
+
+private fun Fagområde.toFeilKlassekode(): KlasseKode {
+    return when (this) {
+        Fagområde.SUALDER -> KlasseKode.KL_KODE_FEIL
+        Fagområde.SUUFORE -> KlasseKode.KL_KODE_FEIL_INNT
     }
 }

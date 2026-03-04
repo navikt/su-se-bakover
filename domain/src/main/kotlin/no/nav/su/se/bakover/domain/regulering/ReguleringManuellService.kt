@@ -28,7 +28,7 @@ sealed interface KunneIkkeRegulereManuelt {
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
     data object ReguleringHarUtdatertePeriode : KunneIkkeRegulereManuelt
     data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
-    data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt
+    data class KunneIkkeFerdigstille(val feil: KunneIkkeBehandleRegulering) : KunneIkkeRegulereManuelt
 }
 
 sealed interface KunneIkkeAvslutte {
@@ -69,5 +69,5 @@ interface ReguleringManuellService {
         kommentar: String,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
-    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker): Either<KunneIkkeAvslutte, AvsluttetRegulering>
+    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker.Saksbehandler): Either<KunneIkkeAvslutte, AvsluttetRegulering>
 }

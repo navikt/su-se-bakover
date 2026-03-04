@@ -72,6 +72,7 @@ internal data class JournalpostMedDokumenterResponse(
 internal data class UtsendingsinfoResponse(
     val fysiskpostSendt: FysiskpostSendtResponse?,
     val digitalpostSendt: DigitalpostSendtResponse?,
+    val varselSendt: List<VarselSendtResponse> = emptyList(),
 )
 
 internal data class FysiskpostSendtResponse(
@@ -79,7 +80,14 @@ internal data class FysiskpostSendtResponse(
 )
 
 internal data class DigitalpostSendtResponse(
+    @param:JsonProperty("__typename")
+    val typeName: String?,
+)
+
+internal data class VarselSendtResponse(
+    val type: String?,
     val adresse: String?,
+    val varslingstidspunkt: String?,
 )
 
 internal data class DokumentInfoResponse(

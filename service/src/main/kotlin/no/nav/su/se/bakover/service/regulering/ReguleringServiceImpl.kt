@@ -12,17 +12,19 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
@@ -49,7 +51,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         isLiveRun: Boolean,
-    ): Either<KunneIkkeFerdigstilleOgIverksette, IverksattRegulering> {
+    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
         val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
             return it.left()
         }
@@ -58,7 +60,7 @@ class ReguleringServiceImpl(
             .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
 
         if (isLiveRun) {
-            lagreReguleringOgVedtakOgUtbetal(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+            ferdigstillRegulering(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
         }
 
         return iverksattRegulering.right()
@@ -68,7 +70,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sak: Sak,
         clock: Clock,
-    ): Either<KunneIkkeFerdigstilleOgIverksette, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
+    ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregn(
             satsFactory = satsFactory,
             begrunnelse = null,
@@ -79,7 +81,7 @@ class ReguleringServiceImpl(
                 "Ferdigstilling/iverksetting regulering: Beregning feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
                 kunneikkeBeregne.feil,
             )
-            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne.left()
+            return KunneIkkeBehandleRegulering.KunneIkkeBeregne.left()
         }
         val simulertUtbetaling = simulerReguleringOgUtbetaling(
             regulering,
@@ -87,7 +89,7 @@ class ReguleringServiceImpl(
             beregning,
         ).getOrElse {
             log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
-            return KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere.left()
+            return KunneIkkeBehandleRegulering.KunneIkkeSimulere.left()
         }
         return Pair(regulering.tilBeregnet(beregning, simulertUtbetaling.simulering), simulertUtbetaling).right()
     }
@@ -161,12 +163,13 @@ class ReguleringServiceImpl(
             }
     }
 
-    private fun lagreReguleringOgVedtakOgUtbetal(
+    override fun ferdigstillRegulering(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
-    ): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Unit> {
+        sessionContext: TransactionContext?,
+    ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
         return Either.catch {
-            sessionFactory.withTransactionContext { tx ->
+            sessionFactory.withTransactionContext(sessionContext) { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     simulertUtbetaling,
                     tx,
@@ -193,8 +196,8 @@ class ReguleringServiceImpl(
                             KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(it),
                         )
                     }
+                vedtak
             }
-            Unit
         }.mapLeft {
             log.error(
                 "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
@@ -204,9 +207,9 @@ class ReguleringServiceImpl(
                 it,
             )
             if (it is IverksettTransactionException) {
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(it.feil)
+                KunneIkkeBehandleRegulering.KunneIkkeUtbetale(it.feil)
             } else {
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale(
+                KunneIkkeBehandleRegulering.KunneIkkeUtbetale(
                     KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it),
                 )
             }

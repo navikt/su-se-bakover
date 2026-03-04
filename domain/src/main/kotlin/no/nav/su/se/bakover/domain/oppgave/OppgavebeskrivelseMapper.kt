@@ -21,6 +21,14 @@ data object OppgavebeskrivelseMapper {
     fun map(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String =
         personhendelser.sortedBy { it.opprettet.instant }.joinToString("\n\n") { mapOne(it) }
 
+    fun mapHendelsestyper(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String {
+        return personhendelser
+            .map { it.hendelse.toTypekode() }
+            .toSet()
+            .sorted()
+            .joinToString(", ")
+    }
+
     fun mapOne(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave): String =
         when (val hendelse = personhendelse.hendelse) {
             is Personhendelse.Hendelse.Dødsfall -> {
@@ -46,8 +54,19 @@ data object OppgavebeskrivelseMapper {
                     personhendelse.leggTilMetadataBeskrivelse()
             }
 
-            is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse\n" + personhendelse.leggtilGjelderEpsBeskrivelse() + personhendelse.leggTilMetadataBeskrivelse()
-            is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse\n" + personhendelse.leggtilGjelderEpsBeskrivelse() + personhendelse.leggTilMetadataBeskrivelse()
+            is Personhendelse.Hendelse.Bostedsadresse -> {
+                "Endring i bostedsadresse\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
+                    personhendelse.leggTilPdlFasitBeskrivelse() +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
+
+            is Personhendelse.Hendelse.Kontaktadresse -> {
+                "Endring i kontaktadresse\n" +
+                    personhendelse.leggtilGjelderEpsBeskrivelse() +
+                    personhendelse.leggTilPdlFasitBeskrivelse() +
+                    personhendelse.leggTilMetadataBeskrivelse()
+            }
         }
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggtilGjelderEpsBeskrivelse(): String {
@@ -65,6 +84,21 @@ data object OppgavebeskrivelseMapper {
             "\tEndringstype: ${this.endringstype}\n" +
             "\tHendelseId: ${this.id}\n" +
             "\tTidligere hendelseid: ${this.metadata.tidligereHendelseId ?: "Ingen tidligere"}"
+    }
+
+    private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggTilPdlFasitBeskrivelse(): String {
+        val oppsummering = this.pdlOppsummering ?: return ""
+        val linjer = buildList {
+            oppsummering.vurdertTidspunkt?.let { add("\tPDL vurdert tidspunkt: ${it.toOppgaveFormat()}") }
+            oppsummering.harBostedsadresseNå?.let { add("\tPDL har bostedsadresse nå: ${if (it) "Ja" else "Nei"}") }
+            oppsummering.harKontaktadresseNå?.let { add("\tPDL har kontaktadresse nå: ${if (it) "Ja" else "Nei"}") }
+            if (oppsummering.korrelertPåHistoriskForekomst == true) {
+                add("\tPDL-treff er historisk (ikke gjeldende) bostedsadresse.")
+            }
+            oppsummering.pdlTreffAdresse?.takeIf { it.isNotBlank() }?.let { add("\tHendelsen traff adresse i PDL: $it") }
+            oppsummering.begrunnelse?.takeIf { it.isNotBlank() }?.let { add("\tPDL-vurdering: $it") }
+        }
+        return if (linjer.isEmpty()) "" else linjer.joinToString(separator = "\n", postfix = "\n")
     }
 
     private fun SivilstandTyper.toReadableName() = when (this) {
@@ -101,5 +135,15 @@ data object OppgavebeskrivelseMapper {
         -> "Klagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt."
 
         is AvsluttetKlageinstansUtfall.Retur -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
+    }
+
+    private fun Personhendelse.Hendelse.toTypekode(): String {
+        return when (this) {
+            is Personhendelse.Hendelse.Dødsfall -> "DODSFALL"
+            is Personhendelse.Hendelse.Sivilstand -> "SIVILSTAND"
+            is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
+            is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE"
+            is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE"
+        }
     }
 }

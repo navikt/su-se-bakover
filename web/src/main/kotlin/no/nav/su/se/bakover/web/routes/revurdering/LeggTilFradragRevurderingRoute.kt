@@ -5,6 +5,8 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
+import common.presentation.beregning.FradragRequestJson
+import common.presentation.beregning.FradragRequestJson.Companion.toFradrag
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
@@ -27,8 +29,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson.Companion.toFradrag
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.time.Clock

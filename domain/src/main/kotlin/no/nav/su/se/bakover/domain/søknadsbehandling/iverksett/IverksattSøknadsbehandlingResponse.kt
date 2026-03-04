@@ -30,7 +30,7 @@ sealed interface IverksattSøknadsbehandlingResponse<T : IverksattSøknadsbehand
         lagreVedtak: (Vedtak, TransactionContext) -> Unit,
         statistikkObservers: List<StatistikkEventObserver>,
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
-        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,

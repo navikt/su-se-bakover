@@ -19,7 +19,7 @@ interface IverksettRevurderingResponse<out T : Revurderingsvedtak> {
     val sak: Sak
     val vedtak: T
     val utbetaling: Utbetaling.SimulertUtbetaling
-    val dokument: Dokument.MedMetadata?
+    val dokument: Dokument.MedMetadata.Vedtak?
 
     /**
      * @param annullerKontrollsamtale er kun relevant ved opphør.
@@ -31,7 +31,7 @@ interface IverksettRevurderingResponse<out T : Revurderingsvedtak> {
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
         annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
-        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering>
 }

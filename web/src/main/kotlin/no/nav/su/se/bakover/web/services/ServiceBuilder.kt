@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
+import no.nav.su.se.bakover.web.services.aap.AapJobServiceImpl
 import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
 import person.domain.PersonService
 import satser.domain.SatsFactory
@@ -170,6 +171,7 @@ data object ServiceBuilder {
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
             clock = clock,
+            mottakerService = mottakerService,
         )
         val iverksettSøknadsbehandlingService = buildIverksettSøknadsbehandlingService(
             databaseRepos = databaseRepos,
@@ -247,6 +249,7 @@ data object ServiceBuilder {
             personhendelseService = PersonhendelseServiceImpl(
                 sakRepo = databaseRepos.sak,
                 personhendelseRepo = databaseRepos.personhendelseRepo,
+                personOppslag = clients.personOppslag,
                 vedtakService = vedtakService,
                 oppgaveServiceImpl = kjerneTjenester.oppgaveService,
                 clock = clock,
@@ -258,6 +261,7 @@ data object ServiceBuilder {
                 clock = clock,
             ),
             pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
+            aapJobService = AapJobServiceImpl(client = clients.aapApiInternClient, clock = clock),
             sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
@@ -601,6 +605,8 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
             clock = clock,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
@@ -608,6 +614,8 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             reguleringService = reguleringService,
             clock = clock,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
@@ -621,6 +629,7 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
         vedtakService: VedtakServiceImpl,
         clock: Clock,
+        mottakerService: MottakerServiceImpl,
     ): KlageServices {
         val klageService = KlageServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -630,6 +639,7 @@ data object ServiceBuilder {
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = kjerneTjenester.oppgaveService,
+            mottakerService = mottakerService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,

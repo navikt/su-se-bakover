@@ -42,10 +42,11 @@ internal class DokumentJsonKtTest {
                     "id": "5ea19f74-7363-47ee-a8d7-5abf3a261817",
                     "opprettet": "1970-01-01T00:00:00Z",
                     "tittel": "vedtak om json",
-                    "dokument": "ZG9rdW1lbnRldA==",
+                    "type": "VEDTAK",
                     "journalført": false,
                     "journalpostId": null,
-                    "brevErBestilt": false
+                    "brevErBestilt": false,
+                    "brevbestillingId": null
                 }
                ]
         """.trimIndent()

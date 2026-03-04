@@ -89,11 +89,13 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     clock = clock,
+                    fritekstService = fritekstService,
                 ),
                 forhåndsvisVedtaksbrevTilbakekrevingsbehandlingService = ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     brevService = brevService,
+                    fritekstService = fritekstService,
                 ),
                 knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     kravgrunnlagRepo = kravgrunnlagRepo,
@@ -227,6 +229,7 @@ class TilbakekrevingServices(
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                     sessionFactory = sessionFactory,
                     clock = clock,
+                    fritekstService = fritekstService,
                 ),
                 annullerKravgrunnlagService = AnnullerKravgrunnlagService(
                     tilgangstyring = tilgangstyringService,

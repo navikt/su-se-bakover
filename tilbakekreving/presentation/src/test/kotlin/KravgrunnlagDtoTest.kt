@@ -228,4 +228,105 @@ internal class KravgrunnlagDtoTest {
             Kravgrunnlag::hendelseId,
         )
     }
+
+    @Test
+    fun `mapper nyopprettet kravgrunnlag for alder`() {
+        val input = lagKravgrunnlagRootDto(
+            kodeFagområde = Fagområde.SUALDER.name,
+            kodeKlasseYtelse = KlasseKode.SUALDER.name,
+            kodeKlasseFeil = KlasseKode.KL_KODE_FEIL.name,
+        )
+
+        val xml = KravgrunnlagDtoMapper.toXml(input).getOrFail()
+
+        val dto = KravgrunnlagDtoMapper.toDto(xml).getOrFail() as KravgrunnlagRootDto
+        val tilbakekrevingsbeløp = dto.kravgrunnlagDto.tilbakekrevingsperioder.single().tilbakekrevingsbeløp
+        dto.kravgrunnlagDto.kodeFagområde shouldBe Fagområde.SUALDER.name
+        tilbakekrevingsbeløp.single { it.typeKlasse == KlasseType.YTEL.name }.kodeKlasse shouldBe KlasseKode.SUALDER.name
+        tilbakekrevingsbeløp.single { it.typeKlasse == KlasseType.FEIL.name }.kodeKlasse shouldBe KlasseKode.KL_KODE_FEIL.name
+
+        KravgrunnlagDtoMapper.toKravgrunnlag(RåttKravgrunnlag(xml)).getOrFail().shouldBeEqualToIgnoringFields(
+            Kravgrunnlag(
+                hendelseId = HendelseId.generer(),
+                saksnummer = Saksnummer(2464),
+                eksternKravgrunnlagId = "298607",
+                eksternVedtakId = "436207",
+                eksternKontrollfelt = "2021-01-01-02.02.03.456789",
+                status = Kravgrunnlagstatus.Nytt,
+                behandler = "K231B433",
+                utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
+                eksternTidspunkt = fixedTidspunkt,
+                grunnlagsperioder = listOf(
+                    Kravgrunnlag.Grunnlagsperiode(
+                        periode = oktober(2021),
+                        betaltSkattForYtelsesgruppen = 4395,
+                        bruttoTidligereUtbetalt = 2000,
+                        bruttoNyUtbetaling = 1000,
+                        bruttoFeilutbetaling = 1000,
+                        skatteProsent = BigDecimal("43.9983").setScale(4, RoundingMode.HALF_UP),
+                    ),
+                ),
+            ),
+            Kravgrunnlag::hendelseId,
+        )
+    }
+
+    private fun lagKravgrunnlagRootDto(
+        kodeFagområde: String,
+        kodeKlasseYtelse: String,
+        kodeKlasseFeil: String,
+    ): KravgrunnlagRootDto {
+        return KravgrunnlagRootDto(
+            kravgrunnlagDto = KravgrunnlagDto(
+                kravgrunnlagId = "298607",
+                vedtakId = "436207",
+                kodeStatusKrav = "NY",
+                kodeFagområde = kodeFagområde,
+                fagsystemId = "2464",
+                datoVedtakFagsystem = null,
+                vedtakIdOmgjort = null,
+                vedtakGjelderId = "18108619852",
+                idTypeGjelder = "PERSON",
+                utbetalesTilId = "18108619852",
+                idTypeUtbet = "PERSON",
+                kodeHjemmel = null,
+                renterBeregnes = null,
+                enhetAnsvarlig = "8020",
+                enhetBosted = "8020",
+                enhetBehandl = "8020",
+                kontrollfelt = "2021-01-01-02.02.03.456789",
+                saksbehId = "K231B433",
+                utbetalingId = "268e62fb-3079-4e8d-ab32-ff9fb9",
+                tilbakekrevingsperioder = listOf(
+                    KravgrunnlagDto.Tilbakekrevingsperiode(
+                        periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
+                            fraOgMed = "2021-10-01",
+                            tilOgMed = "2021-10-31",
+                        ),
+                        skattebeløpPerMåned = "4395.00",
+                        tilbakekrevingsbeløp = listOf(
+                            KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = kodeKlasseFeil,
+                                typeKlasse = KlasseType.FEIL.name,
+                                belopOpprUtbet = "0.00",
+                                belopNy = "1000.00",
+                                belopTilbakekreves = "0.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "0.0000",
+                            ),
+                            KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = kodeKlasseYtelse,
+                                typeKlasse = KlasseType.YTEL.name,
+                                belopOpprUtbet = "2000.00",
+                                belopNy = "1000.00",
+                                belopTilbakekreves = "1000.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "43.9983",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
 }

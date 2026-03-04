@@ -97,7 +97,6 @@ sealed interface Brevvalg {
              */
             data class InformasjonsbrevMedFritekst(
                 override val fritekst: String,
-                // TODO jah: Spør John Are om vi trenger en begrunnelse i dette tilfellet.
             ) : SkalSendeBrev {
                 override val begrunnelse = null
 

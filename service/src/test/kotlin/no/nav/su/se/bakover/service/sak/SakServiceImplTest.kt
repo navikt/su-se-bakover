@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.right
+import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
@@ -319,6 +320,7 @@ internal class SakServiceImplTest {
                 generertDokument = PdfA(content = "".toByteArray()),
                 //language=json
                 generertDokumentJson = """{"saksbehandler":"saksbehandler","journaltittel":"Vedtaksbrev om nytt vedtak","distribueringsadresse":null,"distribusjonstype":"VEDTAK","kommentar":"Pdf er lastet opp manuelt. Innholdet i brevet er ukjent"}""",
+                brevtype = Brevtype.OPPLASTET_PDF_VEDTAK,
             ),
             metadata = Dokument.Metadata(sakId = expecedSakId),
             distribueringsadresse = null,

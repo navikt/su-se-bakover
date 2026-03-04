@@ -38,18 +38,26 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     val iverksattBehandling = søknadsbehandling.iverksett(attestering)
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
-    val dokument = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory, fritekst))
-        .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
-        .leggTilMetadata(
-            Dokument.Metadata(
-                sakId = vedtak.behandling.sakId,
-                søknadId = null,
-                vedtakId = vedtak.id,
-                revurderingId = null,
-            ),
-            // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
-            distribueringsadresse = null,
-        )
+    val dokument = when (
+        val dokumentUtenMetadata = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory, fritekst))
+            .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
+    ) {
+        is Dokument.UtenMetadata.Vedtak -> {
+            dokumentUtenMetadata.leggTilMetadata(
+                Dokument.Metadata(
+                    sakId = vedtak.behandling.sakId,
+                    søknadId = null,
+                    vedtakId = vedtak.id,
+                    revurderingId = null,
+                ),
+                // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+                distribueringsadresse = null,
+            )
+        }
+        is Dokument.UtenMetadata.Informasjon -> {
+            return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
+        }
+    }
 
     return IverksattAvslåttSøknadsbehandlingResponse(
         sak = this.oppdaterSøknadsbehandling(iverksattBehandling)

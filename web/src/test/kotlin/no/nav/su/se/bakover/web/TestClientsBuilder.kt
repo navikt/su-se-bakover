@@ -63,6 +63,7 @@ data class TestClientsBuilder(
         queryJournalpostClient = QueryJournalpostClientStub,
         skatteOppslag = SkatteClientStub(clock),
         pesysklient = mock(),
+        aapApiInternClient = mock(),
         suProxyClient = SuProxyClientStub(),
     )
 

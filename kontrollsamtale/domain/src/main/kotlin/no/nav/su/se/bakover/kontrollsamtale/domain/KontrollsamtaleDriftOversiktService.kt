@@ -19,5 +19,5 @@ data class KontrollsamtaleDriftOversikt(
 
 data class KontrollsamtaleMånedOversikt(
     val antallInnkallinger: Int,
-    val sakerMedStans: List<Long>,
+    val sakerMedStans: List<String>,
 )

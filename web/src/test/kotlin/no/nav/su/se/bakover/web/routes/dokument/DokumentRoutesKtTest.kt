@@ -2,9 +2,11 @@ package no.nav.su.se.bakover.web.routes.dokument
 
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.DokumentPdf
 import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.HttpMethod.Companion.Get
@@ -24,7 +26,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.util.Base64
 import java.util.UUID
 
 internal class DokumentRoutesKtTest {
@@ -41,6 +42,18 @@ internal class DokumentRoutesKtTest {
                     defaultRequest(
                         Get,
                         "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=vedtak",
+                        listOf(rolle),
+                    ).let {
+                        it.status shouldBe HttpStatusCode.Forbidden
+                    }
+                }
+
+            Brukerrolle.entries
+                .filterNot { it == Brukerrolle.Saksbehandler }
+                .forEach { rolle ->
+                    defaultRequest(
+                        Get,
+                        "/dokumenter/${UUID.randomUUID()}/pdf",
                         listOf(rolle),
                     ).let {
                         it.status shouldBe HttpStatusCode.Forbidden
@@ -131,12 +144,16 @@ internal class DokumentRoutesKtTest {
                         id = dokumentId.toString(),
                         tittel = "en fin tittel",
                         opprettet = Tidspunkt.EPOCH.toString(),
-                        dokument = Base64.getEncoder().encodeToString(pdf.getContent()),
+                        type = "ANNET",
                         journalført = false,
                         brevErBestilt = false,
+                        brevbestillingId = null,
                     ),
                 )
-                deserializeList<DokumentResponseJson>(it.bodyAsText()) shouldBe expected
+                val body = it.bodyAsText()
+                body.shouldNotContain("\"dokument\"")
+                body.shouldNotContain("\"pdfUrl\"")
+                deserializeList<DokumentResponseJson>(body) shouldBe expected
             }
         }
     }
@@ -171,11 +188,17 @@ internal class DokumentRoutesKtTest {
     }
 
     @Test
-    fun `finner dokument med angitt id`() {
+    fun `finner dokument-pdf med angitt id`() {
         val id = UUID.randomUUID()
         val dokument = dokumentMedMetadataInformasjonAnnet(id = id)
         val services = TestServicesBuilder.services(
-            brev = mock { on { hentDokument(any()) } doReturn dokument.right() },
+            brev = mock {
+                on { hentDokumentPdf(any()) } doReturn DokumentPdf(
+                    sakId = dokument.metadata.sakId,
+                    tittel = dokument.tittel,
+                    generertDokument = dokument.generertDokument,
+                ).right()
+            },
         )
 
         testApplication {
@@ -184,12 +207,78 @@ internal class DokumentRoutesKtTest {
             }
             defaultRequest(
                 method = Get,
-                uri = "/dokumenter/$id",
+                uri = "/dokumenter/$id/pdf",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ).let {
                 it.status shouldBe HttpStatusCode.OK
+                it.headers["Content-Type"] shouldBe "application/pdf"
+                it.headers["Content-Disposition"] shouldContain "inline"
                 it.readRawBytes() shouldBe dokument.generertDokument.getContent()
-                verify(services.brev).hentDokument(argThat { it shouldBe id })
+                verify(services.brev).hentDokumentPdf(argThat { it shouldBe id })
+            }
+        }
+    }
+
+    @Test
+    fun `kan hente dokument-pdf via id fra dokumentlisten`() {
+        val id = UUID.randomUUID()
+        val dokument = dokumentMedMetadataInformasjonAnnet(id = id)
+        val pdf = minimumPdfAzeroPadded()
+        val services = TestServicesBuilder.services(
+            brev = mock {
+                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.HentDokumenterForSøknad }) } doReturn listOf(
+                    Dokument.UtenMetadata.Informasjon.Annet(
+                        id = id,
+                        opprettet = Tidspunkt.EPOCH,
+                        tittel = "en fin tittel",
+                        generertDokument = pdf,
+                        generertDokumentJson = "",
+                    ),
+                )
+                on { hentDokumentPdf(any()) } doReturn DokumentPdf(
+                    sakId = dokument.metadata.sakId,
+                    tittel = dokument.tittel,
+                    generertDokument = dokument.generertDokument,
+                ).right()
+            },
+        )
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services)
+            }
+            val listResponse = defaultRequest(
+                method = Get,
+                uri = "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=søknad",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            )
+            listResponse.status shouldBe HttpStatusCode.OK
+            val dokumenter = deserializeList<DokumentResponseJson>(listResponse.bodyAsText())
+            dokumenter.first().id shouldBe id.toString()
+
+            defaultRequest(
+                method = Get,
+                uri = "/dokumenter/${dokumenter.first().id}/pdf",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ).let {
+                it.status shouldBe HttpStatusCode.OK
+                it.headers["Content-Disposition"] shouldContain "inline"
+            }
+        }
+    }
+
+    @Test
+    fun `gammelt dokument-endepunkt finnes ikke`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
+            }
+            defaultRequest(
+                method = Get,
+                uri = "/dokumenter/${UUID.randomUUID()}",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ).let {
+                it.status shouldBe HttpStatusCode.NotFound
             }
         }
     }
@@ -199,8 +288,9 @@ private data class DokumentResponseJson(
     val id: String,
     val tittel: String,
     val opprettet: String,
-    val dokument: String,
+    val type: String,
     val journalført: Boolean,
     val brevErBestilt: Boolean,
     val journalpostId: String? = null,
+    val brevbestillingId: String? = null,
 )

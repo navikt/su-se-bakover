@@ -4,12 +4,15 @@ import arrow.core.left
 import dokument.domain.brev.Brevvalg
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -107,5 +110,56 @@ internal class AvsluttetRevurderingTest {
             tidspunktAvsluttet = Tidspunkt.now(clock),
             avsluttetAv = saksbehandler,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet.left()
+    }
+
+    @Test
+    fun `AvsluttetRevurdering med avsluttetAv som er null`() {
+        val clock = tikkendeFixedClock()
+        val underliggende = simulertRevurdering(clock = clock).second
+        val avsluttet = AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = underliggende,
+            begrunnelse = "Avsluttet",
+            brevvalg = null,
+            tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = null,
+        ).getOrNull()!!
+        val satsFactory = satsFactoryTestPåDato()
+        val fritekst = "Dette er en fritekst"
+        try {
+            avsluttet.lagDokumentKommando(
+                satsFactory = satsFactory,
+                clock = clock,
+                fritekst = fritekst,
+            )
+            assert(false) { "Forventet exception" }
+        } catch (e: IllegalStateException) {
+            e.message shouldBe "AvsluttetRevurdering.avsluttetAv må være NavIdentBruker.Saksbehandler, men var null"
+        }
+    }
+
+    @Test
+    fun `AvsluttetRevurdering med avsluttetAv som ikke er saksbehandler`() {
+        val clock = tikkendeFixedClock()
+        val underliggende = simulertRevurdering(clock = clock).second
+        val feilAvsluttetAv = NavIdentBruker.Veileder("Z999999")
+        val avsluttet = AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = underliggende,
+            begrunnelse = "Avsluttet",
+            brevvalg = null,
+            tidspunktAvsluttet = Tidspunkt.now(clock),
+            avsluttetAv = feilAvsluttetAv,
+        ).getOrNull()!!
+        val satsFactory = satsFactoryTestPåDato()
+        val fritekst = "Dette er en fritekst"
+        try {
+            avsluttet.lagDokumentKommando(
+                satsFactory = satsFactory,
+                clock = clock,
+                fritekst = fritekst,
+            )
+            assert(false) { "Forventet exception" }
+        } catch (e: IllegalStateException) {
+            e.message shouldBe "AvsluttetRevurdering.avsluttetAv må være NavIdentBruker.Saksbehandler, men var Veileder"
+        }
     }
 }

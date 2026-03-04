@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
+import common.presentation.beregning.FradragRequestJson
+import common.presentation.grunnlag.UføregrunnlagJson
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
@@ -50,10 +52,8 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
@@ -88,9 +88,8 @@ internal fun Route.reguler(
         }
         post("beregn") {
             authorize(Brukerrolle.Saksbehandler) {
-                data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
                 call.withReguleringId { id ->
-                    call.withBody<Body> { body ->
+                    call.withBody<BeregnReguleringRequest> { body ->
                         sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
                         reguleringManuellService.beregnReguleringManuelt(
                             reguleringId = ReguleringId(id),
@@ -144,9 +143,8 @@ internal fun Route.reguler(
             }
             post("underkjenn") {
                 authorize(Brukerrolle.Attestant) {
-                    data class Body(val kommentar: String)
                     call.withReguleringId { id ->
-                        call.withBody<Body> { body ->
+                        call.withBody<UnderkjennReguleringBody> { body ->
                             if (body.kommentar.isBlank()) {
                                 call.svar(ugyldigBody)
                             }
@@ -289,6 +287,7 @@ internal fun Route.reguler(
                             var ikrafttredelse = ""
                             var grunnbeløp = ""
                             var omregningsfaktor = ""
+                            var lagreManuelle = ""
 
                             parts.forEachPart {
                                 when (it) {
@@ -302,6 +301,7 @@ internal fun Route.reguler(
                                             "gjeldendeSatsFra" -> gjeldendeSatsFra = it.value
                                             "grunnbeløp" -> grunnbeløp = it.value
                                             "omregningsfaktor" -> omregningsfaktor = it.value
+                                            "lagreManuelle" -> lagreManuelle = it.value
 
                                             else -> Feilresponser.ukjentMultipartFormDataField
                                         }
@@ -347,6 +347,7 @@ internal fun Route.reguler(
                                 gjeldendeSatsFra = LocalDate.parse(gjeldendeSatsFra),
                                 dryRunNyttGrunnbeløp = dryRunNyttGrunnbeløp,
                                 supplement = supplement,
+                                lagreManuelle = lagreManuelle.toBoolean(),
                             )
 
                             launch {
@@ -438,6 +439,10 @@ internal fun Route.reguler(
         }
     }
 }
+
+data class BeregnReguleringRequest(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
+
+data class UnderkjennReguleringBody(val kommentar: String)
 
 private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this.map { it.toFradrag() }.separateEither()

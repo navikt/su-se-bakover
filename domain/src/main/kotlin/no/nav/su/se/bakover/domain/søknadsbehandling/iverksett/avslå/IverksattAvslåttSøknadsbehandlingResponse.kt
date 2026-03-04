@@ -28,7 +28,7 @@ import java.time.Clock
 
 data class IverksattAvslåttSøknadsbehandlingResponse(
     override val sak: Sak,
-    val dokument: Dokument.MedMetadata,
+    val dokument: Dokument.MedMetadata.Vedtak,
     override val vedtak: Avslagsvedtak,
     val oppgaveSomSkalLukkes: OppgaveId,
     val clock: Clock,
@@ -49,7 +49,7 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
         statistikkObservers: List<StatistikkEventObserver>,
         // Denne er kun brukt ved innvilgelse, men må være med i interfacet for slippe å ha denne domenelogikken i servicelaget. På sikt bør denne gjøres asynkront.
         opprettPlanlagtKontrollsamtale: (VedtakInnvilgetSøknadsbehandling, TransactionContext) -> Unit,
-        lagreDokumentMedKopi: (Dokument.MedMetadata, TransactionContext) -> Unit,
+        lagreDokumentMedKopi: (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit,
         lukkOppgave: (IverksattSøknadsbehandling.Avslag, OppdaterOppgaveInfo.TilordnetRessurs) -> Either<KunneIkkeLukkeOppgave, Unit>,
         lagreSakstatistikk: (StatistikkEvent.Behandling, TransactionContext) -> Unit,
         genererOgLagreSkattedokument: (VedtakIverksattSøknadsbehandling, TransactionContext) -> Unit,

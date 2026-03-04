@@ -1,10 +1,11 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
+package common.presentation.beregning
 
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
+import common.presentation.beregning.UtenlandskInntektJson.Companion.toJson
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -44,7 +44,7 @@ internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat 
     }
 }
 
-internal data class FradragRequestJson(
+data class FradragRequestJson(
     val periode: PeriodeJson?,
     val type: String,
     val beskrivelse: String?,
@@ -52,7 +52,7 @@ internal data class FradragRequestJson(
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,
 ) {
-    internal fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
+    fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
         val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrElse {
             return it.left()
         }
@@ -68,7 +68,7 @@ internal data class FradragRequestJson(
         ).right()
     }
 
-    internal fun toFradrag(): Either<Resultat, Fradrag> {
+    fun toFradrag(): Either<Resultat, Fradrag> {
         return if (this.periode == null) {
             HttpStatusCode.BadRequest.errorJson(
                 "Fradrag mangler periode",
@@ -90,7 +90,7 @@ internal data class FradragRequestJson(
     }
 }
 
-internal data class FradragResponseJson(
+data class FradragResponseJson(
     val periode: PeriodeJson,
     val type: String,
     val beskrivelse: String?,

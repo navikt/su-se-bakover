@@ -17,7 +17,7 @@ import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.time.Clock
 import java.util.UUID
 
-internal fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
+fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
     return map { it.toDomain(clock) }
         .let { vurderingsperioder ->
             FlyktningVilkår.Vurdert.tryCreate(
@@ -28,7 +28,7 @@ internal fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(clock: 
         }
 }
 
-internal fun KunneIkkeLeggeTilFlyktningVilkår.tilResultat(): Resultat {
+fun KunneIkkeLeggeTilFlyktningVilkår.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
@@ -61,7 +61,7 @@ internal fun KunneIkkeLeggeTilFlyktningVilkår.tilResultat(): Resultat {
     }
 }
 
-internal data class LeggTilVurderingsperiodeFlyktningVilkårJson(
+data class LeggTilVurderingsperiodeFlyktningVilkårJson(
     val periode: PeriodeJson,
     val vurdering: FlyktningVurderingJson,
 ) {
@@ -90,17 +90,17 @@ enum class FlyktningVurderingJson {
     }
 }
 
-internal data class FlyktningVilkårJson(
+data class FlyktningVilkårJson(
     val vurderinger: List<VurderingsperiodeFlyktningVilkårJson>,
     val resultat: String,
 )
 
-internal data class VurderingsperiodeFlyktningVilkårJson(
+data class VurderingsperiodeFlyktningVilkårJson(
     val resultat: String,
     val periode: PeriodeJson,
 )
 
-internal fun FlyktningVilkår.toJson(): FlyktningVilkårJson? {
+fun FlyktningVilkår.toJson(): FlyktningVilkårJson? {
     return when (this) {
         FlyktningVilkår.IkkeVurdert -> {
             null
@@ -111,14 +111,14 @@ internal fun FlyktningVilkår.toJson(): FlyktningVilkårJson? {
     }
 }
 
-internal fun FlyktningVilkår.Vurdert.toJson(): FlyktningVilkårJson {
+fun FlyktningVilkår.Vurdert.toJson(): FlyktningVilkårJson {
     return FlyktningVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
         resultat = vurdering.toJson(),
     )
 }
 
-internal fun VurderingsperiodeFlyktning.toJson(): VurderingsperiodeFlyktningVilkårJson {
+fun VurderingsperiodeFlyktning.toJson(): VurderingsperiodeFlyktningVilkårJson {
     return VurderingsperiodeFlyktningVilkårJson(
         resultat = vurdering.toJson(),
         periode = periode.toJson(),

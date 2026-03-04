@@ -184,7 +184,7 @@ internal class OppgaveHttpClient(
                     behandlingstype = config.behandlingstype.toString(),
                     aktivDato = config.aktivDato,
                     fristFerdigstillelse = config.fristFerdigstillelse,
-                    prioritet = "NORM",
+                    prioritet = config.prioritet,
                     tilordnetRessurs = config.tilordnetRessurs?.toString(),
                     tildeltEnhetsnr = config.tildeltEnhetsnr,
                 ),

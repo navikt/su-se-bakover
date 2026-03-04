@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.service.klage
 
+import arrow.core.right
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -15,6 +17,8 @@ import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import person.domain.PersonService
 import java.time.Clock
@@ -28,6 +32,9 @@ internal data class KlageServiceMocks(
     val klageClient: KlageClient = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = defaultMock(),
+    val mottakerService: MottakerService = mock {
+        on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
+    },
     val queryJournalpostClient: QueryJournalpostClient = defaultMock(),
     val observer: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} },
     val dokumentHendelseRepo: DokumentHendelseRepo = defaultMock(),
@@ -44,6 +51,7 @@ internal data class KlageServiceMocks(
         klageClient = klageClient,
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
+        mottakerService = mottakerService,
         queryJournalpostClient = queryJournalpostClient,
         dokumentHendelseRepo = dokumentHendelseRepo,
         clock = clock,

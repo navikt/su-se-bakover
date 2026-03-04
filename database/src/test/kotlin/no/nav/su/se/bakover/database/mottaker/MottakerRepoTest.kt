@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.mottaker
 
+import dokument.domain.Brevtype
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
@@ -37,10 +38,11 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
             sakId = sak.id,
             referanseId = referanseId,
             referanseType = referanseType,
+            brevtype = Brevtype.VEDTAK,
         )
         repo.lagreMottaker(mottaker)
         repo.lagreMottaker(mottaker.copy(referanseId = UUID.randomUUID(), id = UUID.randomUUID())) // For å sjekke at ting går fint med en random annen ref
-        val ident = MottakerIdentifikator(referanseType, referanseId)
+        val ident = MottakerIdentifikator(referanseType, referanseId, Brevtype.VEDTAK)
         val hentetMottaker = repo.hentMottaker(ident)
         hentetMottaker shouldBe mottaker
         val nyMottaker = mottaker.copy(navn = "ny person")
@@ -49,5 +51,39 @@ internal class MottakerRepoTest(private val dataSource: DataSource) {
         hentetNymottaker shouldBe nyMottaker
         repo.slettMottaker(hentetNymottaker!!.id)
         repo.hentMottaker(ident) shouldBe null
+    }
+
+    @Test
+    fun `kan lagre og hente mottaker for klage`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.mottakerRepo
+        val referanseId = UUID.randomUUID()
+        val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val ident = MottakerIdentifikator(
+            referanseType = ReferanseTypeMottaker.KLAGE,
+            referanseId = referanseId,
+            brevtype = Brevtype.OVERSENDELSE_KA,
+        )
+
+        val mottaker1 = MottakerFnrDomain(
+            navn = "tester1",
+            foedselsnummer = sak.fnr,
+            adresse = Distribueringsadresse(
+                adresselinje1 = "adresselinje1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "1111",
+                poststed = "Oslo",
+            ),
+            sakId = sak.id,
+            referanseId = referanseId,
+            referanseType = ReferanseTypeMottaker.KLAGE,
+            brevtype = Brevtype.OVERSENDELSE_KA,
+        )
+
+        repo.lagreMottaker(mottaker1)
+
+        val mottaker = repo.hentMottaker(ident)
+        mottaker shouldBe mottaker1
     }
 }

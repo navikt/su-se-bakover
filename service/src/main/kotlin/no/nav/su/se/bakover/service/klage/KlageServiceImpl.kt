@@ -50,6 +50,8 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -60,6 +62,8 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import no.nav.su.se.bakover.service.brev.lagreKlagebrevMedKopi
+import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
@@ -75,6 +79,7 @@ class KlageServiceImpl(
     private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
+    private val mottakerService: MottakerService,
     private val queryJournalpostClient: QueryJournalpostClient,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val sakStatistikkService: SakStatistikkService,
@@ -365,10 +370,17 @@ class KlageServiceImpl(
                 log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak $vedtakId (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
 
+        val lagreKlagebrevMedKopi = lagreKlagebrevMedKopi(
+            brevService = brevService,
+            mottakerService = mottakerService,
+            referanseId = klage.id.value,
+            sakId = klage.sakId,
+        )
+
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
         try {
             sessionFactory.withTransactionContext { tx ->
-                brevService.lagreDokument(dokument, tx)
+                lagreKlagebrevMedKopi(dokument, tx)
                 klageRepo.lagre(oversendtKlage, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage)
                 observers.notify(sakStatistikkEvent, tx)
@@ -426,11 +438,21 @@ class KlageServiceImpl(
             // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
             distribueringsadresse = null,
         )
+        val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
+            brevService = brevService,
+            mottakerService = mottakerService,
+            referanseType = ReferanseTypeMottaker.KLAGE,
+            referanseId = klage.id.value,
+            sakId = klage.sakId,
+        )
         try {
             sessionFactory.withTransactionContext { tx ->
                 klageRepo.lagre(avvistKlage, tx)
                 vedtakService.lagreITransaksjon(vedtak, tx)
-                brevService.lagreDokument(dokument, tx)
+                when (dokument) {
+                    is Dokument.MedMetadata.Vedtak -> lagreVedtaksbrevMedKopi(dokument, tx)
+                    else -> brevService.lagreDokument(dokument, tx)
+                }
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Avvist(vedtak)
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)

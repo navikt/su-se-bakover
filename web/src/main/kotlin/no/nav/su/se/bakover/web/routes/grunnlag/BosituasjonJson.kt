@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 
-internal data class BosituasjonJson(
+data class BosituasjonJson(
     val type: String,
     val fnr: String?,
     val delerBolig: Boolean?,
@@ -13,13 +13,13 @@ internal data class BosituasjonJson(
     val periode: PeriodeJson,
 )
 
-internal fun List<Bosituasjon>.toJson(): List<BosituasjonJson> {
+fun List<Bosituasjon>.toJson(): List<BosituasjonJson> {
     return this.map {
         it.toJson()
     }
 }
 
-internal fun Bosituasjon.toJson(): BosituasjonJson {
+fun Bosituasjon.toJson(): BosituasjonJson {
     return when (this) {
         is Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen ->
             BosituasjonJson(

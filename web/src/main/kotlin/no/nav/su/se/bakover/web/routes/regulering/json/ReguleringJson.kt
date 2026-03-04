@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.routes.regulering.json
 
+import behandling.domain.BehandlingMedAttestering
+import common.presentation.attestering.AttesteringJson
+import common.presentation.attestering.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -22,7 +25,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 import java.util.UUID
 
-internal data class ReguleringJson(
+data class ReguleringJson(
     val id: UUID,
     val fnr: String,
     val opprettet: Tidspunkt,
@@ -40,6 +43,7 @@ internal data class ReguleringJson(
     val saksbehandler: String,
     val avsluttet: Avsluttet?,
     val sakstype: String,
+    val attesteringer: List<AttesteringJson>,
 ) {
     data class Avsluttet(val tidspunkt: Tidspunkt)
     enum class Status {
@@ -56,7 +60,7 @@ internal data class ReguleringJson(
     }
 }
 
-internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJson(
+fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJson(
     id = id.value,
     fnr = fnr.toString(),
     opprettet = opprettet,
@@ -93,13 +97,18 @@ internal fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = Reg
         is IverksattRegulering, is ReguleringUnderBehandling -> null
     },
     sakstype = sakstype.toJson(),
+    attesteringer = when (this) {
+        is BehandlingMedAttestering -> attesteringer.toJson()
+        else -> emptyList()
+    },
 )
 
-internal data class ManuellReguleringVisningJson(
+data class ManuellReguleringVisningJson(
     val gjeldendeVedtaksdata: GrunnlagsdataOgVilkårsvurderingerJson,
     val regulering: ReguleringJson,
 )
-internal fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
+
+fun ManuellReguleringVisning.toJson(formuegrenserFactory: FormuegrenserFactory) = ManuellReguleringVisningJson(
     gjeldendeVedtaksdata = gjeldendeVedtaksdata.toJson(formuegrenserFactory),
     regulering = regulering.toJson(formuegrenserFactory),
 )

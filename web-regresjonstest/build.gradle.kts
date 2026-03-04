@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":person:domain"))
     implementation(project(":behandling:common:domain"))
     implementation(project(":behandling:søknadsbehandling:domain"))
+    implementation(project(":common:presentation"))
     implementation(project(":behandling:revurdering:domain"))
     implementation(project(":grunnbeløp"))
     implementation(project(":satser"))

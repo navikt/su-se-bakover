@@ -4,9 +4,9 @@ import beregning.domain.Merknad
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
-internal fun List<Merknad.Beregning>.toJson() = map { it.toJson() }
+fun List<Merknad.Beregning>.toJson() = map { it.toJson() }
 
-internal fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
+fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
     return when (this) {
         is Merknad.Beregning.Avslag.BeløpErNull -> toJson()
         is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> toJson()
@@ -14,14 +14,14 @@ internal fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
     }
 }
 
-internal fun Merknad.Beregning.Avslag.BeløpErNull.toJson() = MerknadJson.BeregningJson.BeløpErNullJson
-internal fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toJson() =
+fun Merknad.Beregning.Avslag.BeløpErNull.toJson() = MerknadJson.BeregningJson.BeløpErNullJson
+fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.BeløpMellomNullOgToProsentAvHøySatsJson
 
-internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
+fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson
 
-internal sealed interface MerknadJson {
+sealed interface MerknadJson {
 
     @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

@@ -22,7 +22,7 @@ import vilkår.pensjon.domain.VurderingsperiodePensjon
 import java.time.Clock
 import java.util.UUID
 
-internal data class PensjonsopplysningerJson(
+data class PensjonsopplysningerJson(
     val folketrygd: PensjonsoppysningerSvarJson,
     val andreNorske: PensjonsoppysningerSvarJson,
     val utenlandske: PensjonsoppysningerSvarJson,
@@ -42,7 +42,7 @@ internal data class PensjonsopplysningerJson(
     }
 }
 
-internal fun Pensjonsopplysninger.toJson(): PensjonsopplysningerJson {
+fun Pensjonsopplysninger.toJson(): PensjonsopplysningerJson {
     return PensjonsopplysningerJson(
         folketrygd = søktPensjonFolketrygd.svar.toJson(),
         andreNorske = søktAndreNorskePensjoner.svar.toJson(),
@@ -149,7 +149,7 @@ enum class PensjonsoppysningerSvarJson {
     }
 }
 
-internal data class PensjonsVilkårJson(
+data class PensjonsVilkårJson(
     val vurderinger: List<VurderingsperiodePensjonsvilkårJson>,
     val resultat: String,
 )
@@ -162,13 +162,13 @@ private fun Vurdering.toJson(): String {
     }
 }
 
-internal data class VurderingsperiodePensjonsvilkårJson(
+data class VurderingsperiodePensjonsvilkårJson(
     val resultat: String,
     val periode: PeriodeJson,
     val pensjonsopplysninger: PensjonsopplysningerJson,
 )
 
-internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
+data class LeggTilVurderingsperiodePensjonsvilkårJson(
     val periode: PeriodeJson,
     val pensjonsopplysninger: PensjonsopplysningerJson,
 ) {
@@ -190,7 +190,7 @@ internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
     }
 }
 
-internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
+fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
     return map {
         it.toDomain(clock).getOrElse { return KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it).left() }
     }.let { vurderingsperioder ->
@@ -199,7 +199,7 @@ internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: C
     }
 }
 
-internal fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
+fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
     return when (this) {
         PensjonsVilkår.IkkeVurdert -> {
             null
@@ -211,14 +211,14 @@ internal fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
     }
 }
 
-internal fun PensjonsVilkår.Vurdert.toJson(): PensjonsVilkårJson {
+fun PensjonsVilkår.Vurdert.toJson(): PensjonsVilkårJson {
     return PensjonsVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
         resultat = vurdering.toJson(),
     )
 }
 
-internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkårJson {
+fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkårJson {
     return VurderingsperiodePensjonsvilkårJson(
         resultat = vurdering.toJson(),
         periode = periode.toJson(),
@@ -226,7 +226,7 @@ internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkår
     )
 }
 
-internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
+fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling

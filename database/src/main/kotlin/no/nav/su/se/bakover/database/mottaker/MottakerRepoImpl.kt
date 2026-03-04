@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.mottaker
 
+import dokument.domain.Brevtype
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -23,9 +24,6 @@ data class MottakerRepoImpl(
     private val dbMetrics: DbMetrics,
 ) : MottakerRepo {
 
-    /**
-     * Skal bare være en mottaker per "behandling" + type, skal vi støtte flere må denne skrives om til å hente ut flere
-     */
     override fun hentMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         transactionContext: TransactionContext?,
@@ -37,13 +35,16 @@ data class MottakerRepoImpl(
                 from mottaker
                 where referanse_type = :referanse_type
                   and referanse_id = :referanse_id
+                  and brevtype = :brevtype
                 """.trimIndent().hent(
                     mapOf(
                         "referanse_type" to mottakerIdentifikator.referanseType.name,
                         "referanse_id" to mottakerIdentifikator.referanseId,
+                        "brevtype" to mottakerIdentifikator.brevtype.name,
                     ),
                     session,
-                ) { rowToMottaker(it) }
+                    { rowToMottaker(it) },
+                )
             }
         }
 
@@ -67,7 +68,8 @@ data class MottakerRepoImpl(
                 adresse,
                 sakid,
                 referanse_type,
-                referanse_id
+                referanse_id,
+                brevtype
             ) values (
                 :id,
                 :navn,
@@ -76,7 +78,8 @@ data class MottakerRepoImpl(
                 :adresse::jsonb,
                 :sakid,
                 :referanse_type,
-                :referanse_id
+                :referanse_id,
+                :brevtype
             )
                 """.trimIndent().insert(
                     mapOf(
@@ -88,6 +91,7 @@ data class MottakerRepoImpl(
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
                         "referanse_id" to mottaker.referanseId,
+                        "brevtype" to mottaker.brevtype.name,
                     ),
                     session,
                 )
@@ -114,7 +118,8 @@ data class MottakerRepoImpl(
                 adresse = :adresse::jsonb,
                 sakid = :sakid,
                 referanse_type = :referanse_type,
-                referanse_id = :referanse_id
+                referanse_id = :referanse_id,
+                brevtype = :brevtype
             where id = :id
                 """.trimIndent().oppdatering(
                     mapOf(
@@ -126,6 +131,7 @@ data class MottakerRepoImpl(
                         "sakid" to mottaker.sakId,
                         "referanse_type" to mottaker.referanseType.name,
                         "referanse_id" to mottaker.referanseId,
+                        "brevtype" to mottaker.brevtype.name,
                     ),
                     session,
                 )
@@ -152,6 +158,11 @@ data class MottakerRepoImpl(
     private fun rowToMottaker(row: Row): MottakerDomain {
         val fnr = row.stringOrNull("foedselsnummer")
         val orgnr = row.stringOrNull("orgnummer")
+        val brevtypeRaw = row.stringOrNull("brevtype")
+            ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} mangler brevtype")
+        val brevtype = Brevtype.fraString(brevtypeRaw)
+            ?.takeIf { it == Brevtype.VEDTAK || it == Brevtype.FORHANDSVARSEL || it == Brevtype.OVERSENDELSE_KA }
+            ?: error("Ugyldig mottaker i DB: ${row.uuid("id")} har ugyldig brevtype=$brevtypeRaw")
 
         return when {
             fnr != null -> MottakerFnrDomain(
@@ -162,6 +173,7 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
+                brevtype = brevtype,
             )
 
             orgnr != null -> MottakerOrgnummerDomain(
@@ -172,6 +184,7 @@ data class MottakerRepoImpl(
                 sakId = row.uuid("sakid"),
                 referanseId = row.uuid("referanse_id"),
                 referanseType = ReferanseTypeMottaker.valueOf(row.string("referanse_type")),
+                brevtype = brevtype,
             )
 
             else -> error(

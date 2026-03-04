@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.domain.BehandlingMedOppgave
 import behandling.domain.Stønadsbehandling
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -155,6 +156,7 @@ class FerdigstillVedtakServiceImpl(
         }
     }
 
+    // TODO: kan vel slettes snart dette også kanskej om man skal sende brev om man får fiksa tk brev flyten?
     // Denne lager potensielt dokumenter for alle behandlinger men søknad lagrer de på forhånd så de skal ikke bli kjørt her. Se skalGenerereDokumentVedFerdigstillelse
     private fun lagreDokument(
         vedtak: VedtakSomKanRevurderes,
@@ -195,7 +197,15 @@ class FerdigstillVedtakServiceImpl(
             // SOS TODO: RM deenne kan slettes etter https://github.com/navikt/su-se-bakover/pull/2547 går i prod og har stått 24 t
             val mottaker = when (vedtak.behandling) {
                 is IverksattRevurdering -> {
-                    mottakerService.hentMottaker(MottakerIdentifikator(ReferanseTypeMottaker.REVURDERING, referanseId = vedtak.behandling.id.value), vedtak.sakId, transactionContext).getOrElse { null }
+                    mottakerService.hentMottaker(
+                        MottakerIdentifikator(
+                            ReferanseTypeMottaker.REVURDERING,
+                            referanseId = vedtak.behandling.id.value,
+                            brevtype = Brevtype.VEDTAK,
+                        ),
+                        vedtak.sakId,
+                        transactionContext,
+                    ).getOrElse { null }
                 }
                 else -> null
             }

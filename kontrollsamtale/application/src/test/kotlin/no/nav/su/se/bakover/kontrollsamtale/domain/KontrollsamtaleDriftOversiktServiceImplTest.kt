@@ -63,7 +63,7 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
             // Men velger å la en gjenstå med status innkalt for å teste filtrering på stans
             antallInnkallinger shouldBe 3
             sakerMedStans.size shouldBe 2
-            sakerMedStans.shouldContainAll(listOf(sak4.sakInfo.saksnummer.nummer, sak5.sakInfo.saksnummer.nummer))
+            sakerMedStans.shouldContainAll(listOf(sak4.sakInfo.saksnummer.nummer, sak5.sakInfo.saksnummer.nummer).map { it.toString() })
         }
     }
 

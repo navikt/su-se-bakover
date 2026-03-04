@@ -7,33 +7,33 @@ import vilkår.common.domain.Vurdering
 import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 
-internal data class UtenlandsoppholdVilkårJson(
+data class UtenlandsoppholdVilkårJson(
     val vurderinger: List<VurderingsperiodeUtenlandsoppholdJson>,
     val status: UtenlandsoppholdStatus,
 )
 
-internal fun UtenlandsoppholdVilkår.toJson(): UtenlandsoppholdVilkårJson? {
+fun UtenlandsoppholdVilkår.toJson(): UtenlandsoppholdVilkårJson? {
     return when (this) {
         UtenlandsoppholdVilkår.IkkeVurdert -> null
         is UtenlandsoppholdVilkår.Vurdert -> this.toJson()
     }
 }
 
-internal fun UtenlandsoppholdVilkår.Vurdert.toJson(): UtenlandsoppholdVilkårJson {
+fun UtenlandsoppholdVilkår.Vurdert.toJson(): UtenlandsoppholdVilkårJson {
     return UtenlandsoppholdVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
         status = vurdering.tilUtenlandsoppholdStatus(),
     )
 }
 
-internal fun VurderingsperiodeUtenlandsopphold.toJson(): VurderingsperiodeUtenlandsoppholdJson {
+fun VurderingsperiodeUtenlandsopphold.toJson(): VurderingsperiodeUtenlandsoppholdJson {
     return VurderingsperiodeUtenlandsoppholdJson(
         status = vurdering.tilUtenlandsoppholdStatus(),
         periode = periode.toJson(),
     )
 }
 
-internal fun Vurdering.tilUtenlandsoppholdStatus(): UtenlandsoppholdStatus {
+fun Vurdering.tilUtenlandsoppholdStatus(): UtenlandsoppholdStatus {
     return when (this) {
         Vurdering.Avslag -> UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet
         Vurdering.Innvilget -> UtenlandsoppholdStatus.SkalHoldeSegINorge
@@ -41,7 +41,7 @@ internal fun Vurdering.tilUtenlandsoppholdStatus(): UtenlandsoppholdStatus {
     }
 }
 
-internal data class VurderingsperiodeUtenlandsoppholdJson(
+data class VurderingsperiodeUtenlandsoppholdJson(
     val status: UtenlandsoppholdStatus,
     val periode: PeriodeJson,
 )
