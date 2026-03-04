@@ -18,5 +18,5 @@ val xmlMapper = XmlMapper(
     enable(SerializationFeature.INDENT_OUTPUT)
     disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT)
-    setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 }
