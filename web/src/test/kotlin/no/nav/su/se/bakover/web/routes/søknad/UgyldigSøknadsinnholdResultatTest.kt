@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 internal class UgyldigSøknadsinnholdResultatTest {
@@ -23,12 +23,34 @@ internal class UgyldigSøknadsinnholdResultatTest {
 
         resultat.httpCode shouldBe BadRequest
 
-        val body = JSONObject(resultat.json)
-        body.getString("code") shouldBe UGYLDIG_SOKNADSINNHOLD_INPUT_CODE
-
-        val errors = body.getJSONArray("errors")
-        errors.length() shouldBe 2
-        errors.getJSONObject(0).getString("code") shouldBe UGYLDIG_SOKNADSINNHOLD_INPUT_CODE
-        errors.getJSONObject(1).getString("code") shouldBe UGYLDIG_SOKNADSINNHOLD_INPUT_CODE
+        val body = deserialize<UgyldigSøknadsinnholdFeilResponse>(resultat.json)
+        body shouldBe UgyldigSøknadsinnholdFeilResponse(
+            message = "Ugyldig søknadsinnhold",
+            code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+            errors = listOf(
+                UgyldigSøknadsinnholdValideringsfeilResponse(
+                    felt = "formue.eiendomBrukesTil",
+                    begrunnelse = "inneholder mistenkelig innhold",
+                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+                ),
+                UgyldigSøknadsinnholdValideringsfeilResponse(
+                    felt = "inntektOgPensjon.andreYtelserINav",
+                    begrunnelse = "inneholder kontrolltegn",
+                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+                ),
+            ),
+        )
     }
+
+    private data class UgyldigSøknadsinnholdFeilResponse(
+        val message: String,
+        val code: String,
+        val errors: List<UgyldigSøknadsinnholdValideringsfeilResponse>,
+    )
+
+    private data class UgyldigSøknadsinnholdValideringsfeilResponse(
+        val felt: String,
+        val begrunnelse: String,
+        val code: String,
+    )
 }

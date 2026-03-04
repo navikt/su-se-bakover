@@ -14,7 +14,6 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.behandlingMåHaSaksebehandler
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
@@ -309,13 +308,20 @@ internal const val UGYLDIG_SOKNADSINNHOLD_INPUT_CODE = "ugyldig_soknadsinnhold_i
 private data class UgyldigSøknadsinnholdValideringFeilResponse(
     val message: String,
     val code: String,
-    val errors: List<ErrorJson>,
+    val errors: List<UgyldigSøknadsinnholdValideringsfeil>,
+)
+
+private data class UgyldigSøknadsinnholdValideringsfeil(
+    val felt: String,
+    val begrunnelse: String,
+    val code: String,
 )
 
 internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
     val errors = map {
-        ErrorJson(
-            message = "Ugyldig input i felt ${it.felt}: ${it.begrunnelse}",
+        UgyldigSøknadsinnholdValideringsfeil(
+            felt = it.felt,
+            begrunnelse = it.begrunnelse,
             code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
         )
     }

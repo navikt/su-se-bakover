@@ -62,7 +62,7 @@ data class BoforholdJson(
             "ANNEN_VOKSEN" -> Boforhold.DelerBoligMed.ANNEN_VOKSEN
             else -> throw UgyldigSøknadsinnholdException(
                 felt = "boforhold.delerBoligMed",
-                begrunnelse = "ukjent verdi",
+                begrunnelse = "Ukjent verdi: $str",
             )
         }
     }

@@ -69,7 +69,7 @@ fun ApplicationTestBuilder.nyDigitalSøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
 ): String {
-    return nySøknadOgVerifiser(
+    return nyUføreSøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
             fnr = fnr,
         ),
@@ -84,13 +84,14 @@ fun ApplicationTestBuilder.nyDigitalSøknadOgVerifiser(
 /**
  * Emulerer at en saksbehandler sender inn en papirsøknad
  * TODO jah: Bør teste at veiledere ikke har tilgang til å sende papirsøknader. Og bør vi teste det her eller i web?
+ * TODO: for alder og skal dette fungere
  */
 fun ApplicationTestBuilder.nyPapirsøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
     mottaksdato: String = fixedLocalDate.toString(),
 ): String {
-    return nySøknadOgVerifiser(
+    return nyUføreSøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyPapirsøknad(
             fnr = fnr,
             mottaksdato = mottaksdato,
@@ -104,7 +105,7 @@ fun ApplicationTestBuilder.nyPapirsøknadOgVerifiser(
     )
 }
 
-private fun ApplicationTestBuilder.nySøknadOgVerifiser(
+private fun ApplicationTestBuilder.nyUføreSøknadOgVerifiser(
     requestJson: String,
     expectedResponseJson: String,
     // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.

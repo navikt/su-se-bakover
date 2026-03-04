@@ -41,7 +41,7 @@ sealed interface ForNavJson {
                 "verge" -> ForNav.DigitalSøknad.Vergemål.VERGE
                 else -> throw UgyldigSøknadsinnholdException(
                     felt = "forNav.harFullmektigEllerVerge",
-                    begrunnelse = "ukjent verdi",
+                    begrunnelse = "Ukjent verdi: $str",
                 )
             }
         }
@@ -64,7 +64,7 @@ sealed interface ForNavJson {
             } else {
                 throw UgyldigSøknadsinnholdException(
                     felt = "forNav.grunnForPapirinnsending",
-                    begrunnelse = "ukjent verdi",
+                    begrunnelse = "Ukjent verdi: $str",
                 )
             }
     }

@@ -65,6 +65,46 @@ internal class SøknadsinnholdInputValidatorTest {
         } shouldBe true
     }
 
+    @Test
+    fun `validerer ikke beløpsfelter med tekstregler`() {
+        val base = gyldigUføreSøknad()
+        val søknad = base.copy(
+            inntektOgPensjon = base.inntektOgPensjon.copy(
+                forventetInntekt = -1000,
+                andreYtelserINavBeløp = -50,
+                trygdeytelserIUtlandet = listOf(
+                    TrygdeytelserIUtlandetJson(
+                        beløp = -1,
+                        type = "trygd",
+                        valuta = "NOK",
+                    ),
+                ),
+                pensjon = listOf(
+                    PensjonsOrdningBeløpJson(
+                        ordning = "KLP",
+                        beløp = -1.0,
+                    ),
+                ),
+            ),
+            formue = base.formue.copy(
+                depositumsBeløp = -1,
+                verdiPåEiendom = -1,
+                kjøretøy = listOf(
+                    KjøretøyJson(
+                        verdiPåKjøretøy = -1,
+                        kjøretøyDeEier = "bil",
+                    ),
+                ),
+                innskuddsBeløp = -1,
+                verdipapirBeløp = -1,
+                skylderNoenMegPengerBeløp = -1,
+                kontanterBeløp = -1,
+            ),
+        )
+
+        SøknadsinnholdInputValidator.valider(søknad).isEmpty() shouldBe true
+    }
+
     private fun gyldigUføreSøknad() = SøknadsinnholdUføreJson(
         uførevedtak = UførevedtakJson(harUførevedtak = true),
         flyktningsstatus = FlyktningsstatusJson(registrertFlyktning = true),

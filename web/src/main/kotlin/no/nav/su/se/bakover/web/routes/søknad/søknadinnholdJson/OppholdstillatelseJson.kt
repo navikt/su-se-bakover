@@ -25,7 +25,7 @@ data class OppholdstillatelseJson(
             "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
             else -> throw UgyldigSøknadsinnholdException(
                 felt = "oppholdstillatelse.typeOppholdstillatelse",
-                begrunnelse = "ukjent verdi",
+                begrunnelse = "Ukjent verdi: $str",
             )
         }
     }
