@@ -33,6 +33,7 @@ class ReguleringHentEksterneReguleringerService(
 
         // TODO Må resultat fra uføre og alder mappes til et fnr? Trolig ja, spesielt når vi henter aap ??
 
+        // TODO AUTO-REG-26 - Maks 50 fnr per kall
         val fnrListUføre =
             sakToEpsFnr.filter { it.key.type == Sakstype.UFØRE }.map { listOf(it.key.fnr) + it.value }.flatten()
                 .distinct()
@@ -65,6 +66,7 @@ class ReguleringHentEksterneReguleringerService(
             )
         }
 
+        // TODO AUTO-REG-26 - Maks 50 fnr per kall
         val fnrListAlder =
             sakToEpsFnr.filter { it.key.type == Sakstype.ALDER }.map { listOf(it.key.fnr) + it.value }.flatten()
                 .distinct()

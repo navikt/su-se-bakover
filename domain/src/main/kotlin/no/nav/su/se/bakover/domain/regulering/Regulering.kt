@@ -75,7 +75,7 @@ sealed interface Regulering : Stønadsbehandling {
      * Supplementet inneholder informasjon som skal brukes for å oppdatere grunnlagene
      * Supplementet hentes fra eksterne kilder
      */
-    val eksternSupplementRegulering: EksternSupplementRegulering? // TODO bjg børe kunne bli nullable og kun gjelde hvis det er før/etter nytt api?
+    val eksternSupplementRegulering: EksternSupplementRegulering?
 
     fun erÅpen(): Boolean
 
@@ -109,7 +109,7 @@ sealed interface Regulering : Stønadsbehandling {
             val fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag
             val bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjonSomFullstendig()
 
-            // TODO bjg egen metode..
+            // TODO AUTO-REG-26 - switch gammel/ny
             val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradrag(
                 fradrag = fradrag,
                 regulerteFradragEksternKilde = regulerteFradragEksternKilde,
