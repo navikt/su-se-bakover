@@ -39,7 +39,6 @@ sealed interface SøknadInnhold {
         return forNav.erPapirsøknad()
     }
 
-    // slipper å måtte ha den 2 steder
     companion object {
         internal fun validerBoforholdOgEktefelle(
             boforhold: Boforhold,
