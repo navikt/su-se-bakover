@@ -134,6 +134,7 @@ internal object SøknadsinnholdInputValidator {
         return mistenkeligeMønstre.any { it.containsMatchIn(this) }
     }
 
+    // ASCII kontrolltegn
     private fun String.inneholderForbudteKontrolltegn(): Boolean {
         return this.any {
             (it.code in 0..31 && it != '\n' && it != '\r' && it != '\t') || it.code == 127
