@@ -300,7 +300,6 @@ private data class UgyldigSøknadsinnholdValideringFeilResponse(
 private data class UgyldigSøknadsinnholdValideringsfeil(
     val felt: String,
     val begrunnelse: String,
-    val code: String,
 )
 
 internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
@@ -308,7 +307,6 @@ internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat
         UgyldigSøknadsinnholdValideringsfeil(
             felt = it.felt,
             begrunnelse = it.begrunnelse,
-            code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
         )
     }
 

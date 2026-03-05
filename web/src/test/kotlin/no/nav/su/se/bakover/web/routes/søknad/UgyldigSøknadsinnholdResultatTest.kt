@@ -64,32 +64,26 @@ internal class UgyldigSøknadsinnholdResultatTest {
                 UgyldigSøknadsinnholdValideringsfeilResponse(
                     felt = "formue.eiendomBrukesTil",
                     begrunnelse = "inneholder mistenkelig innhold",
-                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
                 ),
                 UgyldigSøknadsinnholdValideringsfeilResponse(
                     felt = "inntektOgPensjon.andreYtelserINav",
                     begrunnelse = "inneholder kontrolltegn",
-                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
                 ),
                 UgyldigSøknadsinnholdValideringsfeilResponse(
                     felt = "inntektOgPensjon.pensjon.0.ordning",
                     begrunnelse = "mangler ordning",
-                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
                 ),
                 UgyldigSøknadsinnholdValideringsfeilResponse(
                     felt = "formue.kjøretøy.0.kjøretøyDeEier",
                     begrunnelse = "mangler verdi",
-                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
                 ),
                 UgyldigSøknadsinnholdValideringsfeilResponse(
                     felt = "boforhold.borPåAdresse.poststed",
                     begrunnelse = "for lang verdi",
-                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
                 ),
                 UgyldigSøknadsinnholdValideringsfeilResponse(
                     felt = "forNav.annenGrunn",
                     begrunnelse = "for lang verdi",
-                    code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
                 ),
             ),
         )
@@ -115,7 +109,6 @@ internal class UgyldigSøknadsinnholdResultatTest {
             UgyldigSøknadsinnholdValideringsfeilResponse(
                 felt = "inntektOgPensjon.andreYtelserINav",
                 begrunnelse = "inneholder kontrolltegn",
-                code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
             ),
         )
     }
@@ -259,7 +252,6 @@ internal class UgyldigSøknadsinnholdResultatTest {
     private data class UgyldigSøknadsinnholdValideringsfeilResponse(
         val felt: String,
         val begrunnelse: String,
-        val code: String,
     )
 
     private fun gyldigUføreSøknad() = SøknadsinnholdUføreJson(
