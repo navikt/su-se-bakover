@@ -50,6 +50,10 @@ class ReguleringAutomatiskServiceImpl(
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private companion object {
+        const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
+    }
+
     override fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
         /**
@@ -109,60 +113,81 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
-        val sakerSomSkalReguleresEllerIkke = alleSaker.map { (sakid, saksnummer, _) ->
-            val sak: Sak = Either.catch {
-                sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-            }.getOrElse {
-                log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
-            }
-            // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
-            sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
-                when (feil) {
-                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
-                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
-                    )
-
-                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                        "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                    )
-                }
-
-                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
-            }
-
-            sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
-
-                when (r.size) {
-                    0 -> {}
-                    1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
-                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-                }
-            }
-            sak.right()
-        }
-
-        // TODO AUTO-REG-26 - wrap i feilhåndtering
-        val sakerMedRegulerteFradragEksternKilde = reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-            saker = sakerSomSkalReguleresEllerIkke.filterRights(),
-        )
-
-        return sakerSomSkalReguleresEllerIkke.map {
-            it.flatMap { sak ->
-                log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
-                sak.kjørForSak(
-                    fraOgMedMåned = fraOgMedMåned,
-                    satsFactory = satsFactory,
-                    sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
-                    omregningsfaktor = omregningsfaktor,
-                    testRun = testRun,
+        val resultater = alleSaker
+            .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
+            .flatMapIndexed { batchIndex, sakerPerBatch ->
+                log.info(
+                    "Automatisk regulering: Starter batch ${batchIndex + 1} av ${(alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE}. Antall saker i batch: ${sakerPerBatch.size}",
                 )
+
+                val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { (sakid, saksnummer, _) ->
+                    val sak: Sak = Either.catch {
+                        sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
+                    }.getOrElse {
+                        log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
+                        return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
+                    }
+
+                    // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
+                    sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
+                        when (feil) {
+                            Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                                "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
+                            )
+
+                            Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                                "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                            )
+                        }
+
+                        return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+                    }
+
+                    sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+                        when (r.size) {
+                            0 -> {}
+                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
+                            else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                        }
+                    }
+
+                    sak.right()
+                }
+
+                val sakerSomaKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
+                val sakerMedRegulerteFradragEksternKilde = if (sakerSomaKanReguleres.isEmpty()) {
+                    SakerMedRegulerteFradragEksternKilde(emptyList())
+                } else {
+                    reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
+                        reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                        saker = sakerSomaKanReguleres,
+                    )
+                }
+
+                sakerSomSkalReguleresEllerIkke.map {
+                    it.flatMap { sak ->
+                        log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
+                        sak.kjørForSak(
+                            fraOgMedMåned = fraOgMedMåned,
+                            satsFactory = satsFactory,
+                            sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+                            omregningsfaktor = omregningsfaktor,
+                            testRun = testRun,
+                        )
+                    }
+                }
             }
+
+        return resultater.also {
+            logResultat(
+                it.map { either ->
+                    either.fold(
+                        ifLeft = { it.left() },
+                        ifRight = { it.toReguleringForLogResultat().right() },
+                    )
+                },
+            )
         }
-            .also {
-                logResultat(it)
-            }
     }
 
     private fun Sak.kjørForSak(
@@ -249,7 +274,7 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
-    private fun logResultat(it: List<Either<KunneIkkeRegulereAutomatisk, Regulering>>): String {
+    private fun logResultat(it: List<Either<KunneIkkeRegulereAutomatisk, ReguleringForLogResultat>>): String {
         val (lefts, rights) = it.split()
 
         val årsakerForAtReguleringerIkkeKunneBliOpprettet =
@@ -257,7 +282,7 @@ class ReguleringAutomatiskServiceImpl(
 
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
         val antallAutomatiskPgaSupplemement = rights.count {
-            it.reguleringstype == Reguleringstype.AUTOMATISK && (it.eksternSupplementRegulering?.bruker != null || it.eksternSupplementRegulering?.eps?.isNotEmpty() == true)
+            it.reguleringstype == Reguleringstype.AUTOMATISK && it.harSupplementData
         }
         val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
 
@@ -296,7 +321,7 @@ class ReguleringAutomatiskServiceImpl(
 
         return result.also {
             log.info(it)
-            manuelleReguleringer.toCSVLoggableString().forEach { (årsak, csv) ->
+            manuelleReguleringer.toCSVLoggableStringFraLoggdata().forEach { (årsak, csv) ->
                 log.info("$årsak\n" + csv)
             }
         }
