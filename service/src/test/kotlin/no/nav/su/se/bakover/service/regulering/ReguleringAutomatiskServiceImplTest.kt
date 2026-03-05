@@ -22,9 +22,9 @@ import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
-import no.nav.su.se.bakover.domain.regulering.NyttFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
@@ -521,7 +521,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             saksnummer = sak.saksnummer,
-                            bruker = NyttFradragEksternKilde(
+                            bruker = RegulertFradragEksternKilde(
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -599,7 +599,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             saksnummer = sak.saksnummer,
-                            bruker = NyttFradragEksternKilde(
+                            bruker = RegulertFradragEksternKilde(
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -740,7 +740,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             saksnummer = sak.saksnummer,
-                            bruker = NyttFradragEksternKilde(
+                            bruker = RegulertFradragEksternKilde(
                                 førRegulering = beløpFørRegulering.toInt(),
                                 etterRegulering = beløpEtterRegulering.toInt(),
                             ),

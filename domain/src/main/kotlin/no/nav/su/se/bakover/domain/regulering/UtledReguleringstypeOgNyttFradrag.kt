@@ -4,7 +4,6 @@ import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -15,26 +14,6 @@ import java.math.RoundingMode
 import kotlin.math.absoluteValue
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
-
-// TODO flytt i egen fil?
-data class SakerMedRegulerteFradragEksternKilde(
-    val regulerteFradragEksternKilde: List<RegulerteFradragEksternKilde>,
-)
-
-data class RegulerteFradragEksternKilde(
-    // TODO vil nå bare kunne bruker for enten eller? Må kunne kombineres?
-    val bruker: NyttFradragEksternKilde,
-    val forEps: List<NyttFradragEksternKilde>, // TODO AUTO-REG-26 hvordan håndteres flere eps over tid?
-)
-
-data class NyttFradragEksternKilde(
-    // val periode: PeriodeMedOptionalTilOgMed TODO nødvendig?
-    // TODO må være double eller BigDecimal?
-    val fnr: Fnr,
-    val førRegulering: Int,
-    val etterRegulering: Int,
-    // TODO kategori elns?
-)
 
 // TODO metode som tar i mot alle fradrag og looper?
 fun utledReguleringstypeOgFradrag(
@@ -177,7 +156,7 @@ fun utledReguleringstypeOgFradrag(
 
 // TODO bjg del i to...
 private fun sjekkOmDifferenseForBeløper(
-    nyttFradrag: NyttFradragEksternKilde,
+    nyttFradrag: RegulertFradragEksternKilde,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
