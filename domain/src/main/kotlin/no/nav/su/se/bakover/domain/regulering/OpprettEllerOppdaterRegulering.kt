@@ -35,7 +35,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     }
 
     val regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde.regulerteFradragEksternKilde.singleOrNull {
-        it.saksnummer == saksnummer
+        it.bruker.fnr == fnr
     } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
     return Regulering.opprettRegulering(
         sakId = id,

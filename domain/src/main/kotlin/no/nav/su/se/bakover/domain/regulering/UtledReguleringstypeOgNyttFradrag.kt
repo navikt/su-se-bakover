@@ -4,6 +4,7 @@ import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -22,14 +23,14 @@ data class SakerMedRegulerteFradragEksternKilde(
 
 data class RegulerteFradragEksternKilde(
     // TODO vil nå bare kunne bruker for enten eller? Må kunne kombineres?
-    val saksnummer: Saksnummer,
-    val forBruker: NyttFradragEksternKilde,
+    val bruker: NyttFradragEksternKilde,
     val forEps: List<NyttFradragEksternKilde>, // TODO AUTO-REG-26 hvordan håndteres flere eps over tid?
 )
 
 data class NyttFradragEksternKilde(
     // val periode: PeriodeMedOptionalTilOgMed TODO nødvendig?
     // TODO må være double eller BigDecimal?
+    val fnr: Fnr,
     val førRegulering: Int,
     val etterRegulering: Int,
     // TODO kategori elns?
@@ -160,7 +161,7 @@ fun utledReguleringstypeOgFradrag(
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.forBruker
+        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.bruker
         FradragTilhører.EPS -> regulerteFradragEksternKilde.forEps.single()
     }
     return sjekkOmDifferenseForBeløper(

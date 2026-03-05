@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
@@ -522,7 +521,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             saksnummer = sak.saksnummer,
-                            forBruker = NyttFradragEksternKilde(
+                            bruker = NyttFradragEksternKilde(
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -600,7 +599,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             saksnummer = sak.saksnummer,
-                            forBruker = NyttFradragEksternKilde(
+                            bruker = NyttFradragEksternKilde(
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -741,7 +740,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             saksnummer = sak.saksnummer,
-                            forBruker = NyttFradragEksternKilde(
+                            bruker = NyttFradragEksternKilde(
                                 førRegulering = beløpFørRegulering.toInt(),
                                 etterRegulering = beløpEtterRegulering.toInt(),
                             ),

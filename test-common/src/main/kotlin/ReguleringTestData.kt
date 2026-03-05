@@ -509,7 +509,7 @@ fun reguleringsgrunnlagFraEksternKilde(
     listOf(
         RegulerteFradragEksternKilde(
             saksnummer = sak.saksnummer,
-            forBruker = NyttFradragEksternKilde(
+            bruker = NyttFradragEksternKilde(
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
             ),

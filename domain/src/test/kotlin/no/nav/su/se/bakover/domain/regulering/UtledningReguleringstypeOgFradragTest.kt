@@ -20,7 +20,7 @@ class UtledningReguleringstypeOgFradragTest {
     companion object {
         val regulerteFradragEksternKilde = RegulerteFradragEksternKilde(
             saksnummer = Saksnummer(8888),
-            forBruker = NyttFradragEksternKilde(
+            bruker = NyttFradragEksternKilde(
                 førRegulering = 1000,
                 etterRegulering = 1064,
             ),
@@ -37,7 +37,7 @@ class UtledningReguleringstypeOgFradragTest {
             etterReguleringEps: Int = 1064,
         ) = RegulerteFradragEksternKilde(
             saksnummer = Saksnummer(8888),
-            forBruker = NyttFradragEksternKilde(
+            bruker = NyttFradragEksternKilde(
                 førRegulering = 1000,
                 etterRegulering = etterReguleringBruker,
             ),
