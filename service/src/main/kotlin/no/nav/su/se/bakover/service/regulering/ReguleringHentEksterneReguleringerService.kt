@@ -111,7 +111,9 @@ data class HentEksterneReguleringerCommand(
             saker: List<Sak>,
             clock: Clock,
         ): HentEksterneReguleringerCommand {
-            // TODO AUTO-REG-26 - Maks 50 fnr per kall
+            if (saker.size > 50) {
+                throw ForMangleSakerForPesysIntegrasjon(saker.size)
+            }
             val (uføreSaker, alderSaker) = saker.partition { it.type == Sakstype.UFØRE }
             val toBrukerMedEps = { sak: Sak ->
                 BrukerMedEps(
@@ -133,3 +135,4 @@ data class HentEksterneReguleringerCommand(
 fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> = this.flatMap { listOf(it.fnr) + it.eps }.distinct()
 
 class IngenPesysPerioderFunnet : IllegalStateException()
+class ForMangleSakerForPesysIntegrasjon(val antall: Int) : IllegalStateException("For mange saker: $antall. Maks 50 saker per kall.")
