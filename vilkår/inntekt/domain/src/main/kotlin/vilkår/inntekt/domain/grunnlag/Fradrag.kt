@@ -26,8 +26,6 @@ sealed interface Fradrag :
         return tilhører == FradragTilhører.EPS
     }
 
-    fun skalJusteresVedGEndring() = fradragstype.måJusteresManueltVedGEndring
-
     fun oppdaterBeløp(beløp: BigDecimal): Fradrag
 }
 

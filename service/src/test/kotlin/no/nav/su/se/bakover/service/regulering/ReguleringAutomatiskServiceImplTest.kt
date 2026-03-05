@@ -4,8 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
-import io.kotest.matchers.equality.FieldsEqualityCheckConfig
-import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -18,18 +16,18 @@ import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.august
-import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
-import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
+import no.nav.su.se.bakover.domain.regulering.NyttFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -42,14 +40,10 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
-import no.nav.su.se.bakover.test.nyReguleringssupplementFor
-import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -138,14 +132,14 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
 
         @Test
-        fun `fradraget OffentligPensjon gir manuell pga den må justeres ved g-endring & ikke har noe supplement`() {
+        fun `fradraget OffentligPensjon gir manuell pga den må justeres ved g-endring & henting fra kilde`() {
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
                         fradragskategori = fradraget.fradragstype.kategori,
                         fradragTilhører = fradraget.tilhører,
-                        begrunnelse = "Fradraget til BRUKER: OffentligPensjon påvirkes av samme sats/G-verdi endring som SU. Vi mangler supplement for dette fradraget og derfor går det til manuell regulering.",
+                        begrunnelse = "Fradraget til BRUKER: OffentligPensjon kan ikke hentes automatisk",
                     ),
                 ),
             )
@@ -332,6 +326,8 @@ internal class ReguleringAutomatiskServiceImplTest {
             regulering.periode.fraOgMed shouldBe 1.juni(2021)
         }
 
+        /*
+        // TODO AUTO-REG-26 - skal ikke lenger oppdatere men feile hvis finnes åpen fra før - skriv om test
         @Test
         fun `oppdaterer reguleringen hvis det finnes en åpen regulering allerede og reguleringsperioden er større`() {
             val supplement = Reguleringssupplement(
@@ -348,7 +344,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = august(2021),
                 /* Manuell regulering */
-                supplement = supplement,
+                // supplement = supplement, // TODO bjg
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Fradragsgrunnlag.create(
@@ -391,6 +387,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 }
         }
 
+        // TODO AUTO-REG-26 - skal ikke lenger oppdatere men feile hvis finnes åpen fra før - skriv om test
         @Test
         fun `oppdaterer ikke reguleringen hvis det finnes en åpen regulering men reguleringsperioden er mindre`() {
             val supplement = Reguleringssupplement(
@@ -407,7 +404,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = januar(2021),
                 /* Manuell regulering */
-                supplement = supplement,
+                // supplement = supplement, // TODO bjg
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Fradragsgrunnlag.create(
@@ -452,6 +449,8 @@ internal class ReguleringAutomatiskServiceImplTest {
                     it.opprettet shouldBe regulering.opprettet
                 }
         }
+
+         */
     }
 
     @Test
@@ -518,6 +517,21 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
             statistikkService = mock(),
             sessionFactory = sessionMock,
+            reguleringHentEksterneReguleringerService = mock {
+                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                    listOf(
+                        RegulerteFradragEksternKilde(
+                            saksnummer = sak.saksnummer,
+                            forBruker = NyttFradragEksternKilde(
+                                førRegulering = 0,
+                                etterRegulering = 0,
+                            ),
+                            forEps = emptyList(),
+                        ),
+                    ),
+                )
+            },
+
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -581,6 +595,20 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             clock = clock,
+            reguleringHentEksterneReguleringerService = mock {
+                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                    listOf(
+                        RegulerteFradragEksternKilde(
+                            saksnummer = sak.saksnummer,
+                            forBruker = NyttFradragEksternKilde(
+                                førRegulering = 0,
+                                etterRegulering = 0,
+                            ),
+                            forEps = emptyList(),
+                        ),
+                    ),
+                )
+            },
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -616,6 +644,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
+        beløpFørRegulering: Double = 100.0,
+        beløpEtterRegulering: Double = beløpFørRegulering + 10,
         clock: Clock = tikkendeFixedClock(),
     ): ReguleringAutomatiskServiceImpl {
         val sakMedEndringer = if (scrambleUtbetaling) {
@@ -706,6 +736,20 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
+            reguleringHentEksterneReguleringerService = mock {
+                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                    listOf(
+                        RegulerteFradragEksternKilde(
+                            saksnummer = sak.saksnummer,
+                            forBruker = NyttFradragEksternKilde(
+                                førRegulering = beløpFørRegulering.toInt(),
+                                etterRegulering = beløpEtterRegulering.toInt(),
+                            ),
+                            forEps = emptyList(),
+                        ),
+                    ),
+                )
+            },
         )
     }
 }

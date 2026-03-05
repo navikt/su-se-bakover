@@ -253,7 +253,7 @@ internal class ReguleringPostgresRepo(
                                 is IverksattRegulering -> null
                                 is ReguleringUnderBehandling -> null
                             },
-                            "reguleringsupplement" to regulering.eksternSupplementRegulering.toDbJson(),
+                            "reguleringsupplement" to regulering.eksternSupplementRegulering?.toDbJson(),
                             "attestering" to when (regulering) {
                                 is AvsluttetRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is IverksattRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
@@ -323,7 +323,7 @@ internal class ReguleringPostgresRepo(
             session = session,
             sakstype = Sakstype.from(string("type")),
         )
-        val eksternSupplementRegulering = deserEskternSupplementReguleringJson(string("reguleringsupplement"))
+        val eksternSupplementRegulering = stringOrNull("reguleringsupplement")?.let { deserEskternSupplementReguleringJson(it) }
         val attesteringer = stringOrNull("attestering")?.toAttesteringshistorikk() ?: Attesteringshistorikk.empty()
 
         return lagRegulering(
@@ -369,7 +369,7 @@ internal class ReguleringPostgresRepo(
         reguleringstype: Reguleringstype,
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
-        eksternSupplementRegulering: EksternSupplementRegulering,
+        eksternSupplementRegulering: EksternSupplementRegulering?,
         attesteringer: Attesteringshistorikk,
     ): Regulering {
         return OpprettetRegulering(
