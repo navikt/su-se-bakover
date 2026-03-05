@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.perioder
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
@@ -18,61 +19,39 @@ import kotlin.collections.map
 
 class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysClient) {
 
-    // TODO feilhåndtering..
+    // TODO AUTO-REG-26 feilhåndtering..
     fun hentEksterneReguleringer(command: HentEksterneReguleringerCommand): SakerMedRegulerteFradragEksternKilde {
         val (månedFørRegulering, brukereMedEpsUføre, brukereMedEpsAlder) = command
 
-        val uførePerioder = hentPerioderUføre(
-            fnrList = brukereMedEpsUføre.listeAlleUnikeFnr(),
-            dato = månedFørRegulering,
+        val uførePerioder = hentPerioderUføre(brukereMedEpsUføre.listeAlleUnikeFnr(), månedFørRegulering)
+        val uførefradrag = hentReguleringerForBrukere(
+            brukereMedEps = brukereMedEpsUføre,
+            perioder = uførePerioder,
         )
-        val uførefradrag = brukereMedEpsUføre.map { brukerMedEps ->
-            val eksterneFradragBruker = uførePerioder.singleOrNull { Fnr(it.fnr) == brukerMedEps.fnr }
-                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding") // TODO egen feilmelding
-            val eskterneFradragEps = uførePerioder.filter { brukerMedEps.eps.contains(Fnr(it.fnr)) }
-            RegulerteFradragEksternKilde(
-                bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
-                forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
-            )
-        }
 
-        val alderPerioder = hentPerioderAlder(
-            fnrList = brukereMedEpsAlder.listeAlleUnikeFnr(),
-            dato = månedFørRegulering,
+        val alderPerioder = hentPerioderAlder(brukereMedEpsAlder.listeAlleUnikeFnr(), månedFørRegulering)
+        val alderfradrag = hentReguleringerForBrukere(
+            brukereMedEps = brukereMedEpsAlder,
+            perioder = alderPerioder,
         )
-        val alderfradrag = brukereMedEpsAlder.map { brukerMedEps ->
-            val eksterneFradragBruker = alderPerioder.singleOrNull { Fnr(it.fnr) == brukerMedEps.fnr }
-                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding") // TODO egen feilmelding
 
-            val eskterneFradragEps = alderPerioder.filter { brukerMedEps.eps.contains(Fnr(it.fnr)) }
-
-            RegulerteFradragEksternKilde(
-                bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
-                forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
-            )
-        }
-
-        // TODO Må resultat fra uføre og alder mappes til et fnr? Trolig ja, spesielt når vi henter aap ??
         return SakerMedRegulerteFradragEksternKilde(uførefradrag + alderfradrag)
     }
 
-    private fun hentPerioderUføre(fnrList: List<Fnr>, dato: LocalDate) =
-        pesysClient.hentVedtakForPersonPaaDatoUføre(
-            fnrList = fnrList,
-            dato = dato,
-        ).getOrElse {
-            // TODO
-            throw Exception("")
-        }.resultat
-
-    private fun hentPerioderAlder(fnrList: List<Fnr>, dato: LocalDate) =
-        pesysClient.hentVedtakForPersonPaaDatoAlder(
-            fnrList = fnrList,
-            dato = dato,
-        ).getOrElse {
-            // TODO
-            throw Exception("")
-        }.resultat
+    private fun hentReguleringerForBrukere(
+        brukereMedEps: List<BrukerMedEps>,
+        perioder: List<PesysPerioderForPerson>,
+    ): List<RegulerteFradragEksternKilde> {
+        return brukereMedEps.map { brukerMedEps ->
+            val eksterneFradragBruker = perioder.singleOrNull { Fnr(it.fnr) == brukerMedEps.fnr }
+                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding") // TODO egen feilmelding
+            val eskterneFradragEps = perioder.filter { brukerMedEps.eps.contains(Fnr(it.fnr)) }
+            RegulerteFradragEksternKilde(
+                bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
+                forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
+            )
+        }
+    }
 
     private fun fraPesysPeriodeTilFradrag(alderForPerson: PesysPerioderForPerson): RegulertFradragEksternKilde {
         // TODO AUTO-REG-26 valider at stemmer med forventet G
@@ -83,6 +62,24 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
             etterRegulering = alderForPerson.perioder[1].netto,
         )
     }
+
+    private fun hentPerioderUføre(fnrList: List<Fnr>, dato: LocalDate) =
+        pesysClient.hentVedtakForPersonPaaDatoUføre(
+            fnrList = fnrList,
+            dato = dato,
+        ).getOrElse {
+            // TODO AUTO-REG-26 feilhåndtering
+            throw Exception("")
+        }.resultat
+
+    private fun hentPerioderAlder(fnrList: List<Fnr>, dato: LocalDate) =
+        pesysClient.hentVedtakForPersonPaaDatoAlder(
+            fnrList = fnrList,
+            dato = dato,
+        ).getOrElse {
+            // TODO AUTO-REG-26 feilhåndtering
+            throw Exception("")
+        }.resultat
 }
 
 data class HentEksterneReguleringerCommand(
