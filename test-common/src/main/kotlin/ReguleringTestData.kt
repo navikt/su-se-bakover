@@ -508,8 +508,8 @@ fun reguleringsgrunnlagFraEksternKilde(
 ) = SakerMedRegulerteFradragEksternKilde(
     listOf(
         RegulerteFradragEksternKilde(
-            saksnummer = sak.saksnummer,
             bruker = RegulertFradragEksternKilde(
+                fnr = sak.fnr,
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
             ),

@@ -517,11 +517,11 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
                     listOf(
                         RegulerteFradragEksternKilde(
-                            saksnummer = sak.saksnummer,
                             bruker = RegulertFradragEksternKilde(
+                                fnr = sak.fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -595,11 +595,11 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionMock,
             clock = clock,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
                     listOf(
                         RegulerteFradragEksternKilde(
-                            saksnummer = sak.saksnummer,
                             bruker = RegulertFradragEksternKilde(
+                                fnr = sak.fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -736,11 +736,11 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
                     listOf(
                         RegulerteFradragEksternKilde(
-                            saksnummer = sak.saksnummer,
                             bruker = RegulertFradragEksternKilde(
+                                fnr = sak.fnr,
                                 førRegulering = beløpFørRegulering.toInt(),
                                 etterRegulering = beløpEtterRegulering.toInt(),
                             ),

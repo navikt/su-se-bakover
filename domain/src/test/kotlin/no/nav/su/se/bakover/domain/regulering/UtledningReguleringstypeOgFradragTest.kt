@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fnr
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -19,13 +20,14 @@ class UtledningReguleringstypeOgFradragTest {
 
     companion object {
         val regulerteFradragEksternKilde = RegulerteFradragEksternKilde(
-            saksnummer = Saksnummer(8888),
             bruker = RegulertFradragEksternKilde(
+                fnr = fnr,
                 førRegulering = 1000,
                 etterRegulering = 1064,
             ),
             forEps = listOf(
                 RegulertFradragEksternKilde(
+                    fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = 1064,
                 ),
@@ -36,13 +38,14 @@ class UtledningReguleringstypeOgFradragTest {
             etterReguleringBruker: Int = 1064,
             etterReguleringEps: Int = 1064,
         ) = RegulerteFradragEksternKilde(
-            saksnummer = Saksnummer(8888),
             bruker = RegulertFradragEksternKilde(
+                fnr = fnr,
                 førRegulering = 1000,
                 etterRegulering = etterReguleringBruker,
             ),
             forEps = listOf(
                 RegulertFradragEksternKilde(
+                    fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = etterReguleringEps,
                 ),

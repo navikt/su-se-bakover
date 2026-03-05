@@ -144,8 +144,11 @@ class ReguleringAutomatiskServiceImpl(
 
         // TODO AUTO-REG-26 - wrap i feilhåndtering
         val sakerMedRegulerteFradragEksternKilde = reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-            saker = sakerSomSkalReguleresEllerIkke.filterRights(),
+            HentEksterneReguleringerCommand.toCommand(
+                reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                saker = sakerSomSkalReguleresEllerIkke.filterRights(),
+                clock,
+            ),
         )
 
         return sakerSomSkalReguleresEllerIkke.map {
