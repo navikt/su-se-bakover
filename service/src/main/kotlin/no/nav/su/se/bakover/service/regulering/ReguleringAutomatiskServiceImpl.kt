@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForReguler
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -60,7 +62,7 @@ class ReguleringAutomatiskServiceImpl(
          * Inneholder data for alle sakene
          */
         supplement: Reguleringssupplement,
-    ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
+    ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
         reguleringRepo.lagre(supplement)
@@ -111,7 +113,7 @@ class ReguleringAutomatiskServiceImpl(
         supplement: Reguleringssupplement, // TODO bjg fjern
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
-    ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
+    ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
         val resultater = alleSaker
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
@@ -178,16 +180,7 @@ class ReguleringAutomatiskServiceImpl(
                 }
             }
 
-        return resultater.also {
-            logResultat(
-                it.map { either ->
-                    either.fold(
-                        ifLeft = { it.left() },
-                        ifRight = { it.toReguleringForLogResultat().right() },
-                    )
-                },
-            )
-        }
+        return resultater.also { logResultat(it) }
     }
 
     private fun Sak.kjørForSak(
@@ -196,7 +189,7 @@ class ReguleringAutomatiskServiceImpl(
         sakerMedRegulerteFradragEksternKilde: SakerMedRegulerteFradragEksternKilde,
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
-    ): Either<KunneIkkeRegulereAutomatisk, Regulering> {
+    ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
         val sak = this
 
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
@@ -237,9 +230,13 @@ class ReguleringAutomatiskServiceImpl(
             forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil) }
+                .fold(
+                    ifLeft = { it.left() },
+                    ifRight = { it.toReguleringForLogResultat().right() },
+                )
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
-            regulering.right()
+            regulering.toReguleringForLogResultat().right()
         }
     }
 
@@ -274,7 +271,7 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
-    private fun logResultat(it: List<Either<KunneIkkeRegulereAutomatisk, ReguleringForLogResultat>>): String {
+    private fun logResultat(it: List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>): String {
         val (lefts, rights) = it.split()
 
         val årsakerForAtReguleringerIkkeKunneBliOpprettet =

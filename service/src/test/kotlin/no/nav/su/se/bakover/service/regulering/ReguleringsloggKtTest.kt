@@ -12,7 +12,9 @@ import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.test.nyEksternSupplementRegulering
@@ -129,7 +131,7 @@ class ReguleringsloggKtTest {
                     ),
                 ),
             ),
-        ).toCSVLoggableString() shouldBe
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering to """
             saksnummer;vårtBeløpFørRegulering;bruttoBeløpFraAprilVedtak;nettoBeløpFraAprilVedtak;forventetBeløpEtterRegulering;eksternBruttoBeløpEtterRegulering;eksternNettoBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører
@@ -155,7 +157,7 @@ class ReguleringsloggKtTest {
                     ),
                 ),
             ),
-        ).toCSVLoggableString() shouldBe
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.DifferanseFørRegulering to """
             saksnummer;vårtBeløpFørRegulering;eksternBruttoBeløpFørRegulering;eksternNettoBeløpFørRegulering;differanse;fradragskategori;fradragTilhører
@@ -175,7 +177,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakFantIkkeVedtakForApril()),
             ),
-        ).toCSVLoggableString() shouldBe
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril to """
             saksnummer;fradragskategori;fradragTilhører
@@ -195,7 +197,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakBrukerManglerSupplement(fradragTilhører = FradragTilhører.EPS)),
             ),
-        ).toCSVLoggableString() shouldBe
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement to """
             saksnummer;fradragskategori;fradragTilhører
@@ -213,7 +215,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakFinnesFlerePerioderAvFradrag(fradragTilhører = FradragTilhører.EPS)),
             ),
-        ).toCSVLoggableString() shouldBe
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.FinnesFlerePerioderAvFradrag to """
             saksnummer;fradragskategori;fradragTilhører
@@ -233,7 +235,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakFradragErUtenlandsinntekt(fradragTilhører = FradragTilhører.EPS)),
             ),
-        ).toCSVLoggableString() shouldBe
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe
             mapOf(
                 ÅrsakTilManuellReguleringKategori.FradragErUtenlandsinntekt to """
             saksnummer;fradragskategori;fradragTilhører
@@ -263,7 +265,7 @@ class ReguleringsloggKtTest {
                     ),
                 ),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.SupplementHarFlereVedtaksperioderForFradrag to """
                 saksnummer;perioder;fradragskategori;fradragTilhører
                 2021;(2021-05-01 - null);Uføretrygd;BRUKER
@@ -280,7 +282,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakSupplementInneholderIkkeFradraget(fradragTilhører = FradragTilhører.EPS)),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.SupplementInneholderIkkeFradraget to """
                 saksnummer;fradragskategori;fradragTilhører
                 2021;Uføretrygd;BRUKER
@@ -299,7 +301,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakAutomatiskSendingTilUtbetalingFeilet()),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet to """
                 saksnummer
                 2021
@@ -322,7 +324,7 @@ class ReguleringsloggKtTest {
                     ),
                 ),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.DelvisOpphør to """
                 saksnummer;opphørsperioder
                 2021;(2021-01-01 - 2021-12-31)
@@ -341,7 +343,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakForventetInntektErStørreEnn0()),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0 to """
                 saksnummer
                 2021
@@ -360,7 +362,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakVedtakstidslinjeErIkkeSammenhengende()),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende to """
                 saksnummer
                 2021
@@ -379,7 +381,7 @@ class ReguleringsloggKtTest {
                 saksnummer = Saksnummer(2022),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakYtelseErMidlertidigStanset()),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset to """
                 saksnummer
                 2021
@@ -432,7 +434,7 @@ class ReguleringsloggKtTest {
                 ),
                 reguleringstype = Reguleringstype.MANUELL(nyÅrsakFantIkkeVedtakForApril()),
             ),
-        ).toCSVLoggableString() shouldBe mapOf(
+        ).toCSVLoggableStringFraLoggdataFraReguleringer() shouldBe mapOf(
             ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering to """
                 saksnummer;vårtBeløpFørRegulering;bruttoBeløpFraAprilVedtak;nettoBeløpFraAprilVedtak;forventetBeløpEtterRegulering;eksternBruttoBeløpEtterRegulering;eksternNettoBeløpEtterRegulering;differanse;fradragskategori;fradragTilhører
                 2021;1000;10000;11000;200;1100;300;100;Uføretrygd;BRUKER
@@ -451,23 +453,27 @@ class ReguleringsloggKtTest {
     @Test
     fun `kaster exception hvis man prøver å printe ut med en historisk årsak`() {
         assertThrows<IllegalArgumentException> {
-            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))).toCSVLoggableString()
+            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt))).toCSVLoggableStringFraLoggdataFraReguleringer()
         }
         assertThrows<IllegalArgumentException> {
-            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet))).toCSVLoggableString()
+            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet))).toCSVLoggableStringFraLoggdataFraReguleringer()
         }
         assertThrows<IllegalArgumentException> {
-            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0))).toCSVLoggableString()
+            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0))).toCSVLoggableStringFraLoggdataFraReguleringer()
         }
         assertThrows<IllegalArgumentException> {
-            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset))).toCSVLoggableString()
+            listOf(opprettetRegulering(reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset))).toCSVLoggableStringFraLoggdataFraReguleringer()
         }
     }
 
     @Test
     fun `kaster exception dersom man prøver å logge ut CSV fra en automatisk regulering`() {
         assertThrows<IllegalArgumentException> {
-            listOf(opprettetRegulering(reguleringstype = Reguleringstype.AUTOMATISK)).toCSVLoggableString()
+            listOf(opprettetRegulering(reguleringstype = Reguleringstype.AUTOMATISK)).toCSVLoggableStringFraLoggdataFraReguleringer()
         }
     }
+}
+
+private fun List<Regulering>.toCSVLoggableStringFraLoggdataFraReguleringer(): Map<ÅrsakTilManuellReguleringKategori, String> {
+    return this.map { it.toReguleringForLogResultat() }.toCSVLoggableStringFraLoggdata()
 }

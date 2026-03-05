@@ -1,23 +1,26 @@
-package no.nav.su.se.bakover.service.regulering
+package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 
-internal data class ReguleringForLogResultat(
+data class ReguleringOppsummering(
     val saksnummer: Saksnummer,
+    val periode: Periode,
     val reguleringstype: Reguleringstype,
+    val erIverksatt: Boolean,
     val supplementBruker: ReguleringssupplementFor?,
     val supplementEps: List<ReguleringssupplementFor>,
 ) {
     val harSupplementData: Boolean = supplementBruker != null || supplementEps.isNotEmpty()
 }
 
-internal fun Regulering.toReguleringForLogResultat(): ReguleringForLogResultat {
-    return ReguleringForLogResultat(
+fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
+    return ReguleringOppsummering(
         saksnummer = saksnummer,
+        periode = periode,
         reguleringstype = reguleringstype,
+        erIverksatt = this is IverksattRegulering,
         supplementBruker = eksternSupplementRegulering?.bruker,
         supplementEps = eksternSupplementRegulering?.eps ?: emptyList(),
     )

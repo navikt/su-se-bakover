@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.whenever
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -19,14 +19,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
  *
  * dataKolonne1;dataKolonne2;dataKolonne3;dataKolonne4;dataKolonne5
  */
-fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
-    return this
-        .asSequence()
-        .map { it.toCSVLoggableString() }
-        .toCSVLoggableStringMap()
-}
-
-internal fun List<ReguleringForLogResultat>.toCSVLoggableStringFraLoggdata(): Map<ÅrsakTilManuellReguleringKategori, String> {
+internal fun List<ReguleringOppsummering>.toCSVLoggableStringFraLoggdata(): Map<ÅrsakTilManuellReguleringKategori, String> {
     return this
         .asSequence()
         .map { it.toCSVLoggableString() }
@@ -100,92 +93,12 @@ private fun Sequence<Map<ÅrsakTilManuellReguleringKategori, String>>.toCSVLogga
 /**
  * kaster exception hvis reguleringstype er automatisk - kun ment å brukes for manuelle reguleringer
  */
-private fun Regulering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
+private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
+    val reguleringstype = this.reguleringstype
     return when (reguleringstype) {
         Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kunt ment å bli brukt fra reguleringer som er manuell")
         is Reguleringstype.MANUELL -> {
-            (this.reguleringstype as Reguleringstype.MANUELL).problemer.map { årsak ->
-                when (årsak) {
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                        supplementBruker = this.eksternSupplementRegulering?.bruker,
-                        supplementEps = this.eksternSupplementRegulering?.eps ?: emptyList(),
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.DelvisOpphør -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0 -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-
-                    is ÅrsakTilManuellRegulering.Historisk -> throw IllegalArgumentException("Historiske årsaker skal ikke benyttes i til logging av reguleringer med nyere typer")
-                    is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps -> årsak.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                    )
-                }
-            }.let {
-                it.groupBy {
-                    it.keys.first()
-                }.mapValues {
-                    it.value.joinToString("\n") {
-                        it.values.first()
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * kaster exception hvis reguleringstype er automatisk - kun ment å brukes for manuelle reguleringer
- */
-private fun ReguleringForLogResultat.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
-    return when (reguleringstype) {
-        Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kunt ment å bli brukt fra reguleringer som er manuell")
-        is Reguleringstype.MANUELL -> {
-            (this.reguleringstype as Reguleringstype.MANUELL).problemer.map { årsak ->
+            reguleringstype.problemer.map { årsak ->
                 when (årsak) {
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> årsak.toCSVLoggableString(
                         saksnummer = saksnummer,
