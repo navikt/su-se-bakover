@@ -4,20 +4,23 @@ import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.perioder
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerCommand.BrukerMedEps
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.collections.flatMap
 import kotlin.collections.map
 
 class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysClient) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     // TODO AUTO-REG-26 feilhåndtering..
     fun hentEksterneReguleringer(command: HentEksterneReguleringerCommand): SakerMedRegulerteFradragEksternKilde {
@@ -43,14 +46,23 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         perioder: List<PesysPerioderForPerson>,
     ): List<RegulerteFradragEksternKilde> {
         return brukereMedEps.map { brukerMedEps ->
-            val eksterneFradragBruker = perioder.singleOrNull { Fnr(it.fnr) == brukerMedEps.fnr }
-                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding") // TODO egen feilmelding
-            val eskterneFradragEps = perioder.filter { brukerMedEps.eps.contains(Fnr(it.fnr)) }
+            val eksterneFradragBruker = perioder.hentForventedePesysPerioder(brukerMedEps.fnr)
+            val eskterneFradragEps = brukerMedEps.eps.map { perioder.hentForventedePesysPerioder(it) }
             RegulerteFradragEksternKilde(
                 bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
                 forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
             )
         }
+    }
+
+    private fun List<PesysPerioderForPerson>.hentForventedePesysPerioder(fnr: Fnr): PesysPerioderForPerson {
+        val forventetPesysPerioder = this.singleOrNull { Fnr(it.fnr) == fnr }
+        if (forventetPesysPerioder == null) {
+            log.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Se sikkerlogg for detaljer.")
+            sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Bruker=$fnr")
+            throw IngenPesysPerioderFunnet()
+        }
+        return forventetPesysPerioder
     }
 
     private fun fraPesysPeriodeTilFradrag(alderForPerson: PesysPerioderForPerson): RegulertFradragEksternKilde {
@@ -119,3 +131,5 @@ data class HentEksterneReguleringerCommand(
 }
 
 fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> = this.flatMap { listOf(it.fnr) + it.eps }.distinct()
+
+class IngenPesysPerioderFunnet : IllegalStateException()
