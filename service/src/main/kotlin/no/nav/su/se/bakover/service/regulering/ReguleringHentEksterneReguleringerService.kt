@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.client.pesys.BeregningsperioderIverksatteVedtakDto
 import no.nav.su.se.bakover.client.pesys.PesysClient
-import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
+import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -29,11 +28,11 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         )
         val uførefradrag = brukereMedEpsUføre.map { brukerMedEps ->
             val eksterneFradragBruker = uførePerioder.singleOrNull { Fnr(it.fnr) == brukerMedEps.fnr }
-                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding")
+                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding") // TODO egen feilmelding
             val eskterneFradragEps = uførePerioder.filter { brukerMedEps.eps.contains(Fnr(it.fnr)) }
             RegulerteFradragEksternKilde(
-                bruker = fraUførePeriodeTilRegulertFradrag(eksterneFradragBruker),
-                forEps = eskterneFradragEps.map { fraUførePeriodeTilRegulertFradrag(it) },
+                bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
+                forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
             )
         }
 
@@ -43,13 +42,13 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         )
         val alderfradrag = brukereMedEpsAlder.map { brukerMedEps ->
             val eksterneFradragBruker = alderPerioder.singleOrNull { Fnr(it.fnr) == brukerMedEps.fnr }
-                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding")
+                ?: throw IllegalStateException("Noe gikk galt fiks bedre feilmelding") // TODO egen feilmelding
 
             val eskterneFradragEps = alderPerioder.filter { brukerMedEps.eps.contains(Fnr(it.fnr)) }
 
             RegulerteFradragEksternKilde(
-                bruker = fraAlderPeriodeTilRegulertFradrag(eksterneFradragBruker),
-                forEps = eskterneFradragEps.map { fraAlderPeriodeTilRegulertFradrag(it) },
+                bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
+                forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
             )
         }
 
@@ -75,18 +74,9 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
             throw Exception("")
         }.resultat
 
-    private fun fraUførePeriodeTilRegulertFradrag(uføreForPerson: UføreBeregningsperioderPerPerson): RegulertFradragEksternKilde {
-        // TODO AUTO-REG-26 ta i bruk inntekt etter uføre
+    private fun fraPesysPeriodeTilFradrag(alderForPerson: PesysPerioderForPerson): RegulertFradragEksternKilde {
         // TODO AUTO-REG-26 valider at stemmer med forventet G
-        return RegulertFradragEksternKilde(
-            fnr = Fnr(uføreForPerson.fnr),
-            førRegulering = uføreForPerson.perioder[0].netto,
-            etterRegulering = uføreForPerson.perioder[1].netto,
-        )
-    }
-
-    private fun fraAlderPeriodeTilRegulertFradrag(alderForPerson: BeregningsperioderIverksatteVedtakDto): RegulertFradragEksternKilde {
-        // TODO AUTO-REG-26 valider at stemmer med forventet G
+        // TODO AUTO-REG-26 ta i bruk inntekt etter uføre hvis uføretrygd
         return RegulertFradragEksternKilde(
             fnr = Fnr(alderForPerson.fnr),
             førRegulering = alderForPerson.perioder[0].netto,

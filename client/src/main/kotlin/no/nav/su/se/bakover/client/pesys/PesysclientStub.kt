@@ -12,7 +12,7 @@ class PesysclientStub : PesysClient {
         dato: LocalDate,
     ): Either<ClientError, ResponseDtoAlder> {
         val resultat = fnrList.map { fnr ->
-            BeregningsperioderIverksatteVedtakDto(
+            AlderBeregningsperioderPerPerson(
                 fnr = fnr.toString(),
                 perioder = listOf(
                     BeregningsperiodeDto(
