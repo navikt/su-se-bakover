@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -150,11 +151,11 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
-            on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+            on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
                 listOf(
                     RegulerteFradragEksternKilde(
-                        saksnummer = sak.saksnummer,
-                        forBruker = NyttFradragEksternKilde(
+                        bruker = RegulertFradragEksternKilde(
+                            fnr = fnr,
                             førRegulering = 0,
                             etterRegulering = 0,
                         ),
@@ -178,10 +179,10 @@ internal class ReguleringAutomatiskServiceImplTest {
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
 
         resultater.size shouldBe antallSaker
-        val sakerPerKall = argumentCaptor<List<Sak>>()
-        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(any(), sakerPerKall.capture())
-        sakerPerKall.allValues.map { it.size } shouldBe listOf(50, 50, 1)
-        sakerPerKall.allValues.all { it.size <= 50 } shouldBe true
+        val sakerPerKall = argumentCaptor<HentEksterneReguleringerCommand>()
+        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
+        sakerPerKall.allValues.map { it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size } shouldBe listOf(50, 50, 1)
+        sakerPerKall.allValues.all { (it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size) <= 50 } shouldBe true
     }
 
     @Nested

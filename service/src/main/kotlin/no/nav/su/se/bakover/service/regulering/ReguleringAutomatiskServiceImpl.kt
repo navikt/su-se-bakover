@@ -161,8 +161,11 @@ class ReguleringAutomatiskServiceImpl(
                     SakerMedRegulerteFradragEksternKilde(emptyList())
                 } else {
                     reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-                        reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                        saker = sakerSomKanReguleres,
+                        HentEksterneReguleringerCommand.toCommand(
+                            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                            saker = sakerSomKanReguleres,
+                            clock = clock,
+                        ),
                     )
                 }
 
