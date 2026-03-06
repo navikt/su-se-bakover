@@ -6,7 +6,7 @@ import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -919,17 +919,18 @@ internal class PersonhendelseServiceImplTest {
 
         val historiskBostedVurdering = vurderinger.firstValue.single { it.id == bostedOpprettetHistorisk.id }
         val historiskBostedDiff = historiskBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for historisk bostedsvurdering")
-        historiskBostedDiff shouldContain "\"hendelseIdFunnetIPdl\":true"
-        historiskBostedDiff shouldContain "\"korrelertPåGjeldendeForekomst\":false"
-        historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
-        historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
-        historiskBostedDiff shouldContain "\"pdlTreffFolkeregistermetadata\""
-        historiskBostedDiff shouldContain "\"kilde\":\"Matrikkelen\""
-        historiskBostedDiff shouldContain "\"aarsak\":\"Adresseoppdatering\""
+        val historiskBostedDiffJson = deserialize<PdlDiffJson>(historiskBostedDiff)
+        historiskBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
+        historiskBostedDiffJson.korrelertPåGjeldendeForekomst shouldBe false
+        historiskBostedDiffJson.korrelertPåHistoriskForekomst shouldBe true
+        historiskBostedDiffJson.pdlTreffAdresse shouldBe "Gamlegate 4, 0123"
+        historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.kilde shouldBe "Matrikkelen"
+        historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.aarsak shouldBe "Adresseoppdatering"
 
         val annullertBostedVurdering = vurderinger.firstValue.single { it.id == bostedAnnullert.id }
         val annullertBostedDiff = annullertBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for annullert bostedsvurdering")
-        annullertBostedDiff shouldContain "\"hendelseIdFunnetIPdl\":true"
+        val annullertBostedDiffJson = deserialize<PdlDiffJson>(annullertBostedDiff)
+        annullertBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
@@ -1189,4 +1190,12 @@ internal class PersonhendelseServiceImplTest {
             )
         }
     }
+
+    private data class PdlDiffJson(
+        val hendelseIdFunnetIPdl: Boolean? = null,
+        val korrelertPåGjeldendeForekomst: Boolean? = null,
+        val korrelertPåHistoriskForekomst: Boolean? = null,
+        val pdlTreffAdresse: String? = null,
+        val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
+    )
 }
