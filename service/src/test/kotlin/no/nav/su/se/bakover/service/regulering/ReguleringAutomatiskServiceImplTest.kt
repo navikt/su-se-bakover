@@ -159,7 +159,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             etterRegulering = 0,
                         ),
                         forEps = emptyList(),
-                    ),
+                    ).right(),
                 )
         }
 
@@ -612,7 +612,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                                 etterRegulering = 0,
                             ),
                             forEps = emptyList(),
-                        ),
+                        ).right(),
                     )
             },
 
@@ -689,7 +689,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                                 etterRegulering = 0,
                             ),
                             forEps = emptyList(),
-                        ),
+                        ).right(),
                     )
             },
         ).startAutomatiskReguleringForInnsyn(
@@ -829,7 +829,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                                 etterRegulering = beløpEtterRegulering.toInt(),
                             ),
                             forEps = emptyList(),
-                        ),
+                        ).right(),
                     )
             },
         )
