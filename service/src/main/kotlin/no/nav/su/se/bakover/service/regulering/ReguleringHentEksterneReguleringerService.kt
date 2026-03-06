@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.getOrElse
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -105,7 +104,7 @@ data class HentEksterneReguleringerRequest(
     )
 
     companion object {
-        fun toCommand(
+        fun toRequest(
             reguleringsMåned: Måned,
             forSaker: List<Sak>,
             clock: Clock,

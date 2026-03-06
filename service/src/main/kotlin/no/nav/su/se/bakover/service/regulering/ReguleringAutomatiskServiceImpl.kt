@@ -161,7 +161,7 @@ class ReguleringAutomatiskServiceImpl(
                     emptyList()
                 } else {
                     reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-                        HentEksterneReguleringerRequest.toCommand(
+                        HentEksterneReguleringerRequest.toRequest(
                             reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
                             forSaker = sakerSomKanReguleres,
                             clock = clock,
