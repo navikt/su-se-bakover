@@ -79,7 +79,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
             fnrList = fnrList,
             dato = dato,
         ).getOrElse {
-            throw Exception("")
+            throw UtehentingAvPerioderUføreFeilet()
         }.resultat
 
     private fun hentPerioderAlder(fnrList: List<Fnr>, dato: LocalDate) =
@@ -87,8 +87,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
             fnrList = fnrList,
             dato = dato,
         ).getOrElse {
-            // TODO AUTO-REG-26 feilhåndtering
-            throw Exception("")
+            throw UtehentingAvPerioderAlderFeilet()
         }.resultat
 }
 
@@ -129,3 +128,5 @@ data class HentEksterneReguleringerRequest(
 private fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> = this.flatMap { listOf(it.fnr) + it.eps }.distinct()
 
 class IngenPesysPerioderFunnet : IllegalStateException()
+class UtehentingAvPerioderUføreFeilet : IllegalStateException()
+class UtehentingAvPerioderAlderFeilet : IllegalStateException()

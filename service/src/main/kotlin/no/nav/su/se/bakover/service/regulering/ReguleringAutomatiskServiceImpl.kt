@@ -160,13 +160,18 @@ class ReguleringAutomatiskServiceImpl(
                 val sakerMedRegulerteFradragEksternKilde = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
-                    reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-                        HentEksterneReguleringerRequest.toRequest(
-                            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                            forSaker = sakerSomKanReguleres,
-                            clock = clock,
-                        ),
-                    )
+                    Either.catch {
+                        reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
+                            HentEksterneReguleringerRequest.toRequest(
+                                reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                                forSaker = sakerSomKanReguleres,
+                                clock = clock,
+                            ),
+                        )
+                    }.getOrElse {
+                        // TODO AUTO-REG-26 Feile enkelt batch?
+                        throw it
+                    }
                 }
 
                 sakerSomSkalReguleresEllerIkke.map {
