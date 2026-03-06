@@ -25,7 +25,7 @@ interface ReguleringAutomatiskService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
         supplement: Reguleringssupplement,
-    ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>>
+    ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>
 
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,

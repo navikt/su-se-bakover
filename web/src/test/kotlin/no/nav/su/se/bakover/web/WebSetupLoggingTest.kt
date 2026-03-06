@@ -17,10 +17,12 @@ import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.Isolated
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 
 // LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
+@Isolated
 @Execution(value = ExecutionMode.SAME_THREAD)
 class WebSetupLoggingTest {
 
