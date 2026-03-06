@@ -26,13 +26,13 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         val (månedFørRegulering, brukereMedEpsUføre, brukereMedEpsAlder) = request
 
         val uførePerioder = hentPerioderUføre(brukereMedEpsUføre.listeAlleUnikeFnr(), månedFørRegulering)
-        val uførefradrag = hentReguleringerForBrukere(
+        val uførefradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsUføre,
             perioder = uførePerioder,
         )
 
         val alderPerioder = hentPerioderAlder(brukereMedEpsAlder.listeAlleUnikeFnr(), månedFørRegulering)
-        val alderfradrag = hentReguleringerForBrukere(
+        val alderfradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsAlder,
             perioder = alderPerioder,
         )
@@ -40,13 +40,13 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         return uførefradrag + alderfradrag
     }
 
-    private fun hentReguleringerForBrukere(
+    private fun utledRegulerteFradragForBrukerMedEps(
         brukereMedEps: List<BrukerMedEps>,
         perioder: List<PesysPerioderForPerson>,
     ): List<RegulerteFradragEksternKilde> {
         return brukereMedEps.map { brukerMedEps ->
-            val eksterneFradragBruker = perioder.hentForventedePesysPerioder(brukerMedEps.fnr)
-            val eksterneFradragEps = brukerMedEps.eps.map { perioder.hentForventedePesysPerioder(it) }
+            val eksterneFradragBruker = perioder.utledRegulerteFradragFraPerioder(brukerMedEps.fnr)
+            val eksterneFradragEps = brukerMedEps.eps.map { perioder.utledRegulerteFradragFraPerioder(it) }
             RegulerteFradragEksternKilde(
                 bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
                 forEps = eksterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
@@ -54,7 +54,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         }
     }
 
-    private fun List<PesysPerioderForPerson>.hentForventedePesysPerioder(fnr: Fnr): PesysPerioderForPerson {
+    private fun List<PesysPerioderForPerson>.utledRegulerteFradragFraPerioder(fnr: Fnr): PesysPerioderForPerson {
         val forventetPesysPerioder = this.singleOrNull { Fnr(it.fnr) == fnr }
         if (forventetPesysPerioder == null) {
             log.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Se sikkerlogg for detaljer.")
@@ -79,7 +79,6 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
             fnrList = fnrList,
             dato = dato,
         ).getOrElse {
-            // TODO AUTO-REG-26 feilhåndtering
             throw Exception("")
         }.resultat
 
