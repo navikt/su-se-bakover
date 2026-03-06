@@ -422,15 +422,13 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         repo.hentPersonhendelserUtenPdlVurdering() shouldBe listOf(hendelse)
         repo.hentPersonhendelserKlareForOppgave() shouldBe emptyList()
 
-        val snapshot = """{"fnr":"${sak.fnr}","harKontaktadresse":true}"""
         val diff =
-            """{"relevant":true,"begrunnelse":"test","korrelertPåGjeldendeForekomst":false,"korrelertPåHistoriskForekomst":true,"pdlTreffErHistorisk":true,"pdlTreffAdresse":"Gamlegate 4, 0123"}"""
+            """{"relevant":true,"begrunnelse":"test","harKontaktadresseNå":true,"hendelseIdFunnetIPdl":true,"korrelertPåGjeldendeForekomst":false,"korrelertPåHistoriskForekomst":true,"pdlTreffAdresse":"Gamlegate 4, 0123"}"""
         repo.oppdaterPdlVurdering(
             listOf(
                 PersonhendelseRepo.PdlVurdering(
                     id = id,
                     relevant = true,
-                    pdlSnapshot = snapshot,
                     pdlDiff = diff,
                 ),
             ),
@@ -448,9 +446,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         klarForOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe "Gamlegate 4, 0123"
         klarForOppgave.pdlOppsummering?.vurdertTidspunkt shouldNotBe null
 
-        val pdlSnapshot = hentPdlSnapshot(id, dataSource)
         val pdlDiff = hentPdlDiff(id, dataSource)
-        jsonNode(pdlSnapshot!!) shouldBe jsonNode(snapshot)
         jsonNode(pdlDiff!!) shouldBe jsonNode(diff)
     }
 
@@ -773,21 +769,6 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
                 mapOf("id" to id),
                 session,
             )
-        }
-    }
-
-    private fun hentPdlSnapshot(id: UUID, dataSource: DataSource): String? {
-        return dataSource.withSession { session ->
-            """
-                select pdl_snapshot from personhendelse
-                where id = :id
-            """.trimIndent()
-                .hent(
-                    mapOf("id" to id),
-                    session,
-                ) {
-                    it.stringOrNull("pdl_snapshot")
-                }
         }
     }
 

@@ -919,18 +919,17 @@ internal class PersonhendelseServiceImplTest {
 
         val historiskBostedVurdering = vurderinger.firstValue.single { it.id == bostedOpprettetHistorisk.id }
         val historiskBostedDiff = historiskBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for historisk bostedsvurdering")
+        historiskBostedDiff shouldContain "\"hendelseIdFunnetIPdl\":true"
         historiskBostedDiff shouldContain "\"korrelertPåGjeldendeForekomst\":false"
         historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
-        historiskBostedDiff shouldContain "\"pdlTreffErHistorisk\":true"
         historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
         historiskBostedDiff shouldContain "\"pdlTreffFolkeregistermetadata\""
         historiskBostedDiff shouldContain "\"kilde\":\"Matrikkelen\""
         historiskBostedDiff shouldContain "\"aarsak\":\"Adresseoppdatering\""
 
-        val historiskBostedSnapshot = historiskBostedVurdering.pdlSnapshot ?: error("Mangler pdlSnapshot for historisk bostedsvurdering")
-        historiskBostedSnapshot shouldContain "\"alleBostedsadresser\""
-        historiskBostedSnapshot shouldContain "\"hendelseIder\":[\"$hendelseIdBostedHistorisk\"]"
-        historiskBostedSnapshot shouldContain "\"folkeregistermetadata\""
+        val annullertBostedVurdering = vurderinger.firstValue.single { it.id == bostedAnnullert.id }
+        val annullertBostedDiff = annullertBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for annullert bostedsvurdering")
+        annullertBostedDiff shouldContain "\"hendelseIdFunnetIPdl\":true"
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
