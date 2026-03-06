@@ -156,13 +156,13 @@ class ReguleringAutomatiskServiceImpl(
                     sak.right()
                 }
 
-                val sakerSomaKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
-                val sakerMedRegulerteFradragEksternKilde = if (sakerSomaKanReguleres.isEmpty()) {
+                val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
+                val sakerMedRegulerteFradragEksternKilde = if (sakerSomKanReguleres.isEmpty()) {
                     SakerMedRegulerteFradragEksternKilde(emptyList())
                 } else {
                     reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
                         reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                        saker = sakerSomaKanReguleres,
+                        saker = sakerSomKanReguleres,
                     )
                 }
 

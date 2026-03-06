@@ -96,7 +96,7 @@ private fun Sequence<Map<ÅrsakTilManuellReguleringKategori, String>>.toCSVLogga
 private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
     val reguleringstype = this.reguleringstype
     return when (reguleringstype) {
-        Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kunt ment å bli brukt fra reguleringer som er manuell")
+        Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kun ment å bli brukt fra reguleringer som er manuelle")
         is Reguleringstype.MANUELL -> {
             reguleringstype.problemer.map { årsak ->
                 when (årsak) {
