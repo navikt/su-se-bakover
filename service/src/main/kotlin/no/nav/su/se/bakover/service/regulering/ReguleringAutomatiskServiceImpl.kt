@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -174,13 +175,23 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
-                sakerSomSkalReguleresEllerIkke.map {
+                val sakerSomSkalReguleresEllerIkkeNyeFradrag = sakerSomSkalReguleresEllerIkke.map {
+                    it.flatMap { sak ->
+                        if (sakerMedRegulerteFradragEksternKilde.filterLefts().map { it.fnr }.contains(sak.fnr)) {
+                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet.left()
+                        } else {
+                            sak.right()
+                        }
+                    }
+                }
+
+                sakerSomSkalReguleresEllerIkkeNyeFradrag.map {
                     it.flatMap { sak ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
                         sak.kjørForSak(
                             fraOgMedMåned = fraOgMedMåned,
                             satsFactory = satsFactory,
-                            sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+                            sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde.filterRights(),
                             omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )

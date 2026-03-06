@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.service.regulering
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -22,7 +25,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     private val log = LoggerFactory.getLogger(this::class.java)
 
     // TODO AUTO-REG-26 feilhåndtering..
-    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<RegulerteFradragEksternKilde> {
+    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         val (månedFørRegulering, brukereMedEpsUføre, brukereMedEpsAlder) = request
 
         // TODO må kartle hvilke eps som er alder/uføre enten før kall eller ved utledning av pesysperioder
@@ -46,14 +49,19 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     private fun utledRegulerteFradragForBrukerMedEps(
         brukereMedEps: List<BrukerMedEps>,
         perioder: List<PesysPerioderForPerson>,
-    ): List<RegulerteFradragEksternKilde> {
+    ): List<Either<HentingAvRegulerteFradragFeiletForBruker.BrukerEllerEpsManglerForventetPesysPeriode, RegulerteFradragEksternKilde>> {
         return brukereMedEps.map { brukerMedEps ->
-            val eksterneFradragBruker = perioder.utledRegulerteFradragFraPerioder(brukerMedEps.fnr)
-            val eksterneFradragEps = brukerMedEps.eps.map { perioder.utledRegulerteFradragFraPerioder(it) }
-            RegulerteFradragEksternKilde(
-                bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
-                forEps = eksterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
-            )
+            Either.catch {
+                val eksterneFradragBruker = perioder.utledRegulerteFradragFraPerioder(brukerMedEps.fnr)
+                val eksterneFradragEps = brukerMedEps.eps.map { perioder.utledRegulerteFradragFraPerioder(it) }
+                RegulerteFradragEksternKilde(
+                    bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
+                    forEps = eksterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
+                ).right()
+            }.getOrElse {
+                HentingAvRegulerteFradragFeiletForBruker.BrukerEllerEpsManglerForventetPesysPeriode(brukerMedEps.fnr)
+                    .left()
+            }
         }
     }
 
@@ -118,6 +126,7 @@ data class HentEksterneReguleringerRequest(
                 brukereMedEpsAlder = alderSaker.map { it.toBrukerMedEps(reguleringsMåned, clock) },
             )
         }
+
         private fun Sak.toBrukerMedEps(
             reguleringsMåned: Måned,
             clock: Clock,
@@ -131,6 +140,15 @@ data class HentEksterneReguleringerRequest(
 
 private fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> = this.flatMap { listOf(it.fnr) + it.eps }.distinct()
 
+open class HentingAvRegulerteFradragFeiletForBruker(
+    open val fnr: Fnr,
+) {
+    data class BrukerEllerEpsManglerForventetPesysPeriode(
+        override val fnr: Fnr,
+    ) : HentingAvRegulerteFradragFeiletForBruker(fnr)
+}
+
 class IngenPesysPerioderFunnet : IllegalStateException()
+
 class UtehentingAvPerioderUføreFeilet : IllegalStateException()
 class UtehentingAvPerioderAlderFeilet : IllegalStateException()
