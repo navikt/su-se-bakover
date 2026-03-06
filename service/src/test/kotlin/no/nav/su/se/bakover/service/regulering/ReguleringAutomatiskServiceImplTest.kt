@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.august
@@ -15,12 +14,10 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
-import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.NyttFradragEksternKilde
@@ -59,9 +56,11 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -82,7 +81,6 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
-// TODO refaktorer disse testene til å unngå "scrambling" og hacking, og i større grad bruke satsfactory til å trigge endringer.
 internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
@@ -100,6 +98,90 @@ internal class ReguleringAutomatiskServiceImplTest {
             it.size shouldBe 1
             it.first().shouldBeRight()
         }
+    }
+
+    @Test
+    fun `henter eksterne reguleringer i batcher på maks 50 saker`() {
+        val antallSaker = 101
+        val clock = tikkendeFixedClock()
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+
+        val nyUtbetaling = UtbetalingKlargjortForOversendelse(
+            utbetaling = oversendtUtbetalingUtenKvittering(
+                beregning = beregning(
+                    fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+                ),
+                clock = clock,
+            ),
+            callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
+                on { it.invoke(any()) } doReturn utbetalingsRequest.right()
+            },
+        )
+
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hent(any()) } doReturn sak.reguleringer.firstOrNull()
+            on { hentForSakId(any(), any()) } doReturn sak.reguleringer
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        }
+        val utbetalingService = mock<UtbetalingService> {
+            on { simulerUtbetaling(any()) } doAnswer { invocation ->
+                simulerUtbetaling(
+                    utbetalingerPåSak = sak.utbetalinger,
+                    utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                )
+            }
+            on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+        }
+        val vedtakService = mock<VedtakService>()
+        val sessionFactory = TestSessionFactory()
+        val satsFactory = satsFactoryTestPåDato()
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepo = reguleringRepo,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakService,
+            sessionFactory = sessionFactory,
+            satsFactory = satsFactory,
+            clock = clock,
+        )
+
+        val alleSaker = (1..antallSaker).map { sak.info().copy(sakId = UUID.randomUUID()) }
+        val sakService = mock<SakService> {
+            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+        val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
+            on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                listOf(
+                    RegulerteFradragEksternKilde(
+                        saksnummer = sak.saksnummer,
+                        forBruker = NyttFradragEksternKilde(
+                            førRegulering = 0,
+                            etterRegulering = 0,
+                        ),
+                        forEps = emptyList(),
+                    ),
+                ),
+            )
+        }
+
+        val service = ReguleringAutomatiskServiceImpl(
+            reguleringRepo = reguleringRepo,
+            sakService = sakService,
+            clock = clock,
+            satsFactory = satsFactory,
+            reguleringService = reguleringService,
+            statistikkService = mock(),
+            sessionFactory = sessionFactory,
+            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
+        )
+
+        val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
+
+        resultater.size shouldBe antallSaker
+        val sakerPerKall = argumentCaptor<List<Sak>>()
+        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(any(), sakerPerKall.capture())
+        sakerPerKall.allValues.map { it.size } shouldBe listOf(50, 50, 1)
+        sakerPerKall.allValues.all { it.size <= 50 } shouldBe true
     }
 
     @Nested
@@ -279,7 +361,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
-                it.first().getOrFail().shouldBeInstanceOf<IverksattRegulering>()
+                it.first().getOrFail().erIverksatt shouldBe true
             }
         }
     }

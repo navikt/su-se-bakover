@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.whenever
-import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -19,10 +19,15 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
  *
  * dataKolonne1;dataKolonne2;dataKolonne3;dataKolonne4;dataKolonne5
  */
-fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
+internal fun List<ReguleringOppsummering>.toCSVLoggableStringFraLoggdata(): Map<ÅrsakTilManuellReguleringKategori, String> {
     return this
         .asSequence()
         .map { it.toCSVLoggableString() }
+        .toCSVLoggableStringMap()
+}
+
+private fun Sequence<Map<ÅrsakTilManuellReguleringKategori, String>>.toCSVLoggableStringMap(): Map<ÅrsakTilManuellReguleringKategori, String> {
+    return this
         .groupBy { it.keys }
         .map {
             mapOf(
@@ -88,16 +93,17 @@ fun List<Regulering>.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKatego
 /**
  * kaster exception hvis reguleringstype er automatisk - kun ment å brukes for manuelle reguleringer
  */
-private fun Regulering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
+private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellReguleringKategori, String> {
+    val reguleringstype = this.reguleringstype
     return when (reguleringstype) {
-        Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kunt ment å bli brukt fra reguleringer som er manuell")
+        Reguleringstype.AUTOMATISK -> throw IllegalArgumentException("toLoggableString() er kun ment å bli brukt fra reguleringer som er manuelle")
         is Reguleringstype.MANUELL -> {
-            (this.reguleringstype as Reguleringstype.MANUELL).problemer.map { årsak ->
+            reguleringstype.problemer.map { årsak ->
                 when (årsak) {
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> årsak.toCSVLoggableString(
                         saksnummer = saksnummer,
-                        supplementBruker = this.eksternSupplementRegulering?.bruker,
-                        supplementEps = this.eksternSupplementRegulering?.eps ?: emptyList(),
+                        supplementBruker = supplementBruker,
+                        supplementEps = supplementEps,
                     )
 
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering -> årsak.toCSVLoggableString(

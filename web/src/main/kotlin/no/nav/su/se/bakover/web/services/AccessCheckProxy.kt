@@ -91,10 +91,10 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
-import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
+import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
@@ -1379,7 +1379,7 @@ open class AccessCheckProxy(
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
                     supplement: Reguleringssupplement,
-                ): List<Either<KunneIkkeRegulereAutomatisk, Regulering>> {
+                ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
                     return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, supplement)
                 }
 
