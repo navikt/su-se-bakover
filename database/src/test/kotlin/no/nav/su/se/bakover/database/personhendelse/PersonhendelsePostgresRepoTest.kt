@@ -429,7 +429,6 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
             hendelseIdFunnetIPdl = true,
             korrelertPåGjeldendeForekomst = false,
             korrelertPåHistoriskForekomst = true,
-            pdlTreffAdresse = "Gamlegate 4, 0123",
         )
         repo.oppdaterPdlVurdering(
             listOf(
@@ -450,7 +449,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         klarForOppgave.pdlOppsummering?.korrelertPåGjeldendeForekomst shouldBe false
         klarForOppgave.pdlOppsummering?.korrelertPåHistoriskForekomst shouldBe true
         klarForOppgave.pdlOppsummering?.pdlTreffErHistorisk shouldBe true
-        klarForOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe "Gamlegate 4, 0123"
+        klarForOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe null
         klarForOppgave.pdlOppsummering?.vurdertTidspunkt shouldNotBe null
 
         val pdlDiff = hentPdlDiff(id, dataSource)
@@ -817,6 +816,5 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         val hendelseIdFunnetIPdl: Boolean? = null,
         val korrelertPåGjeldendeForekomst: Boolean? = null,
         val korrelertPåHistoriskForekomst: Boolean? = null,
-        val pdlTreffAdresse: String? = null,
     )
 }

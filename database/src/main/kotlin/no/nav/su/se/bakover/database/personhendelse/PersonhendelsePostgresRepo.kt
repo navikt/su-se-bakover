@@ -245,7 +245,7 @@ internal class PersonhendelsePostgresRepo(
             korrelertPåGjeldendeForekomst = diff?.korrelertPåGjeldendeForekomst,
             korrelertPåHistoriskForekomst = diff?.korrelertPåHistoriskForekomst,
             pdlTreffErHistorisk = diff?.pdlTreffErHistorisk ?: diff?.korrelertPåHistoriskForekomst,
-            pdlTreffAdresse = diff?.pdlTreffAdresse,
+            pdlTreffAdresse = null,
         )
     }
 
@@ -257,7 +257,6 @@ internal class PersonhendelsePostgresRepo(
         val korrelertPåHistoriskForekomst: Boolean? = null,
         @param:JsonAlias("gjelderTilbakeITid")
         val pdlTreffErHistorisk: Boolean? = null,
-        val pdlTreffAdresse: String? = null,
     )
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {

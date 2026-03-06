@@ -195,11 +195,12 @@ class PersonhendelseServiceImpl(
         personhendelser: NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>,
     ) {
         val personhendelseIder = personhendelser.map { it.id }
+        val personhendelserMedPdlTreffadresse = leggTilPdlTreffadresseVedOppgaveopprettelse(personhendelser)
 
         oppgaveServiceImpl.opprettOppgaveMedSystembruker(
             OppgaveConfig.Personhendelse(
                 saksnummer = sak.saksnummer,
-                personhendelse = personhendelser.toNonEmptySet(),
+                personhendelse = personhendelserMedPdlTreffadresse.toNonEmptySet(),
                 fnr = sak.fnr,
                 clock = clock,
                 sakstype = sak.type,
@@ -309,7 +310,6 @@ class PersonhendelseServiceImpl(
                     matchendeForekomst = matchendeAdresseForHendelse,
                     historiskeOgGjeldendeForekomster = alleAdresser,
                 )
-                val treffAdresse = matchendeAdresseForHendelse?.toOppgaveAdresse()
 
                 PersonhendelseRepo.PdlVurdering(
                     id = personhendelse.id,
@@ -328,7 +328,6 @@ class PersonhendelseServiceImpl(
                             hendelseIdFunnetIPdl = matchendeAdresseForHendelse != null,
                             korrelertPåGjeldendeForekomst = gjeldendeAdresseForHendelse != null,
                             korrelertPåHistoriskForekomst = historiskAdresseForHendelse != null,
-                            pdlTreffAdresse = treffAdresse,
                             pdlTreffFolkeregistermetadata = matchendeAdresseForHendelse?.folkeregistermetadata,
                         ),
                     ),
@@ -474,9 +473,45 @@ class PersonhendelseServiceImpl(
         val hendelseIdFunnetIPdl: Boolean? = null,
         val korrelertPåGjeldendeForekomst: Boolean = false,
         val korrelertPåHistoriskForekomst: Boolean = false,
-        val pdlTreffAdresse: String? = null,
         val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     )
+
+    private fun leggTilPdlTreffadresseVedOppgaveopprettelse(
+        personhendelser: NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>,
+    ): NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        val opplysningerPerFnr = mutableMapOf<Fnr, Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata>>()
+        return personhendelser.map { personhendelse ->
+            if (personhendelse.hendelse !is Personhendelse.Hendelse.Bostedsadresse) return@map personhendelse
+            val pdlOppsummering = personhendelse.pdlOppsummering ?: return@map personhendelse
+            if (!pdlOppsummering.pdlTreffAdresse.isNullOrBlank()) return@map personhendelse
+
+            val fnr = personhendelse.metadata.personidenter.firstNotNullOfOrNull { Fnr.tryCreate(it) }
+                ?: return@map personhendelse
+
+            val opplysninger = opplysningerPerFnr.getOrPut(fnr) { personOppslag.bostedsadresseMedMetadataForSystembruker(fnr) }
+            opplysninger.fold(
+                ifLeft = { feil ->
+                    log.warn(
+                        "Kunne ikke hente PDL-treffadresse ved oppgaveopprettelse for personhendelse {}. Feil: {}.",
+                        personhendelse.id,
+                        feil,
+                    )
+                    personhendelse
+                },
+                ifRight = { adresseopplysninger ->
+                    val treffadresse = adresseopplysninger.bostedsadresser.firstOrNull {
+                        it.hendelseIder.contains(personhendelse.metadata.hendelseId)
+                    }?.toOppgaveAdresse()
+
+                    personhendelse.copy(
+                        pdlOppsummering = pdlOppsummering.copy(
+                            pdlTreffAdresse = treffadresse,
+                        ),
+                    )
+                },
+            )
+        }.toNonEmptyList()
+    }
 
     private data class Adressebeslutning(
         val relevant: Boolean,

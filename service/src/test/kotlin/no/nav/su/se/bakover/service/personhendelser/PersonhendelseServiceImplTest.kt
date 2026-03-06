@@ -378,6 +378,87 @@ internal class PersonhendelseServiceImplTest {
     }
 
     @Test
+    internal fun `henter pdl treffadresse ved oppgaveopprettelse for bostedsadresse`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val hendelseId = UUID.randomUUID().toString()
+        val bostedsadresse = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = sak.fnr,
+            hendelseId = hendelseId,
+        ).copy(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            pdlOppsummering = Personhendelse.PdlOppsummering(
+                vurdertTidspunkt = fixedTidspunkt,
+                harBostedsadresseNå = true,
+                harKontaktadresseNå = null,
+                begrunnelse = "test",
+                korrelertPåGjeldendeForekomst = true,
+                korrelertPåHistoriskForekomst = false,
+                pdlTreffErHistorisk = false,
+                pdlTreffAdresse = null,
+            ),
+        )
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(bostedsadresse)
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { bostedsadresseMedMetadataForSystembruker(sak.fnr) } doReturn adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseId),
+                        gateadresse = "Testveien 1",
+                        postnummer = "0123",
+                    ),
+                ),
+            ).right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        val personhendelseISendtOppgave =
+            (oppgaveCaptor.firstValue as OppgaveConfig.Personhendelse).personhendelse.toSet().single()
+        personhendelseISendtOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe "Testveien 1, 0123"
+
+        verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
+        verify(personOppslagMock).bostedsadresseMedMetadataForSystembruker(sak.fnr)
+        verify(personhendelseRepoMock).lagre(
+            argThat<List<Personhendelse.TilknyttetSak.SendtTilOppgave>> {
+                it shouldBe listOf(bostedsadresse.tilSendtTilOppgave(oppgaveId))
+            },
+        )
+        verifyNoMoreInteractions(
+            oppgaveServiceMock,
+            personhendelseRepoMock,
+            sakRepoMock,
+            personOppslagMock,
+        )
+    }
+
+    @Test
     internal fun `inkrementerer antall forsøk dersom oppretting av oppgave feiler`() {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
         val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id, saksnummer = sak.saksnummer)
@@ -923,7 +1004,6 @@ internal class PersonhendelseServiceImplTest {
         historiskBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
         historiskBostedDiffJson.korrelertPåGjeldendeForekomst shouldBe false
         historiskBostedDiffJson.korrelertPåHistoriskForekomst shouldBe true
-        historiskBostedDiffJson.pdlTreffAdresse shouldBe "Gamlegate 4, 0123"
         historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.kilde shouldBe "Matrikkelen"
         historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.aarsak shouldBe "Adresseoppdatering"
 
@@ -1195,7 +1275,6 @@ internal class PersonhendelseServiceImplTest {
         val hendelseIdFunnetIPdl: Boolean? = null,
         val korrelertPåGjeldendeForekomst: Boolean? = null,
         val korrelertPåHistoriskForekomst: Boolean? = null,
-        val pdlTreffAdresse: String? = null,
         val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     )
 }
