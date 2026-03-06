@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
-import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.test.fixedClock
@@ -422,14 +422,21 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         repo.hentPersonhendelserUtenPdlVurdering() shouldBe listOf(hendelse)
         repo.hentPersonhendelserKlareForOppgave() shouldBe emptyList()
 
-        val diff =
-            """{"relevant":true,"begrunnelse":"test","harKontaktadresseNå":true,"hendelseIdFunnetIPdl":true,"korrelertPåGjeldendeForekomst":false,"korrelertPåHistoriskForekomst":true,"pdlTreffAdresse":"Gamlegate 4, 0123"}"""
+        val diff = PdlDiffJson(
+            relevant = true,
+            begrunnelse = "test",
+            harKontaktadresseNå = true,
+            hendelseIdFunnetIPdl = true,
+            korrelertPåGjeldendeForekomst = false,
+            korrelertPåHistoriskForekomst = true,
+            pdlTreffAdresse = "Gamlegate 4, 0123",
+        )
         repo.oppdaterPdlVurdering(
             listOf(
                 PersonhendelseRepo.PdlVurdering(
                     id = id,
                     relevant = true,
-                    pdlDiff = diff,
+                    pdlDiff = serialize(diff),
                 ),
             ),
         )
@@ -447,7 +454,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         klarForOppgave.pdlOppsummering?.vurdertTidspunkt shouldNotBe null
 
         val pdlDiff = hentPdlDiff(id, dataSource)
-        jsonNode(pdlDiff!!) shouldBe jsonNode(diff)
+        deserialize<PdlDiffJson>(pdlDiff!!) shouldBe diff
     }
 
     @Test
@@ -801,5 +808,15 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         val type: String? = null,
         val coAdressenavn: String? = null,
         val adressetype: String? = null,
+    )
+
+    private data class PdlDiffJson(
+        val relevant: Boolean? = null,
+        val begrunnelse: String? = null,
+        val harKontaktadresseNå: Boolean? = null,
+        val hendelseIdFunnetIPdl: Boolean? = null,
+        val korrelertPåGjeldendeForekomst: Boolean? = null,
+        val korrelertPåHistoriskForekomst: Boolean? = null,
+        val pdlTreffAdresse: String? = null,
     )
 }
