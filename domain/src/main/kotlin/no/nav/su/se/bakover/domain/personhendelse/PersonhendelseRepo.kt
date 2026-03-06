@@ -6,7 +6,6 @@ interface PersonhendelseRepo {
     data class PdlVurdering(
         val id: UUID,
         val relevant: Boolean,
-        val pdlSnapshot: String?,
         val pdlDiff: String?,
     )
 
