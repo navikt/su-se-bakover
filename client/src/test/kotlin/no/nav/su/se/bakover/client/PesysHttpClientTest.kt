@@ -9,8 +9,8 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.BeregningsperiodeDto
-import no.nav.su.se.bakover.client.pesys.BeregningsperioderIverksatteVedtakDto
 import no.nav.su.se.bakover.client.pesys.PesysHttpClient
 import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
 import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
@@ -30,7 +30,7 @@ import java.time.LocalDate
 
 val expectedAlderResponse = ResponseDtoAlder(
     resultat = listOf(
-        BeregningsperioderIverksatteVedtakDto(
+        AlderBeregningsperioderPerPerson(
             fnr = "22503904369",
             perioder = listOf(
                 BeregningsperiodeDto(
@@ -41,11 +41,11 @@ val expectedAlderResponse = ResponseDtoAlder(
                 ),
             ),
         ),
-        BeregningsperioderIverksatteVedtakDto(
+        AlderBeregningsperioderPerPerson(
             fnr = "01416304056",
             perioder = emptyList(),
         ),
-        BeregningsperioderIverksatteVedtakDto(
+        AlderBeregningsperioderPerPerson(
             fnr = "10435046563",
             perioder = listOf(
                 BeregningsperiodeDto(
@@ -56,7 +56,7 @@ val expectedAlderResponse = ResponseDtoAlder(
                 ),
             ),
         ),
-        BeregningsperioderIverksatteVedtakDto(
+        AlderBeregningsperioderPerPerson(
             fnr = "01445407670",
             perioder = listOf(
                 BeregningsperiodeDto(
@@ -67,7 +67,7 @@ val expectedAlderResponse = ResponseDtoAlder(
                 ),
             ),
         ),
-        BeregningsperioderIverksatteVedtakDto(
+        AlderBeregningsperioderPerPerson(
             fnr = "14445014177",
             perioder = listOf(
                 BeregningsperiodeDto(
@@ -78,7 +78,7 @@ val expectedAlderResponse = ResponseDtoAlder(
                 ),
             ),
         ),
-        BeregningsperioderIverksatteVedtakDto(
+        AlderBeregningsperioderPerPerson(
             fnr = "24415045545",
             perioder = listOf(
                 BeregningsperiodeDto(

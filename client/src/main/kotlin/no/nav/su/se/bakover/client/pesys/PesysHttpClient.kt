@@ -110,23 +110,45 @@ class PesysHttpClient(
     }
 }
 
-data class ResponseDtoAlder(val resultat: List<BeregningsperioderIverksatteVedtakDto>)
-data class BeregningsperioderIverksatteVedtakDto(val fnr: String, val perioder: List<BeregningsperiodeDto>)
-data class BeregningsperiodeDto(val netto: Int, val fom: LocalDate, val tom: LocalDate?, val grunnbelop: Int)
+interface PesysPerioderForPerson {
+    val fnr: String
+    val perioder: List<PesysPeriode>
+}
+
+interface PesysPeriode {
+    val netto: Int
+    val fom: LocalDate
+    val tom: LocalDate?
+    val grunnbelop: Int
+}
+
+data class ResponseDtoAlder(val resultat: List<AlderBeregningsperioderPerPerson>)
+
+data class AlderBeregningsperioderPerPerson(
+    override val fnr: String,
+    override val perioder: List<BeregningsperiodeDto>,
+) : PesysPerioderForPerson
+
+data class BeregningsperiodeDto(
+    override val netto: Int,
+    override val fom: LocalDate,
+    override val tom: LocalDate?,
+    override val grunnbelop: Int,
+) : PesysPeriode
 
 data class ResponseDtoUføre(
     val resultat: List<UføreBeregningsperioderPerPerson>,
 )
 
 data class UføreBeregningsperioderPerPerson(
-    val fnr: String,
-    val perioder: List<UføreBeregningsperiode>,
-)
+    override val fnr: String,
+    override val perioder: List<UføreBeregningsperiode>,
+) : PesysPerioderForPerson
 
 data class UføreBeregningsperiode(
-    val netto: Int,
-    val fom: LocalDate,
-    val tom: LocalDate? = null,
-    val grunnbelop: Int,
+    override val netto: Int,
+    override val fom: LocalDate,
+    override val tom: LocalDate? = null,
+    override val grunnbelop: Int,
     val oppjustertInntektEtterUfore: Int?,
-)
+) : PesysPeriode

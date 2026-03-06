@@ -20,13 +20,12 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
-import no.nav.su.se.bakover.domain.regulering.NyttFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -168,7 +167,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+        regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
@@ -505,15 +504,13 @@ fun reguleringsgrunnlagFraEksternKilde(
     sak: Sak,
     førRegulering: Int = 100,
     etterRegulering: Int = 110,
-) = SakerMedRegulerteFradragEksternKilde(
-    listOf(
-        RegulerteFradragEksternKilde(
-            saksnummer = sak.saksnummer,
-            forBruker = NyttFradragEksternKilde(
-                førRegulering = førRegulering,
-                etterRegulering = etterRegulering,
-            ),
-            forEps = emptyList(),
+) = listOf(
+    RegulerteFradragEksternKilde(
+        bruker = RegulertFradragEksternKilde(
+            fnr = sak.fnr,
+            førRegulering = førRegulering,
+            etterRegulering = etterRegulering,
         ),
+        forEps = emptyList(),
     ),
 )

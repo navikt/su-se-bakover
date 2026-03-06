@@ -20,11 +20,10 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
-import no.nav.su.se.bakover.domain.regulering.NyttFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -150,18 +150,17 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
-            on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+            on { hentEksterneReguleringer(any()) } doReturn
                 listOf(
                     RegulerteFradragEksternKilde(
-                        saksnummer = sak.saksnummer,
-                        forBruker = NyttFradragEksternKilde(
+                        bruker = RegulertFradragEksternKilde(
+                            fnr = fnr,
                             førRegulering = 0,
                             etterRegulering = 0,
                         ),
                         forEps = emptyList(),
                     ),
-                ),
-            )
+                )
         }
 
         val service = ReguleringAutomatiskServiceImpl(
@@ -178,10 +177,14 @@ internal class ReguleringAutomatiskServiceImplTest {
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
 
         resultater.size shouldBe antallSaker
-        val sakerPerKall = argumentCaptor<List<Sak>>()
-        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(any(), sakerPerKall.capture())
-        sakerPerKall.allValues.map { it.size } shouldBe listOf(50, 50, 1)
-        sakerPerKall.allValues.all { it.size <= 50 } shouldBe true
+        val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
+        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
+        sakerPerKall.allValues.map { it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size } shouldBe listOf(
+            50,
+            50,
+            1,
+        )
+        sakerPerKall.allValues.all { (it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size) <= 50 } shouldBe true
     }
 
     @Nested
@@ -600,18 +603,17 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            saksnummer = sak.saksnummer,
-                            forBruker = NyttFradragEksternKilde(
+                            bruker = RegulertFradragEksternKilde(
+                                fnr = sak.fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
                             forEps = emptyList(),
                         ),
-                    ),
-                )
+                    )
             },
 
         ).startAutomatiskReguleringForInnsyn(
@@ -678,18 +680,17 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionMock,
             clock = clock,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            saksnummer = sak.saksnummer,
-                            forBruker = NyttFradragEksternKilde(
+                            bruker = RegulertFradragEksternKilde(
+                                fnr = sak.fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
                             forEps = emptyList(),
                         ),
-                    ),
-                )
+                    )
             },
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
@@ -819,18 +820,17 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any(), any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            saksnummer = sak.saksnummer,
-                            forBruker = NyttFradragEksternKilde(
+                            bruker = RegulertFradragEksternKilde(
+                                fnr = sak.fnr,
                                 førRegulering = beløpFørRegulering.toInt(),
                                 etterRegulering = beløpEtterRegulering.toInt(),
                             ),
                             forEps = emptyList(),
                         ),
-                    ),
-                )
+                    )
             },
         )
     }

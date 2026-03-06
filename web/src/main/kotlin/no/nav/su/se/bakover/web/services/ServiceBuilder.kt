@@ -613,7 +613,6 @@ data object ServiceBuilder {
         )
         val reguleringHentEksterneReguleringerService = ReguleringHentEksterneReguleringerService(
             pesysClient = clients.pesysklient,
-            clock = clock,
         )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
