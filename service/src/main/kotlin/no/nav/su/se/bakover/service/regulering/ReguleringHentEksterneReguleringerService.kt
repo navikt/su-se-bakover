@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.getOrElse
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -10,8 +11,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
-import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerCommand.BrukerMedEps
+import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerRequest.BrukerMedEps
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -23,8 +23,8 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     private val log = LoggerFactory.getLogger(this::class.java)
 
     // TODO AUTO-REG-26 feilhåndtering..
-    fun hentEksterneReguleringer(command: HentEksterneReguleringerCommand): SakerMedRegulerteFradragEksternKilde {
-        val (månedFørRegulering, brukereMedEpsUføre, brukereMedEpsAlder) = command
+    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<RegulerteFradragEksternKilde> {
+        val (månedFørRegulering, brukereMedEpsUføre, brukereMedEpsAlder) = request
 
         val uførePerioder = hentPerioderUføre(brukereMedEpsUføre.listeAlleUnikeFnr(), månedFørRegulering)
         val uførefradrag = hentReguleringerForBrukere(
@@ -38,7 +38,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
             perioder = alderPerioder,
         )
 
-        return SakerMedRegulerteFradragEksternKilde(uførefradrag + alderfradrag)
+        return uførefradrag + alderfradrag
     }
 
     private fun hentReguleringerForBrukere(
@@ -47,10 +47,10 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     ): List<RegulerteFradragEksternKilde> {
         return brukereMedEps.map { brukerMedEps ->
             val eksterneFradragBruker = perioder.hentForventedePesysPerioder(brukerMedEps.fnr)
-            val eskterneFradragEps = brukerMedEps.eps.map { perioder.hentForventedePesysPerioder(it) }
+            val eksterneFradragEps = brukerMedEps.eps.map { perioder.hentForventedePesysPerioder(it) }
             RegulerteFradragEksternKilde(
                 bruker = fraPesysPeriodeTilFradrag(eksterneFradragBruker),
-                forEps = eskterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
+                forEps = eksterneFradragEps.map { fraPesysPeriodeTilFradrag(it) },
             )
         }
     }
@@ -94,45 +94,40 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         }.resultat
 }
 
-data class HentEksterneReguleringerCommand(
+data class HentEksterneReguleringerRequest(
     val månedFørRegulering: LocalDate,
     val brukereMedEpsUføre: List<BrukerMedEps>,
     val brukereMedEpsAlder: List<BrukerMedEps>,
 ) {
     data class BrukerMedEps(
         val fnr: Fnr,
-        val sakstype: Sakstype,
         val eps: List<Fnr>,
     )
 
     companion object {
         fun toCommand(
             reguleringsMåned: Måned,
-            saker: List<Sak>,
+            forSaker: List<Sak>,
             clock: Clock,
-        ): HentEksterneReguleringerCommand {
-            if (saker.size > 50) {
-                throw ForMangleSakerForPesysIntegrasjon(saker.size)
-            }
-            val (uføreSaker, alderSaker) = saker.partition { it.type == Sakstype.UFØRE }
-            val toBrukerMedEps = { sak: Sak ->
-                BrukerMedEps(
-                    fnr = sak.fnr,
-                    sakstype = sak.type,
-                    eps = sak.hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrNull()?.grunnlagsdata?.eps
-                        ?: emptyList(),
-                )
-            }
-            return HentEksterneReguleringerCommand(
+        ): HentEksterneReguleringerRequest {
+            val (uføreSaker, alderSaker) = forSaker.partition { it.type == Sakstype.UFØRE }
+            return HentEksterneReguleringerRequest(
                 månedFørRegulering = reguleringsMåned.fraOgMed.minusMonths(1),
-                brukereMedEpsUføre = uføreSaker.map(toBrukerMedEps),
-                brukereMedEpsAlder = alderSaker.map(toBrukerMedEps),
+                brukereMedEpsUføre = uføreSaker.map { it.toBrukerMedEps(reguleringsMåned, clock) },
+                brukereMedEpsAlder = alderSaker.map { it.toBrukerMedEps(reguleringsMåned, clock) },
             )
         }
+        private fun Sak.toBrukerMedEps(
+            reguleringsMåned: Måned,
+            clock: Clock,
+        ) = BrukerMedEps(
+            fnr = fnr,
+            eps = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrNull()?.grunnlagsdata?.eps
+                ?: emptyList(),
+        )
     }
 }
 
-fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> = this.flatMap { listOf(it.fnr) + it.eps }.distinct()
+private fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> = this.flatMap { listOf(it.fnr) + it.eps }.distinct()
 
 class IngenPesysPerioderFunnet : IllegalStateException()
-class ForMangleSakerForPesysIntegrasjon(val antall: Int) : IllegalStateException("For mange saker: $antall. Maks 50 saker per kall.")

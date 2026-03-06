@@ -539,7 +539,7 @@ class TestDataHelper(
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak),
+                regulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak),
                 omregningsfaktor = gVerdiØkning,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)

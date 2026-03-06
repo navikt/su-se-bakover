@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
@@ -158,12 +158,12 @@ class ReguleringAutomatiskServiceImpl(
 
                 val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
                 val sakerMedRegulerteFradragEksternKilde = if (sakerSomKanReguleres.isEmpty()) {
-                    SakerMedRegulerteFradragEksternKilde(emptyList())
+                    emptyList()
                 } else {
                     reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-                        HentEksterneReguleringerCommand.toCommand(
+                        HentEksterneReguleringerRequest.toCommand(
                             reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                            saker = sakerSomKanReguleres,
+                            forSaker = sakerSomKanReguleres,
                             clock = clock,
                         ),
                     )
@@ -189,7 +189,7 @@ class ReguleringAutomatiskServiceImpl(
     private fun Sak.kjørForSak(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        sakerMedRegulerteFradragEksternKilde: SakerMedRegulerteFradragEksternKilde,
+        sakerMedRegulerteFradragEksternKilde: List<RegulerteFradragEksternKilde>,
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {

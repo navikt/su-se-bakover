@@ -22,7 +22,7 @@ TODO bjg mer beskrivelse
 fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     fraOgMedMåned: Måned,
     clock: Clock,
-    sakerMedRegulerteFradragEksternKilde: SakerMedRegulerteFradragEksternKilde,
+    regulerteFradragEksternKilde: List<RegulerteFradragEksternKilde>,
     omregningsfaktor: BigDecimal,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
@@ -34,7 +34,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         return it.left()
     }
 
-    val regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde.regulerteFradragEksternKilde.singleOrNull {
+    val regulerteFradragEksternKilde = regulerteFradragEksternKilde.singleOrNull {
         it.bruker.fnr == fnr
     } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
     return Regulering.opprettRegulering(

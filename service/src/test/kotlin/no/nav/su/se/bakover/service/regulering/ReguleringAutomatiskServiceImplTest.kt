@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.SakerMedRegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -151,7 +150,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
-            on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+            on { hentEksterneReguleringer(any()) } doReturn
                 listOf(
                     RegulerteFradragEksternKilde(
                         bruker = RegulertFradragEksternKilde(
@@ -161,8 +160,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                         ),
                         forEps = emptyList(),
                     ),
-                ),
-            )
+                )
         }
 
         val service = ReguleringAutomatiskServiceImpl(
@@ -179,9 +177,13 @@ internal class ReguleringAutomatiskServiceImplTest {
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
 
         resultater.size shouldBe antallSaker
-        val sakerPerKall = argumentCaptor<HentEksterneReguleringerCommand>()
+        val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
         verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
-        sakerPerKall.allValues.map { it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size } shouldBe listOf(50, 50, 1)
+        sakerPerKall.allValues.map { it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size } shouldBe listOf(
+            50,
+            50,
+            1,
+        )
         sakerPerKall.allValues.all { (it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size) <= 50 } shouldBe true
     }
 
@@ -601,7 +603,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
                             bruker = RegulertFradragEksternKilde(
@@ -611,8 +613,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             ),
                             forEps = emptyList(),
                         ),
-                    ),
-                )
+                    )
             },
 
         ).startAutomatiskReguleringForInnsyn(
@@ -679,7 +680,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionMock,
             clock = clock,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
                             bruker = RegulertFradragEksternKilde(
@@ -689,8 +690,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             ),
                             forEps = emptyList(),
                         ),
-                    ),
-                )
+                    )
             },
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
@@ -820,7 +820,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn SakerMedRegulerteFradragEksternKilde(
+                on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
                             bruker = RegulertFradragEksternKilde(
@@ -830,8 +830,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             ),
                             forEps = emptyList(),
                         ),
-                    ),
-                )
+                    )
             },
         )
     }
