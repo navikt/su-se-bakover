@@ -25,6 +25,9 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<RegulerteFradragEksternKilde> {
         val (månedFørRegulering, brukereMedEpsUføre, brukereMedEpsAlder) = request
 
+        // TODO må kartle hvilke eps som er alder/uføre enten før kall eller ved utledning av pesysperioder
+        // TODO hvis førstnevnte må begge kalle få liste med ALLE eps ikke bare til der bruker er alder/uføre
+
         val uførePerioder = hentPerioderUføre(brukereMedEpsUføre.listeAlleUnikeFnr(), månedFørRegulering)
         val uførefradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsUføre,
@@ -55,6 +58,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     }
 
     private fun List<PesysPerioderForPerson>.utledRegulerteFradragFraPerioder(fnr: Fnr): PesysPerioderForPerson {
+        // TODO Må være avklart at det er forventet å ha perioder i Pesys
         val forventetPesysPerioder = this.singleOrNull { Fnr(it.fnr) == fnr }
         if (forventetPesysPerioder == null) {
             log.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Se sikkerlogg for detaljer.")
