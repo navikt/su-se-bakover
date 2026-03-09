@@ -145,7 +145,6 @@ internal class PersonhendelsePostgresRepo(
                         pdl_vurdert = true,
                         pdl_relevant = :pdlRelevant,
                         pdl_vurdert_tidspunkt = :pdlVurdertTidspunkt,
-                        pdl_snapshot = :pdlSnapshot::jsonb,
                         pdl_diff = :pdlDiff::jsonb,
                         endret = :endret
                     where
@@ -155,7 +154,6 @@ internal class PersonhendelsePostgresRepo(
                 mapOf(
                     "pdlRelevant" to vurdering.relevant,
                     "pdlVurdertTidspunkt" to vurderingstidspunkt,
-                    "pdlSnapshot" to vurdering.pdlSnapshot,
                     "pdlDiff" to vurdering.pdlDiff,
                     "endret" to vurderingstidspunkt,
                     "id" to vurdering.id,
@@ -235,27 +233,21 @@ internal class PersonhendelsePostgresRepo(
 
     private fun Row.hentPdlOppsummering(): Personhendelse.PdlOppsummering? {
         val vurdertTidspunkt = tidspunktOrNull("pdl_vurdert_tidspunkt")
-        val snapshot = stringOrNull("pdl_snapshot")?.let { deserialize<PdlSnapshotForOppgaveJson>(it) }
         val diff = stringOrNull("pdl_diff")?.let { deserialize<PdlDiffForOppgaveJson>(it) }
 
-        if (vurdertTidspunkt == null && snapshot == null && diff == null) return null
+        if (vurdertTidspunkt == null && diff == null) return null
 
         return Personhendelse.PdlOppsummering(
             vurdertTidspunkt = vurdertTidspunkt,
-            harBostedsadresseNå = snapshot?.harBostedsadresse ?: diff?.harBostedsadresseNå,
-            harKontaktadresseNå = snapshot?.harKontaktadresse ?: diff?.harKontaktadresseNå,
+            harBostedsadresseNå = diff?.harBostedsadresseNå,
+            harKontaktadresseNå = diff?.harKontaktadresseNå,
             begrunnelse = diff?.begrunnelse,
             korrelertPåGjeldendeForekomst = diff?.korrelertPåGjeldendeForekomst,
             korrelertPåHistoriskForekomst = diff?.korrelertPåHistoriskForekomst,
-            pdlTreffErHistorisk = diff?.pdlTreffErHistorisk,
-            pdlTreffAdresse = diff?.pdlTreffAdresse,
+            pdlTreffErHistorisk = diff?.pdlTreffErHistorisk ?: diff?.korrelertPåHistoriskForekomst,
+            pdlTreffAdresse = null,
         )
     }
-
-    private data class PdlSnapshotForOppgaveJson(
-        val harBostedsadresse: Boolean? = null,
-        val harKontaktadresse: Boolean? = null,
-    )
 
     private data class PdlDiffForOppgaveJson(
         val begrunnelse: String? = null,
@@ -265,7 +257,6 @@ internal class PersonhendelsePostgresRepo(
         val korrelertPåHistoriskForekomst: Boolean? = null,
         @param:JsonAlias("gjelderTilbakeITid")
         val pdlTreffErHistorisk: Boolean? = null,
-        val pdlTreffAdresse: String? = null,
     )
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {

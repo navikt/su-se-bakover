@@ -6,7 +6,7 @@ import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -374,6 +374,87 @@ internal class PersonhendelseServiceImplTest {
             oppgaveServiceMock,
             personhendelseRepoMock,
             sakRepoMock,
+        )
+    }
+
+    @Test
+    internal fun `henter pdl treffadresse ved oppgaveopprettelse for bostedsadresse`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val hendelseId = UUID.randomUUID().toString()
+        val bostedsadresse = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = sak.fnr,
+            hendelseId = hendelseId,
+        ).copy(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            pdlOppsummering = Personhendelse.PdlOppsummering(
+                vurdertTidspunkt = fixedTidspunkt,
+                harBostedsadresseNå = true,
+                harKontaktadresseNå = null,
+                begrunnelse = "test",
+                korrelertPåGjeldendeForekomst = true,
+                korrelertPåHistoriskForekomst = false,
+                pdlTreffErHistorisk = false,
+                pdlTreffAdresse = null,
+            ),
+        )
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(bostedsadresse)
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { bostedsadresseMedMetadataForSystembruker(sak.fnr) } doReturn adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseId),
+                        gateadresse = "Testveien 1",
+                        postnummer = "0123",
+                    ),
+                ),
+            ).right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        val personhendelseISendtOppgave =
+            (oppgaveCaptor.firstValue as OppgaveConfig.Personhendelse).personhendelse.toSet().single()
+        personhendelseISendtOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe "Testveien 1, 0123"
+
+        verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
+        verify(personOppslagMock).bostedsadresseMedMetadataForSystembruker(sak.fnr)
+        verify(personhendelseRepoMock).lagre(
+            argThat<List<Personhendelse.TilknyttetSak.SendtTilOppgave>> {
+                it shouldBe listOf(bostedsadresse.tilSendtTilOppgave(oppgaveId))
+            },
+        )
+        verifyNoMoreInteractions(
+            oppgaveServiceMock,
+            personhendelseRepoMock,
+            sakRepoMock,
+            personOppslagMock,
         )
     }
 
@@ -919,18 +1000,17 @@ internal class PersonhendelseServiceImplTest {
 
         val historiskBostedVurdering = vurderinger.firstValue.single { it.id == bostedOpprettetHistorisk.id }
         val historiskBostedDiff = historiskBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for historisk bostedsvurdering")
-        historiskBostedDiff shouldContain "\"korrelertPåGjeldendeForekomst\":false"
-        historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
-        historiskBostedDiff shouldContain "\"pdlTreffErHistorisk\":true"
-        historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
-        historiskBostedDiff shouldContain "\"pdlTreffFolkeregistermetadata\""
-        historiskBostedDiff shouldContain "\"kilde\":\"Matrikkelen\""
-        historiskBostedDiff shouldContain "\"aarsak\":\"Adresseoppdatering\""
+        val historiskBostedDiffJson = deserialize<PdlDiffJson>(historiskBostedDiff)
+        historiskBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
+        historiskBostedDiffJson.korrelertPåGjeldendeForekomst shouldBe false
+        historiskBostedDiffJson.korrelertPåHistoriskForekomst shouldBe true
+        historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.kilde shouldBe "Matrikkelen"
+        historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.aarsak shouldBe "Adresseoppdatering"
 
-        val historiskBostedSnapshot = historiskBostedVurdering.pdlSnapshot ?: error("Mangler pdlSnapshot for historisk bostedsvurdering")
-        historiskBostedSnapshot shouldContain "\"alleBostedsadresser\""
-        historiskBostedSnapshot shouldContain "\"hendelseIder\":[\"$hendelseIdBostedHistorisk\"]"
-        historiskBostedSnapshot shouldContain "\"folkeregistermetadata\""
+        val annullertBostedVurdering = vurderinger.firstValue.single { it.id == bostedAnnullert.id }
+        val annullertBostedDiff = annullertBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for annullert bostedsvurdering")
+        val annullertBostedDiffJson = deserialize<PdlDiffJson>(annullertBostedDiff)
+        annullertBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
@@ -1190,4 +1270,11 @@ internal class PersonhendelseServiceImplTest {
             )
         }
     }
+
+    private data class PdlDiffJson(
+        val hendelseIdFunnetIPdl: Boolean? = null,
+        val korrelertPåGjeldendeForekomst: Boolean? = null,
+        val korrelertPåHistoriskForekomst: Boolean? = null,
+        val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
+    )
 }

@@ -195,11 +195,12 @@ class PersonhendelseServiceImpl(
         personhendelser: NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>,
     ) {
         val personhendelseIder = personhendelser.map { it.id }
+        val personhendelserMedPdlTreffadresse = leggTilPdlTreffadresseVedOppgaveopprettelse(personhendelser)
 
         oppgaveServiceImpl.opprettOppgaveMedSystembruker(
             OppgaveConfig.Personhendelse(
                 saksnummer = sak.saksnummer,
-                personhendelse = personhendelser.toNonEmptySet(),
+                personhendelse = personhendelserMedPdlTreffadresse.toNonEmptySet(),
                 fnr = sak.fnr,
                 clock = clock,
                 sakstype = sak.type,
@@ -255,7 +256,7 @@ class PersonhendelseServiceImpl(
      * - [KunneIkkeHentePerson.FantIkkePerson]: vi lagrer en vurdering som ikke relevant (ingen retry).
      * - [KunneIkkeHentePerson.IkkeTilgangTilPerson] / [KunneIkkeHentePerson.Ukjent]: vi returnerer null,
      *   slik at hendelsen forblir `pdl_vurdert=false` og plukkes opp igjen i neste jobbkjøring (retry).
-     * - Success: vi lagrer vanlig PDL-vurdering med snapshot/diff.
+     * - Success: vi lagrer vanlig PDL-vurdering med diff.
      */
     private fun vurderBostedsadressehendelseMotPdl(
         personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave,
@@ -299,12 +300,7 @@ class PersonhendelseServiceImpl(
                 val gjeldendeAdresseForHendelse = matchendeAdresseForHendelse?.takeIf { !it.historisk }
                 val historiskAdresseForHendelse = matchendeAdresseForHendelse?.takeIf { it.historisk }
 
-                val gjeldendeBostedsadresser = adresseopplysninger.bostedsadresser
-                    .filter { !it.historisk }
-                    .map { it.toPdlAdresseSnapshot() }
-                val alleBostedsadresser = adresseopplysninger.bostedsadresser
-                    .map { it.toPdlAdresseSnapshot() }
-                val harBostedsadresseNå = gjeldendeBostedsadresser.isNotEmpty()
+                val harBostedsadresseNå = adresseopplysninger.bostedsadresser.any { !it.historisk }
                 val harKontaktadresseNå: Boolean? = null
 
                 val beslutning = vurderBostedsadressebeslutning(
@@ -314,20 +310,10 @@ class PersonhendelseServiceImpl(
                     matchendeForekomst = matchendeAdresseForHendelse,
                     historiskeOgGjeldendeForekomster = alleAdresser,
                 )
-                val pdlTreffErHistorisk = historiskAdresseForHendelse != null
-                val treffAdresse = matchendeAdresseForHendelse?.toOppgaveAdresse()
-
-                val snapshot = PdlSnapshot(
-                    harBostedsadresse = harBostedsadresseNå,
-                    harKontaktadresse = harKontaktadresseNå,
-                    gjeldendeBostedsadresser = gjeldendeBostedsadresser,
-                    alleBostedsadresser = alleBostedsadresser,
-                )
 
                 PersonhendelseRepo.PdlVurdering(
                     id = personhendelse.id,
                     relevant = beslutning.relevant,
-                    pdlSnapshot = serialize(snapshot),
                     pdlDiff = serialize(
                         PdlDiff(
                             hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
@@ -339,10 +325,9 @@ class PersonhendelseServiceImpl(
                             gjelderEps = personhendelse.gjelderEps,
                             harBostedsadresseNå = harBostedsadresseNå,
                             harKontaktadresseNå = harKontaktadresseNå,
+                            hendelseIdFunnetIPdl = matchendeAdresseForHendelse != null,
                             korrelertPåGjeldendeForekomst = gjeldendeAdresseForHendelse != null,
                             korrelertPåHistoriskForekomst = historiskAdresseForHendelse != null,
-                            pdlTreffErHistorisk = pdlTreffErHistorisk,
-                            pdlTreffAdresse = treffAdresse,
                             pdlTreffFolkeregistermetadata = matchendeAdresseForHendelse?.folkeregistermetadata,
                         ),
                     ),
@@ -359,7 +344,6 @@ class PersonhendelseServiceImpl(
         return PersonhendelseRepo.PdlVurdering(
             id = personhendelse.id,
             relevant = true,
-            pdlSnapshot = null,
             pdlDiff = serialize(
                 PdlDiff(
                     hendelsestype = hendelsestype,
@@ -380,7 +364,6 @@ class PersonhendelseServiceImpl(
         return PersonhendelseRepo.PdlVurdering(
             id = personhendelse.id,
             relevant = false,
-            pdlSnapshot = null,
             pdlDiff = serialize(
                 PdlDiff(
                     hendelsestype = personhendelse.hendelse::class.simpleName ?: "Ukjent",
@@ -477,13 +460,6 @@ class PersonhendelseServiceImpl(
         }
     }
 
-    private data class PdlSnapshot(
-        val harBostedsadresse: Boolean,
-        val harKontaktadresse: Boolean?,
-        val gjeldendeBostedsadresser: List<PdlAdresseSnapshot> = emptyList(),
-        val alleBostedsadresser: List<PdlAdresseSnapshot> = emptyList(),
-    )
-
     private data class PdlDiff(
         val hendelsestype: String,
         val endringstype: String,
@@ -494,36 +470,54 @@ class PersonhendelseServiceImpl(
         val gjelderEps: Boolean,
         val harBostedsadresseNå: Boolean? = null,
         val harKontaktadresseNå: Boolean? = null,
+        val hendelseIdFunnetIPdl: Boolean? = null,
         val korrelertPåGjeldendeForekomst: Boolean = false,
         val korrelertPåHistoriskForekomst: Boolean = false,
-        val pdlTreffErHistorisk: Boolean? = null,
-        val pdlTreffAdresse: String? = null,
         val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
     )
+
+    private fun leggTilPdlTreffadresseVedOppgaveopprettelse(
+        personhendelser: NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>,
+    ): NonEmptyList<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        val opplysningerPerFnr = mutableMapOf<Fnr, Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata>>()
+        return personhendelser.map { personhendelse ->
+            if (personhendelse.hendelse !is Personhendelse.Hendelse.Bostedsadresse) return@map personhendelse
+            val pdlOppsummering = personhendelse.pdlOppsummering ?: return@map personhendelse
+            if (!pdlOppsummering.pdlTreffAdresse.isNullOrBlank()) return@map personhendelse
+
+            val fnr = personhendelse.metadata.personidenter.firstNotNullOfOrNull { Fnr.tryCreate(it) }
+                ?: return@map personhendelse
+
+            val opplysninger = opplysningerPerFnr.getOrPut(fnr) { personOppslag.bostedsadresseMedMetadataForSystembruker(fnr) }
+            opplysninger.fold(
+                ifLeft = { feil ->
+                    log.warn(
+                        "Kunne ikke hente PDL-treffadresse ved oppgaveopprettelse for personhendelse {}. Feil: {}.",
+                        personhendelse.id,
+                        feil,
+                    )
+                    personhendelse
+                },
+                ifRight = { adresseopplysninger ->
+                    val treffadresse = adresseopplysninger.bostedsadresser.firstOrNull {
+                        it.hendelseIder.contains(personhendelse.metadata.hendelseId)
+                    }?.toOppgaveAdresse()
+
+                    personhendelse.copy(
+                        pdlOppsummering = pdlOppsummering.copy(
+                            pdlTreffAdresse = treffadresse,
+                        ),
+                    )
+                },
+            )
+        }.toNonEmptyList()
+    }
 
     private data class Adressebeslutning(
         val relevant: Boolean,
         val grunnlag: List<String>,
         val changedFields: List<String> = emptyList(),
     )
-
-    private data class PdlAdresseSnapshot(
-        val historisk: Boolean,
-        val hendelseIder: List<String>,
-        val gateadresse: String? = null,
-        val postnummer: String? = null,
-        val folkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
-    )
-
-    private fun AdresseopplysningerMedMetadata.Adresseopplysning.toPdlAdresseSnapshot(): PdlAdresseSnapshot {
-        return PdlAdresseSnapshot(
-            historisk = historisk,
-            hendelseIder = hendelseIder,
-            gateadresse = gateadresse,
-            postnummer = postnummer,
-            folkeregistermetadata = folkeregistermetadata,
-        )
-    }
 
     private fun AdresseopplysningerMedMetadata.Adresseopplysning.toOppgaveAdresse(): String? {
         val gate = gateadresse?.trim()?.takeUnless { it.isBlank() }
