@@ -4,8 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -37,13 +39,13 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         // TODO må kartlegge hvilke eps som er alder/uføre enten før kall eller ved utledning av pesysperioder
         // TODO hvis førstnevnte må begge kalle få liste med ALLE eps ikke bare til der bruker er alder/uføre
 
-        val uførePerioder = hentPerioderUføre(brukereMedEpsUføre.listeAlleUnikeFnr(), månedFørRegulering)
+        val uførePerioder = hentPerioderUføre(brukereMedEpsUføre, månedFørRegulering)
         val uførefradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsUføre,
             perioderFraPesys = uførePerioder,
         )
 
-        val alderPerioder = hentPerioderAlder(brukereMedEpsAlder.listeAlleUnikeFnr(), månedFørRegulering)
+        val alderPerioder = hentPerioderAlder(brukereMedEpsAlder, månedFørRegulering)
         val alderfradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsAlder,
             perioderFraPesys = alderPerioder,
@@ -129,21 +131,34 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         ).right()
     }
 
-    private fun hentPerioderUføre(fnrList: List<Fnr>, dato: LocalDate) =
-        pesysClient.hentVedtakForPersonPaaDatoUføre(
-            fnrList = fnrList,
+    private fun hentPerioderUføre(
+        brukereMedEps: List<BrukerMedEps>,
+        dato: LocalDate,
+    ): List<UføreBeregningsperioderPerPerson> {
+        val unikeFnr = brukereMedEps.listeAlleUnikeFnr()
+        return pesysClient.hentVedtakForPersonPaaDatoUføre(
+            fnrList = unikeFnr,
             dato = dato,
         ).getOrElse {
             throw UtehentingAvPerioderUføreFeilet()
         }.resultat
+    }
 
-    private fun hentPerioderAlder(fnrList: List<Fnr>, dato: LocalDate) =
-        pesysClient.hentVedtakForPersonPaaDatoAlder(
-            fnrList = fnrList,
+    private fun hentPerioderAlder(
+        brukereMedEps: List<BrukerMedEps>,
+        dato: LocalDate,
+    ): List<AlderBeregningsperioderPerPerson> {
+        val unikeFnr = brukereMedEps.listeAlleUnikeFnr()
+        return pesysClient.hentVedtakForPersonPaaDatoAlder(
+            fnrList = unikeFnr,
             dato = dato,
         ).getOrElse {
             throw UtehentingAvPerioderAlderFeilet()
         }.resultat
+    }
+
+    private fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> =
+        this.flatMap { listOf(it.bruker.fnr) + it.eps.map { it.fnr } }.distinct()
 }
 
 data class HentEksterneReguleringerRequest(
@@ -197,9 +212,6 @@ data class HentEksterneReguleringerRequest(
         )
     }
 }
-
-private fun List<BrukerMedEps>.listeAlleUnikeFnr(): List<Fnr> =
-    this.flatMap { listOf(it.bruker.fnr) + it.eps.map { it.fnr } }.distinct()
 
 data class HentingAvRegulerteFradragFeiletForBruker(
     val fnr: Fnr,
