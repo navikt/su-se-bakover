@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.regulering.FeilMedRegulertFradrag.IngenPerio
 import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerRequest.BrukerMedEps
 import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerRequest.BrukerMedFradrag
 import org.slf4j.LoggerFactory
+import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import java.time.Clock
 import java.time.LocalDate
@@ -28,7 +29,10 @@ import kotlin.collections.flatMap
 import kotlin.collections.map
 import kotlin.collections.singleOrNull
 
-class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysClient) {
+class ReguleringHentEksterneReguleringerService(
+    private val pesysClient: PesysClient,
+    private val satsFactory: SatsFactory,
+) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -43,12 +47,14 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         val uførefradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsUføre,
             perioderFraPesys = uførePerioder,
+            månedFørRegulering = månedFørRegulering,
         )
 
         val alderPerioder = hentPerioderAlder(brukereMedEpsAlder, månedFørRegulering)
         val alderfradrag = utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEpsAlder,
             perioderFraPesys = alderPerioder,
+            månedFørRegulering = månedFørRegulering,
         )
 
         return uførefradrag + alderfradrag
@@ -62,17 +68,20 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     private fun utledRegulerteFradragForBrukerMedEps(
         brukereMedEps: List<BrukerMedEps>,
         perioderFraPesys: List<PesysPerioderForPerson>,
+        månedFørRegulering: LocalDate,
     ): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         return brukereMedEps.map { brukerMedEps ->
             // TODO vil alder være et fradrag her? Slik som ieu???
             val eksterneFradragBruker = utledOgVerifiserRegulertFradrag(
                 bruker = brukerMedEps.bruker,
                 perioderFraPesys = perioderFraPesys,
+                månedFørRegulering = månedFørRegulering,
             )
             val eksterneFradragEps = brukerMedEps.eps.map { eps ->
                 utledOgVerifiserRegulertFradrag(
                     bruker = eps,
                     perioderFraPesys = perioderFraPesys,
+                    månedFørRegulering = månedFørRegulering,
                 )
             }
 
@@ -94,8 +103,7 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
     private fun utledOgVerifiserRegulertFradrag(
         bruker: BrukerMedFradrag,
         perioderFraPesys: List<PesysPerioderForPerson>,
-        forventetGammelG: Int = 0, // TODO Må utledes fra satsFactory eller lignende.. kanskje på klassenivå?
-        forventetNyG: Int = 0,
+        månedFørRegulering: LocalDate,
     ): Either<FeilMedRegulertFradrag, RegulertFradragEksternKilde> {
         // TODO Må være avklart at det er forventet å ha perioder i Pesys
         val forventetPesysPerioder = perioderFraPesys.singleOrNull { Fnr(it.fnr) == bruker.fnr }
@@ -110,11 +118,15 @@ class ReguleringHentEksterneReguleringerService(private val pesysClient: PesysCl
         if (forventetPesysPerioder.perioder.size != 2) {
             return FeilMedRegulertFradrag.ManglerPeriodeFørOgEtterReguleringFraPesys.left()
         }
+
         val førRegulering = forventetPesysPerioder.perioder[0]
+        val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
         if (førRegulering.grunnbelop != forventetGammelG) {
             return FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetGammelt.left()
         }
+
         val etterRegulering = forventetPesysPerioder.perioder[1]
+        val forventetNyG = satsFactory.grunnbeløp(månedFørRegulering.plusMonths(1)).grunnbeløpPerÅr
         if (etterRegulering.grunnbelop != forventetNyG) {
             return FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetNytt.left()
         }
@@ -165,8 +177,6 @@ data class HentEksterneReguleringerRequest(
     val månedFørRegulering: LocalDate,
     val brukereMedEpsUføre: List<BrukerMedEps>,
     val brukereMedEpsAlder: List<BrukerMedEps>,
-    val forventetGammelG: Int = 0, // TODO Må utledes fra satsFactory eller lignende.. kanskje på klassenivå?
-    val forventetNyG: Int = 0,
 ) {
 
     // TODO må legge til fradrag for å kunne avgjøre om det skal hentes fra uføre eller aldre og diffe med pesys perioder
