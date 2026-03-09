@@ -201,20 +201,14 @@ data class Grunnlagsdata private constructor(
         return this.copy(fradragsgrunnlag = fradragsgrunnlag)
     }
 
-    fun hentEnkeltFradrag(
-        fradragstype: Fradragstype,
+    fun hentFradragBasertPå(
+        fradragstyper: List<Fradragstype>,
         måned: Måned,
         tilhører: FradragTilhører,
-    ): Fradragsgrunnlag? {
-        val fradrag = fradragsgrunnlag.filter {
-            it.fradrag.periode.inneholder(måned) &&
-                it.fradrag.fradragstype == fradragstype &&
-                it.fradrag.tilhører == tilhører
-        }
-        if (fradrag.size > 1) {
-            throw IllegalStateException("Forventet å finne maks ett fradrag for type $fradragstype, måned $måned og tillhørende $tilhører")
-        }
-        return fradrag.singleOrNull()
+    ) = fradragsgrunnlag.filter {
+        it.fradrag.periode.inneholder(måned) &&
+            it.fradrag.tilhører == tilhører &&
+            fradragstyper.contains(it.fradrag.fradragstype)
     }
 }
 
