@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.person.Fnr
@@ -37,7 +38,6 @@ class ReguleringHentEksterneReguleringerService(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    // TODO AUTO-REG-26 feilhåndtering..
     fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         val (månedFørRegulering, brukereMedEps) = request
 
@@ -63,7 +63,7 @@ class ReguleringHentEksterneReguleringerService(
     ): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         return brukereMedEps.map { brukerMedEps ->
 
-            val eksterneFradragBruker = brukerMedEps.bruker.fradrag.map { bruktFradrag ->
+            val fradragFraPesysBruker = brukerMedEps.bruker.fradrag.map { bruktFradrag ->
                 utledOgVerifiserRegulertFradrag(
                     brukerMedEps.bruker.fnr,
                     bruktFradrag,
@@ -71,7 +71,7 @@ class ReguleringHentEksterneReguleringerService(
                     månedFørRegulering = månedFørRegulering,
                 )
             }
-            val eksterneFradragEps = brukerMedEps.eps?.fradrag?.map { bruktFradrag ->
+            val fradragFraPesysEps = brukerMedEps.eps?.fradrag?.map { bruktFradrag ->
                 utledOgVerifiserRegulertFradrag(
                     brukerMedEps.eps.fnr,
                     bruktFradrag,
@@ -80,7 +80,7 @@ class ReguleringHentEksterneReguleringerService(
                 )
             }
 
-            val alleFeil = listOfNotNull(eksterneFradragBruker, eksterneFradragEps).flatten().filterLefts()
+            val alleFeil = listOfNotNull(fradragFraPesysBruker, fradragFraPesysEps).flatten().filterLefts()
             if (alleFeil.isNotEmpty()) {
                 HentingAvRegulerteFradragFeiletForBruker(
                     fnr = brukerMedEps.bruker.fnr,
@@ -88,8 +88,8 @@ class ReguleringHentEksterneReguleringerService(
                 ).left()
             } else {
                 RegulerteFradragEksternKilde(
-                    bruker = eksterneFradragBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }.single(), // TODO fjern single
-                    forEps = eksterneFradragEps?.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } } ?: emptyList(),
+                    bruker = fradragFraPesysBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }.single(), // TODO fjern single
+                    forEps = fradragFraPesysEps?.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } } ?: emptyList(),
                 ).right()
             }
         }
@@ -101,14 +101,13 @@ class ReguleringHentEksterneReguleringerService(
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
     ): Either<FeilMedRegulertFradrag, RegulertFradragEksternKilde> {
-        // TODO Må være avklart at det er forventet å ha perioder i Pesys
+        // TODO OBS - må muligens endres hvis AAP skal inn her?
         val forventetPesysPerioder = perioderFraPesys.singleOrNull { Fnr(it.fnr) == fnr }
         if (forventetPesysPerioder == null) {
             log.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Se sikkerlogg for detaljer.")
             sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Bruker=$fnr")
             return IngenPeriodeFraPesys.left()
         }
-
         // TODO AUTO-REG-26 ta i bruk inntekt etter uføre hvis uføretrygd - instance of etc
 
         if (forventetPesysPerioder.perioder.size != 2) {
@@ -126,15 +125,31 @@ class ReguleringHentEksterneReguleringerService(
         if (etterRegulering.grunnbelop != forventetNyG) {
             return FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetNytt.left()
         }
-        if (førRegulering.netto.toDouble() != fradrag.månedsbeløp) {
-            return FeilMedRegulertFradrag.BeløpFraPesysErUliktBenyttetFradrag.left()
-        }
 
-        return RegulertFradragEksternKilde(
-            fnr = fnr,
-            førRegulering = forventetPesysPerioder.perioder[0].netto,
-            etterRegulering = forventetPesysPerioder.perioder[1].netto,
-        ).right()
+        if (fradrag.fradragstype != Fradragstype.ForventetInntekt) {
+            if (førRegulering.netto.toDouble() != fradrag.månedsbeløp) {
+                return FeilMedRegulertFradrag.BeløpFraPesysErUliktBenyttetFradrag.left()
+            }
+            return RegulertFradragEksternKilde(
+                fnr = fnr,
+                førRegulering = forventetPesysPerioder.perioder[0].netto,
+                etterRegulering = forventetPesysPerioder.perioder[1].netto,
+            ).right()
+        } else {
+            val inntektEtterUføreFørRegulering = (forventetPesysPerioder.perioder[0] as UføreBeregningsperiode).oppjustertInntektEtterUfore
+            val inntektEtterUføreEtterRegulering = (forventetPesysPerioder.perioder[1] as UføreBeregningsperiode).oppjustertInntektEtterUfore
+            if (inntektEtterUføreFørRegulering == null || inntektEtterUføreEtterRegulering == null) {
+                return FeilMedRegulertFradrag.InntektEtterUføreMangler.left()
+            }
+            if (inntektEtterUføreFørRegulering.toDouble() != fradrag.månedsbeløp) {
+                return FeilMedRegulertFradrag.BeløpFraPesysErUliktBenyttetFradrag.left()
+            }
+            return RegulertFradragEksternKilde(
+                fnr = fnr,
+                førRegulering = inntektEtterUføreFørRegulering,
+                etterRegulering = inntektEtterUføreEtterRegulering,
+            ).right()
+        }
     }
 
     private fun hentPerioderUføre(
@@ -142,7 +157,7 @@ class ReguleringHentEksterneReguleringerService(
         dato: LocalDate,
     ): List<UføreBeregningsperioderPerPerson> {
         val unikeFnr =
-            brukereMedEps.unikeFnrSomBenytterFradragstype(Fradragstype.Uføretrygd) // TODO er må Forventet inntekt inn for bruker?
+            brukereMedEps.unikeFnrSomBenytterFradragstype(listOf(Fradragstype.ForventetInntekt, Fradragstype.Uføretrygd)) // TODO er må Forventet inntekt inn for bruker?
         return pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = unikeFnr,
             dato = dato,
@@ -155,7 +170,7 @@ class ReguleringHentEksterneReguleringerService(
         brukereMedEps: List<BrukerMedEps>,
         dato: LocalDate,
     ): List<AlderBeregningsperioderPerPerson> {
-        val unikeFnr = brukereMedEps.unikeFnrSomBenytterFradragstype(Fradragstype.Alderspensjon)
+        val unikeFnr = brukereMedEps.unikeFnrSomBenytterFradragstype(listOf(Fradragstype.Alderspensjon))
         return pesysClient.hentVedtakForPersonPaaDatoAlder(
             fnrList = unikeFnr,
             dato = dato,
@@ -164,9 +179,9 @@ class ReguleringHentEksterneReguleringerService(
         }.resultat
     }
 
-    private fun List<BrukerMedEps>.unikeFnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
+    private fun List<BrukerMedEps>.unikeFnrSomBenytterFradragstype(fradragstyper: List<Fradragstype>): List<Fnr> =
         flatMap { listOfNotNull(it.bruker, it.eps) }
-            .filter { person -> person.fradrag.any { it.fradragstype == fradragstype } }
+            .filter { person -> person.fradrag.any { fradragstyper.contains(it.fradragstype) } }
             .map { it.fnr }
             .distinct()
 }
@@ -196,8 +211,8 @@ data class HentEksterneReguleringerRequest(
         private val relevanteFradragsTyper = listOf(
             Fradragstype.Alderspensjon,
             Fradragstype.Uføretrygd,
-            // Fradragstype.ForventetInntekt, TODO
-            // Fradragstype.Arbeidsavklaringspenger, TODO
+            Fradragstype.ForventetInntekt,
+            // Fradragstype.Arbeidsavklaringspenger, TODO ??
         )
         fun toRequest(
             reguleringsMåned: Måned,
@@ -220,7 +235,6 @@ data class HentEksterneReguleringerRequest(
             return BrukerMedEps(
                 bruker = PersonMedFradrag(
                     fnr = fnr,
-                    // TODO her skal det vel være forventet inntekt ikke Uføretrygd?
                     fradrag = grunnlagsdata.hentFradragBasertPå(
                         fradragstyper = relevanteFradragsTyper,
                         måned = reguleringsMåned,
@@ -252,6 +266,9 @@ interface FeilMedRegulertFradrag {
     object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedRegulertFradrag
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedRegulertFradrag
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedRegulertFradrag
+
+    // Manuell regulering
+    object InntektEtterUføreMangler : FeilMedRegulertFradrag
 
     // Dette skal føre til revurdering med vedtaksbrev
     object BeløpFraPesysErUliktBenyttetFradrag : FeilMedRegulertFradrag

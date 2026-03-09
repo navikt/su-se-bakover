@@ -9,11 +9,11 @@ data class RegulerteFradragEksternKilde(
 
 data class RegulertFradragEksternKilde(
 
-    // TODO periode for eps over tid?
     // TODO kategori elns?
     // TODO bør være BigDecimal?
 
     val fnr: Fnr,
+    // TODO er denne nødvendig her? behovet for dette beløpet blir jo dekt av feiltype FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetGammelt
     val førRegulering: Int,
     val etterRegulering: Int,
 
