@@ -18,8 +18,10 @@ import no.nav.su.se.bakover.common.tid.periode.inneholder
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.bosituasjon.domain.grunnlag.epsForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag.Companion.oppdaterStønadsperiode
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
 
@@ -198,6 +200,22 @@ data class Grunnlagsdata private constructor(
     fun oppdaterFradragsgrunnlag(fradragsgrunnlag: List<Fradragsgrunnlag>): Grunnlagsdata {
         return this.copy(fradragsgrunnlag = fradragsgrunnlag)
     }
+
+    fun hentEnkeltFradrag(
+        fradragstype: Fradragstype,
+        måned: Måned,
+        tilhører: FradragTilhører,
+    ): Fradragsgrunnlag? {
+        val fradrag = fradragsgrunnlag.filter {
+            it.fradrag.periode.inneholder(måned) &&
+                it.fradrag.fradragstype == fradragstype &&
+                it.fradrag.tilhører == tilhører
+        }
+        if (fradrag.size > 1) {
+            throw IllegalStateException("Forventet å finne maks ett fradrag for type $fradragstype, måned $måned og tillhørende $tilhører")
+        }
+        return fradrag.singleOrNull()
+    }
 }
 
 sealed interface KunneIkkeLageGrunnlagsdata {
@@ -212,8 +230,17 @@ sealed interface KunneIkkeLageGrunnlagsdata {
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
 
 fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon): List<Fradragsgrunnlag> {
-    return if (bosituasjon.harEPS()) this else fjernFradragEPS(NonEmptySlåttSammenIkkeOverlappendePerioder.create(bosituasjon.periode))
+    return if (bosituasjon.harEPS()) {
+        this
+    } else {
+        fjernFradragEPS(
+            NonEmptySlåttSammenIkkeOverlappendePerioder.create(
+                bosituasjon.periode,
+            ),
+        )
+    }
 }
+
 fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: SlåttSammenIkkeOverlappendePerioder): List<Fradragsgrunnlag> {
     return flatMap { it.fjernFradragEPS(perioderUtenEPS) }
 }

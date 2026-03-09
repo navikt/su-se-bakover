@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerRequest.B
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.collections.List
@@ -130,8 +132,7 @@ class ReguleringHentEksterneReguleringerService(
         if (etterRegulering.grunnbelop != forventetNyG) {
             return FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetNytt.left()
         }
-        val bruktFradrag =
-            bruker.fradrag.first() // TODO Må forsikre at riktig fradrag på dette stadiet - kan det være flere perioder????
+        val bruktFradrag = bruker.hentHovedfradrag()
         if (førRegulering.netto.toDouble() != bruktFradrag.månedsbeløp) {
             return FeilMedRegulertFradrag.BeløpFraPesysErUliktBenyttetFradrag.left()
         }
@@ -187,8 +188,17 @@ data class HentEksterneReguleringerRequest(
 
     data class BrukerMedFradrag(
         val fnr: Fnr,
-        val fradrag: List<Fradrag>,
-    )
+        val uføre: Fradrag?,
+        val alder: Fradrag?,
+        // TODO AAP?
+    ) {
+        // Kun benyttes for bruker ikke eps
+        fun hentHovedfradrag(): Fradrag {
+            // TODO er dette en for stor antagelse? Hva med AAP?
+            return uføre
+                ?: (alder ?: throw IllegalStateException("Bruker må ha minst uføre- eller aldersfradrag"))
+        }
+    }
 
     companion object {
         fun toRequest(
@@ -204,22 +214,47 @@ data class HentEksterneReguleringerRequest(
             )
         }
 
-        // TODO AUTO-REG-26 - Må angi fradragene
         private fun Sak.toBrukerMedEps(
             reguleringsMåned: Måned,
             clock: Clock,
-        ) = BrukerMedEps(
-            bruker = BrukerMedFradrag(
-                fnr = fnr,
-                fradrag = emptyList(),
-            ),
-            eps = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrNull()?.grunnlagsdata?.eps?.map {
-                BrukerMedFradrag(
-                    fnr = it,
-                    fradrag = emptyList(),
-                )
-            } ?: emptyList(),
-        )
+        ): BrukerMedEps {
+            val grunnlagsdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
+                throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
+            }.grunnlagsdata
+
+            return BrukerMedEps(
+                bruker = BrukerMedFradrag(
+                    fnr = fnr,
+                    // TODO her skal det vel være forventet inntekt ikke Uføretrygd?
+                    uføre = grunnlagsdata.hentEnkeltFradrag(
+                        fradragstype = Fradragstype.Uføretrygd,
+                        måned = reguleringsMåned,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    alder = grunnlagsdata.hentEnkeltFradrag(
+                        fradragstype = Fradragstype.Alderspensjon,
+                        måned = reguleringsMåned,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                // TODO filtrere ut hvis har hverkan alder eller uføre??
+                eps = grunnlagsdata.eps.map {
+                    BrukerMedFradrag(
+                        fnr = it,
+                        uføre = grunnlagsdata.hentEnkeltFradrag(
+                            fradragstype = Fradragstype.Uføretrygd,
+                            måned = reguleringsMåned,
+                            tilhører = FradragTilhører.EPS,
+                        ),
+                        alder = grunnlagsdata.hentEnkeltFradrag(
+                            fradragstype = Fradragstype.Alderspensjon,
+                            måned = reguleringsMåned,
+                            tilhører = FradragTilhører.EPS,
+                        ),
+                    )
+                },
+            )
+        }
     }
 }
 
