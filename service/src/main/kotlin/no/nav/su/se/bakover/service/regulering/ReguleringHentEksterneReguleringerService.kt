@@ -112,7 +112,6 @@ class ReguleringHentEksterneReguleringerService(
             sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Bruker=$fnr")
             return IngenPeriodeFraPesys.left()
         }
-        // TODO AUTO-REG-26 ta i bruk inntekt etter uføre hvis uføretrygd - instance of etc
 
         if (forventetPesysPerioder.perioder.size != 2) {
             return FeilMedRegulertFradrag.ManglerPeriodeFørOgEtterReguleringFraPesys.left()
@@ -131,9 +130,6 @@ class ReguleringHentEksterneReguleringerService(
         }
 
         if (fradrag.fradragstype != Fradragstype.ForventetInntekt) {
-            if (førRegulering.netto.toDouble() != fradrag.månedsbeløp) {
-                return FeilMedRegulertFradrag.BeløpFraPesysErUliktBenyttetFradrag.left()
-            }
             return RegulertFradragEksternKilde(
                 fnr = fnr,
                 førRegulering = forventetPesysPerioder.perioder[0].netto,
@@ -144,16 +140,12 @@ class ReguleringHentEksterneReguleringerService(
                 (forventetPesysPerioder.perioder[0] as UføreBeregningsperiode).oppjustertInntektEtterUfore
             val inntektEtterUføreEtterRegulering =
                 (forventetPesysPerioder.perioder[1] as UføreBeregningsperiode).oppjustertInntektEtterUfore
-            if (inntektEtterUføreFørRegulering == null || inntektEtterUføreEtterRegulering == null) {
-                return FeilMedRegulertFradrag.InntektEtterUføreMangler.left()
-            }
-            if (inntektEtterUføreFørRegulering.toDouble() != fradrag.månedsbeløp) {
-                return FeilMedRegulertFradrag.BeløpFraPesysErUliktBenyttetFradrag.left()
-            }
+
             return RegulertFradragEksternKilde(
                 fnr = fnr,
-                førRegulering = inntektEtterUføreFørRegulering,
-                etterRegulering = inntektEtterUføreEtterRegulering,
+                førRegulering = inntektEtterUføreFørRegulering ?: 0,
+                etterRegulering = inntektEtterUføreEtterRegulering ?: 0,
+                manueltIeu = inntektEtterUføreFørRegulering == null || inntektEtterUføreEtterRegulering == null,
             ).right()
         }
     }
@@ -282,12 +274,6 @@ interface FeilMedRegulertFradrag {
     object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedRegulertFradrag
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedRegulertFradrag
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedRegulertFradrag
-
-    // Manuell regulering
-    object InntektEtterUføreMangler : FeilMedRegulertFradrag
-
-    // Dette skal føre til revurdering med vedtaksbrev
-    object BeløpFraPesysErUliktBenyttetFradrag : FeilMedRegulertFradrag
 }
 
 class UtehentingAvPerioderUføreFeilet : IllegalStateException()

@@ -17,4 +17,5 @@ data class RegulertFradragEksternKilde(
     val førRegulering: Int,
     val etterRegulering: Int,
 
+    val manueltIeu: Boolean = false,
 )
