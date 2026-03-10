@@ -23,7 +23,7 @@ internal class PersonPostgresRepo(
                   SELECT
                     s.fnr søkersFnr,
                     gb.eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                   FROM sak s
                     LEFT JOIN behandling b ON b.sakid = s.id
                     LEFT JOIN revurdering r ON r.sakid = s.id
@@ -57,12 +57,12 @@ internal class PersonPostgresRepo(
             sessionFactory.withSession { session ->
                 val listeAvfnrs = """
                 SELECT
-                    sak.fnr søkersFnr,
+                    s.fnr søkersFnr,
                     eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                 FROM søknad
-                INNER JOIN sak ON søknad.sakid = sak.id
-                LEFT JOIN behandling ON behandling.sakid = sak.id
+                INNER JOIN sak s ON søknad.sakid = s.id
+                LEFT JOIN behandling ON behandling.sakid = s.id
                 LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                 WHERE søknad.id=:soknadId
                 """
@@ -93,11 +93,11 @@ internal class PersonPostgresRepo(
             sessionFactory.withSession { session ->
                 val listeAvfnrs = """
                SELECT
-                    sak.fnr søkersFnr,
+                    s.fnr søkersFnr,
                     eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                FROM behandling
-               INNER JOIN sak ON behandling.sakid = sak.id
+               INNER JOIN sak s ON behandling.sakid = s.id
                LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE behandling.id=:behandlingId
                 """
@@ -128,11 +128,11 @@ internal class PersonPostgresRepo(
             sessionFactory.withSession { session ->
                 val listeAvfnrs = """
                SELECT
-                    sak.fnr søkersFnr,
+                    s.fnr søkersFnr,
                     eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                FROM utbetaling
-               INNER JOIN sak on sak.id = utbetaling.sakId
+               INNER JOIN sak s on s.id = utbetaling.sakId
                LEFT JOIN behandling ON behandling.sakid = utbetaling.sakId
                LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE utbetaling.id=:utbetalingId
@@ -166,7 +166,7 @@ internal class PersonPostgresRepo(
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                FROM revurdering r
                INNER JOIN behandling_vedtak bv on bv.vedtakId = r.vedtakSomRevurderesId
                INNER JOIN sak s ON s.id = bv.sakId
@@ -202,7 +202,7 @@ internal class PersonPostgresRepo(
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                 FROM behandling_vedtak bv
                 LEFT JOIN sak s ON s.id = bv.sakId
                 LEFT JOIN behandling b ON b.id = bv.søknadsbehandlingId
@@ -239,7 +239,7 @@ internal class PersonPostgresRepo(
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
-                    s.sakstype
+                    s.type AS sakstype
                 FROM klage k
                 INNER JOIN sak s ON s.id = k.sakId
                 INNER JOIN behandling_vedtak bv ON bv.sakId = k.sakId
