@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.common.person.UgyldigFnrException
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
@@ -73,29 +74,44 @@ data class SøknadsinnholdAlderJson(
     override val ektefelle: EktefelleJson?,
 ) : SøknadsinnholdJson {
 
-    fun toSøknadsinnholdAlder(): Either<KunneIkkeLageSøknadinnhold, SøknadsinnholdAlder> =
-        SøknadsinnholdAlder.tryCreate(
+    fun toSøknadsinnholdAlder(): Either<KunneIkkeLageSøknadinnhold, SøknadsinnholdAlder> {
+        val personopplysninger = mapperUgyldigFnrFraJson(
+            felt = "personopplysninger.fnr",
+        ) { personopplysninger.toFnrWrapper() }.getOrElse {
+            return it.left()
+        }
+        val boforhold = boforhold.toBoforhold().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+        val utenlandsopphold = utenlandsopphold.toUtenlandsopphold().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+        val oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+        val forNav = forNav.toForNav().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+
+        return SøknadsinnholdAlder.tryCreate(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
-            personopplysninger = personopplysninger.toFnrWrapper(),
-            boforhold = boforhold.toBoforhold().getOrElse {
-                return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
-            },
-            utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
-            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrElse {
-                return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
-            },
+            personopplysninger = personopplysninger,
+            boforhold = boforhold,
+            utenlandsopphold = utenlandsopphold,
+            oppholdstillatelse = oppholdstillatelse,
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
             formue = formue.toFormue().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb(it).left()
             },
-            forNav = forNav.toForNav(),
+            forNav = forNav,
             ektefelle = ektefelle?.toEktefelle()?.getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb(it).left()
             },
         ).getOrElse {
             return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb(it).left()
         }.right()
+    }
 
     companion object {
         fun SøknadsinnholdAlder.toSøknadsinnholdAlderJson() = SøknadsinnholdAlderJson(
@@ -126,29 +142,44 @@ data class SøknadsinnholdUføreJson(
     override val ektefelle: EktefelleJson?,
 ) : SøknadsinnholdJson {
 
-    fun toSøknadsinnholdUføre(): Either<KunneIkkeLageSøknadinnhold, SøknadsinnholdUføre> =
-        SøknadsinnholdUføre.tryCreate(
+    fun toSøknadsinnholdUføre(): Either<KunneIkkeLageSøknadinnhold, SøknadsinnholdUføre> {
+        val personopplysninger = mapperUgyldigFnrFraJson(
+            felt = "personopplysninger.fnr",
+        ) { personopplysninger.toFnrWrapper() }.getOrElse {
+            return it.left()
+        }
+        val boforhold = boforhold.toBoforhold().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+        val utenlandsopphold = utenlandsopphold.toUtenlandsopphold().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+        val oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+        val forNav = forNav.toForNav().getOrElse {
+            return it.tilKunneIkkeLageSøknadinnhold().left()
+        }
+
+        return SøknadsinnholdUføre.tryCreate(
             uførevedtak = uførevedtak.toUførevedtak(),
-            personopplysninger = personopplysninger.toFnrWrapper(),
+            personopplysninger = personopplysninger,
             flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
-            boforhold = boforhold.toBoforhold().getOrElse {
-                return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
-            },
-            utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
-            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrElse {
-                return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
-            },
+            boforhold = boforhold,
+            utenlandsopphold = utenlandsopphold,
+            oppholdstillatelse = oppholdstillatelse,
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
             formue = formue.toFormue().getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb(it).left()
             },
-            forNav = forNav.toForNav(),
+            forNav = forNav,
             ektefelle = ektefelle?.toEktefelle()?.getOrElse {
                 return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb(it).left()
             },
         ).getOrElse {
             return KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb(it).left()
         }.right()
+    }
 
     companion object {
         fun SøknadsinnholdUføre.toSøknadsinnholdUføreJson() = SøknadsinnholdUføreJson(
@@ -176,4 +207,42 @@ sealed interface KunneIkkeLageSøknadinnhold {
     data class FeilVedOpprettelseAvEktefelleWeb(val underliggendeFeil: FeilVedOpprettelseAvEktefelleJson) : KunneIkkeLageSøknadinnhold
 
     data class FeilVedOpprettelseAvSøknadinnholdWeb(val underliggendeFeil: FeilVedOpprettelseAvSøknadinnhold) : KunneIkkeLageSøknadinnhold
+
+    data class UgyldigSøknadsinnholdInputWeb(val underliggendeFeil: List<UgyldigSøknadsinnholdInputFraJson>) : KunneIkkeLageSøknadinnhold
+}
+
+data class UgyldigSøknadsinnholdInputFraJson(
+    val felt: String,
+    val begrunnelse: String,
+)
+
+private inline fun <T> mapperUgyldigFnrFraJson(
+    felt: String,
+    block: () -> T,
+): Either<KunneIkkeLageSøknadinnhold, T> =
+    try {
+        block().right()
+    } catch (e: UgyldigFnrException) {
+        KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb(listOf(e.tilUgyldigSøknadsinnholdInput(felt))).left()
+    }
+
+private fun UgyldigFnrException.tilUgyldigSøknadsinnholdInput(
+    felt: String,
+): UgyldigSøknadsinnholdInputFraJson =
+    UgyldigSøknadsinnholdInputFraJson(
+        felt = felt,
+        begrunnelse = "ugyldig fødselsnummer",
+    )
+
+private fun UgyldigSøknadsinnholdInputFraJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold =
+    KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb(listOf(this))
+
+private fun FeilVedOpprettelseAvBoforholdJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold = when (this) {
+    is FeilVedOpprettelseAvBoforholdJson.DomeneFeil -> KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(underliggendeFeil)
+    is FeilVedOpprettelseAvBoforholdJson.UgyldigInput -> underliggendeFeil.tilKunneIkkeLageSøknadinnhold()
+}
+
+private fun FeilVedOpprettelseAvOppholdstillatelseJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold = when (this) {
+    is FeilVedOpprettelseAvOppholdstillatelseJson.DomeneFeil -> KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(underliggendeFeil)
+    is FeilVedOpprettelseAvOppholdstillatelseJson.UgyldigInput -> underliggendeFeil.tilKunneIkkeLageSøknadinnhold()
 }

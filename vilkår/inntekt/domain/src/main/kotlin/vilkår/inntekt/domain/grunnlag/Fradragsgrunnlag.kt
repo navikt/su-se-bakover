@@ -209,6 +209,7 @@ data class Fradragsgrunnlag private constructor(
     }
 
     fun oppdaterBeløpFraSupplement(beløp: BigDecimal): Fradragsgrunnlag = this.copy(
+        // TODO AUTO-REG-26 - sikre at regelberegning har referanse til riktig kilde
         fradrag = fradrag.oppdaterBeløp(beløp),
     )
 }

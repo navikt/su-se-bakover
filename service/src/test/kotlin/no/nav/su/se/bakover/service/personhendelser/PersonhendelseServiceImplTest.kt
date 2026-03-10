@@ -6,7 +6,7 @@ import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -374,6 +374,87 @@ internal class PersonhendelseServiceImplTest {
             oppgaveServiceMock,
             personhendelseRepoMock,
             sakRepoMock,
+        )
+    }
+
+    @Test
+    internal fun `henter pdl treffadresse ved oppgaveopprettelse for bostedsadresse`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val hendelseId = UUID.randomUUID().toString()
+        val bostedsadresse = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = sak.fnr,
+            hendelseId = hendelseId,
+        ).copy(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            pdlOppsummering = Personhendelse.PdlOppsummering(
+                vurdertTidspunkt = fixedTidspunkt,
+                harBostedsadresseNå = true,
+                harKontaktadresseNå = null,
+                begrunnelse = "test",
+                korrelertPåGjeldendeForekomst = true,
+                korrelertPåHistoriskForekomst = false,
+                pdlTreffErHistorisk = false,
+                pdlTreffAdresse = null,
+            ),
+        )
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn emptyList()
+            on { hentPersonhendelserKlareForOppgave() } doReturn listOf(bostedsadresse)
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { bostedsadresseMedMetadataForSystembruker(sak.fnr) } doReturn adresseopplysninger(
+                bosted = listOf(
+                    Adresseforekomst(
+                        historisk = false,
+                        hendelseIder = listOf(hendelseId),
+                        gateadresse = "Testveien 1",
+                        postnummer = "0123",
+                    ),
+                ),
+            ).right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        val personhendelseISendtOppgave =
+            (oppgaveCaptor.firstValue as OppgaveConfig.Personhendelse).personhendelse.toSet().single()
+        personhendelseISendtOppgave.pdlOppsummering?.pdlTreffAdresse shouldBe "Testveien 1, 0123"
+
+        verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
+        verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
+        verify(personOppslagMock).bostedsadresseMedMetadataForSystembruker(sak.fnr)
+        verify(personhendelseRepoMock).lagre(
+            argThat<List<Personhendelse.TilknyttetSak.SendtTilOppgave>> {
+                it shouldBe listOf(bostedsadresse.tilSendtTilOppgave(oppgaveId))
+            },
+        )
+        verifyNoMoreInteractions(
+            oppgaveServiceMock,
+            personhendelseRepoMock,
+            sakRepoMock,
+            personOppslagMock,
         )
     }
 
@@ -919,18 +1000,17 @@ internal class PersonhendelseServiceImplTest {
 
         val historiskBostedVurdering = vurderinger.firstValue.single { it.id == bostedOpprettetHistorisk.id }
         val historiskBostedDiff = historiskBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for historisk bostedsvurdering")
-        historiskBostedDiff shouldContain "\"korrelertPåGjeldendeForekomst\":false"
-        historiskBostedDiff shouldContain "\"korrelertPåHistoriskForekomst\":true"
-        historiskBostedDiff shouldContain "\"pdlTreffErHistorisk\":true"
-        historiskBostedDiff shouldContain "\"pdlTreffAdresse\":\"Gamlegate 4, 0123\""
-        historiskBostedDiff shouldContain "\"pdlTreffFolkeregistermetadata\""
-        historiskBostedDiff shouldContain "\"kilde\":\"Matrikkelen\""
-        historiskBostedDiff shouldContain "\"aarsak\":\"Adresseoppdatering\""
+        val historiskBostedDiffJson = deserialize<PdlDiffJson>(historiskBostedDiff)
+        historiskBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
+        historiskBostedDiffJson.korrelertPåGjeldendeForekomst shouldBe false
+        historiskBostedDiffJson.korrelertPåHistoriskForekomst shouldBe true
+        historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.kilde shouldBe "Matrikkelen"
+        historiskBostedDiffJson.pdlTreffFolkeregistermetadata?.aarsak shouldBe "Adresseoppdatering"
 
-        val historiskBostedSnapshot = historiskBostedVurdering.pdlSnapshot ?: error("Mangler pdlSnapshot for historisk bostedsvurdering")
-        historiskBostedSnapshot shouldContain "\"alleBostedsadresser\""
-        historiskBostedSnapshot shouldContain "\"hendelseIder\":[\"$hendelseIdBostedHistorisk\"]"
-        historiskBostedSnapshot shouldContain "\"folkeregistermetadata\""
+        val annullertBostedVurdering = vurderinger.firstValue.single { it.id == bostedAnnullert.id }
+        val annullertBostedDiff = annullertBostedVurdering.pdlDiff ?: error("Mangler pdlDiff for annullert bostedsvurdering")
+        val annullertBostedDiffJson = deserialize<PdlDiffJson>(annullertBostedDiff)
+        annullertBostedDiffJson.hendelseIdFunnetIPdl shouldBe true
 
         verify(personhendelseRepoMock).hentPersonhendelserUtenPdlVurdering()
         verify(personhendelseRepoMock).hentPersonhendelserKlareForOppgave()
@@ -984,6 +1064,113 @@ internal class PersonhendelseServiceImplTest {
             oppgaveServiceMock,
             vedtakServiceMock,
         )
+    }
+
+    @Test
+    fun `OPPHØRT er kun relevant for gjeldende eller historisk etter 2020`() {
+        val fnrOpphortGjeldende = Fnr.generer()
+        val fnrOpphortHistoriskEtter2020 = Fnr.generer()
+        val fnrOpphortHistoriskFoerEllerLik2020 = Fnr.generer()
+
+        val hendelseIdOpphortGjeldende = UUID.randomUUID().toString()
+        val hendelseIdOpphortHistoriskEtter2020 = UUID.randomUUID().toString()
+        val hendelseIdOpphortHistoriskFoerEllerLik2020 = UUID.randomUUID().toString()
+
+        val opphortGjeldende = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrOpphortGjeldende,
+            hendelseId = hendelseIdOpphortGjeldende,
+        )
+        val opphortHistoriskEtter2020 = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrOpphortHistoriskEtter2020,
+            hendelseId = hendelseIdOpphortHistoriskEtter2020,
+        )
+        val opphortHistoriskFoerEllerLik2020 = lagAdressePersonhendelseTilknyttetSak(
+            endringstype = Personhendelse.Endringstype.OPPHØRT,
+            hendelse = Personhendelse.Hendelse.Bostedsadresse(),
+            fnr = fnrOpphortHistoriskFoerEllerLik2020,
+            hendelseId = hendelseIdOpphortHistoriskFoerEllerLik2020,
+        )
+
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenPdlVurdering() } doReturn listOf(
+                opphortGjeldende,
+                opphortHistoriskEtter2020,
+                opphortHistoriskFoerEllerLik2020,
+            )
+            on { hentPersonhendelserKlareForOppgave() } doReturn emptyList()
+        }
+
+        val personhendelseService = PersonhendelseServiceImpl(
+            sakRepo = mock(),
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = mock<PersonOppslag> {
+                on { bostedsadresseMedMetadataForSystembruker(fnrOpphortGjeldende) } doReturn adresseopplysninger(
+                    bosted = listOf(
+                        Adresseforekomst(
+                            historisk = false,
+                            hendelseIder = listOf(hendelseIdOpphortGjeldende),
+                            gateadresse = "Gjeldendeveien 1",
+                            postnummer = "0001",
+                        ),
+                    ),
+                ).right()
+
+                on { bostedsadresseMedMetadataForSystembruker(fnrOpphortHistoriskEtter2020) } doReturn adresseopplysninger(
+                    bosted = listOf(
+                        Adresseforekomst(
+                            historisk = true,
+                            hendelseIder = listOf(hendelseIdOpphortHistoriskEtter2020),
+                            gateadresse = "Historiskveien 2",
+                            postnummer = "0002",
+                            folkeregistermetadata = AdresseopplysningerMedMetadata.Folkeregistermetadata(
+                                ajourholdstidspunkt = "2021-01-01T00:00:00",
+                                gyldighetstidspunkt = "2021-01-01T00:00:00",
+                                opphoerstidspunkt = "2021-12-31T00:00:00",
+                                kilde = "Dolly",
+                                aarsak = null,
+                                sekvens = null,
+                            ),
+                        ),
+                    ),
+                ).right()
+
+                on { bostedsadresseMedMetadataForSystembruker(fnrOpphortHistoriskFoerEllerLik2020) } doReturn adresseopplysninger(
+                    bosted = listOf(
+                        Adresseforekomst(
+                            historisk = true,
+                            hendelseIder = listOf(hendelseIdOpphortHistoriskFoerEllerLik2020),
+                            gateadresse = "Gammelveien 3",
+                            postnummer = "0003",
+                            folkeregistermetadata = AdresseopplysningerMedMetadata.Folkeregistermetadata(
+                                ajourholdstidspunkt = "2020-01-01T00:00:00",
+                                gyldighetstidspunkt = "2020-01-01T00:00:00",
+                                opphoerstidspunkt = "2020-12-31T00:00:00",
+                                kilde = "Dolly",
+                                aarsak = null,
+                                sekvens = null,
+                            ),
+                        ),
+                    ),
+                ).right()
+            },
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            clock = fixedClock,
+        )
+
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        val vurderinger = argumentCaptor<List<PersonhendelseRepo.PdlVurdering>>()
+        verify(personhendelseRepoMock).oppdaterPdlVurdering(vurderinger.capture())
+
+        val vurderingPerId = vurderinger.firstValue.associateBy { it.id }
+        vurderingPerId[opphortGjeldende.id]?.relevant shouldBe true
+        vurderingPerId[opphortHistoriskEtter2020.id]?.relevant shouldBe true
+        vurderingPerId[opphortHistoriskFoerEllerLik2020.id]?.relevant shouldBe false
     }
 
     private fun lagNyPersonhendelse(
@@ -1083,4 +1270,11 @@ internal class PersonhendelseServiceImplTest {
             )
         }
     }
+
+    private data class PdlDiffJson(
+        val hendelseIdFunnetIPdl: Boolean? = null,
+        val korrelertPåGjeldendeForekomst: Boolean? = null,
+        val korrelertPåHistoriskForekomst: Boolean? = null,
+        val pdlTreffFolkeregistermetadata: AdresseopplysningerMedMetadata.Folkeregistermetadata? = null,
+    )
 }

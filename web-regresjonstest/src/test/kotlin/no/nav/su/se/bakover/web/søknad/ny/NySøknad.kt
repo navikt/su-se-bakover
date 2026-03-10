@@ -29,14 +29,21 @@ fun nyDigitalSøknad(
     client: HttpClient,
     sakstype: Sakstype = Sakstype.UFØRE,
 ): String {
-    return nySøknad(
-        requestJson = when (sakstype) {
-            Sakstype.UFØRE -> NySøknadJson.Request.nyDigitalSøknad(fnr)
-            Sakstype.ALDER -> NySøknadJson.Request.nyDigitalAlderssøknad(fnr, SharedRegressionTestData.epsFnr)
-        },
-        brukerrolle = Brukerrolle.Veileder,
-        client = client,
-    )
+    return when (sakstype) {
+        Sakstype.UFØRE -> nySøknad(
+            requestJson = NySøknadJson.Request.nyDigitalSøknad(fnr),
+            endpoint = "/soknad/ufore",
+            brukerrolle = Brukerrolle.Veileder,
+            client = client,
+        )
+
+        Sakstype.ALDER -> nySøknad(
+            requestJson = NySøknadJson.Request.nyDigitalAlderssøknad(fnr, SharedRegressionTestData.epsFnr),
+            endpoint = "/soknad/alder",
+            brukerrolle = Brukerrolle.Veileder,
+            client = client,
+        )
+    }
 }
 
 fun nyDigitalAlderssøknad(
@@ -44,11 +51,12 @@ fun nyDigitalAlderssøknad(
     epsFnr: String = SharedRegressionTestData.epsFnr,
     client: HttpClient,
 ): String {
-    return nyAlderssøknad(
+    return nySøknad(
         requestJson = NySøknadJson.Request.nyDigitalAlderssøknad(
             brukerFnr = brukerFnr,
             epsFnr = epsFnr,
         ),
+        endpoint = "/soknad/alder",
         brukerrolle = Brukerrolle.Veileder,
         client = client,
     )
@@ -61,7 +69,7 @@ fun ApplicationTestBuilder.nyDigitalSøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
 ): String {
-    return nySøknadOgVerifiser(
+    return nyUføreSøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
             fnr = fnr,
         ),
@@ -76,13 +84,14 @@ fun ApplicationTestBuilder.nyDigitalSøknadOgVerifiser(
 /**
  * Emulerer at en saksbehandler sender inn en papirsøknad
  * TODO jah: Bør teste at veiledere ikke har tilgang til å sende papirsøknader. Og bør vi teste det her eller i web?
+ * TODO: for alder og skal dette fungere
  */
 fun ApplicationTestBuilder.nyPapirsøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
     mottaksdato: String = fixedLocalDate.toString(),
 ): String {
-    return nySøknadOgVerifiser(
+    return nyUføreSøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyPapirsøknad(
             fnr = fnr,
             mottaksdato = mottaksdato,
@@ -96,7 +105,7 @@ fun ApplicationTestBuilder.nyPapirsøknadOgVerifiser(
     )
 }
 
-private fun ApplicationTestBuilder.nySøknadOgVerifiser(
+private fun ApplicationTestBuilder.nyUføreSøknadOgVerifiser(
     requestJson: String,
     expectedResponseJson: String,
     // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
@@ -104,6 +113,7 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
 ): String {
     return nySøknad(
         requestJson = requestJson,
+        endpoint = "/soknad/ufore",
         brukerrolle = brukerrolle,
         client = this.client,
     ).also {
@@ -128,6 +138,7 @@ private fun ApplicationTestBuilder.nySøknadOgVerifiser(
  */
 private fun nySøknad(
     requestJson: String,
+    endpoint: String,
     // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
     brukerrolle: Brukerrolle,
     client: HttpClient,
@@ -135,30 +146,7 @@ private fun nySøknad(
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "/soknad/ufore",
-            listOf(brukerrolle),
-            client = client,
-        ) {
-            setBody(requestJson)
-        }.apply {
-            withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
-                contentType() shouldBe ContentType.parse("application/json")
-            }
-        }.bodyAsText()
-    }
-}
-
-private fun nyAlderssøknad(
-    requestJson: String,
-    // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
-    brukerrolle: Brukerrolle,
-    client: HttpClient,
-): String {
-    return runBlocking {
-        defaultRequest(
-            HttpMethod.Post,
-            "/soknad/alder",
+            endpoint,
             listOf(brukerrolle),
             client = client,
         ) {

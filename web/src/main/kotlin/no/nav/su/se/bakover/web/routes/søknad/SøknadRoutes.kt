@@ -49,7 +49,11 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.FeilVedLukkSøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -72,7 +76,20 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { type ->
                 call.withBody<SøknadsinnholdJson> { søknadsinnholdJson ->
-                    søknadsinnholdJson.toSøknadsinnhold().fold(
+                    validerSøknadstypePathMotBody(type, søknadsinnholdJson)?.let {
+                        call.svar(it)
+                        return@withBody
+                    }
+
+                    val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
+                    if (ugyldigeFelt.isNotEmpty()) {
+                        call.svar(ugyldigeFelt.tilUgyldigSøknadsinnholdResultat())
+                        return@withBody
+                    }
+
+                    val søknadsinnholdResultat = søknadsinnholdJson.toSøknadsinnhold()
+
+                    søknadsinnholdResultat.fold(
                         { call.svar(it.tilResultat()) },
                         {
                             søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
@@ -242,6 +259,69 @@ internal fun Route.søknadRoutes(
     }
 }
 
+internal fun validerSøknadstypePathMotBody(
+    typeFraPath: String,
+    søknadsinnholdJson: SøknadsinnholdJson,
+): Resultat? {
+    val pathType = when (typeFraPath.lowercase()) {
+        "alder" -> SøknadstypePath.ALDER
+        "ufore", "uføre" -> SøknadstypePath.UFORE
+        else -> return BadRequest.errorJson("Ukjent søknadstype i path", "ukjent_soknadstype_i_path")
+    }
+
+    val bodyType = when (søknadsinnholdJson) {
+        is SøknadsinnholdAlderJson -> SøknadstypePath.ALDER
+        is SøknadsinnholdUføreJson -> SøknadstypePath.UFORE
+    }
+
+    return if (pathType != bodyType) {
+        BadRequest.errorJson(
+            "Søknadstype i path matcher ikke body",
+            "soknadstype_i_path_matcher_ikke_body",
+        )
+    } else {
+        null
+    }
+}
+
+private enum class SøknadstypePath {
+    ALDER,
+    UFORE,
+}
+
+internal const val UGYLDIG_SOKNADSINNHOLD_INPUT_CODE = "ugyldig_soknadsinnhold_input"
+
+private data class UgyldigSøknadsinnholdValideringFeilResponse(
+    val message: String,
+    val code: String,
+    val errors: List<UgyldigSøknadsinnholdValideringsfeil>,
+)
+
+private data class UgyldigSøknadsinnholdValideringsfeil(
+    val felt: String,
+    val begrunnelse: String,
+)
+
+internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
+    val errors = map {
+        UgyldigSøknadsinnholdValideringsfeil(
+            felt = it.felt,
+            begrunnelse = it.begrunnelse,
+        )
+    }
+
+    return Resultat.json(
+        httpCode = BadRequest,
+        json = serialize(
+            UgyldigSøknadsinnholdValideringFeilResponse(
+                message = "Ugyldig søknadsinnhold",
+                code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+                errors = errors,
+            ),
+        ),
+    )
+}
+
 fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
     KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt, KunneIkkeOppretteSøknad.FeilSakstype -> Forbidden.errorJson(
@@ -256,6 +336,15 @@ private fun KunneIkkeLageSøknadinnhold.tilResultat() = when (this) {
     is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
     is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
     is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb ->
+        underliggendeFeil
+            .map {
+                UgyldigSøknadsinnholdInput(
+                    felt = it.felt,
+                    begrunnelse = it.begrunnelse,
+                )
+            }
+            .tilUgyldigSøknadsinnholdResultat()
 }
 
 private fun FeilVedOpprettelseAvSøknadinnhold.tilResultat() = when (this) {

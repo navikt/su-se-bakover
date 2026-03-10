@@ -77,6 +77,7 @@ sealed interface ÅrsakTilManuellRegulering {
             override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.MerEnn1Eps
         }
 
+        // TODO AUTO-REG-26 - Vil i ny løsning være "finnes ikke integrasjon" elns
         data class SupplementInneholderIkkeFradraget(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
@@ -86,6 +87,7 @@ sealed interface ÅrsakTilManuellRegulering {
                 ÅrsakTilManuellReguleringKategori.SupplementInneholderIkkeFradraget
         }
 
+        // TODO AUTO-REG-26 - vurder om kan løses med ny løsning..
         data class FinnesFlerePerioderAvFradrag(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
@@ -95,6 +97,7 @@ sealed interface ÅrsakTilManuellRegulering {
                 ÅrsakTilManuellReguleringKategori.FinnesFlerePerioderAvFradrag
         }
 
+        // TODO AUTO-REG-26 er det noensinne utlandsinntekt som reguleres?
         data class FradragErUtenlandsinntekt(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
@@ -114,6 +117,7 @@ sealed interface ÅrsakTilManuellRegulering {
                 ÅrsakTilManuellReguleringKategori.SupplementHarFlereVedtaksperioderForFradrag
         }
 
+        // TODO bjg skal vel mer enn bare manuell regulering til her
         data class DifferanseFørRegulering(
             override val fradragskategori: Fradragstype.Kategori,
             override val fradragTilhører: FradragTilhører,
@@ -142,6 +146,7 @@ sealed interface ÅrsakTilManuellRegulering {
             val differanse: BigDecimal = eksternNettoBeløpEtterRegulering.subtract(forventetBeløpEtterRegulering).abs()
         }
 
+        // TODO bjg - det bør verifiseres tidlig at vi har to perioder i
         data class FantIkkeVedtakForApril(
             override val begrunnelse: String,
             override val fradragTilhører: FradragTilhører,
