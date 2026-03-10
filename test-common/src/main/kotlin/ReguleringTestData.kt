@@ -506,10 +506,13 @@ fun reguleringsgrunnlagFraEksternKilde(
     etterRegulering: Int = 110,
 ) = listOf(
     RegulerteFradragEksternKilde(
-        bruker = RegulertFradragEksternKilde(
-            fnr = sak.fnr,
-            førRegulering = førRegulering,
-            etterRegulering = etterRegulering,
+        fnr = sak.fnr,
+        bruker = listOf(
+            RegulertFradragEksternKilde(
+                fnr = sak.fnr,
+                førRegulering = førRegulering,
+                etterRegulering = etterRegulering,
+            ),
         ),
         forEps = emptyList(),
     ),

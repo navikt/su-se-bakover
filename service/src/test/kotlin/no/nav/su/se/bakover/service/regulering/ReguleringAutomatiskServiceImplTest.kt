@@ -153,10 +153,13 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentEksterneReguleringer(any()) } doReturn
                 listOf(
                     RegulerteFradragEksternKilde(
-                        bruker = RegulertFradragEksternKilde(
-                            fnr = fnr,
-                            førRegulering = 0,
-                            etterRegulering = 0,
+                        fnr = fnr,
+                        bruker = listOf(
+                            RegulertFradragEksternKilde(
+                                fnr = fnr,
+                                førRegulering = 0,
+                                etterRegulering = 0,
+                            ),
                         ),
                         forEps = emptyList(),
                     ).right(),
@@ -179,12 +182,12 @@ internal class ReguleringAutomatiskServiceImplTest {
         resultater.size shouldBe antallSaker
         val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
         verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
-        sakerPerKall.allValues.map { it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size } shouldBe listOf(
+        sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
             50,
             50,
             1,
         )
-        sakerPerKall.allValues.all { (it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size) <= 50 } shouldBe true
+        sakerPerKall.allValues.all { (it.brukereMedEps.size) <= 50 } shouldBe true
     }
 
     @Nested
@@ -606,10 +609,13 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            bruker = RegulertFradragEksternKilde(
-                                fnr = sak.fnr,
-                                førRegulering = 0,
-                                etterRegulering = 0,
+                            fnr = sak.fnr,
+                            bruker = listOf(
+                                RegulertFradragEksternKilde(
+                                    fnr = sak.fnr,
+                                    førRegulering = 0,
+                                    etterRegulering = 0,
+                                ),
                             ),
                             forEps = emptyList(),
                         ).right(),
@@ -683,10 +689,13 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            bruker = RegulertFradragEksternKilde(
-                                fnr = sak.fnr,
-                                førRegulering = 0,
-                                etterRegulering = 0,
+                            fnr = sak.fnr,
+                            bruker = listOf(
+                                RegulertFradragEksternKilde(
+                                    fnr = sak.fnr,
+                                    førRegulering = 0,
+                                    etterRegulering = 0,
+                                ),
                             ),
                             forEps = emptyList(),
                         ).right(),
@@ -823,10 +832,13 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            bruker = RegulertFradragEksternKilde(
-                                fnr = sak.fnr,
-                                førRegulering = beløpFørRegulering.toInt(),
-                                etterRegulering = beløpEtterRegulering.toInt(),
+                            fnr = sak.fnr,
+                            bruker = listOf(
+                                RegulertFradragEksternKilde(
+                                    fnr = sak.fnr,
+                                    førRegulering = beløpFørRegulering.toInt(),
+                                    etterRegulering = beløpEtterRegulering.toInt(),
+                                ),
                             ),
                             forEps = emptyList(),
                         ).right(),

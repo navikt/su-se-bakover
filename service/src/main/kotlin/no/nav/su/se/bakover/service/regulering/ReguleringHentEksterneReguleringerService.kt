@@ -90,8 +90,8 @@ class ReguleringHentEksterneReguleringerService(
                 ).left()
             } else {
                 RegulerteFradragEksternKilde(
-                    bruker = fradragFraPesysBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }
-                        .single(), // TODO fjern single
+                    fnr = brukerMedEps.bruker.fnr,
+                    bruker = fradragFraPesysBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } },
                     forEps = fradragFraPesysEps?.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }
                         ?: emptyList(),
                 ).right()
