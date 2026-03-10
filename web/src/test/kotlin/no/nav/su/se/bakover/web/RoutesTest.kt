@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -40,6 +41,10 @@ import person.domain.PersonOppslag
 // LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
 @Execution(value = ExecutionMode.SAME_THREAD)
 class RoutesTest {
+    private data class PersonSøkBody(
+        val fnr: String,
+        val sakstype: String,
+    )
 
     @Test
     fun `should add provided X-Correlation-ID header to response`() {
@@ -110,8 +115,9 @@ class RoutesTest {
                     ),
                 )
             }
+            val request = PersonSøkBody(fnr = Fnr.generer().toString(), sakstype = Sakstype.UFØRE.toString())
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${Fnr.generer()}"}""")
+                setBody(serialize(request))
             }.apply {
                 this.status shouldBe InternalServerError
                 JSONAssert.assertEquals("""{"message":"Ukjent feil","code": "ukjent_feil"}""", this.bodyAsText(), true)
@@ -125,8 +131,9 @@ class RoutesTest {
             application {
                 testSusebakoverWithMockedDb()
             }
+            val request = PersonSøkBody(fnr = Fnr.generer().toString(), sakstype = Sakstype.UFØRE.toString())
             val response = defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${Fnr.generer()}"}""")
+                setBody(serialize(request))
             }
             response.contentType().toString() shouldBe "${ContentType.Application.Json}"
         }

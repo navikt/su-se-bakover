@@ -488,7 +488,8 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    assertHarTilgangTilPerson(fnr, hentSakstypeForFnr(fnr))
+                    assertHarTilgangTilPerson(fnr, Sakstype.UFØRE)
+                    assertHarTilgangTilPerson(fnr, Sakstype.ALDER)
                     return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
                 }
             },

@@ -35,6 +35,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -99,7 +100,7 @@ class SøknadTest {
                 it.søknadRepo,
                 it.pdfGenerator,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(any())
                 verify(it.pdfGenerator).genererPdf(
@@ -159,7 +160,7 @@ class SøknadTest {
                 it.søknadRepo,
                 it.pdfGenerator,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.sakService).opprettSak(any())
                 verify(it.sakService).hentSak(any<UUID>())
@@ -208,7 +209,7 @@ class SøknadTest {
                 it.pdfGenerator,
                 it.journalførSøknadClient,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
@@ -286,7 +287,7 @@ class SøknadTest {
             val søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sak.fnr))
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
-                verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr }, Sakstype.UFØRE)
+                verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(sak.fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
@@ -394,7 +395,7 @@ class SøknadTest {
                 it.oppgaveService,
                 it.søknadsbehandlingRepo,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {

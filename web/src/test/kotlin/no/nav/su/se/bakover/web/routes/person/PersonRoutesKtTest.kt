@@ -14,8 +14,10 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -23,6 +25,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
@@ -36,8 +39,14 @@ import person.domain.PersonService
 
 internal class PersonRoutesKtTest {
 
+    private data class PersonSøkBody(
+        val fnr: String,
+        val sakstype: String,
+    )
+
     private val testIdent = "12345678910"
     private val person = PersonOppslagStub().personMedSkjermingOgKontaktinfo(Fnr(testIdent)).getOrFail()
+    private val gyldigRequest = PersonSøkBody(fnr = testIdent, sakstype = Sakstype.UFØRE.toString())
 
     private val services = TestServicesBuilder.services()
 
@@ -49,7 +58,7 @@ internal class PersonRoutesKtTest {
             }
 
             client.post("$PERSON_PATH/søk") {
-                setBody("""{"fnr":"$testIdent"}""")
+                setBody(serialize(gyldigRequest))
             }.apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
@@ -63,7 +72,7 @@ internal class PersonRoutesKtTest {
                 testSusebakoverWithMockedDb()
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"qwertyuiopå"}""")
+                setBody(serialize(PersonSøkBody(fnr = "qwertyuiopå", sakstype = Sakstype.UFØRE.toString())))
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 JSONAssert.assertEquals(
@@ -80,66 +89,22 @@ internal class PersonRoutesKtTest {
         }
     }
 
-    @Test // TODO jah: Endre til integrasjonstest.
+    @Test
     fun `kan hente data gjennom PersonOppslag`() {
         val personServiceMock = mock<PersonService> { on { hentPersonMedSkjermingOgKontaktinfo(any(), any()) } doReturn person.right() }
         val accessCheckProxyMock =
             mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
-
-        //language=JSON
-        val expectedResponseJson =
-            """
-                {
-                    "fnr": "$testIdent",
-                    "aktorId": "2437280977705",
-                    "navn": {
-                        "fornavn": "Tore",
-                        "mellomnavn": "Johnas",
-                        "etternavn": "Strømøy"
-                    },
-                    "telefonnummer": {
-                        "landskode": "+47",
-                        "nummer": "12345678"
-                    },
-                    "adresse": [{
-                        "adresselinje": "Oslogata 12",
-                        "postnummer": "0050",
-                        "poststed": "OSLO",
-                        "bruksenhet": "U1H20",
-                        "kommunenavn": "OSLO",
-                        "kommunenummer":"0301",
-                        "adressetype": "Bostedsadresse",
-                        "adresseformat": "Vegadresse"
-                    }],
-                    "sivilstand": null,
-                    "statsborgerskap": "NOR",
-                    "fødsel": {
-                        "dato": "1990-01-01",
-                        "år": 1990,
-                        "alder": 31
-                    },
-                    "adressebeskyttelse": null,
-                    "skjermet": false,
-                    "kontaktinfo": {
-                        "epostadresse": "mail@epost.com",
-                        "mobiltelefonnummer": "90909090",
-                        "språk": "nb",
-                        "kanKontaktesDigitalt": true
-                    },
-                    "vergemål": null,
-                    "dødsdato": null
-                }
-            """.trimIndent()
+        val expectedResponse = person.toJson(fixedClock)
 
         testApplication {
             application {
                 testSusebakoverWithMockedDb(clock = fixedClock, accessCheckProxy = accessCheckProxyMock)
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"$testIdent"}""")
+                setBody(serialize(gyldigRequest))
             }.apply {
                 status shouldBe OK
-                JSONAssert.assertEquals(expectedResponseJson, bodyAsText(), true)
+                deserialize<PersonResponseJson>(bodyAsText()) shouldBe expectedResponse
             }
         }
     }
@@ -165,7 +130,7 @@ internal class PersonRoutesKtTest {
                 testSusebakoverWithMockedDb(clients = clients)
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"$testIdent"}""")
+                setBody(serialize(gyldigRequest))
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
                 JSONAssert.assertEquals(
@@ -203,7 +168,7 @@ internal class PersonRoutesKtTest {
                 testSusebakoverWithMockedDb(clients = clients)
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr": $testIdent}""")
+                setBody(serialize(gyldigRequest))
             }.apply {
                 this.status shouldBe NotFound
                 JSONAssert.assertEquals(
@@ -243,13 +208,7 @@ internal class PersonRoutesKtTest {
                 )
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody(
-                    """
-                        {
-                          "fnr": "${Fnr.generer()}"
-                        }
-                    """.trimIndent(),
-                )
+                setBody(serialize(PersonSøkBody(fnr = Fnr.generer().toString(), sakstype = Sakstype.UFØRE.toString())))
             }.apply {
                 status shouldBe Forbidden
                 JSONAssert.assertEquals(

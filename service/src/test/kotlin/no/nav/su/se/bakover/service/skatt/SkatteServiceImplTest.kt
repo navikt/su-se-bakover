@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -487,7 +488,7 @@ class SkatteServiceImplTest {
             ).shouldBeRight()
 
             verify(it.sakService).hentSak(argThat<Saksnummer> { it shouldBe sak.saksnummer })
-            verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
 
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
@@ -550,7 +551,7 @@ class SkatteServiceImplTest {
                 ),
             ).shouldBeRight()
 
-            verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.ALDER))
             verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fnr }, argThat { it shouldBe fagsystemId }, anyOrNull())
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },

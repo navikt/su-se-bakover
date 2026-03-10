@@ -38,6 +38,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -72,7 +73,7 @@ internal class SkattDokumentServiceImplTest {
         val dokument = service.genererOgLagre(vedtak, tx)
 
         dokument.shouldBeRight()
-        verify(personServiceMock).hentPerson(argThat { it shouldBe vedtak.fnr }, Sakstype.UFØRE)
+        verify(personServiceMock).hentPerson(argThat { it shouldBe vedtak.fnr }, eq(Sakstype.UFØRE))
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
                 it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
@@ -131,7 +132,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).hentPerson(captor.capture(), Sakstype.UFØRE)
+        verify(personMock, times(2)).hentPerson(captor.capture(), eq(Sakstype.UFØRE))
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -195,7 +196,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).hentPerson(captor.capture(), Sakstype.UFØRE)
+        verify(personMock, times(2)).hentPerson(captor.capture(), eq(Sakstype.UFØRE))
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -259,7 +260,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).hentPerson(captor.capture(), Sakstype.UFØRE)
+        verify(personMock, times(2)).hentPerson(captor.capture(), eq(Sakstype.UFØRE))
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -319,7 +320,7 @@ internal class SkattDokumentServiceImplTest {
         dokument.shouldBeRight()
 
         val captor = argumentCaptor<Fnr>()
-        verify(personMock, times(2)).hentPerson(captor.capture(), Sakstype.UFØRE)
+        verify(personMock, times(2)).hentPerson(captor.capture(), eq(Sakstype.UFØRE))
         captor.allValues.size shouldBe 2
         captor.firstValue shouldBe person.ident.fnr
         captor.lastValue shouldBe eps.ident.fnr
@@ -398,7 +399,7 @@ internal class SkattDokumentServiceImplTest {
                 ),
             ).shouldBeRight()
 
-            verify(personService).hentPerson(argThat { it shouldBe skattegrunnlag.fnr }, Sakstype.UFØRE)
+            verify(personService).hentPerson(argThat { it shouldBe skattegrunnlag.fnr }, eq(Sakstype.UFØRE))
             verify(pdfGenerator).genererPdf(
                 argThat<PdfInnhold> {
                     it.right() shouldBe lagSkattegrunnlagsPdfInnholdFraFrioppslag(
@@ -463,7 +464,7 @@ internal class SkattDokumentServiceImplTest {
             ).shouldBeRight()
 
             val captor = argumentCaptor<Fnr>()
-            verify(personService, times(2)).hentPerson(captor.capture(), Sakstype.UFØRE)
+            verify(personService, times(2)).hentPerson(captor.capture(), eq(Sakstype.ALDER))
             captor.allValues.size shouldBe 2
             captor.firstValue shouldBe person.ident.fnr
             captor.lastValue shouldBe epsFnr

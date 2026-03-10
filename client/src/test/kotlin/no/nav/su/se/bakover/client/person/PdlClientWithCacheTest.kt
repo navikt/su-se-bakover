@@ -19,7 +19,11 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.SivilstandTyper
 
 class PdlClientWithCacheTest {
-    private fun cacheKey(fnr: Fnr, token: JwtToken) = FnrCacheKey(fnr, token, Sakstype.UFØRE)
+    private fun cacheKey(
+        fnr: Fnr,
+        token: JwtToken,
+        sakstype: Sakstype,
+    ) = FnrCacheKey(fnr, token, sakstype)
 
     private val expectedPdlDataTemplate = PdlData(
         ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
@@ -54,20 +58,21 @@ class PdlClientWithCacheTest {
     fun `Cacher resultat fra pdl på andre kall`() {
         val fnr = Fnr("07028820547")
         val brukerToken = JwtToken.BrukerToken("ignored because of mock")
+        val sakstype = Sakstype.UFØRE
 
         val spyCache: Cache<FnrCacheKey, PdlData> = newCache(cacheName = "person/domain", suMetrics = mock<SuMetrics>())
         val pdlClient = mock<PdlClient> {
-            on { person(fnr, brukerToken) } doReturn expectedPdlDataTemplate.right()
+            on { person(fnr, brukerToken, sakstype) } doReturn expectedPdlDataTemplate.right()
         }
         val client = PdlClientWithCache(pdlClient, mock(), spyCache)
 
-        client.person(fnr, brukerToken)
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
+        client.person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
 
-        client.person(fnr, brukerToken)
-        spyCache.getIfPresent(cacheKey(fnr, brukerToken)) shouldBe expectedPdlDataTemplate
+        client.person(fnr, brukerToken, sakstype)
+        spyCache.getIfPresent(cacheKey(fnr, brukerToken, sakstype)) shouldBe expectedPdlDataTemplate
 
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
     }
 
     @Test
@@ -75,67 +80,70 @@ class PdlClientWithCacheTest {
         val fnr = Fnr("07028820547")
         val fnrNummerTo = Fnr("33332882057")
         val brukerToken = JwtToken.BrukerToken("ignored because of mock")
+        val sakstype = Sakstype.UFØRE
 
         val spyCache: Cache<FnrCacheKey, PdlData> = newCache(cacheName = "person/domain", suMetrics = mock<SuMetrics>())
         val pdlClient = mock<PdlClient> {
-            on { person(fnr, brukerToken) } doReturn expectedPdlDataTemplate.right()
-            on { person(fnrNummerTo, brukerToken) } doReturn expectedPdlDataTemplate.right()
+            on { person(fnr, brukerToken, sakstype) } doReturn expectedPdlDataTemplate.right()
+            on { person(fnrNummerTo, brukerToken, sakstype) } doReturn expectedPdlDataTemplate.right()
         }
         val client = PdlClientWithCache(pdlClient, mock(), spyCache)
 
-        client.person(fnr, brukerToken)
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
-        verify(pdlClient, times(0)).person(fnrNummerTo, brukerToken)
+        client.person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(0)).person(fnrNummerTo, brukerToken, sakstype)
 
-        client.person(fnrNummerTo, brukerToken)
-        spyCache.getIfPresent(cacheKey(fnr, brukerToken)) shouldBe expectedPdlDataTemplate
+        client.person(fnrNummerTo, brukerToken, sakstype)
+        spyCache.getIfPresent(cacheKey(fnr, brukerToken, sakstype)) shouldBe expectedPdlDataTemplate
 
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
-        verify(pdlClient, times(1)).person(fnrNummerTo, brukerToken)
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(1)).person(fnrNummerTo, brukerToken, sakstype)
     }
 
     @Test
     fun `Systembruker ser cachet resultat fra vanlig bruker`() {
         val fnr = Fnr("07028820547")
         val brukerToken = JwtToken.BrukerToken("ignored because of mock")
+        val sakstype = Sakstype.UFØRE
 
         val spyCache: Cache<FnrCacheKey, PdlData> = newCache(cacheName = "person/domain", suMetrics = mock<SuMetrics>())
         val pdlClient = mock<PdlClient> {
-            on { person(fnr, brukerToken) } doReturn expectedPdlDataTemplate.right()
+            on { person(fnr, brukerToken, sakstype) } doReturn expectedPdlDataTemplate.right()
         }
         val client = PdlClientWithCache(pdlClient, mock(), spyCache)
 
-        client.person(fnr, brukerToken)
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
-        verify(pdlClient, times(0)).personForSystembruker(fnr)
+        client.person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(0)).personForSystembruker(fnr, sakstype)
 
-        client.personForSystembruker(fnr)
-        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe expectedPdlDataTemplate
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
-        verify(pdlClient, times(0)).personForSystembruker(fnr) // bruker her cachet resultat
+        client.personForSystembruker(fnr, sakstype)
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken, sakstype)) shouldBe expectedPdlDataTemplate
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(0)).personForSystembruker(fnr, sakstype) // bruker her cachet resultat
     }
 
     @Test
     fun `Vanlig bruker ser ikke caching fra systembruker, blir nytt kall mot pdl`() {
         val fnr = Fnr("07028820547")
         val brukerToken = JwtToken.BrukerToken("ignored because of mock")
+        val sakstype = Sakstype.UFØRE
 
         val spyCache: Cache<FnrCacheKey, PdlData> = newCache(cacheName = "person/domain", suMetrics = mock<SuMetrics>())
         val pdlClient = mock<PdlClient> {
-            on { person(fnr, brukerToken) } doReturn expectedPdlDataTemplate.right()
-            on { personForSystembruker(fnr) } doReturn expectedPdlDataTemplate.right()
+            on { person(fnr, brukerToken, sakstype) } doReturn expectedPdlDataTemplate.right()
+            on { personForSystembruker(fnr, sakstype) } doReturn expectedPdlDataTemplate.right()
         }
         val client = PdlClientWithCache(pdlClient, mock(), spyCache)
 
-        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe null
-        client.personForSystembruker(fnr)
-        verify(pdlClient, times(1)).personForSystembruker(fnr)
-        verify(pdlClient, times(0)).person(fnr, brukerToken)
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken, sakstype)) shouldBe null
+        client.personForSystembruker(fnr, sakstype)
+        verify(pdlClient, times(1)).personForSystembruker(fnr, sakstype)
+        verify(pdlClient, times(0)).person(fnr, brukerToken, sakstype)
 
-        spyCache.getIfPresent(cacheKey(fnr, brukerToken)) shouldBe null
+        spyCache.getIfPresent(cacheKey(fnr, brukerToken, sakstype)) shouldBe null
 
-        client.person(fnr, brukerToken)
-        verify(pdlClient, times(1)).person(fnr, brukerToken)
+        client.person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
     }
 
     @Test
@@ -143,28 +151,29 @@ class PdlClientWithCacheTest {
         val fnr = Fnr("07028820547")
         val aktørid = AktørId("2751637578706")
         val brukerToken = JwtToken.BrukerToken("ignored because of mock")
+        val sakstype = Sakstype.UFØRE
 
         val spyCache: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId", suMetrics = mock<SuMetrics>())
         val pdlClient = mock<PdlClient> {
-            on { aktørIdMedSystembruker(fnr) } doReturn aktørid.right()
+            on { aktørIdMedSystembruker(fnr, sakstype) } doReturn aktørid.right()
         }
         val client = PdlClientWithCache(pdlClient, mock(), aktørIdCache = spyCache)
 
-        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe null
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken, sakstype)) shouldBe null
 
-        client.aktørIdMedSystembruker(fnr)
-        verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr)
-        verify(pdlClient, times(0)).person(fnr, brukerToken)
-        verify(pdlClient, times(0)).personForSystembruker(fnr)
+        client.aktørIdMedSystembruker(fnr, sakstype)
+        verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr, sakstype)
+        verify(pdlClient, times(0)).person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(0)).personForSystembruker(fnr, sakstype)
 
-        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe aktørid
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken, sakstype)) shouldBe aktørid
 
-        client.aktørIdMedSystembruker(fnr)
-        verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr)
-        verify(pdlClient, times(0)).person(fnr, brukerToken)
-        verify(pdlClient, times(0)).personForSystembruker(fnr)
+        client.aktørIdMedSystembruker(fnr, sakstype)
+        verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr, sakstype)
+        verify(pdlClient, times(0)).person(fnr, brukerToken, sakstype)
+        verify(pdlClient, times(0)).personForSystembruker(fnr, sakstype)
 
-        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe aktørid
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken, sakstype)) shouldBe aktørid
         verifyNoMoreInteractions(pdlClient)
     }
 }
