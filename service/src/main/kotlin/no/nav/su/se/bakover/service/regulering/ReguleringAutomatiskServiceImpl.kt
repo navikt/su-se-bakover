@@ -175,9 +175,10 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
+                val fnrSomHarFeilPåEksterneFradrag = sakerMedRegulerteFradragEksternKilde.filterLefts().map { it.fnr }
                 val sakerSomSkalReguleresEllerIkkeNyeFradrag = sakerSomSkalReguleresEllerIkke.map {
                     it.flatMap { sak ->
-                        if (sakerMedRegulerteFradragEksternKilde.filterLefts().map { it.fnr }.contains(sak.fnr)) {
+                        if (fnrSomHarFeilPåEksterneFradrag.contains(sak.fnr)) {
                             KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet.left()
                         } else {
                             sak.right()

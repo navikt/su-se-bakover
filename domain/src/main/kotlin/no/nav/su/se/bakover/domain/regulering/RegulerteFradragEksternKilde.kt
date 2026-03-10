@@ -17,7 +17,7 @@ data class RegulertFradragEksternKilde(
     val førRegulering: Int,
     val etterRegulering: Int,
 
-    // Det finens tilfeller hvor inntekt etter uføre er behandlet manuelt i pesys.
+    // Det finnes tilfeller hvor inntekt etter uføre er behandlet manuelt i pesys.
     // Det vil medføre at vi ikke får beløpet og at det må behandles manuelt i SU-App også
     val manueltIeu: Boolean = false,
 )

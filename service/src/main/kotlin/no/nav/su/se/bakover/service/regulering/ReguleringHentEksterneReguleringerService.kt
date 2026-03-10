@@ -165,7 +165,7 @@ class ReguleringHentEksterneReguleringerService(
             fnrList = unikeFnr,
             dato = dato,
         ).getOrElse {
-            throw UtehentingAvPerioderUføreFeilet()
+            throw UthentingAvPerioderUføreFeilet()
         }.resultat
     }
 
@@ -178,7 +178,7 @@ class ReguleringHentEksterneReguleringerService(
             fnrList = unikeFnr,
             dato = dato,
         ).getOrElse {
-            throw UtehentingAvPerioderAlderFeilet()
+            throw UthentingAvPerioderAlderFeilet()
         }.resultat
     }
 
@@ -190,10 +190,10 @@ class ReguleringHentEksterneReguleringerService(
 }
 
 /**
- * Objekt for å finne hente regulerte beløper som skal brukes som fradrag.
+ * Objekt for å hente regulerte beløper som skal brukes som fradrag.
  * Basert på reguleringsmåned og en liste saker utledes alle brukere og eps'er som har fradrag som kan hentes eksternt.
  * Bruker vil alltid ha minst en fradragstype som kan hentes eksternt (inntekt etter uføre eller alderspensjon).
- * Eps vil kunne ha 0 relevante fradragstyper. Da vi list med fradrag være tom.
+ * Eps vil kunne ha 0 relevante fradragstyper. Da vil liste med fradrag være tom.
  */
 data class HentEksterneReguleringerRequest(
     val månedFørRegulering: LocalDate,
@@ -276,5 +276,5 @@ interface FeilMedRegulertFradrag {
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedRegulertFradrag
 }
 
-class UtehentingAvPerioderUføreFeilet : IllegalStateException()
-class UtehentingAvPerioderAlderFeilet : IllegalStateException()
+class UthentingAvPerioderUføreFeilet : IllegalStateException()
+class UthentingAvPerioderAlderFeilet : IllegalStateException()
