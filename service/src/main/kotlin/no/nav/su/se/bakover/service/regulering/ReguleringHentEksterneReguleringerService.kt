@@ -53,7 +53,7 @@ class ReguleringHentEksterneReguleringerService(
 
     /**
      * Finner perioder fra Pesys som skal brukes som fradrag for en angitt bruker og dens eps
-     * Hvert relevante peruode blir mappet til ønsket beløper og verifisert at er i riktig tilstand.
+     * Hver relevante periode blir mappet til ønsket beløp og verifisert at er i riktig tilstand.
      * Se [utledOgVerifiserRegulertFradrag].
      */
     private fun utledRegulerteFradragForBrukerMedEps(
