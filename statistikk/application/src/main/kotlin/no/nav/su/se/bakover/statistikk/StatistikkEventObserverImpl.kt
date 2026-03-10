@@ -27,7 +27,7 @@ class StatistikkEventObserverImpl(
             when (event) {
                 is StatistikkEvent.SakOpprettet -> {
                     val sak = event.sak
-                    personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                    personService.hentAktørIdMedSystembruker(sak.fnr, sak.type).fold(
                         { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
                         { aktørId -> publiserEllerLoggFeil(event.toBehandlingsstatistikk(aktørId, gitCommit)) },
                     )

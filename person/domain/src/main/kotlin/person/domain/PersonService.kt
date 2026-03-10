@@ -1,16 +1,23 @@
 package person.domain
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import java.util.UUID
 
 interface PersonService {
-    fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
-    fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
-    fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo>
-    fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> // TODO: burde fjernes på sikt?
-    fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit>
+    fun hentPerson(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE): Either<KunneIkkeHentePerson, Person>
+    fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE): Either<KunneIkkeHentePerson, Person>
+    fun hentPersonMedSkjermingOgKontaktinfo(
+        fnr: Fnr,
+        sakstype: Sakstype = Sakstype.UFØRE,
+    ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo>
+    fun hentAktørIdMedSystembruker(
+        fnr: Fnr,
+        sakstype: Sakstype = Sakstype.UFØRE,
+    ): Either<KunneIkkeHentePerson, AktørId> // TODO: burde fjernes på sikt?
+    fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE): Either<KunneIkkeHentePerson, Unit>
 
     /** Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS. */
     fun hentFnrForSak(sakId: UUID): List<Fnr>

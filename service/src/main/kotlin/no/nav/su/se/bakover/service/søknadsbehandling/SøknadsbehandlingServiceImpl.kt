@@ -506,7 +506,7 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             formuegrenserFactory = formuegrenserFactory,
             saksbehandler = request.saksbehandler,
-            hentPerson = personService::hentPerson,
+            hentPerson = { fnr -> personService.hentPerson(fnr, sak.type) },
             saksbehandlersAvgjørelse = request.saksbehandlersAvgjørelse,
         ).map {
             søknadsbehandlingRepo.lagre(it.second)
@@ -845,7 +845,10 @@ class SøknadsbehandlingServiceImpl(
             if (request.bosituasjoner.size > 1) {
                 throw IllegalArgumentException("Forventer kun 1 bosituasjon element ved søknadsbehandling")
             } else {
-                request.bosituasjoner.first().toDomain(clock = clock, hentPerson = personService::hentPerson)
+                request.bosituasjoner.first().toDomain(
+                    clock = clock,
+                    hentPerson = { fnr -> personService.hentPerson(fnr, søknadsbehandling.sakstype) },
+                )
                     .getOrElse { return it.left() }
             }
 

@@ -98,16 +98,16 @@ internal class AccessCheckProxyTest {
                         )
                     },
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSystembruker(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
@@ -127,16 +127,16 @@ internal class AccessCheckProxyTest {
                 },
                 services = services.copy(
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSystembruker(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
@@ -155,16 +155,16 @@ internal class AccessCheckProxyTest {
                 },
                 services = services.copy(
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSystembruker(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
@@ -183,16 +183,16 @@ internal class AccessCheckProxyTest {
                 },
                 services = services.copy(
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonMedSystembruker(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
+                        override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()

@@ -17,6 +17,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.applicationConfig
@@ -82,22 +83,28 @@ class RoutesTest {
                     ).copy(
                         personOppslag = object :
                             PersonOppslag {
-                            override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+                            override fun person(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
                                 throw RuntimeException("thrown exception")
 
-                            override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+                            override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
                                 throw RuntimeException("thrown exception")
 
                             override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
                                 throw RuntimeException("thrown exception")
 
-                            override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
+                            override fun personMedSkjermingOgKontaktinfo(
+                                fnr: Fnr,
+                                sakstype: Sakstype,
+                            ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
                                 throw RuntimeException("thrown exception")
 
-                            override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            override fun aktørIdMedSystembruker(
+                                fnr: Fnr,
+                                sakstype: Sakstype,
+                            ): Either<KunneIkkeHentePerson, AktørId> =
                                 throw RuntimeException("thrown exception")
 
-                            override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> =
+                            override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> =
                                 throw RuntimeException("thrown exception")
                         },
                     ),

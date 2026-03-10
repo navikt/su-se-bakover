@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.person
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.KunneIkkeHentePerson
@@ -15,24 +16,27 @@ class PersonServiceImpl(
     private val personOppslag: PersonOppslag,
     private val personRepo: PersonRepo,
 ) : PersonService {
-    override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
-        return personOppslag.person(fnr)
+    override fun hentPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
+        return personOppslag.person(fnr, sakstype)
     }
 
-    override fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
-        return personOppslag.personMedSystembruker(fnr)
+    override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
+        return personOppslag.personMedSystembruker(fnr, sakstype)
     }
 
-    override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
-        return personOppslag.personMedSkjermingOgKontaktinfo(fnr)
+    override fun hentPersonMedSkjermingOgKontaktinfo(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+        return personOppslag.personMedSkjermingOgKontaktinfo(fnr, sakstype)
     }
 
-    override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return personOppslag.aktørIdMedSystembruker(fnr)
+    override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> {
+        return personOppslag.aktørIdMedSystembruker(fnr, sakstype)
     }
 
-    override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
-        return personOppslag.sjekkTilgangTilPerson(fnr)
+    override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
+        return personOppslag.sjekkTilgangTilPerson(fnr, sakstype)
     }
 
     override fun hentFnrForSak(sakId: UUID): List<Fnr> {

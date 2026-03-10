@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.stubs.person
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.AktørId
@@ -55,19 +56,33 @@ data class PersonOppslagStub(
         dødsdato = null,
     )
 
-    override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+    fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = person(fnr, Sakstype.UFØRE)
+
+    fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = personMedSystembruker(fnr, Sakstype.UFØRE)
+
+    fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
+        personMedSkjermingOgKontaktinfo(fnr, Sakstype.UFØRE)
+
+    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = aktørIdMedSystembruker(fnr, Sakstype.UFØRE)
+
+    fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = sjekkTilgangTilPerson(fnr, Sakstype.UFØRE)
+
+    override fun person(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
         if (fnr.toString() == ApplicationConfig.fnrKode6()) {
             KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         } else {
             nyTestPerson(fnr).right()
         }
 
-    override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
 
     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
         KunneIkkeHentePerson.Ukjent.left()
 
-    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
+    override fun personMedSkjermingOgKontaktinfo(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
         nyTestPerson(fnr).let {
             PersonMedSkjermingOgKontaktinfo(
                 person = it,
@@ -80,10 +95,10 @@ data class PersonOppslagStub(
                 ),
             ).right()
         }
-    override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+    override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
         AktørId("2437280977705").right()
 
-    override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> =
+    override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> =
         if (fnr.toString() == ApplicationConfig.fnrKode6()) {
             KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         } else {

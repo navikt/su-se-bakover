@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
@@ -148,14 +149,14 @@ internal class PersonRoutesKtTest {
         val clients =
             TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
                 personOppslag = object : PersonOppslag {
-                    override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun person(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                         KunneIkkeHentePerson.Ukjent.left()
-                    override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
 
-                    override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.Ukjent.left()
+                    override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) = KunneIkkeHentePerson.Ukjent.left()
                 },
             )
 
@@ -186,14 +187,14 @@ internal class PersonRoutesKtTest {
         val clients =
             TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
                 personOppslag = object : PersonOppslag {
-                    override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun person(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                         KunneIkkeHentePerson.FantIkkePerson.left()
-                    override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
 
-                    override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.FantIkkePerson.left()
+                    override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) = KunneIkkeHentePerson.FantIkkePerson.left()
                 },
             )
 
@@ -224,14 +225,14 @@ internal class PersonRoutesKtTest {
         val clients =
             TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
                 personOppslag = object : PersonOppslag {
-                    override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun person(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
-                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr) =
+                    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                         KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
-                    override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                    override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
 
-                    override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+                    override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) = KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
                 },
             )
 

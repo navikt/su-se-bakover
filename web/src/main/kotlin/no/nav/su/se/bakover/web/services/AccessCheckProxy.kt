@@ -649,22 +649,25 @@ open class AccessCheckProxy(
                 override fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
             person = object : PersonService {
-                override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+                override fun hentPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
                     assertHarTilgangTilPerson(fnr)
-                    return services.person.hentPerson(fnr)
+                    return services.person.hentPerson(fnr, sakstype)
                 }
 
-                override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+                override fun hentPersonMedSkjermingOgKontaktinfo(
+                    fnr: Fnr,
+                    sakstype: Sakstype,
+                ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
                     assertHarTilgangTilPerson(fnr)
-                    return services.person.hentPersonMedSkjermingOgKontaktinfo(fnr)
+                    return services.person.hentPersonMedSkjermingOgKontaktinfo(fnr, sakstype)
                 }
 
-                override fun hentPersonMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAktørIdMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = kastKanKunKallesFraAnnenService()
 
-                override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
-                    return services.person.sjekkTilgangTilPerson(fnr)
+                override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
+                    return services.person.sjekkTilgangTilPerson(fnr, sakstype)
                 }
 
                 override fun hentFnrForSak(sakId: UUID) = kastKanKunKallesFraAnnenService()

@@ -4,6 +4,7 @@ import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.cache.newCache
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
@@ -18,6 +19,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.SivilstandTyper
 
 class PdlClientWithCacheTest {
+    private fun cacheKey(fnr: Fnr, token: JwtToken) = FnrCacheKey(fnr, token, Sakstype.UFØRE)
 
     private val expectedPdlDataTemplate = PdlData(
         ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
@@ -63,7 +65,7 @@ class PdlClientWithCacheTest {
         verify(pdlClient, times(1)).person(fnr, brukerToken)
 
         client.person(fnr, brukerToken)
-        spyCache.getIfPresent(Pair(fnr, brukerToken)) shouldBe expectedPdlDataTemplate
+        spyCache.getIfPresent(cacheKey(fnr, brukerToken)) shouldBe expectedPdlDataTemplate
 
         verify(pdlClient, times(1)).person(fnr, brukerToken)
     }
@@ -86,7 +88,7 @@ class PdlClientWithCacheTest {
         verify(pdlClient, times(0)).person(fnrNummerTo, brukerToken)
 
         client.person(fnrNummerTo, brukerToken)
-        spyCache.getIfPresent(Pair(fnr, brukerToken)) shouldBe expectedPdlDataTemplate
+        spyCache.getIfPresent(cacheKey(fnr, brukerToken)) shouldBe expectedPdlDataTemplate
 
         verify(pdlClient, times(1)).person(fnr, brukerToken)
         verify(pdlClient, times(1)).person(fnrNummerTo, brukerToken)
@@ -108,7 +110,7 @@ class PdlClientWithCacheTest {
         verify(pdlClient, times(0)).personForSystembruker(fnr)
 
         client.personForSystembruker(fnr)
-        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe expectedPdlDataTemplate
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe expectedPdlDataTemplate
         verify(pdlClient, times(1)).person(fnr, brukerToken)
         verify(pdlClient, times(0)).personForSystembruker(fnr) // bruker her cachet resultat
     }
@@ -125,12 +127,12 @@ class PdlClientWithCacheTest {
         }
         val client = PdlClientWithCache(pdlClient, mock(), spyCache)
 
-        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe null
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe null
         client.personForSystembruker(fnr)
         verify(pdlClient, times(1)).personForSystembruker(fnr)
         verify(pdlClient, times(0)).person(fnr, brukerToken)
 
-        spyCache.getIfPresent(Pair(fnr, brukerToken)) shouldBe null
+        spyCache.getIfPresent(cacheKey(fnr, brukerToken)) shouldBe null
 
         client.person(fnr, brukerToken)
         verify(pdlClient, times(1)).person(fnr, brukerToken)
@@ -148,21 +150,21 @@ class PdlClientWithCacheTest {
         }
         val client = PdlClientWithCache(pdlClient, mock(), aktørIdCache = spyCache)
 
-        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe null
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe null
 
         client.aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(0)).person(fnr, brukerToken)
         verify(pdlClient, times(0)).personForSystembruker(fnr)
 
-        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe aktørid
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe aktørid
 
         client.aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(1)).aktørIdMedSystembruker(fnr)
         verify(pdlClient, times(0)).person(fnr, brukerToken)
         verify(pdlClient, times(0)).personForSystembruker(fnr)
 
-        spyCache.getIfPresent(Pair(fnr, JwtToken.SystemToken)) shouldBe aktørid
+        spyCache.getIfPresent(cacheKey(fnr, JwtToken.SystemToken)) shouldBe aktørid
         verifyNoMoreInteractions(pdlClient)
     }
 }
