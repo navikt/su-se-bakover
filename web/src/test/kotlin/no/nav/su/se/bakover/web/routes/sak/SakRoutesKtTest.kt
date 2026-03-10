@@ -233,6 +233,14 @@ internal class SakRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sakService = mock {
+                                on { hentSakInfoPåFnr(any()) } doReturn listOf(
+                                    SakInfo(
+                                        sakId = sakId,
+                                        saksnummer = saksnummer,
+                                        fnr = Fnr(sakFnr01),
+                                        type = Sakstype.UFØRE,
+                                    ),
+                                )
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = false,
@@ -279,6 +287,14 @@ internal class SakRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sakService = mock {
+                                on { hentSakInfoPåFnr(any()) } doReturn listOf(
+                                    SakInfo(
+                                        sakId = sakId,
+                                        saksnummer = saksnummer,
+                                        fnr = Fnr(sakFnr01),
+                                        type = Sakstype.UFØRE,
+                                    ),
+                                )
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = true,
@@ -325,6 +341,14 @@ internal class SakRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sakService = mock {
+                                on { hentSakInfoPåFnr(any()) } doReturn listOf(
+                                    SakInfo(
+                                        sakId = sakId,
+                                        saksnummer = saksnummer,
+                                        fnr = Fnr(sakFnr01),
+                                        type = Sakstype.UFØRE,
+                                    ),
+                                )
                                 on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = false,
