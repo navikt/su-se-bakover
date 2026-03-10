@@ -63,6 +63,8 @@ class ReguleringHentEksterneReguleringerService(
     ): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         return brukereMedEps.map { brukerMedEps ->
 
+            // TODO må hente forventet inntekt fra uføregrunnlag her?
+
             val fradragFraPesysBruker = brukerMedEps.bruker.fradrag.map { bruktFradrag ->
                 utledOgVerifiserRegulertFradrag(
                     brukerMedEps.bruker.fnr,
@@ -88,8 +90,10 @@ class ReguleringHentEksterneReguleringerService(
                 ).left()
             } else {
                 RegulerteFradragEksternKilde(
-                    bruker = fradragFraPesysBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }.single(), // TODO fjern single
-                    forEps = fradragFraPesysEps?.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } } ?: emptyList(),
+                    bruker = fradragFraPesysBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }
+                        .single(), // TODO fjern single
+                    forEps = fradragFraPesysEps?.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }
+                        ?: emptyList(),
                 ).right()
             }
         }
@@ -136,8 +140,10 @@ class ReguleringHentEksterneReguleringerService(
                 etterRegulering = forventetPesysPerioder.perioder[1].netto,
             ).right()
         } else {
-            val inntektEtterUføreFørRegulering = (forventetPesysPerioder.perioder[0] as UføreBeregningsperiode).oppjustertInntektEtterUfore
-            val inntektEtterUføreEtterRegulering = (forventetPesysPerioder.perioder[1] as UføreBeregningsperiode).oppjustertInntektEtterUfore
+            val inntektEtterUføreFørRegulering =
+                (forventetPesysPerioder.perioder[0] as UføreBeregningsperiode).oppjustertInntektEtterUfore
+            val inntektEtterUføreEtterRegulering =
+                (forventetPesysPerioder.perioder[1] as UføreBeregningsperiode).oppjustertInntektEtterUfore
             if (inntektEtterUføreFørRegulering == null || inntektEtterUføreEtterRegulering == null) {
                 return FeilMedRegulertFradrag.InntektEtterUføreMangler.left()
             }
@@ -157,7 +163,12 @@ class ReguleringHentEksterneReguleringerService(
         dato: LocalDate,
     ): List<UføreBeregningsperioderPerPerson> {
         val unikeFnr =
-            brukereMedEps.unikeFnrSomBenytterFradragstype(listOf(Fradragstype.ForventetInntekt, Fradragstype.Uføretrygd)) // TODO er må Forventet inntekt inn for bruker?
+            brukereMedEps.unikeFnrSomBenytterFradragstype(
+                listOf(
+                    Fradragstype.ForventetInntekt,
+                    Fradragstype.Uføretrygd,
+                ),
+            ) // TODO er må Forventet inntekt inn for bruker?
         return pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = unikeFnr,
             dato = dato,
@@ -211,9 +222,12 @@ data class HentEksterneReguleringerRequest(
         private val relevanteFradragsTyper = listOf(
             Fradragstype.Alderspensjon,
             Fradragstype.Uføretrygd,
-            Fradragstype.ForventetInntekt,
             // Fradragstype.Arbeidsavklaringspenger, TODO ??
+
+            // OBS! Ligger ikke i fradragsgrunnlag men må utledes fra uførevilkår
+            Fradragstype.ForventetInntekt,
         )
+
         fun toRequest(
             reguleringsMåned: Måned,
             forSaker: List<Sak>,
@@ -229,10 +243,12 @@ data class HentEksterneReguleringerRequest(
             reguleringsMåned: Måned,
             clock: Clock,
         ): BrukerMedEps {
-            val grunnlagsdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
+            val vedtaksdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
-            }.grunnlagsdata
+            }
+            val grunnlagsdata = vedtaksdata.grunnlagsdata
             return BrukerMedEps(
+                // TODO AUTO-REG-26 - Legge til Forventet Inntekt som fradrag (IEU) hvis uføre. Se BeregningStrategyFactory.beregn
                 bruker = PersonMedFradrag(
                     fnr = fnr,
                     fradrag = grunnlagsdata.hentFradragBasertPå(
