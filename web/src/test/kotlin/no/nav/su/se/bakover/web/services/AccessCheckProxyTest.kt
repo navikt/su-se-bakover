@@ -25,6 +25,7 @@ import org.mockito.kotlin.verify
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonRepo
 import person.domain.PersonService
+import person.domain.PersonerOgSakstype
 import økonomi.domain.utbetaling.Utbetalinger
 import java.util.UUID
 
@@ -77,8 +78,8 @@ internal class AccessCheckProxyTest {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
                     on {
-                        hentFnrForSak(sakId)
-                    } doReturn listOf(fnr)
+                        hentFnrOgSaktypeForSak(sakId)
+                    } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(fnr))
                 },
                 services = services.copy(
                     sak = mock {
@@ -110,7 +111,7 @@ internal class AccessCheckProxyTest {
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
+                        override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
                     },
                 ),
             ).proxy()
@@ -123,7 +124,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på sakId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForSak(any()) } doReturn listOf(Fnr.generer())
+                    on { hentFnrOgSaktypeForSak(any()) } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -139,7 +140,7 @@ internal class AccessCheckProxyTest {
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
+                        override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
                     },
                 ),
             ).proxy()
@@ -151,7 +152,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på søknadId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForSøknad(any()) } doReturn listOf(Fnr.generer())
+                    on { hentFnrForSøknad(any()) } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -167,7 +168,7 @@ internal class AccessCheckProxyTest {
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
+                        override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
                     },
                 ),
             ).proxy()
@@ -179,7 +180,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på behandlingId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForBehandling(any()) } doReturn listOf(Fnr.generer())
+                    on { hentFnrForBehandling(any()) } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -195,7 +196,7 @@ internal class AccessCheckProxyTest {
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentFnrForSak(sakId: UUID) = emptyList<Fnr>()
+                        override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
                     },
                 ),
             ).proxy()
@@ -231,37 +232,37 @@ internal class AccessCheckProxyTest {
             )
             private val proxied = AccessCheckProxy(
                 personRepo = object : PersonRepo {
-                    override fun hentFnrForSak(sakId: UUID): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrOgSaktypeForSak(sakId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
-                    override fun hentFnrForSøknad(søknadId: UUID): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrForSøknad(søknadId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
-                    override fun hentFnrForBehandling(behandlingId: UUID): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrForBehandling(behandlingId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
-                    override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrForUtbetaling(utbetalingId: UUID30): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
-                    override fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrForRevurdering(revurderingId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
-                    override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrForVedtak(vedtakId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
-                    override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
-                        return listOf(Fnr.generer())
+                    override fun hentFnrForKlage(klageId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
                 },
                 services = servicesReturningSak.copy(
                     person = mock {
-                        on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                        on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                     },
                 ),
             ).proxy()

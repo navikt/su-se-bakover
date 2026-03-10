@@ -7,18 +7,18 @@ import no.nav.su.se.bakover.common.person.Fnr
 import java.util.UUID
 
 interface PersonService {
-    fun hentPerson(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE): Either<KunneIkkeHentePerson, Person>
-    fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE): Either<KunneIkkeHentePerson, Person>
+    fun hentPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person>
+    fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person>
     fun hentPersonMedSkjermingOgKontaktinfo(
         fnr: Fnr,
-        sakstype: Sakstype = Sakstype.UFØRE,
+        sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo>
     fun hentAktørIdMedSystembruker(
         fnr: Fnr,
-        sakstype: Sakstype = Sakstype.UFØRE,
+        sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, AktørId> // TODO: burde fjernes på sikt?
-    fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE): Either<KunneIkkeHentePerson, Unit>
+    fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit>
 
     /** Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS. */
-    fun hentFnrForSak(sakId: UUID): List<Fnr>
+    fun hentFnrForSak(sakId: UUID): PersonerOgSakstype
 }

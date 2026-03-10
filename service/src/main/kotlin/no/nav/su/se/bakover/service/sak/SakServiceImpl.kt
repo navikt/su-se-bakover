@@ -132,6 +132,10 @@ class SakServiceImpl(
             ?: FantIkkeSak.left()
     }
 
+    override fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo> {
+        return sakRepo.hentSakInfo(fnr)
+    }
+
     override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
         return sakRepo.hentSakForRevurdering(revurderingId)
     }

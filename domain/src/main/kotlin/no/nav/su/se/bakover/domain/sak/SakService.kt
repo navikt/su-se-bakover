@@ -76,6 +76,7 @@ interface SakService {
 
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
     fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID>
+    fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo>
 }
 
 data object FantIkkeSak

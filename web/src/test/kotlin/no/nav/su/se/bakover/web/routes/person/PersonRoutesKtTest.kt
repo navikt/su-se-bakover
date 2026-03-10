@@ -82,7 +82,7 @@ internal class PersonRoutesKtTest {
 
     @Test // TODO jah: Endre til integrasjonstest.
     fun `kan hente data gjennom PersonOppslag`() {
-        val personServiceMock = mock<PersonService> { on { hentPersonMedSkjermingOgKontaktinfo(any()) } doReturn person.right() }
+        val personServiceMock = mock<PersonService> { on { hentPersonMedSkjermingOgKontaktinfo(any(), any()) } doReturn person.right() }
         val accessCheckProxyMock =
             mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 

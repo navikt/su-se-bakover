@@ -245,7 +245,7 @@ internal class SakRoutesKtTest {
                                 )
                             },
                             person = mock {
-                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                             },
                         ),
                     )
@@ -291,7 +291,7 @@ internal class SakRoutesKtTest {
                                 )
                             },
                             person = mock {
-                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                             },
                         ),
                     )
@@ -340,7 +340,7 @@ internal class SakRoutesKtTest {
                                 )
                             },
                             person = mock {
-                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                             },
                         ),
                     )

@@ -10,6 +10,7 @@ import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
 import person.domain.PersonRepo
 import person.domain.PersonService
+import person.domain.PersonerOgSakstype
 import java.util.UUID
 
 class PersonServiceImpl(
@@ -39,7 +40,7 @@ class PersonServiceImpl(
         return personOppslag.sjekkTilgangTilPerson(fnr, sakstype)
     }
 
-    override fun hentFnrForSak(sakId: UUID): List<Fnr> {
-        return personRepo.hentFnrForSak(sakId)
+    override fun hentFnrForSak(sakId: UUID): PersonerOgSakstype {
+        return personRepo.hentFnrOgSaktypeForSak(sakId)
     }
 }

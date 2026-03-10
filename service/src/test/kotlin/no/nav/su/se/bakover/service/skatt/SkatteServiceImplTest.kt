@@ -455,8 +455,8 @@ class SkatteServiceImplTest {
             on { hentSak(any<Saksnummer>()) } doReturn sak.right()
         }
         val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
-            on { hentPerson(any()) } doReturn person.right()
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
+            on { hentPerson(any(), any()) } doReturn person.right()
         }
 
         val skatteClient = mock<Skatteoppslag> {
@@ -487,7 +487,7 @@ class SkatteServiceImplTest {
             ).shouldBeRight()
 
             verify(it.sakService).hentSak(argThat<Saksnummer> { it shouldBe sak.saksnummer })
-            verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
 
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
@@ -515,8 +515,8 @@ class SkatteServiceImplTest {
         val person = person()
 
         val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
-            on { hentPerson(any()) } doReturn person.right()
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
+            on { hentPerson(any(), any()) } doReturn person.right()
         }
 
         val journalpostClient = mock<QueryJournalpostClient> {
@@ -550,7 +550,7 @@ class SkatteServiceImplTest {
                 ),
             ).shouldBeRight()
 
-            verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+            verify(it.personService).hentPerson(argThat { it shouldBe fnr }, Sakstype.UFØRE)
             verify(it.journalpostClient).finnesFagsak(argThat { it shouldBe fnr }, argThat { it shouldBe fagsystemId }, anyOrNull())
             verify(it.skatteClient).hentSamletSkattegrunnlag(
                 argThat { it shouldBe fnr },
