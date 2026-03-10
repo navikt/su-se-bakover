@@ -258,6 +258,7 @@ import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonRepo
 import person.domain.PersonService
+import person.domain.PersonerOgSakstype
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
@@ -465,8 +466,8 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo> {
-                    return services.sak.hentSakInfoPåFnr(fnr).also {
-                        assertHarTilgangTilSak(it.first().sakId)
+                    return services.sak.hentSakInfoPåFnr(fnr).also { sakInfo ->
+                        sakInfo.forEach { assertHarTilgangTilSak(it.sakId) }
                     }
                 }
 
@@ -487,8 +488,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
-                    assertHarTilgangTilPerson(fnr, sak.type)
+                    assertHarTilgangTilPerson(fnr, hentSakstypeForFnr(fnr))
                     return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
                 }
             },
@@ -1415,8 +1415,7 @@ open class AccessCheckProxy(
                     fnr: Fnr,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
-                    assertHarTilgangTilPerson(fnr, sak.type)
+                    assertHarTilgangTilPerson(fnr, hentSakstypeForFnr(fnr))
                     return services.skatteService.hentSamletSkattegrunnlag(fnr, saksbehandler)
                 }
 
@@ -1425,8 +1424,7 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
                 ): Skattegrunnlag {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
-                    assertHarTilgangTilPerson(fnr, sak.type)
+                    assertHarTilgangTilPerson(fnr, hentSakstypeForFnr(fnr))
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
 
@@ -1666,40 +1664,42 @@ open class AccessCheckProxy(
         }
     }
 
+    private fun assertHarTilgang(personerOgSakstype: PersonerOgSakstype) {
+        personerOgSakstype.fnr.forEach { assertHarTilgangTilPerson(it, personerOgSakstype.sakstype) }
+    }
+
+    private fun hentSakstypeForFnr(fnr: Fnr): Sakstype {
+        return services.sak.hentSakInfoPåFnr(fnr).firstOrNull()?.type
+            ?: throw IllegalStateException("Fant ingen saker for fnr=$fnr")
+    }
+
     private fun assertHarTilgangTilSak(sakId: UUID) {
-        val fnrsogSaktype = personRepo.hentFnrOgSaktypeForSak(sakId)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, sakstype = fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrOgSaktypeForSak(sakId))
     }
 
     private fun assertHarTilgangTilSøknad(søknadId: UUID) {
-        val fnrsogSaktype = personRepo.hentFnrForSøknad(søknadId)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrForSøknad(søknadId))
     }
 
     private fun assertHarTilgangTilSøknadsbehandling(behandlingId: SøknadsbehandlingId) {
-        val fnrsogSaktype = personRepo.hentFnrForBehandling(behandlingId.value)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrForBehandling(behandlingId.value))
     }
 
     @Suppress("unused")
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
-        val fnrsogSaktype = personRepo.hentFnrForUtbetaling(utbetalingId)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrForUtbetaling(utbetalingId))
     }
 
     private fun assertHarTilgangTilRevurdering(revurderingId: RevurderingId) {
-        val fnrsogSaktype = personRepo.hentFnrForRevurdering(revurderingId.value)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrForRevurdering(revurderingId.value))
     }
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
-        val fnrsogSaktype = personRepo.hentFnrForVedtak(vedtakId)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrForVedtak(vedtakId))
     }
 
     private fun assertHarTilgangTilKlage(klageId: KlageId) {
-        val fnrsogSaktype = personRepo.hentFnrForKlage(klageId.value)
-        fnrsogSaktype.fnr.forEach { assertHarTilgangTilPerson(it, fnrsogSaktype.sakstype) }
+        assertHarTilgang(personRepo.hentFnrForKlage(klageId.value))
     }
 
     private fun assertTilgangTilSakOgHentDokumentPdf(dokumentId: UUID): Either<FantIkkeDokument, DokumentPdf> {

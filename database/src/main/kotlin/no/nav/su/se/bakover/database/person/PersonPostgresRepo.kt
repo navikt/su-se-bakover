@@ -15,11 +15,29 @@ internal class PersonPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) : PersonRepo {
 
+    private fun tilPersonerOgSakstype(
+        rader: List<Triple<Sakstype, String, String?>>,
+        feilmeldingHvisIkkeFunnet: () -> String,
+    ): PersonerOgSakstype {
+        val sakstype = rader.firstOrNull()?.first
+            ?: throw IllegalArgumentException(feilmeldingHvisIkkeFunnet())
+
+        return PersonerOgSakstype(
+            sakstype = sakstype,
+            fnr = rader
+                .flatMap { listOfNotNull(it.third, it.second) }
+                .distinct()
+                .sorted()
+                .map { Fnr(it) },
+        )
+    }
+
     /** Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS. */
     override fun hentFnrOgSaktypeForSak(sakId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForSak") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                   SELECT
                     s.fnr søkersFnr,
                     gb.eps_fnr epsFnr,
@@ -30,23 +48,15 @@ internal class PersonPostgresRepo(
                     LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
                   WHERE s.id=:sakId
                 """
-                    .trimIndent()
-                    .hentListe(mapOf("sakId" to sakId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke sak for sakId=$sakId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimIndent()
+                        .hentListe(mapOf("sakId" to sakId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke sak for sakId=$sakId" },
                 )
             }
         }
@@ -55,7 +65,8 @@ internal class PersonPostgresRepo(
     override fun hentFnrForSøknad(søknadId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForSøknadId") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                 SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
@@ -66,23 +77,15 @@ internal class PersonPostgresRepo(
                 LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                 WHERE søknad.id=:soknadId
                 """
-                    .trimMargin()
-                    .hentListe(mapOf("soknadId" to søknadId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke søknadId for søknadId=$søknadId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimMargin()
+                        .hentListe(mapOf("soknadId" to søknadId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke søknadId for søknadId=$søknadId" },
                 )
             }
         }
@@ -91,7 +94,8 @@ internal class PersonPostgresRepo(
     override fun hentFnrForBehandling(behandlingId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForBehandlingId") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
@@ -101,23 +105,15 @@ internal class PersonPostgresRepo(
                LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE behandling.id=:behandlingId
                 """
-                    .trimMargin()
-                    .hentListe(mapOf("behandlingId" to behandlingId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke behandlingId for behandlingId=$behandlingId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimMargin()
+                        .hentListe(mapOf("behandlingId" to behandlingId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke behandlingId for behandlingId=$behandlingId" },
                 )
             }
         }
@@ -126,7 +122,8 @@ internal class PersonPostgresRepo(
     override fun hentFnrForUtbetaling(utbetalingId: UUID30): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForUtbetalingId") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
@@ -137,23 +134,15 @@ internal class PersonPostgresRepo(
                LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE utbetaling.id=:utbetalingId
                 """
-                    .trimMargin()
-                    .hentListe(mapOf("utbetalingId" to utbetalingId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke utbetalingId for utbetalingId=$utbetalingId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimMargin()
+                        .hentListe(mapOf("utbetalingId" to utbetalingId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke utbetalingId for utbetalingId=$utbetalingId" },
                 )
             }
         }
@@ -162,7 +151,8 @@ internal class PersonPostgresRepo(
     override fun hentFnrForRevurdering(revurderingId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForRevurderingId") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
@@ -173,23 +163,15 @@ internal class PersonPostgresRepo(
                LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = r.id
                WHERE r.id=:revurderingId
                 """
-                    .trimMargin()
-                    .hentListe(mapOf("revurderingId" to revurderingId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke revurderingId for revurderingId=$revurderingId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimMargin()
+                        .hentListe(mapOf("revurderingId" to revurderingId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke revurderingId for revurderingId=$revurderingId" },
                 )
             }
         }
@@ -198,7 +180,8 @@ internal class PersonPostgresRepo(
     override fun hentFnrForVedtak(vedtakId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForVedtakId") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
@@ -210,23 +193,15 @@ internal class PersonPostgresRepo(
                 LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
                 WHERE bv.vedtakId = :vedtakId;
                 """
-                    .trimMargin()
-                    .hentListe(mapOf("vedtakId" to vedtakId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke vedtakId for vedtakId=$vedtakId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimMargin()
+                        .hentListe(mapOf("vedtakId" to vedtakId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke vedtakId for vedtakId=$vedtakId" },
                 )
             }
         }
@@ -235,7 +210,8 @@ internal class PersonPostgresRepo(
     override fun hentFnrForKlage(klageId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForKlageId") {
             sessionFactory.withSession { session ->
-                val listeAvfnrs = """
+                tilPersonerOgSakstype(
+                    rader = """
                SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr,
@@ -248,23 +224,15 @@ internal class PersonPostgresRepo(
                 INNER JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
                 WHERE bv.vedtakId = :vedtakId;
                 """
-                    .trimMargin()
-                    .hentListe(mapOf("klageId" to klageId), session) {
-                        Triple(
-                            Sakstype.from(it.string("sakstype")),
-                            it.string("søkersFnr"),
-                            it.stringOrNull("epsFnr"),
-                        )
-                    }
-                val sakstype = listeAvfnrs.firstOrNull()?.first
-                    ?: throw IllegalArgumentException("Fant ikke klageId for klageId=$klageId")
-                PersonerOgSakstype(
-                    sakstype = sakstype,
-                    fnr = listeAvfnrs
-                        .flatMap { listOfNotNull(it.third, it.second) }
-                        .distinct()
-                        .sorted()
-                        .map { Fnr(it) },
+                        .trimMargin()
+                        .hentListe(mapOf("klageId" to klageId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke klageId for klageId=$klageId" },
                 )
             }
         }
