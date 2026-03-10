@@ -13,31 +13,32 @@ import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.FeilMedRegulertFradrag
+import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
+import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest.BrukerMedEps
+import no.nav.su.se.bakover.domain.regulering.HentingAvRegulerteFradragFeiletForBruker
+import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
-import no.nav.su.se.bakover.service.regulering.FeilMedRegulertFradrag.IngenPeriodeFraPesys
-import no.nav.su.se.bakover.service.regulering.HentEksterneReguleringerRequest.BrukerMedEps
+import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderAlderFeilet
+import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderUføreFeilet
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradrag
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import java.time.Clock
 import java.time.LocalDate
 import kotlin.collections.List
 import kotlin.collections.flatMap
 import kotlin.collections.map
 
-class ReguleringHentEksterneReguleringerService(
+class ReguleringHentEksterneReguleringerServiceImpl(
     private val pesysClient: PesysClient,
     private val satsFactory: SatsFactory,
-) {
+) : ReguleringHentEksterneReguleringerService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
+    override fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         val (månedFørRegulering, brukereMedEps) = request
 
         val uførePerioder = hentPerioderUføre(brukereMedEps, månedFørRegulering)
@@ -72,9 +73,10 @@ class ReguleringHentEksterneReguleringerService(
                     månedFørRegulering = månedFørRegulering,
                 )
             }
-            val fradragFraPesysEps = brukerMedEps.eps?.fradrag?.map { bruktFradrag ->
+            val eps = brukerMedEps.eps
+            val fradragFraPesysEps = eps?.fradrag?.map { bruktFradrag ->
                 utledOgVerifiserRegulertFradrag(
-                    brukerMedEps.eps.fnr,
+                    eps.fnr,
                     bruktFradrag,
                     perioderFraPesys = perioderFraPesys,
                     månedFørRegulering = månedFørRegulering,
@@ -115,7 +117,7 @@ class ReguleringHentEksterneReguleringerService(
         if (forventetPesysPeriode.isEmpty()) {
             log.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Se sikkerlogg for detaljer.")
             sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Bruker=$fnr")
-            return IngenPeriodeFraPesys.left()
+            return FeilMedRegulertFradrag.IngenPeriodeFraPesys.left()
         }
         val pesysPeriode = forventetPesysPeriode.single()
         if (pesysPeriode.perioder.size != 2) {
@@ -193,94 +195,3 @@ class ReguleringHentEksterneReguleringerService(
             .map { it.fnr }
             .distinct()
 }
-
-/**
- * Objekt for å hente regulerte beløper som skal brukes som fradrag.
- * Basert på reguleringsmåned og en liste saker utledes alle brukere og eps'er som har fradrag som kan hentes eksternt.
- * Bruker vil alltid ha minst en fradragstype som kan hentes eksternt (inntekt etter uføre eller alderspensjon).
- * Eps vil kunne ha 0 relevante fradragstyper. Da vil liste med fradrag være tom.
- */
-data class HentEksterneReguleringerRequest(
-    val månedFørRegulering: LocalDate,
-    val brukereMedEps: List<BrukerMedEps>,
-) {
-
-    data class BrukerMedEps(
-        val bruker: PersonMedFradrag,
-        val eps: PersonMedFradrag?,
-    )
-
-    data class PersonMedFradrag(
-        val fnr: Fnr,
-        val fradrag: List<Fradrag>,
-    )
-
-    companion object {
-        private val relevanteFradragsTyper = listOf(
-            Fradragstype.Alderspensjon,
-            Fradragstype.Uføretrygd,
-            // Fradragstype.Arbeidsavklaringspenger, TODO ??
-
-            // OBS! Ligger ikke i fradragsgrunnlag men må utledes fra uførevilkår
-            Fradragstype.ForventetInntekt,
-        )
-
-        fun toRequest(
-            reguleringsMåned: Måned,
-            forSaker: List<Sak>,
-            clock: Clock,
-        ): HentEksterneReguleringerRequest {
-            return HentEksterneReguleringerRequest(
-                månedFørRegulering = reguleringsMåned.fraOgMed.minusMonths(1),
-                brukereMedEps = forSaker.map { it.toBrukerMedEps(reguleringsMåned, clock) },
-            )
-        }
-
-        private fun Sak.toBrukerMedEps(
-            reguleringsMåned: Måned,
-            clock: Clock,
-        ): BrukerMedEps {
-            val vedtaksdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
-                throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
-            }
-            val grunnlagsdata = vedtaksdata.grunnlagsdata
-            return BrukerMedEps(
-                // TODO AUTO-REG-26 - Legge til Forventet Inntekt som fradrag (IEU) hvis uføre. Se BeregningStrategyFactory.beregn
-                bruker = PersonMedFradrag(
-                    fnr = fnr,
-                    fradrag = grunnlagsdata.hentFradragBasertPå(
-                        fradragstyper = relevanteFradragsTyper,
-                        måned = reguleringsMåned,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                eps = grunnlagsdata.epsForMåned()[reguleringsMåned]?.let {
-                    PersonMedFradrag(
-                        fnr = it,
-                        fradrag = grunnlagsdata.hentFradragBasertPå(
-                            fradragstyper = relevanteFradragsTyper,
-                            måned = reguleringsMåned,
-                            tilhører = FradragTilhører.EPS,
-                        ),
-                    )
-                },
-            )
-        }
-    }
-}
-
-data class HentingAvRegulerteFradragFeiletForBruker(
-    val fnr: Fnr,
-    val alleFeil: List<FeilMedRegulertFradrag>,
-)
-
-interface FeilMedRegulertFradrag {
-    object IngenPeriodeFraPesys : FeilMedRegulertFradrag
-    object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedRegulertFradrag
-    object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedRegulertFradrag
-    object GrunnbeløpFraPesysUliktForventetNytt : FeilMedRegulertFradrag
-    object OverlappendePeriodeFraPesys : FeilMedRegulertFradrag
-}
-
-class UthentingAvPerioderUføreFeilet : IllegalStateException()
-class UthentingAvPerioderAlderFeilet : IllegalStateException()

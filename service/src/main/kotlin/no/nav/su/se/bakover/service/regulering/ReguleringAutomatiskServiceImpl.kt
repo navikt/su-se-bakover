@@ -15,11 +15,13 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
@@ -175,11 +177,12 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
-                val fnrSomHarFeilPåEksterneFradrag = sakerMedRegulerteFradragEksternKilde.filterLefts().map { it.fnr }
+                val sakerSomHarFeilPåEksterneFradrag = sakerMedRegulerteFradragEksternKilde.filterLefts()
                 val sakerSomSkalReguleresEllerIkkeNyeFradrag = sakerSomSkalReguleresEllerIkke.map {
                     it.flatMap { sak ->
-                        if (fnrSomHarFeilPåEksterneFradrag.contains(sak.fnr)) {
-                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet.left()
+                        val feil = sakerSomHarFeilPåEksterneFradrag.find { it == sak.fnr }
+                        if (feil != null) {
+                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil).left()
                         } else {
                             sak.right()
                         }
