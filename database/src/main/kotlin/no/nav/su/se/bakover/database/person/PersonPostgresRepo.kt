@@ -218,11 +218,11 @@ internal class PersonPostgresRepo(
                     s.type AS sakstype
                 FROM klage k
                 INNER JOIN sak s ON s.id = k.sakId
-                INNER JOIN behandling_vedtak bv ON bv.sakId = k.sakId
-                INNER JOIN behandling b ON b.id = bv.søknadsbehandlingId
+                LEFT JOIN behandling_vedtak bv ON bv.vedtakId = k.vedtakId
+                LEFT JOIN behandling b ON b.id = bv.søknadsbehandlingId
                 LEFT JOIN revurdering r ON r.id = bv.revurderingId
-                INNER JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
-                WHERE bv.vedtakId = :vedtakId;
+                LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
+                WHERE k.id = :klageId;
                 """
                         .trimMargin()
                         .hentListe(mapOf("klageId" to klageId), session) {

@@ -163,6 +163,14 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
         }
     }
 
+    @Test
+    fun `hent fnr for klage gir søkers fnr`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val klage = testDataHelper.persisterKlageOversendt()
+
+        testDataHelper.personRepo.hentFnrForKlage(klage.id.value).fnr shouldContainExactlyInAnyOrder listOf(klage.fnr)
+    }
+
     private fun withDbWithData(dataSource: DataSource, test: Ctx.() -> Unit) {
         withDbWithDataAndBehandlingEps(null, dataSource, test)
     }
