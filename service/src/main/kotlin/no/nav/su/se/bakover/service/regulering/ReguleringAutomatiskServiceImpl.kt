@@ -188,20 +188,20 @@ class ReguleringAutomatiskServiceImpl(
                 }
             }
 
-        return resultater.also { 
-          val reguleringKjøring = ReguleringKjøring(
-                    id = UUID.randomUUID(),
-                    aar = fraOgMedMåned.årOgMåned.monthValue,
-                    type = "Grunnbeløpsregulering",
-                    startTid = LocalDateTime.now(),
-                    antallProsesserteSaker = resultater.size,
-                    antallReguleringerLaget = resultater.count { it.isRight() },
-                    antallKunneIkkeOpprettes = resultater.count { it.isLeft() },
-                )
-                reguleringKjøringRepo.lagre(reguleringKjøring)
-                logResultat(resultater)
-          
-                }
+        return resultater.also {
+            val reguleringKjøring = ReguleringKjøring(
+                id = UUID.randomUUID(),
+                aar = fraOgMedMåned.årOgMåned.monthValue,
+                type = "Grunnbeløpsregulering",
+                startTid = LocalDateTime.now(),
+                antallProsesserteSaker = resultater.size,
+                antallReguleringerLaget = resultater.count { it.isRight() },
+                antallKunneIkkeOpprettes = resultater.count { it.isLeft() },
+            )
+            reguleringKjøringRepo.lagre(reguleringKjøring)
+            logResultat(resultater)
+        }
+    }
 
     private fun Sak.kjørForSak(
         fraOgMedMåned: Måned,
