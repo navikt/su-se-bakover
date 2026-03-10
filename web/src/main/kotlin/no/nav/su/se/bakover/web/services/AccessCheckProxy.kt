@@ -479,7 +479,7 @@ open class AccessCheckProxy(
 
                 override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
                     // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
-                    // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
+                    // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle?
                     return services.sak.hentÅpneBehandlingerForAlleSaker()
                 }
 
@@ -488,8 +488,8 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    assertHarTilgangTilPerson(fnr, Sakstype.UFØRE)
-                    assertHarTilgangTilPerson(fnr, Sakstype.ALDER)
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    assertHarTilgangTilPerson(fnr, sak.type)
                     return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
                 }
             },
@@ -1416,7 +1416,8 @@ open class AccessCheckProxy(
                     fnr: Fnr,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
-                    assertHarTilgangTilPerson(fnr, hentSakstypeForFnr(fnr))
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr, saksbehandler)
                 }
 
@@ -1425,7 +1426,8 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
                 ): Skattegrunnlag {
-                    assertHarTilgangTilPerson(fnr, hentSakstypeForFnr(fnr))
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
 
@@ -1667,11 +1669,6 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgang(personerOgSakstype: PersonerOgSakstype) {
         personerOgSakstype.fnr.forEach { assertHarTilgangTilPerson(it, personerOgSakstype.sakstype) }
-    }
-
-    private fun hentSakstypeForFnr(fnr: Fnr): Sakstype {
-        return services.sak.hentSakInfoPåFnr(fnr).firstOrNull()?.type
-            ?: throw IllegalStateException("Fant ingen saker for fnr=$fnr")
     }
 
     private fun assertHarTilgangTilSak(sakId: UUID) {
