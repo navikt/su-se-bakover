@@ -57,6 +57,7 @@ internal class ServiceBuilderTest {
                 mock(),
                 mock(),
                 mock(),
+                reguleringKjøring = mock(),
             ),
             clients = Clients(
                 azureAd = mock(),

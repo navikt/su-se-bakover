@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
@@ -32,9 +34,12 @@ import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDateTime
+import java.util.UUID
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
+    private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val sakService: SakService,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
@@ -119,8 +124,18 @@ class ReguleringAutomatiskServiceImpl(
                 testRun = testRun,
             )
         }
-            .also {
-                logResultat(it)
+            .also { resultater ->
+                val reguleringKjøring = ReguleringKjøring(
+                    id = UUID.randomUUID(),
+                    aar = fraOgMedMåned.årOgMåned.monthValue,
+                    type = "Grunnbeløpsregulering",
+                    startTid = LocalDateTime.now(),
+                    antallProsesserteSaker = resultater.size,
+                    antallReguleringerLaget = resultater.count { it.isRight() },
+                    antallKunneIkkeOpprettes = resultater.count { it.isLeft() },
+                )
+                reguleringKjøringRepo.lagre(reguleringKjøring)
+                logResultat(resultater)
             }
     }
 

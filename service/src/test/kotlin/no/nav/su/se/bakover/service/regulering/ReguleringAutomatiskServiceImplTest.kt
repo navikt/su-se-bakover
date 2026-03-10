@@ -518,6 +518,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
             statistikkService = mock(),
             sessionFactory = sessionMock,
+            reguleringKjøringRepo = mock(),
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -581,6 +582,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             clock = clock,
+            reguleringKjøringRepo = mock(),
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
                 gjeldendeSatsFra = 25.mai(2021),
@@ -706,6 +708,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
+            reguleringKjøringRepo = mock(),
         )
     }
 }
