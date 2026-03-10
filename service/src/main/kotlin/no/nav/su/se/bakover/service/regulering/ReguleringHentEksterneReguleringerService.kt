@@ -29,7 +29,6 @@ import java.time.LocalDate
 import kotlin.collections.List
 import kotlin.collections.flatMap
 import kotlin.collections.map
-import kotlin.collections.singleOrNull
 
 class ReguleringHentEksterneReguleringerService(
     private val pesysClient: PesysClient,
@@ -106,24 +105,30 @@ class ReguleringHentEksterneReguleringerService(
         månedFørRegulering: LocalDate,
     ): Either<FeilMedRegulertFradrag, RegulertFradragEksternKilde> {
         // TODO OBS - må muligens endres hvis AAP skal inn her?
-        val forventetPesysPerioder = perioderFraPesys.singleOrNull { Fnr(it.fnr) == fnr }
-        if (forventetPesysPerioder == null) {
+        val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
+        if (forventetPesysPeriode.size > 1) {
+            // Dette skal ikke kune skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
+            log.error("To pesysperioder for samme person som ikke skal være mulig. Sikkerlogg for å se fnr")
+            sikkerLogg.error("To pesysperioder for samme person som ikke skal være mulig. Bruker=$fnr")
+            return FeilMedRegulertFradrag.OverlappendePeriodeFraPesys.left()
+        }
+        if (forventetPesysPeriode.isEmpty()) {
             log.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Se sikkerlogg for detaljer.")
             sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulert fradrag. Bruker=$fnr")
             return IngenPeriodeFraPesys.left()
         }
-
-        if (forventetPesysPerioder.perioder.size != 2) {
+        val pesysPeriode = forventetPesysPeriode.single()
+        if (pesysPeriode.perioder.size != 2) {
             return FeilMedRegulertFradrag.ManglerPeriodeFørOgEtterReguleringFraPesys.left()
         }
 
-        val førRegulering = forventetPesysPerioder.perioder[0]
+        val førRegulering = pesysPeriode.perioder[0]
         val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
         if (førRegulering.grunnbelop != forventetGammelG) {
             return FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetGammelt.left()
         }
 
-        val etterRegulering = forventetPesysPerioder.perioder[1]
+        val etterRegulering = pesysPeriode.perioder[1]
         val forventetNyG = satsFactory.grunnbeløp(månedFørRegulering.plusMonths(1)).grunnbeløpPerÅr
         if (etterRegulering.grunnbelop != forventetNyG) {
             return FeilMedRegulertFradrag.GrunnbeløpFraPesysUliktForventetNytt.left()
@@ -132,14 +137,14 @@ class ReguleringHentEksterneReguleringerService(
         if (fradrag.fradragstype != Fradragstype.ForventetInntekt) {
             return RegulertFradragEksternKilde(
                 fnr = fnr,
-                førRegulering = forventetPesysPerioder.perioder[0].netto,
-                etterRegulering = forventetPesysPerioder.perioder[1].netto,
+                førRegulering = pesysPeriode.perioder[0].netto,
+                etterRegulering = pesysPeriode.perioder[1].netto,
             ).right()
         } else {
             val inntektEtterUføreFørRegulering =
-                (forventetPesysPerioder.perioder[0] as UføreBeregningsperiode).oppjustertInntektEtterUfore
+                (pesysPeriode.perioder[0] as UføreBeregningsperiode).oppjustertInntektEtterUfore
             val inntektEtterUføreEtterRegulering =
-                (forventetPesysPerioder.perioder[1] as UføreBeregningsperiode).oppjustertInntektEtterUfore
+                (pesysPeriode.perioder[1] as UføreBeregningsperiode).oppjustertInntektEtterUfore
 
             return RegulertFradragEksternKilde(
                 fnr = fnr,
@@ -274,6 +279,7 @@ interface FeilMedRegulertFradrag {
     object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedRegulertFradrag
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedRegulertFradrag
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedRegulertFradrag
+    object OverlappendePeriodeFraPesys : FeilMedRegulertFradrag
 }
 
 class UthentingAvPerioderUføreFeilet : IllegalStateException()
