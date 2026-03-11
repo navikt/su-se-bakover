@@ -18,8 +18,10 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
+import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
+import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
@@ -153,13 +155,16 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentEksterneReguleringer(any()) } doReturn
                 listOf(
                     RegulerteFradragEksternKilde(
-                        bruker = RegulertFradragEksternKilde(
-                            fnr = fnr,
-                            førRegulering = 0,
-                            etterRegulering = 0,
+                        fnr = fnr,
+                        bruker = listOf(
+                            RegulertFradragEksternKilde(
+                                fnr = fnr,
+                                førRegulering = 0,
+                                etterRegulering = 0,
+                            ),
                         ),
                         forEps = emptyList(),
-                    ),
+                    ).right(),
                 )
         }
 
@@ -179,12 +184,12 @@ internal class ReguleringAutomatiskServiceImplTest {
         resultater.size shouldBe antallSaker
         val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
         verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
-        sakerPerKall.allValues.map { it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size } shouldBe listOf(
+        sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
             50,
             50,
             1,
         )
-        sakerPerKall.allValues.all { (it.brukereMedEpsUføre.size + it.brukereMedEpsAlder.size) <= 50 } shouldBe true
+        sakerPerKall.allValues.all { (it.brukereMedEps.size) <= 50 } shouldBe true
     }
 
     @Nested
@@ -606,13 +611,16 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            bruker = RegulertFradragEksternKilde(
-                                fnr = sak.fnr,
-                                førRegulering = 0,
-                                etterRegulering = 0,
+                            fnr = sak.fnr,
+                            bruker = listOf(
+                                RegulertFradragEksternKilde(
+                                    fnr = sak.fnr,
+                                    førRegulering = 0,
+                                    etterRegulering = 0,
+                                ),
                             ),
                             forEps = emptyList(),
-                        ),
+                        ).right(),
                     )
             },
 
@@ -683,13 +691,16 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            bruker = RegulertFradragEksternKilde(
-                                fnr = sak.fnr,
-                                førRegulering = 0,
-                                etterRegulering = 0,
+                            fnr = sak.fnr,
+                            bruker = listOf(
+                                RegulertFradragEksternKilde(
+                                    fnr = sak.fnr,
+                                    førRegulering = 0,
+                                    etterRegulering = 0,
+                                ),
                             ),
                             forEps = emptyList(),
-                        ),
+                        ).right(),
                     )
             },
         ).startAutomatiskReguleringForInnsyn(
@@ -823,13 +834,16 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
                         RegulerteFradragEksternKilde(
-                            bruker = RegulertFradragEksternKilde(
-                                fnr = sak.fnr,
-                                førRegulering = beløpFørRegulering.toInt(),
-                                etterRegulering = beløpEtterRegulering.toInt(),
+                            fnr = sak.fnr,
+                            bruker = listOf(
+                                RegulertFradragEksternKilde(
+                                    fnr = sak.fnr,
+                                    førRegulering = beløpFørRegulering.toInt(),
+                                    etterRegulering = beløpEtterRegulering.toInt(),
+                                ),
                             ),
                             forEps = emptyList(),
-                        ),
+                        ).right(),
                     )
             },
         )

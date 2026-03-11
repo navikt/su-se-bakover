@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.common.person.Fnr
 
 data class RegulerteFradragEksternKilde(
-    val bruker: RegulertFradragEksternKilde,
-    val forEps: List<RegulertFradragEksternKilde>, // TODO AUTO-REG-26 hvordan håndteres flere eps over tid? en eps frem til mai og en fra mai?
+    val fnr: Fnr,
+    val bruker: List<RegulertFradragEksternKilde>,
+    val forEps: List<RegulertFradragEksternKilde>,
 )
 
 data class RegulertFradragEksternKilde(
 
-    // TODO periode for eps over tid?
     // TODO kategori elns?
     // TODO bør være BigDecimal?
 
@@ -17,4 +17,7 @@ data class RegulertFradragEksternKilde(
     val førRegulering: Int,
     val etterRegulering: Int,
 
+    // Det finnes tilfeller hvor inntekt etter uføre er behandlet manuelt i pesys.
+    // Det vil medføre at vi ikke får beløpet og at det må behandles manuelt i SU-App også
+    val manueltIeu: Boolean = false,
 )

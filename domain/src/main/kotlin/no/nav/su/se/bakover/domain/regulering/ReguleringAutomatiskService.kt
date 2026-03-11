@@ -18,6 +18,10 @@ sealed interface KunneIkkeRegulereAutomatisk {
         val feil: KunneIkkeBehandleRegulering,
     ) : KunneIkkeRegulereAutomatisk
 
+    data class UthentingFradragPesysFeilet(
+        val feil: HentingAvRegulerteFradragFeiletForBruker,
+    ) : KunneIkkeRegulereAutomatisk
+
     data object UkjentFeil : KunneIkkeRegulereAutomatisk
 }
 
