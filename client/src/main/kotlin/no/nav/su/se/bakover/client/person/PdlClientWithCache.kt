@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import no.nav.su.se.bakover.client.cache.newCache
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
@@ -37,38 +38,41 @@ internal class PdlClientWithCache(
     ): Either<Error, Value> {
         return this.getIfPresent(key)?.right() ?: mappingFunction().map { value ->
             this.put(key, value)
-            if (key.second is JwtToken.BrukerToken) {
+            if (key.token is JwtToken.BrukerToken) {
                 // Dersom dette ble trigget av et brukertoken, ønsker vi å cache det for SystemToken også; men ikke andre veien.
-                this.put(FnrCacheKey(key.first, JwtToken.SystemToken), value)
+                this.put(FnrCacheKey(key.fnr, JwtToken.SystemToken), value)
             }
             value
         }
     }
 
-    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, PdlData> {
-        return personCache.getOrAdd(Pair(fnr, brukerToken)) {
-            pdlClient.person(fnr, brukerToken)
+    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
+        return personCache.getOrAdd(FnrCacheKey(fnr, brukerToken)) {
+            pdlClient.person(fnr, brukerToken, sakstype)
         }
     }
 
-    fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
-        return personCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
-            pdlClient.personForSystembruker(fnr)
+    fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
+        return personCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken)) {
+            pdlClient.personForSystembruker(fnr, sakstype)
         }
     }
 
-    // Unngår cache oppslag her da vi agerer på hendelse
+    // Unngår cache oppslag her da vi agerer på hendelse og må ha friske data
     fun bostedsadresseMedMetadataForSystembruker(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, PdlBostedsadresseMedMetadata> {
         return pdlClient.bostedsadresseMedMetadataForSystembruker(fnr)
     }
 
-    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return aktørIdCache.getOrAdd(Pair(fnr, JwtToken.SystemToken)) {
-            pdlClient.aktørIdMedSystembruker(fnr)
+    fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> {
+        return aktørIdCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken)) {
+            pdlClient.aktørIdMedSystembruker(fnr, sakstype)
         }
     }
 }
 
-internal typealias FnrCacheKey = Pair<Fnr, JwtToken>
+internal data class FnrCacheKey(
+    val fnr: Fnr,
+    val token: JwtToken,
+)

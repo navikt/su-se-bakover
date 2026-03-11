@@ -25,7 +25,7 @@ class RegistrerUtenlandsoppholdService(
     ): Either<KunneIkkeRegistereUtenlandsopphold, RegistrerteUtenlandsopphold> {
         return sakRepo.hentSak(command.sakId)!!
             .also {
-                personService.sjekkTilgangTilPerson(it.fnr).onLeft {
+                personService.sjekkTilgangTilPerson(it.fnr, it.type).onLeft {
                     throw IllegalArgumentException("Tilgangssjekk feilet ved registrering av utenlandsopphold. Underliggende feil: $it")
                 }
             }

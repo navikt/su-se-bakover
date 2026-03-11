@@ -4,6 +4,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -38,7 +39,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person().right()
+                on { hentPerson(any(), any()) } doReturn person().right()
             },
         ).let { it ->
             val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
@@ -54,7 +55,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             vilkårsvurdert.stønadsperiode.periode shouldNotBe nyStønadsperiode
 
             verify(it.sakService).hentSak(sak.id)
-            verify(it.personService).hentPerson(sak.fnr)
+            verify(it.personService).hentPerson(sak.fnr, Sakstype.UFØRE)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(
                 argThat {

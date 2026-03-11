@@ -62,7 +62,7 @@ class SkattRouteTest {
             on { hentOgLagSkattePdf(any()) } doReturn pdfAsBytes.right()
         }
         val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
         }
 
         listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant).forEach {
@@ -124,7 +124,7 @@ class SkattRouteTest {
             on { hentLagOgJournalførSkattePdf(any()) } doReturn pdfAsBytes.right()
         }
         val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
         }
 
         listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant).forEach {

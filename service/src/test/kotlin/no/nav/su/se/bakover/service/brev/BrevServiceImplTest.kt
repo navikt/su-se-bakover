@@ -11,7 +11,6 @@ import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -74,7 +73,7 @@ internal class BrevServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
         }
         val identClientMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturn "testname".right()
@@ -109,7 +108,7 @@ internal class BrevServiceImplTest {
                 )
             },
         )
-        verify(personServiceMock).hentPersonMedSystembruker(dokumentCommand.fødselsnummer)
+        verify(personServiceMock).hentPersonMedSystembruker(dokumentCommand.fødselsnummer, sakstype = Sakstype.UFØRE)
         verify(identClientMock).hentNavnForNavIdent(saksbehandler)
 
         serviceOgMocks.verifyNoMoreInteraction()
@@ -132,7 +131,7 @@ internal class BrevServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
         }
         val identClientMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturn "testname".right()
@@ -147,7 +146,7 @@ internal class BrevServiceImplTest {
             it.brevService.lagDokumentPdf(dokumentCommand) shouldBe KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             // Disse testes i happy case
             verify(pdfGeneratorMock).genererPdf(any<PdfInnhold>())
-            verify(personServiceMock).hentPersonMedSystembruker(any())
+            verify(personServiceMock).hentPersonMedSystembruker(any(), any())
             verify(identClientMock).hentNavnForNavIdent(any())
             it.verifyNoMoreInteraction()
         }
@@ -209,7 +208,7 @@ internal class BrevServiceImplTest {
     fun `personservice finner ikke personen`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any(), any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
         ServiceOgMocks(
             personService = personServiceMock,
@@ -227,7 +226,7 @@ internal class BrevServiceImplTest {
     fun `identClient klarer ikke hente navnet`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
         }
 
         val microsoftGraphApiOppslagMock = mock<IdentClient> {
@@ -244,7 +243,7 @@ internal class BrevServiceImplTest {
                     fritekst = "",
                 ),
             ) shouldBe KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
-            verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr, Sakstype.UFØRE)
             verify(it.identClient).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
             it.verifyNoMoreInteraction()
         }
@@ -296,11 +295,6 @@ internal class BrevServiceImplTest {
             generertDokumentJson = "{}",
         )
         return utenMetadata.leggTilMetadata(metadata, distribueringsadresse = null)
-    }
-
-    data object DummyPdfInnhold : PdfInnhold {
-        override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.AvslagsVedtak
-        override val sakstype: Sakstype get() = Sakstype.UFØRE
     }
 
     private data class ServiceOgMocks(

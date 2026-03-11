@@ -13,6 +13,8 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
@@ -34,11 +36,16 @@ const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 private val applicationConfig = applicationConfig()
 internal val jwtStub = JwtStub(applicationConfig.azure)
 
-internal fun mockedDb() = MockDatabaseBuilder.build()
+internal fun mockedDb(
+    defaultSakstype: Sakstype = Sakstype.UFØRE,
+    defaultFnr: List<Fnr> = emptyList(),
+) = MockDatabaseBuilder.build(defaultSakstype = defaultSakstype, defaultFnr = defaultFnr)
 
 internal fun Application.testSusebakoverWithMockedDb(
     clock: Clock = fixedClock,
-    databaseRepos: DatabaseRepos = mockedDb(),
+    defaultSakstype: Sakstype = Sakstype.UFØRE,
+    defaultFnr: List<Fnr> = emptyList(),
+    databaseRepos: DatabaseRepos = mockedDb(defaultSakstype, defaultFnr),
     clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
     /** Bruk gjeldende satser i hht angitt [clock] */
     satsFactory: SatsFactory = satsFactoryTest.gjeldende(LocalDate.now(clock)),

@@ -35,6 +35,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -47,7 +48,7 @@ class SøknadTest {
 
     private val søknadInnhold: SøknadsinnholdUføre = søknadinnholdUføre()
     private val fnr = søknadInnhold.personopplysninger.fnr
-    private val person: Person = PersonOppslagStub().person(fnr).getOrFail()
+    private val person: Person = PersonOppslagStub().person(fnr, søknadInnhold.type()).getOrFail()
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
     private val sak: Sak = Sak(
@@ -68,7 +69,7 @@ class SøknadTest {
     fun `Fant ikke person`() {
         SøknadServiceOgMocks(
             personService = mock {
-                on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+                on { hentPerson(any(), any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
         ).also {
             it.service.nySøknad(søknadInnhold, innsender) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -79,7 +80,7 @@ class SøknadTest {
     fun `eksisterende sak med søknad hvor pdf-generering feilet`() {
         SøknadServiceOgMocks(
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             søknadRepo = mock {
                 on { opprettSøknad(any()) } doAnswer {}
@@ -99,7 +100,7 @@ class SøknadTest {
                 it.søknadRepo,
                 it.pdfGenerator,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(any())
                 verify(it.pdfGenerator).genererPdf(
@@ -138,7 +139,7 @@ class SøknadTest {
         )
         SøknadServiceOgMocks(
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             sakService = mock {
                 on { opprettSak(any()) } doAnswer {}
@@ -159,7 +160,7 @@ class SøknadTest {
                 it.søknadRepo,
                 it.pdfGenerator,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.sakService).opprettSak(any())
                 verify(it.sakService).hentSak(any<UUID>())
@@ -186,7 +187,7 @@ class SøknadTest {
     fun `eksisterende sak med søknad hvor journalføring feiler`() {
         SøknadServiceOgMocks(
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             sakService = mock {
                 on { hentSakHvisFinnes(any(), any()) } doReturn sak
@@ -208,7 +209,7 @@ class SøknadTest {
                 it.pdfGenerator,
                 it.journalførSøknadClient,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
@@ -263,7 +264,7 @@ class SøknadTest {
     @Test
     fun `eksisterende sak med søknad hvor oppgave feiler`() {
         val (sak, _) = søknadsbehandlingIverksattInnvilget()
-        val person = PersonOppslagStub().person(sak.fnr).getOrFail()
+        val person = PersonOppslagStub().person(sak.fnr, sak.type).getOrFail()
 
         SøknadServiceOgMocks(
             sakService = mock {
@@ -276,7 +277,7 @@ class SøknadTest {
                 on { journalførSøknad(any()) } doReturn journalpostId.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
@@ -286,7 +287,7 @@ class SøknadTest {
             val søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sak.fnr))
             val (actualSaksnummer, actualNySøknad) = it.service.nySøknad(søknadInnhold, innsender).getOrFail()
             inOrder(*it.allMocks()) {
-                verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(sak.fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {
@@ -366,7 +367,7 @@ class SøknadTest {
     fun `eksisterende sak med søknad hvor oppgavekallet går bra`() {
         SøknadServiceOgMocks(
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             sakService = mock {
                 on { hentSakHvisFinnes(any(), any()) } doReturn sak
@@ -394,7 +395,7 @@ class SøknadTest {
                 it.oppgaveService,
                 it.søknadsbehandlingRepo,
             ) {
-                verify(it.personService).hentPerson(argThat { it shouldBe fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
                 verify(it.søknadRepo).opprettSøknad(
                     argThat {

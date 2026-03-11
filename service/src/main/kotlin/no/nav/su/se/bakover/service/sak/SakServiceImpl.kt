@@ -132,6 +132,10 @@ class SakServiceImpl(
             ?: FantIkkeSak.left()
     }
 
+    override fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo> {
+        return sakRepo.hentSakInfo(fnr)
+    }
+
     override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
         return sakRepo.hentSakForRevurdering(revurderingId)
     }
@@ -240,7 +244,7 @@ class SakServiceImpl(
         val sak = hentSak(sakId).getOrElse {
             throw IllegalStateException("Kunne ikke oppdatere fødselsnummer på sak, fant ikke sak med id $sakId")
         }
-        val person = personService.hentPerson(sak.fnr).getOrElse {
+        val person = personService.hentPerson(sak.fnr, sak.type).getOrElse {
             throw IllegalStateException("Kunne ikke oppdatere fødselsnummer på sak, fant ikke person med fnr ${sak.fnr} på sak $sakId")
         }
         if (sak.fnr == person.ident.fnr) {

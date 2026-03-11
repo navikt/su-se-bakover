@@ -59,7 +59,7 @@ class KontrollsamtaleServiceImpl(
             throw IllegalArgumentException("Fant ikke sak for sakId $sakId")
         }
 
-        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
+        val person = personService.hentPersonMedSystembruker(sak.fnr, sak.type).getOrElse {
             log.error("Fant ikke person for sakId $sakId, saksnummer ${sak.saksnummer}")
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }

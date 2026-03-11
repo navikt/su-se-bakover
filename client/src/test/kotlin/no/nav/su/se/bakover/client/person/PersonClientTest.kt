@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
@@ -33,9 +34,9 @@ internal class PersonClientTest {
     fun `person henter ikke kontaktinfo eller skjerming`() {
         val mocks = PersonClientConfigTestMocks()
 
-        val person = mocks.personClient.person(fnr = mocks.fnr).getOrFail()
+        val person = mocks.personClient.person(fnr = mocks.fnr, sakstype = mocks.sakstype).getOrFail()
 
-        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken), eq(mocks.sakstype))
         verifyNoInteractions(mocks.kontaktOgReservasjonsregisterMock)
         verifyNoInteractions(mocks.skjermingMock)
 
@@ -46,17 +47,17 @@ internal class PersonClientTest {
     fun `personMedSystembruker mapper data`() {
         val mocks = PersonClientConfigTestMocks()
 
-        val result = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail()
+        val result = mocks.personClient.personMedSystembruker(fnr = mocks.fnr, sakstype = mocks.sakstype).getOrFail()
 
         result shouldBe mocks.person()
-        verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
+        verify(mocks.pdlClient).personForSystembruker(mocks.fnr, mocks.sakstype)
     }
 
     @Test
     fun `personMedSkjermingOgKontaktinfo henter kontaktinfo og skjerming`() {
         val mocks = PersonClientConfigTestMocks()
 
-        val result = mocks.personClient.personMedSkjermingOgKontaktinfo(fnr = mocks.fnr).getOrFail()
+        val result = mocks.personClient.personMedSkjermingOgKontaktinfo(fnr = mocks.fnr, sakstype = mocks.sakstype).getOrFail()
 
         result shouldBe PersonMedSkjermingOgKontaktinfo(
             person = mocks.person(),
@@ -69,7 +70,7 @@ internal class PersonClientTest {
             ),
         )
 
-        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken), eq(mocks.sakstype))
         verify(mocks.skjermingMock).erSkjermet(mocks.fnr, mocks.brukerToken)
         verify(mocks.kontaktOgReservasjonsregisterMock).hentKontaktinformasjon(mocks.fnr)
     }
@@ -78,22 +79,23 @@ internal class PersonClientTest {
     fun `aktørIdMedSystembruker mapper data`() {
         val mocks = PersonClientConfigTestMocks()
 
-        mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr) shouldBe mocks.aktørId.right()
+        mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr, sakstype = mocks.sakstype) shouldBe mocks.aktørId.right()
 
-        verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
+        verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr, mocks.sakstype)
     }
 
     @Test
     fun `sjekkTilgangTilPerson kaller pdl`() {
         val mocks = PersonClientConfigTestMocks()
 
-        mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr) shouldBe Unit.right()
+        mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr, sakstype = mocks.sakstype) shouldBe Unit.right()
 
-        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken))
+        verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken), eq(mocks.sakstype))
     }
 
     private class PersonClientConfigTestMocks(
         val fnr: Fnr = Fnr("07028820547"),
+        val sakstype: Sakstype = Sakstype.UFØRE,
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",
@@ -163,9 +165,9 @@ internal class PersonClientTest {
         )
 
         val pdlClient: PdlClientWithCache = mock {
-            on { person(any(), any()) } doReturn pdlData().right()
-            on { personForSystembruker(any()) } doReturn pdlData().right()
-            on { aktørIdMedSystembruker(any()) } doReturn aktørId.right()
+            on { person(any(), any(), any()) } doReturn pdlData().right()
+            on { personForSystembruker(any(), any()) } doReturn pdlData().right()
+            on { aktørIdMedSystembruker(any(), any()) } doReturn aktørId.right()
         }
 
         val pdlClientConfig: PdlClientConfig = PdlClientConfig(

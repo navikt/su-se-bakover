@@ -485,7 +485,7 @@ class RevurderingServiceImpl(
         val bosituasjongrunnlag = request.toDomain(
             clock = clock,
         ) {
-            personService.hentPerson(it)
+            personService.hentPerson(it, revurdering.sakstype)
         }.getOrElse {
             return it.left()
         }

@@ -20,7 +20,7 @@ class AnnullerUtenlandsoppholdService(
         command: AnnullerUtenlandsoppholdCommand,
     ): Either<KunneIkkeAnnullereUtenlandsopphold, RegistrerteUtenlandsopphold> {
         return sakRepo.hentSak(command.sakId)!!.also {
-            personService.sjekkTilgangTilPerson(it.fnr).onLeft {
+            personService.sjekkTilgangTilPerson(it.fnr, it.type).onLeft {
                 throw IllegalArgumentException("Tilgangssjekk feilet ved annullering av utenlandsopphold. Underliggende feil: $it")
             }
         }.annullerUtenlandsopphold(

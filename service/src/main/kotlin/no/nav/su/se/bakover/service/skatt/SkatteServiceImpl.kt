@@ -149,7 +149,7 @@ class SkatteServiceImpl(
         }
 
         request.fnr?.let {
-            val person = personService.hentPerson(it)
+            val person = personService.hentPerson(it, request.sakstype)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
 
             if (uføresak.fnr != person.ident.fnr) {
@@ -162,7 +162,7 @@ class SkatteServiceImpl(
         }
 
         request.epsFnr?.let {
-            val person = personService.hentPerson(it)
+            val person = personService.hentPerson(it, request.sakstype)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
 
             if (person.ident.fnr != it) {
@@ -184,7 +184,7 @@ class SkatteServiceImpl(
      */
     private fun verifiserRequestMedAlder(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, Unit> {
         request.fnr?.let {
-            val person = personService.hentPerson(it)
+            val person = personService.hentPerson(it, request.sakstype)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
 
             if (person.ident.fnr != it) {
@@ -192,7 +192,7 @@ class SkatteServiceImpl(
             }
         }
         request.epsFnr?.let {
-            val person = personService.hentPerson(it)
+            val person = personService.hentPerson(it, request.sakstype)
                 .getOrElse { return KunneIkkeGenerereSkattePdfOgJournalføre.FeilVedHentingAvPerson(it).left() }
 
             if (person.ident.fnr != it) {

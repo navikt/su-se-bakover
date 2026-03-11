@@ -32,16 +32,16 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     @Test
     fun `hent fnr for sak gir søkers fnr`() {
         withDbWithData(dataSource) {
-            val fnrs = repo.hentFnrForSak(innvilgetSøknadsbehandling.sakId)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
+            val fnrs = repo.hentFnrOgSaktypeForSak(innvilgetSøknadsbehandling.sakId)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
 
     @Test
     fun `hent fnr for sak gir behandlings EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr, dataSource) {
-            val fnrs = repo.hentFnrForSak(innvilgetSøknadsbehandling.sakId)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
+            val fnrs = repo.hentFnrOgSaktypeForSak(innvilgetSøknadsbehandling.sakId)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }
 
@@ -49,8 +49,8 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for sak gir behandling og revurderings EPSs fnr`() {
         val revurderingEps = Fnr.generer()
         withDbWithDataAndBehandlingEpsAndNyRevurderingEps(ektefellePartnerSamboerFnr, revurderingEps, dataSource) {
-            val fnrs = repo.hentFnrForSak(innvilgetSøknadsbehandling.sakId)
-            fnrs shouldContainExactlyInAnyOrder listOf(
+            val fnrs = repo.hentFnrOgSaktypeForSak(innvilgetSøknadsbehandling.sakId)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(
                 innvilgetSøknadsbehandling.fnr,
                 ektefellePartnerSamboerFnr,
                 revurderingEps,
@@ -68,8 +68,8 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
             revurderingAvRevurderingEps,
             dataSource,
         ) {
-            val fnrs = repo.hentFnrForSak(innvilgetSøknadsbehandling.sakId)
-            fnrs shouldContainExactlyInAnyOrder listOf(
+            val fnrs = repo.hentFnrOgSaktypeForSak(innvilgetSøknadsbehandling.sakId)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(
                 innvilgetSøknadsbehandling.fnr,
                 ektefellePartnerSamboerFnr,
                 revurderingEps,
@@ -82,7 +82,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for søknad gir søkers fnr`() {
         withDbWithData(dataSource) {
             val fnrs = repo.hentFnrForSøknad(innvilgetSøknadsbehandling.søknad.id)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
 
@@ -90,7 +90,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for søknad gir også EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr, dataSource) {
             val fnrs = repo.hentFnrForSøknad(innvilgetSøknadsbehandling.søknad.id)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }
 
@@ -98,7 +98,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for behandling gir brukers fnr`() {
         withDbWithData(dataSource) {
             val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id.value)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
 
@@ -106,7 +106,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for behandling gir også EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr, dataSource) {
             val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id.value)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }
 
@@ -114,7 +114,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for utbetaling gir søkers fnr`() {
         withDbWithData(dataSource) {
             val fnrs = repo.hentFnrForUtbetaling(utbetaling.id)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
 
@@ -122,7 +122,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for utbetaling gir også EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr, dataSource) {
             val fnrs = repo.hentFnrForUtbetaling(utbetaling.id)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }
 
@@ -130,7 +130,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for revurdering gir søkers fnr`() {
         withDbWithData(dataSource) {
             val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id.value)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr)
         }
     }
 
@@ -138,7 +138,7 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent fnr for revurdering gir også EPSs fnr`() {
         withDbWithDataAndBehandlingEps(ektefellePartnerSamboerFnr, dataSource) {
             val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id.value)
-            fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
+            fnrs.fnr shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
     }
 
@@ -151,16 +151,24 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
             epsFnrRevurdering = epsFnrRevurdering,
             dataSource,
         ) {
-            repo.hentFnrForVedtak(vedtakId = this.søknadsbehandlingVedtak.id) shouldContainExactlyInAnyOrder listOf(
+            repo.hentFnrForVedtak(vedtakId = this.søknadsbehandlingVedtak.id).fnr shouldContainExactlyInAnyOrder listOf(
                 søknadsbehandlingVedtak.behandling.fnr,
                 epsFnrSøknadsbehandling,
             )
 
-            repo.hentFnrForVedtak(vedtakId = this.revurderingVedtak.id) shouldContainExactlyInAnyOrder listOf(
+            repo.hentFnrForVedtak(vedtakId = this.revurderingVedtak.id).fnr shouldContainExactlyInAnyOrder listOf(
                 revurderingVedtak.behandling.fnr,
                 epsFnrRevurdering,
             )
         }
+    }
+
+    @Test
+    fun `hent fnr for klage gir søkers fnr`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val klage = testDataHelper.persisterKlageOversendt()
+
+        testDataHelper.personRepo.hentFnrForKlage(klage.id.value).fnr shouldContainExactlyInAnyOrder listOf(klage.fnr)
     }
 
     private fun withDbWithData(dataSource: DataSource, test: Ctx.() -> Unit) {

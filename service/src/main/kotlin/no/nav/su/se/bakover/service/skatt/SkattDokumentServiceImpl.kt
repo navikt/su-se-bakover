@@ -122,7 +122,7 @@ class SkattDokumentServiceImpl(
             skattegrunnlagSøker = skattegrunnlagSøker,
             skattegrunnlagEps = skattegrunnlagEps,
             hentNavn = {
-                personService.hentPerson(it).map { it.navn }
+                personService.hentPerson(it, sakstype).map { it.navn }
             },
             clock = clock,
         ).map {
@@ -157,7 +157,7 @@ class SkattDokumentServiceImpl(
                 },
             ),
             hentNavn = { fnr ->
-                personService.hentPerson(fnr).getOrElse {
+                personService.hentPerson(fnr, vedtak.sakstype).getOrElse {
                     throw IllegalStateException("Feil ved henting av person. Denne var hentet for ikke så lenge siden. SkattDokumentServiceImpl.kt")
                 }.navn
             },
