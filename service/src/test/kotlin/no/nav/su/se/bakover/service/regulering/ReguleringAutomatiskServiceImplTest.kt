@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
@@ -125,6 +126,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentForSakId(any(), any()) } doReturn sak.reguleringer
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
+        val reguleringKjøringRepo = mock<ReguleringKjøringRepo>()
         val utbetalingService = mock<UtbetalingService> {
             on { simulerUtbetaling(any()) } doAnswer { invocation ->
                 simulerUtbetaling(
@@ -177,6 +179,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
+            reguleringKjøringRepo = reguleringKjøringRepo,
         )
 
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
