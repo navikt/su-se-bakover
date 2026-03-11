@@ -180,7 +180,7 @@ class ReguleringAutomatiskServiceImpl(
                 val sakerSomHarFeilPåEksterneFradrag = sakerMedRegulerteFradragEksternKilde.filterLefts()
                 val sakerSomSkalReguleresEllerIkkeNyeFradrag = sakerSomSkalReguleresEllerIkke.map {
                     it.flatMap { sak ->
-                        val feil = sakerSomHarFeilPåEksterneFradrag.find { it == sak.fnr }
+                        val feil = sakerSomHarFeilPåEksterneFradrag.find { it.fnr == sak.fnr }
                         if (feil != null) {
                             KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil).left()
                         } else {
