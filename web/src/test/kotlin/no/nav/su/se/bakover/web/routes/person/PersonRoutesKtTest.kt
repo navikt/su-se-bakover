@@ -45,7 +45,7 @@ internal class PersonRoutesKtTest {
     )
 
     private val testIdent = "12345678910"
-    private val person = PersonOppslagStub().personMedSkjermingOgKontaktinfo(Fnr(testIdent)).getOrFail()
+    private val person = PersonOppslagStub().personMedSkjermingOgKontaktinfo(Fnr(testIdent), Sakstype.UFØRE).getOrFail()
     private val gyldigRequest = PersonSøkBody(fnr = testIdent, sakstype = Sakstype.UFØRE.toString())
 
     private val services = TestServicesBuilder.services()
