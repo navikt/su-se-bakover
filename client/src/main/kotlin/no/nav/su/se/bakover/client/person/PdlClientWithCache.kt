@@ -40,25 +40,25 @@ internal class PdlClientWithCache(
             this.put(key, value)
             if (key.token is JwtToken.BrukerToken) {
                 // Dersom dette ble trigget av et brukertoken, ønsker vi å cache det for SystemToken også; men ikke andre veien.
-                this.put(FnrCacheKey(key.fnr, JwtToken.SystemToken, key.sakstype), value)
+                this.put(FnrCacheKey(key.fnr, JwtToken.SystemToken), value)
             }
             value
         }
     }
 
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
-        return personCache.getOrAdd(FnrCacheKey(fnr, brukerToken, sakstype)) {
+        return personCache.getOrAdd(FnrCacheKey(fnr, brukerToken)) {
             pdlClient.person(fnr, brukerToken, sakstype)
         }
     }
 
     fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
-        return personCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken, sakstype)) {
+        return personCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken)) {
             pdlClient.personForSystembruker(fnr, sakstype)
         }
     }
 
-    // Unngår cache oppslag her da vi agerer på hendelse
+    // Unngår cache oppslag her da vi agerer på hendelse og må ha friske data
     fun bostedsadresseMedMetadataForSystembruker(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, PdlBostedsadresseMedMetadata> {
@@ -66,7 +66,7 @@ internal class PdlClientWithCache(
     }
 
     fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> {
-        return aktørIdCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken, sakstype)) {
+        return aktørIdCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken)) {
             pdlClient.aktørIdMedSystembruker(fnr, sakstype)
         }
     }
@@ -75,5 +75,4 @@ internal class PdlClientWithCache(
 internal data class FnrCacheKey(
     val fnr: Fnr,
     val token: JwtToken,
-    val sakstype: Sakstype,
 )
