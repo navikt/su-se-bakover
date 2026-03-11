@@ -84,6 +84,8 @@ internal class PersonClient(
     /**
      * En forenkling av [PersonOppslag.person] for å sjekke tilgang til personen uten at vi trenger å gjøre noe videre
      * med resultatet.
+     * Denne sjekker adressebeskyttelse og skjerming(egen-ansatt) se https://pdl-docs.ansatt.nav.no/ekstern/index.html#_tilgangsstyring
+     * MERK denne burde gå mot "pdl-pip-api"
      */
     override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
