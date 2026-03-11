@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
