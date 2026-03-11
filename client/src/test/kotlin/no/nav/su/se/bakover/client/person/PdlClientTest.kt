@@ -16,6 +16,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
@@ -97,6 +98,7 @@ internal class PdlClientTest {
             )
             client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
+                Sakstype.UFØRE,
             ) shouldBe KunneIkkeHentePerson.Ukjent.left()
         }
     }
@@ -117,6 +119,7 @@ internal class PdlClientTest {
             )
             client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
+                Sakstype.UFØRE,
             ) shouldBe KunneIkkeHentePerson.Ukjent.left()
         }
     }
@@ -163,6 +166,7 @@ internal class PdlClientTest {
             )
             client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
+                Sakstype.UFØRE,
             ) shouldBe AktørId("2751637578706").right()
         }
     }
@@ -207,6 +211,7 @@ internal class PdlClientTest {
             )
             client.aktørIdMedSystembruker(
                 Fnr("12345678912"),
+                Sakstype.UFØRE,
             ) shouldBe AktørId("2751637578706").right()
         }
     }
@@ -249,6 +254,7 @@ internal class PdlClientTest {
             client.person(
                 Fnr("12345678912"),
                 JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
             ) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
         }
     }
@@ -270,6 +276,7 @@ internal class PdlClientTest {
             client.person(
                 Fnr("12345678912"),
                 JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
             ) shouldBe KunneIkkeHentePerson.Ukjent.left()
         }
     }
@@ -446,6 +453,7 @@ internal class PdlClientTest {
             client.person(
                 Fnr("07028820547"),
                 JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
             ) shouldBe expectedPdlDataTemplate.copy(
                 fødsel = PdlData.Fødsel(
                     foedselsdato = LocalDate.of(2021, 12, 21),
@@ -583,6 +591,7 @@ internal class PdlClientTest {
             client.person(
                 Fnr("07028820547"),
                 JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
             ) shouldBe expectedPdlDataTemplate.copy(
                 adresse = listOf(
                     PdlData.Adresse(
@@ -725,6 +734,7 @@ internal class PdlClientTest {
             client.person(
                 Fnr("07028820547"),
                 JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
             ) shouldBe expectedPdlDataTemplate.copy(
                 adresse = listOf(
                     PdlData.Adresse(
@@ -814,7 +824,7 @@ internal class PdlClientTest {
                     azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
                 ),
             )
-            client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
+            client.personForSystembruker(Fnr("07028820547"), Sakstype.UFØRE) shouldBe expectedPdlDataTemplate.copy(
                 adresse = emptyList(),
                 sivilstand = null,
                 dødsdato = null,
@@ -888,6 +898,7 @@ internal class PdlClientTest {
             client.person(
                 Fnr("07028820547"),
                 JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
             ) shouldBe expectedPdlDataTemplate.copy(
                 adresse = emptyList(),
                 sivilstand = null,
@@ -944,7 +955,7 @@ internal class PdlClientTest {
                     azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
                 ),
             )
-            client.personForSystembruker(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+            client.personForSystembruker(Fnr("07028820547"), Sakstype.UFØRE) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
         }
     }
 
@@ -1012,7 +1023,7 @@ internal class PdlClientTest {
                     azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
                 ),
             )
-            client.personForSystembruker(Fnr("07028820547")) shouldBe expectedPdlDataTemplate.copy(
+            client.personForSystembruker(Fnr("07028820547"), Sakstype.UFØRE) shouldBe expectedPdlDataTemplate.copy(
                 adresse = emptyList(),
                 sivilstand = null,
                 statsborgerskap = null,

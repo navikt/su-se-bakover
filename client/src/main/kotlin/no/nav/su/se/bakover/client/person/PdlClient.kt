@@ -56,15 +56,6 @@ internal class PdlClient(
     private val hentBostedsadresseMedMetadataQuery =
         this::class.java.getResource("/hentBostedsadresseMedMetadata.graphql")?.readText()!!
 
-    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, PdlData> =
-        person(fnr, brukerToken, Sakstype.UFØRE)
-
-    fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> =
-        personForSystembruker(fnr, Sakstype.UFØRE)
-
-    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
-        aktørIdMedSystembruker(fnr, Sakstype.UFØRE)
-
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token, sakstype)
