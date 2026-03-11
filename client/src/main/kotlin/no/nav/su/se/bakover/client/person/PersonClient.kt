@@ -36,17 +36,6 @@ internal class PersonClient(
         JwtToken.BrukerToken.fraCoroutineContext()
     },
 ) : PersonOppslag {
-    fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = person(fnr, Sakstype.UFØRE)
-
-    fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = personMedSystembruker(fnr, Sakstype.UFØRE)
-
-    fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
-        personMedSkjermingOgKontaktinfo(fnr, Sakstype.UFØRE)
-
-    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = aktørIdMedSystembruker(fnr, Sakstype.UFØRE)
-
-    fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = sjekkTilgangTilPerson(fnr, Sakstype.UFØRE)
-
     /**
      * PDL gjør en enkel tilgangssjekk implisitt ved kallet med brukertokenet
      */

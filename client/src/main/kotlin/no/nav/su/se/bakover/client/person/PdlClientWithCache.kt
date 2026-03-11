@@ -52,17 +52,11 @@ internal class PdlClientWithCache(
         }
     }
 
-    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, PdlData> =
-        person(fnr, brukerToken, Sakstype.UFØRE)
-
     fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return personCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken, sakstype)) {
             pdlClient.personForSystembruker(fnr, sakstype)
         }
     }
-
-    fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> =
-        personForSystembruker(fnr, Sakstype.UFØRE)
 
     // Unngår cache oppslag her da vi agerer på hendelse
     fun bostedsadresseMedMetadataForSystembruker(
@@ -76,9 +70,6 @@ internal class PdlClientWithCache(
             pdlClient.aktørIdMedSystembruker(fnr, sakstype)
         }
     }
-
-    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
-        aktørIdMedSystembruker(fnr, Sakstype.UFØRE)
 }
 
 internal data class FnrCacheKey(
