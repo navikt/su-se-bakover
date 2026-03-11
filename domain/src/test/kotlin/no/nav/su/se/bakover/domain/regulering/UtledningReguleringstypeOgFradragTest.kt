@@ -20,10 +20,13 @@ class UtledningReguleringstypeOgFradragTest {
 
     companion object {
         val regulerteFradragEksternKilde = RegulerteFradragEksternKilde(
-            bruker = RegulertFradragEksternKilde(
-                fnr = fnr,
-                førRegulering = 1000,
-                etterRegulering = 1064,
+            fnr = fnr,
+            bruker = listOf(
+                RegulertFradragEksternKilde(
+                    fnr = fnr,
+                    førRegulering = 1000,
+                    etterRegulering = 1064,
+                ),
             ),
             forEps = listOf(
                 RegulertFradragEksternKilde(
@@ -38,10 +41,13 @@ class UtledningReguleringstypeOgFradragTest {
             etterReguleringBruker: Int = 1064,
             etterReguleringEps: Int = 1064,
         ) = RegulerteFradragEksternKilde(
-            bruker = RegulertFradragEksternKilde(
-                fnr = fnr,
-                førRegulering = 1000,
-                etterRegulering = etterReguleringBruker,
+            fnr = fnr,
+            bruker = listOf(
+                RegulertFradragEksternKilde(
+                    fnr = fnr,
+                    førRegulering = 1000,
+                    etterRegulering = etterReguleringBruker,
+                ),
             ),
             forEps = listOf(
                 RegulertFradragEksternKilde(

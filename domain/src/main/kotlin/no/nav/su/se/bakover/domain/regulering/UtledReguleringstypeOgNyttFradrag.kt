@@ -140,8 +140,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.bruker
-        FradragTilhører.EPS -> regulerteFradragEksternKilde.forEps.single()
+        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.bruker.single()
+        FradragTilhører.EPS -> regulerteFradragEksternKilde.forEps.single() // TODO AUTO-REG-26 må filtreres på type her..
     }
     return sjekkOmDifferenseForBeløper(
         nyttFradrag,

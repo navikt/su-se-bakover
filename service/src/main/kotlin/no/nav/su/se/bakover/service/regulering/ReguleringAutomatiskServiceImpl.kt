@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
@@ -165,22 +168,39 @@ class ReguleringAutomatiskServiceImpl(
                 val sakerMedRegulerteFradragEksternKilde = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
-                    reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-                        HentEksterneReguleringerRequest.toRequest(
-                            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                            forSaker = sakerSomKanReguleres,
-                            clock = clock,
-                        ),
-                    )
+                    Either.catch {
+                        reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
+                            HentEksterneReguleringerRequest.toRequest(
+                                reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                                forSaker = sakerSomKanReguleres,
+                                clock = clock,
+                            ),
+                        )
+                    }.getOrElse {
+                        // TODO AUTO-REG-26 Feile enkelt batch?
+                        throw it
+                    }
                 }
 
-                sakerSomSkalReguleresEllerIkke.map {
+                val sakerSomHarFeilPåEksterneFradrag = sakerMedRegulerteFradragEksternKilde.filterLefts()
+                val sakerSomSkalReguleresEllerIkkeNyeFradrag = sakerSomSkalReguleresEllerIkke.map {
+                    it.flatMap { sak ->
+                        val feil = sakerSomHarFeilPåEksterneFradrag.find { it.fnr == sak.fnr }
+                        if (feil != null) {
+                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil).left()
+                        } else {
+                            sak.right()
+                        }
+                    }
+                }
+
+                sakerSomSkalReguleresEllerIkkeNyeFradrag.map {
                     it.flatMap { sak ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
                         sak.kjørForSak(
                             fraOgMedMåned = fraOgMedMåned,
                             satsFactory = satsFactory,
-                            sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+                            sakerMedRegulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde.filterRights(),
                             omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )
