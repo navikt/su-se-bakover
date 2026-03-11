@@ -36,6 +36,7 @@ class PersonServiceImpl(
         return personOppslag.aktørIdMedSystembruker(fnr, sakstype)
     }
 
+    // TODO: SOS-SEC tar ikke høyde for skjermet
     override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
         return personOppslag.sjekkTilgangTilPerson(fnr, sakstype)
     }

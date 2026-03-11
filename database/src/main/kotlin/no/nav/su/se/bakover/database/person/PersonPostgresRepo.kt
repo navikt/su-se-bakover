@@ -14,7 +14,7 @@ internal class PersonPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : PersonRepo {
-
+    // TODO: spørsmålert er om vi egentlig trenger å gjøre dette for alle EPS også
     private fun tilPersonerOgSakstype(
         rader: List<Triple<Sakstype, String, String?>>,
         feilmeldingHvisIkkeFunnet: () -> String,

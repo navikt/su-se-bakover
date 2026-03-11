@@ -17,6 +17,7 @@ import java.util.UUID
 class TilgangstyringService(
     private val personService: PersonService,
 ) {
+    // TODO: SOS-SEC tar ikke høyde for skjermet
     fun assertHarTilgangTilSak(sakId: UUID): Either<IkkeTilgangTilSak, Unit> {
         val personerOgSakstype = personService.hentFnrForSak(sakId)
         return personerOgSakstype.fnr.map {
