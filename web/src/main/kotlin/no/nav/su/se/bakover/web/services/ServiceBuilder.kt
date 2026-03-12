@@ -191,7 +191,6 @@ data object ServiceBuilder {
             kjerneTjenester = kjerneTjenester,
             søknadService = søknadService,
             søknadsbehandlingService = søknadsbehandlingService,
-            clock = clock,
         )
 
         return Services(
@@ -702,10 +701,8 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
         søknadService: SøknadServiceImpl,
         søknadsbehandlingService: SøknadsbehandlingServiceImpl,
-        clock: Clock,
     ): LukkSøknadServiceImpl {
         return LukkSøknadServiceImpl(
-            clock = clock,
             søknadService = søknadService,
             brevService = kjerneTjenester.brevService,
             oppgaveService = kjerneTjenester.oppgaveService,

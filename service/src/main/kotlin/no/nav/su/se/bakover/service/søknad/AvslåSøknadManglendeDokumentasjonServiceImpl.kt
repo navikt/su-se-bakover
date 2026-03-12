@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.oppgave.ALLEREDE_FERDIGSTILT
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -92,7 +93,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
                 ).mapLeft {
                     if (it.feilPgaAlleredeFerdigstilt()) {
-                        log.warn("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon fordi den allerede er lukket for søknad ${command.søknadId}, for sak ${sak.id}")
+                        log.warn("$ALLEREDE_FERDIGSTILT Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon fordi den allerede er lukket for søknad ${command.søknadId}, for sak ${sak.id}")
                     } else {
                         log.error("Kunne ikke lukke oppgave ved avslå pga manglende dokumentasjon for søknad ${command.søknadId}, for sak ${sak.id}. Feil var $it")
                     }
