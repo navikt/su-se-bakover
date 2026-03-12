@@ -107,6 +107,7 @@ data object MockDatabaseBuilder {
             fritekstAvslagRepo = mock(),
             søknadStatistikkRepo = mock(),
             mottakerRepo = mock(),
+            reguleringKjøring = mock(),
         )
     }
 }
