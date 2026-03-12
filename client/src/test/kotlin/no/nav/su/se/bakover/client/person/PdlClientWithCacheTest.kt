@@ -42,7 +42,6 @@ class PdlClientWithCacheTest {
                 adresseformat = "Vegadresse",
             ),
         ),
-        statsborgerskap = "SYR",
         sivilstand = SivilstandResponse(
             type = SivilstandTyper.GIFT,
             relatertVedSivilstand = "12345678901",

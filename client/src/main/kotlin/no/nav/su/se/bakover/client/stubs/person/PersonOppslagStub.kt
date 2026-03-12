@@ -46,7 +46,6 @@ data class PersonOppslagStub(
                 adresseformat = "Vegadresse",
             ),
         ),
-        statsborgerskap = "NOR",
         sivilstand = null,
         fødsel = Person.Fødsel.MedFødselsdato(
             dato = fødselsdato,

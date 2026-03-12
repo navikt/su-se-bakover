@@ -117,7 +117,6 @@ internal class PersonClient(
                 adresseformat = it.adresseformat,
             )
         },
-        statsborgerskap = pdlData.statsborgerskap,
         sivilstand = pdlData.sivilstand?.let {
             Person.Sivilstand(
                 type = it.type,

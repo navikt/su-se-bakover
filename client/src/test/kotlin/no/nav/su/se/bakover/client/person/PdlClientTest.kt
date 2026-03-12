@@ -54,7 +54,6 @@ internal class PdlClientTest {
                 adresseformat = "Vegadresse",
             ),
         ),
-        statsborgerskap = "SYR",
         sivilstand = SivilstandResponse(
             type = SivilstandTyper.GIFT,
             relatertVedSivilstand = "12345678901",
@@ -390,13 +389,6 @@ internal class PdlClientTest {
                                 ),
                             ),
                         ),
-                        statsborgerskap = listOf(
-                            Statsborgerskap(
-                                land = "SYR",
-                                gyldigFraOgMed = null,
-                                gyldigTilOgMed = null,
-                            ),
-                        ),
                         sivilstand = listOf(
                             SivilstandResponse(
                                 type = SivilstandTyper.GIFT,
@@ -529,13 +521,6 @@ internal class PdlClientTest {
                                 ),
                                 matrikkeladresse = null,
                                 utenlandskAdresse = null,
-                            ),
-                        ),
-                        statsborgerskap = listOf(
-                            Statsborgerskap(
-                                land = "SYR",
-                                gyldigFraOgMed = null,
-                                gyldigTilOgMed = null,
                             ),
                         ),
                         sivilstand = listOf(
@@ -674,18 +659,6 @@ internal class PdlClientTest {
                                 utenlandskAdresse = null,
                             ),
                         ),
-                        statsborgerskap = listOf(
-                            Statsborgerskap(
-                                land = "SYR",
-                                gyldigFraOgMed = null,
-                                gyldigTilOgMed = null,
-                            ),
-                            Statsborgerskap(
-                                land = "SYR",
-                                gyldigFraOgMed = null,
-                                gyldigTilOgMed = null,
-                            ),
-                        ),
                         sivilstand = listOf(
                             SivilstandResponse(
                                 type = SivilstandTyper.GIFT,
@@ -788,7 +761,6 @@ internal class PdlClientTest {
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
                         oppholdsadresse = emptyList(),
-                        statsborgerskap = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
                         adressebeskyttelse = emptyList(),
@@ -828,7 +800,6 @@ internal class PdlClientTest {
                 adresse = emptyList(),
                 sivilstand = null,
                 dødsdato = null,
-                statsborgerskap = null,
             ).right()
         }
     }
@@ -854,7 +825,6 @@ internal class PdlClientTest {
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
                         oppholdsadresse = emptyList(),
-                        statsborgerskap = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
                         adressebeskyttelse = emptyList(),
@@ -903,7 +873,6 @@ internal class PdlClientTest {
                 adresse = emptyList(),
                 sivilstand = null,
                 dødsdato = null,
-                statsborgerskap = null,
             ).right()
         }
     }
@@ -919,7 +888,6 @@ internal class PdlClientTest {
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
                         oppholdsadresse = emptyList(),
-                        statsborgerskap = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
                         adressebeskyttelse = emptyList(),
@@ -980,7 +948,6 @@ internal class PdlClientTest {
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
                         oppholdsadresse = emptyList(),
-                        statsborgerskap = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
                         adressebeskyttelse = emptyList(),
@@ -1026,7 +993,6 @@ internal class PdlClientTest {
             client.personForSystembruker(Fnr("07028820547"), Sakstype.UFØRE) shouldBe expectedPdlDataTemplate.copy(
                 adresse = emptyList(),
                 sivilstand = null,
-                statsborgerskap = null,
             ).right()
         }
     }

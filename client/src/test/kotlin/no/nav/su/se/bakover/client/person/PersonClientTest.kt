@@ -127,7 +127,6 @@ internal class PersonClientTest {
             ),
             telefonnummer = null,
             adresse = emptyList(),
-            statsborgerskap = null,
             sivilstand = null,
             fødsel = PdlData.Fødsel(
                 foedselsaar = 1990,
@@ -150,7 +149,6 @@ internal class PersonClientTest {
             ),
             telefonnummer = pdlData().telefonnummer,
             adresse = emptyList(),
-            statsborgerskap = pdlData().statsborgerskap,
             sivilstand = null,
             fødsel = pdlData().fødsel?.let {
                 if (it.foedselsdato != null) {

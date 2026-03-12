@@ -133,7 +133,6 @@ internal class PdlClient(
                 Telefonnummer(landskode = it.landskode, nummer = it.nummer)
             },
             adresse = alleAdresser,
-            statsborgerskap = person.statsborgerskap.firstOrNull()?.land,
             sivilstand = person.sivilstand.firstOrNull(),
             fødsel = person.foedselsdato.map {
                 PdlData.Fødsel(
@@ -312,7 +311,6 @@ internal data class HentPerson(
     val bostedsadresse: List<Bostedsadresse>,
     val kontaktadresse: List<Kontaktadresse>,
     val oppholdsadresse: List<Oppholdsadresse>,
-    val statsborgerskap: List<Statsborgerskap>,
     val sivilstand: List<SivilstandResponse>,
     val foedselsdato: List<Fødselsdato>,
     val adressebeskyttelse: List<Adressebeskyttelse>,
@@ -335,12 +333,6 @@ internal data class TelefonnummerResponse(
     val landskode: String,
     val nummer: String,
     val prioritet: Int,
-)
-
-internal data class Statsborgerskap(
-    val land: String,
-    val gyldigFraOgMed: LocalDate?,
-    val gyldigTilOgMed: LocalDate?,
 )
 
 internal data class Metadata(

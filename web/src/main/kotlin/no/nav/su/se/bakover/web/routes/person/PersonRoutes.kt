@@ -80,7 +80,6 @@ data class PersonResponseJson(
     val navn: NavnJson,
     val telefonnummer: TelefonnummerJson?,
     val adresse: List<AdresseJson>?,
-    val statsborgerskap: String?,
     val sivilstand: SivilstandJson?,
     val fødsel: Fødsel?,
     val adressebeskyttelse: String?,
@@ -156,7 +155,6 @@ data class PersonResponseJson(
                     adresseformat = it.adresseformat,
                 )
             },
-            statsborgerskap = this.person.statsborgerskap,
             sivilstand = this.person.sivilstand?.let { sivilstand ->
                 SivilstandJson(
                     type = sivilstand.type.toString(),
