@@ -62,9 +62,6 @@ class ReguleringHentEksterneReguleringerServiceImpl(
         månedFørRegulering: LocalDate,
     ): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
         return brukereMedEps.map { brukerMedEps ->
-
-            // TODO må hente forventet inntekt fra uføregrunnlag her?
-
             val fradragFraPesysBruker = brukerMedEps.bruker.fradrag.map { bruktFradrag ->
                 utledOgVerifiserRegulertFradrag(
                     brukerMedEps.bruker.fnr,
@@ -167,7 +164,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
                     Fradragstype.ForventetInntekt,
                     Fradragstype.Uføretrygd,
                 ),
-            ) // TODO er må Forventet inntekt inn for bruker?
+            )
         return pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = unikeFnr,
             dato = dato,

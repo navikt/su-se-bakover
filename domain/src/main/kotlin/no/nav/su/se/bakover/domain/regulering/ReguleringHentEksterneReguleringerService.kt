@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.Fradrag
+import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
@@ -65,15 +67,29 @@ data class HentEksterneReguleringerRequest(
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
             }
             val grunnlagsdata = vedtaksdata.grunnlagsdata
+
+            val fradragBruker = grunnlagsdata.hentFradragBasertPå(
+                fradragstyper = relevanteFradragsTyper,
+                måned = reguleringsMåned,
+                tilhører = FradragTilhører.BRUKER,
+            ).let {
+                when (type) {
+                    Sakstype.ALDER -> it
+                    Sakstype.UFØRE -> {
+                        val uføregrunnlag = vedtaksdata.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag.single { it.periode.inneholder(reguleringsMåned) }
+                        val forventetInntekt = FradragFactory.nyUføreFradrag(
+                            forventetInntekt = uføregrunnlag.forventetInntekt,
+                            periode = uføregrunnlag.periode,
+                        )
+                        it + listOf(forventetInntekt)
+                    }
+                }
+            }
+
             return BrukerMedEps(
-                // TODO AUTO-REG-26 - Legge til Forventet Inntekt som fradrag (IEU) hvis uføre. Se BeregningStrategyFactory.beregn
                 bruker = PersonMedFradrag(
                     fnr = fnr,
-                    fradrag = grunnlagsdata.hentFradragBasertPå(
-                        fradragstyper = relevanteFradragsTyper,
-                        måned = reguleringsMåned,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
+                    fradrag = fradragBruker,
                 ),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned]?.let {
                     PersonMedFradrag(
