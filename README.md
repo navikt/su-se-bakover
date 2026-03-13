@@ -189,27 +189,27 @@ Som har støtte for forskjellig verktøy som ktlint, ktfmt, diktat, prettier.
 
 ## Metrics
 
-Vi bruker Prometheus for å samle inn metrikker.
+Vi eksponerer Prometheus-kompatible metrikker på `/metrics` via Micrometer.
+NAIS scraper disse, og de er tilgjengelige i Grafana via Mimir.
 Se https://doc.nais.io/observability/metrics.
 
 ## Alerts
 
-`alerts.yml` deployes automatisk vha. `.github/workflows/alerts-deploy.yml` og
+`alerts.yml` deployes automatisk vha. `.github/workflows/alerts-deploy-gcp.yml` og
 benytter [Prometheus Query Language](https://prometheus.io/docs/prometheus/latest/querying/basics/) for å sette opp
 alerts basert på metrikker.
+Dette skal fungere videre med Mimir.
 Se https://doc.nais.io/observability/alerts.
 
-### Experiment writing prometheus queries and view graphs
+### Utforske metrikker
 
-grafana/loki
-se https://nav-it.slack.com/archives/C05DXMSNSV8/p1750670214842229?thread_ts=1750670027.442119&cid=C05DXMSNSV8
-preprod: https://prometheus.dev-gcp.nav.cloud.nais.io/
-prod: https://prometheus.prod-gcp.nav.cloud.nais.io/
+Bruk Grafana Explore og datakilden `Metrics`.
+For nye dashboards bør `Metrics` brukes.
+Ved spørringer på tvers av clustere brukes labelen `k8s_cluster_name`.
 
-### View ongoing alerts and manage silences
+### Se alerts
 
-preprod: https://alertmanager.dev-gcp.nav.cloud.nais.io/#/alerts
-prod: https://alertmanager.prod-gcp.nav.cloud.nais.io/#/alerts
+Bruk NAIS Console for oversikt over alerts.
 
 ### Kubectl commands
 
