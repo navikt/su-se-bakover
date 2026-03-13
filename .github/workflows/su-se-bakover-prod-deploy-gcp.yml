@@ -58,7 +58,7 @@ jobs:
     needs:
       - check-image
       - build-test-push-image
-    if: ${{ !cancelled() && needs.check-image.result == 'success' && (needs.build-test-push-image.result == 'success' || needs.build-test-push-image.result == 'skipped') }}
+    if: ${{ needs.check-image.result == 'success' && (needs.build-test-push-image.result == 'success' || needs.build-test-push-image.result == 'skipped') }}
     permissions:
       contents: read
       id-token: write
