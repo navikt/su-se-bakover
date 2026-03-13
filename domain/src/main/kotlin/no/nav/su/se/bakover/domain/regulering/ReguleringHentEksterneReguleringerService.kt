@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
@@ -12,7 +13,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 interface ReguleringHentEksterneReguleringerService {
-    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>>
+    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteBeløpForBrukerEksternKilde>>
 }
 
 /**
@@ -29,6 +30,7 @@ data class HentEksterneReguleringerRequest(
     data class BrukerMedEps(
         val bruker: PersonMedFradrag,
         val eps: PersonMedFradrag?,
+        val sakstype: Sakstype,
     )
 
     data class PersonMedFradrag(
@@ -61,12 +63,12 @@ data class HentEksterneReguleringerRequest(
             reguleringsMåned: Måned,
             clock: Clock,
         ): BrukerMedEps {
-            val vedtaksdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
+            val grunnlagsdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
-            }
-            val grunnlagsdata = vedtaksdata.grunnlagsdata
+            }.grunnlagsdata
+
             return BrukerMedEps(
-                // TODO AUTO-REG-26 - Legge til Forventet Inntekt som fradrag (IEU) hvis uføre. Se BeregningStrategyFactory.beregn
+                sakstype = type,
                 bruker = PersonMedFradrag(
                     fnr = fnr,
                     fradrag = grunnlagsdata.hentFradragBasertPå(

@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløpEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulerteBeløpForBrukerEksternKilde
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -167,7 +167,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+        regulerteBeløpForBrukerEksternKilde = sakerMedRegulerteFradragEksternKilde,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
@@ -505,15 +505,15 @@ fun reguleringsgrunnlagFraEksternKilde(
     førRegulering: Int = 100,
     etterRegulering: Int = 110,
 ) = listOf(
-    RegulerteFradragEksternKilde(
+    RegulerteBeløpForBrukerEksternKilde(
         fnr = sak.fnr,
-        bruker = listOf(
-            RegulertFradragEksternKilde(
+        fradrag = listOf(
+            RegulertBeløpEksternKilde(
                 fnr = sak.fnr,
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
             ),
         ),
-        forEps = emptyList(),
+        fradragEps = emptyList(),
     ),
 )

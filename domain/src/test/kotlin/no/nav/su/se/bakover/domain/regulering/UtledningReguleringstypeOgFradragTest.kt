@@ -19,17 +19,17 @@ import java.math.BigDecimal
 class UtledningReguleringstypeOgFradragTest {
 
     companion object {
-        val regulerteFradragEksternKilde = RegulerteFradragEksternKilde(
+        val regulerteBeløpForBrukerEksternKilde = RegulerteBeløpForBrukerEksternKilde(
             fnr = fnr,
-            bruker = listOf(
-                RegulertFradragEksternKilde(
+            fradrag = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = 1064,
                 ),
             ),
-            forEps = listOf(
-                RegulertFradragEksternKilde(
+            fradragEps = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = 1064,
@@ -40,17 +40,17 @@ class UtledningReguleringstypeOgFradragTest {
         fun lagRegulerteFradragEksternKilde(
             etterReguleringBruker: Int = 1064,
             etterReguleringEps: Int = 1064,
-        ) = RegulerteFradragEksternKilde(
+        ) = RegulerteBeløpForBrukerEksternKilde(
             fnr = fnr,
-            bruker = listOf(
-                RegulertFradragEksternKilde(
+            fradrag = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = etterReguleringBruker,
                 ),
             ),
-            forEps = listOf(
-                RegulertFradragEksternKilde(
+            fradragEps = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = etterReguleringEps,
@@ -95,7 +95,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder automatisk for uføre`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -108,7 +108,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder automatisk for alder`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Alderspensjon),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -122,7 +122,7 @@ class UtledningReguleringstypeOgFradragTest {
                 fradragstypeBruker = Fradragstype.Alderspensjon,
                 fradragstypeEps = Fradragstype.Uføretrygd,
             ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -136,7 +136,7 @@ class UtledningReguleringstypeOgFradragTest {
                 fradragstypeBruker = Fradragstype.Uføretrygd,
                 fradragstypeEps = Fradragstype.Alderspensjon,
             ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -228,8 +228,8 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for flere eps`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde.copy(
-                forEps = regulerteFradragEksternKilde.forEps + regulerteFradragEksternKilde.forEps,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde.copy(
+                fradragEps = regulerteBeløpForBrukerEksternKilde.fradragEps + regulerteBeløpForBrukerEksternKilde.fradragEps,
             ),
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
@@ -251,7 +251,7 @@ class UtledningReguleringstypeOgFradragTest {
                 Fradragstype.Uføretrygd,
                 utlandskInntektBruker = UtenlandskInntekt.create(0, "SEK", 0.0),
             ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -272,7 +272,7 @@ class UtledningReguleringstypeOgFradragTest {
                 Fradragstype.Uføretrygd,
                 utlandskInntektEps = UtenlandskInntekt.create(0, "SEK", 0.0),
             ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -290,7 +290,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for hvis eksternt fradrag før regulering er ulikt brukt fradrag for bruker`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd, beløpBruker = 900.0),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -309,7 +309,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for hvis eksternt fradrag før regulering er ulikt brukt fradrag for eps`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd, beløpEps = 900.0),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -328,7 +328,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for hvis eksternt fradrag etter regulering er usannsynlig høyt for bruker`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = lagRegulerteFradragEksternKilde(etterReguleringBruker = 1075),
+            regulerteBeløpForBrukerEksternKilde = lagRegulerteFradragEksternKilde(etterReguleringBruker = 1075),
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -349,7 +349,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for hvis eksternt fradrag etter regulering er usannsynlig høyt for eps`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = lagRegulerteFradragEksternKilde(etterReguleringEps = 1075),
+            regulerteBeløpForBrukerEksternKilde = lagRegulerteFradragEksternKilde(etterReguleringEps = 1075),
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -371,7 +371,7 @@ class UtledningReguleringstypeOgFradragTest {
         val fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd)
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = fradrag + listOf(fradrag.first()),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+            regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
