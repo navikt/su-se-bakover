@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest.Br
 import no.nav.su.se.bakover.domain.regulering.HentingAvRegulerteFradragFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløpEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulerteBeløpForBrukerEksternKilde
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderAlderFeilet
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderUføreFeilet
 import org.slf4j.LoggerFactory
@@ -38,7 +38,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
+    override fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteBeløpForBrukerEksternKilde>> {
         val (månedFørRegulering, brukereMedEps) = request
 
         val uførePerioder = hentPerioderUføre(brukereMedEps, månedFørRegulering)
@@ -60,7 +60,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
         brukereMedEps: List<BrukerMedEps>,
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
-    ): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>> {
+    ): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteBeløpForBrukerEksternKilde>> {
         return brukereMedEps.map { brukerMedEps ->
             val fradragFraPesysBruker = brukerMedEps.bruker.fradrag.map {
                 utledOgVerifiserRegulertFradrag(
@@ -91,7 +91,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
                     alleFeil = alleFeil,
                 ).left()
             } else {
-                RegulerteFradragEksternKilde(
+                RegulerteBeløpForBrukerEksternKilde(
                     fnr = brukerMedEps.bruker.fnr,
                     fradrag = fradragFraPesysBruker.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } },
                     fradragEps = fradragFraPesysEps?.map { it.getOrElse { throw IllegalStateException("$it skal returneres som left før dette stadiet!") } }

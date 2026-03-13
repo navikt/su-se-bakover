@@ -13,7 +13,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 interface ReguleringHentEksterneReguleringerService {
-    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteFradragEksternKilde>>
+    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteBeløpForBrukerEksternKilde>>
 }
 
 /**

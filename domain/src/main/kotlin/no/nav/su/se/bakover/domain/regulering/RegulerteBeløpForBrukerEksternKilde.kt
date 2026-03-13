@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.person.Fnr
 
-data class RegulerteFradragEksternKilde(
+data class RegulerteBeløpForBrukerEksternKilde(
     val fnr: Fnr,
     val fradrag: List<RegulertBeløpEksternKilde>,
     val fradragEps: List<RegulertBeløpEksternKilde>,
