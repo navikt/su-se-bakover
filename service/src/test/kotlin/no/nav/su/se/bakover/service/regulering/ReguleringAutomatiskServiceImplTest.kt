@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløpEksternKilde
 import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -156,14 +156,14 @@ internal class ReguleringAutomatiskServiceImplTest {
                 listOf(
                     RegulerteFradragEksternKilde(
                         fnr = fnr,
-                        bruker = listOf(
-                            RegulertFradragEksternKilde(
+                        fradrag = listOf(
+                            RegulertBeløpEksternKilde(
                                 fnr = fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
                         ),
-                        forEps = emptyList(),
+                        fradragEps = emptyList(),
                     ).right(),
                 )
         }
@@ -612,14 +612,14 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                            fradrag = listOf(
+                                RegulertBeløpEksternKilde(
                                     fnr = sak.fnr,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
                             ),
-                            forEps = emptyList(),
+                            fradragEps = emptyList(),
                         ).right(),
                     )
             },
@@ -692,14 +692,14 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                            fradrag = listOf(
+                                RegulertBeløpEksternKilde(
                                     fnr = sak.fnr,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
                             ),
-                            forEps = emptyList(),
+                            fradragEps = emptyList(),
                         ).right(),
                     )
             },
@@ -835,14 +835,14 @@ internal class ReguleringAutomatiskServiceImplTest {
                     listOf(
                         RegulerteFradragEksternKilde(
                             fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                            fradrag = listOf(
+                                RegulertBeløpEksternKilde(
                                     fnr = sak.fnr,
                                     førRegulering = beløpFørRegulering.toInt(),
                                     etterRegulering = beløpEtterRegulering.toInt(),
                                 ),
                             ),
-                            forEps = emptyList(),
+                            fradragEps = emptyList(),
                         ).right(),
                     )
             },

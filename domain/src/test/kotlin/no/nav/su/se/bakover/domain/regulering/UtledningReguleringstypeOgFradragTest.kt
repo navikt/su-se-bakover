@@ -21,15 +21,15 @@ class UtledningReguleringstypeOgFradragTest {
     companion object {
         val regulerteFradragEksternKilde = RegulerteFradragEksternKilde(
             fnr = fnr,
-            bruker = listOf(
-                RegulertFradragEksternKilde(
+            fradrag = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = 1064,
                 ),
             ),
-            forEps = listOf(
-                RegulertFradragEksternKilde(
+            fradragEps = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = 1064,
@@ -42,15 +42,15 @@ class UtledningReguleringstypeOgFradragTest {
             etterReguleringEps: Int = 1064,
         ) = RegulerteFradragEksternKilde(
             fnr = fnr,
-            bruker = listOf(
-                RegulertFradragEksternKilde(
+            fradrag = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = etterReguleringBruker,
                 ),
             ),
-            forEps = listOf(
-                RegulertFradragEksternKilde(
+            fradragEps = listOf(
+                RegulertBeløpEksternKilde(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = etterReguleringEps,
@@ -229,7 +229,7 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
             regulerteFradragEksternKilde = regulerteFradragEksternKilde.copy(
-                forEps = regulerteFradragEksternKilde.forEps + regulerteFradragEksternKilde.forEps,
+                fradragEps = regulerteFradragEksternKilde.fradragEps + regulerteFradragEksternKilde.fradragEps,
             ),
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),

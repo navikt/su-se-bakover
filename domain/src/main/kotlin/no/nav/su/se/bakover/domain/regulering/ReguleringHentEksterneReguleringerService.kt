@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.Fradrag
-import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
@@ -31,6 +30,7 @@ data class HentEksterneReguleringerRequest(
     data class BrukerMedEps(
         val bruker: PersonMedFradrag,
         val eps: PersonMedFradrag?,
+        val sakstype: Sakstype,
     )
 
     data class PersonMedFradrag(
@@ -63,33 +63,19 @@ data class HentEksterneReguleringerRequest(
             reguleringsMåned: Måned,
             clock: Clock,
         ): BrukerMedEps {
-            val vedtaksdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
+            val grunnlagsdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
-            }
-            val grunnlagsdata = vedtaksdata.grunnlagsdata
-
-            val fradragBruker = grunnlagsdata.hentFradragBasertPå(
-                fradragstyper = relevanteFradragsTyper,
-                måned = reguleringsMåned,
-                tilhører = FradragTilhører.BRUKER,
-            ).let {
-                when (type) {
-                    Sakstype.ALDER -> it
-                    Sakstype.UFØRE -> {
-                        val uføregrunnlag = vedtaksdata.vilkårsvurderinger.uføreVilkårKastHvisAlder().grunnlag.single { it.periode.inneholder(reguleringsMåned) }
-                        val forventetInntekt = FradragFactory.nyUføreFradrag(
-                            forventetInntekt = uføregrunnlag.forventetInntekt,
-                            periode = uføregrunnlag.periode,
-                        )
-                        it + listOf(forventetInntekt)
-                    }
-                }
-            }
+            }.grunnlagsdata
 
             return BrukerMedEps(
+                sakstype = type,
                 bruker = PersonMedFradrag(
                     fnr = fnr,
-                    fradrag = fradragBruker,
+                    fradrag = grunnlagsdata.hentFradragBasertPå(
+                        fradragstyper = relevanteFradragsTyper,
+                        måned = reguleringsMåned,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned]?.let {
                     PersonMedFradrag(

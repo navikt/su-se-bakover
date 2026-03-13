@@ -120,6 +120,7 @@ interface PesysPeriode {
     val fom: LocalDate
     val tom: LocalDate?
     val grunnbelop: Int
+    // TODO IEU her?
 }
 
 data class ResponseDtoAlder(val resultat: List<AlderBeregningsperioderPerPerson>)

@@ -128,8 +128,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     // TODO bjg fortsatt nødvendig??
-    if (fradragTilhører == FradragTilhører.EPS && regulerteFradragEksternKilde.forEps.size > 1) {
-        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${regulerteFradragEksternKilde.forEps.size}, saksnummer: $saksnummer")
+    if (fradragTilhører == FradragTilhører.EPS && regulerteFradragEksternKilde.fradragEps.size > 1) {
+        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${regulerteFradragEksternKilde.fradragEps.size}, saksnummer: $saksnummer")
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps(
                 fradragskategori = fradragstype.kategori,
@@ -140,8 +140,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.bruker.single()
-        FradragTilhører.EPS -> regulerteFradragEksternKilde.forEps.single() // TODO AUTO-REG-26 må filtreres på type her..
+        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.fradrag.single()
+        FradragTilhører.EPS -> regulerteFradragEksternKilde.fradragEps.single() // TODO AUTO-REG-26 må filtreres på type her..
     }
     return sjekkOmDifferenseForBeløper(
         nyttFradrag,
@@ -156,7 +156,7 @@ fun utledReguleringstypeOgFradrag(
 
 // TODO bjg del i to...
 private fun sjekkOmDifferenseForBeløper(
-    nyttFradrag: RegulertFradragEksternKilde,
+    nyttFradrag: RegulertBeløpEksternKilde,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
