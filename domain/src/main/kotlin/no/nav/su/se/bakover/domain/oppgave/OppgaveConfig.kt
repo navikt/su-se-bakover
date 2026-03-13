@@ -31,6 +31,7 @@ sealed interface OppgaveConfig {
     val journalpostId: JournalpostId?
     val saksreferanse: String
     val fnr: Fnr
+    val behandlesAvApplikasjon: String? get() = null
     val behandlingstema: Behandlingstema?
     val oppgavetype: Oppgavetype
     val behandlingstype: Behandlingstype
@@ -69,6 +70,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
+        override val behandlesAvApplikasjon: String = "su-se-bakover"
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
@@ -114,6 +116,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val behandlesAvApplikasjon: String = "su-se-bakover"
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
