@@ -99,11 +99,6 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
                 landkode
             }
         },
-        statsborgerskap(historikk: $historikk) {
-            land
-            gyldigFraOgMed
-            gyldigTilOgMed
-        },
         sivilstand(historikk: $historikk){
             type,
             relatertVedSivilstand
