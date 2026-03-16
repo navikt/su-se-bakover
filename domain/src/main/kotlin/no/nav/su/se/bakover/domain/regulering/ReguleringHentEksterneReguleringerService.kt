@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
@@ -29,22 +28,15 @@ data class HentEksterneReguleringerRequest(
     data class BrukerMedEps(
         val bruker: PersonMedFradrag,
         val eps: PersonMedFradrag?,
-        val sakstype: Sakstype,
     )
 
     data class PersonMedFradrag(
         val fnr: Fnr,
         // TODO Kan fjerne List hvis Service ikke brukes for å hente AAP?
-        val fradrag: List<Fradragstype>,
+        val fradrag: Fradragstype,
     )
 
     companion object {
-        private val relevanteFradragsTyper = listOf(
-            Fradragstype.Alderspensjon,
-            Fradragstype.Uføretrygd,
-            // Fradragstype.Arbeidsavklaringspenger, TODO ??
-        )
-
         fun toRequest(
             reguleringsMåned: Måned,
             forSaker: List<Sak>,
@@ -64,24 +56,24 @@ data class HentEksterneReguleringerRequest(
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
             }.grunnlagsdata
 
+            val uføfreOgAlder = listOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon)
             return BrukerMedEps(
-                sakstype = type,
                 bruker = PersonMedFradrag(
                     fnr = fnr,
                     fradrag = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                        fradragstyper = relevanteFradragsTyper,
+                        fradragstyper = uføfreOgAlder,
                         måned = reguleringsMåned,
                         tilhører = FradragTilhører.BRUKER,
-                    ),
+                    ).single(), // TODO bjg
                 ),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned]?.let {
                     PersonMedFradrag(
                         fnr = it,
                         fradrag = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                            fradragstyper = relevanteFradragsTyper,
+                            fradragstyper = uføfreOgAlder,
                             måned = reguleringsMåned,
                             tilhører = FradragTilhører.EPS,
-                        ),
+                        ).single(), // TODO bjg
                     )
                 },
             )

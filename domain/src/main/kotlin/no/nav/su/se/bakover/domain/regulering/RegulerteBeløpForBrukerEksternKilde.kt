@@ -7,9 +7,9 @@ data class RegulerteBeløpForBrukerEksternKilde(
     val fradrag: List<RegulertBeløpEksternKilde>,
     val fradragEps: List<RegulertBeløpEksternKilde>,
 
-    // Skal alltid være satt når bruker er uføre med et unntak.
-    // Det finnes tilfeller hvor inntekt etter uføre er behandlet manuelt i pesys.
-    // Det vil medføre at vi ikke får beløpet (denne er null selv om uføre) og at det må behandles manuelt i SU-App også.
+    // Skal alltid være satt for uføre men kun uføre.
+    // Et unntak hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
+    // Da vil vi ikke får beløpet fra Pesys og det må behandles manuelt i SU-App også.
     val inntektEtterUføre: RegulertBeløpEksternKilde? = null,
 )
 
