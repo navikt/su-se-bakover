@@ -177,6 +177,7 @@ internal class OppgaveHttpClient(
                     journalpostId = config.journalpostId?.toString(),
                     saksreferanse = config.saksreferanse,
                     personident = config.fnr.toString(),
+                    behandlesAvApplikasjon = config.behandlesAvApplikasjon,
                     tema = Tema.SUPPLERENDE_STØNAD.value,
                     beskrivelse = beskrivelse,
                     oppgavetype = config.oppgavetype.toString(),
