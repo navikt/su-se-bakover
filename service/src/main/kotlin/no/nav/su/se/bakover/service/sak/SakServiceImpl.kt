@@ -220,7 +220,7 @@ class SakServiceImpl(
         return sakRepo.hentFerdigeBehandlinger()
     }
 
-    override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
+    override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker {
         return hentSaker(fnr).fold(
             ifLeft = {
                 AlleredeGjeldendeSakForBruker(

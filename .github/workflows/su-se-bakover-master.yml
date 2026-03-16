@@ -6,23 +6,6 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - '.github/**'
-      - '!.github/workflows/su-se-bakover-master.yml'
-      - '!.github/workflows/reusable*.yml'
-      - '!.github/actions/**'
-      - '.idea/**'
-      - 'local-db-scripts/**'
-      - 'scripts/**'
-      - '.editorconfig'
-      - '*.template'
-      - '.gitignore'
-      - 'alerts.yml'
-      - '*.sh'
-      - 'CODEOWNERS'
-      - 'docker-compose.yml'
-      - 'LICENSE'
-      - '*.md'
 
 permissions: {}
 jobs:

@@ -487,10 +487,9 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
-                    assertHarTilgangTilPerson(fnr, sak.type)
-                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
+                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr, sakstype)
                 }
             },
             søknad = object : SøknadService {
@@ -1416,7 +1415,11 @@ open class AccessCheckProxy(
                     fnr: Fnr,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    // TODO(SEBSOB): Ta inn sakstype eksplisitt her i stedet for å utlede den via firstOrNull().
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.Ukjent,
+                        fnr,
+                    )
                     assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr, saksbehandler)
                 }
@@ -1426,7 +1429,11 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
                 ): Skattegrunnlag {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    // TODO(SEBSOB): Ta inn sakstype eksplisitt her i stedet for å utlede den via firstOrNull().
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.Ukjent,
+                        fnr,
+                    )
                     assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
