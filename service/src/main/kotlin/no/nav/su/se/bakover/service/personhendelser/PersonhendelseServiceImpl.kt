@@ -254,8 +254,9 @@ class PersonhendelseServiceImpl(
     /**
      * Vurdering av bostedsadressehendelse mot PDL:
      * - [KunneIkkeHentePerson.FantIkkePerson]: vi lagrer en vurdering som ikke relevant (ingen retry).
-     * - [KunneIkkeHentePerson.IkkeTilgangTilPerson] / [KunneIkkeHentePerson.Ukjent]: vi returnerer null,
-     *   slik at hendelsen forblir `pdl_vurdert=false` og plukkes opp igjen i neste jobbkjøring (retry).
+     * - [KunneIkkeHentePerson.IkkeTilgangTilPerson] / [KunneIkkeHentePerson.Ukjent]:
+     *   vi returnerer null, slik at hendelsen forblir `pdl_vurdert=false` og plukkes opp igjen
+     *   i neste jobbkjøring (retry).
      * - Success: vi lagrer vanlig PDL-vurdering med diff.
      */
     private fun vurderBostedsadressehendelseMotPdl(
