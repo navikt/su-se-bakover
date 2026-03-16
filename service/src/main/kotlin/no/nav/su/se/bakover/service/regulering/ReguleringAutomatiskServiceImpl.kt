@@ -165,7 +165,7 @@ class ReguleringAutomatiskServiceImpl(
                 } else {
                     Either.catch {
                         reguleringerFraPesysService.hentReguleringer(
-                            HentReguleringerPesysParameter.toRequest(
+                            HentReguleringerPesysParameter.toParameter(
                                 reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
                                 forSaker = sakerSomKanReguleres,
                                 clock = clock,

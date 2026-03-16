@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
@@ -32,27 +33,23 @@ data class HentReguleringerPesysParameter(
     /**
      * Representerer en bruker med eventuell ektefelle/partner (EPS) og deres fradrag.
      *
-     * @property bruker Bruker med fødselsnummer og fradragstype
-     * @property eps Ektefelle/partner med fødselsnummer og fradragstype, eller null hvis bruker ikke har EPS
+     * @property fnr Fødselsnummer til bruker
+     * @property sakstype Type sak (Alder, Uføre)
+     * @property fradragBruker Fradragstype for bruker (Uføretrygd eller Alderspensjon), eller null hvis ingen
+     * @property eps Fødselsnummer til ektefelle/partner/samboer, eller null hvis bruker ikke har EPS
+     * @property fradragEps Fradragstype for EPS (Uføretrygd eller Alderspensjon), eller null hvis ingen
      */
     data class BrukerMedEps(
-        val bruker: PersonMedFradrag,
-        val eps: PersonMedFradrag?,
-    )
-
-    /**
-     * Representerer en person med fødselsnummer og fradragstype som skal reguleres.
-     *
-     * @property fnr Fødselsnummer til personen
-     * @property fradrag Fradragstype som skal hentes regulerte beløp for (f.eks. Uføretrygd eller Alderspensjon)
-     */
-    data class PersonMedFradrag(
         val fnr: Fnr,
-        val fradrag: Fradragstype,
+        val sakstype: Sakstype,
+        val fradragBruker: Fradragstype?,
+
+        val eps: Fnr?,
+        val fradragEps: Fradragstype?,
     )
 
     companion object {
-        fun toRequest(
+        fun toParameter(
             reguleringsMåned: Måned,
             forSaker: List<Sak>,
             clock: Clock,
@@ -73,24 +70,19 @@ data class HentReguleringerPesysParameter(
 
             val uføfreOgAlder = listOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon)
             return BrukerMedEps(
-                bruker = PersonMedFradrag(
-                    fnr = fnr,
-                    fradrag = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                        fradragstyper = uføfreOgAlder,
-                        måned = reguleringsMåned,
-                        tilhører = FradragTilhører.BRUKER,
-                    ).single(), // TODO bjg
-                ),
-                eps = grunnlagsdata.epsForMåned()[reguleringsMåned]?.let {
-                    PersonMedFradrag(
-                        fnr = it,
-                        fradrag = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                            fradragstyper = uføfreOgAlder,
-                            måned = reguleringsMåned,
-                            tilhører = FradragTilhører.EPS,
-                        ).single(), // TODO bjg
-                    )
-                },
+                fnr = fnr,
+                sakstype = type,
+                fradragBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                    fradragstyper = uføfreOgAlder,
+                    måned = reguleringsMåned,
+                    tilhører = FradragTilhører.BRUKER,
+                ).singleOrNull(),
+                eps = grunnlagsdata.epsForMåned()[reguleringsMåned],
+                fradragEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                    fradragstyper = uføfreOgAlder,
+                    måned = reguleringsMåned,
+                    tilhører = FradragTilhører.EPS,
+                ).singleOrNull(),
             )
         }
     }

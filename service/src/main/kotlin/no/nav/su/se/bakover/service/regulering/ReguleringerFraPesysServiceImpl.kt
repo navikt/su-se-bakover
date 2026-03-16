@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
@@ -62,32 +63,35 @@ class ReguleringerFraPesysServiceImpl(
     ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         return brukereMedEps.map { brukerMedEps ->
             val reguleringForBruker =
-                utledOgVerifiserRegulertBeløp(brukerMedEps.bruker.fnr, perioderFraPesys, månedFørRegulering)
+                utledOgVerifiserRegulertBeløp(brukerMedEps.fnr, perioderFraPesys, månedFørRegulering)
 
-            val reguleringForEps = brukerMedEps.eps?.let {
-                utledOgVerifiserRegulertBeløp(it.fnr, perioderFraPesys, månedFørRegulering)
+            val reguleringForEps = brukerMedEps.eps?.let { epsFnr ->
+                utledOgVerifiserRegulertBeløp(epsFnr, perioderFraPesys, månedFørRegulering)
             }
 
-            val regulertIeu = if (brukerMedEps.bruker.fradrag == Fradragstype.Uføretrygd) {
-                utledInntektEtterUføre(brukerMedEps.bruker.fnr, månedFørRegulering, perioderFraPesys)
+            val regulertIeu = if (brukerMedEps.sakstype == Sakstype.UFØRE) {
+                utledInntektEtterUføre(brukerMedEps.fnr, månedFørRegulering, perioderFraPesys)
             } else {
                 null
             }
 
-            val erFeil = reguleringForBruker.isLeft() ||
-                (reguleringForEps != null && reguleringForEps.isLeft()) ||
-                (regulertIeu != null && regulertIeu.isLeft())
-            if (erFeil) {
+            val feil = listOfNotNull(reguleringForBruker, reguleringForEps, regulertIeu).filterLefts()
+            if (feil.isNotEmpty()) {
                 HentingAvEksterneReguleringerFeiletForBruker(
-                    fnr = brukerMedEps.bruker.fnr,
-                    alleFeil = listOfNotNull(reguleringForBruker, reguleringForEps, regulertIeu).filterLefts(),
+                    fnr = brukerMedEps.fnr,
+                    alleFeil = feil,
                 ).left()
             } else {
-                // TODO fjerne listOf når/hvis EksterntRegulerteBeløp fjerne lister
+                // På dette stadiet vet vi at alle Either-verdiene er Right på grunn av if
+                val brukerBeløp = (reguleringForBruker as Either.Right).value
+                val epsBeløp = (reguleringForEps as? Either.Right)?.value
+                val ieuBeløp = (regulertIeu as? Either.Right)?.value
+
+                // TODO fjerne listOf når/hvis EksterntRegulerteBeløp fjerner lister
                 EksterntRegulerteBeløp(
-                    beløpBruker = reguleringForBruker.getOrElse { it }.let { listOf(it) },
-                    beløpEps = reguleringForEps?.getOrElse { it }?.let { listOf(it) } ?: emptyList(),
-                    inntektEtterUføre = regulertIeu?.getOrElse { it },
+                    beløpBruker = listOf(brukerBeløp),
+                    beløpEps = epsBeløp?.let { listOf(it) } ?: emptyList(),
+                    inntektEtterUføre = ieuBeløp,
                 ).right()
             }
         }
@@ -118,8 +122,13 @@ class ReguleringerFraPesysServiceImpl(
         val (førRegulering, etterRegulering) = hentPeriodeFørOgEtterRegulering(
             brukerFnr,
             månedFørRegulering,
-            perioderFraPesys.filterIsInstance<UføreBeregningsperioderPerPerson>(),
+            perioderFraPesys,
         ).getOrElse { return it.left() }
+
+        if (førRegulering !is UføreBeregningsperiode || etterRegulering !is UføreBeregningsperiode) {
+            // Dette skai kke kunne skje fordi denne metoden skal kun brukes for bruker som kun har uføreperioder i Pesys
+            throw IllegalStateException("Periode er ikke uføretrygd under utledning av inntekt etter uføre")
+        }
 
         val inntektEtterUføreFørRegulering = førRegulering.oppjustertInntektEtterUfore
         val inntektEtterUføreEtterRegulering = etterRegulering.oppjustertInntektEtterUfore
@@ -134,13 +143,6 @@ class ReguleringerFraPesysServiceImpl(
             null
         }
     }
-
-    private fun hentPeriodeFørOgEtterRegulering(
-        fnr: Fnr,
-        månedFørRegulering: LocalDate,
-        perioderFraPesys: List<UføreBeregningsperioderPerPerson>,
-    ): Either<FeilMedEksternRegulering, Pair<UføreBeregningsperiode, UføreBeregningsperiode>> =
-        hentPeriodeFørOgEtterRegulering(fnr, månedFørRegulering, perioderFraPesys)
 
     private fun hentPeriodeFørOgEtterRegulering(
         fnr: Fnr,
@@ -205,9 +207,20 @@ class ReguleringerFraPesysServiceImpl(
         }.resultat
     }
 
+    // TODO bjg tester må teste denne grundig
     private fun List<BrukerMedEps>.unikeFnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
-        flatMap { listOfNotNull(it.bruker, it.eps) }
-            .filter { person -> person.fradrag == fradragstype }
-            .map { it.fnr }
+        flatMap { brukerMedEps ->
+            listOfNotNull(
+                brukerMedEps.fradragBruker?.let { fradragBruker -> Pair(brukerMedEps.fnr, fradragBruker) },
+                brukerMedEps.fradragEps?.let { fradragEps ->
+                    Pair(
+                        brukerMedEps.eps
+                            ?: throw IllegalStateException("Bruker har har fradrag for eps, men mangler eps"),
+                        fradragEps,
+                    )
+                },
+            )
+        }.filter { (_, fradrag) -> fradrag == fradragstype }
+            .map { (fnr, _) -> fnr }
             .distinct()
 }
