@@ -487,13 +487,9 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
-                        KunneIkkeHentePerson.PersonUtenSak,
-                        fnr,
-                    )
-                    assertHarTilgangTilPerson(fnr, sak.type)
-                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
+                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr, sakstype)
                 }
             },
             søknad = object : SøknadService {
@@ -1420,7 +1416,7 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
                     val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
-                        KunneIkkeHentePerson.PersonUtenSak,
+                        KunneIkkeHentePerson.Ukjent,
                         fnr,
                     )
                     assertHarTilgangTilPerson(fnr, sak.type)
@@ -1433,7 +1429,7 @@ open class AccessCheckProxy(
                     yearRange: YearRange,
                 ): Skattegrunnlag {
                     val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
-                        KunneIkkeHentePerson.PersonUtenSak,
+                        KunneIkkeHentePerson.Ukjent,
                         fnr,
                     )
                     assertHarTilgangTilPerson(fnr, sak.type)
