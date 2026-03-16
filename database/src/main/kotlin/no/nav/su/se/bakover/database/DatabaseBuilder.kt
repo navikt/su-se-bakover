@@ -354,7 +354,7 @@ data object DatabaseBuilder {
             fritekstAvslagRepo = FritekstAvslagRepoImpl(sessionFactory = sessionFactory),
             søknadStatistikkRepo = SøknadStatistikkRepoImpl(sessionFactory = sessionFactory),
             mottakerRepo = MottakerRepoImpl(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
-            reguleringKjøring = ReguleringKjøringPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
+            reguleringKjøringRepo = ReguleringKjøringPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
         )
     }
 }

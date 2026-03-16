@@ -60,5 +60,5 @@ data class DatabaseRepos(
     val fritekstAvslagRepo: FritekstAvslagRepo,
     val søknadStatistikkRepo: SøknadStatistikkRepo,
     val mottakerRepo: MottakerRepo,
-    val reguleringKjøring: ReguleringKjøringRepo,
+    val reguleringKjøringRepo: ReguleringKjøringRepo,
 )

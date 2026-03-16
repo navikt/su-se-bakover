@@ -11,5 +11,9 @@ data class ReguleringKjøring(
     val antallProsesserteSaker: Int,
     val antallReguleringerLaget: Int,
     val antallKunneIkkeOpprettes: Int,
-    // Todo: legg til resten
+    val arsakerReguleringIkkeOpprettet: String,
+    val antallAutomatiskeReguleringer: Int,
+    val antallSupplementReguleringer: Int,
+    val antallReguleringerManuellBehandling: Int,
+    val arsakerManuellBehandling: String,
 )

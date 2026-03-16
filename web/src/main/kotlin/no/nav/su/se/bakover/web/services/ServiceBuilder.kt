@@ -623,7 +623,7 @@ data object ServiceBuilder {
             clock = clock,
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
-            reguleringKjøringRepo = databaseRepos.reguleringKjøring,
+            reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
             reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
         )
         return ReguleringServices(

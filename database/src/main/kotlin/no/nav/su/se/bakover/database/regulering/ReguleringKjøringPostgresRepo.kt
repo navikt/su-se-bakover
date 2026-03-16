@@ -15,7 +15,33 @@ class ReguleringKjøringPostgresRepo(
         dbMetrics.timeQuery("lagreReguleringKjøring") {
             sessionFactory.withSession { session ->
                 """
-                    insert into reguleringskjøring (id, aar, type, start_tid, antall_prosesserte_saker, antall_reguleringer_laget, antall_kunne_ikke_opprettes) values (:id, :aar, :type, :start_tid, :antall_prosesserte_saker, :antall_reguleringer_laget, :antall_kunne_ikke_opprettes)
+                    insert into reguleringskjøring (
+                    id, 
+                    aar, 
+                    type, 
+                    start_tid, 
+                    antall_prosesserte_saker, 
+                    antall_reguleringer_laget, 
+                    antall_kunne_ikke_opprettes,
+                    arsaker_regulering_ikke_opprettet,
+                    antall_automatiske_reguleringer,
+                    antall_supplement_reguleringer,
+                    antall_reguleringer_manuell_behandling,
+                    arsaker_manuell_behandling) 
+                    values (
+                    :id, 
+                    :aar, 
+                    :type, 
+                    :start_tid, 
+                    :antall_prosesserte_saker, 
+                    :antall_reguleringer_laget, 
+                    :antall_kunne_ikke_opprettes,
+                    :arsaker_regulering_ikke_opprettet,
+                    :antall_automatiske_reguleringer,
+                    :antall_supplement_reguleringer,
+                    :antall_reguleringer_manuell_behandling,
+                    :arsaker_manuell_behandling
+                    )
                 """.trimIndent().insert(
                     mapOf(
                         "id" to oppsummering.id,
@@ -25,6 +51,11 @@ class ReguleringKjøringPostgresRepo(
                         "antall_prosesserte_saker" to oppsummering.antallProsesserteSaker,
                         "antall_reguleringer_laget" to oppsummering.antallReguleringerLaget,
                         "antall_kunne_ikke_opprettes" to oppsummering.antallKunneIkkeOpprettes,
+                        "arsaker_regulering_ikke_opprettet" to oppsummering.arsakerReguleringIkkeOpprettet,
+                        "antall_automatiske_reguleringer" to oppsummering.antallAutomatiskeReguleringer,
+                        "antall_supplement_reguleringer" to oppsummering.antallSupplementReguleringer,
+                        "antall_reguleringer_manuell_behandling" to oppsummering.antallReguleringerManuellBehandling,
+                        "arsaker_manuell_behandling" to oppsummering.arsakerManuellBehandling,
                     ),
                     session,
                 )
