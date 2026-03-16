@@ -10,8 +10,8 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 import java.time.LocalDate
 
-interface ReguleringHentEksterneReguleringerService {
-    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
+interface ReguleringerFraPesysService {
+    fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
 
 /**
@@ -24,7 +24,7 @@ interface ReguleringHentEksterneReguleringerService {
  * @property brukereMedEps Liste over brukere med tilhørende ektefelle/partner (EPS) som skal hentes regulerte beløp for.
  *           Hver bruker har informasjon om fradragstype som skal hentes.
  */
-data class HentEksterneReguleringerRequest(
+data class HentReguleringerPesysParameter(
     val månedFørRegulering: LocalDate,
     val brukereMedEps: List<BrukerMedEps>,
 ) {
@@ -56,8 +56,8 @@ data class HentEksterneReguleringerRequest(
             reguleringsMåned: Måned,
             forSaker: List<Sak>,
             clock: Clock,
-        ): HentEksterneReguleringerRequest {
-            return HentEksterneReguleringerRequest(
+        ): HentReguleringerPesysParameter {
+            return HentReguleringerPesysParameter(
                 månedFørRegulering = reguleringsMåned.fraOgMed.minusMonths(1),
                 brukereMedEps = forSaker.map { it.toBrukerMedEps(reguleringsMåned, clock) },
             )

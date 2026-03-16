@@ -19,11 +19,11 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
-import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
+import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
@@ -151,8 +151,8 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
-            on { hentEksterneReguleringer(any()) } doReturn
+        val reguleringerFraPesysService = mock<ReguleringerFraPesysService> {
+            on { hentReguleringer(any()) } doReturn
                 listOf(
                     EksterntRegulerteBeløp(
                         beløpBruker = listOf(
@@ -175,14 +175,14 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
-            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
+            reguleringerFraPesysService = reguleringerFraPesysService,
         )
 
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
 
         resultater.size shouldBe antallSaker
-        val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
-        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
+        val sakerPerKall = argumentCaptor<HentReguleringerPesysParameter>()
+        verify(reguleringerFraPesysService, times(3)).hentReguleringer(sakerPerKall.capture())
         sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
             50,
             50,
@@ -606,8 +606,8 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
             statistikkService = mock(),
             sessionFactory = sessionMock,
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
                         EksterntRegulerteBeløp(
                             beløpBruker = listOf(
@@ -685,8 +685,8 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             clock = clock,
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
                         EksterntRegulerteBeløp(
                             beløpBruker = listOf(
@@ -827,8 +827,8 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
                         EksterntRegulerteBeløp(
                             beløpBruker = listOf(

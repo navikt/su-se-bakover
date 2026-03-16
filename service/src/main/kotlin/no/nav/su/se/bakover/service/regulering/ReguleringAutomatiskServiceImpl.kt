@@ -16,17 +16,17 @@ import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
-import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
+import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
@@ -51,7 +51,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
-    private val reguleringHentEksterneReguleringerService: ReguleringHentEksterneReguleringerService,
+    private val reguleringerFraPesysService: ReguleringerFraPesysService,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -160,27 +160,29 @@ class ReguleringAutomatiskServiceImpl(
                 }
 
                 val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
-                val sakerMedRegulerteFradragEksternKilde = if (sakerSomKanReguleres.isEmpty()) {
+                val sakerMedEksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
                     Either.catch {
-                        reguleringHentEksterneReguleringerService.hentEksterneReguleringer(
-                            HentEksterneReguleringerRequest.toRequest(
+                        reguleringerFraPesysService.hentReguleringer(
+                            HentReguleringerPesysParameter.toRequest(
                                 reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
                                 forSaker = sakerSomKanReguleres,
                                 clock = clock,
                             ),
                         )
+
+                        // TODO AUTO-REG-26 Hente og appende AAP
                     }.getOrElse {
                         // TODO AUTO-REG-26 Feile enkelt batch?
                         throw it
                     }
                 }
 
-                val sakerSomHarFeilPåEksterneFradrag = sakerMedRegulerteFradragEksternKilde.filterLefts()
-                val sakerSomSkalReguleresEllerIkkeNyeFradrag = sakerSomSkalReguleresEllerIkke.map {
+                val sakerMedFeilPåEksterneReguleringer = sakerMedEksterntRegulerteBeløp.filterLefts()
+                val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
                     it.flatMap { sak ->
-                        val feil = sakerSomHarFeilPåEksterneFradrag.find { it.fnr == sak.fnr }
+                        val feil = sakerMedFeilPåEksterneReguleringer.find { it.fnr == sak.fnr }
                         if (feil != null) {
                             KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil).left()
                         } else {
@@ -189,13 +191,13 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
-                sakerSomSkalReguleresEllerIkkeNyeFradrag.map {
+                sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { sak ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
                         sak.kjørForSak(
                             fraOgMedMåned = fraOgMedMåned,
                             satsFactory = satsFactory,
-                            sakerMedEksterntRegulerteBeløp = sakerMedRegulerteFradragEksternKilde.filterRights(),
+                            sakerMedEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp.filterRights(),
                             omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )

@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
-import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
-import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest.BrukerMedEps
+import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
+import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter.BrukerMedEps
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
+import no.nav.su.se.bakover.domain.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderAlderFeilet
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderUføreFeilet
@@ -30,15 +30,15 @@ import kotlin.collections.List
 import kotlin.collections.flatMap
 import kotlin.collections.map
 
-class ReguleringHentEksterneReguleringerServiceImpl(
+class ReguleringerFraPesysServiceImpl(
     private val pesysClient: PesysClient,
     private val satsFactory: SatsFactory,
-) : ReguleringHentEksterneReguleringerService {
+) : ReguleringerFraPesysService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
-        val (månedFørRegulering, brukereMedEps) = request
+    override fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
+        val (månedFørRegulering, brukereMedEps) = parameter
 
         val uførePerioder = hentPerioderUføre(brukereMedEps, månedFørRegulering)
         val alderPerioder = hentPerioderAlder(brukereMedEps, månedFørRegulering)
