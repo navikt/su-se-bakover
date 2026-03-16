@@ -184,8 +184,10 @@ class ReguleringerFraPesysServiceImpl(
         brukereMedEps: List<BrukerMedEps>,
         dato: LocalDate,
     ): List<UføreBeregningsperioderPerPerson> {
-        val unikeFnr =
-            brukereMedEps.unikeFnrSomBenytterFradragstype(Fradragstype.Uføretrygd)
+        val fnrForFradragstype = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Uføretrygd)
+        // Vi trenger perioder for uføre som får 0 utbetalt i Pesys for Inntekt Etter Uføre
+        val uføreBrukere = brukereMedEps.filter { it.sakstype == Sakstype.UFØRE }.map { it.fnr }
+        val unikeFnr = (fnrForFradragstype + uføreBrukere).distinct()
         return pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = unikeFnr,
             dato = dato,
@@ -198,7 +200,7 @@ class ReguleringerFraPesysServiceImpl(
         brukereMedEps: List<BrukerMedEps>,
         dato: LocalDate,
     ): List<AlderBeregningsperioderPerPerson> {
-        val unikeFnr = brukereMedEps.unikeFnrSomBenytterFradragstype(Fradragstype.Alderspensjon)
+        val unikeFnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon).distinct()
         return pesysClient.hentVedtakForPersonPaaDatoAlder(
             fnrList = unikeFnr,
             dato = dato,
@@ -208,7 +210,7 @@ class ReguleringerFraPesysServiceImpl(
     }
 
     // TODO bjg tester må teste denne grundig
-    private fun List<BrukerMedEps>.unikeFnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
+    private fun List<BrukerMedEps>.fnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
         flatMap { brukerMedEps ->
             listOfNotNull(
                 brukerMedEps.fradragBruker?.let { fradragBruker -> Pair(brukerMedEps.fnr, fradragBruker) },
@@ -222,5 +224,4 @@ class ReguleringerFraPesysServiceImpl(
             )
         }.filter { (_, fradrag) -> fradrag == fradragstype }
             .map { (fnr, _) -> fnr }
-            .distinct()
 }
