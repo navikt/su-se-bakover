@@ -488,7 +488,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.PersonUtenSak,
+                        fnr,
+                    )
                     assertHarTilgangTilPerson(fnr, sak.type)
                     return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
                 }
@@ -1416,7 +1419,10 @@ open class AccessCheckProxy(
                     fnr: Fnr,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.PersonUtenSak,
+                        fnr,
+                    )
                     assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr, saksbehandler)
                 }
@@ -1426,7 +1432,10 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
                 ): Skattegrunnlag {
-                    val sak = services.sak.hentSakInfoPåFnr(fnr).first()
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.PersonUtenSak,
+                        fnr,
+                    )
                     assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
