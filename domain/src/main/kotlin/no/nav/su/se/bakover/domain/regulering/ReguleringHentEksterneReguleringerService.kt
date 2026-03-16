@@ -16,7 +16,7 @@ interface ReguleringHentEksterneReguleringerService {
 }
 
 /**
- * Objekt for å hente regulerte beløper som skal brukes som fradrag.
+ * Objekt for å hente regulerte beløp som skal brukes som fradrag.
  * Basert på reguleringsmåned og en liste saker utledes alle brukere og eps'er som har fradrag som kan hentes eksternt.
  * Bruker vil alltid ha minst en fradragstype som kan hentes eksternt (inntekt etter uføre eller alderspensjon).
  * Eps vil kunne ha 0 relevante fradragstyper. Da vil liste med fradrag være tom.
