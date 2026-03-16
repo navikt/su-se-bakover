@@ -36,7 +36,6 @@ class LoggingTest {
 
     @Test
     fun `gcp logs each event to stdout once`() {
-        konfigurerLogback("logback.xml")
         val originalOut = System.out
         val capturedOut = ByteArrayOutputStream()
         val testPrintStream = PrintStream(capturedOut, true, Charsets.UTF_8)
@@ -44,6 +43,7 @@ class LoggingTest {
 
         try {
             System.setOut(testPrintStream)
+            konfigurerLogback("logback.xml")
             LoggerFactory.getLogger(LoggingTest::class.java).info(message)
             testPrintStream.flush()
         } finally {
