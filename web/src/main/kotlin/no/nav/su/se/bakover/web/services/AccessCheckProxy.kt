@@ -1415,6 +1415,7 @@ open class AccessCheckProxy(
                     fnr: Fnr,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
+                    // TODO(SEBSOB): Ta inn sakstype eksplisitt her i stedet for å utlede den via firstOrNull().
                     val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
                         KunneIkkeHentePerson.Ukjent,
                         fnr,
@@ -1428,6 +1429,7 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
                 ): Skattegrunnlag {
+                    // TODO(SEBSOB): Ta inn sakstype eksplisitt her i stedet for å utlede den via firstOrNull().
                     val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
                         KunneIkkeHentePerson.Ukjent,
                         fnr,
