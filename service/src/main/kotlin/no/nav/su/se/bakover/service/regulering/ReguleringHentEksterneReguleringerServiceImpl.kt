@@ -151,7 +151,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
         val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
         if (forventetPesysPeriode.size > 1) {
             // TODO OBS - må muligens endres hvis AAP skal inn her?
-            // Dette skal ikke kune skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
+            // Dette skal ikke kunne skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
             log.error("To pesysperioder for samme person som ikke skal være mulig. Sikkerlogg for å se fnr")
             sikkerLogg.error("To pesysperioder for samme person som ikke skal være mulig. Bruker=$fnr")
             return FeilMedRegulertFradrag.OverlappendePeriodeFraPesys.left()
@@ -185,12 +185,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
         dato: LocalDate,
     ): List<UføreBeregningsperioderPerPerson> {
         val unikeFnr =
-            brukereMedEps.unikeFnrSomBenytterFradragstype(
-                listOf(
-                    Fradragstype.ForventetInntekt,
-                    Fradragstype.Uføretrygd,
-                ),
-            )
+            brukereMedEps.unikeFnrSomBenytterFradragstype(Fradragstype.Uføretrygd)
         return pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = unikeFnr,
             dato = dato,
@@ -203,7 +198,7 @@ class ReguleringHentEksterneReguleringerServiceImpl(
         brukereMedEps: List<BrukerMedEps>,
         dato: LocalDate,
     ): List<AlderBeregningsperioderPerPerson> {
-        val unikeFnr = brukereMedEps.unikeFnrSomBenytterFradragstype(listOf(Fradragstype.Alderspensjon))
+        val unikeFnr = brukereMedEps.unikeFnrSomBenytterFradragstype(Fradragstype.Alderspensjon)
         return pesysClient.hentVedtakForPersonPaaDatoAlder(
             fnrList = unikeFnr,
             dato = dato,
@@ -212,9 +207,9 @@ class ReguleringHentEksterneReguleringerServiceImpl(
         }.resultat
     }
 
-    private fun List<BrukerMedEps>.unikeFnrSomBenytterFradragstype(fradragstyper: List<Fradragstype>): List<Fnr> =
+    private fun List<BrukerMedEps>.unikeFnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
         flatMap { listOfNotNull(it.bruker, it.eps) }
-            .filter { person -> person.fradrag.any { fradragstyper.contains(it.fradragstype) } }
+            .filter { person -> person.fradrag.any { it == fradragstype } }
             .map { it.fnr }
             .distinct()
 }

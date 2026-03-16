@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
@@ -35,7 +34,8 @@ data class HentEksterneReguleringerRequest(
 
     data class PersonMedFradrag(
         val fnr: Fnr,
-        val fradrag: List<Fradrag>,
+        // TODO Kan fjerne List hvis Service ikke brukes for å hente AAP?
+        val fradrag: List<Fradragstype>,
     )
 
     companion object {
@@ -43,9 +43,6 @@ data class HentEksterneReguleringerRequest(
             Fradragstype.Alderspensjon,
             Fradragstype.Uføretrygd,
             // Fradragstype.Arbeidsavklaringspenger, TODO ??
-
-            // OBS! Ligger ikke i fradragsgrunnlag men må utledes fra uførevilkår
-            Fradragstype.ForventetInntekt,
         )
 
         fun toRequest(
@@ -71,7 +68,7 @@ data class HentEksterneReguleringerRequest(
                 sakstype = type,
                 bruker = PersonMedFradrag(
                     fnr = fnr,
-                    fradrag = grunnlagsdata.hentFradragBasertPå(
+                    fradrag = grunnlagsdata.hentBrukteFradragstyperBasertPå(
                         fradragstyper = relevanteFradragsTyper,
                         måned = reguleringsMåned,
                         tilhører = FradragTilhører.BRUKER,
@@ -80,7 +77,7 @@ data class HentEksterneReguleringerRequest(
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned]?.let {
                     PersonMedFradrag(
                         fnr = it,
-                        fradrag = grunnlagsdata.hentFradragBasertPå(
+                        fradrag = grunnlagsdata.hentBrukteFradragstyperBasertPå(
                             fradragstyper = relevanteFradragsTyper,
                             måned = reguleringsMåned,
                             tilhører = FradragTilhører.EPS,
