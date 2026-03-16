@@ -2,17 +2,30 @@ package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.person.Fnr
 
-// TODO javadoc  - AI hjelp!
+/**
+ * Representerer eksternt regulerte beløp hentet fra eksternt system (f.eks. Pesys eller Kelvin).
+ * Inneholder regulerte beløp for bruker og eventuelt ektefelle/partner (EPS),
+ *
+ * @property beløpBruker regulert beløp for bruker
+ * @property beløpEps regulert beløp for ektefelle/partner (EPS)
+ * @property inntektEtterUføre Regulert beløp for inntekt etter uføre.
+ *           Skal alltid være satt for uføre men kun uføre.
+ *           Et unntak hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
+ *           Da vil vi ikke får beløpet fra Pesys og det må behandles manuelt i SU-App også.
+ */
 data class EksterntRegulerteBeløp(
     val beløpBruker: List<RegulertBeløp>, // TODO Trolig endres til å fjerne List
     val beløpEps: List<RegulertBeløp>,
-
-    // Skal alltid være satt for uføre men kun uføre.
-    // Et unntak hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
-    // Da vil vi ikke får beløpet fra Pesys og det må behandles manuelt i SU-App også.
     val inntektEtterUføre: RegulertBeløp? = null,
 )
 
+/**
+ * Representerer et regulert beløp for en person, med beløp før og etter regulering.
+ *
+ * @property fnr Fødselsnummer til personen beløpet gjelder for
+ * @property førRegulering Beløpet før regulering
+ * @property etterRegulering Beløpet etter regulering
+ */
 data class RegulertBeløp(
 
     // TODO kategori elns?

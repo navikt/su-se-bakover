@@ -15,22 +15,37 @@ interface ReguleringHentEksterneReguleringerService {
 }
 
 /**
- * Objekt for å hente regulerte beløper som har blitt brukt som fradrag.
+ * Parameter-objekt for å hente regulerte beløp som har blitt brukt som fradrag.
  * Basert på reguleringsmåned og en liste saker utledes alle brukere og eps'er som
  * har fradrag som har blitt regulert eksternt.
  *
- * TODO javadoc for hvert felt.. AI
+ * @property månedFørRegulering Måneden før reguleringen skal gjelde (LocalDate representerer første dag i måneden).
+ *           Brukes for å hente perioder før og etter reguleringen.
+ * @property brukereMedEps Liste over brukere med tilhørende ektefelle/partner (EPS) som skal hentes regulerte beløp for.
+ *           Hver bruker har informasjon om fradragstype som skal hentes.
  */
 data class HentEksterneReguleringerRequest(
     val månedFørRegulering: LocalDate,
     val brukereMedEps: List<BrukerMedEps>,
 ) {
 
+    /**
+     * Representerer en bruker med eventuell ektefelle/partner (EPS) og deres fradrag.
+     *
+     * @property bruker Bruker med fødselsnummer og fradragstype
+     * @property eps Ektefelle/partner med fødselsnummer og fradragstype, eller null hvis bruker ikke har EPS
+     */
     data class BrukerMedEps(
         val bruker: PersonMedFradrag,
         val eps: PersonMedFradrag?,
     )
 
+    /**
+     * Representerer en person med fødselsnummer og fradragstype som skal reguleres.
+     *
+     * @property fnr Fødselsnummer til personen
+     * @property fradrag Fradragstype som skal hentes regulerte beløp for (f.eks. Uføretrygd eller Alderspensjon)
+     */
     data class PersonMedFradrag(
         val fnr: Fnr,
         val fradrag: Fradragstype,
