@@ -68,18 +68,18 @@ data class HentReguleringerPesysParameter(
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
             }.grunnlagsdata
 
-            val uføfreOgAlder = listOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon)
+            val uføreOgAlder = listOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon)
             return BrukerMedEps(
                 fnr = fnr,
                 sakstype = type,
                 fradragBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                    fradragstyper = uføfreOgAlder,
+                    fradragstyper = uføreOgAlder,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.BRUKER,
                 ).singleOrNull(),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned],
                 fradragEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                    fradragstyper = uføfreOgAlder,
+                    fradragstyper = uføreOgAlder,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.EPS,
                 ).singleOrNull(),

@@ -30,7 +30,7 @@ fun utledReguleringstypeOgFradrag(
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 fradragstype = fradragstype,
                 originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
-                // merEnn1Eps = bosituasjon.merEnn1Eps(), // TODO forsikre om at dette blir ivaretatt ved bygging av RegulerteFradragEksternKilde
+                // merEnn1Eps = bosituasjon.merEnn1Eps(), // TODO forsikre om at dette blir ivaretatt ved bygging av EksterntRegulerteBeløp
                 omregningsfaktor = omregningsfaktor,
                 saksnummer = saksnummer,
             )

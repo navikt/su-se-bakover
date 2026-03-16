@@ -140,11 +140,11 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
+    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         regulerFraOgMed,
         clock,
-        sakerMedRegulerteFradragEksternKilde,
+        sakerMedEksterntRegulerteBeløp,
         gVerdiØkning,
     ).getOrFail()
 
@@ -163,11 +163,11 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
+    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        eksterntRegulerteBeløp = sakerMedRegulerteFradragEksternKilde,
+        eksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
@@ -500,7 +500,7 @@ fun nyÅrsakYtelseErMidlertidigStanset(
 ): ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset =
     ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
 
-fun reguleringsgrunnlagFraEksternKilde(
+fun eksterneReguleringer(
     sak: Sak,
     førRegulering: Int = 100,
     etterRegulering: Int = 110,

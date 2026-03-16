@@ -65,8 +65,11 @@ class ReguleringerFraPesysServiceImpl(
             val reguleringForBruker =
                 utledOgVerifiserRegulertBeløp(brukerMedEps.fnr, perioderFraPesys, månedFørRegulering)
 
-            val reguleringForEps = brukerMedEps.eps?.let { epsFnr ->
+            val epsFnr = brukerMedEps.eps
+            val reguleringForEps = if (epsFnr != null && brukerMedEps.fradragEps != null) {
                 utledOgVerifiserRegulertBeløp(epsFnr, perioderFraPesys, månedFørRegulering)
+            } else {
+                null
             }
 
             val regulertIeu = if (brukerMedEps.sakstype == Sakstype.UFØRE) {
@@ -126,7 +129,7 @@ class ReguleringerFraPesysServiceImpl(
         ).getOrElse { return it.left() }
 
         if (førRegulering !is UføreBeregningsperiode || etterRegulering !is UføreBeregningsperiode) {
-            // Dette skai kke kunne skje fordi denne metoden skal kun brukes for bruker som kun har uføreperioder i Pesys
+            // Dette skal ikke kunne skje fordi denne metoden skal kun brukes for bruker som kun har uføreperioder i Pesys
             throw IllegalStateException("Periode er ikke uføretrygd under utledning av inntekt etter uføre")
         }
 
@@ -217,7 +220,7 @@ class ReguleringerFraPesysServiceImpl(
                 brukerMedEps.fradragEps?.let { fradragEps ->
                     Pair(
                         brukerMedEps.eps
-                            ?: throw IllegalStateException("Bruker har har fradrag for eps, men mangler eps"),
+                            ?: throw IllegalStateException("Bruker har fradrag for eps, men mangler eps"),
                         fradragEps,
                     )
                 },

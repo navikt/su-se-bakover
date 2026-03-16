@@ -36,7 +36,7 @@ class UtledningReguleringstypeOgFradragTest {
             ),
         )
 
-        fun lagRegulerteFradragEksternKilde(
+        fun lagEksterntRegulerteBeløp(
             etterReguleringBruker: Int = 1064,
             etterReguleringEps: Int = 1064,
         ) = EksterntRegulerteBeløp(
@@ -326,7 +326,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for hvis eksternt fradrag etter regulering er usannsynlig høyt for bruker`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            eksterntRegulerteBeløp = lagRegulerteFradragEksternKilde(etterReguleringBruker = 1075),
+            eksterntRegulerteBeløp = lagEksterntRegulerteBeløp(etterReguleringBruker = 1075),
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
@@ -347,7 +347,7 @@ class UtledningReguleringstypeOgFradragTest {
     fun `utleder manuell for hvis eksternt fradrag etter regulering er usannsynlig høyt for eps`() {
         val resultat = utledReguleringstypeOgFradrag(
             fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            eksterntRegulerteBeløp = lagRegulerteFradragEksternKilde(etterReguleringEps = 1075),
+            eksterntRegulerteBeløp = lagEksterntRegulerteBeløp(etterReguleringEps = 1075),
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )

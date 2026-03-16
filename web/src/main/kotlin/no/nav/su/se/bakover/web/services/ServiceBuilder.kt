@@ -610,7 +610,7 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
         )
-        val reguleringHentEksterneReguleringerService = ReguleringerFraPesysServiceImpl(
+        val reguleringerFraPesysService = ReguleringerFraPesysServiceImpl(
             pesysClient = clients.pesysklient,
             satsFactory = satsFactory,
         )
@@ -622,7 +622,7 @@ data object ServiceBuilder {
             clock = clock,
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
-            reguleringerFraPesysService = reguleringHentEksterneReguleringerService,
+            reguleringerFraPesysService = reguleringerFraPesysService,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

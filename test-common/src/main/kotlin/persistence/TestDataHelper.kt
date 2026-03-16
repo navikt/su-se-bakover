@@ -112,6 +112,7 @@ import no.nav.su.se.bakover.test.beregn
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
+import no.nav.su.se.bakover.test.eksterneReguleringer
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -137,7 +138,6 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.dokument.PersistertDokumentHendelseTestData
 import no.nav.su.se.bakover.test.persistence.tilbakekreving.PersistertTilbakekrevingTestData
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.reguleringsgrunnlagFraEksternKilde
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
@@ -539,7 +539,7 @@ class TestDataHelper(
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
                 fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                eksterntRegulerteBeløp = reguleringsgrunnlagFraEksternKilde(sak),
+                eksterntRegulerteBeløp = eksterneReguleringer(sak),
                 omregningsfaktor = gVerdiØkning,
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
