@@ -24,7 +24,7 @@ internal class ReguleringKjøringPostgresRepoTest {
         id = UUID.randomUUID(),
         aar = 2021,
         type = "dryrun",
-        startTid = LocalDateTime.now(),
+        startTid = LocalDateTime.of(2026, 1, 1, 12, 0),
         antallProsesserteSaker = 10,
         antallReguleringerLaget = 5,
         antallKunneIkkeOpprettes = 2,
