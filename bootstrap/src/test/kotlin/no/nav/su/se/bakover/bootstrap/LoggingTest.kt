@@ -8,11 +8,15 @@ import ch.qos.logback.core.ConsoleAppender
 import com.papertrailapp.logback.Syslog4jAppender
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender
 import net.logstash.logback.appender.LogstashTcpSocketAppender
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
+import java.util.UUID
 
 @Isolated
 class LoggingTest {
@@ -20,10 +24,34 @@ class LoggingTest {
     @Test
     fun `gcp`() {
         konfigurerLogback("logback.xml")
-        getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
+        val rootLogger = getLogger("ROOT")
+        rootLogger.getAppender("OTEL") shouldBe beOfType<OpenTelemetryAppender>()
+        val otelAppender = rootLogger.getAppender("OTEL") as OpenTelemetryAppender
+        otelAppender.getAppender("STDOUT_JSON") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
+        rootLogger.getAppender("STDOUT_JSON") shouldBe null
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<Syslog4jAppender<ILoggingEvent>>()
         getLogger("team-logs-logger").getAppender("team-logs") shouldBe beOfType<LogstashTcpSocketAppender>()
         getLogger("ROOT").getAppender("STDOUT") shouldBe null
+    }
+
+    @Test
+    fun `gcp logs each event to stdout once`() {
+        konfigurerLogback("logback.xml")
+        val originalOut = System.out
+        val capturedOut = ByteArrayOutputStream()
+        val testPrintStream = PrintStream(capturedOut, true, Charsets.UTF_8)
+        val message = "duplicate-regression-${UUID.randomUUID()}"
+
+        try {
+            System.setOut(testPrintStream)
+            LoggerFactory.getLogger(LoggingTest::class.java).info(message)
+            testPrintStream.flush()
+        } finally {
+            System.setOut(originalOut)
+            testPrintStream.close()
+        }
+
+        capturedOut.toString(Charsets.UTF_8).lineSequence().count { it.contains(message) } shouldBe 1
     }
 
     @Test
