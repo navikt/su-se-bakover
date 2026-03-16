@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
@@ -27,7 +28,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulerteBeløpForBrukerEksternKilde
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
@@ -195,7 +195,7 @@ class ReguleringAutomatiskServiceImpl(
                         sak.kjørForSak(
                             fraOgMedMåned = fraOgMedMåned,
                             satsFactory = satsFactory,
-                            sakerMedRegulerteBeløpForBrukerEksternKilde = sakerMedRegulerteFradragEksternKilde.filterRights(),
+                            sakerMedEksterntRegulerteBeløp = sakerMedRegulerteFradragEksternKilde.filterRights(),
                             omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )
@@ -209,7 +209,7 @@ class ReguleringAutomatiskServiceImpl(
     private fun Sak.kjørForSak(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        sakerMedRegulerteBeløpForBrukerEksternKilde: List<RegulerteBeløpForBrukerEksternKilde>,
+        sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
@@ -218,7 +218,7 @@ class ReguleringAutomatiskServiceImpl(
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             fraOgMedMåned = fraOgMedMåned,
             clock = clock,
-            sakerMedRegulerteBeløpForBrukerEksternKilde,
+            sakerMedEksterntRegulerteBeløp,
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
             // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.

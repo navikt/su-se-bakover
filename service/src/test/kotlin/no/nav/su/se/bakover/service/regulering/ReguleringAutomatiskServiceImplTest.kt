@@ -18,14 +18,14 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertBeløpEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteBeløpForBrukerEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -154,16 +154,15 @@ internal class ReguleringAutomatiskServiceImplTest {
         val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
             on { hentEksterneReguleringer(any()) } doReturn
                 listOf(
-                    RegulerteBeløpForBrukerEksternKilde(
-                        fnr = fnr,
-                        fradrag = listOf(
-                            RegulertBeløpEksternKilde(
+                    EksterntRegulerteBeløp(
+                        beløpBruker = listOf(
+                            RegulertBeløp(
                                 fnr = fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
                         ),
-                        fradragEps = emptyList(),
+                        beløpEps = emptyList(),
                     ).right(),
                 )
         }
@@ -610,16 +609,15 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringHentEksterneReguleringerService = mock {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteBeløpForBrukerEksternKilde(
-                            fnr = sak.fnr,
-                            fradrag = listOf(
-                                RegulertBeløpEksternKilde(
+                        EksterntRegulerteBeløp(
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
                             ),
-                            fradragEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },
@@ -690,16 +688,15 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringHentEksterneReguleringerService = mock {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteBeløpForBrukerEksternKilde(
-                            fnr = sak.fnr,
-                            fradrag = listOf(
-                                RegulertBeløpEksternKilde(
+                        EksterntRegulerteBeløp(
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
                             ),
-                            fradragEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },
@@ -833,16 +830,15 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringHentEksterneReguleringerService = mock {
                 on { hentEksterneReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteBeløpForBrukerEksternKilde(
-                            fnr = sak.fnr,
-                            fradrag = listOf(
-                                RegulertBeløpEksternKilde(
+                        EksterntRegulerteBeløp(
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
                                     førRegulering = beløpFørRegulering.toInt(),
                                     etterRegulering = beløpEtterRegulering.toInt(),
                                 ),
                             ),
-                            fradragEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },

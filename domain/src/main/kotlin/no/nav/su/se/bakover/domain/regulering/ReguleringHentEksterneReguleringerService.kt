@@ -11,14 +11,15 @@ import java.time.Clock
 import java.time.LocalDate
 
 interface ReguleringHentEksterneReguleringerService {
-    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvRegulerteFradragFeiletForBruker, RegulerteBeløpForBrukerEksternKilde>>
+    fun hentEksterneReguleringer(request: HentEksterneReguleringerRequest): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
 
 /**
- * Objekt for å hente regulerte beløper som skal brukes som fradrag.
- * Basert på reguleringsmåned og en liste saker utledes alle brukere og eps'er som har fradrag som kan hentes eksternt.
- * Bruker vil alltid ha minst en fradragstype som kan hentes eksternt (inntekt etter uføre eller alderspensjon).
- * Eps vil kunne ha 0 relevante fradragstyper. Da vil liste med fradrag være tom.
+ * Objekt for å hente regulerte beløper som har blitt brukt som fradrag.
+ * Basert på reguleringsmåned og en liste saker utledes alle brukere og eps'er som
+ * har fradrag som har blitt regulert eksternt.
+ *
+ * TODO javadoc for hvert felt.. AI
  */
 data class HentEksterneReguleringerRequest(
     val månedFørRegulering: LocalDate,
@@ -32,7 +33,6 @@ data class HentEksterneReguleringerRequest(
 
     data class PersonMedFradrag(
         val fnr: Fnr,
-        // TODO Kan fjerne List hvis Service ikke brukes for å hente AAP?
         val fradrag: Fradragstype,
     )
 
@@ -81,17 +81,17 @@ data class HentEksterneReguleringerRequest(
     }
 }
 
-data class HentingAvRegulerteFradragFeiletForBruker(
+data class HentingAvEksterneReguleringerFeiletForBruker(
     val fnr: Fnr,
-    val alleFeil: List<FeilMedRegulertFradrag>,
+    val alleFeil: List<FeilMedEksternRegulering>,
 )
 
-interface FeilMedRegulertFradrag {
-    object IngenPeriodeFraPesys : FeilMedRegulertFradrag
-    object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedRegulertFradrag
-    object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedRegulertFradrag
-    object GrunnbeløpFraPesysUliktForventetNytt : FeilMedRegulertFradrag
-    object OverlappendePeriodeFraPesys : FeilMedRegulertFradrag
+interface FeilMedEksternRegulering {
+    object IngenPeriodeFraPesys : FeilMedEksternRegulering
+    object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedEksternRegulering
+    object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering
+    object GrunnbeløpFraPesysUliktForventetNytt : FeilMedEksternRegulering
+    object OverlappendePeriodeFraPesys : FeilMedEksternRegulering
 }
 
 class UthentingAvPerioderUføreFeilet : IllegalStateException()

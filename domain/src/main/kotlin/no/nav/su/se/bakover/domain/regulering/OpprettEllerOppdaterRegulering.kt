@@ -22,7 +22,7 @@ TODO bjg mer beskrivelse
 fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     fraOgMedMåned: Måned,
     clock: Clock,
-    regulerteBeløpForBrukerEksternKilde: List<RegulerteBeløpForBrukerEksternKilde>,
+    eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
     omregningsfaktor: BigDecimal,
 ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
@@ -34,8 +34,8 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         return it.left()
     }
 
-    val regulerteFradragEksternKilde = regulerteBeløpForBrukerEksternKilde.singleOrNull {
-        it.fnr == fnr
+    val regulerteFradragEksternKilde = eksterntRegulerteBeløp.singleOrNull {
+        it.beløpBruker.first().fnr == fnr
     } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
     return Regulering.opprettRegulering(
         sakId = id,
@@ -44,7 +44,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
-        regulerteBeløpForBrukerEksternKilde = regulerteFradragEksternKilde,
+        eksterntRegulerteBeløp = regulerteFradragEksternKilde,
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
         // TODO AUTO-REG-26 kan dette forbedres?

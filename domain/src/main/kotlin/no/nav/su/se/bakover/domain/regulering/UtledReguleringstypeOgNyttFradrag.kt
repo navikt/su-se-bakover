@@ -18,7 +18,7 @@ private val log: Logger = LoggerFactory.getLogger("Regulering")
 // TODO metode som tar i mot alle fradrag og looper?
 fun utledReguleringstypeOgFradrag(
     fradrag: List<Fradragsgrunnlag>,
-    regulerteBeløpForBrukerEksternKilde: RegulerteBeløpForBrukerEksternKilde,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
     saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
@@ -27,7 +27,7 @@ fun utledReguleringstypeOgFradrag(
         .map { (fradragstype, fradragsgrunnlag) ->
             val fradragEtterSupplementSjekk = utledReguleringstypeOgFradrag(
                 // eksternSupplementRegulering = eksternSupplementRegulering,
-                regulerteBeløpForBrukerEksternKilde = regulerteBeløpForBrukerEksternKilde,
+                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 fradragstype = fradragstype,
                 originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
                 // merEnn1Eps = bosituasjon.merEnn1Eps(), // TODO forsikre om at dette blir ivaretatt ved bygging av RegulerteFradragEksternKilde
@@ -49,7 +49,7 @@ fun utledReguleringstypeOgFradrag(
 }
 
 fun utledReguleringstypeOgFradrag(
-    regulerteBeløpForBrukerEksternKilde: RegulerteBeløpForBrukerEksternKilde,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     omregningsfaktor: BigDecimal,
@@ -59,7 +59,7 @@ fun utledReguleringstypeOgFradrag(
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     return originaleFradragsgrunnlag.groupBy { it.fradrag.tilhører }.map { (fradragtilhører, fradragsgrunnlag) ->
         utledReguleringstypeOgFradrag(
-            regulerteBeløpForBrukerEksternKilde,
+            eksterntRegulerteBeløp,
             fradragstype,
             fradragsgrunnlag.toNonEmptyList(),
             fradragtilhører,
@@ -82,7 +82,7 @@ fun utledReguleringstypeOgFradrag(
 
 // For enkelt fradrag
 fun utledReguleringstypeOgFradrag(
-    regulerteBeløpForBrukerEksternKilde: RegulerteBeløpForBrukerEksternKilde,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     fradragTilhører: FradragTilhører,
@@ -128,8 +128,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     // TODO bjg fortsatt nødvendig??
-    if (fradragTilhører == FradragTilhører.EPS && regulerteBeløpForBrukerEksternKilde.fradragEps.size > 1) {
-        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${regulerteBeløpForBrukerEksternKilde.fradragEps.size}, saksnummer: $saksnummer")
+    if (fradragTilhører == FradragTilhører.EPS && eksterntRegulerteBeløp.beløpEps.size > 1) {
+        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${eksterntRegulerteBeløp.beløpEps.size}, saksnummer: $saksnummer")
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps(
                 fradragskategori = fradragstype.kategori,
@@ -140,8 +140,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> regulerteBeløpForBrukerEksternKilde.fradrag.single()
-        FradragTilhører.EPS -> regulerteBeløpForBrukerEksternKilde.fradragEps.single() // TODO AUTO-REG-26 må filtreres på type her..
+        FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.single()
+        FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.single() // TODO AUTO-REG-26 må filtreres på type her..
     }
     return sjekkOmDifferenseForBeløper(
         nyttFradrag,
@@ -156,7 +156,7 @@ fun utledReguleringstypeOgFradrag(
 
 // TODO bjg del i to...
 private fun sjekkOmDifferenseForBeløper(
-    nyttFradrag: RegulertBeløpEksternKilde,
+    nyttFradrag: RegulertBeløp,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,

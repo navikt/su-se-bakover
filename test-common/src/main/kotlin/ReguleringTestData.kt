@@ -19,13 +19,13 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertBeløpEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteBeløpForBrukerEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -167,7 +167,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        regulerteBeløpForBrukerEksternKilde = sakerMedRegulerteFradragEksternKilde,
+        eksterntRegulerteBeløp = sakerMedRegulerteFradragEksternKilde,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
@@ -505,15 +505,14 @@ fun reguleringsgrunnlagFraEksternKilde(
     førRegulering: Int = 100,
     etterRegulering: Int = 110,
 ) = listOf(
-    RegulerteBeløpForBrukerEksternKilde(
-        fnr = sak.fnr,
-        fradrag = listOf(
-            RegulertBeløpEksternKilde(
+    EksterntRegulerteBeløp(
+        beløpBruker = listOf(
+            RegulertBeløp(
                 fnr = sak.fnr,
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
             ),
         ),
-        fradragEps = emptyList(),
+        beløpEps = emptyList(),
     ),
 )
