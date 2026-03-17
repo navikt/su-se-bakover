@@ -19,13 +19,13 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -140,11 +140,11 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
+    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         regulerFraOgMed,
         clock,
-        sakerMedRegulerteFradragEksternKilde,
+        sakerMedEksterntRegulerteBeløp,
         gVerdiØkning,
     ).getOrFail()
 
@@ -163,11 +163,11 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
+    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         fraOgMedMåned = regulerFraOgMed,
         clock = clock,
-        regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
+        eksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
@@ -500,20 +500,19 @@ fun nyÅrsakYtelseErMidlertidigStanset(
 ): ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset =
     ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
 
-fun reguleringsgrunnlagFraEksternKilde(
+fun eksterneReguleringer(
     sak: Sak,
     førRegulering: Int = 100,
     etterRegulering: Int = 110,
 ) = listOf(
-    RegulerteFradragEksternKilde(
-        fnr = sak.fnr,
-        bruker = listOf(
-            RegulertFradragEksternKilde(
+    EksterntRegulerteBeløp(
+        beløpBruker = listOf(
+            RegulertBeløp(
                 fnr = sak.fnr,
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
             ),
         ),
-        forEps = emptyList(),
+        beløpEps = emptyList(),
     ),
 )

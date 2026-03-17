@@ -95,7 +95,7 @@ sealed interface Regulering : Stønadsbehandling {
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
-            regulerteFradragEksternKilde: RegulerteFradragEksternKilde,
+            eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, ReguleringUnderBehandling.OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer =
@@ -112,7 +112,7 @@ sealed interface Regulering : Stønadsbehandling {
             // TODO AUTO-REG-26 - switch gammel/ny
             val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradrag(
                 fradrag = fradrag,
-                regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 omregningsfaktor = omregningsfaktor,
                 saksnummer = saksnummer,
             )

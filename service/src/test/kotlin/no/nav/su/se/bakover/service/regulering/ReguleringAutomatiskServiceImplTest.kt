@@ -18,14 +18,14 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
-import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
+import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -151,19 +151,18 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
-            on { hentEksterneReguleringer(any()) } doReturn
+        val reguleringerFraPesysService = mock<ReguleringerFraPesysService> {
+            on { hentReguleringer(any()) } doReturn
                 listOf(
-                    RegulerteFradragEksternKilde(
-                        fnr = fnr,
-                        bruker = listOf(
-                            RegulertFradragEksternKilde(
+                    EksterntRegulerteBeløp(
+                        beløpBruker = listOf(
+                            RegulertBeløp(
                                 fnr = fnr,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
                         ),
-                        forEps = emptyList(),
+                        beløpEps = emptyList(),
                     ).right(),
                 )
         }
@@ -176,14 +175,14 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
-            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
+            reguleringerFraPesysService = reguleringerFraPesysService,
         )
 
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
 
         resultater.size shouldBe antallSaker
-        val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
-        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
+        val sakerPerKall = argumentCaptor<HentReguleringerPesysParameter>()
+        verify(reguleringerFraPesysService, times(3)).hentReguleringer(sakerPerKall.capture())
         sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
             50,
             50,
@@ -607,19 +606,18 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
             statistikkService = mock(),
             sessionFactory = sessionMock,
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteFradragEksternKilde(
-                            fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                        EksterntRegulerteBeløp(
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
                             ),
-                            forEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },
@@ -687,19 +685,18 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             clock = clock,
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteFradragEksternKilde(
-                            fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                        EksterntRegulerteBeløp(
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
                             ),
-                            forEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },
@@ -830,19 +827,18 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteFradragEksternKilde(
-                            fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                        EksterntRegulerteBeløp(
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
                                     førRegulering = beløpFørRegulering.toInt(),
                                     etterRegulering = beløpEtterRegulering.toInt(),
                                 ),
                             ),
-                            forEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },

@@ -32,9 +32,9 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringHentEksterneReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -610,7 +610,7 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
         )
-        val reguleringHentEksterneReguleringerService = ReguleringHentEksterneReguleringerServiceImpl(
+        val reguleringerFraPesysService = ReguleringerFraPesysServiceImpl(
             pesysClient = clients.pesysklient,
             satsFactory = satsFactory,
         )
@@ -622,7 +622,7 @@ data object ServiceBuilder {
             clock = clock,
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
-            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
+            reguleringerFraPesysService = reguleringerFraPesysService,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

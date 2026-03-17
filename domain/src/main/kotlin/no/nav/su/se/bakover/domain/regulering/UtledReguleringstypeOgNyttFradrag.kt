@@ -16,9 +16,10 @@ import kotlin.math.absoluteValue
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
 // TODO metode som tar i mot alle fradrag og looper?
+// TODO hvor og hvordan blir eps sin SU inn her?
 fun utledReguleringstypeOgFradrag(
     fradrag: List<Fradragsgrunnlag>,
-    regulerteFradragEksternKilde: RegulerteFradragEksternKilde,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
     saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
@@ -27,10 +28,10 @@ fun utledReguleringstypeOgFradrag(
         .map { (fradragstype, fradragsgrunnlag) ->
             val fradragEtterSupplementSjekk = utledReguleringstypeOgFradrag(
                 // eksternSupplementRegulering = eksternSupplementRegulering,
-                regulerteFradragEksternKilde = regulerteFradragEksternKilde,
+                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 fradragstype = fradragstype,
                 originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
-                // merEnn1Eps = bosituasjon.merEnn1Eps(), // TODO forsikre om at dette blir ivaretatt ved bygging av RegulerteFradragEksternKilde
+                // merEnn1Eps = bosituasjon.merEnn1Eps(), // TODO forsikre om at dette blir ivaretatt ved bygging av EksterntRegulerteBeløp
                 omregningsfaktor = omregningsfaktor,
                 saksnummer = saksnummer,
             )
@@ -49,7 +50,7 @@ fun utledReguleringstypeOgFradrag(
 }
 
 fun utledReguleringstypeOgFradrag(
-    regulerteFradragEksternKilde: RegulerteFradragEksternKilde,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     omregningsfaktor: BigDecimal,
@@ -59,7 +60,7 @@ fun utledReguleringstypeOgFradrag(
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     return originaleFradragsgrunnlag.groupBy { it.fradrag.tilhører }.map { (fradragtilhører, fradragsgrunnlag) ->
         utledReguleringstypeOgFradrag(
-            regulerteFradragEksternKilde,
+            eksterntRegulerteBeløp,
             fradragstype,
             fradragsgrunnlag.toNonEmptyList(),
             fradragtilhører,
@@ -82,7 +83,7 @@ fun utledReguleringstypeOgFradrag(
 
 // For enkelt fradrag
 fun utledReguleringstypeOgFradrag(
-    regulerteFradragEksternKilde: RegulerteFradragEksternKilde,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     fradragTilhører: FradragTilhører,
@@ -105,6 +106,7 @@ fun utledReguleringstypeOgFradrag(
         ) to originaleFradragsgrunnlag
     }
 
+    // TODO hvordan vil dette skje? Ingen tilfeller i 2025, et tilfelle i 2024
     if (originaleFradragsgrunnlag.size > 1) {
         log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt. Saksnummer: $saksnummer")
         return Reguleringstype.MANUELL(
@@ -128,8 +130,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     // TODO bjg fortsatt nødvendig??
-    if (fradragTilhører == FradragTilhører.EPS && regulerteFradragEksternKilde.forEps.size > 1) {
-        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${regulerteFradragEksternKilde.forEps.size}, saksnummer: $saksnummer")
+    if (fradragTilhører == FradragTilhører.EPS && eksterntRegulerteBeløp.beløpEps.size > 1) {
+        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${eksterntRegulerteBeløp.beløpEps.size}, saksnummer: $saksnummer")
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps(
                 fradragskategori = fradragstype.kategori,
@@ -140,8 +142,8 @@ fun utledReguleringstypeOgFradrag(
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> regulerteFradragEksternKilde.bruker.single()
-        FradragTilhører.EPS -> regulerteFradragEksternKilde.forEps.single() // TODO AUTO-REG-26 må filtreres på type her..
+        FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.single()
+        FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.single() // TODO AUTO-REG-26 må filtreres på type her..
     }
     return sjekkOmDifferenseForBeløper(
         nyttFradrag,
@@ -156,7 +158,7 @@ fun utledReguleringstypeOgFradrag(
 
 // TODO bjg del i to...
 private fun sjekkOmDifferenseForBeløper(
-    nyttFradrag: RegulertFradragEksternKilde,
+    nyttFradrag: RegulertBeløp,
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
