@@ -16,6 +16,7 @@ import kotlin.math.absoluteValue
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
 // TODO metode som tar i mot alle fradrag og looper?
+// TODO hvor og hvordan blir eps sin SU inn her?
 fun utledReguleringstypeOgFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
@@ -105,6 +106,7 @@ fun utledReguleringstypeOgFradrag(
         ) to originaleFradragsgrunnlag
     }
 
+    // TODO hvordan vil dette skje? Ingen tilfeller i 2025, et tilfelle i 2024
     if (originaleFradragsgrunnlag.size > 1) {
         log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt. Saksnummer: $saksnummer")
         return Reguleringstype.MANUELL(

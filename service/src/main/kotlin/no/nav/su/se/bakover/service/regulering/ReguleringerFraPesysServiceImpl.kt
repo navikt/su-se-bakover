@@ -153,6 +153,7 @@ class ReguleringerFraPesysServiceImpl(
         perioderFraPesys: List<PesysPerioderForPerson>,
     ): Either<FeilMedEksternRegulering, Pair<PesysPeriode, PesysPeriode>> {
         val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
+        // TODO auto-reg-26 Bruke when istedenfor if'er for å tydeliggjøre at disse henger tett sammen!
         if (forventetPesysPeriode.size > 1) {
             // Dette skal ikke kunne skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
             log.error("To pesysperioder for samme person som ikke skal være mulig. Sikkerlogg for å se fnr")

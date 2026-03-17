@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.person.Fnr
  * @property beløpBruker regulert beløp for bruker
  * @property beløpEps regulert beløp for ektefelle/partner (EPS)
  * @property inntektEtterUføre Regulert beløp for inntekt etter uføre.
- *           Skal alltid være satt for uføre men kun uføre.
- *           Et unntak hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
+ *           Skal alltid være satt for uføre (aldri AP) med et unntak:
+ *           Det eneste tilfelle hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
  *           Da vil vi ikke får beløpet fra Pesys og det må behandles manuelt i SU-App også.
  */
 data class EksterntRegulerteBeløp(
