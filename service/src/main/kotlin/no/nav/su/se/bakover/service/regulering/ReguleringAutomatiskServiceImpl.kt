@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
@@ -42,9 +44,12 @@ import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDateTime
+import java.util.UUID
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
+    private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val sakService: SakService,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
@@ -203,7 +208,41 @@ class ReguleringAutomatiskServiceImpl(
                 }
             }
 
-        return resultater.also { logResultat(it) }
+        val startTid = LocalDateTime.now()
+
+        return resultater.also {
+            val reguleringKjøring = ReguleringKjøring(
+                id = UUID.randomUUID(),
+                aar = fraOgMedMåned.årOgMåned.monthValue,
+                type = "(DryRun)Grunnbeløpsregulering",
+                startTid = startTid,
+                antallProsesserteSaker = resultater.size,
+                antallReguleringerLaget = resultater.count { it.isRight() },
+                antallKunneIkkeOpprettes = resultater.count { it.isLeft() },
+                arsakerReguleringIkkeOpprettet = resultater.filter { it.isLeft() }.map { it.swap().getOrNull()!! }.groupBy {
+                    when (it) {
+                        is KunneIkkeRegulereAutomatisk.FantIkkeSak -> "FantIkkeSak"
+                        is KunneIkkeRegulereAutomatisk.FørerIkkeTilEnEndring -> "FørerIkkeTilEnEndring"
+                        is KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør -> "HarÅpenReguleringFraFør"
+                        is KunneIkkeRegulereAutomatisk.UkjentFeil -> "UkjentFeil"
+
+                        is KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering -> "KunneIkkeHenteEllerOppretteRegulering(${it.feil})"
+                        is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk -> "KunneIkkeBehandleAutomatisk(${it.feil})"
+                        is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet -> "UthentingFradragPesysFeilet(${it.feil})"
+                    }
+                }.map { "${it.key}: ${it.value.size}" }.joinToString(", "),
+                antallAutomatiskeReguleringer = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype == Reguleringstype.AUTOMATISK },
+                antallSupplementReguleringer = resultater.count {
+                    val regulering = it.getOrNull() as? OpprettetRegulering
+                    regulering?.reguleringstype == Reguleringstype.AUTOMATISK && (regulering.eksternSupplementRegulering?.bruker != null || regulering.eksternSupplementRegulering?.eps?.isNotEmpty() == true)
+                },
+                antallReguleringerManuellBehandling = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype is Reguleringstype.MANUELL },
+                arsakerManuellBehandling = resultater.filter { it.isRight() }.map { it.getOrNull()!! }.mapNotNull { it.reguleringstype as? Reguleringstype.MANUELL }.flatMap { manuell -> manuell.problemer.map { it::class.simpleName ?: "UkjentProblem" } }
+                    .groupBy { it }.map { "${it.key}: ${it.value.size}" }.joinToString(", "),
+            )
+            reguleringKjøringRepo.lagre(reguleringKjøring)
+            logResultat(resultater)
+        }
     }
 
     private fun Sak.kjørForSak(
