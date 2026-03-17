@@ -11,6 +11,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
+import io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender
 import no.nav.su.se.bakover.bootstrap.LoggingTest.Companion.konfigurerLogback
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.application.runApplicationWithMocks
@@ -48,7 +49,8 @@ class MDCLogTest {
     @Test
     fun `logs appropriate MDC values`() {
         val rootAppender =
-            ((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("STDOUT_JSON")) as ConsoleAppender
+            (((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("OTEL")) as OpenTelemetryAppender)
+                .getAppender("STDOUT_JSON") as ConsoleAppender
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         testApplication {
             application {
