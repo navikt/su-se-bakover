@@ -12,8 +12,10 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.inClauseWith
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.simulering.deserializeSimulering
@@ -48,6 +50,44 @@ internal data object UtbetalingInternalRepo {
         ) { it.toUtbetaling(session) }.let { Utbetalinger(it) }
     }
 
+    fun hentOversendteUtbetalingerForSakIder(
+        sakIder: List<UUID>,
+        session: Session,
+    ): Map<UUID, Utbetalinger> {
+        if (sakIder.isEmpty()) return emptyMap()
+
+        val utbetalinger = """
+            select u.*, s.saksnummer, s.type as sakstype
+            from utbetaling u
+            join sak s on s.id = u.sakId
+            where u.sakId = any(:sakIder)
+            order by u.sakId, u.opprettet
+        """.hentListe(
+            mapOf("sakIder" to session.uuidInClauseWith(sakIder)),
+            session,
+        ) {
+            it.toUtbetalingData()
+        }
+
+        if (utbetalinger.isEmpty()) return emptyMap()
+
+        val utbetalingslinjerPerUtbetalingId = hentUtbetalingslinjerForUtbetalinger(
+            utbetalinger.map { it.id },
+            session,
+        )
+
+        return utbetalinger.groupBy { it.sakId }.mapValues { (_, utbetalingerForSak) ->
+            Utbetalinger(
+                utbetalingerForSak.map { utbetaling ->
+                    utbetaling.toUtbetaling(
+                        utbetalingslinjer = utbetalingslinjerPerUtbetalingId[utbetaling.id]
+                            ?: error("Fant ikke utbetalingslinjer for utbetaling ${utbetaling.id}"),
+                    )
+                },
+            )
+        }
+    }
+
     fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
         "select * from utbetalingslinje where utbetalingId=:utbetalingId order by rekkefølge".hentListe(
             mapOf("utbetalingId" to utbetalingId.toString()),
@@ -63,25 +103,74 @@ internal data object UtbetalingInternalRepo {
         ) {
             it.toUtbetalingslinje()
         }
+
+    private fun hentUtbetalingslinjerForUtbetalinger(
+        utbetalingIder: List<UUID30>,
+        session: Session,
+    ): Map<UUID30, List<Utbetalingslinje>> {
+        if (utbetalingIder.isEmpty()) return emptyMap()
+
+        return """
+            select *
+            from utbetalingslinje
+            where utbetalingId = any(:utbetalingIder)
+            order by utbetalingId, rekkefølge
+        """.hentListe(
+            mapOf("utbetalingIder" to session.inClauseWith(utbetalingIder.map { it.toString() })),
+            session,
+        ) {
+            it.string("utbetalingId") to it.toUtbetalingslinje()
+        }.groupBy(
+            keySelector = { UUID30.fromString(it.first) },
+            valueTransform = { it.second },
+        )
+    }
 }
 
 internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
-    val utbetalingId = uuid30("id")
-    val opprettet = tidspunkt("opprettet")
-    val simulering = string("simulering").deserializeSimulering()
-    val kvittering = deserializeNullable<Kvittering>(stringOrNull("kvittering"))
-    val utbetalingsrequest = deserialize<Utbetalingsrequest>(string("utbetalingsrequest"))
-    val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
-    val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
-    val sakId = uuid("sakId")
-    val saksnummer = Saksnummer(long("saksnummer"))
-    val fnr = Fnr(string("fnr"))
-    val behandler = NavIdentBruker.Attestant(string("behandler"))
-    val avstemmingsnøkkel = deserialize<Avstemmingsnøkkel>(string("avstemmingsnøkkel"))
-    val sakstype = Sakstype.from(string("sakstype"))
+    val utbetaling = toUtbetalingData()
+    return utbetaling.toUtbetaling(
+        utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetaling.id, session),
+    )
+}
 
+private data class UtbetalingData(
+    val id: UUID30,
+    val opprettet: no.nav.su.se.bakover.common.tid.Tidspunkt,
+    val sakId: UUID,
+    val saksnummer: Saksnummer,
+    val fnr: Fnr,
+    val avstemmingsnøkkel: Avstemmingsnøkkel,
+    val simulering: økonomi.domain.simulering.Simulering,
+    val utbetalingsrequest: Utbetalingsrequest,
+    val kvittering: Kvittering?,
+    val avstemmingId: UUID30?,
+    val behandler: NavIdentBruker,
+    val sakstype: Sakstype,
+)
+
+private fun Row.toUtbetalingData(): UtbetalingData {
+    return UtbetalingData(
+        id = uuid30("id"),
+        opprettet = tidspunkt("opprettet"),
+        sakId = uuid("sakId"),
+        saksnummer = Saksnummer(long("saksnummer")),
+        fnr = Fnr(string("fnr")),
+        avstemmingsnøkkel = deserialize<Avstemmingsnøkkel>(string("avstemmingsnøkkel")),
+        simulering = string("simulering").deserializeSimulering(),
+        utbetalingsrequest = deserialize<Utbetalingsrequest>(string("utbetalingsrequest")),
+        kvittering = deserializeNullable<Kvittering>(stringOrNull("kvittering")),
+        avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) },
+        behandler = NavIdentBruker.Attestant(string("behandler")),
+        sakstype = Sakstype.from(string("sakstype")),
+    )
+}
+
+private fun UtbetalingData.toUtbetaling(
+    utbetalingslinjer: List<Utbetalingslinje>,
+): Utbetaling.OversendtUtbetaling {
     return UtbetalingMapper(
-        id = utbetalingId,
+        id = id,
         opprettet = opprettet,
         sakId = sakId,
         saksnummer = saksnummer,

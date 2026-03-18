@@ -8,18 +8,12 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
-import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.sakInfo
-import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
-import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
-import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
-import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeStans
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import økonomi.domain.utbetaling.UtbetalingRepo
-import økonomi.domain.utbetaling.Utbetalinger
 import java.time.YearMonth
 import java.util.UUID
 
@@ -38,15 +32,17 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
     }
     private val sakRepo = mock<SakRepo> {
         on {
-            hentSakInfoBulk(listOf(sak3.sakInfo.sakId, sak4.sakInfo.sakId, sak5.sakInfo.sakId))
-        } doReturn listOf(sak3.sakInfo, sak4.sakInfo, sak5.sakInfo)
+            hentSakInfoBulk(listOf(sak4.sakInfo.sakId, sak5.sakInfo.sakId))
+        } doReturn listOf(sak4.sakInfo, sak5.sakInfo)
     }
     private val utbetalingsRepo = mock<UtbetalingRepo> {
-        on { hentOversendteUtbetalinger(sak1.sakInfo.sakId) } doReturn sak1.utbetalinger
-        on { hentOversendteUtbetalinger(sak2.sakInfo.sakId) } doReturn sak2.utbetalinger
-        on { hentOversendteUtbetalinger(sak3.sakInfo.sakId) } doReturn sak3.utbetalinger
-        on { hentOversendteUtbetalinger(sak4.sakInfo.sakId) } doReturn sak4.utbetalinger
-        on { hentOversendteUtbetalinger(sak5.sakInfo.sakId) } doReturn sak5.utbetalinger
+        on {
+            hentOversendteUtbetalingerForSakIder(listOf(sak3.sakInfo.sakId, sak4.sakInfo.sakId, sak5.sakInfo.sakId))
+        } doReturn mapOf(
+            sak3.sakInfo.sakId to sak3.utbetalinger,
+            sak4.sakInfo.sakId to sak4.utbetalinger,
+            sak5.sakInfo.sakId to sak5.utbetalinger,
+        )
     }
     private val service = KontrollsamtaleDriftOversiktServiceImpl(kontrollsamtaleService, utbetalingsRepo, sakRepo)
 
@@ -91,24 +87,24 @@ class KontrollsamtaleDriftOversiktServiceImplTest {
                     innkallingsdato = kontrollsamtaleMåned.atDay(1),
                     frist = kontrollsamtaleMåned.atEndOfMonth(),
                 ),
-                utbetalinger = if (stanset) {
-                    val første = utbetalingslinjeNy()
-                    val stans = utbetalingslinjeStans(utbetalingslinjeSomSkalEndres = første, clock = TikkendeKlokke())
-                    Utbetalinger(
-                        oversendtUtbetalingUtenKvittering(utbetalingslinjer = nonEmptyListOf(første, stans)),
-                    )
-                } else {
-                    Utbetalinger(
-                        oversendtUtbetalingMedKvittering(utbetalingslinjer = nonEmptyListOf(utbetalingslinjeNy())),
-                    )
-                },
+                utbetalinger = if (stanset) utbetalingerStans() else utbetalingerIkkeStans(),
             )
         }
+
+        private fun utbetalingerStans() =
+            no.nav.su.se.bakover.test.utbetaling.utbetalingerStans()
+
+        private fun utbetalingerIkkeStans() =
+            økonomi.domain.utbetaling.Utbetalinger(
+                no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering(
+                    utbetalingslinjer = nonEmptyListOf(no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy()),
+                ),
+            )
     }
 }
 
 data class TestSakMedKontrollsamtaleOgUtbetaling(
     val sakInfo: SakInfo,
     val kontrollsamtale: Kontrollsamtale,
-    val utbetalinger: Utbetalinger,
+    val utbetalinger: økonomi.domain.utbetaling.Utbetalinger,
 )

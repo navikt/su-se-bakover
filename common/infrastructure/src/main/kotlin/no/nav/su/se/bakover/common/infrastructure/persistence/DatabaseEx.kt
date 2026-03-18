@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import java.sql.Array
+import java.util.UUID
 import kotlin.reflect.full.superclasses
 
 private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
@@ -85,6 +86,9 @@ fun Row.periode(fraOgMed: String, tilOgMed: String): Periode {
 
 fun Session.inClauseWith(values: List<String>): Array =
     this.connection.underlying.createArrayOf("text", values.toTypedArray())
+
+fun Session.uuidInClauseWith(values: List<UUID>): Array =
+    this.connection.underlying.createArrayOf("uuid", values.toTypedArray())
 
 fun String.antall(
     params: Map<String, Any> = emptyMap(),
