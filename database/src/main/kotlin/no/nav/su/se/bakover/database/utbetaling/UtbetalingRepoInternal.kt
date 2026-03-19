@@ -81,7 +81,7 @@ internal data object UtbetalingInternalRepo {
                 utbetalingerForSak.map { utbetaling ->
                     utbetaling.toUtbetaling(
                         utbetalingslinjer = utbetalingslinjerPerUtbetalingId[utbetaling.id]
-                            ?: error("Fant ikke utbetalingslinjer for utbetaling ${utbetaling.id}"),
+                            ?: emptyList(),
                     )
                 },
             )

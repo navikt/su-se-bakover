@@ -41,6 +41,10 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         )
     }
 
+    /**
+     * Denne kan bli minne heavy og om den noengang skulle feile på det så må man lage egen domenemodell for utbetaling uten simulering og de andre tunge
+     * objektene som er unødvendig for å lage en tidslinje for en utbetaling
+     */
     private fun sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utløpteKontrollSamtaler: List<Kontrollsamtale>): List<Long> {
         val sakIder = utløpteKontrollSamtaler.map { it.sakId }.distinct()
         if (sakIder.isEmpty()) return emptyList()
