@@ -511,6 +511,7 @@ fun eksterneReguleringer(
                 fnr = sak.fnr,
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
+                fradragstype = Fradragstype.Uføretrygd,
             ),
         ),
         beløpEps = emptyList(),

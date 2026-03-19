@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.person.Fnr
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 /**
  * Representerer eksternt regulerte beløp hentet fra eksternt system (f.eks. Pesys eller Kelvin).
@@ -32,6 +33,7 @@ data class RegulertBeløp(
     // TODO bør være BigDecimal?
 
     val fnr: Fnr,
+    val fradragstype: Fradragstype,
     val førRegulering: Int,
     val etterRegulering: Int,
 )

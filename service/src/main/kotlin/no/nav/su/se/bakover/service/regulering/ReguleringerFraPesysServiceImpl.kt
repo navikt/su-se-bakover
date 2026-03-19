@@ -114,6 +114,7 @@ class ReguleringerFraPesysServiceImpl(
             fnr = fnr,
             førRegulering = førRegulering.netto,
             etterRegulering = etterRegulering.netto,
+            fradragstype = Fradragstype.Uføretrygd,
         ).right()
     }
 
@@ -140,6 +141,7 @@ class ReguleringerFraPesysServiceImpl(
                 fnr = brukerFnr,
                 førRegulering = inntektEtterUføreFørRegulering,
                 etterRegulering = inntektEtterUføreEtterRegulering,
+                fradragstype = Fradragstype.Uføretrygd,
             ).right()
         } else {
             // Mangler IEU hos Pesys betyr det at det er manuelt behandlet og vi ikke får beløpet

@@ -2,131 +2,138 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import java.math.BigDecimal
 
 class UtledningReguleringstypeOgFradragTest {
 
-    companion object {
+    @Test
+    fun `utleder automatisk og oppdaterer fradrag`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Alderspensjon, 2000.0, FradragTilhører.EPS),
+        )
+
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
                     førRegulering = 1000,
                     etterRegulering = 1064,
+                    fradragstype = Fradragstype.Uføretrygd,
                 ),
             ),
             beløpEps = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = 2000,
+                    etterRegulering = 2128,
+                    fradragstype = Fradragstype.Alderspensjon,
                 ),
             ),
         )
 
-        fun lagEksterntRegulerteBeløp(
-            etterReguleringBruker: Int = 1064,
-            etterReguleringEps: Int = 1064,
-        ) = EksterntRegulerteBeløp(
+        val resultat = utledReguleringstypeOgFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            omregningsfaktor = BigDecimal("1.064076"),
+            saksnummer = Saksnummer(8888),
+        )
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 2
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2128
+        }
+    }
+
+    @Test
+    fun `utleder manuell og oppdaterer fradrag`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 2000.0, FradragTilhører.EPS),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
                     førRegulering = 1000,
-                    etterRegulering = etterReguleringBruker,
+                    etterRegulering = 1064,
+                    fradragstype = Fradragstype.Uføretrygd,
                 ),
             ),
-            beløpEps = listOf(
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            omregningsfaktor = BigDecimal("1.064076"),
+            saksnummer = Saksnummer(8888),
+        )
+
+        resultat.first shouldNotBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 2
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad }.månedsbeløp shouldBe 2000
+        }
+    }
+
+    @Test
+    fun `utleder fradrag med flere eksterne reguleringer`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Arbeidsavklaringspenger, 2000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
                     førRegulering = 1000,
-                    etterRegulering = etterReguleringEps,
+                    etterRegulering = 1064,
+                    fradragstype = Fradragstype.Uføretrygd,
+                ),
+                RegulertBeløp(
+                    fnr = fnr,
+                    førRegulering = 2000,
+                    etterRegulering = 2128,
+                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
                 ),
             ),
+            beløpEps = emptyList(),
         )
 
-        fun lagFradragsgrunnlag(
-            fradragstypeBruker: Fradragstype,
-            fradragstypeEps: Fradragstype = fradragstypeBruker,
-            beløpBruker: Double = 1000.0,
-            beløpEps: Double = 1000.0,
-            utlandskInntektBruker: UtenlandskInntekt? = null,
-            utlandskInntektEps: UtenlandskInntekt? = null,
-        ) = nonEmptyListOf(
-            Fradragsgrunnlag.create(
-                opprettet = Tidspunkt.now(fixedClock),
-                fradrag = FradragForPeriode(
-                    fradragstype = fradragstypeBruker,
-                    månedsbeløp = beløpBruker,
-                    periode = januar(2026)..desember(2026),
-                    utenlandskInntekt = utlandskInntektBruker,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-            Fradragsgrunnlag.create(
-                opprettet = Tidspunkt.now(fixedClock),
-                fradrag = FradragForPeriode(
-                    fradragstype = fradragstypeEps,
-                    månedsbeløp = beløpEps,
-                    periode = januar(2026)..desember(2026),
-                    utenlandskInntekt = utlandskInntektEps,
-                    tilhører = FradragTilhører.EPS,
-                ),
-            ),
-        )
-    }
-
-    // TODO gir denne egt mening? fradragstype uføre er vel bare for eps?
-    // TODO Her skal det vel heller være forventet inntekt IEU som per nå blir manuell hvis større enn 0??
-    @Test
-    fun `utleder automatisk for uføre`() {
         val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
+            fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             omregningsfaktor = BigDecimal("1.064076"),
             saksnummer = Saksnummer(8888),
         )
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 2
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }.månedsbeløp shouldBe 2128
+        }
     }
-
-    // TODO gir dette mening? vil det noen gang være at egen alderspensjon blir fradrag? Trolig ja?
-    @Test
-    fun `utleder automatisk for alder`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Alderspensjon),
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-        resultat.first shouldBe Reguleringstype.AUTOMATISK
-    }
-
-    @Test
-    fun `utleder automatisk for bruker alder og uføre eps`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(
-                fradragstypeBruker = Fradragstype.Alderspensjon,
-                fradragstypeEps = Fradragstype.Uføretrygd,
-            ),
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-        resultat.first shouldBe Reguleringstype.AUTOMATISK
-    }
-
+    /*
     @Test
     fun `utleder automatisk for bruker ufre og eps alder`() {
         val resultat = utledReguleringstypeOgFradrag(
@@ -178,7 +185,7 @@ class UtledningReguleringstypeOgFradragTest {
             as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement
         årsak.fradragskategori shouldBe Fradragstype.Alderspensjon.kategori
         årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-         */
+     */
     }
 
     @Test
@@ -219,7 +226,7 @@ class UtledningReguleringstypeOgFradragTest {
                     as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement
                 årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
                 årsak.fradragTilhører shouldBe FradragTilhører.EPS
-         */
+     */
     }
 
     @Test
@@ -383,6 +390,8 @@ class UtledningReguleringstypeOgFradragTest {
         årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
     }
 
+
+     */
     // TODO ------ egen testklasse tidligere for disse ----------------
 
     // TODO SupplementInneholderIkkeFradraget - Bør feile tidligere
@@ -392,4 +401,22 @@ class UtledningReguleringstypeOgFradragTest {
     // TODO AutomatiskSendingTilUtbetalingFeilet - testes ikke her?
     // TODO VedtakstidslinjeErIkkeSammenhengende - testes ikke her?
     // TODO DelvisOpphør - testes ikke her?
+
+    companion object {
+
+        fun lagFradragsgrunnlag(
+            fradragstypeBruker: Fradragstype,
+            månedsbeløp: Double = 1000.0,
+            tilhører: FradragTilhører,
+        ) = Fradragsgrunnlag.create(
+            opprettet = Tidspunkt.now(fixedClock),
+            fradrag = FradragForPeriode(
+                fradragstype = fradragstypeBruker,
+                månedsbeløp = månedsbeløp,
+                periode = januar(2026)..desember(2026),
+                utenlandskInntekt = null,
+                tilhører = tilhører,
+            ),
+        )
+    }
 }

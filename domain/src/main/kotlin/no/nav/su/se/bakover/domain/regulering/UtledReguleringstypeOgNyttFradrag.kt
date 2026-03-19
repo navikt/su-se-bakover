@@ -142,8 +142,12 @@ fun utledReguleringstypeOgFradrag(
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.single()
-        FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.single() // TODO AUTO-REG-26 må filtreres på type her..
+        FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.singleOrNull {
+            it.fradragstype == fradragstype
+        } ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker") // TODO erstatt med left
+        FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.singleOrNull {
+            it.fradragstype == fradragstype
+        } ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker") // TODO erstatt med left
     }
     return sjekkOmDifferenseForBeløper(
         nyttFradrag,
@@ -157,6 +161,7 @@ fun utledReguleringstypeOgFradrag(
 }
 
 // TODO bjg del i to...
+// TODO Kan vi gjøre disse sjekkene for AAP? Omregningsfaktor gir like mye mening da?
 private fun sjekkOmDifferenseForBeløper(
     nyttFradrag: RegulertBeløp,
     fradragstype: Fradragstype,
@@ -204,6 +209,6 @@ private fun sjekkOmDifferenseForBeløper(
         ) to originaleFradragsgrunnlag
     }
 
-    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(eksterntBeløpEtterRegulering)
+    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpMedEksternRegulering(eksterntBeløpEtterRegulering)
     return Reguleringstype.AUTOMATISK to oppdatertBeløpFraSupplement
 }
