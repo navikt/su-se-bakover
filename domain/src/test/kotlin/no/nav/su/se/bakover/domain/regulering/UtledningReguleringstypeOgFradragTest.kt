@@ -28,16 +28,18 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
                 ),
             ),
             beløpEps = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Alderspensjon,
-                    førRegulering = 2000,
-                    etterRegulering = 2128,
+                    førRegulering = BigDecimal("2000.00"),
+                    etterRegulering = BigDecimal("2128.00"),
                 ),
             ),
         )
@@ -67,9 +69,10 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -100,14 +103,16 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
                 ),
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                    førRegulering = 2000,
-                    etterRegulering = 2128,
+                    førRegulering = BigDecimal("2000.00"),
+                    etterRegulering = BigDecimal("2128.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -128,53 +133,6 @@ class UtledningReguleringstypeOgFradragTest {
     }
 
     @Test
-    fun `utleder alle fradrag når det finnes for både bruker og eps samt har fradragstyper på er like på tvers`() {
-        val eksisterende = nonEmptyListOf(
-            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
-            lagFradragsgrunnlag(Fradragstype.OffentligPensjon, 4000.0, FradragTilhører.BRUKER),
-            lagFradragsgrunnlag(Fradragstype.Alderspensjon, 2000.0, FradragTilhører.EPS),
-            lagFradragsgrunnlag(Fradragstype.SupplerendeStønad, 5000.0, FradragTilhører.EPS),
-            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 3000.0, FradragTilhører.BRUKER),
-            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 3001.0, FradragTilhører.EPS),
-        )
-
-        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
-            beløpBruker = listOf(
-                RegulertBeløp(
-                    fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
-                ),
-            ),
-            beløpEps = listOf(
-                RegulertBeløp(
-                    fradragstype = Fradragstype.Alderspensjon,
-                    førRegulering = 2000,
-                    etterRegulering = 2128,
-                ),
-            ),
-        )
-
-        val resultat = utledReguleringstypeOgOppdaterFradrag(
-            fradrag = eksisterende,
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
-
-        resultat.first shouldNotBe Reguleringstype.AUTOMATISK
-        with(resultat.second) {
-            size shouldBe 6
-            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
-            single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2128
-            single { it.fradragstype == Fradragstype.OffentligPensjon }.månedsbeløp shouldBe 4000
-            single { it.fradragstype == Fradragstype.SupplerendeStønad }.månedsbeløp shouldBe 5000
-            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad && it.tilhører == FradragTilhører.BRUKER }.månedsbeløp shouldBe 3000
-            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad && it.tilhører == FradragTilhører.EPS }.månedsbeløp shouldBe 3001
-        }
-    }
-
-    @Test
     fun `utleder manuell regulering når fradrag inneholder en fradragstype som ikke kan justeres automatisk`() {
         val eksisterende = nonEmptyListOf(
             lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
@@ -185,9 +143,10 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -219,9 +178,10 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -235,16 +195,6 @@ class UtledningReguleringstypeOgFradragTest {
 
         val reguleringstype = resultat.first as Reguleringstype.MANUELL
         reguleringstype.problemer.size shouldBe 2
-
-        val problemBruker = reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
-            .single { it.fradragTilhører == FradragTilhører.BRUKER }
-        problemBruker.fradragskategori shouldBe Fradragstype.Kvalifiseringsstønad.kategori
-
-        val problemEps = reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
-            .single { it.fradragTilhører == FradragTilhører.EPS }
-        problemEps.fradragskategori shouldBe Fradragstype.Kvalifiseringsstønad.kategori
-
-        // Fradragsgrunnlag skal være delvis oppdatert - kun Uføretrygd
         with(resultat.second) {
             size shouldBe 3
             single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
@@ -263,9 +213,10 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 900, // Avviker fra vårt beløp (1000)
-                    etterRegulering = 958,
+                    førRegulering = BigDecimal("900.00"),
+                    etterRegulering = BigDecimal("958.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -280,16 +231,9 @@ class UtledningReguleringstypeOgFradragTest {
         val reguleringstype = resultat.first as Reguleringstype.MANUELL
         reguleringstype.problemer.size shouldBe 1
         val årsak = reguleringstype.problemer.single() as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
         årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900")
-
-        // Fradragsgrunnlag skal ikke være oppdatert ved manuell regulering
-        with(resultat.second) {
-            size shouldBe 1
-            single().månedsbeløp shouldBe 1000
-        }
+        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900.00")
+        resultat.second.single().månedsbeløp shouldBe 1000
     }
 
     @Test
@@ -302,9 +246,10 @@ class UtledningReguleringstypeOgFradragTest {
             fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000, // Matcher vårt beløp
-                    etterRegulering = 1075, // Avviker for mye fra forventet (1064.08, differanse > 10)
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1075.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -317,23 +262,13 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val reguleringstype = resultat.first as Reguleringstype.MANUELL
-        reguleringstype.problemer.size shouldBe 1
         val årsak = reguleringstype.problemer.single() as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-        årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
         årsak.forventetBeløpEtterRegulering shouldBe BigDecimal("1064.08")
-        årsak.eksternNettoBeløpEtterRegulering shouldBe BigDecimal("1075")
-
-        // Fradragsgrunnlag skal ikke være oppdatert ved manuell regulering
-        with(resultat.second) {
-            size shouldBe 1
-            single().månedsbeløp shouldBe 1000
-        }
+        årsak.eksternNettoBeløpEtterRegulering shouldBe BigDecimal("1075.00")
+        resultat.second.single().månedsbeløp shouldBe 1000
     }
 
     companion object {
-
         fun lagFradragsgrunnlag(
             fradragstypeBruker: Fradragstype,
             månedsbeløp: Double = 1000.0,

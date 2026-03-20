@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
+import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
@@ -614,6 +615,9 @@ data object ServiceBuilder {
             pesysClient = clients.pesysklient,
             satsFactory = satsFactory,
         )
+        val aapReguleringerService = AapReguleringerServiceImpl(
+            aapApiInternClient = clients.aapApiInternClient,
+        )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
@@ -623,6 +627,7 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
             reguleringerFraPesysService = reguleringerFraPesysService,
+            aapReguleringerService = aapReguleringerService,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

@@ -43,9 +43,11 @@ data class HentReguleringerPesysParameter(
         val fnr: Fnr,
         val sakstype: Sakstype,
         val fradragBruker: Fradragstype?,
+        val harAapBruker: Boolean,
 
         val eps: Fnr?,
         val fradragEps: Fradragstype?,
+        val harAapEps: Boolean,
     )
 
     companion object {
@@ -69,6 +71,7 @@ data class HentReguleringerPesysParameter(
             }.grunnlagsdata
 
             val uføreOgAlder = listOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon)
+            val aap = listOf(Fradragstype.Arbeidsavklaringspenger)
             return BrukerMedEps(
                 fnr = fnr,
                 sakstype = type,
@@ -77,12 +80,22 @@ data class HentReguleringerPesysParameter(
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.BRUKER,
                 ).singleOrNull(),
+                harAapBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                    fradragstyper = aap,
+                    måned = reguleringsMåned,
+                    tilhører = FradragTilhører.BRUKER,
+                ).isNotEmpty(),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned],
                 fradragEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
                     fradragstyper = uføreOgAlder,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.EPS,
                 ).singleOrNull(),
+                harAapEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                    fradragstyper = aap,
+                    måned = reguleringsMåned,
+                    tilhører = FradragTilhører.EPS,
+                ).isNotEmpty(),
             )
         }
     }

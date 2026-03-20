@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderUføreFeilet
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.collections.List
 import kotlin.collections.flatMap
@@ -64,11 +65,24 @@ class ReguleringerFraPesysServiceImpl(
     ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         return brukereMedEps.map { brukerMedEps ->
             val reguleringForBruker =
-                utledOgVerifiserRegulertBeløp(brukerMedEps.fnr, perioderFraPesys, månedFørRegulering)
+                brukerMedEps.fradragBruker?.let {
+                    utledOgVerifiserRegulertBeløp(
+                        fnr = brukerMedEps.fnr,
+                        fradragstype = it,
+                        perioderFraPesys = perioderFraPesys,
+                        månedFørRegulering = månedFørRegulering,
+                    )
+                }
 
             val epsFnr = brukerMedEps.eps
-            val reguleringForEps = if (epsFnr != null && brukerMedEps.fradragEps != null) {
-                utledOgVerifiserRegulertBeløp(epsFnr, perioderFraPesys, månedFørRegulering)
+            val fradragEps = brukerMedEps.fradragEps
+            val reguleringForEps = if (epsFnr != null && fradragEps != null) {
+                utledOgVerifiserRegulertBeløp(
+                    fnr = epsFnr,
+                    fradragstype = fradragEps,
+                    perioderFraPesys = perioderFraPesys,
+                    månedFørRegulering = månedFørRegulering,
+                )
             } else {
                 null
             }
@@ -103,6 +117,7 @@ class ReguleringerFraPesysServiceImpl(
 
     private fun utledOgVerifiserRegulertBeløp(
         fnr: Fnr,
+        fradragstype: Fradragstype,
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> {
@@ -112,13 +127,10 @@ class ReguleringerFraPesysServiceImpl(
             perioderFraPesys,
         ).getOrElse { return it.left() }
         return RegulertBeløp(
-            førRegulering = førRegulering.netto,
-            etterRegulering = etterRegulering.netto,
-            fradragstype = when (førRegulering) {
-                is UføreBeregningsperiode -> Fradragstype.Uføretrygd
-                is AlderBeregningsperiode -> Fradragstype.Alderspensjon
-                else -> throw IllegalStateException("Ukjent fradragstype: ${førRegulering::class.simpleName}")
-            },
+            fnr = fnr,
+            fradragstype = fradragstype,
+            førRegulering = BigDecimal.valueOf(førRegulering.netto.toLong()).setScale(2),
+            etterRegulering = BigDecimal.valueOf(etterRegulering.netto.toLong()).setScale(2),
         ).right()
     }
 
@@ -142,9 +154,10 @@ class ReguleringerFraPesysServiceImpl(
         val inntektEtterUføreEtterRegulering = etterRegulering.oppjustertInntektEtterUfore
         return if (inntektEtterUføreFørRegulering != null && inntektEtterUføreEtterRegulering != null) {
             RegulertBeløp(
-                førRegulering = inntektEtterUføreFørRegulering,
-                etterRegulering = inntektEtterUføreEtterRegulering,
-                fradragstype = Fradragstype.Uføretrygd,
+                fnr = brukerFnr,
+                fradragstype = Fradragstype.ForventetInntekt,
+                førRegulering = BigDecimal.valueOf(inntektEtterUføreFørRegulering.toLong()).setScale(2),
+                etterRegulering = BigDecimal.valueOf(inntektEtterUføreEtterRegulering.toLong()).setScale(2),
             ).right()
         } else {
             // Mangler IEU hos Pesys betyr det at det er manuelt behandlet og vi ikke får beløpet

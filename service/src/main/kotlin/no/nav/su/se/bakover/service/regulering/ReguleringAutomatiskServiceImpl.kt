@@ -52,6 +52,17 @@ class ReguleringAutomatiskServiceImpl(
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
+    private val aapReguleringerService: AapReguleringerService = object : AapReguleringerService {
+        override fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<EksterntRegulerteBeløp> {
+            return parameter.brukereMedEps.map {
+                EksterntRegulerteBeløp(
+                    fnr = it.fnr,
+                    beløpBruker = emptyList(),
+                    beløpEps = emptyList(),
+                )
+            }
+        }
+    },
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -164,15 +175,19 @@ class ReguleringAutomatiskServiceImpl(
                     emptyList()
                 } else {
                     Either.catch {
-                        reguleringerFraPesysService.hentReguleringer(
-                            HentReguleringerPesysParameter.toParameter(
-                                reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                                forSaker = sakerSomKanReguleres,
-                                clock = clock,
-                            ),
+                        val parameter = HentReguleringerPesysParameter.toParameter(
+                            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                            forSaker = sakerSomKanReguleres,
+                            clock = clock,
                         )
+                        val fraPesys = reguleringerFraPesysService.hentReguleringer(parameter)
+                        val fraAap = aapReguleringerService.hentReguleringer(parameter)
 
-                        // TODO AUTO-REG-26 Hente og appende AAP
+                        fraPesys.zip(fraAap).map { (pesys, aap) ->
+                            pesys.map { fraPesysForBruker ->
+                                fraPesysForBruker + aap
+                            }
+                        }
                     }.getOrElse {
                         // TODO AUTO-REG-26 Feile enkelt batch?
                         throw it
@@ -431,6 +446,15 @@ class ReguleringAutomatiskServiceImpl(
             }
         }
     }
+}
+
+private operator fun EksterntRegulerteBeløp.plus(other: EksterntRegulerteBeløp): EksterntRegulerteBeløp {
+    return EksterntRegulerteBeløp(
+        fnr = this.fnr,
+        beløpBruker = this.beløpBruker + other.beløpBruker,
+        beløpEps = this.beløpEps + other.beløpEps,
+        inntektEtterUføre = this.inntektEtterUføre ?: other.inntektEtterUføre,
+    )
 }
 
 /*

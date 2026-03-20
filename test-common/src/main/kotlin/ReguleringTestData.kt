@@ -502,6 +502,7 @@ fun nyÅrsakYtelseErMidlertidigStanset(
 
 fun eksterneReguleringer(
     sak: Sak,
+    fradragstype: Fradragstype = Fradragstype.Alderspensjon,
     førRegulering: Int = 100,
     etterRegulering: Int = 110,
 ) = listOf(
@@ -509,9 +510,10 @@ fun eksterneReguleringer(
         fnr = sak.fnr,
         beløpBruker = listOf(
             RegulertBeløp(
-                førRegulering = førRegulering,
-                etterRegulering = etterRegulering,
-                fradragstype = Fradragstype.Uføretrygd,
+                fnr = sak.fnr,
+                fradragstype = fradragstype,
+                førRegulering = BigDecimal.valueOf(førRegulering.toLong()).setScale(2),
+                etterRegulering = BigDecimal.valueOf(etterRegulering.toLong()).setScale(2),
             ),
         ),
         beløpEps = emptyList(),

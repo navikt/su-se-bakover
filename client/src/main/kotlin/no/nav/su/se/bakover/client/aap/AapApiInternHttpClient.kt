@@ -21,6 +21,9 @@ import java.time.LocalDate
 
 private const val NAV_CALL_ID_HEADER = "nav-callid"
 
+/**
+ * https://aap-api.intern.dev.nav.no/swagger-ui/index.html#/Maksimum/post_maksimum
+ */
 interface AapApiInternClient {
     fun hentMaksimum(
         fnr: Fnr,
@@ -111,23 +114,16 @@ data class MaksimumResponseDto(
     val vedtak: List<MaksimumVedtakDto>,
 )
 
+/**
+ * Resultatdata fra AAP maksimum brukt som inntektsgrunnlag i SU.
+ *
+ * For G-regulering av supplerende stønad trenger vi bare felt som brukes til å finne
+ * riktig vedtaksperiode og regne om dagsats til månedsbeløp.
+ */
 data class MaksimumVedtakDto(
-    val barnMedStonad: Int? = null,
-    val barnetillegg: Int? = null,
-    val beregningsgrunnlag: Int? = null,
     val dagsats: Int? = null,
-    val dagsatsEtterUføreReduksjon: Int? = null,
     val opphorsAarsak: String? = null,
     val periode: MaksimumPeriodeDto? = null,
-    val rettighetsType: String? = null,
-    val saksnummer: String? = null,
-    val samordningsId: String? = null,
-    val status: String? = null,
-    val vedtakId: String? = null,
-    val kildesystem: String? = null,
-    val vedtaksTypeKode: String? = null,
-    val vedtaksTypeNavn: String? = null,
-    val vedtaksdato: LocalDate? = null,
 )
 
 data class MaksimumPeriodeDto(

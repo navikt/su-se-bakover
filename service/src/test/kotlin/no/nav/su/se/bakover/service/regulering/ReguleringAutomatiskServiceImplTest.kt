@@ -158,9 +158,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                         fnr = fnr,
                         beløpBruker = listOf(
                             RegulertBeløp(
-                                fradragstype = Fradragstype.Uføretrygd,
-                                førRegulering = 0,
-                                etterRegulering = 0,
+                                fnr = fnr,
+                                fradragstype = Fradragstype.Alderspensjon,
+                                førRegulering = BigDecimal.ZERO.setScale(2),
+                                etterRegulering = BigDecimal.ZERO.setScale(2),
                             ),
                         ),
                         beløpEps = emptyList(),
@@ -613,9 +614,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                             fnr = sak.fnr,
                             beløpBruker = listOf(
                                 RegulertBeløp(
-                                    fradragstype = Fradragstype.Uføretrygd,
-                                    førRegulering = 0,
-                                    etterRegulering = 0,
+                                    fnr = sak.fnr,
+                                    fradragstype = Fradragstype.Alderspensjon,
+                                    førRegulering = BigDecimal.ZERO.setScale(2),
+                                    etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
                             ),
                             beløpEps = emptyList(),
@@ -693,9 +695,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                             fnr = sak.fnr,
                             beløpBruker = listOf(
                                 RegulertBeløp(
-                                    fradragstype = Fradragstype.Uføretrygd,
-                                    førRegulering = 0,
-                                    etterRegulering = 0,
+                                    fnr = sak.fnr,
+                                    fradragstype = Fradragstype.Alderspensjon,
+                                    førRegulering = BigDecimal.ZERO.setScale(2),
+                                    etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
                             ),
                             beløpEps = emptyList(),
@@ -836,9 +839,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                             fnr = sak.fnr,
                             beløpBruker = listOf(
                                 RegulertBeløp(
-                                    fradragstype = Fradragstype.Uføretrygd,
-                                    førRegulering = beløpFørRegulering.toInt(),
-                                    etterRegulering = beløpEtterRegulering.toInt(),
+                                    fnr = sak.fnr,
+                                    fradragstype = Fradragstype.Alderspensjon,
+                                    førRegulering = BigDecimal.ZERO.setScale(2),
+                                    etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
                             ),
                             beløpEps = emptyList(),

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.person.Fnr
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.math.BigDecimal
 
 /**
  * Representerer eksternt regulerte beløp hentet fra eksternt system (f.eks. Pesys eller Kelvin).
@@ -29,10 +30,8 @@ data class EksterntRegulerteBeløp(
  * @property etterRegulering Beløpet etter regulering
  */
 data class RegulertBeløp(
-
-    // TODO bør være BigDecimal?
-
+    val fnr: Fnr,
     val fradragstype: Fradragstype,
-    val førRegulering: Int,
-    val etterRegulering: Int,
+    val førRegulering: BigDecimal,
+    val etterRegulering: BigDecimal,
 )
