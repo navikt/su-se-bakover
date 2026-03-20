@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Nel
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -15,25 +14,19 @@ import kotlin.math.absoluteValue
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
-// TODO metode som tar i mot alle fradrag og looper?
-// TODO hvor og hvordan blir eps sin SU inn her?
 fun utledReguleringstypeOgFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
-    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     return fradrag
         .groupBy { it.fradragstype }
         .map { (fradragstype, fradragsgrunnlag) ->
             val fradragEtterSupplementSjekk = utledReguleringstypeOgFradrag(
-                // eksternSupplementRegulering = eksternSupplementRegulering,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 fradragstype = fradragstype,
                 originaleFradragsgrunnlag = fradragsgrunnlag.toNonEmptyList(),
-                // merEnn1Eps = bosituasjon.merEnn1Eps(), // TODO forsikre om at dette blir ivaretatt ved bygging av EksterntRegulerteBeløp
                 omregningsfaktor = omregningsfaktor,
-                saksnummer = saksnummer,
             )
             fradragEtterSupplementSjekk
         }.let {
@@ -45,7 +38,8 @@ fun utledReguleringstypeOgFradrag(
             } else {
                 Reguleringstype.AUTOMATISK
             }
-            reguleringstype to it.flatMap { it.second }.sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed })
+            reguleringstype to it.flatMap { it.second }
+                .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed })
         }
 }
 
@@ -54,9 +48,7 @@ fun utledReguleringstypeOgFradrag(
     fradragstype: Fradragstype,
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     omregningsfaktor: BigDecimal,
-    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
-    // TODO AUTO-REG-26 - Vil denne ødelegge for automatiseringsgraden?
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     return originaleFradragsgrunnlag.groupBy { it.fradrag.tilhører }.map { (fradragtilhører, fradragsgrunnlag) ->
         utledReguleringstypeOgFradrag(
@@ -65,7 +57,6 @@ fun utledReguleringstypeOgFradrag(
             fradragsgrunnlag.toNonEmptyList(),
             fradragtilhører,
             omregningsfaktor,
-            saksnummer,
         )
     }.let {
         val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
@@ -88,66 +79,26 @@ fun utledReguleringstypeOgFradrag(
     originaleFradragsgrunnlag: Nel<Fradragsgrunnlag>,
     fradragTilhører: FradragTilhører,
     omregningsfaktor: BigDecimal,
-    saksnummer: Saksnummer,
 ): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
     require(originaleFradragsgrunnlag.all { it.fradragstype == fradragstype })
     require(originaleFradragsgrunnlag.all { it.fradrag.tilhører == fradragTilhører })
+    require(originaleFradragsgrunnlag.size == 1)
 
     if (!fradragstype.måJusteresVedGEndring) {
         return Reguleringstype.AUTOMATISK to originaleFradragsgrunnlag
     }
     if (!fradragstype.kanJusteresAutomatisk) {
         return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+            ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
-                begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} kan ikke hentes automatisk",
-            ),
-        ) to originaleFradragsgrunnlag
-    }
-
-    // TODO hvordan vil dette skje? Ingen tilfeller i 2025, et tilfelle i 2024
-    if (originaleFradragsgrunnlag.size > 1) {
-        log.error("Regulering, utled type og fradrag: Vi oppdaget et fradrag som må reguleres som også finnes i Pesys-datasettet. Siden fradragsgrunnlaget vårt var delt opp i flere perioder, setter vi denne til manuelt. Saksnummer: $saksnummer")
-        return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
-                fradragskategori = fradragstype.kategori,
-                fradragTilhører = fradragTilhører,
-                begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} er delt opp i flere perioder. Disse går foreløpig til manuell regulering.",
-            ),
-        ) to originaleFradragsgrunnlag
-    }
-
-    if (originaleFradragsgrunnlag.first().utenlandskInntekt != null) {
-        // TODO AUTO-REG-26 er det noensinne utlandsinntekt som reguleres?
-        return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
-                fradragskategori = fradragstype.kategori,
-                fradragTilhører = fradragTilhører,
-                begrunnelse = "Fradraget er utenlandsinntekt og går til manuell regulering",
-            ),
-        ) to originaleFradragsgrunnlag
-    }
-
-    // TODO bjg fortsatt nødvendig??
-    if (fradragTilhører == FradragTilhører.EPS && eksterntRegulerteBeløp.beløpEps.size > 1) {
-        log.info("Automatisk regulering med supplement: Fant mer enn 1 eps. Mer enn 1 i bosituasjon: ${eksterntRegulerteBeløp.beløpEps.size}, saksnummer: $saksnummer")
-        return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps(
-                fradragskategori = fradragstype.kategori,
-                fradragTilhører = fradragTilhører,
-                begrunnelse = "Fradraget til $fradragTilhører: ${fradragstype.kategori} påvirkes av samme sats/G-verdi endring som SU. Dersom en regulering involverer med enn én EPS, må den tas manuelt.",
             ),
         ) to originaleFradragsgrunnlag
     }
 
     val nyttFradrag = when (fradragTilhører) {
-        FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.singleOrNull {
-            it.fradragstype == fradragstype
-        } ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker") // TODO erstatt med left
-        FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.singleOrNull {
-            it.fradragstype == fradragstype
-        } ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker") // TODO erstatt med left
+        FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.finn(fradragstype)
+        FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
     return sjekkOmDifferenseForBeløper(
         nyttFradrag,
@@ -159,6 +110,14 @@ fun utledReguleringstypeOgFradrag(
         it.first to nonEmptyListOf(it.second)
     }
 }
+
+/**
+* Hvilken regulerte beløp som finnes vil være basert samme gjeldende vedtaksdata som fradragene disse metodene
+* benytter (se [ReguleringerFraPesysService]).
+*  Det vil derfor ikke forekomme avvik
+**/
+private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull { it.fradragstype == fradragstype }
+    ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
 
 // TODO bjg del i to...
 // TODO Kan vi gjøre disse sjekkene for AAP? Omregningsfaktor gir like mye mening da?
@@ -209,6 +168,7 @@ private fun sjekkOmDifferenseForBeløper(
         ) to originaleFradragsgrunnlag
     }
 
-    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpMedEksternRegulering(eksterntBeløpEtterRegulering)
+    val oppdatertBeløpFraSupplement =
+        originaleFradragsgrunnlag.oppdaterBeløpMedEksternRegulering(eksterntBeløpEtterRegulering)
     return Reguleringstype.AUTOMATISK to oppdatertBeløpFraSupplement
 }

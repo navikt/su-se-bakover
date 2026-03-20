@@ -106,15 +106,10 @@ sealed interface Regulering : Stønadsbehandling {
                 ).getOrElse {
                     return it.left()
                 }
-            val fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag
-            val bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjonSomFullstendig()
-
-            // TODO AUTO-REG-26 - switch gammel/ny
             val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradrag(
-                fradrag = fradrag,
+                fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 omregningsfaktor = omregningsfaktor,
-                saksnummer = saksnummer,
             )
 
             // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
@@ -146,22 +141,23 @@ sealed interface Regulering : Stønadsbehandling {
             saksnummer: Saksnummer,
             sakstype: Sakstype,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, Reguleringstype> {
-            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype).fold(
-                { konsistensproblemer ->
-                    val message =
-                        "Kunne ikke opprette regulering for saksnummer $saksnummer." +
-                            " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
-                    if (konsistensproblemer.erGyldigTilstand()) {
-                        log.info(message)
-                    } else {
-                        log.error(message)
-                    }
-                    return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
-                },
-                {
-                    gjeldendeVedtaksdata.utledReguleringstype().right()
-                },
-            )
+            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype)
+                .fold(
+                    { konsistensproblemer ->
+                        val message =
+                            "Kunne ikke opprette regulering for saksnummer $saksnummer." +
+                                " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
+                        if (konsistensproblemer.erGyldigTilstand()) {
+                            log.info(message)
+                        } else {
+                            log.error(message)
+                        }
+                        return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
+                    },
+                    {
+                        gjeldendeVedtaksdata.utledReguleringstype().right()
+                    },
+                )
         }
     }
 

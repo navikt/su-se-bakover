@@ -158,6 +158,8 @@ private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellRe
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps -> årsak.toCSVLoggableString(
                         saksnummer = saksnummer,
                     )
+
+                    is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> årsak.toCSVLoggableString(saksnummer)
                 }
             }.let {
                 it.groupBy {
@@ -171,6 +173,11 @@ private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellRe
         }
     }
 }
+
+private fun ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag.toCSVLoggableString(
+    saksnummer: Saksnummer,
+): Map<ÅrsakTilManuellReguleringKategori, String> =
+    mapOf(this.kategori to saksnummer.toString())
 
 private fun ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet.toCSVLoggableString(
     saksnummer: Saksnummer,

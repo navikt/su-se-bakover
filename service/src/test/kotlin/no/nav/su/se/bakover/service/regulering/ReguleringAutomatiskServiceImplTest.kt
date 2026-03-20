@@ -155,9 +155,10 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentReguleringer(any()) } doReturn
                 listOf(
                     EksterntRegulerteBeløp(
+                        fnr = fnr,
                         beløpBruker = listOf(
                             RegulertBeløp(
-                                fnr = fnr,
+                                fradragstype = Fradragstype.Uføretrygd,
                                 førRegulering = 0,
                                 etterRegulering = 0,
                             ),
@@ -225,10 +226,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+                    ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
                         fradragskategori = fradraget.fradragstype.kategori,
                         fradragTilhører = fradraget.tilhører,
-                        begrunnelse = "Fradraget til BRUKER: OffentligPensjon kan ikke hentes automatisk",
                     ),
                 ),
             )
@@ -610,9 +610,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentReguleringer(any()) } doReturn
                     listOf(
                         EksterntRegulerteBeløp(
+                            fnr = sak.fnr,
                             beløpBruker = listOf(
                                 RegulertBeløp(
-                                    fnr = sak.fnr,
+                                    fradragstype = Fradragstype.Uføretrygd,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
@@ -689,9 +690,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentReguleringer(any()) } doReturn
                     listOf(
                         EksterntRegulerteBeløp(
+                            fnr = sak.fnr,
                             beløpBruker = listOf(
                                 RegulertBeløp(
-                                    fnr = sak.fnr,
+                                    fradragstype = Fradragstype.Uføretrygd,
                                     førRegulering = 0,
                                     etterRegulering = 0,
                                 ),
@@ -831,9 +833,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                 on { hentReguleringer(any()) } doReturn
                     listOf(
                         EksterntRegulerteBeløp(
+                            fnr = sak.fnr,
                             beløpBruker = listOf(
                                 RegulertBeløp(
-                                    fnr = sak.fnr,
+                                    fradragstype = Fradragstype.Uføretrygd,
                                     førRegulering = beløpFørRegulering.toInt(),
                                     etterRegulering = beløpEtterRegulering.toInt(),
                                 ),

@@ -275,6 +275,17 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             )
     }
 
+    data class ManglerRegulertBeløpForFradrag(
+        val fradragskategori: String,
+        val fradragTilhører: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
+                fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
+            )
+    }
+
     companion object {
         fun toDomain(json: String): Set<ÅrsakTilManuellRegulering> =
             deserializeList<ÅrsakTilManuellReguleringJson>(json).map { it.toDomain() }.toSet()
@@ -385,6 +396,11 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
         begrunnelse = this.begrunnelse,
         fradragskategori = this.fradragskategori.toString(),
         fradragTilhører = this.fradragTilhører.toString(),
+    )
+
+    is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag(
+        fradragskategori = this.fradragskategori.name,
+        fradragTilhører = this.fradragTilhører.name,
     )
 }.let {
     serialize(it)

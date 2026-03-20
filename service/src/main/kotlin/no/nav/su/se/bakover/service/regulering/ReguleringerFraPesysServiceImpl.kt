@@ -90,8 +90,8 @@ class ReguleringerFraPesysServiceImpl(
                 val epsBeløp = (reguleringForEps as? Either.Right)?.value
                 val ieuBeløp = (regulertIeu as? Either.Right)?.value
 
-                // TODO fjerne listOf når/hvis EksterntRegulerteBeløp fjerner lister
                 EksterntRegulerteBeløp(
+                    fnr = brukerMedEps.fnr,
                     beløpBruker = listOf(brukerBeløp),
                     beløpEps = epsBeløp?.let { listOf(it) } ?: emptyList(),
                     inntektEtterUføre = ieuBeløp,
@@ -111,7 +111,6 @@ class ReguleringerFraPesysServiceImpl(
             perioderFraPesys,
         ).getOrElse { return it.left() }
         return RegulertBeløp(
-            fnr = fnr,
             førRegulering = førRegulering.netto,
             etterRegulering = etterRegulering.netto,
             fradragstype = Fradragstype.Uføretrygd,
@@ -138,7 +137,6 @@ class ReguleringerFraPesysServiceImpl(
         val inntektEtterUføreEtterRegulering = etterRegulering.oppjustertInntektEtterUfore
         return if (inntektEtterUføreFørRegulering != null && inntektEtterUføreEtterRegulering != null) {
             RegulertBeløp(
-                fnr = brukerFnr,
                 førRegulering = inntektEtterUføreFørRegulering,
                 etterRegulering = inntektEtterUføreEtterRegulering,
                 fradragstype = Fradragstype.Uføretrygd,

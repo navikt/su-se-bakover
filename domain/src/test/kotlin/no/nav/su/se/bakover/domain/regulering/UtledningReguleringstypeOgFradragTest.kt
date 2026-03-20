@@ -3,13 +3,11 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -27,20 +25,19 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
-                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
                     førRegulering = 1000,
                     etterRegulering = 1064,
-                    fradragstype = Fradragstype.Uføretrygd,
                 ),
             ),
             beløpEps = listOf(
                 RegulertBeløp(
-                    fnr = fnr,
+                    fradragstype = Fradragstype.Alderspensjon,
                     førRegulering = 2000,
                     etterRegulering = 2128,
-                    fradragstype = Fradragstype.Alderspensjon,
                 ),
             ),
         )
@@ -49,7 +46,6 @@ class UtledningReguleringstypeOgFradragTest {
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
         )
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
@@ -68,12 +64,12 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
-                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
                     førRegulering = 1000,
                     etterRegulering = 1064,
-                    fradragstype = Fradragstype.Uføretrygd,
                 ),
             ),
             beløpEps = emptyList(),
@@ -83,7 +79,6 @@ class UtledningReguleringstypeOgFradragTest {
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
         )
 
         resultat.first shouldNotBe Reguleringstype.AUTOMATISK
@@ -102,18 +97,17 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            fnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
-                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
                     førRegulering = 1000,
                     etterRegulering = 1064,
-                    fradragstype = Fradragstype.Uføretrygd,
                 ),
                 RegulertBeløp(
-                    fnr = fnr,
+                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
                     førRegulering = 2000,
                     etterRegulering = 2128,
-                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
                 ),
             ),
             beløpEps = emptyList(),
@@ -123,7 +117,6 @@ class UtledningReguleringstypeOgFradragTest {
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
         )
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
@@ -133,6 +126,7 @@ class UtledningReguleringstypeOgFradragTest {
             single { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }.månedsbeløp shouldBe 2128
         }
     }
+
     /*
     @Test
     fun `utleder automatisk for bruker ufre og eps alder`() {
