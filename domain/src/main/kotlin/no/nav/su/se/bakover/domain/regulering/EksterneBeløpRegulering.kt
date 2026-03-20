@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -10,10 +9,6 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 import java.time.LocalDate
-
-interface ReguleringerFraPesysService {
-    fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
-}
 
 /**
  * Parameter-objekt for å hente regulerte beløp som har blitt brukt som fradrag.
@@ -35,23 +30,21 @@ data class HentReguleringerPesysParameter(
      *
      * @property fnr Fødselsnummer til bruker
      * @property sakstype Type sak (Alder, Uføre)
-     * @property fradragBruker Fradragstype for bruker (Uføretrygd eller Alderspensjon), eller null hvis ingen
+     * @property fradragstyperBruker Relevante eksterne fradragstyper for bruker
      * @property eps Fødselsnummer til ektefelle/partner/samboer, eller null hvis bruker ikke har EPS
-     * @property fradragEps Fradragstype for EPS (Uføretrygd eller Alderspensjon), eller null hvis ingen
+     * @property fradragstyperEps Relevante eksterne fradragstyper for EPS
      */
     data class BrukerMedEps(
         val fnr: Fnr,
         val sakstype: Sakstype,
-        val fradragBruker: Fradragstype?,
-        val harAapBruker: Boolean,
+        val fradragstyperBruker: Set<Fradragstype>,
 
         val eps: Fnr?,
-        val fradragEps: Fradragstype?,
-        val harAapEps: Boolean,
+        val fradragstyperEps: Set<Fradragstype>,
     )
 
     companion object {
-        fun toParameter(
+        fun utledGrunnlagFraSaker(
             reguleringsMåned: Måned,
             forSaker: List<Sak>,
             clock: Clock,
@@ -70,32 +63,25 @@ data class HentReguleringerPesysParameter(
                 throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
             }.grunnlagsdata
 
-            val uføreOgAlder = listOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon)
-            val aap = listOf(Fradragstype.Arbeidsavklaringspenger)
+            val relevanteEksterneFradrag = listOf(
+                Fradragstype.Uføretrygd,
+                Fradragstype.Alderspensjon,
+                Fradragstype.Arbeidsavklaringspenger,
+            )
             return BrukerMedEps(
                 fnr = fnr,
                 sakstype = type,
-                fradragBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                    fradragstyper = uføreOgAlder,
+                fradragstyperBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                    fradragstyper = relevanteEksterneFradrag,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.BRUKER,
-                ).singleOrNull(),
-                harAapBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                    fradragstyper = aap,
-                    måned = reguleringsMåned,
-                    tilhører = FradragTilhører.BRUKER,
-                ).isNotEmpty(),
+                ).toSet(),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned],
-                fradragEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                    fradragstyper = uføreOgAlder,
+                fradragstyperEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                    fradragstyper = relevanteEksterneFradrag,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.EPS,
-                ).singleOrNull(),
-                harAapEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
-                    fradragstyper = aap,
-                    måned = reguleringsMåned,
-                    tilhører = FradragTilhører.EPS,
-                ).isNotEmpty(),
+                ).toSet(),
             )
         }
     }
@@ -114,6 +100,12 @@ interface FeilMedEksternRegulering {
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedEksternRegulering
     object OverlappendePeriodeFraPesys : FeilMedEksternRegulering
+    object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
+    object KunneIkkeHenteAap : FeilMedEksternRegulering
+    object IngenGyldigAapPeriode : FeilMedEksternRegulering
+    object FlereGyldigeAapPerioder : FeilMedEksternRegulering
+    object AapIkkeBekreftetRegulert : FeilMedEksternRegulering
+    object AapBeløpErIkkeØkning : FeilMedEksternRegulering
 }
 
 class UthentingAvPerioderUføreFeilet : IllegalStateException()

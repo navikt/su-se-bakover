@@ -25,7 +25,7 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
@@ -66,7 +66,7 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
@@ -100,7 +100,7 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
@@ -139,18 +139,7 @@ class UtledningReguleringstypeOgFradragTest {
             lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 2000.0, FradragTilhører.BRUKER),
         )
 
-        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
-            beløpBruker = listOf(
-                RegulertBeløp(
-                    fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = BigDecimal("1000.00"),
-                    etterRegulering = BigDecimal("1064.00"),
-                ),
-            ),
-            beløpEps = emptyList(),
-        )
+        val eksterntRegulerteBeløp = lagEksterntRegulerteBeløp()
 
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
@@ -174,18 +163,7 @@ class UtledningReguleringstypeOgFradragTest {
             lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 3000.0, FradragTilhører.EPS),
         )
 
-        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
-            beløpBruker = listOf(
-                RegulertBeløp(
-                    fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = BigDecimal("1000.00"),
-                    etterRegulering = BigDecimal("1064.00"),
-                ),
-            ),
-            beløpEps = emptyList(),
-        )
+        val eksterntRegulerteBeløp = lagEksterntRegulerteBeløp()
 
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
@@ -210,7 +188,7 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
@@ -243,7 +221,7 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
@@ -267,6 +245,29 @@ class UtledningReguleringstypeOgFradragTest {
         årsak.eksternNettoBeløpEtterRegulering shouldBe BigDecimal("1075.00")
         resultat.second.single().månedsbeløp shouldBe 1000
     }
+
+    private fun lagEksterntRegulerteBeløp(
+        etterReguleringBruker: Int = 1064,
+        etterReguleringEps: Int = 1064,
+    ) = EksterntRegulerteBeløp(
+        brukerFnr = fnr,
+        beløpBruker = listOf(
+            RegulertBeløp(
+                fnr = fnr,
+                fradragstype = Fradragstype.Uføretrygd,
+                førRegulering = BigDecimal("1000.00"),
+                etterRegulering = BigDecimal.valueOf(etterReguleringBruker.toLong()).setScale(2),
+            ),
+        ),
+        beløpEps = listOf(
+            RegulertBeløp(
+                fnr = fnr,
+                fradragstype = Fradragstype.Uføretrygd,
+                førRegulering = BigDecimal("1000.00"),
+                etterRegulering = BigDecimal.valueOf(etterReguleringEps.toLong()).setScale(2),
+            ),
+        ),
+    )
 
     companion object {
         fun lagFradragsgrunnlag(

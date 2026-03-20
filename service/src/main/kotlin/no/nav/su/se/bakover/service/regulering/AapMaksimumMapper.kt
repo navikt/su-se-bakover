@@ -7,8 +7,8 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-private val STØNADSDAGER_PER_ÅR = BigDecimal(260)
-private val MÅNEDER_PER_ÅR = BigDecimal(12)
+private val stonadsdagerPerAr = BigDecimal(260)
+private val manederPerAr = BigDecimal(12)
 
 /**
  * SU bruker AAP-vedtakets dagsats som resultat-/inntektsgrunnlag ved G-regulering.
@@ -20,8 +20,8 @@ private val MÅNEDER_PER_ÅR = BigDecimal(12)
 fun MaksimumVedtakDto.tilMånedsbeløpForSu(): BigDecimal {
     val dagsats = requireNotNull(dagsats) { "Kan ikke beregne AAP til SU uten dagsats" }
     return BigDecimal(dagsats)
-        .multiply(STØNADSDAGER_PER_ÅR)
-        .divide(MÅNEDER_PER_ÅR, 2, RoundingMode.HALF_UP)
+        .multiply(stonadsdagerPerAr)
+        .divide(manederPerAr, 2, RoundingMode.HALF_UP)
 }
 
 fun tilRegulertAapBeløp(

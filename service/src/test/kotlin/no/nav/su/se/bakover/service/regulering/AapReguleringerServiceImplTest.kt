@@ -1,19 +1,29 @@
 package no.nav.su.se.bakover.service.regulering
 
+import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.MaksimumPeriodeDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
 import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
+import no.nav.su.se.bakover.client.pesys.PesysClient
+import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
+import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
+import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import satser.domain.SatsFactory
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -29,7 +39,7 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
         resultat.beløpBruker.shouldHaveSize(1)
         resultat.beløpBruker.single().førRegulering shouldBe BigDecimal("10833.33")
@@ -47,14 +57,14 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
         resultat.beløpBruker.shouldHaveSize(1)
         resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal("11375.00")
     }
 
     @Test
-    fun `flere overlappende vedtak på reguleringstidspunktet gir tomt AAP-beløp slik at saken går manuelt`() {
+    fun `flere overlappende vedtak på reguleringstidspunktet gir eksplisitt AAP-feil`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
@@ -64,13 +74,13 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.beløpBruker shouldHaveSize 0
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.FlereGyldigeAapPerioder)
     }
 
     @Test
-    fun `ingen gyldig periode på reguleringstidspunktet gir tomt AAP-beløp slik at saken går manuelt`() {
+    fun `ingen gyldig periode på reguleringstidspunktet gir eksplisitt AAP-feil`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
@@ -78,9 +88,9 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.beløpBruker shouldHaveSize 0
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
     }
 
     @Test
@@ -89,13 +99,83 @@ class AapReguleringerServiceImplTest {
         val service = lagService(
             vedtak = listOf(
                 maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
+                maksimumVedtak(dagsats = 675, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
+
+        resultat.beløpBruker.single().førRegulering shouldBe BigDecimal("14083.33")
+    }
+
+    @Test
+    fun `likt beløp i april og mai gir eksplisitt AAP-feil`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
                 maksimumVedtak(dagsats = 650, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.beløpBruker.single().førRegulering shouldBe BigDecimal("14083.33")
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapIkkeBekreftetRegulert)
+    }
+
+    @Test
+    fun `Ved negativ aap utvikling er det ikke regulering tror vi`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
+                maksimumVedtak(dagsats = 640, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapBeløpErIkkeØkning)
+    }
+
+    @Test
+    fun `klientfeil gir eksplisitt AAP-feil`() {
+        val client = mock<AapApiInternClient> {
+            on { hentMaksimum(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
+        }
+        val service = AapReguleringerServiceImpl(client)
+
+        val resultat = service.hentReguleringer(parameter(fnr = Fnr("12345678910"))).single().shouldBeLeft()
+
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.KunneIkkeHenteAap)
+    }
+
+    @Test
+    fun `flere pesys fradragstyper for samme person gir eksplisitt feil`() {
+        val service = ReguleringerFraPesysServiceImpl(
+            pesysClient = mock<PesysClient> {
+                on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(emptyList()).right()
+                on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(emptyList()).right()
+            },
+            satsFactory = mock<SatsFactory>(),
+        )
+
+        val resultat = service.hentReguleringer(
+            HentReguleringerPesysParameter(
+                månedFørRegulering = LocalDate.parse("2025-04-01"),
+                brukereMedEps = listOf(
+                    HentReguleringerPesysParameter.BrukerMedEps(
+                        fnr = Fnr("12345678910"),
+                        sakstype = Sakstype.UFØRE,
+                        fradragstyperBruker = setOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon),
+                        eps = null,
+                        fradragstyperEps = emptySet(),
+                    ),
+                ),
+            ),
+        ).single()
+
+        resultat.leftOrNull()?.alleFeil shouldBe listOf(FeilMedEksternRegulering.FlerePesysFradragstyperForSammePerson)
     }
 
     private fun lagService(vedtak: List<MaksimumVedtakDto>): AapReguleringerServiceImpl {
@@ -111,11 +191,9 @@ class AapReguleringerServiceImplTest {
             HentReguleringerPesysParameter.BrukerMedEps(
                 fnr = fnr,
                 sakstype = Sakstype.UFØRE,
-                fradragBruker = null,
-                harAapBruker = true,
+                fradragstyperBruker = setOf(Fradragstype.Arbeidsavklaringspenger),
                 eps = null,
-                fradragEps = null,
-                harAapEps = false,
+                fradragstyperEps = emptySet(),
             ),
         ),
     )

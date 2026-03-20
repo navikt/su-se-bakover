@@ -507,7 +507,7 @@ fun eksterneReguleringer(
     etterRegulering: Int = 110,
 ) = listOf(
     EksterntRegulerteBeløp(
-        fnr = sak.fnr,
+        brukerFnr = sak.fnr,
         beløpBruker = listOf(
             RegulertBeløp(
                 fnr = sak.fnr,

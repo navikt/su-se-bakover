@@ -105,6 +105,10 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
     }
 
     val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
+    if (fradragstype == Fradragstype.Arbeidsavklaringspenger) {
+        return null
+    }
+
     val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
     val differanseSupplementOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
     val akseptertDifferanseEtterRegulering = BigDecimal.TEN
