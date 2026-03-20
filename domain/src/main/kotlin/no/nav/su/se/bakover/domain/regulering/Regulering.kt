@@ -106,7 +106,7 @@ sealed interface Regulering : Stønadsbehandling {
                 ).getOrElse {
                     return it.left()
                 }
-            val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradrag(
+            val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgOppdaterFradrag(
                 fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 omregningsfaktor = omregningsfaktor,
