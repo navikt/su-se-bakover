@@ -11,8 +11,39 @@ import kotlin.math.absoluteValue
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
-// TODO doc
-// TODO forenkle trekke ut maps for manuell som repeteres på alle nivå?
+/**
+ * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer dem med reguluerte beløper
+ * hentet fra ekstern kilde.
+ *
+ * @param fradrag Liste med fradragsgrunnlag fra vedtakasdata
+ * @param eksterntRegulerteBeløp Eksternt regulerte beløp, inneholder
+ *        beløp før og etter regulering for både bruker og ektefelle/samboer (EPS)
+ * @param omregningsfaktor Omregningsfaktor basert på endringer i grunnbeløpet (G-verdi).
+ *          Brukes til å beregne en maks differanse mellom våre beløp og eksterne beløp etter regulering for å
+ *          avgjøre om reguleringen kan behandles automatisk eller må håndteres manuelt.
+ *
+ * @return Par som inneholder:
+ *         - Først: Reguleringstype (AUTOMATISK hvis alle fradrag kan behandles automatisk,
+ *           eller MANUELL med et sett av årsaker hvis manuell behandling er nødvendig)
+ *         - Andre: Liste med fradragsgrunnlag, oppdatert med nye beløp der ekstern regulering
+ *           var tilgjengelig og gyldig, sortert etter periode
+ *
+ * ## Reguleringslogikk:
+ * - **Automatisk regulering** skjer når:
+ *   - Eksternt regulerte beløp stemmer overens med våre beløp før regulering
+ *   - Differansen etter regulering er innenfor akseptable grenser (≤10 kr)
+ *   - Alle fradrag har tilhørende eksterne data
+ *
+ * - **Manuell regulering** er påkrevd når:
+ *   - En fradragstype ikke kan justeres automatisk fordi vi ikke har en automatisk kilde/integrasjon (f.eks. Kvalifiseringsstønad)
+ *   - Det er en differanse i beløp før regulering
+ *   - Differansen etter regulering overstiger 10 kr
+ *   - Eksterne reguleringsdata mangler for et fradrag
+ *
+ * @see Reguleringstype
+ * @see ÅrsakTilManuellRegulering
+ * @see manuellPåGrunnAvDifferanseMedEksterneBeløp
+ */
 fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
@@ -59,7 +90,7 @@ private fun utledPerFradragstypeOgTilhørende(
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
-    val manuellPåGrunnAvFeilMedEksterneBeløp = manuellPåGrunnAvFeilMedEksterneBeløp(
+    val manuellPåGrunnAvFeilMedEksterneBeløp = manuellPåGrunnAvDifferanseMedEksterneBeløp(
         nyttFradrag = nyttFradrag,
         fradragstype = fradragstype,
         orginaltFradrag = orginaltFradrag,
@@ -93,7 +124,7 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull
  * @param omregningsfaktor Faktor for omregning basert på G-verdi endring
  * @return Reguleringstype (AUTOMATISK eller MANUELL med årsak)
  */
-private fun manuellPåGrunnAvFeilMedEksterneBeløp(
+private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
     nyttFradrag: RegulertBeløp,
     fradragstype: Fradragstype,
     orginaltFradrag: Fradragsgrunnlag,

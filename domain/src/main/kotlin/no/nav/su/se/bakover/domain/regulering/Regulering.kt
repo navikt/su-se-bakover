@@ -106,7 +106,7 @@ sealed interface Regulering : Stønadsbehandling {
                 ).getOrElse {
                     return it.left()
                 }
-            val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgOppdaterFradrag(
+            val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
                 fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 omregningsfaktor = omregningsfaktor,
@@ -115,7 +115,7 @@ sealed interface Regulering : Stønadsbehandling {
             // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
             val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-                reguleringstype2 = reguleringstypeVedSupplement,
+                reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
             return ReguleringUnderBehandling.OpprettetRegulering(
                 id = id,
@@ -125,14 +125,13 @@ sealed interface Regulering : Stønadsbehandling {
                 saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
                 fnr = fnr,
                 grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-                    fradragEtterSupplementSjekk,
+                    fradragOppdatertMedEksterneBeløp,
                 ),
                 beregning = null,
                 simulering = null,
                 reguleringstype = reguleringstype,
                 sakstype = sakstype,
-                // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO bjg - må lagres...
-                // eksternSupplementRegulering = eksternSupplementRegulering, // TODO bjg nullable??
+                // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
             ).right()
         }
 
