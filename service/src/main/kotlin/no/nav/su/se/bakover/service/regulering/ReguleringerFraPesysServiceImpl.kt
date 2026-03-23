@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
@@ -113,7 +114,11 @@ class ReguleringerFraPesysServiceImpl(
         return RegulertBeløp(
             førRegulering = førRegulering.netto,
             etterRegulering = etterRegulering.netto,
-            fradragstype = Fradragstype.Uføretrygd,
+            fradragstype = when (førRegulering) {
+                is UføreBeregningsperiode -> Fradragstype.Uføretrygd
+                is AlderBeregningsperiode -> Fradragstype.Alderspensjon
+                else -> throw IllegalStateException("Ukjent fradragstype: ${førRegulering::class.simpleName}")
+            },
         ).right()
     }
 

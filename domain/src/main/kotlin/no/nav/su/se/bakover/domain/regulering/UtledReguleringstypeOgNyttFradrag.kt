@@ -12,12 +12,12 @@ import kotlin.math.absoluteValue
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
 /**
- * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer dem med reguluerte beløper
- * hentet fra ekstern kilde.
+ * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer
+ * dem med regulerte beløper hentet fra ekstern kilde.
  *
- * @param fradrag Liste med fradragsgrunnlag fra vedtakasdata
- * @param eksterntRegulerteBeløp Eksternt regulerte beløp, inneholder
- *        beløp før og etter regulering for både bruker og ektefelle/samboer (EPS)
+ * @param fradrag Liste med fradragsgrunnlag fra vedtaksdata
+ * @param eksterntRegulerteBeløp inneholder beløp før og etter regulering
+ *          for både bruker og ektefelle/samboer (EPS)
  * @param omregningsfaktor Omregningsfaktor basert på endringer i grunnbeløpet (G-verdi).
  *          Brukes til å beregne en maks differanse mellom våre beløp og eksterne beløp etter regulering for å
  *          avgjøre om reguleringen kan behandles automatisk eller må håndteres manuelt.
@@ -106,9 +106,8 @@ private fun utledPerFradragstypeOgTilhørende(
 }
 
 /**
- * Hvilken regulerte beløp som finnes vil være basert samme gjeldende vedtaksdata som fradragene disse metodene
- * benytter (se [ReguleringerFraPesysService]).
- *  Det vil derfor ikke forekomme avvik
+ * Hvilken beløp fra Pesys som er hentet vil være basert på den samme listen med fradrag som mottas i disse metodene
+ * (se [ReguleringerFraPesysService]). Det vil derfor ikke forekomme avvik
  **/
 private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull { it.fradragstype == fradragstype }
     ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
