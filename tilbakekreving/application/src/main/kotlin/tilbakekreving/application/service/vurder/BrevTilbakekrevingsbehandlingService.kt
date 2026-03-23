@@ -27,7 +27,7 @@ class BrevTilbakekrevingsbehandlingService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private fun lagreFritekstTilbakekreving(
+    internal fun lagreFritekstTilbakekreving(
         command: OppdaterVedtaksbrevCommand,
     ): Either<KunneIkkeOppdatereVedtaksbrev, Unit> {
         if (command.brevvalg.skalSendeBrev()) {
