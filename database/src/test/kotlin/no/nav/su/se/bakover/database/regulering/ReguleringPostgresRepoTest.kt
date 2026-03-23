@@ -95,7 +95,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             fnr = regulering.fnr,
             reguleringId = regulering.id,
             fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
-            årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt),
+            årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement),
         )
     }
 
