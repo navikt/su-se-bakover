@@ -55,6 +55,14 @@ sealed interface ÅrsakTilManuellRegulering {
         }
     }
 
+    data class ManglerRegulertBeløpForFradrag(
+        val fradragskategori: Fradragstype.Kategori,
+        val fradragTilhører: FradragTilhører,
+        override val begrunnelse: String = "Fradragstype $fradragskategori har ingen løsning for å hente regulert beløp",
+        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement,
+    ) : ÅrsakTilManuellRegulering
+
+    // TODO auto-reg-26 - blir historisk
     sealed interface FradragMåHåndteresManuelt : ÅrsakTilManuellRegulering {
         val fradragskategori: Fradragstype.Kategori
         val fradragTilhører: FradragTilhører

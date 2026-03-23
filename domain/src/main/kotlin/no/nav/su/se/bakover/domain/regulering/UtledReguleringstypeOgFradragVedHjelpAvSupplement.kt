@@ -300,7 +300,7 @@ private fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
         ) to originaleFradragsgrunnlag
     }
 
-    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(eksterntBeløpEtterRegulering)
+    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpMedEksternRegulering(eksterntBeløpEtterRegulering)
     return Reguleringstype.AUTOMATISK to oppdatertBeløpFraSupplement
 }
 

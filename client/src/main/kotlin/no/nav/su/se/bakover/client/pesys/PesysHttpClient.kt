@@ -126,10 +126,10 @@ data class ResponseDtoAlder(val resultat: List<AlderBeregningsperioderPerPerson>
 
 data class AlderBeregningsperioderPerPerson(
     override val fnr: String,
-    override val perioder: List<BeregningsperiodeDto>,
+    override val perioder: List<AlderBeregningsperiode>,
 ) : PesysPerioderForPerson
 
-data class BeregningsperiodeDto(
+data class AlderBeregningsperiode(
     override val netto: Int,
     override val fom: LocalDate,
     override val tom: LocalDate?,

@@ -506,11 +506,12 @@ fun eksterneReguleringer(
     etterRegulering: Int = 110,
 ) = listOf(
     EksterntRegulerteBeløp(
+        fnr = sak.fnr,
         beløpBruker = listOf(
             RegulertBeløp(
-                fnr = sak.fnr,
                 førRegulering = førRegulering,
                 etterRegulering = etterRegulering,
+                fradragstype = Fradragstype.Uføretrygd,
             ),
         ),
         beløpEps = emptyList(),

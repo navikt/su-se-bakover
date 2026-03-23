@@ -106,21 +106,16 @@ sealed interface Regulering : Stønadsbehandling {
                 ).getOrElse {
                     return it.left()
                 }
-            val fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag
-            val bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjonSomFullstendig()
-
-            // TODO AUTO-REG-26 - switch gammel/ny
-            val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradrag(
-                fradrag = fradrag,
+            val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
+                fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 omregningsfaktor = omregningsfaktor,
-                saksnummer = saksnummer,
             )
 
             // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
             val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-                reguleringstype2 = reguleringstypeVedSupplement,
+                reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
             return ReguleringUnderBehandling.OpprettetRegulering(
                 id = id,
@@ -130,14 +125,13 @@ sealed interface Regulering : Stønadsbehandling {
                 saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
                 fnr = fnr,
                 grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-                    fradragEtterSupplementSjekk,
+                    fradragOppdatertMedEksterneBeløp,
                 ),
                 beregning = null,
                 simulering = null,
                 reguleringstype = reguleringstype,
                 sakstype = sakstype,
-                // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO bjg - må lagres...
-                // eksternSupplementRegulering = eksternSupplementRegulering, // TODO bjg nullable??
+                // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
             ).right()
         }
 
@@ -146,22 +140,23 @@ sealed interface Regulering : Stønadsbehandling {
             saksnummer: Saksnummer,
             sakstype: Sakstype,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, Reguleringstype> {
-            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype).fold(
-                { konsistensproblemer ->
-                    val message =
-                        "Kunne ikke opprette regulering for saksnummer $saksnummer." +
-                            " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
-                    if (konsistensproblemer.erGyldigTilstand()) {
-                        log.info(message)
-                    } else {
-                        log.error(message)
-                    }
-                    return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
-                },
-                {
-                    gjeldendeVedtaksdata.utledReguleringstype().right()
-                },
-            )
+            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype)
+                .fold(
+                    { konsistensproblemer ->
+                        val message =
+                            "Kunne ikke opprette regulering for saksnummer $saksnummer." +
+                                " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
+                        if (konsistensproblemer.erGyldigTilstand()) {
+                            log.info(message)
+                        } else {
+                            log.error(message)
+                        }
+                        return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
+                    },
+                    {
+                        gjeldendeVedtaksdata.utledReguleringstype().right()
+                    },
+                )
         }
     }
 

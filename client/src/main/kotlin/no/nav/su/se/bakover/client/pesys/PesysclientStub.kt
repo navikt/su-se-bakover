@@ -15,13 +15,13 @@ class PesysclientStub : PesysClient {
             AlderBeregningsperioderPerPerson(
                 fnr = fnr.toString(),
                 perioder = listOf(
-                    BeregningsperiodeDto(
+                    AlderBeregningsperiode(
                         netto = 20000,
                         fom = dato.minusMonths(6),
                         tom = dato,
                         grunnbelop = 130000,
                     ),
-                    BeregningsperiodeDto(
+                    AlderBeregningsperiode(
                         netto = 20000,
                         fom = dato.plusMonths(1),
                         tom = null,
