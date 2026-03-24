@@ -63,25 +63,13 @@ class AapApiInternHttpClientTest {
             val expectedResponse = MaksimumResponseDto(
                 vedtak = listOf(
                     MaksimumVedtakDto(
-                        barnMedStonad = 0,
-                        barnetillegg = 0,
-                        beregningsgrunnlag = 0,
                         dagsats = 0,
-                        dagsatsEtterUføreReduksjon = 0,
-                        kildesystem = "ARENA",
                         opphorsAarsak = "string",
+                        vedtaksdato = LocalDate.parse("2025-04-01"),
                         periode = MaksimumPeriodeDto(
                             fraOgMedDato = LocalDate.parse("2025-04-01"),
                             tilOgMedDato = LocalDate.parse("2025-04-01"),
                         ),
-                        rettighetsType = "string",
-                        saksnummer = "string",
-                        samordningsId = "string",
-                        status = "string",
-                        vedtakId = "string",
-                        vedtaksTypeKode = "string",
-                        vedtaksTypeNavn = "string",
-                        vedtaksdato = LocalDate.parse("2025-04-01"),
                     ),
                 ),
             )
@@ -97,35 +85,7 @@ class AapApiInternHttpClientTest {
                         aResponse()
                             .withStatus(200)
                             .withHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                            .withBody(
-                                """
-                                {
-                                  "vedtak": [
-                                    {
-                                      "barnMedStonad": 0,
-                                      "barnetillegg": 0,
-                                      "beregningsgrunnlag": 0,
-                                      "dagsats": 0,
-                                      "dagsatsEtterUføreReduksjon": 0,
-                                      "kildesystem": "ARENA",
-                                      "opphorsAarsak": "string",
-                                      "periode": {
-                                        "fraOgMedDato": "2025-04-01",
-                                        "tilOgMedDato": "2025-04-01"
-                                      },
-                                      "rettighetsType": "string",
-                                      "saksnummer": "string",
-                                      "samordningsId": "string",
-                                      "status": "string",
-                                      "vedtakId": "string",
-                                      "vedtaksTypeKode": "string",
-                                      "vedtaksTypeNavn": "string",
-                                      "vedtaksdato": "2025-04-01"
-                                    }
-                                  ]
-                                }
-                                """.trimIndent(),
-                            ),
+                            .withBody(serialize(expectedResponse)),
                     ),
             )
 

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
@@ -20,17 +19,21 @@ import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter.BrukerMedEps
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderAlderFeilet
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderUføreFeilet
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.collections.List
 import kotlin.collections.flatMap
 import kotlin.collections.map
+
+interface ReguleringerFraPesysService {
+    fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
+}
 
 class ReguleringerFraPesysServiceImpl(
     private val pesysClient: PesysClient,
@@ -63,39 +66,51 @@ class ReguleringerFraPesysServiceImpl(
         månedFørRegulering: LocalDate,
     ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         return brukereMedEps.map { brukerMedEps ->
+            val fradragstypeBrukerFraPesys = brukerMedEps.fradragstypeBrukerFraPesys()
             val reguleringForBruker =
-                utledOgVerifiserRegulertBeløp(brukerMedEps.fnr, perioderFraPesys, månedFørRegulering)
+                fradragstypeBrukerFraPesys.høyreVerdi()?.let {
+                    utledOgVerifiserRegulertBeløp(
+                        fnr = brukerMedEps.fnr,
+                        fradragstype = it,
+                        perioderFraPesys = perioderFraPesys,
+                        månedFørRegulering = månedFørRegulering,
+                    )
+                }
 
             val epsFnr = brukerMedEps.eps
-            val reguleringForEps = if (epsFnr != null && brukerMedEps.fradragEps != null) {
-                utledOgVerifiserRegulertBeløp(epsFnr, perioderFraPesys, månedFørRegulering)
+            val fradragstypeEpsFraPesys = brukerMedEps.fradragstypeEpsFraPesys()
+            val reguleringForEps = if (epsFnr != null && fradragstypeEpsFraPesys.høyreVerdi() != null) {
+                utledOgVerifiserRegulertBeløp(
+                    fnr = epsFnr,
+                    fradragstype = fradragstypeEpsFraPesys.høyreVerdi()!!,
+                    perioderFraPesys = perioderFraPesys,
+                    månedFørRegulering = månedFørRegulering,
+                )
             } else {
                 null
             }
 
-            val regulertIeu = if (brukerMedEps.sakstype == Sakstype.UFØRE) {
+            val regulertIeu = if (brukerMedEps.sakstype == Sakstype.UFØRE && fradragstypeBrukerFraPesys.venstreVerdi() == null) {
                 utledInntektEtterUføre(brukerMedEps.fnr, månedFørRegulering, perioderFraPesys)
             } else {
                 null
             }
 
-            val feil = listOfNotNull(reguleringForBruker, reguleringForEps, regulertIeu).filterLefts()
+            val feil = listOfNotNull(
+                fradragstypeBrukerFraPesys.venstreVerdi(),
+                fradragstypeEpsFraPesys.venstreVerdi(),
+            ) + listOfNotNull(reguleringForBruker, reguleringForEps, regulertIeu).filterLefts()
             if (feil.isNotEmpty()) {
                 HentingAvEksterneReguleringerFeiletForBruker(
                     fnr = brukerMedEps.fnr,
                     alleFeil = feil,
                 ).left()
             } else {
-                // På dette stadiet vet vi at alle Either-verdiene er Right på grunn av if
-                val brukerBeløp = (reguleringForBruker as Either.Right).value
-                val epsBeløp = (reguleringForEps as? Either.Right)?.value
-                val ieuBeløp = (regulertIeu as? Either.Right)?.value
-
                 EksterntRegulerteBeløp(
-                    fnr = brukerMedEps.fnr,
-                    beløpBruker = listOf(brukerBeløp),
-                    beløpEps = epsBeløp?.let { listOf(it) } ?: emptyList(),
-                    inntektEtterUføre = ieuBeløp,
+                    brukerFnr = brukerMedEps.fnr,
+                    beløpBruker = listOfNotNull(reguleringForBruker.høyreVerdi()),
+                    beløpEps = listOfNotNull(reguleringForEps.høyreVerdi()),
+                    inntektEtterUføre = regulertIeu.høyreVerdi(),
                 ).right()
             }
         }
@@ -103,6 +118,7 @@ class ReguleringerFraPesysServiceImpl(
 
     private fun utledOgVerifiserRegulertBeløp(
         fnr: Fnr,
+        fradragstype: Fradragstype,
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> {
@@ -112,13 +128,10 @@ class ReguleringerFraPesysServiceImpl(
             perioderFraPesys,
         ).getOrElse { return it.left() }
         return RegulertBeløp(
-            førRegulering = førRegulering.netto,
-            etterRegulering = etterRegulering.netto,
-            fradragstype = when (førRegulering) {
-                is UføreBeregningsperiode -> Fradragstype.Uføretrygd
-                is AlderBeregningsperiode -> Fradragstype.Alderspensjon
-                else -> throw IllegalStateException("Ukjent fradragstype: ${førRegulering::class.simpleName}")
-            },
+            fnr = fnr,
+            fradragstype = fradragstype,
+            førRegulering = BigDecimal.valueOf(førRegulering.netto.toLong()).setScale(2),
+            etterRegulering = BigDecimal.valueOf(etterRegulering.netto.toLong()).setScale(2),
         ).right()
     }
 
@@ -142,9 +155,10 @@ class ReguleringerFraPesysServiceImpl(
         val inntektEtterUføreEtterRegulering = etterRegulering.oppjustertInntektEtterUfore
         return if (inntektEtterUføreFørRegulering != null && inntektEtterUføreEtterRegulering != null) {
             RegulertBeløp(
-                førRegulering = inntektEtterUføreFørRegulering,
-                etterRegulering = inntektEtterUføreEtterRegulering,
-                fradragstype = Fradragstype.Uføretrygd,
+                fnr = brukerFnr,
+                fradragstype = Fradragstype.ForventetInntekt,
+                førRegulering = BigDecimal.valueOf(inntektEtterUføreFørRegulering.toLong()).setScale(2),
+                etterRegulering = BigDecimal.valueOf(inntektEtterUføreEtterRegulering.toLong()).setScale(2),
             ).right()
         } else {
             // Mangler IEU hos Pesys betyr det at det er manuelt behandlet og vi ikke får beløpet
@@ -191,7 +205,7 @@ class ReguleringerFraPesysServiceImpl(
 
     private fun hentPerioderUføre(
         brukereMedEps: List<BrukerMedEps>,
-        dato: LocalDate,
+        månedFørRegulering: LocalDate,
     ): List<UføreBeregningsperioderPerPerson> {
         val fnrForFradragstype = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Uføretrygd)
         // Vi trenger perioder for uføre som får 0 utbetalt i Pesys for Inntekt Etter Uføre
@@ -199,7 +213,7 @@ class ReguleringerFraPesysServiceImpl(
         val unikeFnr = (fnrForFradragstype + uføreBrukere).distinct()
         return pesysClient.hentVedtakForPersonPaaDatoUføre(
             fnrList = unikeFnr,
-            dato = dato,
+            dato = månedFørRegulering,
         ).getOrElse {
             throw UthentingAvPerioderUføreFeilet()
         }.resultat
@@ -207,12 +221,12 @@ class ReguleringerFraPesysServiceImpl(
 
     private fun hentPerioderAlder(
         brukereMedEps: List<BrukerMedEps>,
-        dato: LocalDate,
+        månedFørRegulering: LocalDate,
     ): List<AlderBeregningsperioderPerPerson> {
         val unikeFnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon).distinct()
         return pesysClient.hentVedtakForPersonPaaDatoAlder(
             fnrList = unikeFnr,
-            dato = dato,
+            dato = månedFørRegulering,
         ).getOrElse {
             throw UthentingAvPerioderAlderFeilet()
         }.resultat
@@ -222,15 +236,45 @@ class ReguleringerFraPesysServiceImpl(
     private fun List<BrukerMedEps>.fnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
         flatMap { brukerMedEps ->
             listOfNotNull(
-                brukerMedEps.fradragBruker?.let { fradragBruker -> Pair(brukerMedEps.fnr, fradragBruker) },
-                brukerMedEps.fradragEps?.let { fradragEps ->
-                    Pair(
-                        brukerMedEps.eps
-                            ?: throw IllegalStateException("Bruker har fradrag for eps, men mangler eps"),
-                        fradragEps,
-                    )
+                if (fradragstype in brukerMedEps.fradragstyperBruker) brukerMedEps.fnr else null,
+                if (fradragstype in brukerMedEps.fradragstyperEps) {
+                    brukerMedEps.eps
+                        ?: throw IllegalStateException("Bruker har fradrag for eps, men mangler eps")
+                } else {
+                    null
                 },
             )
-        }.filter { (_, fradrag) -> fradrag == fradragstype }
-            .map { (fnr, _) -> fnr }
+        }
+
+    private fun BrukerMedEps.fradragstypeBrukerFraPesys(): Either<FeilMedEksternRegulering, Fradragstype?> =
+        utledPesysFradragstype(fradragstyperBruker)
+
+    private fun BrukerMedEps.fradragstypeEpsFraPesys(): Either<FeilMedEksternRegulering, Fradragstype?> =
+        utledPesysFradragstype(fradragstyperEps)
+
+    private fun utledPesysFradragstype(fradragstyper: Set<Fradragstype>): Either<FeilMedEksternRegulering, Fradragstype?> {
+        val pesysFradrag = fradragstyper.filter { it.erPesysFradrag() }
+        return when (pesysFradrag.size) {
+            0 -> null.right()
+            1 -> pesysFradrag.single().right()
+            else -> {
+                log.warn("Fant flere Pesys-fradragstyper for samme person i samme måned. Se sikkerlogg for detaljer.")
+                sikkerLogg.warn("Fant flere Pesys-fradragstyper for samme person i samme måned. Fradrag=$pesysFradrag")
+                FeilMedEksternRegulering.FlerePesysFradragstyperForSammePerson.left()
+            }
+        }
+    }
+
+    private fun Fradragstype.erPesysFradrag(): Boolean =
+        this == Fradragstype.Uføretrygd || this == Fradragstype.Alderspensjon
+
+    private fun <L, R> Either<L, R>?.høyreVerdi(): R? = when (this) {
+        is Either.Right -> value
+        else -> null
+    }
+
+    private fun <L, R> Either<L, R>?.venstreVerdi(): L? = when (this) {
+        is Either.Left -> value
+        else -> null
+    }
 }

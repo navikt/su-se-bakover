@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
+import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
@@ -25,7 +26,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
@@ -53,6 +53,7 @@ class ReguleringAutomatiskServiceImpl(
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
+    private val aapReguleringerService: AapReguleringerService,
 ) : ReguleringAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -163,15 +164,18 @@ class ReguleringAutomatiskServiceImpl(
                     emptyList()
                 } else {
                     Either.catch {
-                        reguleringerFraPesysService.hentReguleringer(
-                            HentReguleringerPesysParameter.toParameter(
-                                reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                                forSaker = sakerSomKanReguleres,
-                                clock = clock,
-                            ),
+                        val eksterntOppslagsgrunnlag = HentReguleringerPesysParameter.utledGrunnlagFraSaker(
+                            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                            forSaker = sakerSomKanReguleres,
+                            clock = clock,
                         )
-
-                        // TODO AUTO-REG-26 Hente og appende AAP
+                        val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag)
+                        val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
+                        slåSammenEksterneReguleringer(
+                            brukereMedEps = eksterntOppslagsgrunnlag.brukereMedEps,
+                            fraPesys = fraPesys,
+                            fraAap = fraAap,
+                        )
                     }.getOrElse {
                         // TODO AUTO-REG-26 Feile enkelt batch?
                         throw it
@@ -430,6 +434,49 @@ class ReguleringAutomatiskServiceImpl(
             }
         }
     }
+}
+
+internal fun slåSammenEksterneReguleringer(
+    brukereMedEps: List<HentReguleringerPesysParameter.BrukerMedEps>,
+    fraPesys: List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>,
+    fraAap: List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>,
+): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
+    val forventedeFnr = brukereMedEps.map { it.fnr }
+    val forventedeFnrSet = forventedeFnr.toSet()
+    val fraPesysPerBruker = fraPesys.associateBy { it.fold(ifLeft = { it.fnr }, ifRight = { it.brukerFnr }) }
+    val fraAapPerBruker = fraAap.associateBy { it.fold(ifLeft = { it.fnr }, ifRight = { it.brukerFnr }) }
+
+    require(fraPesysPerBruker.keys == forventedeFnrSet) {
+        "Forventet Pesys-resultater for $forventedeFnrSet, men fikk ${fraPesysPerBruker.keys}"
+    }
+    require(fraAapPerBruker.keys == forventedeFnrSet) {
+        "Forventet AAP-resultater for $forventedeFnrSet, men fikk ${fraAapPerBruker.keys}"
+    }
+
+    return forventedeFnr.map { fnr ->
+        val pesysResultat = fraPesysPerBruker.getValue(fnr)
+        val aapResultat = fraAapPerBruker.getValue(fnr)
+        when {
+            pesysResultat is Either.Left && aapResultat is Either.Left -> HentingAvEksterneReguleringerFeiletForBruker(
+                fnr = fnr,
+                alleFeil = pesysResultat.value.alleFeil + aapResultat.value.alleFeil,
+            ).left()
+
+            pesysResultat is Either.Left -> pesysResultat
+            aapResultat is Either.Left -> aapResultat
+            pesysResultat is Either.Right && aapResultat is Either.Right -> (pesysResultat.value + aapResultat.value).right()
+            else -> throw IllegalStateException("Ukjent kombinasjon ved sammenslåing av eksterne reguleringer for $fnr")
+        }
+    }
+}
+
+private operator fun EksterntRegulerteBeløp.plus(other: EksterntRegulerteBeløp): EksterntRegulerteBeløp {
+    return EksterntRegulerteBeløp(
+        brukerFnr = this.brukerFnr,
+        beløpBruker = this.beløpBruker + other.beløpBruker,
+        beløpEps = this.beløpEps + other.beløpEps,
+        inntektEtterUføre = this.inntektEtterUføre ?: other.inntektEtterUføre,
+    )
 }
 
 /*
