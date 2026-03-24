@@ -13,17 +13,14 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import vilkår.common.domain.Vurdering
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.erGyldigTilstand
@@ -32,38 +29,6 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 import kotlin.collections.ifEmpty
-
-fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat() is Vurdering.Avslag
-
-// TODO flytt til midlertidig egen fil
-/**
- * Det knyttes et slikt objekt til hver regulering, både manuelle og automatiske, eller null dersom vi ikke har slike data.
- * Den vil være basert på eksterne data (både fil og tjenester). Merk at det er viktig og lagre originaldata, f.eks. i hendelser.
- *
- * @param supplementId Id'en til [Reguleringssupplement] denne ble hentet ut ifra. Den kan være null ved historiske reguleringer.
- * @param bruker reguleringsdata/fradrag fra eksterne kilder for bruker. Kan være null dersom bruker ikke har fradrag fra eksterne kilder.
- * @param eps reguleringsdata/fradrag fra eksterne kilder for ingen, en eller flere EPS, eller vi har hentet regulerte fradrag på EPS.
- */
-data class EksternSupplementRegulering(
-    val supplementId: UUID?,
-    val bruker: ReguleringssupplementFor?,
-    // TODO jah - Bør kanskje ha en sjekk på at fnr er unike på tvers av eps og bruker?
-    val eps: List<ReguleringssupplementFor>,
-) {
-
-    init {
-        require(eps.distinctBy { it.fnr } == eps) {
-            sikkerLogg.error("Kan ikke ha flere reguleringssupplementFor for samme EPS. eps: ${eps.map { it.toSikkerloggString() }}")
-            "Kan ikke ha flere reguleringssupplementFor for samme EPS. Se sikkerlogg for detaljer"
-        }
-    }
-
-    fun hentForEps(fnr: Fnr): ReguleringssupplementFor? = eps.find { it.fnr == fnr }
-
-    fun toSikkerloggString(): String {
-        return "EksternSupplementRegulering(suppementId=$supplementId, bruker=${bruker?.toSikkerloggString()}, eps=${eps.map { it.toSikkerloggString() }})"
-    }
-}
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
@@ -81,6 +46,7 @@ sealed interface Regulering : Stønadsbehandling {
      * Supplementet inneholder informasjon som skal brukes for å oppdatere grunnlagene
      * Supplementet hentes fra eksterne kilder
      */
+    // TODO AUTO-REG-26 bytt med EksterntRegulerteBeløp
     val eksternSupplementRegulering: EksternSupplementRegulering?
 
     fun erÅpen(): Boolean
