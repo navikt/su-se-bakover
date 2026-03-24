@@ -85,37 +85,7 @@ class AapApiInternHttpClientTest {
                         aResponse()
                             .withStatus(200)
                             .withHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                            .withBody(
-                                """
-                                {
-                                  "vedtak": [
-                                    {
-                                      "barnMedStonad": 0,
-                                      "barnetillegg": 0,
-                                      "barnetilleggSats": 0,
-                                      "beregningsgrunnlag": 0,
-                                      "dagsats": 0,
-                                      "dagsatsEtterUføreReduksjon": 0,
-                                      "kildesystem": "ARENA",
-                                      "opphorsAarsak": "string",
-                                      "periode": {
-                                        "fraOgMedDato": "2025-04-01",
-                                        "tilOgMedDato": "2025-04-01"
-                                      },
-                                      "rettighetsType": "string",
-                                      "saksnummer": "string",
-                                      "samordningsId": "string",
-                                      "status": "string",
-                                      "vedtakId": "string",
-                                      "vedtaksTypeKode": "string",
-                                      "vedtaksTypeNavn": "string",
-                                      "vedtaksdato": "2025-04-01",
-                                      "utbetaling": []
-                                    }
-                                  ]
-                                }
-                                """.trimIndent(),
-                            ),
+                            .withBody(serialize(expectedResponse)),
                     ),
             )
 
