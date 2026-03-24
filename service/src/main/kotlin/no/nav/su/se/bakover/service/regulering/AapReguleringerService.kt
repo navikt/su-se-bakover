@@ -114,8 +114,8 @@ class AapReguleringerServiceImpl(
                             }
                             beløpFør < beløpEtter -> tilRegulertAapBeløp(
                                 fnr = fnr,
-                                førRegulering = førRegulering,
-                                etterRegulering = etterRegulering,
+                                førRegulering = beløpFør,
+                                etterRegulering = beløpEtter,
                             ).right()
                             else -> {
                                 log.info("AAP-regulering: Fant ingen økning i beløpet i app, tipper regulering ikke er kjørt for fnr: {}", fnr)

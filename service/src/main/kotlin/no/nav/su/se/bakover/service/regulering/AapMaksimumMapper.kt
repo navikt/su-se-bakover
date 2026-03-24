@@ -26,13 +26,13 @@ fun MaksimumVedtakDto.tilMånedsbeløpForSu(): BigDecimal {
 
 fun tilRegulertAapBeløp(
     fnr: Fnr,
-    førRegulering: MaksimumVedtakDto,
-    etterRegulering: MaksimumVedtakDto,
+    førRegulering: BigDecimal,
+    etterRegulering: BigDecimal,
 ): RegulertBeløp {
     return RegulertBeløp(
         fnr = fnr,
         fradragstype = Fradragstype.Arbeidsavklaringspenger,
-        førRegulering = førRegulering.tilMånedsbeløpForSu(),
-        etterRegulering = etterRegulering.tilMånedsbeløpForSu(),
+        førRegulering = førRegulering,
+        etterRegulering = etterRegulering,
     )
 }
