@@ -65,6 +65,7 @@ class AapApiInternHttpClientTest {
                     MaksimumVedtakDto(
                         dagsats = 0,
                         opphorsAarsak = "string",
+                        vedtaksdato = LocalDate.parse("2025-04-01"),
                         periode = MaksimumPeriodeDto(
                             fraOgMedDato = LocalDate.parse("2025-04-01"),
                             tilOgMedDato = LocalDate.parse("2025-04-01"),
