@@ -316,7 +316,11 @@ data class Sak(
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
         data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
         data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
-        data object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
+
+        // Brukes når det vil måtte skje endringer som går utvoer beregning med ny G
+        // eller det av en eller annen grunn må sendes ut vedtaksbrev
+        data object MåRevurdere : KunneIkkeOppretteEllerOppdatereRegulering
+        // TODO legg til årsak med beskrivelse?
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

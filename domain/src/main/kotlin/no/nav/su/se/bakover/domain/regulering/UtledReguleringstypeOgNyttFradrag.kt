@@ -1,5 +1,10 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.filterRights
+import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -37,16 +42,20 @@ import java.math.RoundingMode
  *
  * @see Reguleringstype
  * @see ÅrsakTilManuellRegulering
- * @see manuellPåGrunnAvDifferanseMedEksterneBeløp
+ * @see måRevurderePåGrunnAvDifferanseMedEksterneBeløp
  */
 fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
-): Pair<Reguleringstype, List<Fradragsgrunnlag>> {
-    return fradrag.map {
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
+    val utledetReguleringstypePerFradrag = fradrag.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp, omregningsfaktor)
-    }.let {
+    }
+    if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
+        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere.left()
+    }
+    return utledetReguleringstypePerFradrag.filterRights().let {
         val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
             Reguleringstype.MANUELL(
                 problemer = it.map { it.first }.filterIsInstance<Reguleringstype.MANUELL>()
@@ -55,8 +64,9 @@ fun utledReguleringstypeOgOppdaterFradrag(
         } else {
             Reguleringstype.AUTOMATISK
         }
-        reguleringstype to it.map { it.second }
+        val reguleringstypeOgOppdatertFradrag = reguleringstype to it.map { it.second }
             .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed })
+        reguleringstypeOgOppdatertFradrag.right()
     }
 }
 
@@ -64,20 +74,22 @@ private fun utledPerFradragstypeOgTilhørende(
     orginaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
-): Pair<Reguleringstype, Fradragsgrunnlag> {
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = orginaltFradrag.fradragstype
     val fradragTilhører = orginaltFradrag.fradrag.tilhører
 
     if (!fradragstype.måJusteresVedGEndring) {
-        return Reguleringstype.AUTOMATISK to orginaltFradrag
+        return (Reguleringstype.AUTOMATISK to orginaltFradrag).right()
     }
     if (!fradragstype.kanJusteresAutomatisk) {
-        return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
-                fradragskategori = fradragstype.kategori,
-                fradragTilhører = fradragTilhører,
-            ),
-        ) to orginaltFradrag
+        return (
+            Reguleringstype.MANUELL(
+                ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
+                    fradragskategori = fradragstype.kategori,
+                    fradragTilhører = fradragTilhører,
+                ),
+            ) to orginaltFradrag
+            ).right()
     }
 
     val nyttFradrag = when (fradragTilhører) {
@@ -85,19 +97,17 @@ private fun utledPerFradragstypeOgTilhørende(
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
-    val manuellPåGrunnAvFeilMedEksterneBeløp = manuellPåGrunnAvDifferanseMedEksterneBeløp(
-        nyttFradrag = nyttFradrag,
-        fradragstype = fradragstype,
-        orginaltFradrag = orginaltFradrag,
-        fradragTilhører = fradragTilhører,
-        omregningsfaktor = omregningsfaktor,
-    )
-    if (manuellPåGrunnAvFeilMedEksterneBeløp != null) {
-        return manuellPåGrunnAvFeilMedEksterneBeløp to orginaltFradrag
+    måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
+        nyttFradrag,
+        fradragstype,
+        orginaltFradrag,
+        fradragTilhører,
+        omregningsfaktor,
+    )?.let {
+        return it.left()
     }
 
-    return Reguleringstype.AUTOMATISK to
-        orginaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering)
+    return (Reguleringstype.AUTOMATISK to orginaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering)).right()
 }
 
 /**
@@ -118,13 +128,13 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull
  * @param omregningsfaktor Faktor for omregning basert på G-verdi endring
  * @return Reguleringstype (AUTOMATISK eller MANUELL med årsak)
  */
-private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
+private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     nyttFradrag: RegulertBeløp,
     fradragstype: Fradragstype,
     orginaltFradrag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
     omregningsfaktor: BigDecimal,
-): Reguleringstype.MANUELL? {
+): Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere? {
     require(orginaltFradrag.fradragstype == fradragstype)
     require(orginaltFradrag.fradrag.tilhører == fradragTilhører)
 
@@ -134,6 +144,9 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
 
     // Vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > BigDecimal.ZERO) {
+        // TODO legg til beløper
+        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere
+        /*
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
                 fradragskategori = fradragstype.kategori,
@@ -144,6 +157,8 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
                 begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer ikke en differanse, men differansen var $diffFørRegulering",
             ),
         )
+
+         */
     }
 
     val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
@@ -152,6 +167,9 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
     val akseptertDifferanseEtterRegulering = BigDecimal.TEN
 
     if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
+        // TODO legg til beløper
+        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere
+        /*
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
                 fradragskategori = fradragstype.kategori,
@@ -163,6 +181,7 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
                 begrunnelse = "Vi forventet at beløpet skulle være $forventetBeløpBasertPåGverdi etter regulering, men det var $eksterntBeløpEtterRegulering. Vi aksepterer en differanse på $akseptertDifferanseEtterRegulering, men den var $differanseSupplementOgForventet",
             ),
         )
+         */
     }
     return null
 }

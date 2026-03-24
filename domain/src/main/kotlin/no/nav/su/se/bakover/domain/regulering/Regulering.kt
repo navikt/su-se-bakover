@@ -69,7 +69,7 @@ sealed interface Regulering : Stønadsbehandling {
             sakstype: Sakstype,
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
-        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
+        ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer =
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
@@ -82,13 +82,16 @@ sealed interface Regulering : Stønadsbehandling {
                 fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 omregningsfaktor = omregningsfaktor,
-            )
+            ).getOrElse {
+                return it.left()
+            }
 
             // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
             val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
                 reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
+
             return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -111,7 +114,7 @@ sealed interface Regulering : Stønadsbehandling {
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             saksnummer: Saksnummer,
             sakstype: Sakstype,
-        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, Reguleringstype> {
+        ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Reguleringstype> {
             return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype)
                 .fold(
                     { konsistensproblemer ->
@@ -123,7 +126,7 @@ sealed interface Regulering : Stønadsbehandling {
                         } else {
                             log.error(message)
                         }
-                        return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
+                        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere.left()
                     },
                     {
                         gjeldendeVedtaksdata.utledReguleringstype().right()
@@ -131,8 +134,6 @@ sealed interface Regulering : Stønadsbehandling {
                 )
         }
     }
-
-    data object LagerIkkeReguleringDaDenneUansettMåRevurderes
 }
 
 fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
@@ -140,7 +141,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     vedtaksdata: GjeldendeVedtaksdata,
     eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
@@ -154,10 +155,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
             ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer"),
         omregningsfaktor = omregningsfaktor,
-    ).mapLeft {
-        // TODO AUTO-REG-26  Bedre håndtering av saker som må revurderes
-        Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
-    }
+    )
 }
 
 fun Sak.hentGjeldendeVedtaksdataForRegulering(
@@ -179,8 +177,9 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
         if (it.count() != 1) return Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
     }.single()
 
-    return this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
+    val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
         log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
         return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-    }.right()
+    }
+    return gjeldendeVedtaksdata.right()
 }
