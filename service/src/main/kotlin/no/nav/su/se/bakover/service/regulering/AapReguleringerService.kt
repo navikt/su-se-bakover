@@ -101,19 +101,23 @@ class AapReguleringerServiceImpl(
                     if (førRegulering == null || etterRegulering == null) {
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
                         FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
-                    } else if (førRegulering.tilMånedsbeløpForSu() == etterRegulering.tilMånedsbeløpForSu()) {
-                        log.info("AAP-regulering: Fant ikke beløpsendring mellom april og mai for fnr: {}", fnr)
-                        FeilMedEksternRegulering.AapIkkeBekreftetRegulert.left()
                     } else {
-                        if (førRegulering.tilMånedsbeløpForSu() < etterRegulering.tilMånedsbeløpForSu()) {
-                            tilRegulertAapBeløp(
+                        val beløpFør = førRegulering.tilMånedsbeløpForSu()
+                        val beløpEtter = etterRegulering.tilMånedsbeløpForSu()
+                        when {
+                            beløpFør == beløpEtter -> {
+                                log.info("AAP-regulering: Fant ikke beløpsendring mellom april og mai for fnr: {}", fnr)
+                                FeilMedEksternRegulering.AapIkkeBekreftetRegulert.left()
+                            }
+                            beløpFør < beløpEtter -> tilRegulertAapBeløp(
                                 fnr = fnr,
                                 førRegulering = førRegulering,
                                 etterRegulering = etterRegulering,
                             ).right()
-                        } else {
-                            log.info("AAP-regulering: Fant ingen økning i beløpet i app, tipper regulering ikke er kjørt for fnr: {}", fnr)
-                            FeilMedEksternRegulering.AapBeløpErIkkeØkning.left()
+                            else -> {
+                                log.info("AAP-regulering: Fant ingen økning i beløpet i app, tipper regulering ikke er kjørt for fnr: {}", fnr)
+                                FeilMedEksternRegulering.AapBeløpErIkkeØkning.left()
+                            }
                         }
                     }
                 }
