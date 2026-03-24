@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
@@ -141,9 +142,10 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
+    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrNull()!!
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-        regulerFraOgMed,
         clock,
+        vedtaksdata,
         sakerMedEksterntRegulerteBeløp,
         gVerdiØkning,
     ).getOrFail()
@@ -164,9 +166,10 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
+    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrNull()!!
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-        fraOgMedMåned = regulerFraOgMed,
         clock = clock,
+        vedtaksdata = vedtaksdata,
         eksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
         omregningsfaktor = gVerdiØkning,
     ).getOrFail()

@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -536,9 +537,10 @@ class TestDataHelper(
             sakOgSøknad = sakOgSøknad,
             søknadsbehandling = søknadsbehandling,
         ).first.let { sak ->
+            val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrNull()!!
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-                fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
+                vedtaksdata = vedtaksdata,
                 eksterntRegulerteBeløp = eksterneReguleringer(sak),
                 omregningsfaktor = gVerdiØkning,
             ).getOrFail().let {
