@@ -70,7 +70,6 @@ sealed interface Regulering : Stønadsbehandling {
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, ReguleringUnderBehandling.OpprettetRegulering> {
-            // TODO Fra her
             val reguleringstypeVedGenerelleProblemer =
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
@@ -90,7 +89,6 @@ sealed interface Regulering : Stønadsbehandling {
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
                 reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
-            // TODO til hit skal bli egen klasse - må returnere reguleringstype og fradragOppdatertMedEksterneBeløp
             return ReguleringUnderBehandling.OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -150,10 +148,10 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
-
     val eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull {
         it.fnr == fnr
     } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
+
     return Regulering.opprettRegulering(
         sakId = id,
         saksnummer = saksnummer,
@@ -164,7 +162,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
-        // TODO AUTO-REG-26 kan dette forbedres?
+        // TODO AUTO-REG-26  Bedre håndtering av saker som må revurderes
         Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
     }
 }
