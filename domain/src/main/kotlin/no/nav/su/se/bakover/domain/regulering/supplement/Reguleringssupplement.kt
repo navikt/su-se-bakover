@@ -33,7 +33,7 @@ data class Reguleringssupplement(
 
 /**
  * Det knyttes et slikt objekt til hver regulering, både manuelle og automatiske, eller null dersom vi ikke har slike data.
- * Den vil være basert på eksterne data (både fil og tjenester). Merk at det er viktig og lagre originaldata, f.eks. i hendelser.
+ * Den vil være basert på eksterne data (både fil og tjenester). Merk at det er viktig å lagre originaldata, f.eks. i hendelser.
  *
  * @param supplementId Id'en til [Reguleringssupplement] denne ble hentet ut ifra. Den kan være null ved historiske reguleringer.
  * @param bruker reguleringsdata/fradrag fra eksterne kilder for bruker. Kan være null dersom bruker ikke har fradrag fra eksterne kilder.
@@ -56,6 +56,6 @@ data class EksternSupplementRegulering(
     fun hentForEps(fnr: Fnr): ReguleringssupplementFor? = eps.find { it.fnr == fnr }
 
     fun toSikkerloggString(): String {
-        return "EksternSupplementRegulering(suppementId=$supplementId, bruker=${bruker?.toSikkerloggString()}, eps=${eps.map { it.toSikkerloggString() }})"
+        return "EksternSupplementRegulering(supplementId=$supplementId, bruker=${bruker?.toSikkerloggString()}, eps=${eps.map { it.toSikkerloggString() }})"
     }
 }

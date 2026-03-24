@@ -537,7 +537,7 @@ class TestDataHelper(
             sakOgSøknad = sakOgSøknad,
             søknadsbehandling = søknadsbehandling,
         ).first.let { sak ->
-            val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrNull()!!
+            val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrFail()
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
                 clock = clock,
                 vedtaksdata = vedtaksdata,

@@ -135,10 +135,6 @@ sealed interface Regulering : Stønadsbehandling {
     data object LagerIkkeReguleringDaDenneUansettMåRevurderes
 }
 
-/*
-Oppretter en reguleringsbehandling og vurderer om den kan gjennomføres automatisk
-TODO bjg mer beskrivelse
-*/
 fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     clock: Clock,
     vedtaksdata: GjeldendeVedtaksdata,
@@ -148,10 +144,6 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
-    val eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull {
-        it.fnr == fnr
-    } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
-
     return Regulering.opprettRegulering(
         sakId = id,
         saksnummer = saksnummer,
@@ -159,7 +151,8 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         gjeldendeVedtaksdata = vedtaksdata,
         clock = clock,
         sakstype = type,
-        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.fnr == fnr }
+            ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer"),
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
         // TODO AUTO-REG-26  Bedre håndtering av saker som må revurderes

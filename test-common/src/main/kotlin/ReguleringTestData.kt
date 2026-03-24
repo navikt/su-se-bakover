@@ -142,7 +142,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
-    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrNull()!!
+    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock,
         vedtaksdata,
@@ -166,7 +166,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
-    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrNull()!!
+    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock = clock,
         vedtaksdata = vedtaksdata,
