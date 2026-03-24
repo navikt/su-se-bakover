@@ -69,7 +69,7 @@ sealed interface Regulering : Stønadsbehandling {
             sakstype: Sakstype,
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
-        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, ReguleringUnderBehandling.OpprettetRegulering> {
+        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer =
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
@@ -89,7 +89,7 @@ sealed interface Regulering : Stønadsbehandling {
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
                 reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
-            return ReguleringUnderBehandling.OpprettetRegulering(
+            return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -151,7 +151,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         gjeldendeVedtaksdata = vedtaksdata,
         clock = clock,
         sakstype = type,
-        eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.fnr == fnr }
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
             ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer"),
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
