@@ -102,6 +102,9 @@ class AapReguleringerServiceImpl(
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
                         FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
                     } else {
+                        if (etterRegulering.vedtaksdato?.month != reguleringstidspunkt.month) {
+                            FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
+                        }
                         val beløpFør = førRegulering.tilMånedsbeløpForSu()
                         val beløpEtter = etterRegulering.tilMånedsbeløpForSu()
                         when {

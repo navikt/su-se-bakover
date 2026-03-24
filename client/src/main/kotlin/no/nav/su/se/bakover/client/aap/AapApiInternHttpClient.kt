@@ -124,6 +124,7 @@ data class MaksimumVedtakDto(
     val dagsats: Int? = null,
     val opphorsAarsak: String? = null,
     val periode: MaksimumPeriodeDto? = null,
+    val vedtaksdato: LocalDate? = null,
 )
 
 data class MaksimumPeriodeDto(

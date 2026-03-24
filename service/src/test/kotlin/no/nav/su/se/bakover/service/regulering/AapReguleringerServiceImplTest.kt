@@ -204,6 +204,7 @@ class AapReguleringerServiceImplTest {
         tilOgMed: String,
     ) = MaksimumVedtakDto(
         dagsats = dagsats,
+        vedtaksdato = LocalDate.parse(fraOgMed),
         periode = MaksimumPeriodeDto(
             fraOgMedDato = LocalDate.parse(fraOgMed),
             tilOgMedDato = LocalDate.parse(tilOgMed),
