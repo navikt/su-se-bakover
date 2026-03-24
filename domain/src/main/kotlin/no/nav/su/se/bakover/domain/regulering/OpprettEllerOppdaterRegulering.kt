@@ -34,8 +34,8 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         return it.left()
     }
 
-    val eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull {
-        it.fnr == fnr
+    val eksterntRegulertBeløp = eksterntRegulerteBeløp.singleOrNull {
+        it.brukerFnr == fnr
     } ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
     return Regulering.opprettRegulering(
         sakId = id,
@@ -44,7 +44,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         clock = clock,
         sakstype = type,
-        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        eksterntRegulerteBeløp = eksterntRegulertBeløp,
         omregningsfaktor = omregningsfaktor,
     ).mapLeft {
         // TODO AUTO-REG-26 kan dette forbedres?

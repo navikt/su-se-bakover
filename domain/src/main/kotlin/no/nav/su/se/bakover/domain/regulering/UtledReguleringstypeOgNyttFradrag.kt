@@ -1,15 +1,10 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.math.RoundingMode
-import kotlin.math.absoluteValue
-
-private val log: Logger = LoggerFactory.getLogger("Regulering")
 
 /**
  * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer
@@ -102,7 +97,7 @@ private fun utledPerFradragstypeOgTilhørende(
     }
 
     return Reguleringstype.AUTOMATISK to
-        orginaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering.toBigDecimal())
+        orginaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering)
 }
 
 /**
@@ -135,23 +130,23 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
 
     val vårtBeløpFørRegulering = BigDecimal(orginaltFradrag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = nyttFradrag.førRegulering
-    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering.intValueExact()).absoluteValue
+    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
 
     // Vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
-    if (diffFørRegulering > 0) {
+    if (diffFørRegulering > BigDecimal.ZERO) {
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
                 fradragskategori = fradragstype.kategori,
                 fradragTilhører = fradragTilhører,
                 vårtBeløpFørRegulering = vårtBeløpFørRegulering,
                 eksternBruttoBeløpFørRegulering = BigDecimal.ZERO,
-                eksternNettoBeløpFørRegulering = eksterntBeløpFørRegulering.toBigDecimal(),
+                eksternNettoBeløpFørRegulering = eksterntBeløpFørRegulering,
                 begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer ikke en differanse, men differansen var $diffFørRegulering",
             ),
         )
     }
 
-    val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering.toBigDecimal()
+    val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
     val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
     val differanseSupplementOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
     val akseptertDifferanseEtterRegulering = BigDecimal.TEN

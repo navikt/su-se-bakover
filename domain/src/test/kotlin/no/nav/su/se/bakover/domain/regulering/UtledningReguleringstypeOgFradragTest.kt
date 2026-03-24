@@ -25,19 +25,21 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
             beløpEps = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Alderspensjon,
-                    førRegulering = 2000,
-                    etterRegulering = 2128,
+                    førRegulering = BigDecimal(2000),
+                    etterRegulering = BigDecimal(2128),
                 ),
             ),
         )
@@ -64,12 +66,13 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
             beløpEps = emptyList(),
@@ -97,17 +100,19 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                    førRegulering = 2000,
-                    etterRegulering = 2128,
+                    førRegulering = BigDecimal(2000),
+                    etterRegulering = BigDecimal(2128),
                 ),
             ),
             beløpEps = emptyList(),
@@ -139,19 +144,21 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
             beløpEps = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Alderspensjon,
-                    førRegulering = 2000,
-                    etterRegulering = 2128,
+                    førRegulering = BigDecimal(2000),
+                    etterRegulering = BigDecimal(2128),
                 ),
             ),
         )
@@ -182,12 +189,13 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
             beløpEps = emptyList(),
@@ -216,12 +224,13 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
             beløpEps = emptyList(),
@@ -260,12 +269,13 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 900, // Avviker fra vårt beløp (1000)
-                    etterRegulering = 958,
+                    førRegulering = BigDecimal("900.00"), // Avviker fra vårt beløp (1000)
+                    etterRegulering = BigDecimal("958.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -283,7 +293,7 @@ class UtledningReguleringstypeOgFradragTest {
         årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
         årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
         årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900")
+        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900.00")
 
         // Fradragsgrunnlag skal ikke være oppdatert ved manuell regulering
         with(resultat.second) {
@@ -299,12 +309,13 @@ class UtledningReguleringstypeOgFradragTest {
         )
 
         val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            fnr = fnr,
+            brukerFnr = fnr,
             beløpBruker = listOf(
                 RegulertBeløp(
+                    fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = 1000, // Matcher vårt beløp
-                    etterRegulering = 1075, // Avviker for mye fra forventet (1064.08, differanse > 10)
+                    førRegulering = BigDecimal(1000), // Matcher vårt beløp
+                    etterRegulering = BigDecimal(1075), // Avviker for mye fra forventet (1064.08, differanse > 10)
                 ),
             ),
             beløpEps = emptyList(),
