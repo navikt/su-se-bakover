@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -264,6 +265,37 @@ sealed interface OppgaveConfig {
                 require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
             }
         }
+    }
+
+    data class Fradragssjekk(
+        val saksnummer: Saksnummer,
+        val måned: Måned,
+        val avvik: List<String>,
+        override val sakstype: Sakstype,
+        override val fnr: Fnr,
+        override val clock: Clock,
+    ) : OppgaveConfig {
+        init {
+            require(avvik.isNotEmpty()) { "Fradragssjekk-oppgave krever minst ett avvik" }
+        }
+
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = sakstype.toBehandlingstema()
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+        override val beskrivelse: String
+            get() = buildString {
+                append(super.beskrivelse)
+                append("\nFradragssjekk for måned: $måned")
+                avvik.forEach { avvikslinje ->
+                    append("\n- ")
+                    append(avvikslinje)
+                }
+            }
     }
 
     sealed interface Klage : OppgaveConfig {

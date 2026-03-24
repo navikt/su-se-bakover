@@ -156,6 +156,8 @@ class ReguleringAutomatiskServiceImpl(
                         }
                     }
 
+                    sak.ytelseUtløperMånedEtter()
+
                     Pair(sak, vedtaksdata).right()
                 }
 
