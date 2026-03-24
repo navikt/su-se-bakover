@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
