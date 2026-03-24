@@ -112,7 +112,7 @@ class AapReguleringerServiceImpl(
                                 etterRegulering = etterRegulering,
                             ).right()
                         } else {
-                            log.info("AAP-regulering: Fant ingen økning i beløpet i app, tipper reguering ikke er kjørt for fnr: {}", fnr)
+                            log.info("AAP-regulering: Fant ingen økning i beløpet i app, tipper regulering ikke er kjørt for fnr: {}", fnr)
                             FeilMedEksternRegulering.AapBeløpErIkkeØkning.left()
                         }
                     }

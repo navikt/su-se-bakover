@@ -274,8 +274,8 @@ class UtledningReguleringstypeOgFradragTest {
                 RegulertBeløp(
                     fnr = fnr,
                     fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = BigDecimal(900), // Avviker fra vårt beløp (1000)
-                    etterRegulering = BigDecimal(958),
+                    førRegulering = BigDecimal("900.00"), // Avviker fra vårt beløp (1000)
+                    etterRegulering = BigDecimal("958.00"),
                 ),
             ),
             beløpEps = emptyList(),
@@ -293,7 +293,7 @@ class UtledningReguleringstypeOgFradragTest {
         årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
         årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
         årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900")
+        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900.00")
 
         // Fradragsgrunnlag skal ikke være oppdatert ved manuell regulering
         with(resultat.second) {

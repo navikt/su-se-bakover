@@ -130,7 +130,7 @@ private fun manuellPåGrunnAvDifferanseMedEksterneBeløp(
 
     val vårtBeløpFørRegulering = BigDecimal(orginaltFradrag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = nyttFradrag.førRegulering
-    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering)
+    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
 
     // Vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > BigDecimal.ZERO) {
