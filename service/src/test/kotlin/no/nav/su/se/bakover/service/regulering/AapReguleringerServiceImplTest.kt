@@ -139,6 +139,21 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
+    fun `AapVedtaksdatoErikkeSammeSomReguleringtidspunkt`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
+                maksimumVedtak(dagsats = 660, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31", vedtaksdato = "2025-06-15"),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr, månedFørRegulering = LocalDate.parse("2025-04-01"))).single().shouldBeLeft()
+
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt)
+    }
+
+    @Test
     fun `klientfeil gir eksplisitt AAP-feil`() {
         val client = mock<AapApiInternClient> {
             on { hentMaksimum(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
@@ -185,8 +200,8 @@ class AapReguleringerServiceImplTest {
         return AapReguleringerServiceImpl(client)
     }
 
-    private fun parameter(fnr: Fnr) = HentReguleringerPesysParameter(
-        månedFørRegulering = LocalDate.parse("2025-04-01"),
+    private fun parameter(fnr: Fnr, månedFørRegulering: LocalDate? = null) = HentReguleringerPesysParameter(
+        månedFørRegulering = månedFørRegulering ?: LocalDate.parse("2025-04-01"),
         brukereMedEps = listOf(
             HentReguleringerPesysParameter.BrukerMedEps(
                 fnr = fnr,
@@ -202,9 +217,10 @@ class AapReguleringerServiceImplTest {
         dagsats: Int,
         fraOgMed: String,
         tilOgMed: String,
+        vedtaksdato: String = fraOgMed,
     ) = MaksimumVedtakDto(
         dagsats = dagsats,
-        vedtaksdato = LocalDate.parse(fraOgMed),
+        vedtaksdato = LocalDate.parse(vedtaksdato),
         periode = MaksimumPeriodeDto(
             fraOgMedDato = LocalDate.parse(fraOgMed),
             tilOgMedDato = LocalDate.parse(tilOgMed),

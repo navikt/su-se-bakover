@@ -100,13 +100,14 @@ class AapReguleringerServiceImpl(
                     val etterRegulering = (vedtakEtterRegulering as Either.Right).value
                     if (førRegulering == null || etterRegulering == null) {
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
-                        FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
+                        return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
                     } else {
                         if (etterRegulering.vedtaksdato?.month != reguleringstidspunkt.month) {
-                            FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
+                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
                         }
-                        val beløpFør = førRegulering.tilMånedsbeløpForSu()
-                        val beløpEtter = etterRegulering.tilMånedsbeløpForSu()
+
+                        val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering).sats
+                        val beløpEtter = BeregnAap.AapBeregning.fraMaksimumVedtak(etterRegulering).sats
                         when {
                             beløpFør == beløpEtter -> {
                                 log.info("AAP-regulering: Fant ikke beløpsendring mellom april og mai for fnr: {}", fnr)
