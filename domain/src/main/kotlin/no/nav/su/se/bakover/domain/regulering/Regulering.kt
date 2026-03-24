@@ -10,16 +10,17 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import vilkår.common.domain.Vurdering
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.erGyldigTilstand
@@ -27,37 +28,7 @@ import økonomi.domain.simulering.Simulering
 import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
-
-fun Regulering.inneholderAvslag(): Boolean = this.vilkårsvurderinger.resultat() is Vurdering.Avslag
-
-/**
- * Det knyttes et slikt objekt til hver regulering, både manuelle og automatiske, eller null dersom vi ikke har slike data.
- * Den vil være basert på eksterne data (både fil og tjenester). Merk at det er viktig og lagre originaldata, f.eks. i hendelser.
- *
- * @param supplementId Id'en til [Reguleringssupplement] denne ble hentet ut ifra. Den kan være null ved historiske reguleringer.
- * @param bruker reguleringsdata/fradrag fra eksterne kilder for bruker. Kan være null dersom bruker ikke har fradrag fra eksterne kilder.
- * @param eps reguleringsdata/fradrag fra eksterne kilder for ingen, en eller flere EPS, eller vi har hentet regulerte fradrag på EPS.
- */
-data class EksternSupplementRegulering(
-    val supplementId: UUID?,
-    val bruker: ReguleringssupplementFor?,
-    // TODO jah - Bør kanskje ha en sjekk på at fnr er unike på tvers av eps og bruker?
-    val eps: List<ReguleringssupplementFor>,
-) {
-
-    init {
-        require(eps.distinctBy { it.fnr } == eps) {
-            sikkerLogg.error("Kan ikke ha flere reguleringssupplementFor for samme EPS. eps: ${eps.map { it.toSikkerloggString() }}")
-            "Kan ikke ha flere reguleringssupplementFor for samme EPS. Se sikkerlogg for detaljer"
-        }
-    }
-
-    fun hentForEps(fnr: Fnr): ReguleringssupplementFor? = eps.find { it.fnr == fnr }
-
-    fun toSikkerloggString(): String {
-        return "EksternSupplementRegulering(suppementId=$supplementId, bruker=${bruker?.toSikkerloggString()}, eps=${eps.map { it.toSikkerloggString() }})"
-    }
-}
+import kotlin.collections.ifEmpty
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
@@ -75,6 +46,7 @@ sealed interface Regulering : Stønadsbehandling {
      * Supplementet inneholder informasjon som skal brukes for å oppdatere grunnlagene
      * Supplementet hentes fra eksterne kilder
      */
+    // TODO AUTO-REG-26 bytt med EksterntRegulerteBeløp
     val eksternSupplementRegulering: EksternSupplementRegulering?
 
     fun erÅpen(): Boolean
@@ -97,7 +69,7 @@ sealed interface Regulering : Stønadsbehandling {
             sakstype: Sakstype,
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
-        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, ReguleringUnderBehandling.OpprettetRegulering> {
+        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer =
                 getReguleringstypeVedGenerelleProblemer(
                     gjeldendeVedtaksdata,
@@ -117,7 +89,7 @@ sealed interface Regulering : Stønadsbehandling {
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
                 reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
-            return ReguleringUnderBehandling.OpprettetRegulering(
+            return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -161,4 +133,54 @@ sealed interface Regulering : Stønadsbehandling {
     }
 
     data object LagerIkkeReguleringDaDenneUansettMåRevurderes
+}
+
+fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+    clock: Clock,
+    vedtaksdata: GjeldendeVedtaksdata,
+    eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+    omregningsfaktor: BigDecimal,
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, OpprettetRegulering> {
+    if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
+        throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
+    }
+    return Regulering.opprettRegulering(
+        sakId = id,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        gjeldendeVedtaksdata = vedtaksdata,
+        clock = clock,
+        sakstype = type,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
+            ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer"),
+        omregningsfaktor = omregningsfaktor,
+    ).mapLeft {
+        // TODO AUTO-REG-26  Bedre håndtering av saker som må revurderes
+        Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
+    }
+}
+
+fun Sak.hentGjeldendeVedtaksdataForRegulering(
+    fraOgMedMåned: Måned,
+    clock: Clock,
+): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, GjeldendeVedtaksdata> {
+    val periode = vedtakstidslinje(
+        fraOgMed = fraOgMedMåned,
+    ).let { tidslinje ->
+        (tidslinje ?: emptyList())
+            .filterNot { it.erOpphør() }
+            .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
+            .minsteAntallSammenhengendePerioder()
+            .ifEmpty {
+                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $fraOgMedMåned")
+                return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+            }
+    }.also {
+        if (it.count() != 1) return Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
+    }.single()
+
+    return this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
+        log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
+        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+    }.right()
 }

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
@@ -30,16 +29,18 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.Opprette
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
-import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vilkår.common.domain.Vurdering
 import java.math.BigDecimal
 import java.time.Clock
 
@@ -70,7 +71,7 @@ class ReguleringAutomatiskServiceImpl(
         val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
 
         reguleringRepo.lagre(supplement)
-        return Either.catch { start(fraOgMedMåned, satsFactory, supplement, omregningsfaktor) }
+        return Either.catch { start(fraOgMedMåned, satsFactory, omregningsfaktor) }
             .mapLeft {
                 log.error(
                     "Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned. Se sikkerlogg for feilmelding.",
@@ -94,7 +95,6 @@ class ReguleringAutomatiskServiceImpl(
             start(
                 fraOgMedMåned = command.startDatoRegulering,
                 satsFactory = factory,
-                supplement = command.supplement,
                 omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
                 testRun = ReguleringTestRun(command.lagreManuelle),
             )
@@ -114,7 +114,6 @@ class ReguleringAutomatiskServiceImpl(
     private fun start(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        supplement: Reguleringssupplement, // TODO bjg fjern
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
@@ -135,7 +134,7 @@ class ReguleringAutomatiskServiceImpl(
                     }
 
                     // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
-                    sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
+                    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                         when (feil) {
                             Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
                                 "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
@@ -157,11 +156,11 @@ class ReguleringAutomatiskServiceImpl(
                         }
                     }
 
-                    sak.right()
+                    Pair(sak, vedtaksdata).right()
                 }
 
-                val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
-                val sakerMedEksterntRegulerteBeløp: List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> = if (sakerSomKanReguleres.isEmpty()) {
+                val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights().map { it.first }
+                val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
                     Either.catch {
@@ -183,25 +182,25 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
-                val sakerMedFeilPåEksterneReguleringer = sakerMedEksterntRegulerteBeløp.filterLefts()
+                val feilPåEksterneReguleringer = eksterntRegulerteBeløp.filterLefts()
                 val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
-                    it.flatMap { sak ->
-                        val feil = sakerMedFeilPåEksterneReguleringer.find { it.fnr == sak.fnr }
+                    it.flatMap { (sak, vedtaksdata) ->
+                        val feil = feilPåEksterneReguleringer.find { it.fnr == sak.fnr }
                         if (feil != null) {
                             KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil).left()
                         } else {
-                            sak.right()
+                            Pair(sak, vedtaksdata).right()
                         }
                     }
                 }
 
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
-                    it.flatMap { sak ->
+                    it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
                         sak.kjørForSak(
-                            fraOgMedMåned = fraOgMedMåned,
                             satsFactory = satsFactory,
-                            sakerMedEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp.filterRights(),
+                            vedtaksdata = vedtaksdata,
+                            sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
                             omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )
@@ -213,8 +212,8 @@ class ReguleringAutomatiskServiceImpl(
     }
 
     private fun Sak.kjørForSak(
-        fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
+        vedtaksdata: GjeldendeVedtaksdata,
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
@@ -222,8 +221,8 @@ class ReguleringAutomatiskServiceImpl(
         val sak = this
 
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-            fraOgMedMåned = fraOgMedMåned,
             clock = clock,
+            vedtaksdata = vedtaksdata,
             sakerMedEksterntRegulerteBeløp,
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
@@ -279,7 +278,7 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         clock: Clock,
     ): Boolean {
-        if (regulering.inneholderAvslag()) return true
+        if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) return true
 
         val beregning = reguleringService.beregn(
             satsFactory = satsFactory,

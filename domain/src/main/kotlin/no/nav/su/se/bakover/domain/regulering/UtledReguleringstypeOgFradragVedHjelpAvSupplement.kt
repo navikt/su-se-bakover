@@ -4,6 +4,7 @@ import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
