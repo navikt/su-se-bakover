@@ -28,6 +28,7 @@ import java.math.RoundingMode
  *           eller MANUELL med et sett av årsaker hvis manuell behandling er nødvendig)
  *         - Andre: Liste med fradragsgrunnlag, oppdatert med nye beløp der ekstern regulering
  *           var tilgjengelig og gyldig, sortert etter periode
+ *          Eller feiltype [Sak.KanIkkeRegulere.MåRevurdere] hvis det er differanse mellom vårt og eksternt beløp
  *
  * ## Reguleringslogikk:
  * - **Automatisk regulering** skjer når:
