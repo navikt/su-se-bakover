@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -20,6 +21,7 @@ sealed class BeregnAap : RegelspesifisertBeregning {
                 return AapBeregning(
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_AAP_MÅNED.benyttRegelspesifisering(
                         verdi = "Beregnet AAP-sats for måned basert på dagsats ${vedtak.dagsats} og vedtaksdato ${vedtak.vedtaksdato} sats: $sats",
+                        avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_DAGSATS_AAP.benyttGrunnlag(vedtak.dagsats.toString())),
                     ),
                     sats = sats,
                 )
