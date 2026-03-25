@@ -139,7 +139,7 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun `AapVedtaksdatoErikkeSammeSomReguleringtidspunkt`() {
+    fun aapVedtaksdatoErikkeSammeSomReguleringtidspunkt() {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(

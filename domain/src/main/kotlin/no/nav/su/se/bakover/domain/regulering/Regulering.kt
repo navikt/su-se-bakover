@@ -103,6 +103,7 @@ sealed interface Regulering : Stønadsbehandling {
                 simulering = null,
                 reguleringstype = reguleringstype,
                 sakstype = sakstype,
+                // TODO: legge inn eksterne her da
                 // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
             ).right()
         }
