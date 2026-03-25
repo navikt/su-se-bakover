@@ -189,7 +189,8 @@ internal class ReguleringPostgresRepo(
                 arsakForManuell,
                 avsluttet,
                 reguleringsupplement,
-                attestering
+                attestering, 
+                aapBeregningSupplement
             ) values (
                 :id,
                 :sakId,
@@ -203,7 +204,8 @@ internal class ReguleringPostgresRepo(
                 to_jsonb(:arsakForManuell::jsonb),
                 to_jsonb(:avsluttet::jsonb),
                 to_jsonb(:reguleringsupplement::jsonb),
-                to_jsonb(:attestering::jsonb)
+                to_jsonb(:attestering::jsonb),
+                to_jsonb(:aapBeregningSupplement::jsonb)
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -259,6 +261,13 @@ internal class ReguleringPostgresRepo(
                                 is AvsluttetRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is IverksattRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is ReguleringUnderBehandling -> regulering.attesteringer.toDatabaseJson()
+                            },
+                            "aapBeregningSupplement" to when (regulering) {
+                                is AvsluttetRegulering -> null
+                                is IverksattRegulering -> null
+                                is BeregnetRegulering -> null
+                                is OpprettetRegulering -> regulering.aapGrunnlag?.let { serialize(it) }
+                                is TilAttestering -> null
                             },
                         ),
                         session,
