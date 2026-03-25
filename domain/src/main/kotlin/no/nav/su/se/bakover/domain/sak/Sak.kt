@@ -55,11 +55,14 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -319,7 +322,24 @@ data class Sak(
 
         // Brukes når det vil måtte skje endringer som går utvoer beregning med ny G
         // eller det av en eller annen grunn må sendes ut vedtaksbrev
-        data object MåRevurdere : KanIkkeRegulere
+        data class MåRevurdere(
+            val årsak: Årsak,
+            val diffBeløp: List<DiffBeløp> = emptyList(),
+        ) : KanIkkeRegulere {
+
+            enum class Årsak {
+                DIFFERENSE_MED_EKSTERNE_BELØP,
+                IKKE_KONSISTENTE_GRUNNLAG_OG_VILKÅR,
+            }
+
+            data class DiffBeløp(
+                val fradragstype: Fradragstype,
+                val tilhører: FradragTilhører,
+                val førRegulering: Boolean, // Hm?
+                val forventetBeløp: BigDecimal,
+                val eksterntBeløp: BigDecimal,
+            )
+        }
         // TODO legg til årsak med beskrivelse?
     }
 

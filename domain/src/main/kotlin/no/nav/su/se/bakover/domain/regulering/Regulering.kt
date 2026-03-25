@@ -171,7 +171,9 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
             } else {
                 log.error(message)
             }
-            return Sak.KanIkkeRegulere.MåRevurdere.left()
+            return Sak.KanIkkeRegulere.MåRevurdere(
+                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.IKKE_KONSISTENTE_GRUNNLAG_OG_VILKÅR,
+            ).left()
         }
 
     return gjeldendeVedtaksdata.right()

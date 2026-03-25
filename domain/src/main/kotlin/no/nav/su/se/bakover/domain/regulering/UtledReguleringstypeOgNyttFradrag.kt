@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -53,7 +54,10 @@ fun utledReguleringstypeOgOppdaterFradrag(
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp, omregningsfaktor)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
-        return Sak.KanIkkeRegulere.MåRevurdere.left()
+        return Sak.KanIkkeRegulere.MåRevurdere(
+            årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP,
+            diffBeløp = utledetReguleringstypePerFradrag.filterLefts(),
+        ).left()
     }
     return utledetReguleringstypePerFradrag.filterRights().let {
         val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
@@ -74,7 +78,7 @@ private fun utledPerFradragstypeOgTilhørende(
     orginaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, Fradragsgrunnlag>> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = orginaltFradrag.fradragstype
     val fradragTilhører = orginaltFradrag.fradrag.tilhører
 
@@ -97,6 +101,7 @@ private fun utledPerFradragstypeOgTilhørende(
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
+    // TODO gir vel kun mening for uføre og alder? eller bare uføre?
     måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
         nyttFradrag,
         fradragstype,
@@ -134,7 +139,7 @@ private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     orginaltFradrag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
     omregningsfaktor: BigDecimal,
-): Sak.KanIkkeRegulere.MåRevurdere? {
+): Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp? {
     require(orginaltFradrag.fradragstype == fradragstype)
     require(orginaltFradrag.fradrag.tilhører == fradragTilhører)
 
@@ -144,44 +149,28 @@ private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
 
     // Vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > BigDecimal.ZERO) {
-        // TODO legg til beløper
-        return Sak.KanIkkeRegulere.MåRevurdere
-        /*
-        return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
-                fradragskategori = fradragstype.kategori,
-                fradragTilhører = fradragTilhører,
-                vårtBeløpFørRegulering = vårtBeløpFørRegulering,
-                eksternBruttoBeløpFørRegulering = BigDecimal.ZERO,
-                eksternNettoBeløpFørRegulering = eksterntBeløpFørRegulering,
-                begrunnelse = "Vi forventet at beløpet skulle være $vårtBeløpFørRegulering før regulering, men det var $eksterntBeløpFørRegulering. Vi aksepterer ikke en differanse, men differansen var $diffFørRegulering",
-            ),
+        return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp(
+            fradragstype = fradragstype,
+            tilhører = fradragTilhører,
+            førRegulering = true,
+            forventetBeløp = vårtBeløpFørRegulering,
+            eksterntBeløp = eksterntBeløpFørRegulering,
         )
-
-         */
     }
 
     val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
     val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
-    val differanseSupplementOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
+    val differenseEksterntOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
     val akseptertDifferanseEtterRegulering = BigDecimal.TEN
 
-    if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
-        // TODO legg til beløper
-        return Sak.KanIkkeRegulere.MåRevurdere
-        /*
-        return Reguleringstype.MANUELL(
-            ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
-                fradragskategori = fradragstype.kategori,
-                fradragTilhører = fradragTilhører,
-                forventetBeløpEtterRegulering = forventetBeløpBasertPåGverdi,
-                eksternBruttoBeløpEtterRegulering = BigDecimal.ZERO,
-                eksternNettoBeløpEtterRegulering = eksterntBeløpEtterRegulering,
-                vårtBeløpFørRegulering = vårtBeløpFørRegulering,
-                begrunnelse = "Vi forventet at beløpet skulle være $forventetBeløpBasertPåGverdi etter regulering, men det var $eksterntBeløpEtterRegulering. Vi aksepterer en differanse på $akseptertDifferanseEtterRegulering, men den var $differanseSupplementOgForventet",
-            ),
+    if (differenseEksterntOgForventet > akseptertDifferanseEtterRegulering) {
+        return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp(
+            fradragstype = fradragstype,
+            tilhører = fradragTilhører,
+            førRegulering = false,
+            forventetBeløp = forventetBeløpBasertPåGverdi,
+            eksterntBeløp = eksterntBeløpEtterRegulering,
         )
-         */
     }
     return null
 }
