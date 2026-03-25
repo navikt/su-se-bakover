@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
+import no.nav.su.se.bakover.domain.regulering.AapGrunnlagForRegulering
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -188,7 +189,8 @@ internal class ReguleringPostgresRepo(
                 arsakForManuell,
                 avsluttet,
                 reguleringsupplement,
-                attestering
+                attestering, 
+                aapBeregningSupplement
             ) values (
                 :id,
                 :sakId,
@@ -202,7 +204,8 @@ internal class ReguleringPostgresRepo(
                 to_jsonb(:arsakForManuell::jsonb),
                 to_jsonb(:avsluttet::jsonb),
                 to_jsonb(:reguleringsupplement::jsonb),
-                to_jsonb(:attestering::jsonb)
+                to_jsonb(:attestering::jsonb),
+                to_jsonb(:aapBeregningSupplement::jsonb)
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -258,6 +261,13 @@ internal class ReguleringPostgresRepo(
                                 is AvsluttetRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is IverksattRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is ReguleringUnderBehandling -> regulering.attesteringer.toDatabaseJson()
+                            },
+                            "aapBeregningSupplement" to when (regulering) {
+                                is AvsluttetRegulering -> null
+                                is IverksattRegulering -> null
+                                is BeregnetRegulering -> null
+                                is OpprettetRegulering -> regulering.aapGrunnlag?.let { serialize(it) }
+                                is TilAttestering -> null
                             },
                         ),
                         session,
@@ -325,6 +335,9 @@ internal class ReguleringPostgresRepo(
         )
         val eksternSupplementRegulering = stringOrNull("reguleringsupplement")?.let { deserEskternSupplementReguleringJson(it) }
         val attesteringer = stringOrNull("attestering")?.toAttesteringshistorikk() ?: Attesteringshistorikk.empty()
+        val aapGrunnlag: AapGrunnlagForRegulering? = stringOrNull("aapBeregningSupplement")?.let {
+            deserialize<AapGrunnlagForRegulering>(it)
+        }
 
         return lagRegulering(
             status = status,
@@ -343,6 +356,7 @@ internal class ReguleringPostgresRepo(
             sakstype = sakstype,
             eksternSupplementRegulering = eksternSupplementRegulering,
             attesteringer = attesteringer,
+            aapGrunnlag = aapGrunnlag,
         )
     }
 
@@ -371,6 +385,7 @@ internal class ReguleringPostgresRepo(
         sakstype: Sakstype,
         eksternSupplementRegulering: EksternSupplementRegulering?,
         attesteringer: Attesteringshistorikk,
+        aapGrunnlag: AapGrunnlagForRegulering?,
     ): Regulering {
         return OpprettetRegulering(
             id = id,
@@ -385,6 +400,7 @@ internal class ReguleringPostgresRepo(
             sakstype = sakstype,
             eksternSupplementRegulering = eksternSupplementRegulering,
             attesteringer = attesteringer,
+            aapGrunnlag = aapGrunnlag,
         ).let { regulering ->
             when (status) {
                 ReguleringStatus.OPPRETTET -> regulering

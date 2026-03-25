@@ -89,6 +89,7 @@ sealed interface Regulering : Stønadsbehandling {
                 reguleringstype1 = reguleringstypeVedGenerelleProblemer,
                 reguleringstype2 = reguleringstypeBasertPåFradrag,
             )
+
             return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -103,6 +104,7 @@ sealed interface Regulering : Stønadsbehandling {
                 simulering = null,
                 reguleringstype = reguleringstype,
                 sakstype = sakstype,
+                aapGrunnlag = eksterntRegulerteBeløp.maptoAap(),
                 // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
             ).right()
         }

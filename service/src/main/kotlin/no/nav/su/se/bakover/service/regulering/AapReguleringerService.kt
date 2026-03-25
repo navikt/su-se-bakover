@@ -4,12 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
-import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.regulering.BeregnAap
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -100,19 +101,20 @@ class AapReguleringerServiceImpl(
                     val etterRegulering = (vedtakEtterRegulering as Either.Right).value
                     if (førRegulering == null || etterRegulering == null) {
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
-                        FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
+                        return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
                     } else {
                         if (etterRegulering.vedtaksdato?.month != reguleringstidspunkt.month) {
-                            FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
+                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
                         }
-                        val beløpFør = førRegulering.tilMånedsbeløpForSu()
-                        val beløpEtter = etterRegulering.tilMånedsbeløpForSu()
+
+                        val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering)
+                        val beløpEtter = BeregnAap.AapBeregning.fraMaksimumVedtak(etterRegulering)
                         when {
-                            beløpFør == beløpEtter -> {
+                            beløpFør.sats == beløpEtter.sats -> {
                                 log.info("AAP-regulering: Fant ikke beløpsendring mellom april og mai for fnr: {}", fnr)
                                 FeilMedEksternRegulering.AapIkkeBekreftetRegulert.left()
                             }
-                            beløpFør < beløpEtter -> tilRegulertAapBeløp(
+                            beløpFør.sats < beløpEtter.sats -> tilRegulertAapBeløp(
                                 fnr = fnr,
                                 førRegulering = beløpFør,
                                 etterRegulering = beløpEtter,

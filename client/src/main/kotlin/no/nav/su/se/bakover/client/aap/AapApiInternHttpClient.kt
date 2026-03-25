@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrela
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -112,22 +113,4 @@ data class MaksimumRequestDto(
 
 data class MaksimumResponseDto(
     val vedtak: List<MaksimumVedtakDto>,
-)
-
-/**
- * Resultatdata fra AAP maksimum brukt som inntektsgrunnlag i SU.
- *
- * For G-regulering av supplerende stønad trenger vi bare felt som brukes til å finne
- * riktig vedtaksperiode og regne om dagsats til månedsbeløp.
- */
-data class MaksimumVedtakDto(
-    val dagsats: Int? = null,
-    val opphorsAarsak: String? = null,
-    val periode: MaksimumPeriodeDto? = null,
-    val vedtaksdato: LocalDate? = null,
-)
-
-data class MaksimumPeriodeDto(
-    val fraOgMedDato: LocalDate? = null,
-    val tilOgMedDato: LocalDate? = null,
 )

@@ -13,15 +13,15 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
-import no.nav.su.se.bakover.client.aap.MaksimumPeriodeDto
 import no.nav.su.se.bakover.client.aap.MaksimumRequestDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
-import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.regulering.MaksimumPeriodeDto
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
