@@ -188,6 +188,7 @@ sealed class ReguleringUnderBehandling :
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
         override val eksternSupplementRegulering: EksternSupplementRegulering? = null,
+        val aapGrunnlag: AapGrunnlagForRegulering?,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling()

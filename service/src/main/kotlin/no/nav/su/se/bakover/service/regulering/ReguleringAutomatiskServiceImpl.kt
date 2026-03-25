@@ -254,6 +254,7 @@ class ReguleringAutomatiskServiceImpl(
             lagreOpprettetEllerOverførtTilManuellRegulering(sak, regulering)
         }
 
+        // SOS-> TODO: trenger egentlig ikke regelspekk for AapGrunnlagForRegulering før den er avgjort automatisk her
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }

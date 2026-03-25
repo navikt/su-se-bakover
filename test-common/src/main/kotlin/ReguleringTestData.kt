@@ -74,6 +74,7 @@ fun opprettetRegulering(
     reguleringstype = reguleringstype,
     sakstype = sakstype,
     eksternSupplementRegulering = eksternSupplementRegulering,
+    aapGrunnlag = null,
 )
 
 fun iverksattAutomatiskRegulering(

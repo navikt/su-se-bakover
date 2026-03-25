@@ -23,6 +23,32 @@ data class EksterntRegulerteBeløp(
     val inntektEtterUføre: RegulertBeløp? = null,
 )
 
+fun EksterntRegulerteBeløp.maptoAap(): AapGrunnlagForRegulering {
+    val aapGrunnlagBruker = beløpBruker.find { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }?.let {
+        AapGrunnlagOgBruker(
+            fnr = it.fnr,
+            aapGrunnlag = AapGrunnlag(
+                it.grunnlagAap!!.aapFoer,
+                it.grunnlagAap.aapEtter,
+            ),
+        )
+    }
+
+    val aapGrunnlagEps = beløpEps.find { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }?.let {
+        AapGrunnlagOgBruker(
+            fnr = it.fnr,
+            aapGrunnlag = AapGrunnlag(
+                it.grunnlagAap!!.aapFoer,
+                it.grunnlagAap.aapEtter,
+            ),
+        )
+    }
+    return AapGrunnlagForRegulering(
+        bruker = aapGrunnlagBruker,
+        eps = aapGrunnlagEps,
+    )
+}
+
 /**
  * Representerer et regulert beløp for en person, med beløp før og etter regulering.
  *
@@ -41,4 +67,14 @@ data class RegulertBeløp(
 data class AapGrunnlag(
     val aapFoer: BeregnAap.AapBeregning,
     val aapEtter: BeregnAap.AapBeregning,
+)
+
+data class AapGrunnlagOgBruker(
+    val fnr: Fnr,
+    val aapGrunnlag: AapGrunnlag,
+)
+
+data class AapGrunnlagForRegulering(
+    val bruker: AapGrunnlagOgBruker?,
+    val eps: AapGrunnlagOgBruker?,
 )
