@@ -20,6 +20,10 @@ import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
 
+/**
+ * Vilkårsvurdering for institusjonsopphold iht. § 12 i lov om supplerende stønad (LOV-2005-04-29-21-§12).
+ * Se [PARAGRAF_12.md](../../../../../../../PARAGRAF_12.md) for utfyllende dokumentasjon, tolkning og eksempler.
+ */
 sealed interface InstitusjonsoppholdVilkår : Vilkår {
     override val vilkår get() = Inngangsvilkår.Institusjonsopphold
     override val grunnlag: List<Grunnlag> get() = emptyList()
