@@ -38,7 +38,7 @@ enum class Regelspesifiseringer(
     REGEL_FORMUE_HALV_G("REGEL-FORMUE-HALV-G", "1"),
 
     // Regulering
-    REGEL_BEREGN_SATS_AAP_MÅNED("REGEL_BEREGN_SATS_AAP_MÅNED", "1"),
+    REGEL_BEREGN_SATS_AAP_MÅNED("REGEL-BEREGN-SATS-AAP-MÅNED", "1"),
     ;
 
     fun benyttRegelspesifisering(
