@@ -70,14 +70,8 @@ sealed interface Regulering : Stønadsbehandling {
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
         ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, OpprettetRegulering> {
-            val reguleringstypeVedGenerelleProblemer =
-                getReguleringstypeVedGenerelleProblemer(
-                    gjeldendeVedtaksdata,
-                    saksnummer,
-                    sakstype,
-                ).getOrElse {
-                    return it.left()
-                }
+            val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
+
             val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
                 fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
@@ -110,28 +104,13 @@ sealed interface Regulering : Stønadsbehandling {
             ).right()
         }
 
+        // TODO fjern denne wrapper sjekken og gjør den under hentGjeldendeVedtaksdataForRegulering
         private fun getReguleringstypeVedGenerelleProblemer(
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             saksnummer: Saksnummer,
             sakstype: Sakstype,
         ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Reguleringstype> {
-            return gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(sakstype)
-                .fold(
-                    { konsistensproblemer ->
-                        val message =
-                            "Kunne ikke opprette regulering for saksnummer $saksnummer." +
-                                " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
-                        if (konsistensproblemer.erGyldigTilstand()) {
-                            log.info(message)
-                        } else {
-                            log.error(message)
-                        }
-                        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere.left()
-                    },
-                    {
-                        gjeldendeVedtaksdata.utledReguleringstype().right()
-                    },
-                )
+            return gjeldendeVedtaksdata.utledReguleringstype().right()
         }
     }
 }
@@ -181,5 +160,19 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
         log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
         return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
     }
+
+    gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(this.type)
+        .onLeft { konsistensproblemer ->
+            val message =
+                "Kunne ikke opprette regulering for saksnummer $saksnummer." +
+                    " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
+            if (konsistensproblemer.erGyldigTilstand()) {
+                log.info(message)
+            } else {
+                log.error(message)
+            }
+            return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere.left()
+        }
+
     return gjeldendeVedtaksdata.right()
 }
