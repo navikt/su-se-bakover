@@ -320,8 +320,8 @@ data class Sak(
         data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
         data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
 
-        // Brukes når det vil måtte skje endringer som går utvoer beregning med ny G
-        // eller det av en eller annen grunn må sendes ut vedtaksbrev
+        // Brukes når det må gjøres endringer som går utover en beregning med ny G
+        // eller når det av en eller annen grunn må sendes ut vedtaksbrev
         data class MåRevurdere(
             val årsak: Årsak,
             val diffBeløp: List<DiffBeløp> = emptyList(),
@@ -335,7 +335,7 @@ data class Sak(
             data class DiffBeløp(
                 val fradragstype: Fradragstype,
                 val tilhører: FradragTilhører,
-                val førRegulering: Boolean, // Hm?
+                val førRegulering: Boolean,
                 val forventetBeløp: BigDecimal,
                 val eksterntBeløp: BigDecimal,
             )

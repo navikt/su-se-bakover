@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -289,7 +290,7 @@ class UtledningReguleringstypeOgFradragTest {
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             omregningsfaktor = BigDecimal("1.064076"),
-        ).leftOrNull()!!
+        ).shouldBeLeft()
 
         resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1
@@ -325,7 +326,7 @@ class UtledningReguleringstypeOgFradragTest {
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             omregningsfaktor = BigDecimal("1.064076"),
-        ).leftOrNull()!!
+        ).shouldBeLeft()
 
         resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1

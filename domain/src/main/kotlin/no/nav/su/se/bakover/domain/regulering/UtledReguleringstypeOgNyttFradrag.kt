@@ -75,15 +75,15 @@ fun utledReguleringstypeOgOppdaterFradrag(
 }
 
 private fun utledPerFradragstypeOgTilhørende(
-    orginaltFradrag: Fradragsgrunnlag,
+    originaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
 ): Either<Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp, Pair<Reguleringstype, Fradragsgrunnlag>> {
-    val fradragstype = orginaltFradrag.fradragstype
-    val fradragTilhører = orginaltFradrag.fradrag.tilhører
+    val fradragstype = originaltFradrag.fradragstype
+    val fradragTilhører = originaltFradrag.fradrag.tilhører
 
     if (!fradragstype.måJusteresVedGEndring) {
-        return (Reguleringstype.AUTOMATISK to orginaltFradrag).right()
+        return (Reguleringstype.AUTOMATISK to originaltFradrag).right()
     }
     if (!fradragstype.kanJusteresAutomatisk) {
         return (
@@ -92,7 +92,7 @@ private fun utledPerFradragstypeOgTilhørende(
                     fradragskategori = fradragstype.kategori,
                     fradragTilhører = fradragTilhører,
                 ),
-            ) to orginaltFradrag
+            ) to originaltFradrag
             ).right()
     }
 
@@ -104,14 +104,14 @@ private fun utledPerFradragstypeOgTilhørende(
     måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
         nyttFradrag,
         fradragstype,
-        orginaltFradrag,
+        originaltFradrag,
         fradragTilhører,
         omregningsfaktor,
     )?.let {
         return it.left()
     }
 
-    return (Reguleringstype.AUTOMATISK to orginaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering)).right()
+    return (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering)).right()
 }
 
 /**
@@ -127,22 +127,22 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull
  *
  * @param nyttFradrag Regulert beløp fra eksternt system
  * @param fradragstype Type fradrag som skal sjekkes
- * @param orginaltFradrag Eksisterende fradragsgrunnlag
+ * @param originaltFradrag Eksisterende fradragsgrunnlag
  * @param fradragTilhører Hvem fradraget tilhører (bruker eller EPS)
  * @param omregningsfaktor Faktor for omregning basert på G-verdi endring
- * @return Reguleringstype (AUTOMATISK eller MANUELL med årsak)
+ * @return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp eller null
  */
 private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     nyttFradrag: RegulertBeløp,
     fradragstype: Fradragstype,
-    orginaltFradrag: Fradragsgrunnlag,
+    originaltFradrag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
     omregningsfaktor: BigDecimal,
 ): Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp? {
-    require(orginaltFradrag.fradragstype == fradragstype)
-    require(orginaltFradrag.fradrag.tilhører == fradragTilhører)
+    require(originaltFradrag.fradragstype == fradragstype)
+    require(originaltFradrag.fradrag.tilhører == fradragTilhører)
 
-    val vårtBeløpFørRegulering = BigDecimal(orginaltFradrag.fradrag.månedsbeløp).setScale(2)
+    val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = nyttFradrag.førRegulering
     val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
 

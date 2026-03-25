@@ -226,7 +226,7 @@ class ReguleringAutomatiskServiceImpl(
             sakerMedEksterntRegulerteBeløp,
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
-            log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må får besked om manuell revurdering. Årsak: $feil")
+            log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
             return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
         }
 
