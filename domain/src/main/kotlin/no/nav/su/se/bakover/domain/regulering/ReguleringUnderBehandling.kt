@@ -188,6 +188,7 @@ sealed class ReguleringUnderBehandling :
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
         override val eksternSupplementRegulering: EksternSupplementRegulering? = null,
+        // SOS TODO: kan være dette skal kun være  EksterntRegulerteBeløp som lagres og ikke så spesifikt
         val aapGrunnlag: AapGrunnlagForRegulering?,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),

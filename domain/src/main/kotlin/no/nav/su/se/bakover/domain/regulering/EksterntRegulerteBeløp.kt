@@ -74,6 +74,9 @@ data class AapGrunnlagOgBruker(
     val aapGrunnlag: AapGrunnlag,
 )
 
+// SOS TODO: kan være dette skal kun være  EksterntRegulerteBeløp som lagres og ikke så spesifikt
+// må få sjekke det ifbm med datalagring fra eksterne tjenester som er underlagt gdpr minimering så vi må gjøre en transformasjon mest sannsynlighet eller hjemle det
+// AAP er en transformasjon i motsetning til de andre så der er det OK
 data class AapGrunnlagForRegulering(
     val bruker: AapGrunnlagOgBruker?,
     val eps: AapGrunnlagOgBruker?,
