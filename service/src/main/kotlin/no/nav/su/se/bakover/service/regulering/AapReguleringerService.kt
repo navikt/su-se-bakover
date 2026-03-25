@@ -110,7 +110,7 @@ class AapReguleringerServiceImpl(
                         val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering)
                         val beløpEtter = BeregnAap.AapBeregning.fraMaksimumVedtak(etterRegulering)
                         when {
-                            beløpFør == beløpEtter -> {
+                            beløpFør.sats == beløpEtter.sats -> {
                                 log.info("AAP-regulering: Fant ikke beløpsendring mellom april og mai for fnr: {}", fnr)
                                 FeilMedEksternRegulering.AapIkkeBekreftetRegulert.left()
                             }
