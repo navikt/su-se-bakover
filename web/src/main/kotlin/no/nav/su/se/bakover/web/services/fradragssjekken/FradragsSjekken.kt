@@ -14,7 +14,7 @@ internal class FradragsSjekken(
         fun startJob(
             initialDelay: Duration,
             periode: Duration,
-            fradragsSjekkenService: FradragsjobbenService,
+            fradragsSjekkenService: FradragsjobbenServiceImpl,
             runJobCheck: RunCheckFactory,
         ): FradragsSjekken {
             val log = LoggerFactory.getLogger(FradragsSjekken::class.java)

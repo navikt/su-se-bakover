@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.inneholder
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -122,7 +121,7 @@ class FradragsjobbenServiceImpl(
                 ifRight = { it },
             ) ?: return@mapNotNull null
 
-            lagSjekkplan(
+            lagSjekkplanForSak(
                 sak = sak,
                 gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                 måned = måned,
@@ -130,7 +129,7 @@ class FradragsjobbenServiceImpl(
         }
     }
 
-    private fun lagSjekkplan(
+    private fun lagSjekkplanForSak(
         sak: SakInfo,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
         måned: Måned,
