@@ -101,7 +101,6 @@ private fun utledPerFradragstypeOgTilhørende(
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
-    // TODO gir vel kun mening for uføre og alder? eller bare uføre?
     måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
         nyttFradrag,
         fradragstype,

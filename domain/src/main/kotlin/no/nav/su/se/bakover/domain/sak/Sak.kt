@@ -340,7 +340,6 @@ data class Sak(
                 val eksterntBeløp: BigDecimal,
             )
         }
-        // TODO legg til årsak med beskrivelse?
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

@@ -104,15 +104,6 @@ sealed interface Regulering : Stønadsbehandling {
                 // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
             ).right()
         }
-
-        // TODO fjern denne wrapper sjekken og gjør den under hentGjeldendeVedtaksdataForRegulering
-        private fun getReguleringstypeVedGenerelleProblemer(
-            gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-            saksnummer: Saksnummer,
-            sakstype: Sakstype,
-        ): Either<Sak.KanIkkeRegulere.MåRevurdere, Reguleringstype> {
-            return gjeldendeVedtaksdata.utledReguleringstype().right()
-        }
     }
 }
 
