@@ -158,19 +158,21 @@ private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
         )
     }
 
-    val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
-    val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
-    val differenseEksterntOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
-    val akseptertDifferanseEtterRegulering = BigDecimal.TEN
+    if (fradragstype == Fradragstype.Uføretrygd) {
+        val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
+        val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
+        val differenseEksterntOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
+        val akseptertDifferanseEtterRegulering = BigDecimal.TEN
 
-    if (differenseEksterntOgForventet > akseptertDifferanseEtterRegulering) {
-        return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp(
-            fradragstype = fradragstype,
-            tilhører = fradragTilhører,
-            førRegulering = false,
-            forventetBeløp = forventetBeløpBasertPåGverdi,
-            eksterntBeløp = eksterntBeløpEtterRegulering,
-        )
+        if (differenseEksterntOgForventet > akseptertDifferanseEtterRegulering) {
+            return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp(
+                fradragstype = fradragstype,
+                tilhører = fradragTilhører,
+                førRegulering = false,
+                forventetBeløp = forventetBeløpBasertPåGverdi,
+                eksterntBeløp = eksterntBeløpEtterRegulering,
+            )
+        }
     }
     return null
 }
