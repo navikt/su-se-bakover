@@ -270,11 +270,22 @@ sealed interface OppgaveConfig {
     data class Fradragssjekk(
         val saksnummer: Saksnummer,
         val måned: Måned,
-        val avvik: List<String>,
+        val avvik: List<Avvik>,
         override val sakstype: Sakstype,
         override val fnr: Fnr,
         override val clock: Clock,
     ) : OppgaveConfig {
+        enum class AvvikKode {
+            EKSTERNT_FRADRAG_MANGLER_LOKALT,
+            ULIKT_BELOP,
+            LOKALT_FRADRAG_MANGLER_EKSTERNT,
+        }
+
+        data class Avvik(
+            val kode: AvvikKode,
+            val tekst: String,
+        )
+
         init {
             require(avvik.isNotEmpty()) { "Fradragssjekk-oppgave krever minst ett avvik" }
         }
@@ -293,7 +304,7 @@ sealed interface OppgaveConfig {
                 append("\nFradragssjekk for måned: $måned")
                 avvik.forEach { avvikslinje ->
                     append("\n- ")
-                    append(avvikslinje)
+                    append(avvikslinje.tekst)
                 }
             }
     }

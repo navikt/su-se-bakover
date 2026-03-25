@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
 import no.nav.su.se.bakover.client.pesys.PesysClient
@@ -7,6 +11,8 @@ import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.correlation.CORRELATION_ID_HEADER
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -14,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -23,14 +30,16 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
 import java.time.LocalDate
+import java.util.UUID
 
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer()
 }
 
-private const val INTERN_SAK_BATCH_STORRELSE = 200
+private const val INTERN_SAK_BATCH_STORRELSE = 500
 private const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
-private const val BELOPS_TOLERANSE = 0.01
+private const val AAP_PARALLELLE_OPPSLAG = 8
+private const val BELOPS_TOLERANSE = 10
 private val AAP_STONADSDAGER_PER_AR = BigDecimal(260)
 private val AAP_MANEDER_PER_AR = BigDecimal(12)
 
@@ -55,26 +64,18 @@ class FradragsjobbenServiceImpl(
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer() {
         val måned = Måned.now(clock)
-        val sjekkplanBuffer = mutableListOf<SjekkPlan>()
         var resultat = FradragssjekkResultat()
 
         hentAlleSaker()
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .forEach { sakerPerBatch ->
                 val løpendeSaker = filtrerSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                val sjekkplaner = lagSjekkplanerForLøpendeSaker(løpendeSaker, måned)
-                sjekkplanBuffer.addAll(sjekkplaner)
-
-                while (sjekkplanBuffer.size >= EKSTERN_OPPSLAG_BATCH_STORRELSE) {
-                    val batch = sjekkplanBuffer.take(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-                    resultat = resultat + prosesserSjekkplanBatch(batch, måned)
-                    sjekkplanBuffer.subList(0, EKSTERN_OPPSLAG_BATCH_STORRELSE).clear()
-                }
+                lagSjekkplanerForLøpendeSaker(løpendeSaker, måned)
+                    .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
+                    .forEach { sjekkplanBatch ->
+                        resultat += prosesserSjekkplanBatch(sjekkplanBatch, måned)
+                    }
             }
-
-        if (sjekkplanBuffer.isNotEmpty()) {
-            resultat += prosesserSjekkplanBatch(sjekkplanBuffer.toList(), måned)
-        }
 
         log.info(
             "Fradragssjekk fullført for måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}",
@@ -84,6 +85,16 @@ class FradragsjobbenServiceImpl(
             resultat.opprettedeOppgaver,
             resultat.hoppetOverPåGrunnAvEksternFeil,
         )
+
+        if (resultat.mislykkedeOppgaveopprettelser.isNotEmpty()) {
+            log.error(
+                "Fradragssjekk: Mislykket oppgaveopprettelse for {} saker. {}",
+                resultat.mislykkedeOppgaveopprettelser.size,
+                resultat.mislykkedeOppgaveopprettelser.joinToString(separator = "; ") {
+                    "sakId=${it.sakId}, avvikskoder=${it.avvikskoder.joinToString(",")}"
+                },
+            )
+        }
     }
 
     private fun hentAlleSaker() = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
@@ -290,16 +301,25 @@ class FradragsjobbenServiceImpl(
         var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
 
         sjekkplaner.forEach { sjekkplan ->
-            if (sjekkplan.sjekkpunkter.any { eksterneOppslag[EksternOppslagNøkkel(it.fnr, it.kilde)] is EksterntOppslag.Feil }) {
-                resultat += FradragssjekkResultat(hoppetOverPåGrunnAvEksternFeil = 1)
+            if (sjekkplan.sjekkpunkter.any { eksterneOppslag.hentOppslag(it) is EksterntOppslag.Feil }) {
+                resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
                 return@forEach
             }
 
-            val avvik = finnAvvikForSak(sjekkplan, eksterneOppslag)
-            if (avvik.isNotEmpty()) {
-                resultat += FradragssjekkResultat(sakerMedAvvik = 1)
-                opprettOppgaveForFradrag(sjekkplan.sak, måned, avvik)
-                    ?.let { resultat += FradragssjekkResultat(opprettedeOppgaver = 1) }
+            when (val avviksvurdering = finnAvvikForSak(sjekkplan, eksterneOppslag)) {
+                Avviksvurdering.IngenDiff -> Unit
+                is Avviksvurdering.Diff -> {
+                    resultat = resultat.registrerSakMedAvvik()
+                    when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, avviksvurdering.avvik)) {
+                        OppgaveopprettelseResultat.Opprettet -> {
+                            resultat = resultat.registrerOpprettetOppgave()
+                        }
+
+                        is OppgaveopprettelseResultat.Feilet -> {
+                            resultat = resultat.registrerMislykketOppgaveopprettelse(oppgaveResultat.feil)
+                        }
+                    }
+                }
             }
         }
 
@@ -309,41 +329,42 @@ class FradragsjobbenServiceImpl(
     private fun hentEksterneOppslag(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
-    ): Map<EksternOppslagNøkkel, EksterntOppslag> {
-        val resultat = mutableMapOf<EksternOppslagNøkkel, EksterntOppslag>()
-        val sjekkpunkter = sjekkplaner.flatMap { it.sjekkpunkter }
+    ): EksterneOppslag {
+        val alleSjekkpunkter = sjekkplaner.flatMap { it.sjekkpunkter }
 
-        val aapFnr = sjekkpunkter.filter { it.kilde == EksternKilde.AAP }.map { it.fnr }.distinct()
-        aapFnr.forEach { fnr ->
-            val nøkkel = EksternOppslagNøkkel(fnr, EksternKilde.AAP)
-            resultat[nøkkel] = hentAapOppslag(fnr, måned)
-        }
+        val aapFnr = alleSjekkpunkter
+            .filter { it.kilde == EksternKilde.AAP }
+            .map { it.fnr }
+            .distinct()
 
-        val pesysAlderFnr = sjekkpunkter.filter { it.kilde == EksternKilde.PESYS_ALDER }.map { it.fnr }.distinct()
-        resultat += hentPesysAlderOppslag(pesysAlderFnr, måned.fraOgMed)
+        val pesysAlderFnr = alleSjekkpunkter
+            .filter { it.kilde == EksternKilde.PESYS_ALDER }
+            .map { it.fnr }
+            .distinct()
 
-        val pesysUføreFnr = sjekkpunkter.filter { it.kilde == EksternKilde.PESYS_UFORE }.map { it.fnr }.distinct()
-        resultat += hentPesysUføreOppslag(pesysUføreFnr, måned.fraOgMed)
+        val pesysUføreFnr = alleSjekkpunkter
+            .filter { it.kilde == EksternKilde.PESYS_UFORE }
+            .map { it.fnr }
+            .distinct()
 
-        return resultat
+        return EksterneOppslag(
+            aap = hentAapOppslag(aapFnr, måned),
+            pesysAlder = hentPesysAlderOppslag(pesysAlderFnr, måned.fraOgMed),
+            pesysUføre = hentPesysUføreOppslag(pesysUføreFnr, måned.fraOgMed),
+        )
     }
 
     private fun hentPesysAlderOppslag(
         fnr: List<Fnr>,
         dato: LocalDate,
-    ): Map<EksternOppslagNøkkel, EksterntOppslag> {
+    ): Map<Fnr, EksterntOppslag> {
         return pesysKlient.hentVedtakForPersonPaaDatoAlder(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternKilde.PESYS_ALDER, fnr.size)
-                lagFeilResultat(fnr, EksternKilde.PESYS_ALDER, "Eksternt kall mot ${EksternKilde.PESYS_ALDER} feilet")
+                lagFeilResultat(fnr, "Eksternt kall mot ${EksternKilde.PESYS_ALDER} feilet")
             },
             ifRight = {
-                mapPesysOppslag(
-                    fnr = fnr,
-                    kilde = EksternKilde.PESYS_ALDER,
-                    dato = dato,
-                    perioderForPerson = it.resultat,
-                )
+                mapPesysOppslag(fnr = fnr, dato = dato, perioderForPerson = it.resultat)
             },
         )
     }
@@ -351,40 +372,34 @@ class FradragsjobbenServiceImpl(
     private fun hentPesysUføreOppslag(
         fnr: List<Fnr>,
         dato: LocalDate,
-    ): Map<EksternOppslagNøkkel, EksterntOppslag> {
+    ): Map<Fnr, EksterntOppslag> {
         return pesysKlient.hentVedtakForPersonPaaDatoUføre(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternKilde.PESYS_UFORE, fnr.size)
-                lagFeilResultat(fnr, EksternKilde.PESYS_UFORE, "Eksternt kall mot ${EksternKilde.PESYS_UFORE} feilet")
+                lagFeilResultat(fnr, "Eksternt kall mot ${EksternKilde.PESYS_UFORE} feilet")
             },
             ifRight = {
-                mapPesysOppslag(
-                    fnr = fnr,
-                    kilde = EksternKilde.PESYS_UFORE,
-                    dato = dato,
-                    perioderForPerson = it.resultat,
-                )
+                mapPesysOppslag(fnr = fnr, dato = dato, perioderForPerson = it.resultat)
             },
         )
     }
 
     private fun mapPesysOppslag(
         fnr: List<Fnr>,
-        kilde: EksternKilde,
         dato: LocalDate,
         perioderForPerson: List<PesysPerioderForPerson>,
-    ): Map<EksternOppslagNøkkel, EksterntOppslag> {
+    ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
 
-        val defaultResultat: MutableMap<EksternOppslagNøkkel, EksterntOppslag> = fnr.associate {
-            EksternOppslagNøkkel(it, kilde) to EksterntOppslag.IngenTreff
+        val defaultResultat: MutableMap<Fnr, EksterntOppslag> = fnr.associateWith {
+            EksterntOppslag.IngenTreff
         }.toMutableMap()
 
         perioderForPerson.forEach { person ->
-            val nøkkel = EksternOppslagNøkkel(Fnr(person.fnr), kilde)
-            defaultResultat[nøkkel] = person.gyldigPå(dato).fold(
+            val personFnr = Fnr(person.fnr)
+            defaultResultat[personFnr] = person.gyldigPå(dato).fold(
                 ifLeft = {
-                    log.warn("Fradragssjekk: Ugyldig pesys-respons for {} på {}: {}", nøkkel.fnr, kilde, it)
+                    log.warn("Fradragssjekk: Ugyldig pesys-respons for {}: {}", personFnr, it)
                     EksterntOppslag.Feil(it)
                 },
                 ifRight = { periode ->
@@ -398,15 +413,33 @@ class FradragsjobbenServiceImpl(
 
     private fun lagFeilResultat(
         fnr: List<Fnr>,
-        kilde: EksternKilde,
         feilmelding: String,
-    ): Map<EksternOppslagNøkkel, EksterntOppslag> {
-        return fnr.associate {
-            EksternOppslagNøkkel(it, kilde) to EksterntOppslag.Feil(feilmelding)
+    ): Map<Fnr, EksterntOppslag> = fnr.associateWith { EksterntOppslag.Feil(feilmelding) }
+
+    private fun hentAapOppslag(
+        fnr: List<Fnr>,
+        måned: Måned,
+    ): Map<Fnr, EksterntOppslag> {
+        if (fnr.isEmpty()) return emptyMap()
+
+        val correlationId = getOrCreateCorrelationIdFromThreadLocal().toString()
+
+        return runBlocking {
+            fnr.chunked(AAP_PARALLELLE_OPPSLAG)
+                .flatMap { fnrChunk ->
+                    fnrChunk.map { personFnr ->
+                        async(Dispatchers.IO) {
+                            withMdcCorrelationId(correlationId) {
+                                personFnr to hentAapOppslagForFnr(personFnr, måned)
+                            }
+                        }
+                    }.awaitAll()
+                }
+                .toMap()
         }
     }
 
-    private fun hentAapOppslag(
+    private fun hentAapOppslagForFnr(
         fnr: Fnr,
         måned: Måned,
     ): EksterntOppslag {
@@ -436,52 +469,76 @@ class FradragsjobbenServiceImpl(
 
     private fun finnAvvikForSak(
         sjekkplan: SjekkPlan,
-        eksterneOppslag: Map<EksternOppslagNøkkel, EksterntOppslag>,
-    ): List<String> {
-        return sjekkplan.sjekkpunkter.mapNotNull { sjekkpunkt ->
-            when (val oppslag = eksterneOppslag[EksternOppslagNøkkel(sjekkpunkt.fnr, sjekkpunkt.kilde)]) {
+        eksterneOppslag: EksterneOppslag,
+    ): Avviksvurdering {
+        val avvik = sjekkplan.sjekkpunkter.mapNotNull { sjekkpunkt ->
+            when (val oppslag = eksterneOppslag.hentOppslag(sjekkpunkt)) {
                 is EksterntOppslag.Funnet -> when (val lokaltBeløp = sjekkpunkt.lokaltBeløp) {
-                    null -> "${sjekkpunkt.tilhørerNavn()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(oppslag.beløp)}, men mangler fradrag på saken."
+                    null -> Fradragsavvik(
+                        kode = OppgaveConfig.Fradragssjekk.AvvikKode.EKSTERNT_FRADRAG_MANGLER_LOKALT,
+                        oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(oppslag.beløp)}, men mangler fradrag på saken.",
+                    )
                     else -> if (erSammeBeløp(lokaltBeløp, oppslag.beløp)) {
                         null
                     } else {
-                        "${sjekkpunkt.tilhørerNavn()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(oppslag.beløp)} fra ${sjekkpunkt.kilde.kildeNavn}."
+                        Fradragsavvik(
+                            kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
+                            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(oppslag.beløp)} fra ${sjekkpunkt.kilde.kildeNavn}.",
+                        )
                     }
                 }
 
                 EksterntOppslag.IngenTreff -> sjekkpunkt.lokaltBeløp?.let {
-                    "${sjekkpunkt.tilhørerNavn()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.kilde.kildeNavn}."
+                    Fradragsavvik(
+                        kode = OppgaveConfig.Fradragssjekk.AvvikKode.LOKALT_FRADRAG_MANGLER_EKSTERNT,
+                        oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.kilde.kildeNavn}.",
+                    )
                 }
 
                 is EksterntOppslag.Feil,
                 null,
                 -> null
             }
-        }.distinct()
+        }.distinctBy { it.kode to it.oppgavetekst }
+
+        return if (avvik.isEmpty()) {
+            Avviksvurdering.IngenDiff
+        } else {
+            Avviksvurdering.Diff(avvik)
+        }
     }
 
     private fun opprettOppgaveForFradrag(
         sak: SakInfo,
         måned: Måned,
-        avvik: List<String>,
-    ): no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse? {
+        avvik: List<Fradragsavvik>,
+    ): OppgaveopprettelseResultat {
         return oppgaveService.opprettOppgaveMedSystembruker(
             OppgaveConfig.Fradragssjekk(
                 saksnummer = sak.saksnummer,
                 måned = måned,
-                avvik = avvik,
+                avvik = avvik.map {
+                    OppgaveConfig.Fradragssjekk.Avvik(
+                        kode = it.kode,
+                        tekst = it.oppgavetekst,
+                    )
+                },
                 sakstype = sak.type,
                 fnr = sak.fnr,
                 clock = clock,
             ),
         ).fold(
             ifLeft = {
-                log.error("Fradragssjekk: Klarte ikke opprette oppgave for sak {}", sak.sakId)
-                null
+                OppgaveopprettelseResultat.Feilet(
+                    MislykketOppgaveopprettelse(
+                        sakId = sak.sakId,
+                        avvikskoder = avvik.map { it.kode }.distinct(),
+                    ),
+                )
             },
             ifRight = {
                 log.info("Fradragssjekk: Opprettet oppgave {} for sak {}", it.oppgaveId, sak.sakId)
-                it
+                OppgaveopprettelseResultat.Opprettet
             },
         )
     }
@@ -511,15 +568,24 @@ private enum class EksternKilde(val kildeNavn: String) {
     PESYS_UFORE("Pesys uføre"),
 }
 
-private data class EksternOppslagNøkkel(
-    val fnr: Fnr,
-    val kilde: EksternKilde,
-)
-
 private sealed interface EksterntOppslag {
     data class Funnet(val beløp: Double) : EksterntOppslag
     data object IngenTreff : EksterntOppslag
     data class Feil(val grunn: String) : EksterntOppslag
+}
+
+private data class EksterneOppslag(
+    val aap: Map<Fnr, EksterntOppslag>,
+    val pesysAlder: Map<Fnr, EksterntOppslag>,
+    val pesysUføre: Map<Fnr, EksterntOppslag>,
+) {
+    fun hentOppslag(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
+        return when (sjekkpunkt.kilde) {
+            EksternKilde.AAP -> aap[sjekkpunkt.fnr]
+            EksternKilde.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]
+            EksternKilde.PESYS_UFORE -> pesysUføre[sjekkpunkt.fnr]
+        }
+    }
 }
 
 private data class FradragssjekkResultat(
@@ -527,6 +593,7 @@ private data class FradragssjekkResultat(
     val sakerMedAvvik: Int = 0,
     val opprettedeOppgaver: Int = 0,
     val hoppetOverPåGrunnAvEksternFeil: Int = 0,
+    val mislykkedeOppgaveopprettelser: List<MislykketOppgaveopprettelse> = emptyList(),
 ) {
     operator fun plus(other: FradragssjekkResultat): FradragssjekkResultat {
         return FradragssjekkResultat(
@@ -534,7 +601,60 @@ private data class FradragssjekkResultat(
             sakerMedAvvik = sakerMedAvvik + other.sakerMedAvvik,
             opprettedeOppgaver = opprettedeOppgaver + other.opprettedeOppgaver,
             hoppetOverPåGrunnAvEksternFeil = hoppetOverPåGrunnAvEksternFeil + other.hoppetOverPåGrunnAvEksternFeil,
+            mislykkedeOppgaveopprettelser = mislykkedeOppgaveopprettelser + other.mislykkedeOppgaveopprettelser,
         )
+    }
+
+    fun registrerSakMedAvvik(): FradragssjekkResultat = copy(sakerMedAvvik = sakerMedAvvik + 1)
+
+    fun registrerOpprettetOppgave(): FradragssjekkResultat = copy(opprettedeOppgaver = opprettedeOppgaver + 1)
+
+    fun registrerHoppetOverPåGrunnAvEksternFeil(): FradragssjekkResultat {
+        return copy(hoppetOverPåGrunnAvEksternFeil = hoppetOverPåGrunnAvEksternFeil + 1)
+    }
+
+    fun registrerMislykketOppgaveopprettelse(
+        feil: MislykketOppgaveopprettelse,
+    ): FradragssjekkResultat {
+        return copy(mislykkedeOppgaveopprettelser = mislykkedeOppgaveopprettelser + feil)
+    }
+}
+
+private sealed interface Avviksvurdering {
+    data object IngenDiff : Avviksvurdering
+    data class Diff(val avvik: List<Fradragsavvik>) : Avviksvurdering
+}
+
+private data class Fradragsavvik(
+    val kode: OppgaveConfig.Fradragssjekk.AvvikKode,
+    val oppgavetekst: String,
+)
+
+private data class MislykketOppgaveopprettelse(
+    val sakId: UUID,
+    val avvikskoder: List<OppgaveConfig.Fradragssjekk.AvvikKode>,
+)
+
+private sealed interface OppgaveopprettelseResultat {
+    data object Opprettet : OppgaveopprettelseResultat
+    data class Feilet(val feil: MislykketOppgaveopprettelse) : OppgaveopprettelseResultat
+}
+
+private inline fun <T> withMdcCorrelationId(
+    correlationId: String,
+    block: () -> T,
+): T {
+    val previousCorrelationId = MDC.get(CORRELATION_ID_HEADER)
+
+    return try {
+        MDC.put(CORRELATION_ID_HEADER, correlationId)
+        block()
+    } finally {
+        if (previousCorrelationId == null) {
+            MDC.remove(CORRELATION_ID_HEADER)
+        } else {
+            MDC.put(CORRELATION_ID_HEADER, previousCorrelationId)
+        }
     }
 }
 
@@ -552,7 +672,7 @@ private fun GjeldendeVedtaksdata.lokaltFradragsbeløp(
     return relevanteFradrag.takeIf { it.isNotEmpty() }?.sumOf { it.månedsbeløp }
 }
 
-private fun Sjekkpunkt.tilhørerNavn(): String = when (tilhører) {
+private fun Sjekkpunkt.brukerType(): String = when (tilhører) {
     FradragTilhører.BRUKER -> "Bruker"
     FradragTilhører.EPS -> "EPS"
 }
@@ -595,8 +715,11 @@ private fun MaksimumVedtakDto.tilMånedsbeløpForSu(): BigDecimal {
         .divide(AAP_MANEDER_PER_AR, 2, RoundingMode.HALF_UP)
 }
 
+/**
+ * Bryr oss kun om 10% diff?
+ */
 private fun erSammeBeløp(lokaltBeløp: Double, eksterntBeløp: Double): Boolean {
-    return kotlin.math.abs(lokaltBeløp - eksterntBeløp) < BELOPS_TOLERANSE
+    return kotlin.math.abs(lokaltBeløp - eksterntBeløp) > BELOPS_TOLERANSE
 }
 
 private fun formatBeløp(beløp: Double): String {
