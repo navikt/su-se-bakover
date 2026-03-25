@@ -100,6 +100,7 @@ sealed interface Regulering : Stønadsbehandling {
                 simulering = null,
                 reguleringstype = reguleringstype,
                 sakstype = sakstype,
+                aapGrunnlag = eksterntRegulerteBeløp.maptoAap(),
                 // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
             ).right()
         }

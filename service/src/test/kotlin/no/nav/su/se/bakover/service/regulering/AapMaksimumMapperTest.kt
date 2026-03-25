@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.service.regulering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
+import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 

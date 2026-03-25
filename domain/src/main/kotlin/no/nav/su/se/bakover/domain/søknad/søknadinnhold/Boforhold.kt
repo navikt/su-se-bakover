@@ -104,6 +104,10 @@ sealed interface OppgittAdresse {
 }
 
 // TODO: skill mellom domene-klassen og json
+/**
+ * Representerer ett institusjonsopphold oppgitt i søknaden, iht. § 12 (LOV-2005-04-29-21-§12).
+ * Se [PARAGRAF_12.md](../../../../../../../../vilkår/institusjonsopphold/PARAGRAF_12.md) for dokumentasjon.
+ */
 data class InnlagtPåInstitusjon(
     val datoForInnleggelse: LocalDate,
     val datoForUtskrivelse: LocalDate?,

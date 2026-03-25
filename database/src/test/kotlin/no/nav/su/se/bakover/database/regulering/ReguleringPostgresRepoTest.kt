@@ -61,6 +61,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         )
     }
 
+    // SOS TODO: Autoreg skal ha test på supplement blir lagret ned og finnes på reguleringen men avventer lagringsbehovet
+
     @Test
     fun `hent reguleringer som ikke er iverksatt med fradrag`() {
         val testDataHelper = TestDataHelper(dataSource)
