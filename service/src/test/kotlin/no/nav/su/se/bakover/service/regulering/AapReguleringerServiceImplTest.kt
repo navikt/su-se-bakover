@@ -7,9 +7,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
-import no.nav.su.se.bakover.client.aap.MaksimumPeriodeDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
-import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
 import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
@@ -18,6 +16,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
+import no.nav.su.se.bakover.domain.regulering.MaksimumPeriodeDto
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

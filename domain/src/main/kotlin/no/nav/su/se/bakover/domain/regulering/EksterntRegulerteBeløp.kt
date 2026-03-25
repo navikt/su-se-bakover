@@ -34,4 +34,11 @@ data class RegulertBeløp(
     val fradragstype: Fradragstype,
     val førRegulering: BigDecimal,
     val etterRegulering: BigDecimal,
+
+    val grunnlagAap: AapGrunnlag? = null,
+)
+
+data class AapGrunnlag(
+    val aapFoer: BeregnAap.AapBeregning,
+    val aapEtter: BeregnAap.AapBeregning,
 )
