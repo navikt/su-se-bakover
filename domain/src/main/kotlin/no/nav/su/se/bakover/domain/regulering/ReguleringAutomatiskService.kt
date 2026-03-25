@@ -11,7 +11,7 @@ sealed interface KunneIkkeRegulereAutomatisk {
     data object HarÅpenReguleringFraFør : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeHenteEllerOppretteRegulering(
-        val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering,
+        val feil: Sak.KanIkkeRegulere,
     ) : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeBehandleAutomatisk(

@@ -136,11 +136,11 @@ class ReguleringAutomatiskServiceImpl(
                     // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
                     val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                         when (feil) {
-                            Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                            Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
                                 "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
                             )
 
-                            Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                            Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                                 "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                             )
                         }
@@ -226,17 +226,7 @@ class ReguleringAutomatiskServiceImpl(
             sakerMedEksterntRegulerteBeløp,
             omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
-            // TODO auto-reg-26 - kun MåRevurdere som er reelt her ??
-            when (feil) {
-                Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
-                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
-                )
-
-                Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                )
-            }
-
+            log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må får besked om manuell revurdering. Årsak: $feil")
             return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
         }
 

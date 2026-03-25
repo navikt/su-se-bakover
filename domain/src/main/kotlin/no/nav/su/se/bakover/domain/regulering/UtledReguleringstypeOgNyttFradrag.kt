@@ -48,12 +48,12 @@ fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
     val utledetReguleringstypePerFradrag = fradrag.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp, omregningsfaktor)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
-        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere.left()
+        return Sak.KanIkkeRegulere.MåRevurdere.left()
     }
     return utledetReguleringstypePerFradrag.filterRights().let {
         val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
@@ -74,7 +74,7 @@ private fun utledPerFradragstypeOgTilhørende(
     orginaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Pair<Reguleringstype, Fradragsgrunnlag>> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = orginaltFradrag.fradragstype
     val fradragTilhører = orginaltFradrag.fradrag.tilhører
 
@@ -134,7 +134,7 @@ private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     orginaltFradrag: Fradragsgrunnlag,
     fradragTilhører: FradragTilhører,
     omregningsfaktor: BigDecimal,
-): Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere? {
+): Sak.KanIkkeRegulere.MåRevurdere? {
     require(orginaltFradrag.fradragstype == fradragstype)
     require(orginaltFradrag.fradrag.tilhører == fradragTilhører)
 
@@ -145,7 +145,7 @@ private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     // Vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > BigDecimal.ZERO) {
         // TODO legg til beløper
-        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere
+        return Sak.KanIkkeRegulere.MåRevurdere
         /*
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
@@ -168,7 +168,7 @@ private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
 
     if (differanseSupplementOgForventet > akseptertDifferanseEtterRegulering) {
         // TODO legg til beløper
-        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere
+        return Sak.KanIkkeRegulere.MåRevurdere
         /*
         return Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(

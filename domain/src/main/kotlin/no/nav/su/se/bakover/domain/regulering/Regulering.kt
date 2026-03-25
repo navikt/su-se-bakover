@@ -69,7 +69,7 @@ sealed interface Regulering : Stønadsbehandling {
             sakstype: Sakstype,
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
             omregningsfaktor: BigDecimal,
-        ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, OpprettetRegulering> {
+        ): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
 
             val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
@@ -109,7 +109,7 @@ sealed interface Regulering : Stønadsbehandling {
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             saksnummer: Saksnummer,
             sakstype: Sakstype,
-        ): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, Reguleringstype> {
+        ): Either<Sak.KanIkkeRegulere.MåRevurdere, Reguleringstype> {
             return gjeldendeVedtaksdata.utledReguleringstype().right()
         }
     }
@@ -120,7 +120,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     vedtaksdata: GjeldendeVedtaksdata,
     eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
     omregningsfaktor: BigDecimal,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere, OpprettetRegulering> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
@@ -140,7 +140,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
 fun Sak.hentGjeldendeVedtaksdataForRegulering(
     fraOgMedMåned: Måned,
     clock: Clock,
-): Either<Sak.KunneIkkeOppretteEllerOppdatereRegulering, GjeldendeVedtaksdata> {
+): Either<Sak.KanIkkeRegulere, GjeldendeVedtaksdata> {
     val periode = vedtakstidslinje(
         fraOgMed = fraOgMedMåned,
     ).let { tidslinje ->
@@ -150,15 +150,15 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
             .minsteAntallSammenhengendePerioder()
             .ifEmpty {
                 log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $fraOgMedMåned")
-                return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+                return Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
             }
     }.also {
-        if (it.count() != 1) return Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
+        if (it.count() != 1) return Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
     }.single()
 
     val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
         log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-        return Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+        return Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
     }
 
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(this.type)
@@ -171,7 +171,7 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
             } else {
                 log.error(message)
             }
-            return Sak.KunneIkkeOppretteEllerOppdatereRegulering.MåRevurdere.left()
+            return Sak.KanIkkeRegulere.MåRevurdere.left()
         }
 
     return gjeldendeVedtaksdata.right()

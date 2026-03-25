@@ -313,13 +313,13 @@ data class Sak(
         } ?: false
     }
 
-    sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
-        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
-        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
+    sealed interface KanIkkeRegulere {
+        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
+        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
 
         // Brukes når det vil måtte skje endringer som går utvoer beregning med ny G
         // eller det av en eller annen grunn må sendes ut vedtaksbrev
-        data object MåRevurdere : KunneIkkeOppretteEllerOppdatereRegulering
+        data object MåRevurdere : KanIkkeRegulere
         // TODO legg til årsak med beskrivelse?
     }
 
