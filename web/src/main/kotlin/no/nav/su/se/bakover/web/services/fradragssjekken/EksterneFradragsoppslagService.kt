@@ -32,8 +32,8 @@ internal class EksterneFradragsoppslagService(
     fun hentPerioderForYtelser(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
-    ): EksterneOppslag {
-        return EksterneOppslag(
+    ): EksterneOppslagsresultater {
+        return EksterneOppslagsresultater(
             aap = hentAapOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.AAP), måned),
             pesysAlder = hentPesysAlderOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.PESYS_ALDER), måned.fraOgMed),
             pesysUføre = hentPesysUføreOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.PESYS_UFORE), måned.fraOgMed),

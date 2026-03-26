@@ -155,23 +155,23 @@ class FradragsjobbenServiceImpl(
     ): FradragssjekkResultat {
         if (sjekkplaner.isEmpty()) return FradragssjekkResultat()
 
-        val eksterneOppslag = eksterneOppslagService.hentPerioderForYtelser(sjekkplaner, måned)
+        val oppslagsresultater = eksterneOppslagService.hentPerioderForYtelser(sjekkplaner, måned)
         var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
 
         sjekkplaner.forEach { sjekkplan ->
             // TODO: disse skal kanskje ha støtte for å rekjøres
-            if (sjekkplan.sjekkpunkter.any { eksterneOppslag.hentLagretResultat(it) is EksterntOppslag.Feil }) {
+            if (sjekkplan.sjekkpunkter.any { oppslagsresultater.hentLagretResultatFor(it) is EksterntOppslag.Feil }) {
                 resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
                 return@forEach
             }
 
-            when (val avviksvurdering = finnAvvikForSak(sjekkplan, eksterneOppslag)) {
+            when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
                 Avviksvurdering.IngenDiff -> Unit
                 is Avviksvurdering.Diff -> {
                     resultat = resultat.registrerSakMedAvvik()
 
                     val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
-                    resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = observasjonsAvvik)
+                    resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = resultat.sakerInsignifikantDifferanseForOppgave.plus(observasjonsAvvik))
                     resultat = when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
                         OppgaveopprettelseResultat.Opprettet -> {
                             resultat.registrerOpprettetOppgave()

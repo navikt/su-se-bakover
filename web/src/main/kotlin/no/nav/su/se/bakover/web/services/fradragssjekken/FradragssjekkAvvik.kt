@@ -9,13 +9,13 @@ private const val BELOPS_TOLERANSE_I_KR = 10.0
 
 internal fun finnAvvikForSak(
     sjekkplan: SjekkPlan,
-    eksterneOppslag: EksterneOppslag,
+    oppslagsresultater: EksterneOppslagsresultater,
 ): Avviksvurdering {
     val avvik = sjekkplan.sjekkpunkter
         .mapNotNull { sjekkpunkt ->
             vurderAvvik(
                 sjekkpunkt = sjekkpunkt,
-                oppslag = eksterneOppslag.hentLagretResultat(sjekkpunkt),
+                oppslag = oppslagsresultater.hentLagretResultatFor(sjekkpunkt),
             )
         }
 
@@ -62,7 +62,7 @@ private fun vurderFunnetOppslag(
 
         else -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.kildeNavn}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.ytelseNavn}.",
         )
     }
 }
@@ -73,7 +73,7 @@ private fun vurderIngenTreff(
     return sjekkpunkt.lokaltBeløp?.let {
         Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.LOKALT_FRADRAG_MANGLER_EKSTERNT,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.ytelse.kildeNavn}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.ytelse.ytelseNavn}.",
         )
     }
 }

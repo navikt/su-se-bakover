@@ -25,7 +25,7 @@ internal enum class EpsKategori {
     SEKSTISYV_ELLER_ELDRE,
 }
 
-internal enum class EksternYtelse(val kildeNavn: String) {
+internal enum class EksternYtelse(val ytelseNavn: String) {
     AAP("AAP"),
     PESYS_ALDER("Pesys alder"),
     PESYS_UFORE("Pesys uføre"),
@@ -37,12 +37,12 @@ internal sealed interface EksterntOppslag {
     data class Feil(val grunn: String) : EksterntOppslag
 }
 
-internal data class EksterneOppslag(
+internal data class EksterneOppslagsresultater(
     val aap: Map<Fnr, EksterntOppslag>,
     val pesysAlder: Map<Fnr, EksterntOppslag>,
     val pesysUføre: Map<Fnr, EksterntOppslag>,
 ) {
-    fun hentLagretResultat(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
+    fun hentLagretResultatFor(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
         return when (sjekkpunkt.ytelse) {
             EksternYtelse.AAP -> aap[sjekkpunkt.fnr]
             EksternYtelse.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]
