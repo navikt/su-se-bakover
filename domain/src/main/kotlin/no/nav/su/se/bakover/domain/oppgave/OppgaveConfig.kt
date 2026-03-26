@@ -287,7 +287,7 @@ sealed interface OppgaveConfig {
             val tekst: String,
         )
 
-        // TODO:BAD fix
+        // TODO:håndere med trycreatt? kan det egentlig skje?
         init {
             require(avvik.isNotEmpty()) { "Fradragssjekk-oppgave krever minst ett avvik" }
         }

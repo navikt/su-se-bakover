@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.common.infrastructure.correlation.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.slf4j.Logger
@@ -85,7 +86,8 @@ internal class EksterneFradragsoppslagService(
             val personFnr = Fnr(person.fnr)
             defaultResultat[personFnr] = person.gyldigPå(dato).fold(
                 ifLeft = {
-                    log.warn("Fradragssjekk: Ugyldig pesys-respons for {}: {}", personFnr, it)
+                    log.warn("Fradragssjekk: Ugyldig pesys-respons for en person på dato {}", dato)
+                    sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for fnr {} på dato {}: {}", personFnr, dato, it)
                     EksterntOppslag.Feil(it)
                 },
                 ifRight = { periode ->

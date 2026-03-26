@@ -213,7 +213,7 @@ class FradragsjobbenServiceImpl(
     }
 
     // Som Iterable.partition men uten type erasure
-    inline fun <reified A, reified B> Iterable<*>.partitionTyped(): Pair<List<A>, List<B>> {
+    private inline fun <reified A, reified B> Iterable<*>.partitionTyped(): Pair<List<A>, List<B>> {
         val a = mutableListOf<A>()
         val b = mutableListOf<B>()
 
