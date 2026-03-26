@@ -9,6 +9,24 @@ import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
+/**
+ * 1. Lag sjekkpunkter for bruker
+ *    - UFØRE-sak -> bruker får UFØR + AAP
+ *    - ALDER-sak -> bruker får AP
+ *
+ * 2. Finn EPS for aktuell måned
+ *    - ingen EPS -> stopp der
+ *    - EPS finnes -> finn kategori:
+ *      - under 67
+ *      - 67 eller eldre
+ *
+ * 3. Lag sjekkpunkter for EPS
+ *    - UFØRE-sak + EPS under 67 -> UFØR + AAP
+ *    - UFØRE-sak + EPS 67+ -> AP
+ *    - ALDER-sak + EPS under 67 -> UFØR + AAP
+ *    - ALDER-sak + EPS 67+ -> AP
+ *
+ */
 internal fun lagSjekkplanForSak(
     sak: SakInfo,
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
@@ -86,14 +104,14 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForBruker(
                 fnr = fnr,
                 tilhører = FradragTilhører.BRUKER,
                 fradragstype = Fradragstype.Uføretrygd,
-                kilde = EksternKilde.PESYS_UFORE,
+                ytelse = EksternYtelse.PESYS_UFORE,
                 måned = måned,
             ),
             sjekkpunkt(
                 fnr = fnr,
                 tilhører = FradragTilhører.BRUKER,
                 fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                kilde = EksternKilde.AAP,
+                ytelse = EksternYtelse.AAP,
                 måned = måned,
             ),
         )
@@ -103,7 +121,7 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForBruker(
                 fnr = fnr,
                 tilhører = FradragTilhører.BRUKER,
                 fradragstype = Fradragstype.Alderspensjon,
-                kilde = EksternKilde.PESYS_ALDER,
+                ytelse = EksternYtelse.PESYS_ALDER,
                 måned = måned,
             ),
         )
@@ -123,14 +141,14 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForEps(
                     fnr = epsFnr,
                     tilhører = FradragTilhører.EPS,
                     fradragstype = Fradragstype.Uføretrygd,
-                    kilde = EksternKilde.PESYS_UFORE,
+                    ytelse = EksternYtelse.PESYS_UFORE,
                     måned = måned,
                 ),
                 sjekkpunkt(
                     fnr = epsFnr,
                     tilhører = FradragTilhører.EPS,
                     fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                    kilde = EksternKilde.AAP,
+                    ytelse = EksternYtelse.AAP,
                     måned = måned,
                 ),
             )
@@ -140,7 +158,7 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForEps(
                     fnr = epsFnr,
                     tilhører = FradragTilhører.EPS,
                     fradragstype = Fradragstype.Alderspensjon,
-                    kilde = EksternKilde.PESYS_ALDER,
+                    ytelse = EksternYtelse.PESYS_ALDER,
                     måned = måned,
                 ),
             )
@@ -152,14 +170,14 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForEps(
                     fnr = epsFnr,
                     tilhører = FradragTilhører.EPS,
                     fradragstype = Fradragstype.Uføretrygd,
-                    kilde = EksternKilde.PESYS_UFORE,
+                    ytelse = EksternYtelse.PESYS_UFORE,
                     måned = måned,
                 ),
                 sjekkpunkt(
                     fnr = epsFnr,
                     tilhører = FradragTilhører.EPS,
                     fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                    kilde = EksternKilde.AAP,
+                    ytelse = EksternYtelse.AAP,
                     måned = måned,
                 ),
             )
@@ -169,7 +187,7 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForEps(
                     fnr = epsFnr,
                     tilhører = FradragTilhører.EPS,
                     fradragstype = Fradragstype.Alderspensjon,
-                    kilde = EksternKilde.PESYS_ALDER,
+                    ytelse = EksternYtelse.PESYS_ALDER,
                     måned = måned,
                 ),
             )
@@ -181,14 +199,14 @@ private fun GjeldendeVedtaksdata.sjekkpunkt(
     fnr: Fnr,
     tilhører: FradragTilhører,
     fradragstype: Fradragstype,
-    kilde: EksternKilde,
+    ytelse: EksternYtelse,
     måned: Måned,
 ): Sjekkpunkt {
     return Sjekkpunkt(
         fnr = fnr,
         tilhører = tilhører,
         fradragstype = fradragstype,
-        kilde = kilde,
+        ytelse = ytelse,
         lokaltBeløp = lokaltFradragsbeløp(fradragstype, tilhører, måned),
     )
 }

@@ -61,7 +61,7 @@ class FradragsjobbenServiceImpl(
         sakerPerBatch: List<SakInfo>,
         måned: Måned,
     ): FradragssjekkResultat {
-        return filtrerSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
+        return hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
             .let { lagSjekkplanerForLøpendeSaker(it, måned) }
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
             .fold(FradragssjekkResultat()) { acc, sjekkplanBatch ->
@@ -101,7 +101,7 @@ class FradragsjobbenServiceImpl(
 
     private fun hentAlleSaker() = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
 
-    private fun filtrerSakerMedLøpendeUtbetalingForMåned(
+    private fun hentSakerMedLøpendeUtbetalingForMåned(
         saker: List<SakInfo>,
         måned: Måned,
     ): List<SakInfo> {

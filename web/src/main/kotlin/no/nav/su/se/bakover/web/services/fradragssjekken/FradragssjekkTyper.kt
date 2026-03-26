@@ -16,7 +16,7 @@ internal data class Sjekkpunkt(
     val fnr: Fnr,
     val tilhører: FradragTilhører,
     val fradragstype: Fradragstype,
-    val kilde: EksternKilde,
+    val ytelse: EksternYtelse,
     val lokaltBeløp: Double?,
 )
 
@@ -25,7 +25,7 @@ internal enum class EpsKategori {
     SEKSTISYV_ELLER_ELDRE,
 }
 
-internal enum class EksternKilde(val kildeNavn: String) {
+internal enum class EksternYtelse(val kildeNavn: String) {
     AAP("AAP"),
     PESYS_ALDER("Pesys alder"),
     PESYS_UFORE("Pesys uføre"),
@@ -43,10 +43,10 @@ internal data class EksterneOppslag(
     val pesysUføre: Map<Fnr, EksterntOppslag>,
 ) {
     fun hentOppslag(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
-        return when (sjekkpunkt.kilde) {
-            EksternKilde.AAP -> aap[sjekkpunkt.fnr]
-            EksternKilde.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]
-            EksternKilde.PESYS_UFORE -> pesysUføre[sjekkpunkt.fnr]
+        return when (sjekkpunkt.ytelse) {
+            EksternYtelse.AAP -> aap[sjekkpunkt.fnr]
+            EksternYtelse.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]
+            EksternYtelse.PESYS_UFORE -> pesysUføre[sjekkpunkt.fnr]
         }
     }
 }

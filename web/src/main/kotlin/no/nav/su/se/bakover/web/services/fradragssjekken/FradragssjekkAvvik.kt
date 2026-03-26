@@ -62,7 +62,7 @@ private fun vurderFunnetOppslag(
 
         else -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.kilde.kildeNavn}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.kildeNavn}.",
         )
     }
 }
@@ -73,7 +73,7 @@ private fun vurderIngenTreff(
     return sjekkpunkt.lokaltBeløp?.let {
         Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.LOKALT_FRADRAG_MANGLER_EKSTERNT,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.kilde.kildeNavn}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.ytelse.kildeNavn}.",
         )
     }
 }

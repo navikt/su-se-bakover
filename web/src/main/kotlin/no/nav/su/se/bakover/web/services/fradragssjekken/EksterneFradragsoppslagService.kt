@@ -34,9 +34,9 @@ internal class EksterneFradragsoppslagService(
         måned: Måned,
     ): EksterneOppslag {
         return EksterneOppslag(
-            aap = hentAapOppslag(sjekkplaner.fnrFor(EksternKilde.AAP), måned),
-            pesysAlder = hentPesysAlderOppslag(sjekkplaner.fnrFor(EksternKilde.PESYS_ALDER), måned.fraOgMed),
-            pesysUføre = hentPesysUføreOppslag(sjekkplaner.fnrFor(EksternKilde.PESYS_UFORE), måned.fraOgMed),
+            aap = hentAapOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.AAP), måned),
+            pesysAlder = hentPesysAlderOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.PESYS_ALDER), måned.fraOgMed),
+            pesysUføre = hentPesysUføreOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.PESYS_UFORE), måned.fraOgMed),
         )
     }
 
@@ -46,8 +46,8 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> {
         return pesysKlient.hentVedtakForPersonPaaDatoAlder(fnr, dato).fold(
             ifLeft = {
-                log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternKilde.PESYS_ALDER, fnr.size)
-                lagFeilResultat(fnr, "Eksternt kall mot ${EksternKilde.PESYS_ALDER} feilet")
+                log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_ALDER, fnr.size)
+                lagFeilResultat(fnr, "Eksternt kall mot ${EksternYtelse.PESYS_ALDER} feilet")
             },
             ifRight = {
                 mapPesysOppslag(fnr = fnr, dato = dato, perioderForPerson = it.resultat)
@@ -61,8 +61,8 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> {
         return pesysKlient.hentVedtakForPersonPaaDatoUføre(fnr, dato).fold(
             ifLeft = {
-                log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternKilde.PESYS_UFORE, fnr.size)
-                lagFeilResultat(fnr, "Eksternt kall mot ${EksternKilde.PESYS_UFORE} feilet")
+                log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_UFORE, fnr.size)
+                lagFeilResultat(fnr, "Eksternt kall mot ${EksternYtelse.PESYS_UFORE} feilet")
             },
             ifRight = {
                 mapPesysOppslag(fnr = fnr, dato = dato, perioderForPerson = it.resultat)
@@ -154,9 +154,9 @@ internal class EksterneFradragsoppslagService(
     }
 }
 
-private fun List<SjekkPlan>.fnrFor(kilde: EksternKilde): List<Fnr> {
+private fun List<SjekkPlan>.hentFnrForYtelse(ytelse: EksternYtelse): List<Fnr> {
     return flatMap { it.sjekkpunkter }
-        .filter { it.kilde == kilde }
+        .filter { it.ytelse == ytelse }
         .map { it.fnr }
         .distinct()
 }
