@@ -29,6 +29,13 @@ internal object SøknadsinnholdInputValidator {
         '_',
     )
 
+    private val tillatteSpesialTegn = setOf(
+        'ô',
+        'è',
+        'ò',
+        'ê',
+    )
+
     private val mistenkeligeMønstre = listOf(
         Regex("<\\s*/?\\s*script", RegexOption.IGNORE_CASE),
         Regex("javascript\\s*:", RegexOption.IGNORE_CASE),
