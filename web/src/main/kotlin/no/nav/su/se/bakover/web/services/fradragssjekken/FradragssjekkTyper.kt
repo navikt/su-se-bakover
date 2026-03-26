@@ -57,6 +57,7 @@ internal data class FradragssjekkResultat(
     val opprettedeOppgaver: Int = 0,
     val hoppetOverPåGrunnAvEksternFeil: Int = 0,
     val mislykkedeOppgaveopprettelser: List<MislykketOppgaveopprettelse> = emptyList(),
+    val sakerInsignifikantDifferanseForOppgave: List<Fradragsfunn.Observasjon> = emptyList(),
 ) {
     operator fun plus(other: FradragssjekkResultat): FradragssjekkResultat {
         return FradragssjekkResultat(
@@ -85,13 +86,24 @@ internal data class FradragssjekkResultat(
 
 internal sealed interface Avviksvurdering {
     data object IngenDiff : Avviksvurdering
-    data class Diff(val avvik: List<Fradragsavvik>) : Avviksvurdering
+    data class Diff(val avvik: List<Fradragsfunn>) : Avviksvurdering
 }
 
-internal data class Fradragsavvik(
-    val kode: OppgaveConfig.Fradragssjekk.AvvikKode,
-    val oppgavetekst: String,
-)
+internal sealed interface Fradragsfunn {
+    data class Oppgaveavvik(
+        val kode: OppgaveConfig.Fradragssjekk.AvvikKode,
+        val oppgavetekst: String,
+    ) : Fradragsfunn
+
+    data class Observasjon(
+        val kode: Observasjonskode,
+        val loggtekst: String,
+    ) : Fradragsfunn
+}
+
+internal enum class Observasjonskode {
+    INSIGNIFIKANT_BELOEPSDIFFERANSE,
+}
 
 internal data class MislykketOppgaveopprettelse(
     val sakId: UUID,

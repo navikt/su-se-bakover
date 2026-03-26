@@ -168,13 +168,16 @@ class FradragsjobbenServiceImpl(
                 Avviksvurdering.IngenDiff -> Unit
                 is Avviksvurdering.Diff -> {
                     resultat = resultat.registrerSakMedAvvik()
-                    when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, avviksvurdering.avvik)) {
+
+                    val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
+                    resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = observasjonsAvvik)
+                    resultat = when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
                         OppgaveopprettelseResultat.Opprettet -> {
-                            resultat = resultat.registrerOpprettetOppgave()
+                            resultat.registrerOpprettetOppgave()
                         }
 
                         is OppgaveopprettelseResultat.Feilet -> {
-                            resultat = resultat.registrerMislykketOppgaveopprettelse(oppgaveResultat.feil)
+                            resultat.registrerMislykketOppgaveopprettelse(oppgaveResultat.feil)
                         }
                     }
                 }
@@ -184,10 +187,25 @@ class FradragsjobbenServiceImpl(
         return resultat
     }
 
+    // Som Iterable.partition men uten type erasure
+    inline fun <reified A, reified B> Iterable<*>.partitionTyped(): Pair<List<A>, List<B>> {
+        val a = mutableListOf<A>()
+        val b = mutableListOf<B>()
+
+        for (e in this) {
+            when (e) {
+                is A -> a.add(e)
+                is B -> b.add(e)
+            }
+        }
+
+        return a to b
+    }
+
     private fun opprettOppgaveForFradrag(
         sak: SakInfo,
         måned: Måned,
-        avvik: List<Fradragsavvik>,
+        avvik: List<Fradragsfunn.Oppgaveavvik>,
     ): OppgaveopprettelseResultat {
         return oppgaveService.opprettOppgaveMedSystembruker(
             OppgaveConfig.Fradragssjekk(

@@ -276,7 +276,8 @@ sealed interface OppgaveConfig {
         override val clock: Clock,
     ) : OppgaveConfig {
         enum class AvvikKode {
-            EKSTERNT_FRADRAG_MANGLER_LOKALT,
+            MANGLER_FRADRAG_I_SUAPP,
+            FRADRAG_DIFF_OVER_10KR,
             ULIKT_BELOP,
             LOKALT_FRADRAG_MANGLER_EKSTERNT,
         }

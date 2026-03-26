@@ -5,7 +5,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-private const val BELOPS_TOLERANSE = 10.0
+private const val BELOPS_TOLERANSE_I_KR = 10.0
 
 internal fun finnAvvikForSak(
     sjekkplan: SjekkPlan,
@@ -18,7 +18,6 @@ internal fun finnAvvikForSak(
                 oppslag = eksterneOppslag.hentOppslag(sjekkpunkt),
             )
         }
-        .distinctBy { it.kode to it.oppgavetekst }
 
     return if (avvik.isEmpty()) {
         Avviksvurdering.IngenDiff
@@ -30,7 +29,7 @@ internal fun finnAvvikForSak(
 private fun vurderAvvik(
     sjekkpunkt: Sjekkpunkt,
     oppslag: EksterntOppslag?,
-): Fradragsavvik? {
+): Fradragsfunn? {
     return when (oppslag) {
         is EksterntOppslag.Funnet -> vurderFunnetOppslag(sjekkpunkt, oppslag.beløp)
         EksterntOppslag.IngenTreff -> vurderIngenTreff(sjekkpunkt)
@@ -43,18 +42,25 @@ private fun vurderAvvik(
 private fun vurderFunnetOppslag(
     sjekkpunkt: Sjekkpunkt,
     eksterntBeløp: Double,
-): Fradragsavvik? {
+): Fradragsfunn? {
     val lokaltBeløp = sjekkpunkt.lokaltBeløp
 
     return when {
-        lokaltBeløp == null -> Fradragsavvik(
-            kode = OppgaveConfig.Fradragssjekk.AvvikKode.EKSTERNT_FRADRAG_MANGLER_LOKALT,
+        lokaltBeløp == null -> Fradragsfunn.Oppgaveavvik(
+            kode = OppgaveConfig.Fradragssjekk.AvvikKode.MANGLER_FRADRAG_I_SUAPP,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, men mangler fradrag på saken.",
         )
 
-        erSammeBeløp(lokaltBeløp, eksterntBeløp) -> null
+        beløpsDifferanseErMerEnn10kr(lokaltBeløp, eksterntBeløp) -> Fradragsfunn.Oppgaveavvik(
+            kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR,
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mer enn 10kr +- enn vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
+        )
+        harInsigifikantDifferanse(lokaltBeløp, eksterntBeløp) -> Fradragsfunn.Observasjon(
+            kode = Observasjonskode.INSIGNIFIKANT_BELOEPSDIFFERANSE,
+            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mindre enn 10kr +- enn vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
+        )
 
-        else -> Fradragsavvik(
+        else -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.kilde.kildeNavn}.",
         )
@@ -63,9 +69,9 @@ private fun vurderFunnetOppslag(
 
 private fun vurderIngenTreff(
     sjekkpunkt: Sjekkpunkt,
-): Fradragsavvik? {
+): Fradragsfunn? {
     return sjekkpunkt.lokaltBeløp?.let {
-        Fradragsavvik(
+        Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.LOKALT_FRADRAG_MANGLER_EKSTERNT,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.kilde.kildeNavn}.",
         )
@@ -77,11 +83,19 @@ private fun Sjekkpunkt.brukerType(): String = when (tilhører) {
     FradragTilhører.EPS -> "EPS"
 }
 
-private fun erSammeBeløp(
+private fun beløpsDifferanseErMerEnn10kr(
     lokaltBeløp: Double,
     eksterntBeløp: Double,
 ): Boolean {
-    return kotlin.math.abs(lokaltBeløp - eksterntBeløp) < BELOPS_TOLERANSE
+    return kotlin.math.abs(lokaltBeløp - eksterntBeløp) > BELOPS_TOLERANSE_I_KR
+}
+
+private fun harInsigifikantDifferanse(
+    lokaltBeløp: Double,
+    eksterntBeløp: Double,
+): Boolean {
+    val beløp = kotlin.math.abs(lokaltBeløp - eksterntBeløp)
+    return beløp in 0.0..BELOPS_TOLERANSE_I_KR
 }
 
 private fun formatBeløp(beløp: Double): String {
