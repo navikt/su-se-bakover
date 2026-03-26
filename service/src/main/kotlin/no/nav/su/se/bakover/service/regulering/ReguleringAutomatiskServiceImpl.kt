@@ -215,8 +215,8 @@ class ReguleringAutomatiskServiceImpl(
 
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             clock = clock,
-            vedtaksdata = vedtaksdata,
-            sakerMedEksterntRegulerteBeløp,
+            gjeldendeVedtaksdata = vedtaksdata,
+            alleEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
             return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()

@@ -538,8 +538,8 @@ class TestDataHelper(
             val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrFail()
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
                 clock = clock,
-                vedtaksdata = vedtaksdata,
-                eksterntRegulerteBeløp = eksterneReguleringer(sak),
+                gjeldendeVedtaksdata = vedtaksdata,
+                alleEksterntRegulerteBeløp = eksterneReguleringer(sak),
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

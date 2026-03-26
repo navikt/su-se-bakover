@@ -8,14 +8,12 @@ import behandling.domain.Stønadsbehandling
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
-import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -26,7 +24,6 @@ import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.erGyldigTilstand
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
-import java.util.UUID
 import kotlin.collections.ifEmpty
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
@@ -52,76 +49,51 @@ sealed interface Regulering : Stønadsbehandling {
 
     /** true dersom dette er en iverksatt regulering, false ellers. */
     val erFerdigstilt: Boolean
-
-    companion object {
-        /**
-         * @param clock Brukes kun dersom [opprettet] ikke sendes inn.
-         */
-        fun opprettRegulering(
-            id: ReguleringId = ReguleringId.generer(),
-            sakId: UUID,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
-            gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-            clock: Clock,
-            opprettet: Tidspunkt = Tidspunkt.now(clock),
-            sakstype: Sakstype,
-            eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-        ): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
-            val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
-
-            val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
-                fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            ).getOrElse {
-                return it.left()
-            }
-
-            // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
-            val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
-                reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-                reguleringstype2 = reguleringstypeBasertPåFradrag,
-            )
-
-            return OpprettetRegulering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
-                fnr = fnr,
-                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-                    fradragOppdatertMedEksterneBeløp,
-                ),
-                beregning = null,
-                simulering = null,
-                reguleringstype = reguleringstype,
-                sakstype = sakstype,
-                aapGrunnlag = eksterntRegulerteBeløp.maptoAap(),
-                // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
-            ).right()
-        }
-    }
 }
 
 fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     clock: Clock,
-    vedtaksdata: GjeldendeVedtaksdata,
-    eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+    gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+    alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
 ): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
-    return Regulering.opprettRegulering(
+    val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
+        ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
+
+    val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
+
+    val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
+        fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+    ).getOrElse {
+        return it.left()
+    }
+
+    // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
+    val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
+        reguleringstype1 = reguleringstypeVedGenerelleProblemer,
+        reguleringstype2 = reguleringstypeBasertPåFradrag,
+    )
+
+    return OpprettetRegulering(
+        id = ReguleringId.generer(),
+        opprettet = Tidspunkt.now(clock),
         sakId = id,
         saksnummer = saksnummer,
+        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
         fnr = fnr,
-        gjeldendeVedtaksdata = vedtaksdata,
-        clock = clock,
+        grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
+            fradragOppdatertMedEksterneBeløp,
+        ),
+        beregning = null,
+        simulering = null,
+        reguleringstype = reguleringstype,
         sakstype = type,
-        eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
-            ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer"),
-    )
+        aapGrunnlag = eksterntRegulerteBeløp.maptoAap(),
+        // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
+    ).right()
 }
 
 fun Sak.hentGjeldendeVedtaksdataForRegulering(

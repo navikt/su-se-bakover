@@ -167,8 +167,8 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock = clock,
-        vedtaksdata = vedtaksdata,
-        eksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
+        gjeldendeVedtaksdata = vedtaksdata,
+        alleEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
     ).getOrFail()
 
     return Pair(
