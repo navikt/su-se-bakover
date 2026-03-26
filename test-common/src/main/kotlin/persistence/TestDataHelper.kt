@@ -540,6 +540,7 @@ class TestDataHelper(
                 clock = clock,
                 gjeldendeVedtaksdata = vedtaksdata,
                 alleEksterntRegulerteBeløp = eksterneReguleringer(sak),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

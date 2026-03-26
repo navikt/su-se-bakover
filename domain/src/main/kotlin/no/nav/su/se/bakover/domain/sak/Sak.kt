@@ -318,6 +318,9 @@ data class Sak(
 
     sealed interface KanIkkeRegulere {
         data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
+
+        data object FørerIkkeTilEnEndring : KanIkkeRegulere
+
         data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
 
         // Brukes når det må gjøres endringer som går utover en beregning med ny G
@@ -332,6 +335,7 @@ data class Sak(
                 DIFFERENSE_MED_EKSTERNE_BELØP,
                 REGULERING_BLIR_FEILUTBETALING,
                 REGULERING_ER_OVER_TOLERANSEGRENSE,
+                REGULERING_FØRER_TIL_AVSLAG,
             }
 
             data class BruktFradragUliktEksterntBeløp(

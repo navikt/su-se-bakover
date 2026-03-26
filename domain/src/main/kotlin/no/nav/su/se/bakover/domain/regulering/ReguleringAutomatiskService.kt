@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
 sealed interface KunneIkkeRegulereAutomatisk {
     data object FantIkkeSak : KunneIkkeRegulereAutomatisk
-    data object FørerIkkeTilEnEndring : KunneIkkeRegulereAutomatisk
     data object HarÅpenReguleringFraFør : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeHenteEllerOppretteRegulering(

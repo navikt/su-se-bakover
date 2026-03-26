@@ -5,20 +5,24 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.domain.Stønadsbehandling
+import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
+import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import satser.domain.SatsFactory
+import vilkår.common.domain.Vurdering
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.erGyldigTilstand
@@ -55,7 +59,8 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     clock: Clock,
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
-): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
+    satsFactory: SatsFactory,
+): Either<Sak.KanIkkeRegulere, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
@@ -77,7 +82,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         reguleringstype2 = reguleringstypeBasertPåFradrag,
     )
 
-    return OpprettetRegulering(
+    val opprettetRegulering = OpprettetRegulering(
         id = ReguleringId.generer(),
         opprettet = Tidspunkt.now(clock),
         sakId = id,
@@ -93,7 +98,14 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         sakstype = type,
         aapGrunnlag = eksterntRegulerteBeløp.maptoAap(),
         // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
-    ).right()
+    )
+
+    val utenforToleransegrenser = beregnerUtenforToleransegrenser(this, opprettetRegulering, satsFactory, clock)
+    if (utenforToleransegrenser != null) {
+        return utenforToleransegrenser.left()
+    }
+
+    return opprettetRegulering.right()
 }
 
 fun Sak.hentGjeldendeVedtaksdataForRegulering(
@@ -136,4 +148,71 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
         }
 
     return gjeldendeVedtaksdata.right()
+}
+
+fun beregnRegulering(
+    satsFactory: SatsFactory,
+    begrunnelse: String?,
+    regulering: ReguleringUnderBehandling,
+    clock: Clock,
+): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
+    return Either.catch {
+        BeregningStrategyFactory(
+            clock = clock,
+            satsFactory = satsFactory,
+        ).beregn(
+            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+            begrunnelse = begrunnelse,
+            sakstype = regulering.sakstype,
+        )
+    }.mapLeft {
+        KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
+    }
+}
+
+private fun beregnerUtenforToleransegrenser(
+    sak: Sak,
+    regulering: OpprettetRegulering,
+    satsFactory: SatsFactory,
+    clock: Clock,
+): Sak.KanIkkeRegulere.MåRevurdere? {
+    if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) {
+        return Sak.KanIkkeRegulere.MåRevurdere(
+            årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_FØRER_TIL_AVSLAG,
+        )
+    }
+
+    val beregning = beregnRegulering(
+        satsFactory = satsFactory,
+        begrunnelse = null,
+        regulering,
+        clock = clock,
+    ).getOrElse {
+        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
+    }
+
+    val utenforToleransegrenser = beregning.getMånedsberegninger().mapNotNull { månedsberegning ->
+        val gjeldendeUtbetaling = sak.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed)
+            .getOrElse { throw IllegalStateException("Finner ikke gjeldende utbetaling for sak som skal reguleres") }
+            .beløp
+
+        val feilutbetaling = månedsberegning.getSumYtelse() > gjeldendeUtbetaling
+        val over10prosentEndring = månedsberegning.getSumYtelse() > (gjeldendeUtbetaling * 1.1)
+        if (feilutbetaling) {
+            Sak.KanIkkeRegulere.MåRevurdere(
+                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_BLIR_FEILUTBETALING,
+            )
+        } else if (over10prosentEndring) {
+            Sak.KanIkkeRegulere.MåRevurdere(
+                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_BLIR_FEILUTBETALING,
+            )
+        } else {
+            null
+        }
+    }
+    return if (utenforToleransegrenser.isNotEmpty()) {
+        utenforToleransegrenser.first()
+    } else {
+        null
+    }
 }

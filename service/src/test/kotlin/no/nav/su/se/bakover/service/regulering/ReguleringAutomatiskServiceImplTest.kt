@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -582,6 +583,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 oversendtUtbetalingUtenKvittering(
                     beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                     clock = clock,
+                    beløp = 21000,
                 ),
             ),
         )
@@ -597,7 +599,13 @@ internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `gjør ingen sideeffekter ved dry run av eksisterende grunnbeløp`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
+            utbetalinger = Utbetalinger(
+                oversendtUtbetalingMedKvittering(
+                    beløp = 22000,
+                ),
+            ),
+        )
 
         val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
@@ -677,7 +685,13 @@ internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `gjør ingen sideeffekter ved dry run der vi legger inn et nytt test grunnbeløp`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
+            utbetalinger = Utbetalinger(
+                oversendtUtbetalingMedKvittering(
+                    beløp = 22000,
+                ),
+            ),
+        )
 
         val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
@@ -781,6 +795,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     oversendtUtbetalingMedKvittering(
                         beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                         clock = clock,
+                        beløp = 21000,
                     ),
                 ),
                 // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering

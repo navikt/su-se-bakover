@@ -147,6 +147,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock,
         vedtaksdata,
         sakerMedEksterntRegulerteBeløp,
+        satsFactoryTestPåDato(),
     ).getOrFail()
 
     return Pair(
@@ -163,13 +164,21 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
-    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-        clock = clock,
-        gjeldendeVedtaksdata = vedtaksdata,
-        alleEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
-    ).getOrFail()
+    val regulering = OpprettetRegulering(
+        id = ReguleringId.generer(),
+        opprettet = Tidspunkt.now(clock),
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+        fnr = sak.fnr,
+        grunnlagsdataOgVilkårsvurderinger = vedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+        beregning = null,
+        simulering = null,
+        reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
+        sakstype = sak.type,
+        aapGrunnlag = null,
+    )
 
     return Pair(
         sak.nyRegulering(regulering),
