@@ -25,7 +25,6 @@ import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import vilkår.vurderinger.domain.erGyldigTilstand
 import økonomi.domain.simulering.Simulering
-import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 import kotlin.collections.ifEmpty
@@ -68,14 +67,12 @@ sealed interface Regulering : Stønadsbehandling {
             opprettet: Tidspunkt = Tidspunkt.now(clock),
             sakstype: Sakstype,
             eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-            omregningsfaktor: BigDecimal,
         ): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
             val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
 
             val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
                 fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-                omregningsfaktor = omregningsfaktor,
             ).getOrElse {
                 return it.left()
             }
@@ -111,7 +108,6 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     clock: Clock,
     vedtaksdata: GjeldendeVedtaksdata,
     eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
-    omregningsfaktor: BigDecimal,
 ): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
@@ -125,7 +121,6 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         sakstype = type,
         eksterntRegulerteBeløp = eksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
             ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer"),
-        omregningsfaktor = omregningsfaktor,
     )
 }
 

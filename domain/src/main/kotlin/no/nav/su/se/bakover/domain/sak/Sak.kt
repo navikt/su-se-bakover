@@ -324,19 +324,20 @@ data class Sak(
         // eller når det av en eller annen grunn må sendes ut vedtaksbrev
         data class MåRevurdere(
             val årsak: Årsak,
-            val diffBeløp: List<DiffBeløp> = emptyList(),
+            val diffBeløp: List<BruktFradragUliktEksterntBeløp> = emptyList(),
         ) : KanIkkeRegulere {
 
             enum class Årsak {
-                DIFFERENSE_MED_EKSTERNE_BELØP,
                 IKKE_KONSISTENTE_GRUNNLAG_OG_VILKÅR,
+                DIFFERENSE_MED_EKSTERNE_BELØP,
+                REGULERING_BLIR_FEILUTBETALING,
+                REGULERING_ER_OVER_TOLERANSEGRENSE,
             }
 
-            data class DiffBeløp(
+            data class BruktFradragUliktEksterntBeløp(
                 val fradragstype: Fradragstype,
                 val tilhører: FradragTilhører,
-                val førRegulering: Boolean,
-                val forventetBeløp: BigDecimal,
+                val bruktBeløp: BigDecimal,
                 val eksterntBeløp: BigDecimal,
             )
         }

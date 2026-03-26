@@ -10,7 +10,6 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
-import java.math.RoundingMode
 
 /**
  * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer
@@ -49,10 +48,9 @@ import java.math.RoundingMode
 fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-    omregningsfaktor: BigDecimal,
 ): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
     val utledetReguleringstypePerFradrag = fradrag.map {
-        utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp, omregningsfaktor)
+        utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
         return Sak.KanIkkeRegulere.MåRevurdere(
@@ -78,8 +76,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
 private fun utledPerFradragstypeOgTilhørende(
     originaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-    omregningsfaktor: BigDecimal,
-): Either<Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp, Pair<Reguleringstype, Fradragsgrunnlag>> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = originaltFradrag.fradragstype
     val fradragTilhører = originaltFradrag.fradrag.tilhører
 
@@ -97,22 +94,16 @@ private fun utledPerFradragstypeOgTilhørende(
             ).right()
     }
 
-    val nyttFradrag = when (fradragTilhører) {
+    val eksterntBeløp = when (fradragTilhører) {
         FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.finn(fradragstype)
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
-    måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
-        nyttFradrag,
-        fradragstype,
-        originaltFradrag,
-        fradragTilhører,
-        omregningsfaktor,
-    )?.let {
+    måRevurderePåGrunnAvDifferanseMedEksterneBeløp(eksterntBeløp, originaltFradrag)?.let {
         return it.left()
     }
 
-    return (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(nyttFradrag.etterRegulering)).right()
+    return (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
 }
 
 /**
@@ -126,53 +117,26 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull
  * Utleder reguleringstype basert på sammenligning av våre beløp og eksterne beløp.
  * Sjekker differanse før og etter regulering mot aksepterte grenser.
  *
- * @param nyttFradrag Regulert beløp fra eksternt system
- * @param fradragstype Type fradrag som skal sjekkes
+ * @param eksterntBeløp Regulert beløp fra eksternt system
  * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @param fradragTilhører Hvem fradraget tilhører (bruker eller EPS)
- * @param omregningsfaktor Faktor for omregning basert på G-verdi endring
  * @return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp eller null
  */
 private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
-    nyttFradrag: RegulertBeløp,
-    fradragstype: Fradragstype,
+    eksterntBeløp: RegulertBeløp,
     originaltFradrag: Fradragsgrunnlag,
-    fradragTilhører: FradragTilhører,
-    omregningsfaktor: BigDecimal,
-): Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp? {
-    require(originaltFradrag.fradragstype == fradragstype)
-    require(originaltFradrag.fradrag.tilhører == fradragTilhører)
-
+): Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp? {
     val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
-    val eksterntBeløpFørRegulering = nyttFradrag.førRegulering
+    val eksterntBeløpFørRegulering = eksterntBeløp.førRegulering
     val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
 
-    // Vi skal ikke akseptere differanse fra eksterne kilde og vårt beløp
     if (diffFørRegulering > BigDecimal.ZERO) {
-        return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp(
-            fradragstype = fradragstype,
-            tilhører = fradragTilhører,
-            førRegulering = true,
-            forventetBeløp = vårtBeløpFørRegulering,
+        return Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp(
+            fradragstype = originaltFradrag.fradragstype,
+            tilhører = originaltFradrag.tilhører,
+            bruktBeløp = vårtBeløpFørRegulering,
             eksterntBeløp = eksterntBeløpFørRegulering,
         )
     }
 
-    if (fradragstype == Fradragstype.Uføretrygd) {
-        val eksterntBeløpEtterRegulering = nyttFradrag.etterRegulering
-        val forventetBeløpBasertPåGverdi = (vårtBeløpFørRegulering * omregningsfaktor).setScale(2, RoundingMode.HALF_UP)
-        val differenseEksterntOgForventet = eksterntBeløpEtterRegulering.subtract(forventetBeløpBasertPåGverdi).abs()
-        val akseptertDifferanseEtterRegulering = BigDecimal.TEN
-
-        if (differenseEksterntOgForventet > akseptertDifferanseEtterRegulering) {
-            return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp(
-                fradragstype = fradragstype,
-                tilhører = fradragTilhører,
-                førRegulering = false,
-                forventetBeløp = forventetBeløpBasertPåGverdi,
-                eksterntBeløp = eksterntBeløpEtterRegulering,
-            )
-        }
-    }
     return null
 }

@@ -50,7 +50,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).getOrFail()
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
@@ -84,7 +83,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).getOrFail()
 
         resultat.first shouldNotBe Reguleringstype.AUTOMATISK
@@ -124,7 +122,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).getOrFail()
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
@@ -169,7 +166,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).getOrFail()
 
         resultat.first shouldNotBe Reguleringstype.AUTOMATISK
@@ -207,7 +203,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).getOrFail()
 
         resultat.first shouldBe Reguleringstype.MANUELL(
@@ -242,7 +237,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).getOrFail()
 
         val reguleringstype = resultat.first as Reguleringstype.MANUELL
@@ -289,7 +283,6 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
         ).shouldBeLeft()
 
         resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP
@@ -297,45 +290,8 @@ class UtledningReguleringstypeOgFradragTest {
         with(resultat.diffBeløp.first()) {
             fradragstype shouldBe Fradragstype.Uføretrygd
             tilhører shouldBe FradragTilhører.BRUKER
-            førRegulering shouldBe true
-            forventetBeløp shouldBe BigDecimal("1000.00")
+            bruktBeløp shouldBe BigDecimal("1000.00")
             eksterntBeløp shouldBe BigDecimal("900.00")
-        }
-    }
-
-    @Test
-    fun `utleder manuell regulering med årsak DifferanseEtterRegulering når beløp etter regulering avviker for mye`() {
-        val eksisterende = nonEmptyListOf(
-            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
-        )
-
-        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            brukerFnr = fnr,
-            beløpBruker = listOf(
-                RegulertBeløp(
-                    fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = BigDecimal(1000), // Matcher vårt beløp
-                    etterRegulering = BigDecimal(1075), // Avviker for mye fra forventet (1064.08, differanse > 10)
-                ),
-            ),
-            beløpEps = emptyList(),
-        )
-
-        val resultat = utledReguleringstypeOgOppdaterFradrag(
-            fradrag = eksisterende,
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        ).shouldBeLeft()
-
-        resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP
-        resultat.diffBeløp.size shouldBe 1
-        with(resultat.diffBeløp.first()) {
-            fradragstype shouldBe Fradragstype.Uføretrygd
-            tilhører shouldBe FradragTilhører.BRUKER
-            førRegulering shouldBe false
-            forventetBeløp shouldBe BigDecimal("1064.08")
-            eksterntBeløp shouldBe BigDecimal("1075")
         }
     }
 

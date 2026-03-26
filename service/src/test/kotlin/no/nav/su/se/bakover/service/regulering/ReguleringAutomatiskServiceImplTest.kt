@@ -772,8 +772,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
-        beløpFørRegulering: Double = 100.0,
-        beløpEtterRegulering: Double = beløpFørRegulering + 10,
         clock: Clock = tikkendeFixedClock(),
     ): ReguleringAutomatiskServiceImpl {
         val sakMedEndringer = if (scrambleUtbetaling) {

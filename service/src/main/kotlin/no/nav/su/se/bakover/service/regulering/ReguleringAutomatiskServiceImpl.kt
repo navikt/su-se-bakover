@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.common.domain.Vurdering
-import java.math.BigDecimal
 import java.time.Clock
 
 class ReguleringAutomatiskServiceImpl(
@@ -68,10 +67,8 @@ class ReguleringAutomatiskServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
-        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
-
         reguleringRepo.lagre(supplement)
-        return Either.catch { start(fraOgMedMåned, satsFactory, omregningsfaktor) }
+        return Either.catch { start(fraOgMedMåned, satsFactory) }
             .mapLeft {
                 log.error(
                     "Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned. Se sikkerlogg for feilmelding.",
@@ -95,7 +92,6 @@ class ReguleringAutomatiskServiceImpl(
             start(
                 fraOgMedMåned = command.startDatoRegulering,
                 satsFactory = factory,
-                omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
                 testRun = ReguleringTestRun(command.lagreManuelle),
             )
         }.onLeft {
@@ -114,7 +110,6 @@ class ReguleringAutomatiskServiceImpl(
     private fun start(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
@@ -201,7 +196,6 @@ class ReguleringAutomatiskServiceImpl(
                             satsFactory = satsFactory,
                             vedtaksdata = vedtaksdata,
                             sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
-                            omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )
                     }
@@ -215,7 +209,6 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         vedtaksdata: GjeldendeVedtaksdata,
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
-        omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
         val sak = this
@@ -224,7 +217,6 @@ class ReguleringAutomatiskServiceImpl(
             clock = clock,
             vedtaksdata = vedtaksdata,
             sakerMedEksterntRegulerteBeløp,
-            omregningsfaktor = omregningsfaktor,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
             return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()

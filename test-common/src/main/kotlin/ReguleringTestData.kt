@@ -132,7 +132,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
-    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -148,7 +147,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock,
         vedtaksdata,
         sakerMedEksterntRegulerteBeløp,
-        gVerdiØkning,
     ).getOrFail()
 
     return Pair(
@@ -160,7 +158,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
-    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
@@ -172,7 +169,6 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
         vedtaksdata = vedtaksdata,
         eksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
-        omregningsfaktor = gVerdiØkning,
     ).getOrFail()
 
     return Pair(
