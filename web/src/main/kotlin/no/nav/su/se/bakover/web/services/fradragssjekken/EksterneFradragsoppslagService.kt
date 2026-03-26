@@ -139,7 +139,7 @@ internal class EksterneFradragsoppslagService(
                 EksterntOppslag.Feil("AAP-oppslag feilet")
             },
             ifRight = { response ->
-                response.vedtak.gyldigPå(måned.fraOgMed).fold(
+                response.vedtak.gyldigAapPå(måned.fraOgMed).fold(
                     ifLeft = {
                         log.warn("Fradragssjekk: Ugyldig AAP-respons for fnr {}: {}", fnr, it)
                         EksterntOppslag.Feil(it)
@@ -195,7 +195,7 @@ private fun PesysPerioderForPerson.gyldigPå(dato: LocalDate): Either<String, Pe
     return perioder.gyldigPå(dato)
 }
 
-private fun List<MaksimumVedtakDto>.gyldigPå(dato: LocalDate): Either<String, MaksimumVedtakDto?> {
+private fun List<MaksimumVedtakDto>.gyldigAapPå(dato: LocalDate): Either<String, MaksimumVedtakDto?> {
     val gyldigeVedtak = filter { vedtak ->
         val periode = vedtak.periode ?: return@filter false
         val fraOgMed = periode.fraOgMedDato ?: return@filter false
