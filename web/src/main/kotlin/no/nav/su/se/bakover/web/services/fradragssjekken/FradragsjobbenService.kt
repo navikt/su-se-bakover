@@ -155,10 +155,11 @@ class FradragsjobbenServiceImpl(
     ): FradragssjekkResultat {
         if (sjekkplaner.isEmpty()) return FradragssjekkResultat()
 
-        val eksterneOppslag = eksterneOppslagService.hentOppslag(sjekkplaner, måned)
+        val eksterneOppslag = eksterneOppslagService.hentPerioderForYtelser(sjekkplaner, måned)
         var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
 
         sjekkplaner.forEach { sjekkplan ->
+            // TODO: disse skal kanskje ha støtte for å rekjøres
             if (sjekkplan.sjekkpunkter.any { eksterneOppslag.hentOppslag(it) is EksterntOppslag.Feil }) {
                 resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
                 return@forEach
