@@ -15,15 +15,12 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
+import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.slf4j.Logger
 import org.slf4j.MDC
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDate
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
-private val AAP_STONADSDAGER_PER_AR = BigDecimal(260)
-private val AAP_MANEDER_PER_AR = BigDecimal(12)
 
 internal class EksterneFradragsoppslagService(
     private val aapKlient: AapApiInternClient,
@@ -210,11 +207,4 @@ private fun List<MaksimumVedtakDto>.gyldigAapPå(dato: LocalDate): Either<String
         1 -> Either.Right(gyldigeVedtak.single())
         else -> Either.Left("Fant flere gyldige AAP-vedtak på dato $dato")
     }
-}
-
-private fun MaksimumVedtakDto.tilMånedsbeløpForSu(): BigDecimal {
-    val dagsats = requireNotNull(dagsats) { "Kan ikke beregne AAP-beløp uten dagsats" }
-    return BigDecimal(dagsats)
-        .multiply(AAP_STONADSDAGER_PER_AR)
-        .divide(AAP_MANEDER_PER_AR, 2, RoundingMode.HALF_UP)
 }
