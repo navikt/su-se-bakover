@@ -28,14 +28,12 @@ internal fun finnAvvikForSak(
 
 private fun vurderAvvik(
     sjekkpunkt: Sjekkpunkt,
-    oppslag: EksterntOppslag?,
+    oppslag: EksterntOppslag,
 ): Fradragsfunn? {
     return when (oppslag) {
         is EksterntOppslag.Funnet -> vurderFunnetOppslag(sjekkpunkt, oppslag.beløp)
         EksterntOppslag.IngenTreff -> vurderIngenTreff(sjekkpunkt)
-        is EksterntOppslag.Feil,
-        null,
-        -> null
+        is EksterntOppslag.Feil -> null
     }
 }
 

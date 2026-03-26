@@ -43,14 +43,20 @@ internal data class EksterneOppslagsresultater(
     val pesysAlder: Map<Fnr, EksterntOppslag>,
     val pesysUføre: Map<Fnr, EksterntOppslag>,
 ) {
-    fun hentLagretResultatFor(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
+    fun hentLagretResultatFor(sjekkpunkt: Sjekkpunkt): EksterntOppslag {
         return when (sjekkpunkt.ytelse) {
             EksternYtelse.AAP -> aap[sjekkpunkt.fnr]
             EksternYtelse.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]
             EksternYtelse.PESYS_UFORE -> pesysUføre[sjekkpunkt.fnr]
-        }
+        } ?: throw ManglerLagretOppslagsresultatException(sjekkpunkt)
     }
 }
+
+internal class ManglerLagretOppslagsresultatException(
+    sjekkpunkt: Sjekkpunkt,
+) : IllegalStateException(
+    "Mangler lagret oppslagsresultat for ytelse=${sjekkpunkt.ytelse}, fnr=${sjekkpunkt.fnr}",
+)
 
 internal data class FradragssjekkResultat(
     val vurderteSaker: Int = 0,

@@ -174,33 +174,38 @@ class FradragsjobbenServiceImpl(
         var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
 
         sjekkplaner.forEach { sjekkplan ->
-            // TODO: disse skal kanskje ha støtte for å rekjøres
-            if (sjekkplan.sjekkpunkter.any { oppslagsresultater.hentLagretResultatFor(it) is EksterntOppslag.Feil }) {
-                resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
-                return@forEach
-            }
+            try {
+                // TODO: disse skal kanskje ha støtte for å rekjøres
+                if (sjekkplan.sjekkpunkter.any { oppslagsresultater.hentLagretResultatFor(it) is EksterntOppslag.Feil }) {
+                    resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
+                    return@forEach
+                }
 
-            when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
-                Avviksvurdering.IngenDiff -> Unit
-                is Avviksvurdering.Diff -> {
-                    val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
-                    resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = resultat.sakerInsignifikantDifferanseForOppgave.plus(observasjonsAvvik))
+                when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
+                    Avviksvurdering.IngenDiff -> Unit
+                    is Avviksvurdering.Diff -> {
+                        val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
+                        resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = resultat.sakerInsignifikantDifferanseForOppgave.plus(observasjonsAvvik))
 
-                    if (oppgaveAvvik.isEmpty()) {
-                        return@forEach
-                    }
-
-                    resultat = resultat.copy(sakerMedAvvik = resultat.sakerMedAvvik + 1)
-                    resultat = when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
-                        is OppgaveopprettelseResultat.Opprettet -> {
-                            resultat.registrerOpprettetOppgave(oppgaveResultat)
+                        if (oppgaveAvvik.isEmpty()) {
+                            return@forEach
                         }
 
-                        is OppgaveopprettelseResultat.Feilet -> {
-                            resultat.registrerMislykketOppgaveopprettelse(oppgaveResultat.feil)
+                        resultat = resultat.copy(sakerMedAvvik = resultat.sakerMedAvvik + 1)
+                        resultat = when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
+                            is OppgaveopprettelseResultat.Opprettet -> {
+                                resultat.registrerOpprettetOppgave(oppgaveResultat)
+                            }
+
+                            is OppgaveopprettelseResultat.Feilet -> {
+                                resultat.registrerMislykketOppgaveopprettelse(oppgaveResultat.feil)
+                            }
                         }
                     }
                 }
+            } catch (e: ManglerLagretOppslagsresultatException) {
+                log.error("Fradragssjekk: Invariantbrudd for sak {}. {}", sjekkplan.sak.sakId, e.message, e)
+                return@forEach
             }
         }
 
