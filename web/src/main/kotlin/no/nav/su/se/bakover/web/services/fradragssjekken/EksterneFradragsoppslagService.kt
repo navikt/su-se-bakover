@@ -29,7 +29,7 @@ internal class EksterneFradragsoppslagService(
     private val pesysKlient: PesysClient,
     private val log: Logger,
 ) {
-    fun hentPerioderForYtelser(
+    fun hentOppslagsresultaterForYtelser(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
     ): EksterneOppslagsresultater {

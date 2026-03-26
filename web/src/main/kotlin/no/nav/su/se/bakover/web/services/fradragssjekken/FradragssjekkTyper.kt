@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -54,7 +55,7 @@ internal data class EksterneOppslagsresultater(
 internal data class FradragssjekkResultat(
     val vurderteSaker: Int = 0,
     val sakerMedAvvik: Int = 0,
-    val opprettedeOppgaver: Int = 0,
+    val opprettedeOppgaver: List<OppgaveopprettelseResultat.Opprettet> = emptyList(),
     val hoppetOverPåGrunnAvEksternFeil: Int = 0,
     val mislykkedeOppgaveopprettelser: List<MislykketOppgaveopprettelse> = emptyList(),
     val sakerInsignifikantDifferanseForOppgave: List<Fradragsfunn.Observasjon> = emptyList(),
@@ -66,12 +67,11 @@ internal data class FradragssjekkResultat(
             opprettedeOppgaver = opprettedeOppgaver + other.opprettedeOppgaver,
             hoppetOverPåGrunnAvEksternFeil = hoppetOverPåGrunnAvEksternFeil + other.hoppetOverPåGrunnAvEksternFeil,
             mislykkedeOppgaveopprettelser = mislykkedeOppgaveopprettelser + other.mislykkedeOppgaveopprettelser,
+            sakerInsignifikantDifferanseForOppgave = sakerInsignifikantDifferanseForOppgave + other.sakerInsignifikantDifferanseForOppgave,
         )
     }
 
-    fun registrerSakMedAvvik(): FradragssjekkResultat = copy(sakerMedAvvik = sakerMedAvvik + 1)
-
-    fun registrerOpprettetOppgave(): FradragssjekkResultat = copy(opprettedeOppgaver = opprettedeOppgaver + 1)
+    fun registrerOpprettetOppgave(result: OppgaveopprettelseResultat.Opprettet): FradragssjekkResultat = copy(opprettedeOppgaver = opprettedeOppgaver.plus(result))
 
     fun registrerHoppetOverPåGrunnAvEksternFeil(): FradragssjekkResultat {
         return copy(hoppetOverPåGrunnAvEksternFeil = hoppetOverPåGrunnAvEksternFeil + 1)
@@ -111,6 +111,6 @@ internal data class MislykketOppgaveopprettelse(
 )
 
 internal sealed interface OppgaveopprettelseResultat {
-    data object Opprettet : OppgaveopprettelseResultat
+    data class Opprettet(val oppgaveId: OppgaveId, val sakId: UUID) : OppgaveopprettelseResultat
     data class Feilet(val feil: MislykketOppgaveopprettelse) : OppgaveopprettelseResultat
 }

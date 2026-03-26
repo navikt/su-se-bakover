@@ -155,7 +155,7 @@ class FradragsjobbenServiceImpl(
     ): FradragssjekkResultat {
         if (sjekkplaner.isEmpty()) return FradragssjekkResultat()
 
-        val oppslagsresultater = eksterneOppslagService.hentPerioderForYtelser(sjekkplaner, måned)
+        val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(sjekkplaner, måned)
         var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
 
         sjekkplaner.forEach { sjekkplan ->
@@ -168,13 +168,17 @@ class FradragsjobbenServiceImpl(
             when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
                 Avviksvurdering.IngenDiff -> Unit
                 is Avviksvurdering.Diff -> {
-                    resultat = resultat.registrerSakMedAvvik()
-
                     val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
                     resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = resultat.sakerInsignifikantDifferanseForOppgave.plus(observasjonsAvvik))
+
+                    if (oppgaveAvvik.isEmpty()) {
+                        return@forEach
+                    }
+
+                    resultat = resultat.copy(sakerMedAvvik = resultat.sakerMedAvvik + 1)
                     resultat = when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
-                        OppgaveopprettelseResultat.Opprettet -> {
-                            resultat.registrerOpprettetOppgave()
+                        is OppgaveopprettelseResultat.Opprettet -> {
+                            resultat.registrerOpprettetOppgave(oppgaveResultat)
                         }
 
                         is OppgaveopprettelseResultat.Feilet -> {
@@ -233,7 +237,7 @@ class FradragsjobbenServiceImpl(
             },
             ifRight = {
                 log.info("Fradragssjekk: Opprettet oppgave {} for sak {}", it.oppgaveId, sak.sakId)
-                OppgaveopprettelseResultat.Opprettet
+                OppgaveopprettelseResultat.Opprettet(oppgaveId = it.oppgaveId, sakId = sak.sakId)
             },
         )
     }

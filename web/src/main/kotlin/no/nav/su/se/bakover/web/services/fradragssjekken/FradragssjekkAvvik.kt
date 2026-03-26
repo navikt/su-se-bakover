@@ -43,26 +43,30 @@ private fun vurderFunnetOppslag(
     sjekkpunkt: Sjekkpunkt,
     eksterntBeløp: Double,
 ): Fradragsfunn? {
-    val lokaltBeløp = sjekkpunkt.lokaltBeløp
+    val lokaltBeløp = sjekkpunkt.lokaltBeløp ?: return Fradragsfunn.Oppgaveavvik(
+        kode = OppgaveConfig.Fradragssjekk.AvvikKode.MANGLER_FRADRAG_I_SUAPP,
+        oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${
+            formatBeløp(
+                eksterntBeløp,
+            )
+        }, men mangler fradrag på saken.",
+    )
 
-    return when {
-        lokaltBeløp == null -> Fradragsfunn.Oppgaveavvik(
-            kode = OppgaveConfig.Fradragssjekk.AvvikKode.MANGLER_FRADRAG_I_SUAPP,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, men mangler fradrag på saken.",
+    return when (vurderBeløpsdifferanse(lokaltBeløp, eksterntBeløp)) {
+        Beløpsvurdering.IngenDifferanse -> null
+        is Beløpsvurdering.InsignifikantDifferanse -> Fradragsfunn.Observasjon(
+            kode = Observasjonskode.INSIGNIFIKANT_BELOEPSDIFFERANSE,
+            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mindre enn eller lik 10kr fra vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
         )
 
-        beløpsDifferanseErMerEnn10kr(lokaltBeløp, eksterntBeløp) -> Fradragsfunn.Oppgaveavvik(
+        is Beløpsvurdering.SignifikantDifferanse -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mer enn 10kr +- enn vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
         )
-        harInsigifikantDifferanse(lokaltBeløp, eksterntBeløp) -> Fradragsfunn.Observasjon(
-            kode = Observasjonskode.INSIGNIFIKANT_BELOEPSDIFFERANSE,
-            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mindre enn 10kr +- enn vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
-        )
 
-        else -> Fradragsfunn.Oppgaveavvik(
+        is Beløpsvurdering.UgyldigDifferanse -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.ytelseNavn}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ugyldig beløpsdifferanse. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.ytelseNavn}.",
         )
     }
 }
@@ -83,19 +87,25 @@ private fun Sjekkpunkt.brukerType(): String = when (tilhører) {
     FradragTilhører.EPS -> "EPS"
 }
 
-private fun beløpsDifferanseErMerEnn10kr(
+private fun vurderBeløpsdifferanse(
     lokaltBeløp: Double,
     eksterntBeløp: Double,
-): Boolean {
-    return kotlin.math.abs(lokaltBeløp - eksterntBeløp) > BELOPS_TOLERANSE_I_KR
+): Beløpsvurdering {
+    val differanse = kotlin.math.abs(lokaltBeløp.minus(eksterntBeløp))
+
+    return when {
+        differanse == 0.0 -> Beløpsvurdering.IngenDifferanse
+        differanse < BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.InsignifikantDifferanse
+        differanse >= BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.SignifikantDifferanse
+        else -> Beløpsvurdering.UgyldigDifferanse
+    }
 }
 
-private fun harInsigifikantDifferanse(
-    lokaltBeløp: Double,
-    eksterntBeløp: Double,
-): Boolean {
-    val beløp = kotlin.math.abs(lokaltBeløp - eksterntBeløp)
-    return beløp in 0.0..BELOPS_TOLERANSE_I_KR
+private sealed interface Beløpsvurdering {
+    data object IngenDifferanse : Beløpsvurdering
+    data object InsignifikantDifferanse : Beløpsvurdering
+    data object SignifikantDifferanse : Beløpsvurdering
+    data object UgyldigDifferanse : Beløpsvurdering
 }
 
 private fun formatBeløp(beløp: Double): String {
