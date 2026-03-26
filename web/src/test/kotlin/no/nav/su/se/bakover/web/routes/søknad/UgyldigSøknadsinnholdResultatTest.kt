@@ -216,10 +216,6 @@ internal class UgyldigSøknadsinnholdResultatTest {
 
         felt shouldBe setOf(
             "oppholdstillatelse.statsborgerskapAndreLandFritekst",
-            "boforhold.borPåAdresse.adresselinje",
-            "boforhold.borPåAdresse.postnummer",
-            "boforhold.borPåAdresse.poststed",
-            "boforhold.borPåAdresse.bruksenhet",
             "forNav.annenGrunn",
             "formue.boligBrukesTil",
             "formue.eiendomBrukesTil",
