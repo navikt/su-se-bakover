@@ -6,7 +6,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
-import no.nav.su.se.bakover.client.aap.MaksimumVedtakDto
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.CORRELATION_ID_HEA
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.slf4j.Logger
 import org.slf4j.MDC
 import java.math.BigDecimal
