@@ -42,7 +42,7 @@ internal data class EksterneOppslag(
     val pesysAlder: Map<Fnr, EksterntOppslag>,
     val pesysUføre: Map<Fnr, EksterntOppslag>,
 ) {
-    fun hentOppslag(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
+    fun hentLagretResultat(sjekkpunkt: Sjekkpunkt): EksterntOppslag? {
         return when (sjekkpunkt.ytelse) {
             EksternYtelse.AAP -> aap[sjekkpunkt.fnr]
             EksternYtelse.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]

@@ -287,6 +287,7 @@ sealed interface OppgaveConfig {
             val tekst: String,
         )
 
+        // TODO:BAD fix
         init {
             require(avvik.isNotEmpty()) { "Fradragssjekk-oppgave krever minst ett avvik" }
         }
