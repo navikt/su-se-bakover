@@ -75,6 +75,7 @@ internal fun Route.sakRoutes(
                                 )
                             },
                             ifRight = { fnr ->
+                                // TODO: feilmelding?
                                 sakService.hentSaker(fnr)
                                     .mapLeft { feilmelding ->
                                         return@authorize call.svar(
