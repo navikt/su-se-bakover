@@ -56,12 +56,12 @@ private fun vurderFunnetOppslag(
         Beløpsvurdering.IngenDifferanse -> null
         is Beløpsvurdering.InsignifikantDifferanse -> Fradragsfunn.Observasjon(
             kode = Observasjonskode.INSIGNIFIKANT_BELOEPSDIFFERANSE,
-            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mindre enn eller lik 10kr fra vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
+            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mindre enn 10kr fra vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
         )
 
-        is Beløpsvurdering.SignifikantDifferanse -> Fradragsfunn.Oppgaveavvik(
+        is Beløpsvurdering.SignifikantDifferanseOver10Kr -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mer enn 10kr +- enn vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er 10kr eller mer unna vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
         )
 
         is Beløpsvurdering.UgyldigDifferanse -> Fradragsfunn.Oppgaveavvik(
@@ -87,6 +87,7 @@ private fun Sjekkpunkt.brukerType(): String = when (tilhører) {
     FradragTilhører.EPS -> "EPS"
 }
 
+// TODO positiv/negativ diff er fortsatt ikke modellert, bare absoluttverdi.
 private fun vurderBeløpsdifferanse(
     lokaltBeløp: Double,
     eksterntBeløp: Double,
@@ -96,7 +97,7 @@ private fun vurderBeløpsdifferanse(
     return when {
         differanse == 0.0 -> Beløpsvurdering.IngenDifferanse
         differanse < BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.InsignifikantDifferanse
-        differanse >= BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.SignifikantDifferanse
+        differanse >= BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.SignifikantDifferanseOver10Kr
         else -> Beløpsvurdering.UgyldigDifferanse
     }
 }
@@ -104,7 +105,7 @@ private fun vurderBeløpsdifferanse(
 private sealed interface Beløpsvurdering {
     data object IngenDifferanse : Beløpsvurdering
     data object InsignifikantDifferanse : Beløpsvurdering
-    data object SignifikantDifferanse : Beløpsvurdering
+    data object SignifikantDifferanseOver10Kr : Beløpsvurdering
     data object UgyldigDifferanse : Beløpsvurdering
 }
 

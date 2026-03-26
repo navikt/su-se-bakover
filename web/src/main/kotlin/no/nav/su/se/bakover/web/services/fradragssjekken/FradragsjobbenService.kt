@@ -74,17 +74,32 @@ class FradragsjobbenServiceImpl(
         resultat: FradragssjekkResultat,
     ) {
         log.info(
-            "Fradragssjekk fullført for måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}",
+            "Fradragssjekk fullført for måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}",
             måned,
             resultat.vurderteSaker,
             resultat.sakerMedAvvik,
-            resultat.opprettedeOppgaver,
+            resultat.opprettedeOppgaver.size,
             resultat.hoppetOverPåGrunnAvEksternFeil,
+            resultat.sakerInsignifikantDifferanseForOppgave.size,
         )
+
+        if (resultat.sakerInsignifikantDifferanseForOppgave.isNotEmpty()) {
+            loggObservasjoner(resultat)
+        }
 
         if (resultat.mislykkedeOppgaveopprettelser.isNotEmpty()) {
             loggMislykkedeOppgaveopprettelser(resultat)
         }
+    }
+
+    private fun loggObservasjoner(
+        resultat: FradragssjekkResultat,
+    ) {
+        log.info(
+            "Fradragssjekk: Fant {} observasjoner. {}",
+            resultat.sakerInsignifikantDifferanseForOppgave.size,
+            resultat.sakerInsignifikantDifferanseForOppgave.joinToString(separator = "; ") { it.loggtekst },
+        )
     }
 
     private fun loggMislykkedeOppgaveopprettelser(
