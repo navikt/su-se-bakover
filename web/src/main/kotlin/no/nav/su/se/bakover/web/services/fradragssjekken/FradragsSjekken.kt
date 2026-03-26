@@ -11,6 +11,9 @@ internal class FradragsSjekken(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
+        // TODO: MÅ ha en start per måned
+        // TODO: kan ikke kjøre flere ganger per måned i utgangspunktet
+        // TODO: må støtte dry runs + lagring av resultater
         fun startJob(
             initialDelay: Duration,
             periode: Duration,
