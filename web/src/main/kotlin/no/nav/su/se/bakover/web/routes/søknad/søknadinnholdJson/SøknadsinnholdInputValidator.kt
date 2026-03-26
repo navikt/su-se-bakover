@@ -66,7 +66,7 @@ internal object SøknadsinnholdInputValidator {
             felt = "oppholdstillatelse.statsborgerskapAndreLandFritekst",
             verdi = søknadsinnhold.oppholdstillatelse.statsborgerskapAndreLandFritekst,
         )
-
+        // TODO validere mot PDL da veileder/sb ikke kan velge selv MEN mulig å sette i redux så må ha validering på adressen mtp sikkerhet
         søknadsinnhold.boforhold.borPåAdresse?.let { adresse ->
             validerTekst("boforhold.borPåAdresse.adresselinje", adresse.adresselinje, maksLengde = 200)
             validerTekst("boforhold.borPåAdresse.postnummer", adresse.postnummer, maksLengde = 4)
