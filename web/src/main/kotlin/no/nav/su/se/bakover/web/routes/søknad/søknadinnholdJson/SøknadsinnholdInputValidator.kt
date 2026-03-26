@@ -29,6 +29,14 @@ internal object SøknadsinnholdInputValidator {
         '_',
     )
 
+    // Aksenttegn
+    private val tillatteSpesialTegn = setOf(
+        'ô',
+        'è',
+        'ò',
+        'ê',
+    )
+
     private val mistenkeligeMønstre = listOf(
         Regex("<\\s*/?\\s*script", RegexOption.IGNORE_CASE),
         Regex("javascript\\s*:", RegexOption.IGNORE_CASE),
@@ -151,6 +159,7 @@ internal object SøknadsinnholdInputValidator {
         if (this in 'a'..'z' || this in 'A'..'Z') return true
         if (this in setOf('æ', 'ø', 'å', 'Æ', 'Ø', 'Å')) return true
         if (this in tillatteSkilletegn) return true
+        if (this in tillatteSpesialTegn) return true
 
         return false
     }
