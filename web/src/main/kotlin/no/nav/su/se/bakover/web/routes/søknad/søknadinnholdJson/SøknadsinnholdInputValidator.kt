@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 internal data class UgyldigSøknadsinnholdInput(
     val felt: String,
     val begrunnelse: String,
+    val tegn: String? = null,
 )
 
 internal object SøknadsinnholdInputValidator {
@@ -134,7 +135,7 @@ internal object SøknadsinnholdInputValidator {
         }
 
         if (begrunnelse != null) {
-            add(UgyldigSøknadsinnholdInput(felt, begrunnelse))
+            add(UgyldigSøknadsinnholdInput(felt, begrunnelse, verdi))
         }
     }
 

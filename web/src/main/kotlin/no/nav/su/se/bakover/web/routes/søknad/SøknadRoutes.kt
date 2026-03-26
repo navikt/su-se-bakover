@@ -88,7 +88,7 @@ internal fun Route.søknadRoutes(
                     val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
                     if (ugyldigeFelt.isNotEmpty()) {
                         log.error("VALIDERING: Feil i input for innsending av søknad sakstype $type")
-                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt")
+                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknadsinnhold: $søknadsinnholdJson")
                         call.svar(ugyldigeFelt.tilUgyldigSøknadsinnholdResultat())
                         return@withBody
                     }
