@@ -196,7 +196,7 @@ private fun beregnerUtenforToleransegrenser(
             .getOrElse { throw IllegalStateException("Finner ikke gjeldende utbetaling for sak som skal reguleres") }
             .beløp
 
-        val feilutbetaling = månedsberegning.getSumYtelse() > gjeldendeUtbetaling
+        val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
         val over10prosentEndring = månedsberegning.getSumYtelse() > (gjeldendeUtbetaling * 1.1)
         if (feilutbetaling) {
             Sak.KanIkkeRegulere.MåRevurdere(
@@ -204,7 +204,7 @@ private fun beregnerUtenforToleransegrenser(
             )
         } else if (over10prosentEndring) {
             Sak.KanIkkeRegulere.MåRevurdere(
-                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_BLIR_FEILUTBETALING,
+                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
             )
         } else {
             null
