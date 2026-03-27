@@ -7,17 +7,22 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.februar
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.postgresql.util.PSQLException
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
+import kotlin.test.assertFailsWith
 
 @ExtendWith(DbExtension::class)
 internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSource) {
@@ -49,6 +54,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val fullfortKjoring = FradragssjekkKjøring(
             id = kjoringId,
             dato = LocalDate.parse("2026-01-15"),
+            dryRun = true,
             status = FradragssjekkKjøringStatus.FULLFØRT,
             opprettet = opprettet,
             ferdigstilt = ferdigstilt,
@@ -64,6 +70,63 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         )
 
         repo.hentSaksresultaterMedEksternFeil(kjoringId) shouldBe listOf(eksternFeil)
+    }
+
+    @Test
+    fun `tillater ikke flere ordinære kjøringer i samme år og måned`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val måned = januar(2026)
+
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false))
+
+        assertFailsWith<PSQLException> {
+            repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false))
+        }
+    }
+
+    @Test
+    fun `tillater flere dry-runs i samme år og måned`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val måned = januar(2026)
+
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true))
+    }
+
+    @Test
+    fun `tillater ordinære kjøringer i ulike måneder`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+
+        repo.lagreKjoring(lagKjoring(måned = januar(2026), dryRun = false))
+        repo.lagreKjoring(lagKjoring(måned = februar(2026), dryRun = false))
+    }
+
+    @Test
+    fun `tillater dry-run og ordinær kjøring i samme år og måned`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val måned = januar(2026)
+
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false))
+    }
+
+    private fun lagKjoring(
+        måned: Måned,
+        dryRun: Boolean,
+    ): FradragssjekkKjøring {
+        return FradragssjekkKjøring(
+            id = UUID.randomUUID(),
+            dato = måned.fraOgMed,
+            dryRun = dryRun,
+            status = FradragssjekkKjøringStatus.FULLFØRT,
+            opprettet = Instant.parse("2026-01-15T08:00:00Z"),
+            ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
+            resultat = FradragssjekkResultat(),
+        )
     }
 
     private fun lagEksternFeilSaksresultat(

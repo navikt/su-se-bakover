@@ -18,6 +18,7 @@ internal class FradragssjekkRunPostgresRepo(
                 insert into fradragssjekk_kjoring (
                     id,
                     dato,
+                    dry_run,
                     status,
                     opprettet,
                     ferdigstilt,
@@ -26,23 +27,18 @@ internal class FradragssjekkRunPostgresRepo(
                 ) values (
                     :id,
                     :dato,
+                    :dry_run,
                     :status,
                     :opprettet,
                     :ferdigstilt,
                     to_jsonb(:resultat::jsonb),
                     :feilmelding
                 )
-                on conflict (id) do update set
-                    dato = excluded.dato,
-                    status = excluded.status,
-                    opprettet = excluded.opprettet,
-                    ferdigstilt = excluded.ferdigstilt,
-                    resultat = excluded.resultat,
-                    feilmelding = excluded.feilmelding
             """.trimIndent().insert(
                 mapOf(
                     "id" to kjoring.id,
                     "dato" to kjoring.dato,
+                    "dry_run" to kjoring.dryRun,
                     "status" to kjoring.status.name,
                     "opprettet" to kjoring.opprettet,
                     "ferdigstilt" to kjoring.ferdigstilt,
@@ -59,7 +55,7 @@ internal class FradragssjekkRunPostgresRepo(
     ): FradragssjekkKjøring? {
         return sessionFactory.withSession { session ->
             """
-                select id, dato, status, opprettet, ferdigstilt, resultat, feilmelding
+                select id, dato, dry_run, status, opprettet, ferdigstilt, resultat, feilmelding
                 from fradragssjekk_kjoring
                 where id = :id
             """.trimIndent().hent(
@@ -69,6 +65,7 @@ internal class FradragssjekkRunPostgresRepo(
                 FradragssjekkKjøring(
                     id = row.uuid("id"),
                     dato = row.localDate("dato"),
+                    dryRun = row.boolean("dry_run"),
                     status = FradragssjekkKjøringStatus.valueOf(row.string("status")),
                     opprettet = row.instant("opprettet"),
                     ferdigstilt = row.instant("ferdigstilt"),

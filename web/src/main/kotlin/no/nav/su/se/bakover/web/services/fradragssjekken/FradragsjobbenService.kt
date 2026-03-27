@@ -15,7 +15,7 @@ import java.time.Clock
 import java.util.UUID
 
 interface FradragsjobbenService {
-    fun sjekkLøpendeSakerForFradragIEksterneSystemer()
+    fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
 }
 
 private const val INTERN_SAK_BATCH_STORRELSE = 500
@@ -46,20 +46,45 @@ internal class FradragsjobbenServiceImpl(
      * 3. Lag oppgave hvis fradrag er ulikt eller ikke fantes på brukes
      *
      */
-    override fun sjekkLøpendeSakerForFradragIEksterneSystemer() {
+    override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
         val måned = Måned.now(clock)
+        val sjekkplaner = hentAlleSaker()
+            .chunked(INTERN_SAK_BATCH_STORRELSE)
+            .flatMap { sakerPerBatch ->
+                hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
+                    .let { lagSjekkplanerForLøpendeSaker(it, måned) }
+            }
+
+        kjørOgLagreKjøring(
+            måned = måned,
+            dryRun = dryRun,
+            sjekkplaner = sjekkplaner,
+            startmelding = "Starter fradragssjekk for måned $måned",
+        )
+    }
+
+    private fun kjørOgLagreKjøring(
+        måned: Måned,
+        dryRun: Boolean,
+        sjekkplaner: List<SjekkPlan>,
+        startmelding: String,
+    ) {
         val dato = java.time.LocalDate.now(clock)
         val kjoringId = UUID.randomUUID()
         val startet = clock.instant()
         val saksresultater = mutableListOf<FradragssjekkSakResultat>()
 
-        log.info("Starter fradragssjekk for måned {} med kjøring {}", måned, kjoringId)
+        log.info("{} med kjøring {}. dryRun={}", startmelding, kjoringId, dryRun)
 
         try {
-            hentAlleSaker()
-                .chunked(INTERN_SAK_BATCH_STORRELSE)
-                .forEach { sakerPerBatch ->
-                    saksresultater += prosesserSakerBatch(sakerPerBatch, måned)
+            sjekkplaner
+                .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
+                .forEach { sjekkplanBatch ->
+                    saksresultater += prosesserSjekkplanBatch(
+                        sjekkplaner = sjekkplanBatch,
+                        måned = måned,
+                        dryRun = dryRun,
+                    )
                 }
 
             val resultat = FradragssjekkResultat(saksresultater = saksresultater)
@@ -67,6 +92,7 @@ internal class FradragsjobbenServiceImpl(
                 FradragssjekkKjøring(
                     id = kjoringId,
                     dato = dato,
+                    dryRun = dryRun,
                     status = FradragssjekkKjøringStatus.FULLFØRT,
                     opprettet = startet,
                     ferdigstilt = clock.instant(),
@@ -79,6 +105,7 @@ internal class FradragsjobbenServiceImpl(
                 FradragssjekkKjøring(
                     id = kjoringId,
                     dato = dato,
+                    dryRun = dryRun,
                     status = FradragssjekkKjøringStatus.FEILET,
                     opprettet = startet,
                     ferdigstilt = clock.instant(),
@@ -90,16 +117,6 @@ internal class FradragsjobbenServiceImpl(
         }
     }
 
-    private fun prosesserSakerBatch(
-        sakerPerBatch: List<SakInfo>,
-        måned: Måned,
-    ): List<FradragssjekkSakResultat> {
-        return hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-            .let { lagSjekkplanerForLøpendeSaker(it, måned) }
-            .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-            .flatMap { prosesserSjekkplanBatch(it, måned) }
-    }
-
     private fun loggOppsummering(
         kjoringId: UUID,
         måned: Måned,
@@ -108,14 +125,16 @@ internal class FradragsjobbenServiceImpl(
         val saksresultater = resultat.saksresultater
         val sakerMedObservasjoner = resultat.saksresultater.filter { it.observasjoner.isNotEmpty() }
         val mislykkedeOppgaveopprettelser = resultat.saksresultater.filter { it.mislykketOppgaveopprettelse != null }
+        val dryRunOppgaver = saksresultater.count { it.status == FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN }
 
         log.info(
-            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
+            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, dry run-oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
             kjoringId,
             måned,
             saksresultater.size,
             saksresultater.count { it.oppgaveAvvik.isNotEmpty() },
             saksresultater.count { it.opprettetOppgave != null },
+            dryRunOppgaver,
             saksresultater.count { it.eksterneFeil.isNotEmpty() },
             sakerMedObservasjoner.size,
             saksresultater.count { it.status == FradragssjekkSakStatus.INVARIANTBRUDD },
@@ -209,6 +228,7 @@ internal class FradragsjobbenServiceImpl(
     private fun prosesserSjekkplanBatch(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
+        dryRun: Boolean,
     ): List<FradragssjekkSakResultat> {
         if (sjekkplaner.isEmpty()) return emptyList()
 
@@ -219,6 +239,7 @@ internal class FradragsjobbenServiceImpl(
                 sjekkplan = sjekkplan,
                 måned = måned,
                 oppslagsresultater = oppslagsresultater,
+                dryRun = dryRun,
             )
         }
     }
@@ -227,6 +248,7 @@ internal class FradragsjobbenServiceImpl(
         sjekkplan: SjekkPlan,
         måned: Måned,
         oppslagsresultater: EksterneOppslagsresultater,
+        dryRun: Boolean,
     ): FradragssjekkSakResultat {
         return try {
             val eksterneFeil = finnEksterneFeilForSak(sjekkplan, oppslagsresultater)
@@ -254,6 +276,14 @@ internal class FradragsjobbenServiceImpl(
                             sakId = sjekkplan.sak.sakId,
                             status = FradragssjekkSakStatus.KUN_OBSERVASJON,
                             sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                            observasjoner = observasjonsAvvik,
+                        )
+                    } else if (dryRun) {
+                        FradragssjekkSakResultat(
+                            sakId = sjekkplan.sak.sakId,
+                            status = FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN,
+                            sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                            oppgaveAvvik = oppgaveAvvik,
                             observasjoner = observasjonsAvvik,
                         )
                     } else {

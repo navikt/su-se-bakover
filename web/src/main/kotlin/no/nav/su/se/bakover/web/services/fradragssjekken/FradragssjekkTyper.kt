@@ -67,6 +67,7 @@ internal data class FradragssjekkResultat(
 internal data class FradragssjekkKjøring(
     val id: UUID,
     val dato: LocalDate,
+    val dryRun: Boolean,
     val status: FradragssjekkKjøringStatus,
     val opprettet: Instant,
     val ferdigstilt: Instant,
@@ -95,6 +96,7 @@ internal enum class FradragssjekkSakStatus {
     INGEN_AVVIK,
     KUN_OBSERVASJON,
     EKSTERN_FEIL,
+    OPPGAVE_IKKE_OPPRETTET_DRY_RUN,
     OPPGAVE_OPPRETTET,
     OPPGAVEOPPRETTELSE_FEILET,
     INVARIANTBRUDD,
