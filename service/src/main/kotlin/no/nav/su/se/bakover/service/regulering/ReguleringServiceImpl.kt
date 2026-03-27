@@ -4,10 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import behandling.regulering.domain.beregning.KunneIkkeBeregneRegulering
 import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import beregning.domain.Beregning
-import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -21,6 +19,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.beregnRegulering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
@@ -71,7 +70,7 @@ class ReguleringServiceImpl(
         sak: Sak,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
-        val beregning = beregn(
+        val beregning = beregnRegulering(
             satsFactory = satsFactory,
             begrunnelse = null,
             regulering = regulering,
@@ -92,26 +91,6 @@ class ReguleringServiceImpl(
             return KunneIkkeBehandleRegulering.KunneIkkeSimulere.left()
         }
         return Pair(regulering.tilBeregnet(beregning, simulertUtbetaling.simulering), simulertUtbetaling).right()
-    }
-
-    fun beregn(
-        satsFactory: SatsFactory,
-        begrunnelse: String?,
-        regulering: ReguleringUnderBehandling,
-        clock: Clock,
-    ): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
-        return Either.catch {
-            BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactory,
-            ).beregn(
-                grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-                begrunnelse = begrunnelse,
-                sakstype = regulering.sakstype,
-            )
-        }.mapLeft {
-            KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
-        }
     }
 
     fun simulerReguleringOgUtbetaling(

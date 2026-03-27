@@ -196,11 +196,13 @@ fun oversendtUtbetalingUtenKvittering(
     clock: Clock = fixedClock,
     opprettet: Tidspunkt = Tidspunkt.now(clock),
     eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
+    beløp: Int = 15000,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
         utbetalingslinjeNy(
             clock = clock,
             periode = periode,
             forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.lastOrNull()?.utbetalingslinjer?.lastOrNull()?.id,
+            beløp = beløp,
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.utbetaling.avstemmingsnøkkel,
@@ -282,11 +284,13 @@ fun oversendtUtbetalingMedKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: Utbetalinger = Utbetalinger(),
     clock: Clock = TikkendeKlokke(),
+    beløp: Int = 15000,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
         utbetalingslinjeNy(
             clock = clock,
             periode = periode,
             forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.sisteUtbetalingslinjeId(),
+            beløp = beløp,
         ),
     ),
     beregning: Beregning = beregning(periode),

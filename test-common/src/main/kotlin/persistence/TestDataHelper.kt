@@ -196,7 +196,6 @@ import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.infrastructure.kvittering.persistence.UtbetalingKvitteringPostgresRepo
-import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.util.LinkedList
@@ -524,7 +523,6 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
-        gVerdiØkning: BigDecimal = BigDecimal(100),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
@@ -540,9 +538,9 @@ class TestDataHelper(
             val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrFail()
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
                 clock = clock,
-                vedtaksdata = vedtaksdata,
-                eksterntRegulerteBeløp = eksterneReguleringer(sak),
-                omregningsfaktor = gVerdiØkning,
+                gjeldendeVedtaksdata = vedtaksdata,
+                alleEksterntRegulerteBeløp = eksterneReguleringer(sak),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

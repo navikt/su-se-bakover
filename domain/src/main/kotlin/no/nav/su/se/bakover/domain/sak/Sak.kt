@@ -55,11 +55,14 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -313,10 +316,35 @@ data class Sak(
         } ?: false
     }
 
-    sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
-        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
-        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
-        data object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
+    sealed interface KanIkkeRegulere {
+        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
+
+        data object FørerIkkeTilEnEndring : KanIkkeRegulere
+
+        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
+
+        // Brukes når det må gjøres endringer som går utover en beregning med ny G
+        // eller når det av en eller annen grunn må sendes ut vedtaksbrev
+        data class MåRevurdere(
+            val årsak: Årsak,
+            val diffBeløp: List<BruktFradragUliktEksterntBeløp> = emptyList(),
+        ) : KanIkkeRegulere {
+
+            enum class Årsak {
+                IKKE_KONSISTENTE_GRUNNLAG_OG_VILKÅR,
+                DIFFERENSE_MED_EKSTERNE_BELØP,
+                REGULERING_BLIR_FEILUTBETALING,
+                REGULERING_ER_OVER_TOLERANSEGRENSE,
+                REGULERING_FØRER_TIL_AVSLAG,
+            }
+
+            data class BruktFradragUliktEksterntBeløp(
+                val fradragstype: Fradragstype,
+                val tilhører: FradragTilhører,
+                val bruktBeløp: BigDecimal,
+                val eksterntBeløp: BigDecimal,
+            )
+        }
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
-import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
@@ -34,14 +33,11 @@ import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegule
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
-import vilkår.common.domain.Vurdering
-import java.math.BigDecimal
 import java.time.Clock
 
 class ReguleringAutomatiskServiceImpl(
@@ -68,10 +64,8 @@ class ReguleringAutomatiskServiceImpl(
          */
         supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
-        val omregningsfaktor = satsFactory.grunnbeløp(fraOgMedMåned).omregningsfaktor
-
         reguleringRepo.lagre(supplement)
-        return Either.catch { start(fraOgMedMåned, satsFactory, omregningsfaktor) }
+        return Either.catch { start(fraOgMedMåned, satsFactory) }
             .mapLeft {
                 log.error(
                     "Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned. Se sikkerlogg for feilmelding.",
@@ -95,7 +89,6 @@ class ReguleringAutomatiskServiceImpl(
             start(
                 fraOgMedMåned = command.startDatoRegulering,
                 satsFactory = factory,
-                omregningsfaktor = factory.grunnbeløp(command.gjeldendeSatsFra).omregningsfaktor,
                 testRun = ReguleringTestRun(command.lagreManuelle),
             )
         }.onLeft {
@@ -114,7 +107,6 @@ class ReguleringAutomatiskServiceImpl(
     private fun start(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
-        omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
@@ -136,11 +128,11 @@ class ReguleringAutomatiskServiceImpl(
                     // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
                     val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                         when (feil) {
-                            Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
-                                "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
+                            Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
+                                "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
                             )
 
-                            Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                            is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                                 "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
                             )
                         }
@@ -201,7 +193,6 @@ class ReguleringAutomatiskServiceImpl(
                             satsFactory = satsFactory,
                             vedtaksdata = vedtaksdata,
                             sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
-                            omregningsfaktor = omregningsfaktor,
                             testRun = testRun,
                         )
                     }
@@ -215,39 +206,18 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         vedtaksdata: GjeldendeVedtaksdata,
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
-        omregningsfaktor: BigDecimal,
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
         val sak = this
 
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             clock = clock,
-            vedtaksdata = vedtaksdata,
-            sakerMedEksterntRegulerteBeløp,
-            omregningsfaktor = omregningsfaktor,
+            gjeldendeVedtaksdata = vedtaksdata,
+            alleEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
+            satsFactory = satsFactory,
         ).getOrElse { feil ->
-            // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-
-            // TODO bjg - dette er nå redundat og kan fjernes
-            when (feil) {
-                Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
-                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Fantes ingen vedtak for valgt periode.",
-                )
-
-                Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                )
-            }
-
+            log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
             return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
-        }
-
-        // TODO jah: Flytt inn i sak.opprettEllerOppdaterRegulering(...)
-        // TODO AUTO-REG-26 er dette beste løsning for eksisterende reguleringer?
-        if (!blirBeregningEndret(sak, regulering, satsFactory, clock)) {
-            // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-            log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
-            return KunneIkkeRegulereAutomatisk.FørerIkkeTilEnEndring.left()
         }
 
         if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
@@ -265,37 +235,6 @@ class ReguleringAutomatiskServiceImpl(
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             regulering.toReguleringForLogResultat().right()
-        }
-    }
-
-    /**
-     * Finner ut om en re-beregning av reguleringen vil føre til endring i stønaden.
-     * Dersom noen av vilkårene gir avslag, returnerer vi 'true',
-     */
-    private fun blirBeregningEndret(
-        sak: Sak,
-        regulering: OpprettetRegulering,
-        satsFactory: SatsFactory,
-        clock: Clock,
-    ): Boolean {
-        if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) return true
-
-        val beregning = reguleringService.beregn(
-            satsFactory = satsFactory,
-            begrunnelse = null,
-            regulering,
-            clock = clock,
-        ).getOrElse {
-            throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
-        }
-
-        return !beregning.getMånedsberegninger().all { månedsberegning ->
-            sak.hentGjeldendeUtbetaling(
-                forDato = månedsberegning.periode.fraOgMed,
-            ).fold(
-                { false },
-                { månedsberegning.getSumYtelse() == it.beløp },
-            )
         }
     }
 

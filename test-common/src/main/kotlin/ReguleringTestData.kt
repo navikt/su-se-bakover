@@ -132,7 +132,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
-    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -148,7 +147,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock,
         vedtaksdata,
         sakerMedEksterntRegulerteBeløp,
-        gVerdiØkning,
+        satsFactoryTestPåDato(),
     ).getOrFail()
 
     return Pair(
@@ -160,20 +159,26 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
-    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
-    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-        clock = clock,
-        vedtaksdata = vedtaksdata,
-        eksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
-        omregningsfaktor = gVerdiØkning,
-    ).getOrFail()
+    val regulering = OpprettetRegulering(
+        id = ReguleringId.generer(),
+        opprettet = Tidspunkt.now(clock),
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+        fnr = sak.fnr,
+        grunnlagsdataOgVilkårsvurderinger = vedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+        beregning = null,
+        simulering = null,
+        reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
+        sakstype = sak.type,
+        aapGrunnlag = null,
+    )
 
     return Pair(
         sak.nyRegulering(regulering),
