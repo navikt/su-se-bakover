@@ -3,9 +3,11 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.time.Instant
 import java.util.UUID
 
 internal data class SjekkPlan(
@@ -59,34 +61,129 @@ internal class ManglerLagretOppslagsresultatException(
 )
 
 internal data class FradragssjekkResultat(
-    val vurderteSaker: Int = 0,
-    val sakerMedAvvik: Int = 0,
-    val opprettedeOppgaver: List<OppgaveopprettelseResultat.Opprettet> = emptyList(),
-    val hoppetOverPåGrunnAvEksternFeil: Int = 0,
-    val mislykkedeOppgaveopprettelser: List<MislykketOppgaveopprettelse> = emptyList(),
-    val sakerInsignifikantDifferanseForOppgave: List<Fradragsfunn.Observasjon> = emptyList(),
+    val saksresultater: List<FradragssjekkSakResultat> = emptyList(),
+    val vurderteSaker: Int = saksresultater.size,
 ) {
     operator fun plus(other: FradragssjekkResultat): FradragssjekkResultat {
         return FradragssjekkResultat(
-            vurderteSaker = vurderteSaker + other.vurderteSaker,
-            sakerMedAvvik = sakerMedAvvik + other.sakerMedAvvik,
-            opprettedeOppgaver = opprettedeOppgaver + other.opprettedeOppgaver,
-            hoppetOverPåGrunnAvEksternFeil = hoppetOverPåGrunnAvEksternFeil + other.hoppetOverPåGrunnAvEksternFeil,
-            mislykkedeOppgaveopprettelser = mislykkedeOppgaveopprettelser + other.mislykkedeOppgaveopprettelser,
-            sakerInsignifikantDifferanseForOppgave = sakerInsignifikantDifferanseForOppgave + other.sakerInsignifikantDifferanseForOppgave,
+            saksresultater = saksresultater + other.saksresultater,
+        )
+    }
+}
+
+internal data class FradragssjekkKjøring(
+    val id: UUID,
+    val måned: Måned,
+    val status: FradragssjekkKjøringStatus,
+    val opprettet: Instant,
+    val ferdigstilt: Instant,
+    val resultat: FradragssjekkResultat,
+    val feilmelding: String? = null,
+)
+
+internal enum class FradragssjekkKjøringStatus {
+    FULLFØRT,
+    FEILET,
+}
+
+internal data class FradragssjekkSakResultat(
+    val sakId: UUID,
+    val status: FradragssjekkSakStatus,
+    val sjekkplan: SjekkPlanData,
+    val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+    val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
+    val opprettetOppgave: OppgaveopprettelseResultat.Opprettet? = null,
+    val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse? = null,
+    val eksterneFeil: List<EksternFeilPåSjekkpunkt> = emptyList(),
+    val feilmelding: String? = null,
+)
+
+internal enum class FradragssjekkSakStatus {
+    INGEN_AVVIK,
+    KUN_OBSERVASJON,
+    EKSTERN_FEIL,
+    OPPGAVE_OPPRETTET,
+    OPPGAVEOPPRETTELSE_FEILET,
+    INVARIANTBRUDD,
+}
+
+internal data class EksternFeilPåSjekkpunkt(
+    val sjekkpunkt: SjekkpunktData,
+    val grunn: String,
+)
+
+internal data class SjekkPlanData(
+    val sak: SakInfo,
+    val sjekkpunkter: List<SjekkpunktData>,
+) {
+    fun tilDomain(): SjekkPlan {
+        return SjekkPlan(
+            sak = sak,
+            sjekkpunkter = sjekkpunkter.map { it.tilDomain() },
         )
     }
 
-    fun registrerOpprettetOppgave(result: OppgaveopprettelseResultat.Opprettet): FradragssjekkResultat = copy(opprettedeOppgaver = opprettedeOppgaver.plus(result))
+    companion object {
+        fun fraDomain(
+            sjekkplan: SjekkPlan,
+        ): SjekkPlanData {
+            return SjekkPlanData(
+                sak = sjekkplan.sak,
+                sjekkpunkter = sjekkplan.sjekkpunkter.map { SjekkpunktData.fraDomain(it) },
+            )
+        }
+    }
+}
 
-    fun registrerHoppetOverPåGrunnAvEksternFeil(): FradragssjekkResultat {
-        return copy(hoppetOverPåGrunnAvEksternFeil = hoppetOverPåGrunnAvEksternFeil + 1)
+internal data class SjekkpunktData(
+    val fnr: Fnr,
+    val tilhører: FradragTilhører,
+    val fradragstype: FradragstypeData,
+    val ytelse: EksternYtelse,
+    val lokaltBeløp: Double?,
+) {
+    fun tilDomain(): Sjekkpunkt {
+        return Sjekkpunkt(
+            fnr = fnr,
+            tilhører = tilhører,
+            fradragstype = fradragstype.tilDomain(),
+            ytelse = ytelse,
+            lokaltBeløp = lokaltBeløp,
+        )
     }
 
-    fun registrerMislykketOppgaveopprettelse(
-        feil: MislykketOppgaveopprettelse,
-    ): FradragssjekkResultat {
-        return copy(mislykkedeOppgaveopprettelser = mislykkedeOppgaveopprettelser + feil)
+    companion object {
+        fun fraDomain(
+            sjekkpunkt: Sjekkpunkt,
+        ): SjekkpunktData {
+            return SjekkpunktData(
+                fnr = sjekkpunkt.fnr,
+                tilhører = sjekkpunkt.tilhører,
+                fradragstype = FradragstypeData.fraDomain(sjekkpunkt.fradragstype),
+                ytelse = sjekkpunkt.ytelse,
+                lokaltBeløp = sjekkpunkt.lokaltBeløp,
+            )
+        }
+    }
+}
+
+internal data class FradragstypeData(
+    val kategori: Fradragstype.Kategori,
+    val beskrivelse: String? = null,
+) {
+    fun tilDomain(): Fradragstype {
+        return Fradragstype.from(kategori, beskrivelse)
+    }
+
+    companion object {
+        fun fraDomain(
+            fradragstype: Fradragstype,
+        ): FradragstypeData {
+            return FradragstypeData(
+                kategori = fradragstype.kategori,
+                beskrivelse = (fradragstype as? Fradragstype.Annet)?.beskrivelse,
+            )
+        }
     }
 }
 

@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
+import java.time.Instant
+import java.util.UUID
 
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer()
@@ -20,12 +22,13 @@ interface FradragsjobbenService {
 private const val INTERN_SAK_BATCH_STORRELSE = 500
 private const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
 
-class FradragsjobbenServiceImpl(
+internal class FradragsjobbenServiceImpl(
     private val aapKlient: AapApiInternClient,
     private val pesysKlient: PesysClient,
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
     private val utbetalingsRepo: UtbetalingRepo,
+    private val fradragssjekkRunPostgresRepo: FradragssjekkRunPostgresRepo,
     private val clock: Clock,
 ) : FradragsjobbenService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -34,6 +37,19 @@ class FradragsjobbenServiceImpl(
         pesysKlient = pesysKlient,
         log = log,
     )
+
+    private sealed interface Kjøringsutfall {
+        val resultat: FradragssjekkResultat
+
+        data class Fullført(
+            override val resultat: FradragssjekkResultat,
+        ) : Kjøringsutfall
+
+        data class Feilet(
+            override val resultat: FradragssjekkResultat,
+            val exception: Exception,
+        ) : Kjøringsutfall
+    }
 
     /**
      * 1. Finn løpende saker
@@ -46,15 +62,78 @@ class FradragsjobbenServiceImpl(
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer() {
         val måned = Måned.now(clock)
+        val kjoringId = UUID.randomUUID()
+        val startet = clock.instant()
+
+        log.info("Starter fradragssjekk for måned {} med kjøring {}", måned, kjoringId)
+
+        val utfall = kjørFradragssjekk(måned)
+
+        lagreAvsluttetKjøring(
+            kjoringId = kjoringId,
+            måned = måned,
+            startet = startet,
+            utfall = utfall,
+        )
+
+        if (utfall is Kjøringsutfall.Fullført) {
+            loggOppsummering(kjoringId, måned, utfall.resultat)
+        }
+
+        if (utfall is Kjøringsutfall.Feilet) {
+            throw utfall.exception
+        }
+    }
+
+    private fun kjørFradragssjekk(
+        måned: Måned,
+    ): Kjøringsutfall {
         var resultat = FradragssjekkResultat()
 
-        hentAlleSaker()
-            .chunked(INTERN_SAK_BATCH_STORRELSE)
-            .forEach { sakerPerBatch ->
-                resultat += prosesserSakerBatch(sakerPerBatch, måned)
-            }
+        return try {
+            hentAlleSaker()
+                .chunked(INTERN_SAK_BATCH_STORRELSE)
+                .forEach { sakerPerBatch ->
+                    resultat += prosesserSakerBatch(sakerPerBatch, måned)
+                }
 
-        loggOppsummering(måned, resultat)
+            Kjøringsutfall.Fullført(resultat = resultat)
+        } catch (e: Exception) {
+            Kjøringsutfall.Feilet(
+                resultat = resultat,
+                exception = e,
+            )
+        }
+    }
+
+    private fun lagreAvsluttetKjøring(
+        kjoringId: UUID,
+        måned: Måned,
+        startet: Instant,
+        utfall: Kjøringsutfall,
+    ) {
+        val kjoring = when (utfall) {
+            is Kjøringsutfall.Fullført -> FradragssjekkKjøring(
+                id = kjoringId,
+                måned = måned,
+                status = FradragssjekkKjøringStatus.FULLFØRT,
+                opprettet = startet,
+                ferdigstilt = clock.instant(),
+                resultat = utfall.resultat,
+            )
+
+            is Kjøringsutfall.Feilet -> FradragssjekkKjøring(
+                id = kjoringId,
+                måned = måned,
+                status = FradragssjekkKjøringStatus.FEILET,
+                opprettet = startet,
+                ferdigstilt = clock.instant(),
+                resultat = utfall.resultat,
+                feilmelding = utfall.exception.message,
+            )
+        }
+
+        fradragssjekkRunPostgresRepo.lagreKjoring(kjoring)
     }
 
     private fun prosesserSakerBatch(
@@ -70,46 +149,60 @@ class FradragsjobbenServiceImpl(
     }
 
     private fun loggOppsummering(
+        kjoringId: UUID,
         måned: Måned,
         resultat: FradragssjekkResultat,
     ) {
+        val sakerMedAvvik = resultat.saksresultater.filter { it.oppgaveAvvik.isNotEmpty() }
+        val opprettedeOppgaver = resultat.saksresultater.filter { it.opprettetOppgave != null }
+        val sakerMedEksternFeil = resultat.saksresultater.filter { it.eksterneFeil.isNotEmpty() }
+        val sakerMedObservasjoner = resultat.saksresultater.filter { it.observasjoner.isNotEmpty() }
+        val sakerMedInvariantbrudd = resultat.saksresultater.filter { it.status == FradragssjekkSakStatus.INVARIANTBRUDD }
+        val mislykkedeOppgaveopprettelser = resultat.saksresultater.filter { it.mislykketOppgaveopprettelse != null }
+
         log.info(
-            "Fradragssjekk fullført for måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}",
+            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
+            kjoringId,
             måned,
             resultat.vurderteSaker,
-            resultat.sakerMedAvvik,
-            resultat.opprettedeOppgaver.size,
-            resultat.hoppetOverPåGrunnAvEksternFeil,
-            resultat.sakerInsignifikantDifferanseForOppgave.size,
+            sakerMedAvvik.size,
+            opprettedeOppgaver.size,
+            sakerMedEksternFeil.size,
+            sakerMedObservasjoner.size,
+            sakerMedInvariantbrudd.size,
         )
 
-        if (resultat.sakerInsignifikantDifferanseForOppgave.isNotEmpty()) {
-            loggObservasjoner(resultat)
+        if (sakerMedObservasjoner.isNotEmpty()) {
+            loggObservasjoner(sakerMedObservasjoner)
         }
 
-        if (resultat.mislykkedeOppgaveopprettelser.isNotEmpty()) {
-            loggMislykkedeOppgaveopprettelser(resultat)
+        if (mislykkedeOppgaveopprettelser.isNotEmpty()) {
+            loggMislykkedeOppgaveopprettelser(mislykkedeOppgaveopprettelser)
         }
     }
 
     private fun loggObservasjoner(
-        resultat: FradragssjekkResultat,
+        saksresultater: List<FradragssjekkSakResultat>,
     ) {
         log.info(
             "Fradragssjekk: Fant {} observasjoner. {}",
-            resultat.sakerInsignifikantDifferanseForOppgave.size,
-            resultat.sakerInsignifikantDifferanseForOppgave.joinToString(separator = "; ") { it.loggtekst },
+            saksresultater.size,
+            saksresultater.joinToString(separator = "; ") { saksresultat ->
+                "sakId=${saksresultat.sakId}, observasjoner=${
+                    saksresultat.observasjoner.joinToString(",") { it.loggtekst }
+                }"
+            },
         )
     }
 
     private fun loggMislykkedeOppgaveopprettelser(
-        resultat: FradragssjekkResultat,
+        saksresultater: List<FradragssjekkSakResultat>,
     ) {
         log.error(
             "Fradragssjekk: Mislykket oppgaveopprettelse for {} saker. {}",
-            resultat.mislykkedeOppgaveopprettelser.size,
-            resultat.mislykkedeOppgaveopprettelser.joinToString(separator = "; ") {
-                "sakId=${it.sakId}, avvikskoder=${it.avvikskoder.joinToString(",")}"
+            saksresultater.size,
+            saksresultater.joinToString(separator = "; ") {
+                "sakId=${it.sakId}, avvikskoder=${it.mislykketOppgaveopprettelse?.avvikskoder?.joinToString(",")}"
             },
         )
     }
@@ -172,45 +265,88 @@ class FradragsjobbenServiceImpl(
 
         // Kan tenkes at man burde transformert og merged den med sjekkplan direkte kontra å åpne opp på denne måten for feil hits
         val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(sjekkplaner, måned)
-        var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
+        val saksresultater = sjekkplaner.map { sjekkplan ->
+            prosesserSjekkplan(
+                sjekkplan = sjekkplan,
+                måned = måned,
+                oppslagsresultater = oppslagsresultater,
+            )
+        }
 
-        sjekkplaner.forEach { sjekkplan ->
-            try {
-                // TODO: disse skal kanskje ha støtte for å rekjøres
-                if (sjekkplan.sjekkpunkter.any { oppslagsresultater.finnYtelseForPerson(it) is EksterntOppslag.Feil }) {
-                    resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
-                    return@forEach
-                }
+        return FradragssjekkResultat(
+            saksresultater = saksresultater,
+        )
+    }
 
-                when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
-                    Avviksvurdering.IngenDiff -> Unit
-                    is Avviksvurdering.Diff -> {
-                        val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
-                        resultat = resultat.copy(sakerInsignifikantDifferanseForOppgave = resultat.sakerInsignifikantDifferanseForOppgave.plus(observasjonsAvvik))
+    private fun prosesserSjekkplan(
+        sjekkplan: SjekkPlan,
+        måned: Måned,
+        oppslagsresultater: EksterneOppslagsresultater,
+    ): FradragssjekkSakResultat {
+        return try {
+            val eksterneFeil = finnEksterneFeilForSak(sjekkplan, oppslagsresultater)
+            if (eksterneFeil.isNotEmpty()) {
+                return FradragssjekkSakResultat(
+                    sakId = sjekkplan.sak.sakId,
+                    status = FradragssjekkSakStatus.EKSTERN_FEIL,
+                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                    eksterneFeil = eksterneFeil,
+                )
+            }
 
-                        if (oppgaveAvvik.isEmpty()) {
-                            return@forEach
-                        }
+            when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
+                Avviksvurdering.IngenDiff -> FradragssjekkSakResultat(
+                    sakId = sjekkplan.sak.sakId,
+                    status = FradragssjekkSakStatus.INGEN_AVVIK,
+                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                )
 
-                        resultat = resultat.copy(sakerMedAvvik = resultat.sakerMedAvvik + 1)
-                        resultat = when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
+                is Avviksvurdering.Diff -> {
+                    val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
+
+                    if (oppgaveAvvik.isEmpty()) {
+                        FradragssjekkSakResultat(
+                            sakId = sjekkplan.sak.sakId,
+                            status = FradragssjekkSakStatus.KUN_OBSERVASJON,
+                            sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                            observasjoner = observasjonsAvvik,
+                        )
+                    } else {
+                        when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
                             is OppgaveopprettelseResultat.Opprettet -> {
-                                resultat.registrerOpprettetOppgave(oppgaveResultat)
+                                FradragssjekkSakResultat(
+                                    sakId = sjekkplan.sak.sakId,
+                                    status = FradragssjekkSakStatus.OPPGAVE_OPPRETTET,
+                                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                                    oppgaveAvvik = oppgaveAvvik,
+                                    observasjoner = observasjonsAvvik,
+                                    opprettetOppgave = oppgaveResultat,
+                                )
                             }
 
                             is OppgaveopprettelseResultat.Feilet -> {
-                                resultat.registrerMislykketOppgaveopprettelse(oppgaveResultat.feil)
+                                FradragssjekkSakResultat(
+                                    sakId = sjekkplan.sak.sakId,
+                                    status = FradragssjekkSakStatus.OPPGAVEOPPRETTELSE_FEILET,
+                                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                                    oppgaveAvvik = oppgaveAvvik,
+                                    observasjoner = observasjonsAvvik,
+                                    mislykketOppgaveopprettelse = oppgaveResultat.feil,
+                                )
                             }
                         }
                     }
                 }
-            } catch (e: ManglerLagretOppslagsresultatException) {
-                log.error("Fradragssjekk: Invariantbrudd for sak {}. {}", sjekkplan.sak.sakId, e.message, e)
-                return@forEach
             }
+        } catch (e: ManglerLagretOppslagsresultatException) {
+            log.error("Fradragssjekk: feil for sak {}. {}", sjekkplan.sak.sakId, e.message, e)
+            FradragssjekkSakResultat(
+                sakId = sjekkplan.sak.sakId,
+                status = FradragssjekkSakStatus.INVARIANTBRUDD,
+                sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                feilmelding = e.message,
+            )
         }
-
-        return resultat
     }
 
     // Som Iterable.partition men uten type erasure
@@ -226,6 +362,24 @@ class FradragsjobbenServiceImpl(
         }
 
         return a to b
+    }
+
+    private fun finnEksterneFeilForSak(
+        sjekkplan: SjekkPlan,
+        oppslagsresultater: EksterneOppslagsresultater,
+    ): List<EksternFeilPåSjekkpunkt> {
+        return sjekkplan.sjekkpunkter.mapNotNull { sjekkpunkt ->
+            when (val oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt)) {
+                is EksterntOppslag.Feil -> EksternFeilPåSjekkpunkt(
+                    sjekkpunkt = SjekkpunktData.fraDomain(sjekkpunkt),
+                    grunn = oppslag.grunn,
+                )
+
+                EksterntOppslag.IngenTreff,
+                is EksterntOppslag.Funnet,
+                -> null
+            }
+        }
     }
 
     private fun opprettOppgaveForFradrag(
