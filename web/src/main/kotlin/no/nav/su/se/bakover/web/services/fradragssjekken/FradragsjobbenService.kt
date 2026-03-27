@@ -177,7 +177,7 @@ class FradragsjobbenServiceImpl(
         sjekkplaner.forEach { sjekkplan ->
             try {
                 // TODO: disse skal kanskje ha støtte for å rekjøres
-                if (sjekkplan.sjekkpunkter.any { oppslagsresultater.hentLagretResultatFor(it) is EksterntOppslag.Feil }) {
+                if (sjekkplan.sjekkpunkter.any { oppslagsresultater.finnYtelseForPerson(it) is EksterntOppslag.Feil }) {
                     resultat = resultat.registrerHoppetOverPåGrunnAvEksternFeil()
                     return@forEach
                 }

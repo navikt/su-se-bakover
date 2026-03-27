@@ -15,7 +15,7 @@ internal fun finnAvvikForSak(
         .mapNotNull { sjekkpunkt ->
             vurderAvvik(
                 sjekkpunkt = sjekkpunkt,
-                oppslag = oppslagsresultater.hentLagretResultatFor(sjekkpunkt),
+                oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt),
             )
         }
 
