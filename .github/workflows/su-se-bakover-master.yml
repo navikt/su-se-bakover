@@ -40,12 +40,3 @@ jobs:
       cluster: dev-gcp
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
       resource: .nais/dev-gcp.yaml
-
-  draft-release:
-    name: Draft release
-    permissions:
-      contents: 'write' # needed to create/edit releases
-      pull-requests: 'write' # needed to add labels to pull requests
-    uses: navikt/su-se-bakover/.github/workflows/reusable-draft-release.yml@master
-    secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
