@@ -62,14 +62,7 @@ internal class ManglerLagretOppslagsresultatException(
 
 internal data class FradragssjekkResultat(
     val saksresultater: List<FradragssjekkSakResultat> = emptyList(),
-    val vurderteSaker: Int = saksresultater.size,
-) {
-    operator fun plus(other: FradragssjekkResultat): FradragssjekkResultat {
-        return FradragssjekkResultat(
-            saksresultater = saksresultater + other.saksresultater,
-        )
-    }
-}
+)
 
 internal data class FradragssjekkKjøring(
     val id: UUID,

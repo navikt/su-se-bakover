@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
-import java.time.Instant
 import java.util.UUID
 
 interface FradragsjobbenService {
@@ -38,19 +37,6 @@ internal class FradragsjobbenServiceImpl(
         log = log,
     )
 
-    private sealed interface Kjøringsutfall {
-        val resultat: FradragssjekkResultat
-
-        data class Fullført(
-            override val resultat: FradragssjekkResultat,
-        ) : Kjøringsutfall
-
-        data class Feilet(
-            override val resultat: FradragssjekkResultat,
-            val exception: Exception,
-        ) : Kjøringsutfall
-    }
-
     /**
      * 1. Finn løpende saker
      * 2. Hent fradrag for sakene basert på type sak
@@ -64,88 +50,53 @@ internal class FradragsjobbenServiceImpl(
         val måned = Måned.now(clock)
         val kjoringId = UUID.randomUUID()
         val startet = clock.instant()
+        val saksresultater = mutableListOf<FradragssjekkSakResultat>()
 
         log.info("Starter fradragssjekk for måned {} med kjøring {}", måned, kjoringId)
 
-        val utfall = kjørFradragssjekk(måned)
-
-        lagreAvsluttetKjøring(
-            kjoringId = kjoringId,
-            måned = måned,
-            startet = startet,
-            utfall = utfall,
-        )
-
-        if (utfall is Kjøringsutfall.Fullført) {
-            loggOppsummering(kjoringId, måned, utfall.resultat)
-        }
-
-        if (utfall is Kjøringsutfall.Feilet) {
-            throw utfall.exception
-        }
-    }
-
-    private fun kjørFradragssjekk(
-        måned: Måned,
-    ): Kjøringsutfall {
-        var resultat = FradragssjekkResultat()
-
-        return try {
+        try {
             hentAlleSaker()
                 .chunked(INTERN_SAK_BATCH_STORRELSE)
                 .forEach { sakerPerBatch ->
-                    resultat += prosesserSakerBatch(sakerPerBatch, måned)
+                    saksresultater += prosesserSakerBatch(sakerPerBatch, måned)
                 }
 
-            Kjøringsutfall.Fullført(resultat = resultat)
+            val resultat = FradragssjekkResultat(saksresultater = saksresultater)
+            fradragssjekkRunPostgresRepo.lagreKjoring(
+                FradragssjekkKjøring(
+                    id = kjoringId,
+                    måned = måned,
+                    status = FradragssjekkKjøringStatus.FULLFØRT,
+                    opprettet = startet,
+                    ferdigstilt = clock.instant(),
+                    resultat = resultat,
+                ),
+            )
+            loggOppsummering(kjoringId, måned, resultat)
         } catch (e: Exception) {
-            Kjøringsutfall.Feilet(
-                resultat = resultat,
-                exception = e,
+            fradragssjekkRunPostgresRepo.lagreKjoring(
+                FradragssjekkKjøring(
+                    id = kjoringId,
+                    måned = måned,
+                    status = FradragssjekkKjøringStatus.FEILET,
+                    opprettet = startet,
+                    ferdigstilt = clock.instant(),
+                    resultat = FradragssjekkResultat(saksresultater = saksresultater),
+                    feilmelding = e.message,
+                ),
             )
+            throw e
         }
-    }
-
-    private fun lagreAvsluttetKjøring(
-        kjoringId: UUID,
-        måned: Måned,
-        startet: Instant,
-        utfall: Kjøringsutfall,
-    ) {
-        val kjoring = when (utfall) {
-            is Kjøringsutfall.Fullført -> FradragssjekkKjøring(
-                id = kjoringId,
-                måned = måned,
-                status = FradragssjekkKjøringStatus.FULLFØRT,
-                opprettet = startet,
-                ferdigstilt = clock.instant(),
-                resultat = utfall.resultat,
-            )
-
-            is Kjøringsutfall.Feilet -> FradragssjekkKjøring(
-                id = kjoringId,
-                måned = måned,
-                status = FradragssjekkKjøringStatus.FEILET,
-                opprettet = startet,
-                ferdigstilt = clock.instant(),
-                resultat = utfall.resultat,
-                feilmelding = utfall.exception.message,
-            )
-        }
-
-        fradragssjekkRunPostgresRepo.lagreKjoring(kjoring)
     }
 
     private fun prosesserSakerBatch(
         sakerPerBatch: List<SakInfo>,
         måned: Måned,
-    ): FradragssjekkResultat {
+    ): List<FradragssjekkSakResultat> {
         return hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
             .let { lagSjekkplanerForLøpendeSaker(it, måned) }
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-            .fold(FradragssjekkResultat()) { acc, sjekkplanBatch ->
-                acc + prosesserSjekkplanBatch(sjekkplanBatch, måned)
-            }
+            .flatMap { prosesserSjekkplanBatch(it, måned) }
     }
 
     private fun loggOppsummering(
@@ -153,23 +104,20 @@ internal class FradragsjobbenServiceImpl(
         måned: Måned,
         resultat: FradragssjekkResultat,
     ) {
-        val sakerMedAvvik = resultat.saksresultater.filter { it.oppgaveAvvik.isNotEmpty() }
-        val opprettedeOppgaver = resultat.saksresultater.filter { it.opprettetOppgave != null }
-        val sakerMedEksternFeil = resultat.saksresultater.filter { it.eksterneFeil.isNotEmpty() }
+        val saksresultater = resultat.saksresultater
         val sakerMedObservasjoner = resultat.saksresultater.filter { it.observasjoner.isNotEmpty() }
-        val sakerMedInvariantbrudd = resultat.saksresultater.filter { it.status == FradragssjekkSakStatus.INVARIANTBRUDD }
         val mislykkedeOppgaveopprettelser = resultat.saksresultater.filter { it.mislykketOppgaveopprettelse != null }
 
         log.info(
             "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
             kjoringId,
             måned,
-            resultat.vurderteSaker,
-            sakerMedAvvik.size,
-            opprettedeOppgaver.size,
-            sakerMedEksternFeil.size,
+            saksresultater.size,
+            saksresultater.count { it.oppgaveAvvik.isNotEmpty() },
+            saksresultater.count { it.opprettetOppgave != null },
+            saksresultater.count { it.eksterneFeil.isNotEmpty() },
             sakerMedObservasjoner.size,
-            sakerMedInvariantbrudd.size,
+            saksresultater.count { it.status == FradragssjekkSakStatus.INVARIANTBRUDD },
         )
 
         if (sakerMedObservasjoner.isNotEmpty()) {
@@ -260,22 +208,18 @@ internal class FradragsjobbenServiceImpl(
     private fun prosesserSjekkplanBatch(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
-    ): FradragssjekkResultat {
-        if (sjekkplaner.isEmpty()) return FradragssjekkResultat()
+    ): List<FradragssjekkSakResultat> {
+        if (sjekkplaner.isEmpty()) return emptyList()
 
         // Kan tenkes at man burde transformert og merged den med sjekkplan direkte kontra å åpne opp på denne måten for feil hits
         val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(sjekkplaner, måned)
-        val saksresultater = sjekkplaner.map { sjekkplan ->
+        return sjekkplaner.map { sjekkplan ->
             prosesserSjekkplan(
                 sjekkplan = sjekkplan,
                 måned = måned,
                 oppslagsresultater = oppslagsresultater,
             )
         }
-
-        return FradragssjekkResultat(
-            saksresultater = saksresultater,
-        )
     }
 
     private fun prosesserSjekkplan(
