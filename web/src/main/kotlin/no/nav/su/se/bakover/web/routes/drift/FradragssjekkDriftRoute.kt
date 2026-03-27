@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkAlleredeKjørtForMånedException
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkKanIkkeKjøresForTidligereMånedException
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
@@ -36,11 +38,23 @@ internal fun Route.fradragssjekkDriftRoute(
                 val måned = Måned.parse(body.maaned) ?: return@withBody call.svar(ugyldigMåned)
                 val correlationId = call.correlationId.toString()
 
-                if (!body.dryRun && fradragsjobbenService.harOrdinaerKjoringForMåned(måned)) {
+                try {
+                    fradragsjobbenService.validerKjøringForMåned(
+                        måned = måned,
+                        dryRun = body.dryRun,
+                    )
+                } catch (_: FradragssjekkAlleredeKjørtForMånedException) {
                     return@withBody call.svar(
                         HttpStatusCode.Conflict.errorJson(
                             message = "Fradragssjekk er allerede kjørt for måned $måned",
                             code = "fradragssjekk_allerede_kjort_for_maaned",
+                        ),
+                    )
+                } catch (_: FradragssjekkKanIkkeKjøresForTidligereMånedException) {
+                    return@withBody call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            message = "Fradragssjekk kan ikke kjøres for tidligere måned $måned",
+                            code = "fradragssjekk_tidligere_maaned_ikke_tillatt",
                         ),
                     )
                 }

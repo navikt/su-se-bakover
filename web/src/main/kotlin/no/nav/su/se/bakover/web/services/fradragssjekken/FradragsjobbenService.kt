@@ -17,6 +17,7 @@ import java.util.UUID
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
     fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean = false)
+    fun validerKjøringForMåned(måned: Måned, dryRun: Boolean = false)
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
 
@@ -56,7 +57,7 @@ internal class FradragsjobbenServiceImpl(
         måned: Måned,
         dryRun: Boolean,
     ) {
-        kanKjøreJobbForMåned(måned, dryRun)
+        validerKjøringForMåned(måned, dryRun)
 
         val sjekkplaner = hentAlleSaker()
             .chunked(INTERN_SAK_BATCH_STORRELSE)
@@ -77,10 +78,14 @@ internal class FradragsjobbenServiceImpl(
         return fradragssjekkRunPostgresRepo.harOrdinaerKjoringForMåned(måned)
     }
 
-    private fun kanKjøreJobbForMåned(
+    override fun validerKjøringForMåned(
         måned: Måned,
         dryRun: Boolean,
     ) {
+        if (måned < Måned.now(clock)) {
+            throw FradragssjekkKanIkkeKjøresForTidligereMånedException(måned)
+        }
+
         if (!dryRun && harOrdinaerKjoringForMåned(måned)) {
             throw FradragssjekkAlleredeKjørtForMånedException(måned)
         }
@@ -419,3 +424,7 @@ internal class FradragsjobbenServiceImpl(
 internal class FradragssjekkAlleredeKjørtForMånedException(
     måned: Måned,
 ) : IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
+
+internal class FradragssjekkKanIkkeKjøresForTidligereMånedException(
+    måned: Måned,
+) : IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")

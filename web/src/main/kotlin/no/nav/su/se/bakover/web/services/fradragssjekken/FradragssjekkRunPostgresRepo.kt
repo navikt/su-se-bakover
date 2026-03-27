@@ -84,14 +84,14 @@ internal class FradragssjekkRunPostgresRepo(
             """
                 select 1
                 from fradragssjekk_kjoring
-                where dato >= :fra_og_med
-                  and dato <= :til_og_med
+                where extract(year from dato) = :year
+                  and extract(month from dato) = :month
                   and dry_run = false
                 limit 1
             """.trimIndent().hent(
                 mapOf(
-                    "fra_og_med" to måned.fraOgMed,
-                    "til_og_med" to måned.tilOgMed,
+                    "year" to måned.fraOgMed.year,
+                    "month" to måned.fraOgMed.monthValue,
                 ),
                 session,
             ) { true } == true
