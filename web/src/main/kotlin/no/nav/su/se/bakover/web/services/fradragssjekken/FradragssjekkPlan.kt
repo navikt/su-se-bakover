@@ -172,11 +172,11 @@ private fun GjeldendeVedtaksdata.sjekkpunkt(
         tilhører = tilhører,
         fradragstype = fradragstype,
         ytelse = ytelse,
-        lokaltBeløp = lokaltFradragsbeløp(fradragstype, tilhører, måned),
+        lokaltBeløp = hentFradragfraGrunnlagsdata(fradragstype, tilhører, måned),
     )
 }
 
-private fun GjeldendeVedtaksdata.lokaltFradragsbeløp(
+private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
     fradragstype: Fradragstype,
     tilhører: FradragTilhører,
     måned: Måned,
@@ -187,5 +187,11 @@ private fun GjeldendeVedtaksdata.lokaltFradragsbeløp(
             it.periode.inneholder(måned)
     }
 
-    return relevanteFradrag.takeIf { it.isNotEmpty() }?.sumOf { it.månedsbeløp }
+    return when (relevanteFradrag.size) {
+        0 -> null
+        1 -> relevanteFradrag.single().månedsbeløp
+        else -> error(
+            "Forventet maks ett fradrag for type=$fradragstype, tilhører=$tilhører, måned=$måned, men fant ${relevanteFradrag.size}",
+        )
+    }
 }
