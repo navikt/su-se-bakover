@@ -20,11 +20,9 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
  *      - under 67
  *      - 67 eller eldre
  *
- * 3. Lag sjekkpunkter for EPS
- *    - UFØRE-sak + EPS under 67 -> UFØR + AAP
- *    - UFØRE-sak + EPS 67+ -> AP
- *    - ALDER-sak + EPS under 67 -> UFØR + AAP
- *    - ALDER-sak + EPS 67+ -> AP
+ * 3. Lag sjekkpunkter for EPS agnostisk til sakstype
+ *    - EPS under 67 -> UFØR + AAP
+ *    - EPS 67+ -> AP
  *
  */
 internal fun lagSjekkplanForSak(
@@ -44,7 +42,6 @@ internal fun lagSjekkplanForSak(
         gjeldendeVedtaksdata.gjeldendeEpsForMåned(måned)?.let { eps ->
             addAll(
                 gjeldendeVedtaksdata.sjekkpunkterForEps(
-                    sakstype = sak.type,
                     epsFnr = eps.fnr,
                     epsKategori = eps.kategori,
                     måned = måned,
@@ -129,69 +126,37 @@ private fun GjeldendeVedtaksdata.sjekkpunkterForBruker(
 }
 
 private fun GjeldendeVedtaksdata.sjekkpunkterForEps(
-    sakstype: Sakstype,
     epsFnr: Fnr,
     epsKategori: EpsKategori,
     måned: Måned,
 ): List<Sjekkpunkt> {
-    return when (sakstype) {
-        Sakstype.UFØRE -> when (epsKategori) {
-            EpsKategori.UNDER_SEKSTISYV -> listOf(
-                sjekkpunkt(
-                    fnr = epsFnr,
-                    tilhører = FradragTilhører.EPS,
-                    fradragstype = Fradragstype.Uføretrygd,
-                    ytelse = EksternYtelse.PESYS_UFORE,
-                    måned = måned,
-                ),
-                sjekkpunkt(
-                    fnr = epsFnr,
-                    tilhører = FradragTilhører.EPS,
-                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                    ytelse = EksternYtelse.AAP,
-                    måned = måned,
-                ),
-            )
+    return when (epsKategori) {
+        EpsKategori.UNDER_SEKSTISYV -> listOf(
+            sjekkpunkt(
+                fnr = epsFnr,
+                tilhører = FradragTilhører.EPS,
+                fradragstype = Fradragstype.Uføretrygd,
+                ytelse = EksternYtelse.PESYS_UFORE,
+                måned = måned,
+            ),
+            sjekkpunkt(
+                fnr = epsFnr,
+                tilhører = FradragTilhører.EPS,
+                fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                ytelse = EksternYtelse.AAP,
+                måned = måned,
+            ),
+        )
 
-            EpsKategori.SEKSTISYV_ELLER_ELDRE -> listOf(
-                sjekkpunkt(
-                    fnr = epsFnr,
-                    tilhører = FradragTilhører.EPS,
-                    fradragstype = Fradragstype.Alderspensjon,
-                    ytelse = EksternYtelse.PESYS_ALDER,
-                    måned = måned,
-                ),
-            )
-        }
-
-        Sakstype.ALDER -> when (epsKategori) {
-            EpsKategori.UNDER_SEKSTISYV -> listOf(
-                sjekkpunkt(
-                    fnr = epsFnr,
-                    tilhører = FradragTilhører.EPS,
-                    fradragstype = Fradragstype.Uføretrygd,
-                    ytelse = EksternYtelse.PESYS_UFORE,
-                    måned = måned,
-                ),
-                sjekkpunkt(
-                    fnr = epsFnr,
-                    tilhører = FradragTilhører.EPS,
-                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
-                    ytelse = EksternYtelse.AAP,
-                    måned = måned,
-                ),
-            )
-
-            EpsKategori.SEKSTISYV_ELLER_ELDRE -> listOf(
-                sjekkpunkt(
-                    fnr = epsFnr,
-                    tilhører = FradragTilhører.EPS,
-                    fradragstype = Fradragstype.Alderspensjon,
-                    ytelse = EksternYtelse.PESYS_ALDER,
-                    måned = måned,
-                ),
-            )
-        }
+        EpsKategori.SEKSTISYV_ELLER_ELDRE -> listOf(
+            sjekkpunkt(
+                fnr = epsFnr,
+                tilhører = FradragTilhører.EPS,
+                fradragstype = Fradragstype.Alderspensjon,
+                ytelse = EksternYtelse.PESYS_ALDER,
+                måned = måned,
+            ),
+        )
     }
 }
 
