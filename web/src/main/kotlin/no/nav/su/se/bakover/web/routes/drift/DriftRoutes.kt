@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.routes.drift.FixSøknaderResponseJson.Companion.toJson
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 
 internal const val DRIFT_PATH = "/drift"
 
@@ -24,6 +25,7 @@ internal fun Route.driftRoutes(
     ferdigstillVedtakService: FerdigstillVedtakService,
     personhendelseService: PersonhendelseService,
     kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
+    fradragsjobbenService: FradragsjobbenService,
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
         authorize(Brukerrolle.Drift) {
@@ -42,6 +44,7 @@ internal fun Route.driftRoutes(
     resendStatistikkRoutes(resendStatistikkhendelserService)
     ferdigstillVedtakRoutes(ferdigstillVedtakService)
     innlesingPersonhendelserFraFilRoute(personhendelseService)
+    fradragssjekkDriftRoute(fradragsjobbenService)
 
     kontrollsamtalerDriftRoute(kontrollsamtaleDriftOversiktService)
 }

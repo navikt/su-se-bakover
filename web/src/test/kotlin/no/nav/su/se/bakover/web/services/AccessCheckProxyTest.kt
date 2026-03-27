@@ -59,6 +59,7 @@ internal class AccessCheckProxyTest {
         stønadStatistikkJobService = mock(),
         pesysJobService = mock(),
         aapJobService = mock(),
+        fradragsjobbenService = mock(),
         sakstatistikkBigQueryService = mock(),
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),

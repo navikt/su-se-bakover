@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.util.UUID
 
 internal class FradragssjekkRunPostgresRepo(
@@ -73,6 +74,27 @@ internal class FradragssjekkRunPostgresRepo(
                     feilmelding = row.stringOrNull("feilmelding"),
                 )
             }
+        }
+    }
+
+    fun harOrdinaerKjoringForMåned(
+        måned: Måned,
+    ): Boolean {
+        return sessionFactory.withSession { session ->
+            """
+                select 1
+                from fradragssjekk_kjoring
+                where extract(year from dato) = :year
+                  and extract(month from dato) = :month
+                  and dry_run = false
+                limit 1
+            """.trimIndent().hent(
+                mapOf(
+                    "year" to måned.fraOgMed.year,
+                    "month" to måned.fraOgMed.monthValue,
+                ),
+                session,
+            ) { true } == true
         }
     }
 
