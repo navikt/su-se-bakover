@@ -237,6 +237,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     fradragsgrunnlag = listOf(fradraget),
                 ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             ).first,
+            beløp = 12000,
         )
 
         @Test
@@ -391,7 +392,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val revurdertSak =
                 vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
-            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true, beløp = 10500)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
@@ -582,7 +583,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 oversendtUtbetalingUtenKvittering(
                     beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                     clock = clock,
-                    beløp = 21000,
+                    beløp = 20000,
                 ),
             ),
         )
@@ -601,7 +602,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
             utbetalinger = Utbetalinger(
                 oversendtUtbetalingMedKvittering(
-                    beløp = 22000,
+                    beløp = 21000,
                 ),
             ),
         )
@@ -687,7 +688,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
             utbetalinger = Utbetalinger(
                 oversendtUtbetalingMedKvittering(
-                    beløp = 22000,
+                    beløp = 21000,
                 ),
             ),
         )
@@ -786,6 +787,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
         clock: Clock = tikkendeFixedClock(),
+        beløp: Int = 20000,
     ): ReguleringAutomatiskServiceImpl {
         val sakMedEndringer = if (scrambleUtbetaling) {
             sak.copy(
@@ -794,7 +796,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     oversendtUtbetalingMedKvittering(
                         beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                         clock = clock,
-                        beløp = 21000,
+                        beløp = beløp,
                     ),
                 ),
                 // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering
