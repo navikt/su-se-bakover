@@ -39,6 +39,8 @@ internal class EksterneFradragsoppslagService(
         fnr: List<Fnr>,
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
+        if (fnr.isEmpty()) return emptyMap()
+
         return pesysKlient.hentVedtakForPersonPaaDatoAlder(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_ALDER, fnr.size)
@@ -54,6 +56,8 @@ internal class EksterneFradragsoppslagService(
         fnr: List<Fnr>,
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
+        if (fnr.isEmpty()) return emptyMap()
+
         return pesysKlient.hentVedtakForPersonPaaDatoUføre(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_UFORE, fnr.size)
