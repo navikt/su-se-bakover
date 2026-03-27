@@ -32,9 +32,9 @@ internal class EksterneFradragsoppslagService(
         måned: Måned,
     ): EksterneOppslagsresultater {
         return EksterneOppslagsresultater(
-            aap = hentAapOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.AAP), måned),
-            pesysAlder = hentPesysAlderOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.PESYS_ALDER), måned.fraOgMed),
-            pesysUføre = hentPesysUføreOppslag(sjekkplaner.hentFnrForYtelse(EksternYtelse.PESYS_UFORE), måned.fraOgMed),
+            aap = hentAapOppslag(sjekkplaner.hentFnrForYtelsePåTversAvSjekkplaner(EksternYtelse.AAP), måned),
+            pesysAlder = hentPesysAlderOppslag(sjekkplaner.hentFnrForYtelsePåTversAvSjekkplaner(EksternYtelse.PESYS_ALDER), måned.fraOgMed),
+            pesysUføre = hentPesysUføreOppslag(sjekkplaner.hentFnrForYtelsePåTversAvSjekkplaner(EksternYtelse.PESYS_UFORE), måned.fraOgMed),
         )
     }
 
@@ -153,7 +153,7 @@ internal class EksterneFradragsoppslagService(
     }
 }
 
-private fun List<SjekkPlan>.hentFnrForYtelse(ytelse: EksternYtelse): List<Fnr> {
+private fun List<SjekkPlan>.hentFnrForYtelsePåTversAvSjekkplaner(ytelse: EksternYtelse): List<Fnr> {
     return flatMap { it.sjekkpunkter }
         .filter { it.ytelse == ytelse }
         .map { it.fnr }

@@ -170,6 +170,7 @@ class FradragsjobbenServiceImpl(
     ): FradragssjekkResultat {
         if (sjekkplaner.isEmpty()) return FradragssjekkResultat()
 
+        // Kan tenkes at man burde transformert og merged den med sjekkplan direkte kontra å åpne opp på denne måten for feil hits
         val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(sjekkplaner, måned)
         var resultat = FradragssjekkResultat(vurderteSaker = sjekkplaner.size)
 
