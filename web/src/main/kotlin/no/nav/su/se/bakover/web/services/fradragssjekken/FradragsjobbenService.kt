@@ -48,6 +48,7 @@ internal class FradragsjobbenServiceImpl(
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer() {
         val måned = Måned.now(clock)
+        val dato = java.time.LocalDate.now(clock)
         val kjoringId = UUID.randomUUID()
         val startet = clock.instant()
         val saksresultater = mutableListOf<FradragssjekkSakResultat>()
@@ -65,7 +66,7 @@ internal class FradragsjobbenServiceImpl(
             fradragssjekkRunPostgresRepo.lagreKjoring(
                 FradragssjekkKjøring(
                     id = kjoringId,
-                    måned = måned,
+                    dato = dato,
                     status = FradragssjekkKjøringStatus.FULLFØRT,
                     opprettet = startet,
                     ferdigstilt = clock.instant(),
@@ -77,7 +78,7 @@ internal class FradragsjobbenServiceImpl(
             fradragssjekkRunPostgresRepo.lagreKjoring(
                 FradragssjekkKjøring(
                     id = kjoringId,
-                    måned = måned,
+                    dato = dato,
                     status = FradragssjekkKjøringStatus.FEILET,
                     opprettet = startet,
                     ferdigstilt = clock.instant(),

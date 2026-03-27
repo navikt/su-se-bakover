@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 internal data class SjekkPlan(
@@ -66,7 +66,7 @@ internal data class FradragssjekkResultat(
 
 internal data class FradragssjekkKjøring(
     val id: UUID,
-    val måned: Måned,
+    val dato: LocalDate,
     val status: FradragssjekkKjøringStatus,
     val opprettet: Instant,
     val ferdigstilt: Instant,

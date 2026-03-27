@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.util.UUID
 
 internal class FradragssjekkRunPostgresRepo(
@@ -18,7 +17,7 @@ internal class FradragssjekkRunPostgresRepo(
             """
                 insert into fradragssjekk_kjoring (
                     id,
-                    maaned,
+                    dato,
                     status,
                     opprettet,
                     ferdigstilt,
@@ -26,7 +25,7 @@ internal class FradragssjekkRunPostgresRepo(
                     feilmelding
                 ) values (
                     :id,
-                    :maaned,
+                    :dato,
                     :status,
                     :opprettet,
                     :ferdigstilt,
@@ -34,7 +33,7 @@ internal class FradragssjekkRunPostgresRepo(
                     :feilmelding
                 )
                 on conflict (id) do update set
-                    maaned = excluded.maaned,
+                    dato = excluded.dato,
                     status = excluded.status,
                     opprettet = excluded.opprettet,
                     ferdigstilt = excluded.ferdigstilt,
@@ -43,7 +42,7 @@ internal class FradragssjekkRunPostgresRepo(
             """.trimIndent().insert(
                 mapOf(
                     "id" to kjoring.id,
-                    "maaned" to kjoring.måned.fraOgMed,
+                    "dato" to kjoring.dato,
                     "status" to kjoring.status.name,
                     "opprettet" to kjoring.opprettet,
                     "ferdigstilt" to kjoring.ferdigstilt,
@@ -60,7 +59,7 @@ internal class FradragssjekkRunPostgresRepo(
     ): FradragssjekkKjøring? {
         return sessionFactory.withSession { session ->
             """
-                select id, maaned, status, opprettet, ferdigstilt, resultat, feilmelding
+                select id, dato, status, opprettet, ferdigstilt, resultat, feilmelding
                 from fradragssjekk_kjoring
                 where id = :id
             """.trimIndent().hent(
@@ -69,7 +68,7 @@ internal class FradragssjekkRunPostgresRepo(
             ) { row ->
                 FradragssjekkKjøring(
                     id = row.uuid("id"),
-                    måned = Måned.fra(row.localDate("maaned")),
+                    dato = row.localDate("dato"),
                     status = FradragssjekkKjøringStatus.valueOf(row.string("status")),
                     opprettet = row.instant("opprettet"),
                     ferdigstilt = row.instant("ferdigstilt"),

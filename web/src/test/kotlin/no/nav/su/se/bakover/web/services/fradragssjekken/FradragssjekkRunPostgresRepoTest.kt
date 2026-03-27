@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -48,7 +48,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
 
         val fullfortKjoring = FradragssjekkKjøring(
             id = kjoringId,
-            måned = januar(2026),
+            dato = LocalDate.parse("2026-01-15"),
             status = FradragssjekkKjøringStatus.FULLFØRT,
             opprettet = opprettet,
             ferdigstilt = ferdigstilt,
