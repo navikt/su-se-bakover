@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
+import no.nav.su.se.bakover.domain.regulering.ReguleringStatusService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -231,6 +232,7 @@ data object ServiceBuilder {
             journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
             reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
+            reguleringStatusService = reguleringServices.reguleringStatusService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
                 sakService = kjerneTjenester.sakService,
@@ -296,6 +298,7 @@ data object ServiceBuilder {
     private data class ReguleringServices(
         val reguleringManuellService: ReguleringManuellService,
         val reguleringAutomatiskService: ReguleringAutomatiskService,
+        val reguleringStatusService: ReguleringStatusService,
     )
 
     private data class KlageServices(
@@ -629,9 +632,16 @@ data object ServiceBuilder {
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = aapReguleringerService,
         )
+        val reguleringStatusService = ReguleringStatusService(
+            sakService = kjerneTjenester.sakService,
+            utbetalingRepo = databaseRepos.utbetaling,
+            satsFactory = satsFactory,
+            clock = clock,
+        )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
             reguleringAutomatiskService = reguleringAutomatiskService,
+            reguleringStatusService = reguleringStatusService,
         )
     }
 

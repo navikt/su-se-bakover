@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
+import no.nav.su.se.bakover.domain.regulering.ReguleringStatusService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
@@ -59,6 +60,7 @@ data class Services(
     val journalpostAdresseService: JournalpostAdresseService,
     val reguleringManuellService: ReguleringManuellService,
     val reguleringAutomatiskService: ReguleringAutomatiskService,
+    val reguleringStatusService: ReguleringStatusService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,

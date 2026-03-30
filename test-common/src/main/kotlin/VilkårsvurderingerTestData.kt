@@ -254,7 +254,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
 
 fun vilkårsvurderingerAlderInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(),
+    lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(vurderingsperiode = stønadsperiode.periode),
     bosituasjon: NonEmptyList<Bosituasjon.Fullstendig> = nonEmptyListOf(
         bosituasjongrunnlagEnslig(
             id = UUID.randomUUID(),

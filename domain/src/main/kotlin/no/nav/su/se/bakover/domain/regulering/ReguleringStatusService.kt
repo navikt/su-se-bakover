@@ -27,13 +27,11 @@ class ReguleringStatusService(
 ) {
 
     fun hentStatusSisteGrunnbeløp(): ReguleringStatus {
-        val sisteMai = hentSisteMai()
+        val sisteMai = hentSisteMai(clock)
         val sisteBeløper = SisteGrunnbeløpOgSatser(
             grunnbeløp = satsFactory.grunnbeløp(sisteMai).grunnbeløpPerÅr,
-            ordinærUføre = satsFactory.ordinærUføre(sisteMai).minsteÅrligYtelseForUføretrygdede.faktor.value,
-            høyUføre = satsFactory.høyUføre(sisteMai).minsteÅrligYtelseForUføretrygdede.faktor.value,
-            ordinærAlder = satsFactory.ordinærAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
-            høyAlder = satsFactory.høyAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
+            garantipensjonOrdinær = satsFactory.ordinærAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
+            garantipensjonHøy = satsFactory.høyAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
         )
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
@@ -43,26 +41,19 @@ class ReguleringStatusService(
         val sakerMedGammeltGrunnbeløp = løpendeSaker.mapNotNull {
             val beregning = it.hentGjeldendeMånedsberegninger(sisteMai, clock).singleOrNull()
                 ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+
             val benyttetG = beregning.getBenyttetGrunnbeløp()
-                ?: throw (IllegalStateException("Beregning mangler grunnbeløp"))
             val kategori = beregning.getSats()
-            val benyttetSats = beregning.getSatsbeløp()
+            val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
 
-            val sisteGrunnbeløpErBenyttet = benyttetG == sisteBeløper.grunnbeløp
-            val sisteSatsErBenyttet = when (it.type) {
+            val gammeltBeløp = when (it.type) {
+                Sakstype.UFØRE -> benyttetG != sisteBeløper.grunnbeløp
                 Sakstype.ALDER -> when (kategori) {
-                    Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.ordinærAlder.toDouble()
-                    Satskategori.HØY -> benyttetSats == sisteBeløper.høyAlder.toDouble()
-                }
-
-                Sakstype.UFØRE -> when (kategori) {
-                    Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.ordinærUføre
-                    Satskategori.HØY -> benyttetSats == sisteBeløper.høyUføre
+                    Satskategori.ORDINÆR -> benyttetSats != sisteBeløper.garantipensjonOrdinær.toDouble()
+                    Satskategori.HØY -> benyttetSats != sisteBeløper.garantipensjonHøy.toDouble()
                 }
             }
-            if (sisteGrunnbeløpErBenyttet && sisteSatsErBenyttet) {
-                null
-            } else {
+            if (gammeltBeløp) {
                 SakMedGammeltGrunnbeløp(
                     saksnummer = it.saksnummer,
                     type = it.type,
@@ -70,6 +61,8 @@ class ReguleringStatusService(
                     benyttetSatskategori = kategori,
                     benyttetSats = benyttetSats,
                 )
+            } else {
+                null
             }
         }
 
@@ -81,9 +74,9 @@ class ReguleringStatusService(
         )
     }
 
-    private fun hentSisteMai(): Måned {
-        val åretsMai = YearMonth.of(Year.now().value, Month.MAY.ordinal)
-        return if (YearMonth.now().isBefore(åretsMai)) {
+    private fun hentSisteMai(clock: Clock): Måned {
+        val åretsMai = YearMonth.of(Year.now(clock).value, Month.MAY.ordinal + 1)
+        return if (YearMonth.now(clock).isBefore(åretsMai)) {
             åretsMai.minusYears(1)
         } else {
             åretsMai
@@ -105,12 +98,10 @@ class ReguleringStatusService(
         )
 
         return saker.filter {
-            utbetalingerPerSak[it.sakId]
-                ?.hentGjeldendeUtbetaling(måned.fraOgMed)
-                ?.fold(
-                    { false },
-                    { true },
-                ) == true
+            utbetalingerPerSak[it.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
+                { false },
+                { true },
+            ) == true
         }.map { sakInfo ->
             sakService.hentSak(sakInfo.sakId).mapLeft { sakInfo.saksnummer }
         }
@@ -129,15 +120,13 @@ data class ReguleringStatus(
 data class SakMedGammeltGrunnbeløp(
     val saksnummer: Saksnummer,
     val type: Sakstype,
-    val benyttetGrunnbeløp: Int,
+    val benyttetGrunnbeløp: Int?, // Kun uføre
     val benyttetSatskategori: Satskategori,
     val benyttetSats: Double,
 )
 
 data class SisteGrunnbeløpOgSatser(
     val grunnbeløp: Int,
-    val ordinærUføre: Double,
-    val høyUføre: Double,
-    val ordinærAlder: Int,
-    val høyAlder: Int,
+    val garantipensjonOrdinær: Int,
+    val garantipensjonHøy: Int,
 )

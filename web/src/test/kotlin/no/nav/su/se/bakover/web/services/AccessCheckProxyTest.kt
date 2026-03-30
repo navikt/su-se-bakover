@@ -66,6 +66,7 @@ internal class AccessCheckProxyTest {
         kontrollsamtaleDriftOversiktService = mock(),
         reguleringManuellService = mock(),
         reguleringAutomatiskService = mock(),
+        reguleringStatusService = mock(),
     )
 
     @Nested

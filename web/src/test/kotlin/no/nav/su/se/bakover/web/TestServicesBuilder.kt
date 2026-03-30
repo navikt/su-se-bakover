@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
+import no.nav.su.se.bakover.domain.regulering.ReguleringStatusService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -59,6 +60,7 @@ data object TestServicesBuilder {
         journalpostAdresseService: JournalpostAdresseService = mock(),
         reguleringAutomatiskServices: ReguleringAutomatiskService = mock(),
         reguleringManuellService: ReguleringManuellService = mock(),
+        reguleringStatusService: ReguleringStatusService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService: SkatteService = mock(),
         stansAvYtelseService: StansYtelseService = mock(),
@@ -95,6 +97,7 @@ data object TestServicesBuilder {
         journalpostAdresseService = journalpostAdresseService,
         reguleringAutomatiskService = reguleringAutomatiskServices,
         reguleringManuellService = reguleringManuellService,
+        reguleringStatusService = reguleringStatusService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
         skatteService = skatteService,
         kontrollsamtaleSetup = kontrollsamtaleSetup,
