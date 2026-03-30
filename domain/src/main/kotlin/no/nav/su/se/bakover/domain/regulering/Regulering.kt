@@ -25,7 +25,6 @@ import satser.domain.SatsFactory
 import vilkår.common.domain.Vurdering
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
-import vilkår.vurderinger.domain.erGyldigTilstand
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import kotlin.collections.ifEmpty
@@ -134,16 +133,9 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
 
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(this.type)
         .onLeft { konsistensproblemer ->
-            val message =
-                "Kunne ikke opprette regulering for saksnummer $saksnummer." +
-                    " Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]"
-            if (konsistensproblemer.erGyldigTilstand()) {
-                log.info(message)
-            } else {
-                log.error(message)
-            }
+            log.info("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
             return Sak.KanIkkeRegulere.MåRevurdere(
-                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.IKKE_KONSISTENTE_GRUNNLAG_OG_VILKÅR,
+                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
             ).left()
         }
 

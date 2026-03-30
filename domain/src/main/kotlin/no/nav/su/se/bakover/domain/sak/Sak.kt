@@ -331,8 +331,8 @@ data class Sak(
         ) : KanIkkeRegulere {
 
             enum class Årsak {
-                IKKE_KONSISTENTE_GRUNNLAG_OG_VILKÅR,
-                DIFFERENSE_MED_EKSTERNE_BELØP,
+                INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
+                DIFFERANSE_MED_EKSTERNE_BELØP,
                 REGULERING_BLIR_FEILUTBETALING,
                 REGULERING_ER_OVER_TOLERANSEGRENSE,
                 REGULERING_FØRER_TIL_AVSLAG,

@@ -285,7 +285,7 @@ class UtledningReguleringstypeOgFradragTest {
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         ).shouldBeLeft()
 
-        resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP
+        resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1
         with(resultat.diffBeløp.first()) {
             fradragstype shouldBe Fradragstype.Uføretrygd

@@ -49,7 +49,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
         return Sak.KanIkkeRegulere.MåRevurdere(
-            årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERENSE_MED_EKSTERNE_BELØP,
+            årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
             diffBeløp = utledetReguleringstypePerFradrag.filterLefts(),
         ).left()
     }

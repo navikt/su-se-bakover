@@ -355,6 +355,7 @@ class ReguleringAutomatiskServiceImpl(
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
                 }
+                // TODO AUTO-REG-26 - Endre til manuell kun for forventa feil under behandling
                 val manuellOpprettet = regulering.endreTilManuell(message)
                 lagreOpprettetEllerOverførtTilManuellRegulering(sak, manuellOpprettet)
             }

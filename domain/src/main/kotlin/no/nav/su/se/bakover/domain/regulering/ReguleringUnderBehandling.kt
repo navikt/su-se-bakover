@@ -99,6 +99,7 @@ sealed class ReguleringUnderBehandling :
         return oppdatertRegulering.right()
     }
 
+    // TODO AUTO-REG-26 - Fjern? Feil mot utbetaling vil vi enten fikse eller bør tas med revurdering?
     fun endreTilManuell(begrunnelse: String): ReguleringUnderBehandling {
         val reguleringstype = Reguleringstype.MANUELL(
             setOf(
