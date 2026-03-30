@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
+import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
@@ -21,31 +22,43 @@ import kotlin.collections.map
 class ReguleringStatusService(
     val sakService: SakService,
     val utbetalingRepo: UtbetalingRepo,
+    val satsFactory: SatsFactory,
     val clock: Clock,
 ) {
 
     fun hentStatusSisteGrunnbeløp(): ReguleringStatus {
         val sisteMai = hentSisteMai()
-        val sisteGrunnbeløp = 0
-        val sisteSatsOrd = 0.0
-        val sisteSatsHoy = 0.0
+        val sisteBeløper = SisteGrunnbeløpOgSatser(
+            grunnbeløp = satsFactory.grunnbeløp(sisteMai).grunnbeløpPerÅr,
+            ordinærUføre = satsFactory.ordinærUføre(sisteMai).minsteÅrligYtelseForUføretrygdede.faktor.value,
+            høyUføre = satsFactory.høyUføre(sisteMai).minsteÅrligYtelseForUføretrygdede.faktor.value,
+            ordinærAlder = satsFactory.ordinærAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
+            høyAlder = satsFactory.høyAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
+        )
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
         val sakerMedUtbetalingMai = hentSakerMedLøpendeUtbetalingForMåned(alleSaker, sisteMai)
         val (løpendeSakerIkkefunnet, løpendeSaker) = sakerMedUtbetalingMai.split()
 
         val sakerMedGammeltGrunnbeløp = løpendeSaker.mapNotNull {
-            val beregning = it.hentGjeldendeMånedsberegninger(Måned.fra(sisteMai), clock).singleOrNull()
+            val beregning = it.hentGjeldendeMånedsberegninger(sisteMai, clock).singleOrNull()
                 ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
             val benyttetG = beregning.getBenyttetGrunnbeløp()
                 ?: throw (IllegalStateException("Beregning mangler grunnbeløp"))
             val kategori = beregning.getSats()
             val benyttetSats = beregning.getSatsbeløp()
 
-            val sisteGrunnbeløpErBenyttet = benyttetG == sisteGrunnbeløp
-            val sisteSatsErBenyttet = when (kategori) {
-                Satskategori.ORDINÆR -> benyttetSats == sisteSatsOrd
-                Satskategori.HØY -> benyttetSats == sisteSatsHoy
+            val sisteGrunnbeløpErBenyttet = benyttetG == sisteBeløper.grunnbeløp
+            val sisteSatsErBenyttet = when (it.type) {
+                Sakstype.ALDER -> when (kategori) {
+                    Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.ordinærAlder.toDouble()
+                    Satskategori.HØY -> benyttetSats == sisteBeløper.høyAlder.toDouble()
+                }
+
+                Sakstype.UFØRE -> when (kategori) {
+                    Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.ordinærUføre
+                    Satskategori.HØY -> benyttetSats == sisteBeløper.høyUføre
+                }
             }
             if (sisteGrunnbeløpErBenyttet && sisteSatsErBenyttet) {
                 null
@@ -61,22 +74,20 @@ class ReguleringStatusService(
         }
 
         return ReguleringStatus(
-            sisteGrunnbeløp = sisteGrunnbeløp,
-            sisteSatsOrd = sisteSatsOrd,
-            sisteSatsHoy = sisteSatsHoy,
+            sisteGrunnbeløpOgSatser = sisteBeløper,
             sakerMedUtebetalingIMai = sakerMedUtbetalingMai.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp,
             løpendeSakerIkkeFunner = løpendeSakerIkkefunnet,
         )
     }
 
-    private fun hentSisteMai(): YearMonth {
+    private fun hentSisteMai(): Måned {
         val åretsMai = YearMonth.of(Year.now().value, Month.MAY.ordinal)
         return if (YearMonth.now().isBefore(åretsMai)) {
             åretsMai.minusYears(1)
         } else {
             åretsMai
-        }
+        }.let { Måned.fra(it) }
     }
 
     /**
@@ -85,7 +96,7 @@ class ReguleringStatusService(
      */
     private fun hentSakerMedLøpendeUtbetalingForMåned(
         saker: List<SakInfo>,
-        måned: YearMonth,
+        måned: Måned,
     ): List<Either<Saksnummer, Sak>> {
         if (saker.isEmpty()) return emptyList()
 
@@ -95,7 +106,7 @@ class ReguleringStatusService(
 
         return saker.filter {
             utbetalingerPerSak[it.sakId]
-                ?.hentGjeldendeUtbetaling(måned.atDay(1))
+                ?.hentGjeldendeUtbetaling(måned.fraOgMed)
                 ?.fold(
                     { false },
                     { true },
@@ -107,9 +118,7 @@ class ReguleringStatusService(
 }
 
 data class ReguleringStatus(
-    val sisteGrunnbeløp: Int,
-    val sisteSatsOrd: Double,
-    val sisteSatsHoy: Double,
+    val sisteGrunnbeløpOgSatser: SisteGrunnbeløpOgSatser,
     val sakerMedUtebetalingIMai: Int,
     val sakerMedGammelG: List<SakMedGammeltGrunnbeløp>,
 
@@ -123,4 +132,12 @@ data class SakMedGammeltGrunnbeløp(
     val benyttetGrunnbeløp: Int,
     val benyttetSatskategori: Satskategori,
     val benyttetSats: Double,
+)
+
+data class SisteGrunnbeløpOgSatser(
+    val grunnbeløp: Int,
+    val ordinærUføre: Double,
+    val høyUføre: Double,
+    val ordinærAlder: Int,
+    val høyAlder: Int,
 )
