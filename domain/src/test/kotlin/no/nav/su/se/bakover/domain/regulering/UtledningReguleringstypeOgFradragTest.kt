@@ -1,13 +1,16 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -47,8 +50,7 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).getOrFail()
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
         with(resultat.second) {
@@ -81,8 +83,7 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).getOrFail()
 
         resultat.first shouldNotBe Reguleringstype.AUTOMATISK
         with(resultat.second) {
@@ -121,8 +122,7 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).getOrFail()
 
         resultat.first shouldBe Reguleringstype.AUTOMATISK
         with(resultat.second) {
@@ -166,8 +166,7 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).getOrFail()
 
         resultat.first shouldNotBe Reguleringstype.AUTOMATISK
         with(resultat.second) {
@@ -204,8 +203,7 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).getOrFail()
 
         resultat.first shouldBe Reguleringstype.MANUELL(
             ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
@@ -239,18 +237,19 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).getOrFail()
 
         val reguleringstype = resultat.first as Reguleringstype.MANUELL
         reguleringstype.problemer.size shouldBe 2
 
-        val problemBruker = reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
-            .single { it.fradragTilhører == FradragTilhører.BRUKER }
+        val problemBruker =
+            reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
+                .single { it.fradragTilhører == FradragTilhører.BRUKER }
         problemBruker.fradragskategori shouldBe Fradragstype.Kvalifiseringsstønad.kategori
 
-        val problemEps = reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
-            .single { it.fradragTilhører == FradragTilhører.EPS }
+        val problemEps =
+            reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
+                .single { it.fradragTilhører == FradragTilhører.EPS }
         problemEps.fradragskategori shouldBe Fradragstype.Kvalifiseringsstønad.kategori
 
         // Fradragsgrunnlag skal være delvis oppdatert - kun Uføretrygd
@@ -284,62 +283,15 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
+        ).shouldBeLeft()
 
-        val reguleringstype = resultat.first as Reguleringstype.MANUELL
-        reguleringstype.problemer.size shouldBe 1
-        val årsak = reguleringstype.problemer.single() as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-        årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal("900.00")
-
-        // Fradragsgrunnlag skal ikke være oppdatert ved manuell regulering
-        with(resultat.second) {
-            size shouldBe 1
-            single().månedsbeløp shouldBe 1000
-        }
-    }
-
-    @Test
-    fun `utleder manuell regulering med årsak DifferanseEtterRegulering når beløp etter regulering avviker for mye`() {
-        val eksisterende = nonEmptyListOf(
-            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
-        )
-
-        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
-            brukerFnr = fnr,
-            beløpBruker = listOf(
-                RegulertBeløp(
-                    fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
-                    førRegulering = BigDecimal(1000), // Matcher vårt beløp
-                    etterRegulering = BigDecimal(1075), // Avviker for mye fra forventet (1064.08, differanse > 10)
-                ),
-            ),
-            beløpEps = emptyList(),
-        )
-
-        val resultat = utledReguleringstypeOgOppdaterFradrag(
-            fradrag = eksisterende,
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            omregningsfaktor = BigDecimal("1.064076"),
-        )
-
-        val reguleringstype = resultat.first as Reguleringstype.MANUELL
-        reguleringstype.problemer.size shouldBe 1
-        val årsak = reguleringstype.problemer.single() as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-        årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.forventetBeløpEtterRegulering shouldBe BigDecimal("1064.08")
-        årsak.eksternNettoBeløpEtterRegulering shouldBe BigDecimal("1075")
-
-        // Fradragsgrunnlag skal ikke være oppdatert ved manuell regulering
-        with(resultat.second) {
-            size shouldBe 1
-            single().månedsbeløp shouldBe 1000
+        resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
+        resultat.diffBeløp.size shouldBe 1
+        with(resultat.diffBeløp.first()) {
+            fradragstype shouldBe Fradragstype.Uføretrygd
+            tilhører shouldBe FradragTilhører.BRUKER
+            bruktBeløp shouldBe BigDecimal("1000.00")
+            eksterntBeløp shouldBe BigDecimal("900.00")
         }
     }
 

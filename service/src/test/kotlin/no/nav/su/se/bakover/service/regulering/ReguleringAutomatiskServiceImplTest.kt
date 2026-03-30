@@ -237,6 +237,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     fradragsgrunnlag = listOf(fradraget),
                 ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             ).first,
+            beløp = 12000,
         )
 
         @Test
@@ -285,7 +286,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
 
@@ -382,7 +383,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
         }
 
@@ -391,7 +392,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val revurdertSak =
                 vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
-            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true, beløp = 10500)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
@@ -410,7 +411,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2023), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
-                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                     .left()
             }
         }
@@ -582,6 +583,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 oversendtUtbetalingUtenKvittering(
                     beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                     clock = clock,
+                    beløp = 20000,
                 ),
             ),
         )
@@ -597,7 +599,13 @@ internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `gjør ingen sideeffekter ved dry run av eksisterende grunnbeløp`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
+            utbetalinger = Utbetalinger(
+                oversendtUtbetalingMedKvittering(
+                    beløp = 21000,
+                ),
+            ),
+        )
 
         val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
@@ -677,7 +685,13 @@ internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `gjør ingen sideeffekter ved dry run der vi legger inn et nytt test grunnbeløp`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
+            utbetalinger = Utbetalinger(
+                oversendtUtbetalingMedKvittering(
+                    beløp = 21000,
+                ),
+            ),
+        )
 
         val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
@@ -772,9 +786,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
-        beløpFørRegulering: Double = 100.0,
-        beløpEtterRegulering: Double = beløpFørRegulering + 10,
         clock: Clock = tikkendeFixedClock(),
+        beløp: Int = 20000,
     ): ReguleringAutomatiskServiceImpl {
         val sakMedEndringer = if (scrambleUtbetaling) {
             sak.copy(
@@ -783,6 +796,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     oversendtUtbetalingMedKvittering(
                         beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                         clock = clock,
+                        beløp = beløp,
                     ),
                 ),
                 // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering

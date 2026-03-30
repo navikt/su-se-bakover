@@ -37,6 +37,7 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         )
     }
 
+    // TODO AUTO-REG-26 Fjern
     if (this.vilkårsvurderinger is VilkårsvurderingerRevurdering.Uføre) {
         this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
             if (it.grunnlag.harForventetInntektStørreEnn0()) {
@@ -49,6 +50,7 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         }
     }
 
+    // TODO AUTO-REG-26 hvorfor må dette da gjøres manuelt?? Det er vel kun om det er opphørt frem i tid som er problematisk og det skjer jo ikke?
     if (this.delerAvPeriodenErOpphør()) {
         val opphørtePerioder = this.opphørtePerioderSlåttSammen()
         problemer.add(
@@ -59,6 +61,7 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         )
     }
 
+    // TODO AUTO-REG-26 vil denne noen gang slå ut siden det samme sjekkes og blir  Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig?
     if (!this.tidslinjeForVedtakErSammenhengende()) {
         problemer.add(
             ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(
