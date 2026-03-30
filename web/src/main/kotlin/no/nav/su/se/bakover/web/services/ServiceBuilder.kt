@@ -627,7 +627,6 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
             reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
-            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = aapReguleringerService,
         )

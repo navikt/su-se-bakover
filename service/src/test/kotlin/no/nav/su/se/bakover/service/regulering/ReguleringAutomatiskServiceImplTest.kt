@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
@@ -194,7 +193,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService = reguleringService,
             statistikkService = mock(),
             sessionFactory = sessionFactory,
-            reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
             reguleringKjøringRepo = reguleringKjøringRepo,
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = mock {
@@ -647,8 +645,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             reguleringKjøringRepo = mock(),
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any()) } doReturn
                     listOf(
@@ -740,8 +736,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionMock,
             clock = clock,
             reguleringKjøringRepo = mock(),
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any()) } doReturn
                     listOf(
@@ -890,8 +884,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringKjøringRepo = mock(),
-            reguleringHentEksterneReguleringerService = mock {
-                on { hentEksterneReguleringer(any()) } doReturn
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any()) } doReturn
                     listOf(

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
-import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
@@ -219,7 +218,6 @@ class ReguleringAutomatiskServiceImpl(
                 arsakerReguleringIkkeOpprettet = resultater.filter { it.isLeft() }.map { it.swap().getOrNull()!! }.groupBy {
                     when (it) {
                         is KunneIkkeRegulereAutomatisk.FantIkkeSak -> "FantIkkeSak"
-                        is KunneIkkeRegulereAutomatisk.FørerIkkeTilEnEndring -> "FørerIkkeTilEnEndring"
                         is KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør -> "HarÅpenReguleringFraFør"
                         is KunneIkkeRegulereAutomatisk.UkjentFeil -> "UkjentFeil"
 
@@ -230,7 +228,7 @@ class ReguleringAutomatiskServiceImpl(
                 }.map { "${it.key}: ${it.value.size}" }.joinToString(", "),
                 antallAutomatiskeReguleringer = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype == Reguleringstype.AUTOMATISK },
                 antallSupplementReguleringer = resultater.count {
-                    val regulering = it.getOrNull() as? OpprettetRegulering
+                    val regulering = it.getOrNull() as? ReguleringUnderBehandling.OpprettetRegulering
                     regulering?.reguleringstype == Reguleringstype.AUTOMATISK && (regulering.eksternSupplementRegulering?.bruker != null || regulering.eksternSupplementRegulering?.eps?.isNotEmpty() == true)
                 },
                 antallReguleringerManuellBehandling = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype is Reguleringstype.MANUELL },
