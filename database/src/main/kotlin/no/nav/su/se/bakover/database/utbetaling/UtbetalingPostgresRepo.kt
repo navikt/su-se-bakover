@@ -64,6 +64,16 @@ internal class UtbetalingPostgresRepo(
         }.let { Utbetalinger(it) }
     }
 
+    override fun hentOversendteUtbetalingerForSakIder(
+        sakIder: List<UUID>,
+    ): Map<UUID, Utbetalinger> {
+        return dbMetrics.timeQuery("hentUtbetalingerForSakIder") {
+            sessionFactory.withSession { session ->
+                UtbetalingInternalRepo.hentOversendteUtbetalingerForSakIder(sakIder, session)
+            }
+        }
+    }
+
     override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return dbMetrics.timeQuery("hentUkvitterteUtbetalinger") {
             sessionFactory.withSession { session ->

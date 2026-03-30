@@ -1,397 +1,315 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.Saksnummer
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import java.math.BigDecimal
 
 class UtledningReguleringstypeOgFradragTest {
 
-    companion object {
-        val regulerteFradragEksternKilde = RegulerteFradragEksternKilde(
-            fnr = fnr,
-            bruker = listOf(
-                RegulertFradragEksternKilde(
+    @Test
+    fun `oppdaterer fradrag som har ekstern regulering tilgjengelig`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Alderspensjon, 2000.0, FradragTilhører.EPS),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
                     fnr = fnr,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
-            forEps = listOf(
-                RegulertFradragEksternKilde(
+            beløpEps = listOf(
+                RegulertBeløp(
                     fnr = fnr,
-                    førRegulering = 1000,
-                    etterRegulering = 1064,
+                    fradragstype = Fradragstype.Alderspensjon,
+                    førRegulering = BigDecimal(2000),
+                    etterRegulering = BigDecimal(2128),
                 ),
             ),
         )
 
-        fun lagRegulerteFradragEksternKilde(
-            etterReguleringBruker: Int = 1064,
-            etterReguleringEps: Int = 1064,
-        ) = RegulerteFradragEksternKilde(
-            fnr = fnr,
-            bruker = listOf(
-                RegulertFradragEksternKilde(
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 2
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2128
+        }
+    }
+
+    @Test
+    fun `oppdaterer fradrag med ekstern regulering selv om det finnes andre fradrag som ikke kan oppdateres automatisk`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 2000.0, FradragTilhører.EPS),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
                     fnr = fnr,
-                    førRegulering = 1000,
-                    etterRegulering = etterReguleringBruker,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
                 ),
             ),
-            forEps = listOf(
-                RegulertFradragEksternKilde(
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldNotBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 2
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad }.månedsbeløp shouldBe 2000
+        }
+    }
+
+    @Test
+    fun `oppdaterer fradrag når en person har flere fradrag med eksterne reguleringer tilgjengelig`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Arbeidsavklaringspenger, 2000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
                     fnr = fnr,
-                    førRegulering = 1000,
-                    etterRegulering = etterReguleringEps,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
+                ),
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                    førRegulering = BigDecimal(2000),
+                    etterRegulering = BigDecimal(2128),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 2
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }.månedsbeløp shouldBe 2128
+        }
+    }
+
+    @Test
+    fun `utleder alle fradrag når det finnes for både bruker og eps samt har fradragstyper på er like på tvers`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.OffentligPensjon, 4000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Alderspensjon, 2000.0, FradragTilhører.EPS),
+            lagFradragsgrunnlag(Fradragstype.SupplerendeStønad, 5000.0, FradragTilhører.EPS),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 3000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 3001.0, FradragTilhører.EPS),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
+                ),
+            ),
+            beløpEps = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = Fradragstype.Alderspensjon,
+                    førRegulering = BigDecimal(2000),
+                    etterRegulering = BigDecimal(2128),
                 ),
             ),
         )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldNotBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 6
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2128
+            single { it.fradragstype == Fradragstype.OffentligPensjon }.månedsbeløp shouldBe 4000
+            single { it.fradragstype == Fradragstype.SupplerendeStønad }.månedsbeløp shouldBe 5000
+            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad && it.tilhører == FradragTilhører.BRUKER }.månedsbeløp shouldBe 3000
+            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad && it.tilhører == FradragTilhører.EPS }.månedsbeløp shouldBe 3001
+        }
+    }
+
+    @Test
+    fun `utleder manuell regulering når fradrag inneholder en fradragstype som ikke kan justeres automatisk`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 2000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.MANUELL(
+            ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
+                fradragskategori = Fradragstype.Kvalifiseringsstønad.kategori,
+                fradragTilhører = FradragTilhører.BRUKER,
+            ),
+        )
+    }
+
+    @Test
+    fun `utleder manuell regulering med flere årsaker når flere fradrag mangler ekstern regulering`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 2000.0, FradragTilhører.BRUKER),
+            lagFradragsgrunnlag(Fradragstype.Kvalifiseringsstønad, 3000.0, FradragTilhører.EPS),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        val reguleringstype = resultat.first as Reguleringstype.MANUELL
+        reguleringstype.problemer.size shouldBe 2
+
+        val problemBruker =
+            reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
+                .single { it.fradragTilhører == FradragTilhører.BRUKER }
+        problemBruker.fradragskategori shouldBe Fradragstype.Kvalifiseringsstønad.kategori
+
+        val problemEps =
+            reguleringstype.problemer.filterIsInstance<ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag>()
+                .single { it.fradragTilhører == FradragTilhører.EPS }
+        problemEps.fradragskategori shouldBe Fradragstype.Kvalifiseringsstønad.kategori
+
+        // Fradragsgrunnlag skal være delvis oppdatert - kun Uføretrygd
+        with(resultat.second) {
+            size shouldBe 3
+            single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
+            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad && it.tilhører == FradragTilhører.BRUKER }.månedsbeløp shouldBe 2000
+            single { it.fradragstype == Fradragstype.Kvalifiseringsstønad && it.tilhører == FradragTilhører.EPS }.månedsbeløp shouldBe 3000
+        }
+    }
+
+    @Test
+    fun `utleder manuell regulering med årsak DifferanseFørRegulering når beløp før regulering avviker`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = Fradragstype.Uføretrygd,
+                    førRegulering = BigDecimal("900.00"), // Avviker fra vårt beløp (1000)
+                    etterRegulering = BigDecimal("958.00"),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).shouldBeLeft()
+
+        resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
+        resultat.diffBeløp.size shouldBe 1
+        with(resultat.diffBeløp.first()) {
+            fradragstype shouldBe Fradragstype.Uføretrygd
+            tilhører shouldBe FradragTilhører.BRUKER
+            bruktBeløp shouldBe BigDecimal("1000.00")
+            eksterntBeløp shouldBe BigDecimal("900.00")
+        }
+    }
+
+    companion object {
 
         fun lagFradragsgrunnlag(
             fradragstypeBruker: Fradragstype,
-            fradragstypeEps: Fradragstype = fradragstypeBruker,
-            beløpBruker: Double = 1000.0,
-            beløpEps: Double = 1000.0,
-            utlandskInntektBruker: UtenlandskInntekt? = null,
-            utlandskInntektEps: UtenlandskInntekt? = null,
-        ) = nonEmptyListOf(
-            Fradragsgrunnlag.create(
-                opprettet = Tidspunkt.now(fixedClock),
-                fradrag = FradragForPeriode(
-                    fradragstype = fradragstypeBruker,
-                    månedsbeløp = beløpBruker,
-                    periode = januar(2026)..desember(2026),
-                    utenlandskInntekt = utlandskInntektBruker,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-            Fradragsgrunnlag.create(
-                opprettet = Tidspunkt.now(fixedClock),
-                fradrag = FradragForPeriode(
-                    fradragstype = fradragstypeEps,
-                    månedsbeløp = beløpEps,
-                    periode = januar(2026)..desember(2026),
-                    utenlandskInntekt = utlandskInntektEps,
-                    tilhører = FradragTilhører.EPS,
-                ),
+            månedsbeløp: Double = 1000.0,
+            tilhører: FradragTilhører,
+        ) = Fradragsgrunnlag.create(
+            opprettet = Tidspunkt.now(fixedClock),
+            fradrag = FradragForPeriode(
+                fradragstype = fradragstypeBruker,
+                månedsbeløp = månedsbeløp,
+                periode = januar(2026)..desember(2026),
+                utenlandskInntekt = null,
+                tilhører = tilhører,
             ),
         )
     }
-
-    // TODO gir denne egt mening? fradragstype uføre er vel bare for eps?
-    // TODO Her skal det vel heller være forventet inntekt IEU som per nå blir manuell hvis større enn 0??
-    @Test
-    fun `utleder automatisk for uføre`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        resultat.first shouldBe Reguleringstype.AUTOMATISK
-    }
-
-    // TODO gir dette mening? vil det noen gang være at egen alderspensjon blir fradrag? Trolig ja?
-    @Test
-    fun `utleder automatisk for alder`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Alderspensjon),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-        resultat.first shouldBe Reguleringstype.AUTOMATISK
-    }
-
-    @Test
-    fun `utleder automatisk for bruker alder og uføre eps`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(
-                fradragstypeBruker = Fradragstype.Alderspensjon,
-                fradragstypeEps = Fradragstype.Uføretrygd,
-            ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-        resultat.first shouldBe Reguleringstype.AUTOMATISK
-    }
-
-    @Test
-    fun `utleder automatisk for bruker ufre og eps alder`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(
-                fradragstypeBruker = Fradragstype.Uføretrygd,
-                fradragstypeEps = Fradragstype.Alderspensjon,
-            ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-        resultat.first shouldBe Reguleringstype.AUTOMATISK
-    }
-
-    @Test
-    fun `utleder manuell for alder uten supplement`() {
-        /*
-        TODO Det vil / skal alltid være ??
-        val fradragsgrunnlag = nonEmptyListOf(
-            Fradragsgrunnlag.create(
-                opprettet = Tidspunkt.now(fixedClock),
-                fradrag = FradragForPeriode(
-                    fradragstype = Fradragstype.Alderspensjon,
-                    månedsbeløp = 1000.0,
-                    periode = januar(2026)..desember(2026),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-        )
-
-        val resultat = utledReguleringstypeOgFradrag(
-            nyttFradrag = NyttFradragEksternKilde(
-                førRegulering = 1000,
-                etterRegulering = 1064
-            ),
-            fradragstype = Fradragstype.Alderspensjon,
-            originaleFradragsgrunnlag = fradragsgrunnlag,
-            fradragTilhører = FradragTilhører.BRUKER,
-            merEnn1Eps = false,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement
-        årsak.fradragskategori shouldBe Fradragstype.Alderspensjon.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-         */
-    }
-
-    @Test
-    fun `utleder manuell for uføre eps uten supplement`() {
-        /*
-                TODO Det vil / skal alltid være ??
-                val fradragsgrunnlag = nonEmptyListOf(
-                    Fradragsgrunnlag.create(
-                        opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragForPeriode(
-                            fradragstype = Fradragstype.Uføretrygd,
-                            månedsbeløp = 1000.0,
-                            periode = januar(2026)..desember(2026),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.EPS,
-                        ),
-                    ),
-                )
-
-                val resultat = utledReguleringstypeOgFradragIndre(
-                    eksternSupplementRegulering = EksternSupplementRegulering(
-                        supplementId = null,
-                        bruker = null,
-                        eps = emptyList(),
-                    ),
-                    fradragstype = Fradragstype.Uføretrygd,
-                    originaleFradragsgrunnlag = fradragsgrunnlag,
-                    fradragTilhører = FradragTilhører.EPS,
-                    merEnn1Eps = false,
-                    omregningsfaktor = BigDecimal("1.064076"),
-                    saksnummer = Saksnummer(8888),
-                )
-
-                (resultat.first as Reguleringstype.MANUELL).problemer.any {
-                    it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement
-                }
-                val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-                    as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement
-                årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-                årsak.fradragTilhører shouldBe FradragTilhører.EPS
-         */
-    }
-
-    @Test
-    fun `utleder manuell for flere eps`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde.copy(
-                forEps = regulerteFradragEksternKilde.forEps + regulerteFradragEksternKilde.forEps,
-            ),
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.EPS
-    }
-
-    @Test
-    fun `utleder manuell for fradrag utlandstinntekt bruker`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(
-                Fradragstype.Uføretrygd,
-                utlandskInntektBruker = UtenlandskInntekt.create(0, "SEK", 0.0),
-            ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-    }
-
-    @Test
-    fun `utleder manuell for fradrag utlandstinntekt eps`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(
-                Fradragstype.Uføretrygd,
-                utlandskInntektEps = UtenlandskInntekt.create(0, "SEK", 0.0),
-            ),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.EPS
-    }
-
-    @Test
-    fun `utleder manuell for hvis eksternt fradrag før regulering er ulikt brukt fradrag for bruker`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd, beløpBruker = 900.0),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal(1000)
-    }
-
-    @Test
-    fun `utleder manuell for hvis eksternt fradrag før regulering er ulikt brukt fradrag for eps`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd, beløpEps = 900.0),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.EPS
-        årsak.eksternNettoBeløpFørRegulering shouldBe BigDecimal(1000)
-    }
-
-    @Test
-    fun `utleder manuell for hvis eksternt fradrag etter regulering er usannsynlig høyt for bruker`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = lagRegulerteFradragEksternKilde(etterReguleringBruker = 1075),
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-        årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.forventetBeløpEtterRegulering shouldBe BigDecimal("1064.08")
-        årsak.eksternNettoBeløpEtterRegulering shouldBe BigDecimal(1075)
-    }
-
-    @Test
-    fun `utleder manuell for hvis eksternt fradrag etter regulering er usannsynlig høyt for eps`() {
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd),
-            regulerteFradragEksternKilde = lagRegulerteFradragEksternKilde(etterReguleringEps = 1075),
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.EPS
-        årsak.vårtBeløpFørRegulering shouldBe BigDecimal("1000.00")
-        årsak.forventetBeløpEtterRegulering shouldBe BigDecimal("1064.08")
-        årsak.eksternNettoBeløpEtterRegulering shouldBe BigDecimal(1075)
-    }
-
-    @Test
-    fun `utleder manuell hvis flere perioder for en fradragstype`() {
-        val fradrag = lagFradragsgrunnlag(Fradragstype.Uføretrygd)
-        val resultat = utledReguleringstypeOgFradrag(
-            fradrag = fradrag + listOf(fradrag.first()),
-            regulerteFradragEksternKilde = regulerteFradragEksternKilde,
-            omregningsfaktor = BigDecimal("1.064076"),
-            saksnummer = Saksnummer(8888),
-        )
-
-        (resultat.first as Reguleringstype.MANUELL).problemer.any {
-            it is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag
-        }
-        val årsak = (resultat.first as Reguleringstype.MANUELL).problemer.single()
-            as ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag
-        årsak.fradragskategori shouldBe Fradragstype.Uføretrygd.kategori
-        årsak.fradragTilhører shouldBe FradragTilhører.BRUKER
-    }
-
-    // TODO ------ egen testklasse tidligere for disse ----------------
-
-    // TODO SupplementInneholderIkkeFradraget - Bør feile tidligere
-    // TODO FantIkkeVedtakForApril - Bør feile tidligere
-
-    // TODO YtelseErMidlertidigStanset - testes ikke her??
-    // TODO AutomatiskSendingTilUtbetalingFeilet - testes ikke her?
-    // TODO VedtakstidslinjeErIkkeSammenhengende - testes ikke her?
-    // TODO DelvisOpphør - testes ikke her?
 }

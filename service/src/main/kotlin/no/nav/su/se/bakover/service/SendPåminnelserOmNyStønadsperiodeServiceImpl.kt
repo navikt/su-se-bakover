@@ -51,7 +51,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                         lagreContext = { ctx, tx ->
                             sendPåminnelseNyStønadsperiodeJobRepo.lagre(ctx, tx)
                         },
-                        hentPerson = personService::hentPersonMedSystembruker,
+                        hentPerson = { fnr -> personService.hentPersonMedSystembruker(fnr, sak.type) },
                     ).fold(
                         {
                             log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")

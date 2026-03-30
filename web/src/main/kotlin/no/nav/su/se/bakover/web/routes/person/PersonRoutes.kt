@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -33,6 +34,7 @@ internal fun Route.personRoutes(
     post("$PERSON_PATH/søk") {
         data class Body(
             val fnr: String,
+            val sakstype: String,
         )
 
         call.withBody<Body> { body ->
@@ -47,7 +49,7 @@ internal fun Route.personRoutes(
                 },
                 ifRight = { fnr ->
                     call.svar(
-                        personService.hentPersonMedSkjermingOgKontaktinfo(fnr).fold(
+                        personService.hentPersonMedSkjermingOgKontaktinfo(fnr, Sakstype.from(body.sakstype)).fold(
                             {
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 it.tilResultat()
@@ -78,7 +80,6 @@ data class PersonResponseJson(
     val navn: NavnJson,
     val telefonnummer: TelefonnummerJson?,
     val adresse: List<AdresseJson>?,
-    val statsborgerskap: String?,
     val sivilstand: SivilstandJson?,
     val fødsel: Fødsel?,
     val adressebeskyttelse: String?,
@@ -154,7 +155,6 @@ data class PersonResponseJson(
                     adresseformat = it.adresseformat,
                 )
             },
-            statsborgerskap = this.person.statsborgerskap,
             sivilstand = this.person.sivilstand?.let { sivilstand ->
                 SivilstandJson(
                     type = sivilstand.type.toString(),

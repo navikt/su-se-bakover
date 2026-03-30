@@ -6,23 +6,6 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - '.github/**'
-      - '!.github/workflows/su-se-bakover-master.yml'
-      - '!.github/workflows/reusable*.yml'
-      - '!.github/actions/**'
-      - '.idea/**'
-      - 'local-db-scripts/**'
-      - 'scripts/**'
-      - '.editorconfig'
-      - '*.template'
-      - '.gitignore'
-      - 'alerts.yml'
-      - '*.sh'
-      - 'CODEOWNERS'
-      - 'docker-compose.yml'
-      - 'LICENSE'
-      - '*.md'
 
 permissions: {}
 jobs:
@@ -57,12 +40,3 @@ jobs:
       cluster: dev-gcp
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
       resource: .nais/dev-gcp.yaml
-
-  draft-release:
-    name: Draft release
-    permissions:
-      contents: 'write' # needed to create/edit releases
-      pull-requests: 'write' # needed to add labels to pull requests
-    uses: navikt/su-se-bakover/.github/workflows/reusable-draft-release.yml@master
-    secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}

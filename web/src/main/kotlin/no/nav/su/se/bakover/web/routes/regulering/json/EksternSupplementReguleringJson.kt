@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.regulering.json
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
-import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson
 import no.nav.su.se.bakover.web.routes.grunnlag.fradrag.FradragskategoriJson.Companion.toJson

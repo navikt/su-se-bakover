@@ -121,7 +121,7 @@ class StønadStatistikkJobServiceImpl(
             val behandling = siste.behandling as Stønadsbehandling
             val sak = behandling.sakinfo()
 
-            val månedsbeløp = månedsbeløperBasertPåVedtak(clock, måned, siste, alleVedtak).singleOrNull {
+            val månedsbeløp = månedsbeløpBasertPåVedtak(clock, måned, siste, alleVedtak).singleOrNull {
                 YearMonth.from(LocalDate.parse(it.måned, DateTimeFormatter.ISO_DATE)) == måned
             }
 
@@ -158,11 +158,11 @@ class StønadStatistikkJobServiceImpl(
         },
     )
 
-    private fun månedsbeløperBasertPåVedtak(clock: Clock, måned: YearMonth, siste: Vedtak, alleVedtak: List<Vedtak>) =
+    private fun månedsbeløpBasertPåVedtak(clock: Clock, måned: YearMonth, siste: Vedtak, alleVedtak: List<Vedtak>) =
         when (siste) {
-            is VedtakInnvilgetRevurdering -> månedsbeløper(siste, siste.beregning)
-            is VedtakInnvilgetSøknadsbehandling -> månedsbeløper(siste, siste.beregning)
-            is VedtakInnvilgetRegulering -> månedsbeløper(siste, siste.beregning)
+            is VedtakInnvilgetRevurdering -> månedsbeløp(siste, siste.beregning)
+            is VedtakInnvilgetSøknadsbehandling -> månedsbeløp(siste, siste.beregning)
+            is VedtakInnvilgetRegulering -> månedsbeløp(siste, siste.beregning)
             is VedtakGjenopptakAvYtelse -> {
                 val beregningSomGjenopptas = GjeldendeVedtaksdata(
                     periode = Måned.fra(måned),
@@ -173,7 +173,7 @@ class StønadStatistikkJobServiceImpl(
                 ).gjeldendeVedtakForMåned(Måned.fra(måned))?.beregning
                     ?: throw IllegalStateException("Mangler vedtak med beregning i periode som skal ha blitt gjenopptatt")
 
-                månedsbeløper(siste, beregningSomGjenopptas)
+                månedsbeløp(siste, beregningSomGjenopptas)
             }
 
             is VedtakOpphørMedUtbetaling,
@@ -184,7 +184,7 @@ class StønadStatistikkJobServiceImpl(
             else -> throw IllegalStateException("Ikke tatt høyde for ${siste::class.simpleName} ved generering av statistikk")
         }
 
-    private fun månedsbeløper(
+    private fun månedsbeløp(
         vedtak: VedtakEndringIYtelse,
         beregning: Beregning,
     ): List<StønadstatistikkDto.Månedsbeløp> {

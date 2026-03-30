@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 internal data class UgyldigSøknadsinnholdInput(
     val felt: String,
     val begrunnelse: String,
+    val tegn: String? = null,
 )
 
 internal object SøknadsinnholdInputValidator {
@@ -27,6 +28,14 @@ internal object SøknadsinnholdInputValidator {
         '+',
         '&',
         '_',
+    )
+
+    // Aksenttegn
+    private val tillatteSpesialTegn = setOf(
+        'ô',
+        'è',
+        'ò',
+        'ê',
     )
 
     private val mistenkeligeMønstre = listOf(
@@ -58,13 +67,13 @@ internal object SøknadsinnholdInputValidator {
             felt = "oppholdstillatelse.statsborgerskapAndreLandFritekst",
             verdi = søknadsinnhold.oppholdstillatelse.statsborgerskapAndreLandFritekst,
         )
-
-        søknadsinnhold.boforhold.borPåAdresse?.let { adresse ->
+        // TODO validere mot PDL da veileder/sb ikke kan velge selv MEN mulig å sette i redux så må ha validering på adressen mtp sikkerhet
+        /*søknadsinnhold.boforhold.borPåAdresse?.let { adresse ->
             validerTekst("boforhold.borPåAdresse.adresselinje", adresse.adresselinje, maksLengde = 200)
             validerTekst("boforhold.borPåAdresse.postnummer", adresse.postnummer, maksLengde = 4)
             validerTekst("boforhold.borPåAdresse.poststed", adresse.poststed, maksLengde = 100)
             validerTekst("boforhold.borPåAdresse.bruksenhet", adresse.bruksenhet, maksLengde = 20)
-        }
+        }*/
 
         when (val forNav = søknadsinnhold.forNav) {
             is ForNavJson.DigitalSøknad -> Unit
@@ -126,7 +135,7 @@ internal object SøknadsinnholdInputValidator {
         }
 
         if (begrunnelse != null) {
-            add(UgyldigSøknadsinnholdInput(felt, begrunnelse))
+            add(UgyldigSøknadsinnholdInput(felt, begrunnelse, verdi))
         }
     }
 
@@ -151,6 +160,7 @@ internal object SøknadsinnholdInputValidator {
         if (this in 'a'..'z' || this in 'A'..'Z') return true
         if (this in setOf('æ', 'ø', 'å', 'Æ', 'Ø', 'Å')) return true
         if (this in tillatteSkilletegn) return true
+        if (this in tillatteSpesialTegn) return true
 
         return false
     }

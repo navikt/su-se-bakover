@@ -68,7 +68,10 @@ class JournalførDokumentService(
     private fun journalfør(command: JournalførBrevCommand): Either<KunneIkkeJournalføreBrev, JournalpostId> {
         return journalførBrevClient.journalførBrev(command)
             .mapLeft {
-                log.error("Journalføring: Kunne ikke journalføre i eksternt system (joark/dokarkiv)")
+                log.error(
+                    "Journalføring: Kunne ikke journalføre dokument ${command.internDokumentId} i eksternt system (joark/dokarkiv). " +
+                        "Dokumentet vil normalt bli forsøkt på nytt av journalføringsjobben.",
+                )
                 KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
             }
     }

@@ -6,6 +6,7 @@ on:
       - '*'         # matches every branch that doesn't contain a '/'
       - '*/*'       # matches every branch containing a single '/'
       - '**'        # matches every branch
+      - '!gh-readonly-queue/**' # excludes GitHub merge queue branches
       - '!master'   # excludes master
       - '!main'     # excludes main (will probably replace master)
     paths-ignore:

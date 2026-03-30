@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -90,7 +91,7 @@ class HentSøknadPdfTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
@@ -101,7 +102,7 @@ class HentSøknadPdfTest {
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr }, eq(Sakstype.UFØRE))
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -132,7 +133,7 @@ class HentSøknadPdfTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPerson(any(), any()) } doReturn person.right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -143,7 +144,7 @@ class HentSøknadPdfTest {
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr }, eq(Sakstype.UFØRE))
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(

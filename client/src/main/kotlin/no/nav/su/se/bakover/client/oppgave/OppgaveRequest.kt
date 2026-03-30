@@ -7,6 +7,7 @@ internal data class OppgaveRequest(
     val journalpostId: String?,
     val saksreferanse: String,
     val personident: String,
+    val behandlesAvApplikasjon: String?,
     val tema: String,
     val beskrivelse: String,
     val oppgavetype: String,

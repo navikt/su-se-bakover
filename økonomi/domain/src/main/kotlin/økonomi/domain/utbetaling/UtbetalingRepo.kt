@@ -15,6 +15,7 @@ interface UtbetalingRepo {
         sakId: UUID,
         disableSessionCounter: Boolean = false,
     ): Utbetalinger
+    fun hentOversendteUtbetalingerForSakIder(sakIder: List<UUID>): Map<UUID, Utbetalinger>
     fun hentOversendtUtbetalingForAvstemmingsnøkkel(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling?
     fun oppdaterMedKvittering(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,

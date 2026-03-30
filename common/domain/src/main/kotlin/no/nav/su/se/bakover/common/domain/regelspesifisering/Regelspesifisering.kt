@@ -36,6 +36,9 @@ enum class Regelspesifiseringer(
 
     // Vilkårsvurdering
     REGEL_FORMUE_HALV_G("REGEL-FORMUE-HALV-G", "1"),
+
+    // Regulering
+    REGEL_BEREGN_SATS_AAP_MÅNED("REGEL-BEREGN-SATS-AAP-MÅNED", "1"),
     ;
 
     fun benyttRegelspesifisering(
@@ -61,7 +64,8 @@ enum class RegelspesifisertGrunnlag(
     GRUNNLAG_GARANTIPENSJON_ORDINÆR("GRUNNLAG-GARANTPIPENSJON-ORDINÆR", "1"),
     GRUNNLAG_GARANTIPENSJON_HØY("GRUNNLAG-GARANTPIPENSJON-HØY", "1"),
     GRUNNLAG_FORMUE("GRUNNLAG-FORMUE", "1"),
-    GRUNNLAG_FORMUEGRENSE("GRUNNLAG_FORMUEGRENSE", "1"),
+    GRUNNLAG_FORMUEGRENSE("GRUNNLAG-FORMUEGRENSE", "1"),
+    GRUNNLAG_DAGSATS_AAP("GRUNNLAG-DAGSATS-AAP", "1"),
 
     // GRUNNLAG-INNTEKT_ETTER-UFØRE
     GRUNNLAG_UFØRETRYGD("GRUNNLAG-UFØRETRYGD", "1"),
@@ -82,6 +86,7 @@ enum class RegelspesifisertGrunnlag(
             GRUNNLAG_GARANTIPENSJON_HØY,
             GRUNNLAG_GRUNNBELØP,
             GRUNNLAG_FORMUEGRENSE,
+            GRUNNLAG_DAGSATS_AAP,
             -> "SU-App"
         },
     ) = Regelspesifisering.Grunnlag(

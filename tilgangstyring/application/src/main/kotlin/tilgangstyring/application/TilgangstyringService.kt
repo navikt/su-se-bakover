@@ -2,6 +2,7 @@ package tilgangstyring.application
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.PersonService
 import tilgangstyring.domain.IkkeTilgangTilSak
@@ -17,12 +18,13 @@ class TilgangstyringService(
     private val personService: PersonService,
 ) {
     fun assertHarTilgangTilSak(sakId: UUID): Either<IkkeTilgangTilSak, Unit> {
-        return personService.hentFnrForSak(sakId).map {
-            assertHarTilgangTilPerson(it)
+        val personerOgSakstype = personService.hentFnrForSak(sakId)
+        return personerOgSakstype.fnr.map {
+            assertHarTilgangTilPerson(it, sakstype = personerOgSakstype.sakstype)
         }.firstOrNull { it.isLeft() } ?: Unit.right()
     }
 
-    private fun assertHarTilgangTilPerson(fnr: Fnr): Either<IkkeTilgangTilSak, Unit> {
-        return personService.sjekkTilgangTilPerson(fnr).mapLeft { IkkeTilgangTilSak(it) }
+    private fun assertHarTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<IkkeTilgangTilSak, Unit> {
+        return personService.sjekkTilgangTilPerson(fnr, sakstype).mapLeft { IkkeTilgangTilSak(it) }
     }
 }

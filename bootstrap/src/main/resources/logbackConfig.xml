@@ -15,6 +15,5 @@
 
     <root level="INFO">
         <appender-ref ref="OTEL"/>
-        <appender-ref ref="STDOUT_JSON"/>
     </root>
 </included>

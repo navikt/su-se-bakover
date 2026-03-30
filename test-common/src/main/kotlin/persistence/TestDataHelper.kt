@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -112,6 +113,7 @@ import no.nav.su.se.bakover.test.beregn
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
+import no.nav.su.se.bakover.test.eksterneReguleringer
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -137,7 +139,6 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.dokument.PersistertDokumentHendelseTestData
 import no.nav.su.se.bakover.test.persistence.tilbakekreving.PersistertTilbakekrevingTestData
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.reguleringsgrunnlagFraEksternKilde
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
@@ -195,7 +196,6 @@ import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalingslinje
 import økonomi.infrastructure.kvittering.persistence.UtbetalingKvitteringPostgresRepo
-import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.util.LinkedList
@@ -524,7 +524,6 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         fraOgMedMåned: Måned = mai(2021),
-        gVerdiØkning: BigDecimal = BigDecimal(100),
         sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
@@ -537,11 +536,12 @@ class TestDataHelper(
             sakOgSøknad = sakOgSøknad,
             søknadsbehandling = søknadsbehandling,
         ).first.let { sak ->
+            val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrFail()
             sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-                fraOgMedMåned = fraOgMedMåned,
                 clock = clock,
-                regulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak),
-                omregningsfaktor = gVerdiØkning,
+                gjeldendeVedtaksdata = vedtaksdata,
+                alleEksterntRegulerteBeløp = eksterneReguleringer(sak),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

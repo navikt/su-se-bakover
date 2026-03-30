@@ -41,12 +41,22 @@ class KontrollsamtaleDriftOversiktServiceImpl(
         )
     }
 
+    /**
+     * Denne kan bli minne heavy og om den noengang skulle feile på det så må man lage egen domenemodell for utbetaling uten simulering og de andre tunge
+     * objektene som er unødvendig for å lage en tidslinje for en utbetaling
+     */
     private fun sakerMedInnkaltKontrollSamtaleSomHarFørtTilStans(utløpteKontrollSamtaler: List<Kontrollsamtale>): List<Long> {
-        val saker = sakRepo.hentSakInfoBulk(utløpteKontrollSamtaler.map { it.sakId })
-        return saker.filter {
-            val utbetalinger = utbetalingsRepo.hentOversendteUtbetalinger(it.sakId)
-            utbetalinger.tidslinje().getOrNull()?.last() is UtbetalingslinjePåTidslinje.Stans
-        }.map { it.saksnummer.nummer }
+        val sakIder = utløpteKontrollSamtaler.map { it.sakId }.distinct()
+        if (sakIder.isEmpty()) return emptyList()
+
+        val utbetalingerPerSak = utbetalingsRepo.hentOversendteUtbetalingerForSakIder(sakIder)
+        val stansedeSakIder = utbetalingerPerSak.filterValues {
+            it.tidslinje().getOrNull()?.last() is UtbetalingslinjePåTidslinje.Stans
+        }.keys
+
+        if (stansedeSakIder.isEmpty()) return emptyList()
+
+        return sakRepo.hentSakInfoBulk(stansedeSakIder.toList()).map { it.saksnummer.nummer }
     }
 }
 

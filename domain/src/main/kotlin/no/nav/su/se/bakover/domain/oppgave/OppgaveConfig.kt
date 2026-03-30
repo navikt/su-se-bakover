@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse.TilknyttetSak.IkkeSendtTilOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -27,10 +28,12 @@ private fun Sakstype.toBehandlingstema(): Behandlingstema =
 internal fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
     .withZone(zoneIdOslo).format(this)
 
+const val TEMA_SUP = "SUPSTONAD"
 sealed interface OppgaveConfig {
     val journalpostId: JournalpostId?
     val saksreferanse: String
     val fnr: Fnr
+    val behandlesAvApplikasjon: String? get() = null
     val behandlingstema: Behandlingstema?
     val oppgavetype: Oppgavetype
     val behandlingstype: Behandlingstype
@@ -69,6 +72,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
+        override val behandlesAvApplikasjon: String = TEMA_SUP
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
@@ -114,6 +118,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val behandlesAvApplikasjon: String = TEMA_SUP
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
@@ -260,6 +265,50 @@ sealed interface OppgaveConfig {
                 require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
             }
         }
+    }
+
+    data class Fradragssjekk(
+        val saksnummer: Saksnummer,
+        val måned: Måned,
+        val avvik: List<Avvik>,
+        override val sakstype: Sakstype,
+        override val fnr: Fnr,
+        override val clock: Clock,
+    ) : OppgaveConfig {
+        enum class AvvikKode {
+            MANGLER_FRADRAG_I_SUAPP,
+            FRADRAG_DIFF_OVER_10KR,
+            ULIKT_BELOP,
+            LOKALT_FRADRAG_MANGLER_EKSTERNT,
+        }
+
+        data class Avvik(
+            val kode: AvvikKode,
+            val tekst: String,
+        )
+
+        // TODO:håndere med trycreatt? kan det egentlig skje?
+        init {
+            require(avvik.isNotEmpty()) { "Fradragssjekk-oppgave krever minst ett avvik" }
+        }
+
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = sakstype.toBehandlingstema()
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+        override val beskrivelse: String
+            get() = buildString {
+                append(super.beskrivelse)
+                append("\nFradragssjekk for måned: $måned")
+                avvik.forEach { avvikslinje ->
+                    append("\n- ")
+                    append(avvikslinje.tekst)
+                }
+            }
     }
 
     sealed interface Klage : OppgaveConfig {

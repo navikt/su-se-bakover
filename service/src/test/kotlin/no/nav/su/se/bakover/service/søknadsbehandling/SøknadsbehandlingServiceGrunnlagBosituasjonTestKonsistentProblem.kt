@@ -6,6 +6,7 @@ import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonComman
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -71,7 +72,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+            on { hentPerson(any(), any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -93,7 +94,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
             ),
         ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
 
-        verify(personServiceMock).hentPerson(bosituasjon.fnr)
+        verify(personServiceMock).hentPerson(bosituasjon.fnr, Sakstype.UFØRE)
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock)
     }

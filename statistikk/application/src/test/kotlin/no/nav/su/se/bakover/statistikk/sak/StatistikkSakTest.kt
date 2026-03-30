@@ -30,7 +30,7 @@ internal class StatistikkSakTest {
         StatistikkEventObserverImpl(
             publisher = kafkaPublisherMock,
             personService = mock {
-                on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("55").right()
+                on { hentAktørIdMedSystembruker(any(), any()) } doReturn AktørId("55").right()
             },
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),

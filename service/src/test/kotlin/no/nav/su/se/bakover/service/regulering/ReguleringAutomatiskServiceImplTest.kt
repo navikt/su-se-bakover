@@ -7,26 +7,28 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
-import no.nav.su.se.bakover.domain.regulering.HentEksterneReguleringerRequest
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
+import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.ReguleringHentEksterneReguleringerService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -42,6 +44,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -148,26 +151,39 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
         )
 
-        val alleSaker = (1..antallSaker).map { sak.info().copy(sakId = UUID.randomUUID()) }
+        val sakerPerId = (1..antallSaker).associate { _ ->
+            val sakId = UUID.randomUUID()
+            sakId to sak.copy(
+                id = sakId,
+                fnr = Fnr.generer(),
+            )
+        }
+        val alleSaker = sakerPerId.values.map { it.info() }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
-            on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSak(any<UUID>()) } doAnswer { invocation ->
+                val sakId = invocation.getArgument<UUID>(0)
+                sakerPerId.getValue(sakId).right()
+            }
         }
-        val reguleringHentEksterneReguleringerService = mock<ReguleringHentEksterneReguleringerService> {
-            on { hentEksterneReguleringer(any()) } doReturn
-                listOf(
-                    RegulerteFradragEksternKilde(
-                        fnr = fnr,
-                        bruker = listOf(
-                            RegulertFradragEksternKilde(
-                                fnr = fnr,
-                                førRegulering = 0,
-                                etterRegulering = 0,
+        val reguleringerFraPesysService = mock<ReguleringerFraPesysService> {
+            on { hentReguleringer(any()) } doAnswer { invocation ->
+                val parameter = invocation.getArgument<HentReguleringerPesysParameter>(0)
+                parameter.brukereMedEps.map { brukerMedEps ->
+                    EksterntRegulerteBeløp(
+                        brukerFnr = brukerMedEps.fnr,
+                        beløpBruker = listOf(
+                            RegulertBeløp(
+                                fnr = brukerMedEps.fnr,
+                                fradragstype = Fradragstype.Alderspensjon,
+                                førRegulering = BigDecimal.ZERO.setScale(2),
+                                etterRegulering = BigDecimal.ZERO.setScale(2),
                             ),
                         ),
-                        forEps = emptyList(),
-                    ).right(),
-                )
+                        beløpEps = emptyList(),
+                    ).right()
+                }
+            }
         }
 
         val service = ReguleringAutomatiskServiceImpl(
@@ -180,13 +196,26 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionFactory,
             reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
             reguleringKjøringRepo = reguleringKjøringRepo,
+            reguleringerFraPesysService = reguleringerFraPesysService,
+            aapReguleringerService = mock {
+                on { hentReguleringer(any()) } doAnswer { invocation ->
+                    val parameter = invocation.getArgument<HentReguleringerPesysParameter>(0)
+                    parameter.brukereMedEps.map { brukerMedEps ->
+                        EksterntRegulerteBeløp(
+                            brukerFnr = brukerMedEps.fnr,
+                            beløpBruker = emptyList(),
+                            beløpEps = emptyList(),
+                        ).right()
+                    }
+                }
+            },
         )
 
         val resultater = service.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
 
         resultater.size shouldBe antallSaker
-        val sakerPerKall = argumentCaptor<HentEksterneReguleringerRequest>()
-        verify(reguleringHentEksterneReguleringerService, times(3)).hentEksterneReguleringer(sakerPerKall.capture())
+        val sakerPerKall = argumentCaptor<HentReguleringerPesysParameter>()
+        verify(reguleringerFraPesysService, times(3)).hentReguleringer(sakerPerKall.capture())
         sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
             50,
             50,
@@ -213,6 +242,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     fradragsgrunnlag = listOf(fradraget),
                 ).let { listOf(it.bosituasjon, it.fradragsgrunnlag) }.flatten(),
             ).first,
+            beløp = 12000,
         )
 
         @Test
@@ -229,10 +259,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
-                    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+                    ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
                         fradragskategori = fradraget.fradragstype.kategori,
                         fradragTilhører = fradraget.tilhører,
-                        begrunnelse = "Fradraget til BRUKER: OffentligPensjon kan ikke hentes automatisk",
                     ),
                 ),
             )
@@ -262,7 +291,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
 
@@ -359,7 +388,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
         }
 
@@ -368,7 +397,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val revurdertSak =
                 vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
-            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true)
+            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true, beløp = 10500)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
@@ -387,7 +416,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2023), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
-                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                     .left()
             }
         }
@@ -559,6 +588,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 oversendtUtbetalingUtenKvittering(
                     beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                     clock = clock,
+                    beløp = 20000,
                 ),
             ),
         )
@@ -574,7 +604,13 @@ internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `gjør ingen sideeffekter ved dry run av eksisterende grunnbeløp`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
+            utbetalinger = Utbetalinger(
+                oversendtUtbetalingMedKvittering(
+                    beløp = 21000,
+                ),
+            ),
+        )
 
         val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
@@ -613,19 +649,25 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringKjøringRepo = mock(),
             reguleringHentEksterneReguleringerService = mock {
                 on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteFradragEksternKilde(
-                            fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                        EksterntRegulerteBeløp(
+                            brukerFnr = sak.fnr,
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
-                                    førRegulering = 0,
-                                    etterRegulering = 0,
+                                    fradragstype = Fradragstype.Alderspensjon,
+                                    førRegulering = BigDecimal.ZERO.setScale(2),
+                                    etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
                             ),
-                            forEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
+            },
+            aapReguleringerService = mock {
+                on { hentReguleringer(any()) } doReturn listOf(EksterntRegulerteBeløp(brukerFnr = sak.fnr, beløpBruker = emptyList(), beløpEps = emptyList()).right())
             },
 
         ).startAutomatiskReguleringForInnsyn(
@@ -651,7 +693,13 @@ internal class ReguleringAutomatiskServiceImplTest {
 
     @Test
     fun `gjør ingen sideeffekter ved dry run der vi legger inn et nytt test grunnbeløp`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first.copy(
+            utbetalinger = Utbetalinger(
+                oversendtUtbetalingMedKvittering(
+                    beløp = 21000,
+                ),
+            ),
+        )
 
         val reguleringRepo = mock<ReguleringRepo> {}
         val sakService = mock<SakService> {
@@ -694,19 +742,25 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringKjøringRepo = mock(),
             reguleringHentEksterneReguleringerService = mock {
                 on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteFradragEksternKilde(
-                            fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                        EksterntRegulerteBeløp(
+                            brukerFnr = sak.fnr,
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
-                                    førRegulering = 0,
-                                    etterRegulering = 0,
+                                    fradragstype = Fradragstype.Alderspensjon,
+                                    førRegulering = BigDecimal.ZERO.setScale(2),
+                                    etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
                             ),
-                            forEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
+            },
+            aapReguleringerService = mock {
+                on { hentReguleringer(any()) } doReturn listOf(EksterntRegulerteBeløp(brukerFnr = sak.fnr, beløpBruker = emptyList(), beløpEps = emptyList()).right())
             },
         ).startAutomatiskReguleringForInnsyn(
             StartAutomatiskReguleringForInnsynCommand(
@@ -743,9 +797,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
-        beløpFørRegulering: Double = 100.0,
-        beløpEtterRegulering: Double = beløpFørRegulering + 10,
         clock: Clock = tikkendeFixedClock(),
+        beløp: Int = 20000,
     ): ReguleringAutomatiskServiceImpl {
         val sakMedEndringer = if (scrambleUtbetaling) {
             sak.copy(
@@ -754,6 +807,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     oversendtUtbetalingMedKvittering(
                         beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())),
                         clock = clock,
+                        beløp = beløp,
                     ),
                 ),
                 // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering
@@ -838,20 +892,139 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringKjøringRepo = mock(),
             reguleringHentEksterneReguleringerService = mock {
                 on { hentEksterneReguleringer(any()) } doReturn
+            reguleringerFraPesysService = mock {
+                on { hentReguleringer(any()) } doReturn
                     listOf(
-                        RegulerteFradragEksternKilde(
-                            fnr = sak.fnr,
-                            bruker = listOf(
-                                RegulertFradragEksternKilde(
+                        EksterntRegulerteBeløp(
+                            brukerFnr = sak.fnr,
+                            beløpBruker = listOf(
+                                RegulertBeløp(
                                     fnr = sak.fnr,
-                                    førRegulering = beløpFørRegulering.toInt(),
-                                    etterRegulering = beløpEtterRegulering.toInt(),
+                                    fradragstype = Fradragstype.Alderspensjon,
+                                    førRegulering = BigDecimal.ZERO.setScale(2),
+                                    etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
                             ),
-                            forEps = emptyList(),
+                            beløpEps = emptyList(),
                         ).right(),
                     )
             },
+            aapReguleringerService = mock {
+                on { hentReguleringer(any()) } doReturn listOf(EksterntRegulerteBeløp(brukerFnr = sak.fnr, beløpBruker = emptyList(), beløpEps = emptyList()).right())
+            },
+        )
+    }
+
+    @Test
+    fun `slår sammen pesys og aap for samme bruker-fnr`() {
+        val bruker = HentReguleringerPesysParameter.BrukerMedEps(
+            fnr = fnr,
+            sakstype = Sakstype.UFØRE,
+            fradragstyperBruker = emptySet(),
+            eps = null,
+            fradragstyperEps = emptySet(),
+        )
+        val pesys = listOf(
+            EksterntRegulerteBeløp(
+                brukerFnr = fnr,
+                beløpBruker = listOf(
+                    RegulertBeløp(
+                        fnr = fnr,
+                        fradragstype = Fradragstype.Alderspensjon,
+                        førRegulering = BigDecimal("100.00"),
+                        etterRegulering = BigDecimal("110.00"),
+                    ),
+                ),
+                beløpEps = emptyList(),
+            ).right(),
+        )
+        val aap = listOf(
+            EksterntRegulerteBeløp(
+                brukerFnr = fnr,
+                beløpBruker = listOf(
+                    RegulertBeløp(
+                        fnr = fnr,
+                        fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                        førRegulering = BigDecimal("200.00"),
+                        etterRegulering = BigDecimal("210.00"),
+                    ),
+                ),
+                beløpEps = emptyList(),
+            ).right(),
+        )
+
+        val resultat = slåSammenEksterneReguleringer(
+            brukereMedEps = listOf(bruker),
+            fraPesys = pesys,
+            fraAap = aap,
+        ).single().shouldBeRight()
+
+        resultat.beløpBruker.map { it.fradragstype } shouldBe listOf(
+            Fradragstype.Alderspensjon,
+            Fradragstype.Arbeidsavklaringspenger,
+        )
+    }
+
+    @Test
+    fun `feiler tydelig dersom pesys og aap mangler forventede brukere`() {
+        val bruker = HentReguleringerPesysParameter.BrukerMedEps(
+            fnr = fnr,
+            sakstype = Sakstype.UFØRE,
+            fradragstyperBruker = emptySet(),
+            eps = null,
+            fradragstyperEps = emptySet(),
+        )
+        val pesys = listOf(
+            EksterntRegulerteBeløp(
+                brukerFnr = fnr,
+                beløpBruker = emptyList(),
+                beløpEps = emptyList(),
+            ).right(),
+        )
+
+        val feil = runCatching {
+            slåSammenEksterneReguleringer(
+                brukereMedEps = listOf(bruker),
+                fraPesys = pesys,
+                fraAap = emptyList(),
+            )
+        }.exceptionOrNull()
+
+        (feil is IllegalArgumentException) shouldBe true
+    }
+
+    @Test
+    fun `slår sammen feil fra pesys og aap for samme bruker`() {
+        val bruker = HentReguleringerPesysParameter.BrukerMedEps(
+            fnr = fnr,
+            sakstype = Sakstype.UFØRE,
+            fradragstyperBruker = emptySet(),
+            eps = null,
+            fradragstyperEps = emptySet(),
+        )
+
+        val resultat = slåSammenEksterneReguleringer(
+            brukereMedEps = listOf(bruker),
+            fraPesys = listOf(
+                no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker(
+                    fnr = fnr,
+                    alleFeil = listOf(no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.IngenPeriodeFraPesys),
+                ).left(),
+            ),
+            fraAap = listOf(
+                no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker(
+                    fnr = fnr,
+                    alleFeil = listOf(no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.KunneIkkeHenteAap),
+                ).left(),
+            ),
+        ).single().fold(
+            ifLeft = { it },
+            ifRight = { error("Forventet left ved sammenslåing av feil fra Pesys og AAP") },
+        )
+
+        resultat.alleFeil shouldBe listOf(
+            no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.IngenPeriodeFraPesys,
+            no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.KunneIkkeHenteAap,
         )
     }
 }

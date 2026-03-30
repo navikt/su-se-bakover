@@ -4,6 +4,7 @@ import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -300,7 +301,7 @@ private fun utledReguleringstypeOgFradragForEttFradragsgrunnlag(
         ) to originaleFradragsgrunnlag
     }
 
-    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpFraSupplement(eksterntBeløpEtterRegulering)
+    val oppdatertBeløpFraSupplement = originaleFradragsgrunnlag.oppdaterBeløpMedEksternRegulering(eksterntBeløpEtterRegulering)
     return Reguleringstype.AUTOMATISK to oppdatertBeløpFraSupplement
 }
 

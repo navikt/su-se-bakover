@@ -269,6 +269,13 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 fradragTilhører = this.fradragTilhører.toString(),
                 begrunnelse = this.begrunnelse,
             )
+
+            // TODO bjg lage ny
+            is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> BrukerManglerSupplement(
+                fradragskategori = fradragskategori.toString(),
+                fradragTilhører = fradragTilhører.toString(),
+                begrunnelse = begrunnelse,
+            )
         }
     }
 }

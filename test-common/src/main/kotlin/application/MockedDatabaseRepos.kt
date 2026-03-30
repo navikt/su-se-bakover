@@ -1,14 +1,38 @@
 package no.nav.su.se.bakover.test.application
 
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import person.domain.PersonRepo
+import person.domain.PersonerOgSakstype
 
-fun mockedDatabaseRepos() = DatabaseRepos(
+private fun defaultPersonerOgSakstype(
+    sakstype: Sakstype,
+    fnr: List<Fnr>,
+): PersonerOgSakstype = PersonerOgSakstype(sakstype, fnr)
+
+private fun mockedPersonRepo(defaultPersonerOgSakstype: PersonerOgSakstype): PersonRepo = mock {
+    on { hentFnrOgSaktypeForSak(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForSøknad(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForBehandling(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForUtbetaling(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForRevurdering(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForVedtak(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForKlage(any()) } doReturn defaultPersonerOgSakstype
+}
+
+fun mockedDatabaseRepos(
+    defaultSakstype: Sakstype = Sakstype.UFØRE,
+    defaultFnr: List<Fnr> = emptyList(),
+) = DatabaseRepos(
     avstemming = mock(),
     utbetaling = mock(),
     søknad = mock(),
     sak = mock(),
-    person = mock(),
+    person = mockedPersonRepo(defaultPersonerOgSakstype(defaultSakstype, defaultFnr)),
     søknadsbehandling = mock(),
     revurderingRepo = mock(),
     vedtakRepo = mock(),

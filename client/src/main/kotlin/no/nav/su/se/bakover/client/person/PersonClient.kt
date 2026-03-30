@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
@@ -35,19 +36,19 @@ internal class PersonClient(
         JwtToken.BrukerToken.fraCoroutineContext()
     },
 ) : PersonOppslag {
-
     /**
      * PDL gjør en enkel tilgangssjekk implisitt ved kallet med brukertokenet
      */
     override fun person(
         fnr: Fnr,
+        sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, Person> {
         val brukerToken = hentBrukerToken()
-        return pdlClient.person(fnr, brukerToken).map { toPerson(it, brukerToken) }
+        return pdlClient.person(fnr, brukerToken, sakstype).map { toPerson(it, brukerToken) }
     }
 
-    override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
-        return pdlClient.personForSystembruker(fnr).map { toPerson(it, JwtToken.SystemToken) }
+    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
+        return pdlClient.personForSystembruker(fnr, sakstype).map { toPerson(it, JwtToken.SystemToken) }
     }
 
     override fun bostedsadresseMedMetadataForSystembruker(
@@ -62,9 +63,12 @@ internal class PersonClient(
         }
     }
 
-    override fun personMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+    override fun personMedSkjermingOgKontaktinfo(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
         val brukerToken = hentBrukerToken()
-        return pdlClient.person(fnr, brukerToken).map {
+        return pdlClient.person(fnr, brukerToken, sakstype).map {
             PersonMedSkjermingOgKontaktinfo(
                 person = toPerson(it, brukerToken),
                 skjermet = config.skjerming.erSkjermet(it.ident.fnr, brukerToken),
@@ -73,17 +77,19 @@ internal class PersonClient(
         }
     }
 
-    override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return pdlClient.aktørIdMedSystembruker(fnr)
+    override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> {
+        return pdlClient.aktørIdMedSystembruker(fnr, sakstype)
     }
 
     /**
      * En forenkling av [PersonOppslag.person] for å sjekke tilgang til personen uten at vi trenger å gjøre noe videre
      * med resultatet.
+     * Denne sjekker adressebeskyttelse og skjerming(egen-ansatt) se https://pdl-docs.ansatt.nav.no/ekstern/index.html#_tilgangsstyring
+     * MERK denne burde gå mot "pdl-pip-api"
      */
-    override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
+    override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
         val brukerToken = hentBrukerToken()
-        return pdlClient.person(fnr, brukerToken).map { }
+        return pdlClient.person(fnr, brukerToken, sakstype).map { }
     }
 
     private fun toPerson(pdlData: PdlData, token: JwtToken) = Person(
@@ -111,7 +117,6 @@ internal class PersonClient(
                 adresseformat = it.adresseformat,
             )
         },
-        statsborgerskap = pdlData.statsborgerskap,
         sivilstand = pdlData.sivilstand?.let {
             Person.Sivilstand(
                 type = it.type,

@@ -109,7 +109,8 @@ class SøknadServiceImpl(
             return KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt.left()
         }
 
-        val person = personService.hentPerson(innsendtFødselsnummer).getOrElse {
+        val sakstypeDetErSøktPå = søknadInnhold.type()
+        val person = personService.hentPerson(innsendtFødselsnummer, sakstypeDetErSøktPå).getOrElse {
             // Dette bør ikke skje i normal flyt, siden vi allerede har gjort en tilgangssjekk mot PDL (kode6/7).
             log.error("Ny søknad: Fant ikke person med gitt fødselsnummer. Originalfeil: $it")
             return KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -120,9 +121,6 @@ class SøknadServiceImpl(
         if (fnr != innsendtFødselsnummer) {
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
-        // Det er dette brukeren har søkt på uavhengig hvor mange saker eller hva slags type saker vi har fra før.
-        val sakstypeDetErSøktPå = søknadInnhold.type()
-
         val (sak, søknad) = sakService.hentSakHvisFinnes(fnr, sakstypeDetErSøktPå)?.let {
             // Fant eksisterende sak med denne typen; oppretter ny søknad på eksisterende sak.
             opprettSøknadPåEksisterendeSak(
@@ -177,7 +175,7 @@ class SøknadServiceImpl(
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Fant ikke sak").left()
             }
-            val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
+            val person = personService.hentPersonMedSystembruker(sak.fnr, sak.type).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
                 return@map KunneIkkeOppretteJournalpost(sak.id, søknad.id, "Fant ikke person").left()
             }
@@ -305,7 +303,7 @@ class SøknadServiceImpl(
                 sakService.hentSak(søknad.sakId).mapLeft {
                     return KunneIkkeLageSøknadPdf.FantIkkeSak.left()
                 }.flatMap { sak ->
-                    personService.hentPerson(søknad.fnr).mapLeft {
+                    personService.hentPerson(søknad.fnr, sak.type).mapLeft {
                         log.error("Hent søknad-PDF: Fant ikke person")
                         return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
                     }.flatMap { person ->

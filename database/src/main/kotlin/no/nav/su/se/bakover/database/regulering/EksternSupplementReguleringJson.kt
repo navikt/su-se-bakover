@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.database.regulering.EksternVedtakstypeJson.Companion
 import no.nav.su.se.bakover.database.regulering.FradragsperiodeJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.PerTypeJson.Companion.toDbJson
 import no.nav.su.se.bakover.database.regulering.ReguleringssupplementForJson.Companion.toDbJson
-import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor

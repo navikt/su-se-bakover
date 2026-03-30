@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserializeParameterizedType
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
@@ -55,15 +56,15 @@ internal class PdlClient(
     private val hentBostedsadresseMedMetadataQuery =
         this::class.java.getResource("/hentBostedsadresseMedMetadata.graphql")?.readText()!!
 
-    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, PdlData> {
+    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
-            kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token)
+            kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token, sakstype)
                 .flatMap { mapResponse(it) }
         }
     }
 
-    fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
-        return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery)
+    fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
+        return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery, sakstype = sakstype)
             .flatMap { mapResponse(it) }
     }
 
@@ -132,7 +133,6 @@ internal class PdlClient(
                 Telefonnummer(landskode = it.landskode, nummer = it.nummer)
             },
             adresse = alleAdresser,
-            statsborgerskap = person.statsborgerskap.firstOrNull()?.land,
             sivilstand = person.sivilstand.firstOrNull(),
             fødsel = person.foedselsdato.map {
                 PdlData.Fødsel(
@@ -160,8 +160,8 @@ internal class PdlClient(
 
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.lowercase() == "freg"
 
-    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return kallPDLMedSystembruker<IdentResponseData>(fnr, hentIdenterQuery).map {
+    fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> {
+        return kallPDLMedSystembruker<IdentResponseData>(fnr, hentIdenterQuery, sakstype = sakstype).map {
             val identer = it.hentIdenter ?: return FantIkkePerson.left()
             finnIdent(identer).aktørId
         }
@@ -177,6 +177,7 @@ internal class PdlClient(
         fnr: Fnr,
         query: String,
         historikk: Boolean = false,
+        sakstype: Sakstype = Sakstype.UFØRE,
     ): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString(), historikk = historikk))
         val token = config.azureAd.getSystemToken(config.vars.clientId)
@@ -185,7 +186,7 @@ internal class PdlClient(
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("behandlingsnummer", Behandlingsnummer.UFØRE.value)
+            .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
             .body(serialize(pdlRequest))
             .responseString()
         return håndterPdlSvar(result, response)
@@ -195,6 +196,7 @@ internal class PdlClient(
         fnr: Fnr,
         query: String,
         jwtOnBehalfOf: String,
+        sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
@@ -202,7 +204,7 @@ internal class PdlClient(
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("behandlingsnummer", Behandlingsnummer.UFØRE.value)
+            .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
             .body(serialize(pdlRequest))
             .responseString()
         return håndterPdlSvar(result, response)
@@ -309,7 +311,6 @@ internal data class HentPerson(
     val bostedsadresse: List<Bostedsadresse>,
     val kontaktadresse: List<Kontaktadresse>,
     val oppholdsadresse: List<Oppholdsadresse>,
-    val statsborgerskap: List<Statsborgerskap>,
     val sivilstand: List<SivilstandResponse>,
     val foedselsdato: List<Fødselsdato>,
     val adressebeskyttelse: List<Adressebeskyttelse>,
@@ -332,12 +333,6 @@ internal data class TelefonnummerResponse(
     val landskode: String,
     val nummer: String,
     val prioritet: Int,
-)
-
-internal data class Statsborgerskap(
-    val land: String,
-    val gyldigFraOgMed: LocalDate?,
-    val gyldigTilOgMed: LocalDate?,
 )
 
 internal data class Metadata(

@@ -31,10 +31,11 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
+import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringHentEksterneReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -191,7 +192,6 @@ data object ServiceBuilder {
             kjerneTjenester = kjerneTjenester,
             søknadService = søknadService,
             søknadsbehandlingService = søknadsbehandlingService,
-            clock = clock,
         )
 
         return Services(
@@ -611,9 +611,12 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
         )
-        val reguleringHentEksterneReguleringerService = ReguleringHentEksterneReguleringerServiceImpl(
+        val reguleringerFraPesysService = ReguleringerFraPesysServiceImpl(
             pesysClient = clients.pesysklient,
             satsFactory = satsFactory,
+        )
+        val aapReguleringerService = AapReguleringerServiceImpl(
+            aapApiInternClient = clients.aapApiInternClient,
         )
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
@@ -625,6 +628,8 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
             reguleringHentEksterneReguleringerService = reguleringHentEksterneReguleringerService,
+            reguleringerFraPesysService = reguleringerFraPesysService,
+            aapReguleringerService = aapReguleringerService,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
@@ -703,10 +708,8 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
         søknadService: SøknadServiceImpl,
         søknadsbehandlingService: SøknadsbehandlingServiceImpl,
-        clock: Clock,
     ): LukkSøknadServiceImpl {
         return LukkSøknadServiceImpl(
-            clock = clock,
             søknadService = søknadService,
             brevService = kjerneTjenester.brevService,
             oppgaveService = kjerneTjenester.oppgaveService,

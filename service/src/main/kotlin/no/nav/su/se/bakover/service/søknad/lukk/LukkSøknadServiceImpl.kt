@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.oppgave.ALLEREDE_FERDIGSTILT
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -22,11 +23,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
-import java.time.Clock
 import java.util.UUID
 
 class LukkSøknadServiceImpl(
-    private val clock: Clock,
     private val søknadService: SøknadService,
     private val sakService: SakService,
     private val brevService: BrevService,
@@ -77,7 +76,7 @@ class LukkSøknadServiceImpl(
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
                 ).onLeft { feil ->
                     if (feil.feilPgaAlleredeFerdigstilt()) {
-                        log.warn("Oppgave med id ${it.søknad.oppgaveId} er allerede ferdigstilt, for søknad id ${it.søknad.id}")
+                        log.warn("$ALLEREDE_FERDIGSTILT Oppgave med id ${it.søknad.oppgaveId} er allerede ferdigstilt, for søknad id ${it.søknad.id}")
                     } else {
                         // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
                         log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")

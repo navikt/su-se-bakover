@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgavePrioritet
+import no.nav.su.se.bakover.domain.oppgave.TEMA_SUP
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -99,7 +100,13 @@ internal class OppgaveHttpClientTest {
                 tilordnetRessurs = saksbehandler,
                 clock = fixedClock,
             )
-            val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, tilordnetRessurs = saksbehandler, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
+            val expectedSaksbehandlingRequest = createOppgaveRequest(
+                journalpostId = journalpostId,
+                tilordnetRessurs = saksbehandler,
+                behandlingstema = sakstype.toBehandlingstema(),
+                beskrivelse = oppgave.beskrivelse,
+                behandlesAvApplikasjon = TEMA_SUP,
+            )
             val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
             stubOppgave(expectedSaksbehandlingRequest, response)
 
@@ -138,7 +145,12 @@ internal class OppgaveHttpClientTest {
                 tilordnetRessurs = null,
                 clock = fixedClock,
             )
-            val expectedSaksbehandlingRequest = createOppgaveRequest(journalpostId = journalpostId, behandlingstema = sakstype.toBehandlingstema(), beskrivelse = oppgave.beskrivelse)
+            val expectedSaksbehandlingRequest = createOppgaveRequest(
+                journalpostId = journalpostId,
+                behandlingstema = sakstype.toBehandlingstema(),
+                beskrivelse = oppgave.beskrivelse,
+                behandlesAvApplikasjon = TEMA_SUP,
+            )
             val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
             stubOppgave(expectedSaksbehandlingRequest, response)
@@ -232,6 +244,7 @@ internal class OppgaveHttpClientTest {
                 beskrivelse = oppgave.beskrivelse,
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
+                behandlesAvApplikasjon = TEMA_SUP,
             )
             val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
@@ -278,6 +291,7 @@ internal class OppgaveHttpClientTest {
                 beskrivelse = oppgave.beskrivelse,
                 behandlingstype = "ae0028",
                 behandlingstema = sakstype.toBehandlingstema(),
+                behandlesAvApplikasjon = TEMA_SUP,
             )
             val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
@@ -626,12 +640,14 @@ internal class OppgaveHttpClientTest {
         fristFerdigstillelse: LocalDate = LocalDate.of(2021, 1, 31),
         prioritet: OppgavePrioritet = OppgavePrioritet.NORM,
         tilordnetRessurs: Saksbehandler? = null,
+        behandlesAvApplikasjon: String? = null,
     ): String {
         return serialize(
             OppgaveRequest(
                 journalpostId = journalpostId?.toString(),
                 saksreferanse = saksnummer.toString(),
                 personident = fnr.toString(),
+                behandlesAvApplikasjon = behandlesAvApplikasjon,
                 tema = Tema.SUPPLERENDE_STØNAD.value,
                 beskrivelse = beskrivelse,
                 oppgavetype = oppgavetype,

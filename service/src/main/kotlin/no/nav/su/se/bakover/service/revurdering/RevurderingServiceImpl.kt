@@ -485,7 +485,7 @@ class RevurderingServiceImpl(
         val bosituasjongrunnlag = request.toDomain(
             clock = clock,
         ) {
-            personService.hentPerson(it)
+            personService.hentPerson(it, revurdering.sakstype)
         }.getOrElse {
             return it.left()
         }
@@ -1234,16 +1234,11 @@ class RevurderingServiceImpl(
         originalRevurdering: AbstraktRevurdering,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
-        val fritekst = fritekstService.hentFritekst(
-            referanseId = originalRevurdering.id.value,
-            type = FritekstType.VEDTAKSBREV_REVURDERING,
-        ).map { it.fritekst }.getOrElse { "" }
-
         return brevService.lagDokumentPdf(
             avsluttetRevurdering.lagDokumentKommando(
                 satsFactory = satsFactory,
                 clock = clock,
-                fritekst = fritekst,
+                fritekst = avsluttetRevurdering.brevvalg.fritekst ?: "",
             ),
         ).mapLeft {
             KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument

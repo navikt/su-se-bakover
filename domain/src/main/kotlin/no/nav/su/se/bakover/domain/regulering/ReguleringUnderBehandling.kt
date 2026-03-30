@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.UføreVilkår
@@ -98,6 +99,7 @@ sealed class ReguleringUnderBehandling :
         return oppdatertRegulering.right()
     }
 
+    // TODO AUTO-REG-26 - Fjern? Feil mot utbetaling vil vi enten fikse eller bør tas med revurdering?
     fun endreTilManuell(begrunnelse: String): ReguleringUnderBehandling {
         val reguleringstype = Reguleringstype.MANUELL(
             setOf(
@@ -187,6 +189,8 @@ sealed class ReguleringUnderBehandling :
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
         override val eksternSupplementRegulering: EksternSupplementRegulering? = null,
+        // SOS TODO: kan være dette skal kun være  EksterntRegulerteBeløp som lagres og ikke så spesifikt
+        val aapGrunnlag: AapGrunnlagForRegulering?,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling()

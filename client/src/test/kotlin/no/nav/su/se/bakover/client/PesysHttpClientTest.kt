@@ -9,8 +9,8 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
-import no.nav.su.se.bakover.client.pesys.BeregningsperiodeDto
 import no.nav.su.se.bakover.client.pesys.PesysHttpClient
 import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
 import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
@@ -33,7 +33,7 @@ val expectedAlderResponse = ResponseDtoAlder(
         AlderBeregningsperioderPerPerson(
             fnr = "22503904369",
             perioder = listOf(
-                BeregningsperiodeDto(
+                AlderBeregningsperiode(
                     netto = 20983,
                     fom = LocalDate.parse("2025-05-01"),
                     tom = null,
@@ -48,7 +48,7 @@ val expectedAlderResponse = ResponseDtoAlder(
         AlderBeregningsperioderPerPerson(
             fnr = "10435046563",
             perioder = listOf(
-                BeregningsperiodeDto(
+                AlderBeregningsperiode(
                     netto = 47292,
                     fom = LocalDate.parse("2025-05-01"),
                     tom = null,
@@ -59,7 +59,7 @@ val expectedAlderResponse = ResponseDtoAlder(
         AlderBeregningsperioderPerPerson(
             fnr = "01445407670",
             perioder = listOf(
-                BeregningsperiodeDto(
+                AlderBeregningsperiode(
                     netto = 32123,
                     fom = LocalDate.parse("2025-05-01"),
                     tom = null,
@@ -70,7 +70,7 @@ val expectedAlderResponse = ResponseDtoAlder(
         AlderBeregningsperioderPerPerson(
             fnr = "14445014177",
             perioder = listOf(
-                BeregningsperiodeDto(
+                AlderBeregningsperiode(
                     netto = 39642,
                     fom = LocalDate.parse("2025-05-01"),
                     tom = null,
@@ -81,7 +81,7 @@ val expectedAlderResponse = ResponseDtoAlder(
         AlderBeregningsperioderPerPerson(
             fnr = "24415045545",
             perioder = listOf(
-                BeregningsperiodeDto(
+                AlderBeregningsperiode(
                     netto = 47994,
                     fom = LocalDate.parse("2025-05-01"),
                     tom = null,

@@ -66,7 +66,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
             },
             clock = fixedClock,
         ).kontrollsamtaleService.kallInnTilKontrollsamtale(
@@ -83,7 +83,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
             clock = fixedClock,
         ).kontrollsamtaleService.kallInnTilKontrollsamtale(
@@ -98,7 +98,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person(
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(
                     fnr = sak.fnr,
                     dødsdato = 1.januar(2021),
                 ).right()
@@ -116,7 +116,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person(
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(
                     fnr = sak.fnr,
                     dødsdato = 1.januar(2021),
                 ).right()
@@ -134,7 +134,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
             },
         ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
@@ -153,7 +153,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
             },
             brevService = brevService,
             clock = fixedClock,
@@ -171,7 +171,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
             },
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()
@@ -193,7 +193,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
             },
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataInformasjonViktig().right()

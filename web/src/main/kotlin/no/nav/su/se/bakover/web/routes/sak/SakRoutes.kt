@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.isMultipartFormDataRequest
-import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -76,6 +75,7 @@ internal fun Route.sakRoutes(
                                 )
                             },
                             ifRight = { fnr ->
+                                // TODO: feilmelding?
                                 sakService.hentSaker(fnr)
                                     .mapLeft { feilmelding ->
                                         return@authorize call.svar(
@@ -186,35 +186,61 @@ internal fun Route.sakRoutes(
         }
     }
 
-    get("$SAK_PATH/info/{fnr}") {
+    post("$SAK_PATH/info") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.parameter("fnr")
-                .flatMap {
-                    Either.catch { Fnr(it) }
-                        .mapLeft { Feilresponser.ugyldigFødselsnummer }
-                }
-                .map { fnr ->
-                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                    sakService.hentAlleredeGjeldendeSakForBruker(fnr)
-                        .let { info ->
-                            AlleredeGjeldendeSakForBrukerJson(
-                                uføre = BegrensetSakinfoJson(
-                                    harÅpenSøknad = info.uføre.harÅpenSøknad,
-                                    iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson(),
-                                ),
-                                alder = BegrensetSakinfoJson(
-                                    harÅpenSøknad = info.alder.harÅpenSøknad,
-                                    iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson(),
-                                ),
-                            )
-                        }
-                }.map {
-                    Resultat.json(OK, serialize(it))
-                }
-                .merge()
-                .let {
-                    call.svar(it)
-                }
+            data class Body(
+                val fnr: String?,
+                val sakstype: String?,
+            )
+            call.withBody<Body> { body ->
+                val fnr = body.fnr ?: return@withBody call.svar(
+                    BadRequest.errorJson(
+                        message = "fnr mangler i body",
+                        code = "fnr_mangler",
+                    ),
+                )
+                val sakstype = body.sakstype ?: return@withBody call.svar(
+                    BadRequest.errorJson(
+                        message = "sakstype mangler i body",
+                        code = "sakstype_mangler",
+                    ),
+                )
+
+                Either.catch { Fnr(fnr) }
+                    .mapLeft { Feilresponser.ugyldigFødselsnummer }
+                    .flatMap { parsedFnr ->
+                        Either.catch { Sakstype.from(sakstype) }
+                            .mapLeft {
+                                BadRequest.errorJson(
+                                    message = "Ugyldig sakstype",
+                                    code = "ugyldig_sakstype",
+                                )
+                            }
+                            .map { parsedFnr to it }
+                    }
+                    .map { (parsedFnr, parsedSakstype) ->
+                        call.audit(parsedFnr, AuditLogEvent.Action.SEARCH, null)
+                        sakService.hentAlleredeGjeldendeSakForBruker(parsedFnr, parsedSakstype)
+                            .let { info ->
+                                AlleredeGjeldendeSakForBrukerJson(
+                                    uføre = BegrensetSakinfoJson(
+                                        harÅpenSøknad = info.uføre.harÅpenSøknad,
+                                        iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson(),
+                                    ),
+                                    alder = BegrensetSakinfoJson(
+                                        harÅpenSøknad = info.alder.harÅpenSøknad,
+                                        iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson(),
+                                    ),
+                                )
+                            }
+                    }.map {
+                        Resultat.json(OK, serialize(it))
+                    }
+                    .merge()
+                    .let {
+                        call.svar(it)
+                    }
+            }
         }
     }
 

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
@@ -47,6 +48,20 @@ import java.util.UUID
 
 internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
+    private data class BegrensetSakinfoBody(
+        val fnr: String?,
+        val sakstype: String?,
+    )
+
+    private fun infoPath(): String = "$SAK_PATH/info"
+
+    private fun infoBody(
+        fnr: String = sakFnr01,
+        sakstype: Sakstype = Sakstype.UFØRE,
+    ): BegrensetSakinfoBody = BegrensetSakinfoBody(
+        fnr = fnr,
+        sakstype = sakstype.toString(),
+    )
 
     /**
      * Test for [ApplicationCall.lagCommandForLagreOgSendOpplastetPdfPåSak]
@@ -233,7 +248,7 @@ internal class SakRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sakService = mock {
-                                on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
+                                on { hentAlleredeGjeldendeSakForBruker(any(), any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = false,
                                         iverksattInnvilgetStønadsperiode = null,
@@ -245,16 +260,18 @@ internal class SakRoutesKtTest {
                                 )
                             },
                             person = mock {
-                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                             },
                         ),
                     )
                 }
                 defaultRequest(
-                    Get,
-                    "$SAK_PATH/info/$sakFnr01",
+                    HttpMethod.Post,
+                    infoPath(),
                     listOf(Brukerrolle.Veileder),
-                ).apply {
+                ) {
+                    setBody(serialize(infoBody()))
+                }.apply {
                     status shouldBe OK
                     bodyAsText() shouldEqualJson """
                         {
@@ -279,7 +296,7 @@ internal class SakRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sakService = mock {
-                                on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
+                                on { hentAlleredeGjeldendeSakForBruker(any(), any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = true,
                                         iverksattInnvilgetStønadsperiode = null,
@@ -291,16 +308,18 @@ internal class SakRoutesKtTest {
                                 )
                             },
                             person = mock {
-                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                             },
                         ),
                     )
                 }
                 defaultRequest(
-                    Get,
-                    "$SAK_PATH/info/$sakFnr01",
+                    HttpMethod.Post,
+                    infoPath(),
                     listOf(Brukerrolle.Veileder),
-                ).apply {
+                ) {
+                    setBody(serialize(infoBody()))
+                }.apply {
                     status shouldBe OK
                     bodyAsText() shouldEqualJson """
                             {
@@ -325,7 +344,7 @@ internal class SakRoutesKtTest {
                     testSusebakoverWithMockedDb(
                         services = TestServicesBuilder.services(
                             sakService = mock {
-                                on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
+                                on { hentAlleredeGjeldendeSakForBruker(any(), any()) } doReturn AlleredeGjeldendeSakForBruker(
                                     uføre = BegrensetSakinfo(
                                         harÅpenSøknad = false,
                                         iverksattInnvilgetStønadsperiode = Periode.create(
@@ -340,16 +359,18 @@ internal class SakRoutesKtTest {
                                 )
                             },
                             person = mock {
-                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
                             },
                         ),
                     )
                 }
                 defaultRequest(
-                    Get,
-                    "$SAK_PATH/info/$sakFnr01",
+                    HttpMethod.Post,
+                    infoPath(),
                     listOf(Brukerrolle.Veileder),
-                ).apply {
+                ) {
+                    setBody(serialize(infoBody()))
+                }.apply {
                     status shouldBe OK
                     bodyAsText() shouldEqualJson """
                             {
@@ -368,6 +389,105 @@ internal class SakRoutesKtTest {
                     """.trimIndent()
                 }
             }
+        }
+
+        @Test
+        fun `krever fnr for begrenset sakinfo`() {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    infoPath(),
+                    listOf(Brukerrolle.Veileder),
+                ) {
+                    setBody(serialize(BegrensetSakinfoBody(fnr = null, sakstype = Sakstype.UFØRE.toString())))
+                }.apply {
+                    status shouldBe BadRequest
+                    bodyAsText() shouldContain "fnr_mangler"
+                    bodyAsText() shouldContain "fnr mangler i body"
+                }
+            }
+        }
+
+        @Test
+        fun `krever sakstype for begrenset sakinfo`() {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    infoPath(),
+                    listOf(Brukerrolle.Veileder),
+                ) {
+                    setBody(serialize(BegrensetSakinfoBody(fnr = sakFnr01, sakstype = null)))
+                }.apply {
+                    status shouldBe BadRequest
+                    bodyAsText() shouldContain "sakstype_mangler"
+                    bodyAsText() shouldContain "sakstype mangler i body"
+                }
+            }
+        }
+
+        @Test
+        fun `validerer sakstype for begrenset sakinfo`() {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    infoPath(),
+                    listOf(Brukerrolle.Veileder),
+                ) {
+                    setBody(serialize(BegrensetSakinfoBody(fnr = sakFnr01, sakstype = "ugyldig")))
+                }.apply {
+                    status shouldBe BadRequest
+                    bodyAsText() shouldContain "ugyldig_sakstype"
+                }
+            }
+        }
+
+        @Test
+        fun `sender sakstype videre til sakservice for begrenset sakinfo`() {
+            val mockedSakService = mock<SakService> {
+                on { hentAlleredeGjeldendeSakForBruker(any(), any()) } doReturn AlleredeGjeldendeSakForBruker(
+                    uføre = BegrensetSakinfo(
+                        harÅpenSøknad = false,
+                        iverksattInnvilgetStønadsperiode = null,
+                    ),
+                    alder = BegrensetSakinfo(
+                        harÅpenSøknad = false,
+                        iverksattInnvilgetStønadsperiode = null,
+                    ),
+                )
+            }
+
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            sakService = mockedSakService,
+                            person = mock {
+                                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    infoPath(),
+                    listOf(Brukerrolle.Veileder),
+                ) {
+                    setBody(serialize(infoBody(sakstype = Sakstype.ALDER)))
+                }.apply {
+                    status shouldBe OK
+                }
+            }
+
+            verify(mockedSakService).hentAlleredeGjeldendeSakForBruker(Fnr(sakFnr01), Sakstype.ALDER)
         }
     }
 

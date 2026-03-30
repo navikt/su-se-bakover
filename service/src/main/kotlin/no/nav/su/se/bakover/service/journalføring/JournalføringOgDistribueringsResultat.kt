@@ -76,7 +76,8 @@ sealed interface JournalføringOgDistribueringsResultat {
             return this.fold(
                 ifLeft = {
                     log.error(
-                        "Kunne ikke journalføre dokument ${dokument.id}: $it",
+                        "Kunne ikke journalføre dokument ${dokument.id}: $it. " +
+                            "Dokumentet vil normalt bli forsøkt på nytt av journalføringsjobben så lenge journalpostId mangler.",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
                     Feil(

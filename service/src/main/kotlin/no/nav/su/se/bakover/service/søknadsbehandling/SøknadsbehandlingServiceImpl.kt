@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.domain.oppgave.ALLEREDE_FERDIGSTILT
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
@@ -137,6 +138,13 @@ class SøknadsbehandlingServiceImpl(
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
+    private fun logKunneIkkeOppdatereOppgave(kontekst: String, feil: KunneIkkeOppdatereOppgave) {
+        when (feil) {
+            is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> log.warn("$ALLEREDE_FERDIGSTILT $kontekst. Feilen var $feil")
+            else -> log.error("$kontekst. Feilen var $feil")
+        }
+    }
+
     override fun startBehandling(
         request: OppstartRequest,
         hentSak: (() -> Sak)?,
@@ -179,15 +187,10 @@ class SøknadsbehandlingServiceImpl(
                 tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
             ),
         ).mapLeft {
-            when (it) {
-                is KunneIkkeOppdatereOppgave.OppgaveErFerdigstilt -> {
-                    log.warn("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
-                }
-
-                else -> {
-                    log.error("Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs. Feilen var $it")
-                }
-            }
+            logKunneIkkeOppdatereOppgave(
+                kontekst = "Kunne ikke oppdatere oppgave $oppgaveId sakid: $sakId med tilordnet ressurs",
+                feil = it,
+            )
         }
     }
 
@@ -299,7 +302,10 @@ class SøknadsbehandlingServiceImpl(
                 ),
             ).mapLeft {
                 // gjør en best effort på å oppdatere oppgaven
-                log.error("Søknadsbehandling send til attestering: Kunne ikke oppdatere oppgave ${søknadsbehandlingTilAttestering.oppgaveId} for søknadsbehandling $behandlingId. Feilen var $it")
+                logKunneIkkeOppdatereOppgave(
+                    kontekst = "Søknadsbehandling send til attestering: Kunne ikke oppdatere oppgave ${søknadsbehandlingTilAttestering.oppgaveId} for søknadsbehandling $behandlingId",
+                    feil = it,
+                )
             }
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(søknadsbehandlingTilAttestering, tx)
@@ -416,7 +422,10 @@ class SøknadsbehandlingServiceImpl(
             log.info("Behandling ${retur.id} ble returnert. Oppgave ${retur.oppgaveId} ble oppdatert. Se sikkerlogg for response")
             sikkerLogg.info("Behandling ${retur.id} ble returnert. Oppgave ${retur.oppgaveId} ble oppdatert. oppgaveResponse: ${it.response}")
         }.mapLeft {
-            log.error("Søknadsbehandling retur: Kunne ikke oppdatere oppgave ${retur.oppgaveId} for søknadsbehandling ${retur.id}. Feilen var $it")
+            logKunneIkkeOppdatereOppgave(
+                kontekst = "Søknadsbehandling retur: Kunne ikke oppdatere oppgave ${retur.oppgaveId} for søknadsbehandling ${retur.id}",
+                feil = it,
+            )
         }
         søknadsbehandlingRepo.lagre(retur)
         return retur.right()
@@ -446,7 +455,10 @@ class SøknadsbehandlingServiceImpl(
                 sikkerLogg.info("Behandling ${underkjent.id} ble underkjent. Oppgave ${underkjent.oppgaveId} ble oppdatert. oppgaveResponse: ${it.response}")
             }.mapLeft {
                 // gjør en best effort på å oppdatere oppgaven
-                log.error("Søknadsbehandling underkjenn: Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for søknadsbehandling ${underkjent.id}. Feilen var $it")
+                logKunneIkkeOppdatereOppgave(
+                    kontekst = "Søknadsbehandling underkjenn: Kunne ikke oppdatere oppgave ${underkjent.oppgaveId} for søknadsbehandling ${underkjent.id}",
+                    feil = it,
+                )
             }
             sessionFactory.withTransactionContext { tx ->
                 søknadsbehandlingRepo.lagre(underkjent, tx)
@@ -506,7 +518,7 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
             formuegrenserFactory = formuegrenserFactory,
             saksbehandler = request.saksbehandler,
-            hentPerson = personService::hentPerson,
+            hentPerson = { fnr -> personService.hentPerson(fnr, sak.type) },
             saksbehandlersAvgjørelse = request.saksbehandlersAvgjørelse,
         ).map {
             søknadsbehandlingRepo.lagre(it.second)
@@ -845,7 +857,10 @@ class SøknadsbehandlingServiceImpl(
             if (request.bosituasjoner.size > 1) {
                 throw IllegalArgumentException("Forventer kun 1 bosituasjon element ved søknadsbehandling")
             } else {
-                request.bosituasjoner.first().toDomain(clock = clock, hentPerson = personService::hentPerson)
+                request.bosituasjoner.first().toDomain(
+                    clock = clock,
+                    hentPerson = { fnr -> personService.hentPerson(fnr, søknadsbehandling.sakstype) },
+                )
                     .getOrElse { return it.left() }
             }
 

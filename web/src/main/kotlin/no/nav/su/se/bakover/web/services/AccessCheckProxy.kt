@@ -258,6 +258,7 @@ import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonRepo
 import person.domain.PersonService
+import person.domain.PersonerOgSakstype
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
@@ -464,15 +465,21 @@ open class AccessCheckProxy(
                     return services.sak.hentEpsSaksIderForBrukersSak(sakId)
                 }
 
+                override fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo> {
+                    return services.sak.hentSakInfoPåFnr(fnr).also { sakInfo ->
+                        sakInfo.forEach { assertHarTilgangTilSak(it.sakId) }
+                    }
+                }
+
                 override fun opprettSak(sak: NySak) {
-                    assertHarTilgangTilPerson(sak.fnr)
+                    assertHarTilgangTilPerson(sak.fnr, sak.søknad.type)
 
                     return services.sak.opprettSak(sak)
                 }
 
                 override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
                     // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
-                    // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
+                    // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle?
                     return services.sak.hentÅpneBehandlingerForAlleSaker()
                 }
 
@@ -480,9 +487,9 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
-                    assertHarTilgangTilPerson(fnr)
-                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
+                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr, sakstype)
                 }
             },
             søknad = object : SøknadService {
@@ -490,7 +497,7 @@ open class AccessCheckProxy(
                     søknadInnhold: SøknadInnhold,
                     identBruker: NavIdentBruker,
                 ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
-                    assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
+                    assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr, søknadInnhold.type())
 
                     return services.søknad.nySøknad(søknadInnhold, identBruker)
                 }
@@ -649,22 +656,25 @@ open class AccessCheckProxy(
                 override fun hentOppgaveMedSystembruker(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
             person = object : PersonService {
-                override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
-                    assertHarTilgangTilPerson(fnr)
-                    return services.person.hentPerson(fnr)
+                override fun hentPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.person.hentPerson(fnr, sakstype)
                 }
 
-                override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
-                    assertHarTilgangTilPerson(fnr)
-                    return services.person.hentPersonMedSkjermingOgKontaktinfo(fnr)
+                override fun hentPersonMedSkjermingOgKontaktinfo(
+                    fnr: Fnr,
+                    sakstype: Sakstype,
+                ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.person.hentPersonMedSkjermingOgKontaktinfo(fnr, sakstype)
                 }
 
-                override fun hentPersonMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAktørIdMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = kastKanKunKallesFraAnnenService()
 
-                override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
-                    return services.person.sjekkTilgangTilPerson(fnr)
+                override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
+                    return services.person.sjekkTilgangTilPerson(fnr, sakstype)
                 }
 
                 override fun hentFnrForSak(sakId: UUID) = kastKanKunKallesFraAnnenService()
@@ -1405,7 +1415,12 @@ open class AccessCheckProxy(
                     fnr: Fnr,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Skattegrunnlag {
-                    assertHarTilgangTilPerson(fnr)
+                    // TODO(SEBSOB): Ta inn sakstype eksplisitt her i stedet for å utlede den via firstOrNull().
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.Ukjent,
+                        fnr,
+                    )
+                    assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr, saksbehandler)
                 }
 
@@ -1414,19 +1429,28 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     yearRange: YearRange,
                 ): Skattegrunnlag {
-                    assertHarTilgangTilPerson(fnr)
+                    // TODO(SEBSOB): Ta inn sakstype eksplisitt her i stedet for å utlede den via firstOrNull().
+                    val sak = services.sak.hentSakInfoPåFnr(fnr).firstOrNull() ?: throw Tilgangssjekkfeil(
+                        KunneIkkeHentePerson.Ukjent,
+                        fnr,
+                    )
+                    assertHarTilgangTilPerson(fnr, sak.type)
                     return services.skatteService.hentSamletSkattegrunnlagForÅr(fnr, saksbehandler, yearRange)
                 }
 
                 override fun hentOgLagSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeHenteOgLagePdfAvSkattegrunnlag, PdfA> {
-                    request.fnr?.let { assertHarTilgangTilPerson(it) }
-                    request.epsFnr?.let { assertHarTilgangTilPerson(it) }
+                    request.fnr?.let {
+                        assertHarTilgangTilPerson(it, request.sakstype)
+                    }
+                    request.epsFnr?.let {
+                        assertHarTilgangTilPerson(it, request.sakstype)
+                    }
                     return services.skatteService.hentOgLagSkattePdf(request)
                 }
 
                 override fun hentLagOgJournalførSkattePdf(request: FrioppslagSkattRequest): Either<KunneIkkeGenerereSkattePdfOgJournalføre, PdfA> {
-                    request.fnr?.let { assertHarTilgangTilPerson(it) }
-                    request.epsFnr?.let { assertHarTilgangTilPerson(it) }
+                    request.fnr?.let { assertHarTilgangTilPerson(it, request.sakstype) }
+                    request.epsFnr?.let { assertHarTilgangTilPerson(it, request.sakstype) }
                     return services.skatteService.hentLagOgJournalførSkattePdf(request)
                 }
             },
@@ -1644,39 +1668,43 @@ open class AccessCheckProxy(
     private fun kastKanKunKallesFraAnnenService(): Nothing =
         throw IllegalStateException("This should only be called from another service")
 
-    private fun assertHarTilgangTilPerson(fnr: Fnr) {
-        services.person.sjekkTilgangTilPerson(fnr).getOrElse {
+    private fun assertHarTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) {
+        services.person.sjekkTilgangTilPerson(fnr, sakstype).getOrElse {
             throw Tilgangssjekkfeil(it, fnr)
         }
     }
 
+    private fun assertHarTilgang(personerOgSakstype: PersonerOgSakstype) {
+        personerOgSakstype.fnr.forEach { assertHarTilgangTilPerson(it, personerOgSakstype.sakstype) }
+    }
+
     private fun assertHarTilgangTilSak(sakId: UUID) {
-        personRepo.hentFnrForSak(sakId).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrOgSaktypeForSak(sakId))
     }
 
     private fun assertHarTilgangTilSøknad(søknadId: UUID) {
-        personRepo.hentFnrForSøknad(søknadId).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrForSøknad(søknadId))
     }
 
     private fun assertHarTilgangTilSøknadsbehandling(behandlingId: SøknadsbehandlingId) {
-        personRepo.hentFnrForBehandling(behandlingId.value).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrForBehandling(behandlingId.value))
     }
 
     @Suppress("unused")
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
-        personRepo.hentFnrForUtbetaling(utbetalingId).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrForUtbetaling(utbetalingId))
     }
 
     private fun assertHarTilgangTilRevurdering(revurderingId: RevurderingId) {
-        personRepo.hentFnrForRevurdering(revurderingId.value).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrForRevurdering(revurderingId.value))
     }
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
-        personRepo.hentFnrForVedtak(vedtakId).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrForVedtak(vedtakId))
     }
 
     private fun assertHarTilgangTilKlage(klageId: KlageId) {
-        personRepo.hentFnrForKlage(klageId.value).forEach { assertHarTilgangTilPerson(it) }
+        assertHarTilgang(personRepo.hentFnrForKlage(klageId.value))
     }
 
     private fun assertTilgangTilSakOgHentDokumentPdf(dokumentId: UUID): Either<FantIkkeDokument, DokumentPdf> {

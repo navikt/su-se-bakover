@@ -76,6 +76,10 @@ private data class UtbetalingRepoMock(
         return eksisterendeUtbetalinger
     }
 
+    override fun hentOversendteUtbetalingerForSakIder(sakIder: List<UUID>): Map<UUID, Utbetalinger> {
+        return sakIder.associateWith { eksisterendeUtbetalinger }
+    }
+
     override fun oppdaterMedKvittering(
         utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         sessionContext: SessionContext?,

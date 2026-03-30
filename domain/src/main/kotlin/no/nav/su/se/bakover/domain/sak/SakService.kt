@@ -52,7 +52,7 @@ interface SakService {
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
-    fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker
+    fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker
     fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo>
 
     fun hentSakForRevurdering(revurderingId: RevurderingId): Sak
@@ -76,6 +76,7 @@ interface SakService {
 
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
     fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID>
+    fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo>
 }
 
 data object FantIkkeSak

@@ -21,10 +21,12 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -64,7 +66,9 @@ fun Application.runApplicationWithMocks(
     satsFactory: SatsFactoryForSupplerendeStønad = mock(),
     satsFactoryIDag: SatsFactory = mock(),
     formuegrenserFactoryIDag: FormuegrenserFactory = mock(),
-    databaseRepos: DatabaseRepos = mockedDatabaseRepos(),
+    defaultSakstype: Sakstype = Sakstype.UFØRE,
+    defaultFnr: List<Fnr> = emptyList(),
+    databaseRepos: DatabaseRepos = mockedDatabaseRepos(defaultSakstype, defaultFnr),
     jmsConfig: JmsConfig = mock(),
     clients: Clients = mockedClients(),
     services: Services = mockedServices(),

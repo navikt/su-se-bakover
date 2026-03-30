@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
@@ -59,6 +60,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.tilResultat
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
@@ -72,6 +74,8 @@ internal fun Route.søknadRoutes(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$SØKNAD_PATH/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { type ->
@@ -83,6 +87,8 @@ internal fun Route.søknadRoutes(
 
                     val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
                     if (ugyldigeFelt.isNotEmpty()) {
+                        log.error("VALIDERING: Feil i input for innsending av søknad sakstype $type")
+                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknadsinnhold: $søknadsinnholdJson")
                         call.svar(ugyldigeFelt.tilUgyldigSøknadsinnholdResultat())
                         return@withBody
                     }

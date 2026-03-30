@@ -18,15 +18,16 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
-import no.nav.su.se.bakover.domain.regulering.EksternSupplementRegulering
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.RegulertFradragEksternKilde
-import no.nav.su.se.bakover.domain.regulering.RegulerteFradragEksternKilde
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
@@ -73,6 +74,7 @@ fun opprettetRegulering(
     reguleringstype = reguleringstype,
     sakstype = sakstype,
     eksternSupplementRegulering = eksternSupplementRegulering,
+    aapGrunnlag = null,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -130,7 +132,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     clock: Clock = TikkendeKlokke(),
-    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -140,12 +141,13 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
+    val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
+    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-        regulerFraOgMed,
         clock,
-        sakerMedRegulerteFradragEksternKilde,
-        gVerdiØkning,
+        vedtaksdata,
+        sakerMedEksterntRegulerteBeløp,
+        satsFactoryTestPåDato(),
     ).getOrFail()
 
     return Pair(
@@ -157,19 +159,26 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
 fun stansetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: Måned,
     clock: Clock = fixedClock,
-    gVerdiØkning: BigDecimal = BigDecimal(100),
 ): Pair<Sak, OpprettetRegulering> {
     val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val sakerMedRegulerteFradragEksternKilde = reguleringsgrunnlagFraEksternKilde(sak)
-    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
-        fraOgMedMåned = regulerFraOgMed,
-        clock = clock,
-        regulerteFradragEksternKilde = sakerMedRegulerteFradragEksternKilde,
-        omregningsfaktor = gVerdiØkning,
-    ).getOrFail()
+    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
+    val regulering = OpprettetRegulering(
+        id = ReguleringId.generer(),
+        opprettet = Tidspunkt.now(clock),
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+        fnr = sak.fnr,
+        grunnlagsdataOgVilkårsvurderinger = vedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+        beregning = null,
+        simulering = null,
+        reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
+        sakstype = sak.type,
+        aapGrunnlag = null,
+    )
 
     return Pair(
         sak.nyRegulering(regulering),
@@ -500,20 +509,22 @@ fun nyÅrsakYtelseErMidlertidigStanset(
 ): ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset =
     ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
 
-fun reguleringsgrunnlagFraEksternKilde(
+fun eksterneReguleringer(
     sak: Sak,
+    fradragstype: Fradragstype = Fradragstype.Alderspensjon,
     førRegulering: Int = 100,
     etterRegulering: Int = 110,
 ) = listOf(
-    RegulerteFradragEksternKilde(
-        fnr = sak.fnr,
-        bruker = listOf(
-            RegulertFradragEksternKilde(
+    EksterntRegulerteBeløp(
+        brukerFnr = sak.fnr,
+        beløpBruker = listOf(
+            RegulertBeløp(
                 fnr = sak.fnr,
-                førRegulering = førRegulering,
-                etterRegulering = etterRegulering,
+                fradragstype = fradragstype,
+                førRegulering = BigDecimal.valueOf(førRegulering.toLong()).setScale(2),
+                etterRegulering = BigDecimal.valueOf(etterRegulering.toLong()).setScale(2),
             ),
         ),
-        forEps = emptyList(),
+        beløpEps = emptyList(),
     ),
 )
