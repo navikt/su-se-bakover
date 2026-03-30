@@ -207,26 +207,29 @@ class ReguleringAutomatiskServiceImpl(
         val startTid = LocalDateTime.now()
 
         return resultater.also {
+            val arsakerReguleringIkkeOpprettet = resultater.filter { it.isLeft() }.map { it.swap().getOrNull()!! }.groupBy {
+                when (it) {
+                    is KunneIkkeRegulereAutomatisk.FantIkkeSak -> "FantIkkeSak"
+                    is KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør -> "HarÅpenReguleringFraFør"
+                    is KunneIkkeRegulereAutomatisk.UkjentFeil -> "UkjentFeil"
+
+                    is KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering -> "KunneIkkeHenteEllerOppretteRegulering(${it.feil})"
+                    is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk -> "KunneIkkeBehandleAutomatisk(${it.feil})"
+                    is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet -> "UthentingFradragPesysFeilet(${it.feil})"
+                }
+            }.map { "${it.key}: ${it.value.size}" }.joinToString(", ")
+
             val reguleringKjøring = ReguleringKjøring(
                 id = UUID.randomUUID(),
                 aar = fraOgMedMåned.årOgMåned.monthValue,
-                type = "(DryRun)Grunnbeløpsregulering",
+                type = ReguleringKjøringType.DRYRUN.name,
                 startTid = startTid,
                 antallProsesserteSaker = resultater.size,
                 antallReguleringerLaget = resultater.count { it.isRight() },
                 antallKunneIkkeOpprettes = resultater.count { it.isLeft() },
-                arsakerReguleringIkkeOpprettet = resultater.filter { it.isLeft() }.map { it.swap().getOrNull()!! }.groupBy {
-                    when (it) {
-                        is KunneIkkeRegulereAutomatisk.FantIkkeSak -> "FantIkkeSak"
-                        is KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør -> "HarÅpenReguleringFraFør"
-                        is KunneIkkeRegulereAutomatisk.UkjentFeil -> "UkjentFeil"
 
-                        is KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering -> "KunneIkkeHenteEllerOppretteRegulering(${it.feil})"
-                        is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk -> "KunneIkkeBehandleAutomatisk(${it.feil})"
-                        is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet -> "UthentingFradragPesysFeilet(${it.feil})"
-                    }
-                }.map { "${it.key}: ${it.value.size}" }.joinToString(", "),
                 antallAutomatiskeReguleringer = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype == Reguleringstype.AUTOMATISK },
+                arsakerReguleringIkkeOpprettet = arsakerReguleringIkkeOpprettet,
                 antallSupplementReguleringer = resultater.count {
                     val regulering = it.getOrNull() as? ReguleringUnderBehandling.OpprettetRegulering
                     regulering?.reguleringstype == Reguleringstype.AUTOMATISK && (regulering.eksternSupplementRegulering?.bruker != null || regulering.eksternSupplementRegulering?.eps?.isNotEmpty() == true)
