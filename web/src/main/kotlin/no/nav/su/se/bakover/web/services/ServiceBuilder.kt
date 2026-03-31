@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
-import no.nav.su.se.bakover.domain.regulering.ReguleringStatusService
+import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -298,7 +298,7 @@ data object ServiceBuilder {
     private data class ReguleringServices(
         val reguleringManuellService: ReguleringManuellService,
         val reguleringAutomatiskService: ReguleringAutomatiskService,
-        val reguleringStatusService: ReguleringStatusService,
+        val reguleringStatusService: ReguleringStatusUteståendeService,
     )
 
     private data class KlageServices(
@@ -632,7 +632,7 @@ data object ServiceBuilder {
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = aapReguleringerService,
         )
-        val reguleringStatusService = ReguleringStatusService(
+        val reguleringStatusService = ReguleringStatusUteståendeService(
             sakService = kjerneTjenester.sakService,
             utbetalingRepo = databaseRepos.utbetaling,
             satsFactory = satsFactory,

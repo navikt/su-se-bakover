@@ -19,7 +19,7 @@ import java.time.YearMonth
 import kotlin.collections.filter
 import kotlin.collections.map
 
-class ReguleringStatusService(
+class ReguleringStatusUteståendeService(
     val sakService: SakService,
     val utbetalingRepo: UtbetalingRepo,
     val satsFactory: SatsFactory,

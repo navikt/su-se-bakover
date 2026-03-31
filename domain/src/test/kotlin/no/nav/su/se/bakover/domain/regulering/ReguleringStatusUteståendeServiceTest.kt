@@ -15,13 +15,9 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.bosituasjonBorMedAndreVoksne
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingAlder
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.sakInfo
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import org.junit.jupiter.api.Test
@@ -36,7 +32,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
-internal class ReguleringStatusServiceTest {
+internal class ReguleringStatusUteståendeServiceTest {
 
     private val clock: Clock = Clock.fixed(Instant.parse("2025-06-15T10:15:30Z"), ZoneId.of("Europe/Oslo"))
     private val gammelClock: Clock = Clock.fixed(Instant.parse("2024-06-15T10:15:30Z"), ZoneId.of("Europe/Oslo"))
@@ -56,7 +52,7 @@ internal class ReguleringStatusServiceTest {
             on { hentOversendteUtbetalingerForSakIder(saker.map { it.id }) } doReturn saker.associate { it.id to it.utbetalinger }
         }
 
-        val service = ReguleringStatusService(
+        val service = ReguleringStatusUteståendeService(
             sakService = sakService,
             utbetalingRepo = utbetalingRepo,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),

@@ -4,7 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
-import no.nav.su.se.bakover.domain.regulering.ReguleringStatusService
+import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
@@ -13,7 +13,7 @@ internal const val REGULERING_PATH = "/reguleringer"
 internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
-    reguleringStatusService: ReguleringStatusService,
+    reguleringStatusService: ReguleringStatusUteståendeService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,

@@ -50,7 +50,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
-import no.nav.su.se.bakover.domain.regulering.ReguleringStatusService
+import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
@@ -67,7 +67,7 @@ import java.util.UUID
 internal fun Route.reguler(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
-    reguleringStatusService: ReguleringStatusService,
+    reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
@@ -441,9 +441,9 @@ internal fun Route.reguler(
         }
     }
 
-    get("$REGULERING_PATH/status-siste-regulering") {
+    get("$REGULERING_PATH/status-regulering-utestaende") {
         authorize(Brukerrolle.Drift) {
-            val status = reguleringStatusService.hentStatusSisteGrunnbeløp()
+            val status = reguleringStatusUteståendeService.hentStatusSisteGrunnbeløp()
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
         }
     }
