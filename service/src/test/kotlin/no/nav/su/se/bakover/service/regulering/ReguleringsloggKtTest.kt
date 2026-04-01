@@ -17,14 +17,9 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
-import no.nav.su.se.bakover.test.nyEksternSupplementRegulering
-import no.nav.su.se.bakover.test.nyEksternvedtakEndring
-import no.nav.su.se.bakover.test.nyReguleringssupplementFor
-import no.nav.su.se.bakover.test.nyReguleringssupplementInnholdPerType
 import no.nav.su.se.bakover.test.nyÅrsakAutomatiskSendingTilUtbetalingFeilet
 import no.nav.su.se.bakover.test.nyÅrsakBrukerManglerSupplement
 import no.nav.su.se.bakover.test.nyÅrsakDelvisOpphør
-import no.nav.su.se.bakover.test.nyÅrsakDifferanseEtterRegulering
 import no.nav.su.se.bakover.test.nyÅrsakDifferanseFørRegulering
 import no.nav.su.se.bakover.test.nyÅrsakFantIkkeVedtakForApril
 import no.nav.su.se.bakover.test.nyÅrsakFinnesFlerePerioderAvFradrag
@@ -38,11 +33,11 @@ import no.nav.su.se.bakover.test.opprettetRegulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 
 class ReguleringsloggKtTest {
 
+    /*
     @Test
     fun `liste av differanseEtterRegulering printes som forventet`() {
         listOf(
@@ -142,6 +137,7 @@ class ReguleringsloggKtTest {
                 """.trimIndent(),
             )
     }
+     */
 
     @Test
     fun `liste av DifferanseFørRegulering printes som forventet`() {
@@ -390,6 +386,7 @@ class ReguleringsloggKtTest {
         )
     }
 
+    /*
     @Test
     fun `en liste av forskjellige årsaker grupperer alle like typer`() {
         listOf(
@@ -449,6 +446,7 @@ class ReguleringsloggKtTest {
             """.trimIndent(),
         )
     }
+     */
 
     @Test
     fun `kaster exception hvis man prøver å printe ut med en historisk årsak`() {

@@ -58,7 +58,8 @@ fun opprettetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
-    eksternSupplementRegulering: EksternSupplementRegulering = nyEksternSupplementRegulering(),
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp = tomEksterntRegulerteBeløp(),
+
 ) = OpprettetRegulering(
     // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
     id = id,
@@ -73,8 +74,7 @@ fun opprettetRegulering(
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
     sakstype = sakstype,
-    eksternSupplementRegulering = eksternSupplementRegulering,
-    aapGrunnlag = null,
+    eksterntRegulerteBeløp = eksterntRegulerteBeløp,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -177,7 +177,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         simulering = null,
         reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
         sakstype = sak.type,
-        aapGrunnlag = null,
+        eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(),
     )
 
     return Pair(
@@ -185,6 +185,13 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         regulering,
     )
 }
+
+fun tomEksterntRegulerteBeløp(): EksterntRegulerteBeløp = EksterntRegulerteBeløp(
+    brukerFnr = fnr,
+    beløpBruker = emptyList(),
+    beløpEps = emptyList(),
+    inntektEtterUføre = null,
+)
 
 @Suppress("unused")
 fun innvilgetSøknadsbehandlingMedIverksattRegulering(
