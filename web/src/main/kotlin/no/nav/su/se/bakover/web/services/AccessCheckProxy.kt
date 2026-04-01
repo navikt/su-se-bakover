@@ -487,7 +487,10 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker {
+                override fun hentAlleredeGjeldendeSakForBruker(
+                    fnr: Fnr,
+                    sakstype: Sakstype,
+                ): AlleredeGjeldendeSakForBruker {
                     assertHarTilgangTilPerson(fnr, sakstype)
                     return services.sak.hentAlleredeGjeldendeSakForBruker(fnr, sakstype)
                 }
@@ -671,7 +674,8 @@ open class AccessCheckProxy(
 
                 override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = kastKanKunKallesFraAnnenService()
+                override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
+                    kastKanKunKallesFraAnnenService()
 
                 override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> {
                     return services.person.sjekkTilgangTilPerson(fnr, sakstype)
@@ -1657,6 +1661,7 @@ open class AccessCheckProxy(
                     return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt(toSisteMåneder)
                 }
             },
+            reguleringStatusUteståendeService = services.reguleringStatusUteståendeService,
         )
     }
 

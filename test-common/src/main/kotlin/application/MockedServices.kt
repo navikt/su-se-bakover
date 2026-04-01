@@ -30,6 +30,7 @@ fun mockedServices() = Services(
     journalpostAdresseService = mock(),
     reguleringAutomatiskService = mock(),
     reguleringManuellService = mock(),
+    reguleringStatusUteståendeService = mock(),
     sendPåminnelserOmNyStønadsperiodeService = mock(),
     skatteService = mock(),
     kontrollsamtaleSetup = mock(),

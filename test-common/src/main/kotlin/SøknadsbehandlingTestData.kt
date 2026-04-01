@@ -685,6 +685,7 @@ fun iverksattSøknadsbehandlingUføre(
     customVilkår: List<Vilkår> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
+    satsPåDato: LocalDate = fixedLocalDate,
 ): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
     return iverksattSøknadsbehandling(
         clock = clock,
@@ -694,6 +695,42 @@ fun iverksattSøknadsbehandlingUføre(
         customVilkår = customVilkår,
         saksbehandler = saksbehandler,
         kvittering = kvittering,
+        satsPåDato = satsPåDato,
+    )
+}
+
+fun iverksattSøknadsbehandlingAlder(
+    clock: Clock = fixedClock,
+    sakInfo: SakInfo = SakInfo(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        type = Sakstype.ALDER,
+    ),
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(
+        clock = clock,
+        sakInfo = sakInfo,
+    ),
+    customGrunnlag: List<Grunnlag> = listOf(
+        bosituasjonBorMedAndreVoksne(periode = stønadsperiode.periode),
+    ),
+    customVilkår: List<Vilkår> = vilkårsvurderingerAlderInnvilget(
+        stønadsperiode = stønadsperiode,
+    ).vilkår.toList(),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    kvittering: Kvittering? = kvittering(clock = clock),
+    satsPåDato: LocalDate = fixedLocalDate,
+): Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> {
+    return iverksattSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        saksbehandler = saksbehandler,
+        kvittering = kvittering,
+        satsPåDato = satsPåDato,
     )
 }
 
@@ -712,6 +749,7 @@ fun iverksattSøknadsbehandling(
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     kvittering: Kvittering? = kvittering(clock = clock),
+    satsPåDato: LocalDate = fixedLocalDate,
 ): Triple<Sak, IverksattSøknadsbehandling, VedtakIverksattSøknadsbehandling> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -743,7 +781,7 @@ fun iverksattSøknadsbehandling(
                 ).getOrFail().right()
             },
             clock = clock,
-            satsFactory = satsFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(satsPåDato),
             fritekst = "",
         ).getOrFail().let { response ->
             /**

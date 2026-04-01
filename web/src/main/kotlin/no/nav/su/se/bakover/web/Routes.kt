@@ -117,6 +117,7 @@ internal fun Application.setupKtorRoutes(
                     reguleringRoutes(
                         accessProtectedServices.reguleringManuellService,
                         accessProtectedServices.reguleringAutomatiskService,
+                        accessProtectedServices.reguleringStatusUteståendeService,
                         formuegrenserFactoryIDag,
                         clock,
                         applicationConfig.runtimeEnvironment,
