@@ -59,7 +59,7 @@ fun opprettetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
-    eksterntRegulerteBeløp: EksterntRegulerteBeløp = tomEksterntRegulerteBeløp(),
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp = tomEksterntRegulerteBeløp(fnr),
 
 ) = OpprettetRegulering(
     // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
@@ -178,7 +178,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         simulering = null,
         reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
         sakstype = sak.type,
-        eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(),
+        eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(sak.fnr),
     )
 
     return Pair(
@@ -187,7 +187,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     )
 }
 
-fun tomEksterntRegulerteBeløp(): EksterntRegulerteBeløp = EksterntRegulerteBeløp(
+fun tomEksterntRegulerteBeløp(fnr: Fnr): EksterntRegulerteBeløp = EksterntRegulerteBeløp(
     brukerFnr = fnr,
     beløpBruker = emptyList(),
     beløpEps = emptyList(),

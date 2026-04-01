@@ -187,7 +187,6 @@ internal class ReguleringPostgresRepo(
                 reguleringType,
                 arsakForManuell,
                 avsluttet,
-                reguleringsupplement,
                 attestering, 
                 eksternt_regulerte_belop
             ) values (
@@ -202,7 +201,6 @@ internal class ReguleringPostgresRepo(
                 :reguleringType,
                 to_jsonb(:arsakForManuell::jsonb),
                 to_jsonb(:avsluttet::jsonb),
-                to_jsonb(:reguleringsupplement::jsonb),
                 to_jsonb(:attestering::jsonb),
                 to_jsonb(:eksternt_regulerte_belop::jsonb)
             )

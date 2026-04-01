@@ -106,7 +106,7 @@ private fun utledPerFradragstypeOgTilhørende(
  * (se [ReguleringerFraPesysService]). Det vil derfor ikke forekomme avvik
  **/
 private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
-    singleOrNull { it.fradragstype.name == fradragstype.kategori.name }
+    singleOrNull { it.fradragstype == EksterntBeløpSomFradragstype.from(fradragstype) }
         ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
 
 /**
