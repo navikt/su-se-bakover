@@ -1661,7 +1661,7 @@ open class AccessCheckProxy(
                     return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt(toSisteMåneder)
                 }
             },
-            reguleringStatusService = services.reguleringStatusService,
+            reguleringStatusUteståendeService = services.reguleringStatusUteståendeService,
         )
     }
 

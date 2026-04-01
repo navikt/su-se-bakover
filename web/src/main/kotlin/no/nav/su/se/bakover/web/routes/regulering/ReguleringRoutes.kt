@@ -13,11 +13,11 @@ internal const val REGULERING_PATH = "/reguleringer"
 internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
-    reguleringStatusService: ReguleringStatusUteståendeService,
+    reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
 ) {
-    reguler(reguleringManuellService, reguleringAutomatiskService, reguleringStatusService, formuegrenserFactory, clock, runtimeEnvironment)
+    reguler(reguleringManuellService, reguleringAutomatiskService, reguleringStatusUteståendeService, formuegrenserFactory, clock, runtimeEnvironment)
     reguleringOversiktRoutes(reguleringManuellService)
 }

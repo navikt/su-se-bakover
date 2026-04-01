@@ -232,7 +232,7 @@ data object ServiceBuilder {
             journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
             reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
-            reguleringStatusService = reguleringServices.reguleringStatusService,
+            reguleringStatusUteståendeService = reguleringServices.reguleringStatusUteståendeService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
                 sakService = kjerneTjenester.sakService,
@@ -298,7 +298,7 @@ data object ServiceBuilder {
     private data class ReguleringServices(
         val reguleringManuellService: ReguleringManuellService,
         val reguleringAutomatiskService: ReguleringAutomatiskService,
-        val reguleringStatusService: ReguleringStatusUteståendeService,
+        val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     )
 
     private data class KlageServices(
@@ -632,7 +632,7 @@ data object ServiceBuilder {
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = aapReguleringerService,
         )
-        val reguleringStatusService = ReguleringStatusUteståendeService(
+        val reguleringStatusUteståendeService = ReguleringStatusUteståendeService(
             sakService = kjerneTjenester.sakService,
             utbetalingRepo = databaseRepos.utbetaling,
             satsFactory = satsFactory,
@@ -641,7 +641,7 @@ data object ServiceBuilder {
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
             reguleringAutomatiskService = reguleringAutomatiskService,
-            reguleringStatusService = reguleringStatusService,
+            reguleringStatusUteståendeService = reguleringStatusUteståendeService,
         )
     }
 

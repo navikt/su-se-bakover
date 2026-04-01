@@ -60,7 +60,7 @@ data class Services(
     val journalpostAdresseService: JournalpostAdresseService,
     val reguleringManuellService: ReguleringManuellService,
     val reguleringAutomatiskService: ReguleringAutomatiskService,
-    val reguleringStatusService: ReguleringStatusUteståendeService,
+    val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,
