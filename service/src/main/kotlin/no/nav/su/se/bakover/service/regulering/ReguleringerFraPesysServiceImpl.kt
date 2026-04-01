@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
@@ -129,7 +130,7 @@ class ReguleringerFraPesysServiceImpl(
         ).getOrElse { return it.left() }
         return RegulertBeløp(
             fnr = fnr,
-            fradragstype = fradragstype,
+            fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
             førRegulering = BigDecimal.valueOf(førRegulering.netto.toLong()).setScale(2),
             etterRegulering = BigDecimal.valueOf(etterRegulering.netto.toLong()).setScale(2),
         ).right()
@@ -156,7 +157,7 @@ class ReguleringerFraPesysServiceImpl(
         return if (inntektEtterUføreFørRegulering != null && inntektEtterUføreEtterRegulering != null) {
             RegulertBeløp(
                 fnr = brukerFnr,
-                fradragstype = Fradragstype.ForventetInntekt,
+                fradragstype = EksterntBeløpSomFradragstype.ForventetInntekt,
                 førRegulering = BigDecimal.valueOf(inntektEtterUføreFørRegulering.toLong()).setScale(2),
                 etterRegulering = BigDecimal.valueOf(inntektEtterUføreEtterRegulering.toLong()).setScale(2),
             ).right()

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
@@ -527,7 +528,7 @@ fun eksterneReguleringer(
         beløpBruker = listOf(
             RegulertBeløp(
                 fnr = sak.fnr,
-                fradragstype = fradragstype,
+                fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
                 førRegulering = BigDecimal.valueOf(førRegulering.toLong()).setScale(2),
                 etterRegulering = BigDecimal.valueOf(etterRegulering.toLong()).setScale(2),
             ),

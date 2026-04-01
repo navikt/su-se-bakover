@@ -105,8 +105,9 @@ private fun utledPerFradragstypeOgTilhørende(
  * Hvilken beløp fra Pesys som er hentet vil være basert på den samme listen med fradrag som mottas i disse metodene
  * (se [ReguleringerFraPesysService]). Det vil derfor ikke forekomme avvik
  **/
-private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) = singleOrNull { it.fradragstype == fradragstype }
-    ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
+private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
+    singleOrNull { it.fradragstype.name == fradragstype.kategori.name }
+        ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
 
 /**
  * Utleder reguleringstype basert på sammenligning av våre beløp og eksterne beløp.

@@ -31,12 +31,29 @@ data class EksterntRegulerteBeløp(
  */
 data class RegulertBeløp(
     val fnr: Fnr,
-    val fradragstype: Fradragstype,
+    val fradragstype: EksterntBeløpSomFradragstype,
     val førRegulering: BigDecimal,
     val etterRegulering: BigDecimal,
 
     val grunnlagAap: AapGrunnlag? = null,
 )
+
+enum class EksterntBeløpSomFradragstype {
+    Alderspensjon,
+    Arbeidsavklaringspenger,
+    Uføretrygd,
+    ForventetInntekt,
+    ;
+
+    companion object {
+        fun from(fradragstype: Fradragstype): EksterntBeløpSomFradragstype = when (fradragstype) {
+            Fradragstype.Alderspensjon -> Alderspensjon
+            Fradragstype.Arbeidsavklaringspenger -> Arbeidsavklaringspenger
+            Fradragstype.Uføretrygd -> Uføretrygd
+            else -> throw IllegalArgumentException("Fradragstype $fradragstype kan ikke brukes som eksternt beløp")
+        }
+    }
+}
 
 data class AapGrunnlag(
     val aapFoer: BeregnAap.AapBeregning,
