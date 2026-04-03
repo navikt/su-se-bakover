@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.database.common.YearRangeJson.Companion.toYearRangeJ
 import no.nav.su.se.bakover.web.routes.skatt.StadieJson.Companion.toJson
 import vilkår.skatt.domain.Skattegrunnlag
 
-internal data class SkattegrunnlagJSON(
+data class SkattegrunnlagJSON(
     val fnr: String,
     val hentetTidspunkt: String,
     val årsgrunnlag: List<StadieJson>,

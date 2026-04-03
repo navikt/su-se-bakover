@@ -60,4 +60,27 @@ class PesysclientStub : PesysClient {
         }
         return ResponseDtoUføre(resultat).right()
     }
+
+    companion object {
+        fun build(
+            uførePeriode: List<UføreBeregningsperioderPerPerson> = emptyList(),
+            alderPerioder: List<AlderBeregningsperioderPerPerson> = emptyList(),
+        ): PesysClient {
+            return object : PesysClient {
+                override fun hentVedtakForPersonPaaDatoAlder(
+                    fnrList: List<Fnr>,
+                    dato: LocalDate,
+                ): Either<ClientError, ResponseDtoAlder> {
+                    return ResponseDtoAlder(alderPerioder).right()
+                }
+
+                override fun hentVedtakForPersonPaaDatoUføre(
+                    fnrList: List<Fnr>,
+                    dato: LocalDate,
+                ): Either<ClientError, ResponseDtoUføre> {
+                    return ResponseDtoUføre(uførePeriode).right()
+                }
+            }
+        }
+    }
 }

@@ -23,7 +23,7 @@ import vedtak.domain.Vedtak
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-internal data class VedtakJson(
+data class VedtakJson(
     val id: String,
     val opprettet: String,
     val beregning: BeregningJson?,
@@ -39,7 +39,7 @@ internal data class VedtakJson(
     val skalSendeBrev: Boolean,
 )
 
-internal enum class VedtakTypeJson(private val beskrivelse: String) {
+enum class VedtakTypeJson(private val beskrivelse: String) {
     SØKNAD("SØKNAD"),
     AVSLAG("AVSLAG"),
     ENDRING("ENDRING"),

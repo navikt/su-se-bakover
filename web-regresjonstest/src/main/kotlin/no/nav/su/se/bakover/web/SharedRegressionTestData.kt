@@ -3,13 +3,17 @@ package no.nav.su.se.bakover.web
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import kotliquery.HikariCP.dataSource
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
+import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
+import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
@@ -123,16 +127,55 @@ data object SharedRegressionTestData {
         utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
         satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
         personOppslagStub: PersonOppslag = PersonOppslagStub(),
+        pesysClientStub: PesysClient = PesysclientStub(),
+        aapApiClientStub: AapApiInternClient = AapApiInternClientStub(),
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
         withMigratedDb { dataSource ->
-            val appComponents = AppComponents.from(dataSource, clock, utbetalingerKjørtTilOgMed, satsFactory, applicationConfig, personOppslagStub)
+            val appComponents = AppComponents.from(
+                dataSource,
+                clock,
+                utbetalingerKjørtTilOgMed,
+                satsFactory,
+                applicationConfig,
+                personOppslagStub,
+                pesysClientStub,
+                aapApiClientStub,
+            )
             testApplication {
                 application {
                     testSusebakover(appComponents = appComponents)
                 }
                 test(appComponents)
             }
+        }
+    }
+
+    internal fun withTestApplication(
+        clock: Clock = fixedClock,
+        dataSource: DataSource,
+        utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
+        satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
+        personOppslagStub: PersonOppslag = PersonOppslagStub(),
+        pesysClientStub: PesysClient = PesysclientStub(),
+        aapApiClientStub: AapApiInternClient = AapApiInternClientStub(),
+        test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
+    ) {
+        val appComponents = AppComponents.from(
+            dataSource,
+            clock,
+            utbetalingerKjørtTilOgMed,
+            satsFactory,
+            applicationConfig,
+            personOppslagStub,
+            pesysClientStub,
+            aapApiClientStub,
+        )
+        testApplication {
+            application {
+                testSusebakover(appComponents = appComponents)
+            }
+            test(appComponents)
         }
     }
 
@@ -185,6 +228,8 @@ data class TestClientsBuilder(
     val utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     val databaseRepos: DatabaseRepos,
     val personOppslag: PersonOppslag = PersonOppslagStub(),
+    val pesysClient: PesysClient = PesysclientStub(),
+    val aapApiClient: AapApiInternClient = AapApiInternClientStub(),
 ) : ClientsBuilder {
     private val journalpostIdGenerator = JournalpostIdGeneratorForFakes()
     private val testClients = Clients(
@@ -214,8 +259,8 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         queryJournalpostClient = QueryJournalpostClientStub,
         skatteOppslag = SkatteClientStub(clock),
-        pesysklient = PesysclientStub(),
-        aapApiInternClient = mock(),
+        pesysklient = pesysClient,
+        aapApiInternClient = aapApiClient,
         suProxyClient = mock(),
     )
 

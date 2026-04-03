@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.Avsluttet.Companion.utledErAvsluttet
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Companion.toJson
 
-internal data class KlageJson(
+data class KlageJson(
     val id: String,
     val sakid: String,
     val opprettet: String,

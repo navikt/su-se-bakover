@@ -18,7 +18,7 @@ import vilkår.skatt.domain.Stadie
     JsonSubTypes.Type(value = StadieJson.Grunnlag::class, name = "Grunnlag"),
     JsonSubTypes.Type(value = StadieJson.Feil::class, name = "Feil"),
 )
-internal sealed interface StadieJson {
+sealed interface StadieJson {
     val inntektsår: Int
 
     data class Grunnlag(

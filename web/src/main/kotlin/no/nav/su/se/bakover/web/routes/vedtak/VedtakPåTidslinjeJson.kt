@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 
-internal data class VedtakPåTidslinjeJson(
+data class VedtakPåTidslinjeJson(
     val periode: PeriodeJson,
     val vedtakId: String,
     val vedtakType: VedtakTypeJson,

@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.format.DateTimeFormatter
 
-internal sealed interface RevurderingJson {
+sealed interface RevurderingJson {
     val id: String
     val sakId: String
     val status: RevurderingsStatus
@@ -79,7 +79,7 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
     }
 }
 
-internal enum class RevurderingsStatus {
+enum class RevurderingsStatus {
     OPPRETTET,
     BEREGNET_INNVILGET,
     BEREGNET_OPPHØRT,
