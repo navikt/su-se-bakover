@@ -31,7 +31,7 @@ class LeggTilFamiliegjenforeningIT {
 
     @Test
     fun `legg til familiegjenforening på søknadsbehandling `() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdato = PersonOppslagStub.foedselsdatoForAlder)) {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = PersonOppslagStub.foedselsdatoForAlder)) {
             nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)

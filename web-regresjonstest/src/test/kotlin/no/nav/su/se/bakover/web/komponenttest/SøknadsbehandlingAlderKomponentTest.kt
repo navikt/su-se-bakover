@@ -63,7 +63,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = databaseRepos,
-                    personOppslag = PersonOppslagStub(fødselsdato = 1.januar(1954)),
+                    personOppslag = PersonOppslagStub(fødselsdatoOver67 = 1.januar(1954)),
                 ).build(_applicationConfig)
             },
             clock = 17.juni(2022).fixedClock(),

@@ -42,7 +42,9 @@ internal fun hentSakForFnr(fnr: String, sakstype: String = "uføre", client: Htt
             //language=json
             setBody("""{"fnr":"$fnr", "type": "$sakstype", "saksnummer":null}""")
         }.apply {
-            status shouldBe HttpStatusCode.OK
+            if (status != HttpStatusCode.OK) {
+                throw IllegalStateException("Hent sak for $fnr feilet med status ${status.value} og body: ${bodyAsText()}")
+            }
         }.bodyAsText()
     }
 }
