@@ -1,5 +1,6 @@
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -22,15 +23,16 @@ internal class ReguleringKjøringPostgresRepoTest {
     private fun lagTestReguleringKjøring() = ReguleringKjøring(
         id = UUID.randomUUID(),
         aar = 2021,
-        type = ReguleringKjøringType.DRYRUN.name,
+        type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
+        dryrun = true,
         startTid = LocalDateTime.of(2026, 1, 1, 12, 0),
-        antallProsesserteSaker = 10,
-        antallReguleringerLaget = 5,
-        antallKunneIkkeOpprettes = 2,
-        arsakerReguleringIkkeOpprettet = "Feil",
-        antallAutomatiskeReguleringer = 3,
-        antallSupplementReguleringer = 1,
-        antallReguleringerManuellBehandling = 1,
-        arsakerManuellBehandling = "Manglende informasjon",
+        sakerAntall = 2,
+        sakerIkkeLøpende = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        sakerAlleredeRegulert = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        sakerMåRevurderes = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        reguleringerSomFeilet = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        reguleringerAlleredeÅpen = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        reguleringerManuell = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        reguleringerAutomatisk = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
     )
 }

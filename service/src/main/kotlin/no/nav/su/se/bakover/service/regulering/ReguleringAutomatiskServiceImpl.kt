@@ -5,11 +5,14 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
@@ -43,6 +46,7 @@ import satser.domain.SatsFactory
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.collections.filterIsInstance
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -131,19 +135,20 @@ class ReguleringAutomatiskServiceImpl(
                     }
 
                     // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
-                    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
-                        when (feil) {
-                            Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
-                                "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
-                            )
+                    val vedtaksdata =
+                        sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
+                            when (feil) {
+                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
+                                    "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
+                                )
 
-                            is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                                "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                            )
+                                is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                                )
+                            }
+
+                            return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
                         }
-
-                        return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
-                    }
 
                     sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                         when (r.size) {
@@ -207,36 +212,56 @@ class ReguleringAutomatiskServiceImpl(
         val startTid = LocalDateTime.now()
 
         return resultater.also {
-            val arsakerReguleringIkkeOpprettet = resultater.filter { it.isLeft() }.map { it.swap().getOrNull()!! }.groupBy {
-                when (it) {
-                    is KunneIkkeRegulereAutomatisk.FantIkkeSak -> "FantIkkeSak"
-                    is KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør -> "HarÅpenReguleringFraFør"
-                    is KunneIkkeRegulereAutomatisk.UkjentFeil -> "UkjentFeil"
+            val (lefts, rights) = resultater.split()
 
-                    is KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering -> "KunneIkkeHenteEllerOppretteRegulering(${it.feil})"
-                    is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk -> "KunneIkkeBehandleAutomatisk(${it.feil})"
-                    is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet -> "UthentingFradragPesysFeilet(${it.feil})"
-                }
-            }.map { "${it.key}: ${it.value.size}" }.joinToString(", ")
+            // TODO Ikke bare ha liste med årsak, men også maping til saksnummer
+            val sakerSkalIkkeRegulere =
+                lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
+
+            val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
+                it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+            }.map { JsonPrimitive(it.toString()) }
+
+            val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
+                it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
+            }.map { JsonPrimitive(it.toString()) }
+
+            // TODO denne må tester litt ekstra siden det er to ulike klasser som blit til jsonb
+            val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
+                (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
+            }.map { JsonPrimitive(it.toString()) }
+
+            val reguleringerSomFeilet = lefts.filter {
+                it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
+                    it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
+                    it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
+                    it is KunneIkkeRegulereAutomatisk.UkjentFeil
+            }.map { JsonPrimitive(it.toString()) }
+
+            val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
+                .map { JsonPrimitive(it.toString()) }
+
+            val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
+                JsonPrimitive(serialize(it))
+            }
+            val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
+                JsonPrimitive(serialize(it))
+            }
 
             val reguleringKjøring = ReguleringKjøring(
                 id = UUID.randomUUID(),
                 aar = fraOgMedMåned.årOgMåned.monthValue,
-                type = ReguleringKjøringType.DRYRUN.name,
+                type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
+                dryrun = testRun != null,
                 startTid = startTid,
-                antallProsesserteSaker = resultater.size,
-                antallReguleringerLaget = resultater.count { it.isRight() },
-                antallKunneIkkeOpprettes = resultater.count { it.isLeft() },
-
-                antallAutomatiskeReguleringer = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype == Reguleringstype.AUTOMATISK },
-                arsakerReguleringIkkeOpprettet = arsakerReguleringIkkeOpprettet,
-                antallSupplementReguleringer = resultater.count {
-                    val regulering = it.getOrNull() as? ReguleringUnderBehandling.OpprettetRegulering
-                    regulering?.reguleringstype == Reguleringstype.AUTOMATISK && (regulering.eksternSupplementRegulering?.bruker != null || regulering.eksternSupplementRegulering?.eps?.isNotEmpty() == true)
-                },
-                antallReguleringerManuellBehandling = resultater.count { it.isRight() && it.getOrNull()!!.reguleringstype is Reguleringstype.MANUELL },
-                arsakerManuellBehandling = resultater.filter { it.isRight() }.map { it.getOrNull()!! }.mapNotNull { it.reguleringstype as? Reguleringstype.MANUELL }.flatMap { manuell -> manuell.problemer.map { it::class.simpleName ?: "UkjentProblem" } }
-                    .groupBy { it }.map { "${it.key}: ${it.value.size}" }.joinToString(", "),
+                sakerAntall = alleSaker.size,
+                sakerIkkeLøpende = JsonArray(sakerIkkeLøpende),
+                sakerAlleredeRegulert = JsonArray(sakerAlleredeRegulert),
+                sakerMåRevurderes = JsonArray(sakerMåRevurderes),
+                reguleringerSomFeilet = JsonArray(reguleringerSomFeilet),
+                reguleringerAlleredeÅpen = JsonArray(reguleringerAlleredeÅpen),
+                reguleringerManuell = JsonArray(reguleringerManuell),
+                reguleringerAutomatisk = JsonArray(reguleringerAutomatisk),
             )
             reguleringKjøringRepo.lagre(reguleringKjøring)
             logResultat(resultater)
