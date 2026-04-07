@@ -321,6 +321,7 @@ data class Sak(
 
         data object FørerIkkeTilEnEndring : KanIkkeRegulere
 
+        // TODO flytte denne til MåRevurderes
         data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
 
         // Brukes når det må gjøres endringer som går utover en beregning med ny G
