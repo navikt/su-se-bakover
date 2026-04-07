@@ -229,6 +229,7 @@ class TestDataHelper(
     val personRepo = databaseRepos.person
     val personhendelseRepo = databaseRepos.personhendelseRepo
     val reguleringRepo = databaseRepos.reguleringRepo
+    val reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo
     val revurderingRepo = databaseRepos.revurderingRepo
     val søknadRepo = databaseRepos.søknad
     val søknadsbehandlingRepo = databaseRepos.søknadsbehandling
