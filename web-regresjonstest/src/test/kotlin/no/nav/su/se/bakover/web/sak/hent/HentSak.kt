@@ -8,8 +8,12 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.whenever
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.sak.SakJson
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,7 +35,7 @@ internal fun hentSak(sakId: String, client: HttpClient): String {
     }
 }
 
-internal fun hentSakForFnr(fnr: String, sakstype: String = "uføre", client: HttpClient): String {
+internal fun hentSakRequest(fnr: Fnr, sakstype: Sakstype = Sakstype.UFØRE, client: HttpClient): SakJson {
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
@@ -41,9 +45,12 @@ internal fun hentSakForFnr(fnr: String, sakstype: String = "uføre", client: Htt
         ) {
             //language=json
             setBody("""{"fnr":"$fnr", "type": "$sakstype", "saksnummer":null}""")
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-        }.bodyAsText()
+        }.let {
+            if (it.status != HttpStatusCode.OK) {
+                throw IllegalStateException("Hent sak for $fnr feilet med status ${it.status.value}, er sak opprettet? Body: ${it.bodyAsText()}")
+            }
+            deserialize<SakJson>(it.bodyAsText())
+        }
     }
 }
 

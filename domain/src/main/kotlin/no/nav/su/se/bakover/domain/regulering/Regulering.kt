@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.Logger
@@ -41,12 +40,7 @@ sealed interface Regulering : Stønadsbehandling {
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
 
-    /**
-     * Supplementet inneholder informasjon som skal brukes for å oppdatere grunnlagene
-     * Supplementet hentes fra eksterne kilder
-     */
-    // TODO AUTO-REG-26 bytt med EksterntRegulerteBeløp
-    val eksternSupplementRegulering: EksternSupplementRegulering?
+    val eksterntRegulerteBeløp: EksterntRegulerteBeløp
 
     fun erÅpen(): Boolean
 
@@ -95,8 +89,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         simulering = null,
         reguleringstype = reguleringstype,
         sakstype = type,
-        aapGrunnlag = eksterntRegulerteBeløp.maptoAap(),
-        // regulerteFradragEksternKilde = regulerteFradragEksternKilde. // TODO AUTO-REG-26 - Må lagre
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
     )
 
     val utenforToleransegrenser = beregnerUtenforToleransegrenser(this, opprettetRegulering, satsFactory, clock)

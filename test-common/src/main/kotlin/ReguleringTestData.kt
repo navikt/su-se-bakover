@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
@@ -58,7 +59,8 @@ fun opprettetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
-    eksternSupplementRegulering: EksternSupplementRegulering = nyEksternSupplementRegulering(),
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp = tomEksterntRegulerteBeløp(fnr),
+
 ) = OpprettetRegulering(
     // TODO jah: Her omgår vi mye domenelogikk. Bør bruke Regulering.opprettRegulering(...) som tar utgangspunkt i en sak/gjeldendeVedtak.
     id = id,
@@ -73,8 +75,7 @@ fun opprettetRegulering(
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
     sakstype = sakstype,
-    eksternSupplementRegulering = eksternSupplementRegulering,
-    aapGrunnlag = null,
+    eksterntRegulerteBeløp = eksterntRegulerteBeløp,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -177,7 +178,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         simulering = null,
         reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
         sakstype = sak.type,
-        aapGrunnlag = null,
+        eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(sak.fnr),
     )
 
     return Pair(
@@ -185,6 +186,13 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         regulering,
     )
 }
+
+fun tomEksterntRegulerteBeløp(fnr: Fnr): EksterntRegulerteBeløp = EksterntRegulerteBeløp(
+    brukerFnr = fnr,
+    beløpBruker = emptyList(),
+    beløpEps = emptyList(),
+    inntektEtterUføre = null,
+)
 
 @Suppress("unused")
 fun innvilgetSøknadsbehandlingMedIverksattRegulering(
@@ -520,7 +528,7 @@ fun eksterneReguleringer(
         beløpBruker = listOf(
             RegulertBeløp(
                 fnr = sak.fnr,
-                fradragstype = fradragstype,
+                fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
                 førRegulering = BigDecimal.valueOf(førRegulering.toLong()).setScale(2),
                 etterRegulering = BigDecimal.valueOf(etterRegulering.toLong()).setScale(2),
             ),

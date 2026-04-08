@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import java.util.UUID
 
-internal data class SøknadsbehandlingJson(
+data class SøknadsbehandlingJson(
     val id: String,
     val søknad: SøknadJson,
     val beregning: BeregningJson?,

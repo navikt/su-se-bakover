@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.skatt
 import vilkår.skatt.domain.Skattegrunnlag
 import java.time.LocalDate
 
-internal data class SkattegrunnlagForÅrJson(
+data class SkattegrunnlagForÅrJson(
     val oppgjørsdato: LocalDate?,
     val formue: List<GrunnlagJson>,
     val inntekt: List<GrunnlagJson>,

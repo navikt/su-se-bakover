@@ -26,7 +26,8 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
         periode = periode,
         reguleringstype = reguleringstype,
         erIverksatt = this is IverksattRegulering,
-        supplementBruker = eksternSupplementRegulering?.bruker,
-        supplementEps = eksternSupplementRegulering?.eps ?: emptyList(),
+        // TODO AUTO-REG-26 - erstatte med ny EksterntRegulerteBeløp - hvis denne klassen fortsatt skal benyttes
+        supplementBruker = null,
+        supplementEps = emptyList(),
     )
 }

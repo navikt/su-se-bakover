@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
-import no.nav.su.se.bakover.web.routes.regulering.json.EksternSupplementReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
@@ -35,6 +34,7 @@ data class ReguleringJson(
     val saksnummer: Saksnummer,
     val reguleringstype: String,
     val årsakForManuell: List<ÅrsakTilManuellReguleringJson>,
+    // TODO AUTO-REG-26
     val supplement: EksternSupplementReguleringJson? = null,
     val reguleringsstatus: Status,
     val periode: PeriodeJson,
@@ -76,7 +76,7 @@ fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJs
         Reguleringstype.AUTOMATISK -> emptyList()
         is Reguleringstype.MANUELL -> type.problemer.toJson()
     },
-    supplement = this.eksternSupplementRegulering?.toJson(),
+    supplement = null,
     reguleringsstatus = when (this) {
         is AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
         is IverksattRegulering -> ReguleringJson.Status.IVERKSATT

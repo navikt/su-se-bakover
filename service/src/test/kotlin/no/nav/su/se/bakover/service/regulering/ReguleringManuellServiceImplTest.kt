@@ -69,10 +69,10 @@ internal class ReguleringManuellServiceImplTest {
             grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
             reguleringstype = regulering.reguleringstype,
             sakstype = regulering.sakstype,
-            eksternSupplementRegulering = regulering.eksternSupplementRegulering,
             beregning = mock(),
             simulering = mock(),
             attesteringer = regulering.attesteringer,
+            eksterntRegulerteBeløp = regulering.eksterntRegulerteBeløp,
         )
         val regulerManueltService = lagReguleringManuellServiceImpl(
             sak,

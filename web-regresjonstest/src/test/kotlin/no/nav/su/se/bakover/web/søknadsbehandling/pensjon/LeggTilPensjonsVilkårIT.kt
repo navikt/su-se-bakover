@@ -28,7 +28,7 @@ internal class LeggTilPensjonsVilkårIT {
 
     @Test
     fun `legg pensjonsvilkår til søknadsbehandling `() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdato = 1.januar(1954))) {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = 1.januar(1954))) {
             nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)

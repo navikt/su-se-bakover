@@ -21,6 +21,7 @@ import java.time.LocalDate
 data class PersonOppslagStub(
     val dødsdato: LocalDate? = foedselsdatoForUføre,
     val fødselsdato: LocalDate = 1.januar(1990),
+    val fødselsdatoOver67: LocalDate = 1.januar(1958),
 ) : PersonOppslag {
 
     companion object {
@@ -28,7 +29,10 @@ data class PersonOppslagStub(
         val foedselsdatoForUføre = 1.januar(1990)
     }
 
-    fun nyTestPerson(fnr: Fnr) = Person(
+    fun nyTestPerson(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ) = Person(
         ident = Ident(fnr, AktørId("2437280977705")),
         navn = Person.Navn(
             fornavn = "Tore",
@@ -48,7 +52,10 @@ data class PersonOppslagStub(
         ),
         sivilstand = null,
         fødsel = Person.Fødsel.MedFødselsdato(
-            dato = fødselsdato,
+            dato = when (sakstype) {
+                Sakstype.ALDER -> fødselsdatoOver67
+                Sakstype.UFØRE -> fødselsdato
+            },
         ),
         adressebeskyttelse = if (fnr.toString() == ApplicationConfig.fnrKode6()) "STRENGT_FORTROLIG_ADRESSE" else null,
         vergemål = null,
@@ -59,10 +66,10 @@ data class PersonOppslagStub(
         if (fnr.toString() == ApplicationConfig.fnrKode6()) {
             KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         } else {
-            nyTestPerson(fnr).right()
+            nyTestPerson(fnr, sakstype).right()
         }
 
-    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr, sakstype).right()
 
     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
         KunneIkkeHentePerson.Ukjent.left()
@@ -71,7 +78,7 @@ data class PersonOppslagStub(
         fnr: Fnr,
         sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo> =
-        nyTestPerson(fnr).let {
+        nyTestPerson(fnr, sakstype).let {
             PersonMedSkjermingOgKontaktinfo(
                 person = it,
                 skjermet = false,

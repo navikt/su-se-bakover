@@ -28,7 +28,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import java.time.Clock
 
-internal data class SakJson(
+data class SakJson(
     val id: String,
     val saksnummer: Long,
     val fnr: String,

@@ -133,7 +133,7 @@ sealed class ReguleringUnderBehandling :
         )
         return when (this) {
             is OpprettetRegulering -> this.copy(
-                eksternSupplementRegulering = eksternSupplementRegulering,
+                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = bosituasjon,
@@ -169,7 +169,7 @@ sealed class ReguleringUnderBehandling :
         saksbehandler = saksbehandler,
         reguleringstype = reguleringstype,
         sakstype = sakstype,
-        eksternSupplementRegulering = eksternSupplementRegulering,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         beregning = beregning,
         simulering = simulering,
         attesteringer = attesteringer,
@@ -188,9 +188,7 @@ sealed class ReguleringUnderBehandling :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
-        override val eksternSupplementRegulering: EksternSupplementRegulering? = null,
-        // SOS TODO: kan være dette skal kun være  EksterntRegulerteBeløp som lagres og ikke så spesifikt
-        val aapGrunnlag: AapGrunnlagForRegulering?,
+        override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling()
@@ -208,7 +206,7 @@ sealed class ReguleringUnderBehandling :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
-        override val eksternSupplementRegulering: EksternSupplementRegulering?,
+        override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
     ) : ReguleringUnderBehandling() {
         fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler) = TilAttestering(
@@ -221,7 +219,7 @@ sealed class ReguleringUnderBehandling :
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             reguleringstype = reguleringstype,
             sakstype = sakstype,
-            eksternSupplementRegulering = eksternSupplementRegulering,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             beregning = beregning,
             simulering = simulering,
             attesteringer = attesteringer,
@@ -241,7 +239,7 @@ sealed class ReguleringUnderBehandling :
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
-        override val eksternSupplementRegulering: EksternSupplementRegulering?,
+        override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
     ) : ReguleringUnderBehandling() {
 
@@ -271,7 +269,7 @@ sealed class ReguleringUnderBehandling :
             saksbehandler = saksbehandler,
             reguleringstype = reguleringstype,
             sakstype = sakstype,
-            eksternSupplementRegulering = eksternSupplementRegulering,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             beregning = beregning,
             simulering = simulering,
             attesteringer = attesteringer.leggTilNyAttestering(

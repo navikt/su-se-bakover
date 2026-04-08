@@ -23,32 +23,6 @@ data class EksterntRegulerteBeløp(
     val inntektEtterUføre: RegulertBeløp? = null,
 )
 
-fun EksterntRegulerteBeløp.maptoAap(): AapGrunnlagForRegulering {
-    val aapGrunnlagBruker = beløpBruker.find { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }?.let {
-        AapGrunnlagOgBruker(
-            fnr = it.fnr,
-            aapGrunnlag = AapGrunnlag(
-                it.grunnlagAap!!.aapFoer,
-                it.grunnlagAap.aapEtter,
-            ),
-        )
-    }
-
-    val aapGrunnlagEps = beløpEps.find { it.fradragstype == Fradragstype.Arbeidsavklaringspenger }?.let {
-        AapGrunnlagOgBruker(
-            fnr = it.fnr,
-            aapGrunnlag = AapGrunnlag(
-                it.grunnlagAap!!.aapFoer,
-                it.grunnlagAap.aapEtter,
-            ),
-        )
-    }
-    return AapGrunnlagForRegulering(
-        bruker = aapGrunnlagBruker,
-        eps = aapGrunnlagEps,
-    )
-}
-
 /**
  * Representerer et regulert beløp for en person, med beløp før og etter regulering.
  *
@@ -57,27 +31,31 @@ fun EksterntRegulerteBeløp.maptoAap(): AapGrunnlagForRegulering {
  */
 data class RegulertBeløp(
     val fnr: Fnr,
-    val fradragstype: Fradragstype,
+    val fradragstype: EksterntBeløpSomFradragstype,
     val førRegulering: BigDecimal,
     val etterRegulering: BigDecimal,
 
     val grunnlagAap: AapGrunnlag? = null,
 )
 
+enum class EksterntBeløpSomFradragstype {
+    Alderspensjon,
+    Arbeidsavklaringspenger,
+    Uføretrygd,
+    ForventetInntekt,
+    ;
+
+    companion object {
+        fun from(fradragstype: Fradragstype): EksterntBeløpSomFradragstype = when (fradragstype) {
+            Fradragstype.Alderspensjon -> Alderspensjon
+            Fradragstype.Arbeidsavklaringspenger -> Arbeidsavklaringspenger
+            Fradragstype.Uføretrygd -> Uføretrygd
+            else -> throw IllegalArgumentException("Fradragstype $fradragstype kan ikke brukes som eksternt beløp")
+        }
+    }
+}
+
 data class AapGrunnlag(
     val aapFoer: BeregnAap.AapBeregning,
     val aapEtter: BeregnAap.AapBeregning,
-)
-
-data class AapGrunnlagOgBruker(
-    val fnr: Fnr,
-    val aapGrunnlag: AapGrunnlag,
-)
-
-// SOS TODO: kan være dette skal kun være  EksterntRegulerteBeløp som lagres og ikke så spesifikt
-// må få sjekke det ifbm med datalagring fra eksterne tjenester som er underlagt gdpr minimering så vi må gjøre en transformasjon mest sannsynlighet eller hjemle det
-// AAP er en transformasjon i motsetning til de andre så der er det OK
-data class AapGrunnlagForRegulering(
-    val bruker: AapGrunnlagOgBruker?,
-    val eps: AapGrunnlagOgBruker?,
 )

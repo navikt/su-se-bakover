@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
@@ -174,7 +175,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                         beløpBruker = listOf(
                             RegulertBeløp(
                                 fnr = brukerMedEps.fnr,
-                                fradragstype = Fradragstype.Alderspensjon,
+                                fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                                 førRegulering = BigDecimal.ZERO.setScale(2),
                                 etterRegulering = BigDecimal.ZERO.setScale(2),
                             ),
@@ -653,7 +654,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             beløpBruker = listOf(
                                 RegulertBeløp(
                                     fnr = sak.fnr,
-                                    fradragstype = Fradragstype.Alderspensjon,
+                                    fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                                     førRegulering = BigDecimal.ZERO.setScale(2),
                                     etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
@@ -744,7 +745,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             beløpBruker = listOf(
                                 RegulertBeløp(
                                     fnr = sak.fnr,
-                                    fradragstype = Fradragstype.Alderspensjon,
+                                    fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                                     førRegulering = BigDecimal.ZERO.setScale(2),
                                     etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
@@ -892,7 +893,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                             beløpBruker = listOf(
                                 RegulertBeløp(
                                     fnr = sak.fnr,
-                                    fradragstype = Fradragstype.Alderspensjon,
+                                    fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                                     førRegulering = BigDecimal.ZERO.setScale(2),
                                     etterRegulering = BigDecimal.ZERO.setScale(2),
                                 ),
@@ -922,7 +923,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 beløpBruker = listOf(
                     RegulertBeløp(
                         fnr = fnr,
-                        fradragstype = Fradragstype.Alderspensjon,
+                        fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                         førRegulering = BigDecimal("100.00"),
                         etterRegulering = BigDecimal("110.00"),
                     ),
@@ -936,7 +937,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 beløpBruker = listOf(
                     RegulertBeløp(
                         fnr = fnr,
-                        fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                        fradragstype = EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
                         førRegulering = BigDecimal("200.00"),
                         etterRegulering = BigDecimal("210.00"),
                     ),
@@ -952,8 +953,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         ).single().shouldBeRight()
 
         resultat.beløpBruker.map { it.fradragstype } shouldBe listOf(
-            Fradragstype.Alderspensjon,
-            Fradragstype.Arbeidsavklaringspenger,
+            EksterntBeløpSomFradragstype.Alderspensjon,
+            EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
         )
     }
 

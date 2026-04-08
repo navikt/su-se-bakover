@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.web.routes.skatt.SkattegrunnlagJSON.Companion.toJSON
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 
-internal data class EksterneGrunnlagJson(
+data class EksterneGrunnlagJson(
     val skatt: EksterneGrunnlagSkattJson?,
 ) {
     companion object {
@@ -16,7 +16,7 @@ internal data class EksterneGrunnlagJson(
     }
 }
 
-internal data class EksterneGrunnlagSkattJson(
+data class EksterneGrunnlagSkattJson(
     val søkers: SkattegrunnlagJSON,
     val eps: SkattegrunnlagJSON?,
 ) {

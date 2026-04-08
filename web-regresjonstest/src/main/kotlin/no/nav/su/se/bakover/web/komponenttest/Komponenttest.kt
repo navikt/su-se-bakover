@@ -4,6 +4,10 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
+import no.nav.su.se.bakover.client.pesys.PesysClient
+import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -107,6 +111,8 @@ class AppComponents private constructor(
             satsFactoryParam: SatsFactoryForSupplerendeStønad = satsFactoryTest,
             applicationConfig: ApplicationConfig,
             personOppslagStub: PersonOppslag = PersonOppslagStub(),
+            pesysClientStub: PesysClient = PesysclientStub(),
+            aapApiClientStub: AapApiInternClient = AapApiInternClientStub(),
         ): AppComponents {
             return instance(
                 clock = clockParam,
@@ -125,6 +131,8 @@ class AppComponents private constructor(
                         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         databaseRepos = db,
                         personOppslag = personOppslagStub,
+                        pesysClient = pesysClientStub,
+                        aapApiClient = aapApiClientStub,
                     ).build(_applicationConfig)
                 },
                 serviceBuilder = { databaseRepos, clients, clock, satsFactory ->

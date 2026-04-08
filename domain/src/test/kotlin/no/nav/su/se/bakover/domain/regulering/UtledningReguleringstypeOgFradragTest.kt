@@ -32,7 +32,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
                 ),
@@ -40,7 +40,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpEps = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Alderspensjon,
+                    fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                     førRegulering = BigDecimal(2000),
                     etterRegulering = BigDecimal(2128),
                 ),
@@ -72,7 +72,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
                 ),
@@ -105,13 +105,13 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
                 ),
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Arbeidsavklaringspenger,
+                    fradragstype = EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
                     førRegulering = BigDecimal(2000),
                     etterRegulering = BigDecimal(2128),
                 ),
@@ -148,7 +148,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
                 ),
@@ -156,7 +156,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpEps = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Alderspensjon,
+                    fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                     førRegulering = BigDecimal(2000),
                     etterRegulering = BigDecimal(2128),
                 ),
@@ -192,7 +192,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
                 ),
@@ -226,7 +226,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
                 ),
@@ -272,7 +272,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = listOf(
                 RegulertBeløp(
                     fnr = fnr,
-                    fradragstype = Fradragstype.Uføretrygd,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal("900.00"), // Avviker fra vårt beløp (1000)
                     etterRegulering = BigDecimal("958.00"),
                 ),
