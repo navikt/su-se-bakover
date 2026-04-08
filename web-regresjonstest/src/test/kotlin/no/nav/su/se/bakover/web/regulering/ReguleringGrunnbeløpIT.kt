@@ -62,29 +62,28 @@ internal class ReguleringGrunnbeløpIT {
 
         // Alle testsaker som trenger beløp fra pesys må legges til her
         val pesysStub = PesysclientStub.build(
-            uførePeriode = listOf(
-                TestScenarietSaker.automatiskUføre.uførePerioderFraPesys(),
-                TestScenarietSaker.manuellUføre.uførePerioderFraPesys(),
-            ),
-            alderPerioder = listOf(TestScenarietSaker.automatiskAlder.alderPerioderFraPesys()),
+            uførePeriode = TestScenarietSaker.alle.filter { it.sakstype == Sakstype.UFØRE && it.innvilgetIPesys }
+                .map { it.uførePerioderFraPesys() },
+            alderPerioder = TestScenarietSaker.alle.filter { it.sakstype == Sakstype.ALDER && it.innvilgetIPesys }
+                .map { it.alderPerioderFraPesys() },
         )
 
         @Test
         fun `full reguleringsjobb`() {
             withMigratedDb { dataSource ->
                 applikasjonFørNyttGrunnbeløp(dataSource) { appComponents ->
-                    TestScenarietSaker.automatiskUføre.opprettSak(client, appComponents)
-                    TestScenarietSaker.automatiskAlder.opprettSak(client, appComponents)
-                    TestScenarietSaker.manuellUføre.opprettSak(client, appComponents)
+                    TestScenarietSaker.AUTOMATISK_UFØRE.opprettSak(client, appComponents)
+                    TestScenarietSaker.AUTOMATISK_ALDER.opprettSak(client, appComponents)
+                    TestScenarietSaker.MANUELL_UFØRE.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
 
-                    TestScenarietSaker.automatiskUføre.verifiserAutomatisk(this.client)
+                    TestScenarietSaker.AUTOMATISK_UFØRE.verifiserAutomatisk(this.client)
 
-                    TestScenarietSaker.automatiskAlder.verifiserAutomatisk(this.client)
+                    TestScenarietSaker.AUTOMATISK_ALDER.verifiserAutomatisk(this.client)
 
-                    TestScenarietSaker.manuellUføre.verifiserManuell(client)
+                    TestScenarietSaker.MANUELL_UFØRE.verifiserManuell(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -196,13 +195,13 @@ internal class ReguleringGrunnbeløpIT {
 // TODO egen fil
 object TestScenarietSaker {
 
-    val automatiskUføre = TestSakReguleringIT.create(
+    val AUTOMATISK_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000001"),
         sakstype = Sakstype.UFØRE,
         finnesIPesys = true,
     )
 
-    val automatiskAlder = TestSakReguleringIT.create(
+    val AUTOMATISK_ALDER = TestSakReguleringIT.create(
         fnr = Fnr("00000000002"),
         sakstype = Sakstype.ALDER,
         finnesIPesys = true,
@@ -210,12 +209,14 @@ object TestScenarietSaker {
 
     // TODO automatisk uten innvilget i Pesys??
 
-    val manuellUføre = TestSakReguleringIT.create(
+    val MANUELL_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000003"),
         sakstype = Sakstype.UFØRE,
         finnesIPesys = true,
         andreFradrag = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
     )
+
+    val alle = listOf(AUTOMATISK_UFØRE, AUTOMATISK_ALDER, MANUELL_UFØRE)
 }
 
 data class TestSakReguleringIT(
@@ -227,7 +228,7 @@ data class TestSakReguleringIT(
     val tilOgMedFørRegulering: LocalDate,
     val fraOgMedEtterRegulering: LocalDate,
 
-    val finnesIPesys: Boolean = false,
+    val innvilgetIPesys: Boolean = false,
     val andreFradrag: List<Fradragstype.Kategori>,
 ) {
 
@@ -287,7 +288,7 @@ data class TestSakReguleringIT(
                 tilOgMed = tilOgMed,
                 tilOgMedFørRegulering = tilOgMedFørRegulering,
                 fraOgMedEtterRegulering = fraOgMedEtterRegulering,
-                finnesIPesys = finnesIPesys,
+                innvilgetIPesys = finnesIPesys,
                 andreFradrag = andreFradrag,
             )
         }
