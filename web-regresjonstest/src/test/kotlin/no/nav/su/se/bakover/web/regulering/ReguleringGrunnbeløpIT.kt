@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummeringJson
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -128,6 +130,10 @@ internal class ReguleringGrunnbeløpIT {
                     val kjøring = kjøringer.single()
                     kjøring.sakerAntall shouldBe 2
                     kjøring.reguleringerAutomatisk.size shouldBe 2
+                    kjøring.reguleringerAutomatisk.forEach {
+                        val automatisk = deserialize<ReguleringOppsummeringJson>(it)
+                        automatisk.reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
+                    }
                 }
             }
         }

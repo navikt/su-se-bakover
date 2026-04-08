@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.serialize
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForReguler
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import no.nav.su.se.bakover.domain.regulering.toJson
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -206,62 +208,8 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
             }
-
-        val startTid = LocalDateTime.now()
-
         return resultater.also {
-            val (lefts, rights) = resultater.split()
-
-            // TODO Ikke bare ha liste med årsak, men også maping til saksnummer
-            val sakerSkalIkkeRegulere =
-                lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
-
-            val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
-                it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
-            }.map { serialize(it) }
-
-            val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
-                it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
-            }.map { serialize(it) }
-
-            // TODO denne må tester litt ekstra siden det er to ulike klasser som blit til jsonb
-            val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
-                (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
-            }.map { serialize(it) }
-
-            val reguleringerSomFeilet = lefts.filter {
-                it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
-                    it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
-                    it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
-                    it is KunneIkkeRegulereAutomatisk.UkjentFeil
-            }.map { serialize(it) }
-
-            val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
-                .map { serialize(it) }
-
-            val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
-                serialize(it)
-            }
-            val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
-                serialize(it)
-            }
-
-            val reguleringKjøring = ReguleringKjøring(
-                id = UUID.randomUUID(),
-                aar = fraOgMedMåned.årOgMåned.monthValue,
-                type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
-                dryrun = testRun != null,
-                startTid = startTid,
-                sakerAntall = alleSaker.size,
-                sakerIkkeLøpende = sakerIkkeLøpende,
-                sakerAlleredeRegulert = sakerAlleredeRegulert,
-                sakerMåRevurderes = sakerMåRevurderes,
-                reguleringerSomFeilet = reguleringerSomFeilet,
-                reguleringerAlleredeÅpen = reguleringerAlleredeÅpen,
-                reguleringerManuell = reguleringerManuell,
-                reguleringerAutomatisk = reguleringerAutomatisk,
-            )
-            reguleringKjøringRepo.lagre(reguleringKjøring)
+            lagreResultat(fraOgMedMåned, testRun, alleSaker, it)
             logResultat(resultater)
         }
     }
@@ -300,6 +248,67 @@ class ReguleringAutomatiskServiceImpl(
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             regulering.toReguleringForLogResultat().right()
         }
+    }
+
+    private fun lagreResultat(
+        fraOgMedMåned: Måned,
+        testRun: ReguleringTestRun? = null,
+        alleSaker: List<SakInfo>,
+        resultater: List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>,
+    ) {
+        val (lefts, rights) = resultater.split()
+        val startTid = LocalDateTime.now()
+
+        // TODO Ikke bare ha liste med årsak, men også maping til saksnummer
+        val sakerSkalIkkeRegulere =
+            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
+
+        val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
+            it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+        }.map { serialize(it) }
+
+        val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
+            it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
+        }.map { serialize(it) }
+
+        // TODO denne må tester litt ekstra siden det er to ulike klasser som blit til jsonb
+        val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
+            (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
+        }.map { serialize(it) }
+
+        val reguleringerSomFeilet = lefts.filter {
+            it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
+                it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
+                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
+                it is KunneIkkeRegulereAutomatisk.UkjentFeil
+        }.map { serialize(it) }
+
+        val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
+            .map { serialize(it) }
+
+        val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
+            serialize(it.toJson())
+        }
+        val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
+            serialize(it.toJson())
+        }
+
+        val reguleringKjøring = ReguleringKjøring(
+            id = UUID.randomUUID(),
+            aar = fraOgMedMåned.årOgMåned.monthValue,
+            type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
+            dryrun = testRun != null,
+            startTid = startTid,
+            sakerAntall = alleSaker.size,
+            sakerIkkeLøpende = sakerIkkeLøpende,
+            sakerAlleredeRegulert = sakerAlleredeRegulert,
+            sakerMåRevurderes = sakerMåRevurderes,
+            reguleringerSomFeilet = reguleringerSomFeilet,
+            reguleringerAlleredeÅpen = reguleringerAlleredeÅpen,
+            reguleringerManuell = reguleringerManuell,
+            reguleringerAutomatisk = reguleringerAutomatisk,
+        )
+        reguleringKjøringRepo.lagre(reguleringKjøring)
     }
 
     private fun logResultat(it: List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>): String {

@@ -31,3 +31,17 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
         supplementEps = emptyList(),
     )
 }
+
+data class ReguleringOppsummeringJson(
+    val saksnummer: Saksnummer,
+    val behandlingsId: UUID,
+    val periode: Periode,
+    val reguleringstype: String,
+    // TODO hvordan fange "problemer"??
+)
+fun ReguleringOppsummering.toJson() = ReguleringOppsummeringJson(
+    saksnummer = saksnummer,
+    behandlingsId = behandlingsId,
+    periode = periode,
+    reguleringstype = reguleringstype.type(),
+)

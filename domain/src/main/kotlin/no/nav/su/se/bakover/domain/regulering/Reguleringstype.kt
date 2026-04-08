@@ -25,6 +25,11 @@ sealed interface Reguleringstype {
             return AUTOMATISK
         }
     }
+
+    fun type(): String = when (this) {
+        AUTOMATISK -> "AUTOMATISK"
+        is MANUELL -> "MANUELL"
+    }
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
