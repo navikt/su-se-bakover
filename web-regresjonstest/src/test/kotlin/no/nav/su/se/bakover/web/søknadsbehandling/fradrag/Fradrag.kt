@@ -12,6 +12,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.application.defaultRequest
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal fun leggTilFradrag(
     sakId: String,
@@ -19,23 +20,28 @@ internal fun leggTilFradrag(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    body: () -> String =
-        {
-            //language=json
+    fradragstyper: List<Fradragstype.Kategori> = listOf(Fradragstype.Kategori.PrivatPensjon),
+    body: () -> String = {
+        val fradragElements = fradragstyper.joinToString(",\n") { fradragstype ->
             """
-                {
-                  "fradrag": [
                     {
                       "periode": {"fraOgMed": "$fraOgMed","tilOgMed": "$tilOgMed"},
-                      "type": "PrivatPensjon",
+                      "type": "${fradragstype.name}",
                       "beløp": 10000.0,
                       "utenlandskInntekt": null,
                       "tilhører": "BRUKER"
                     }
+            """.trimIndent()
+        }
+        //language=json
+        """
+                {
+                  "fradrag": [
+                    $fradragElements
                   ]
                 }
-                """
-        },
+        """.trimIndent()
+    },
     url: String = "/saker/$sakId/behandlinger/$behandlingId/fradrag",
     client: HttpClient,
 ): String {

@@ -6,7 +6,6 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
-import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
@@ -28,9 +27,11 @@ import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRU
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2025
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.REGULERINGSÅR
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
+import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -56,7 +57,10 @@ internal class ReguleringGrunnbeløpIT {
 
         // Alle testsaker som trenger beløp fra pesys må legges til her
         val pesysStub = PesysclientStub.build(
-            uførePeriode = listOf(TestScenarietSaker.automatiskUføre.uførePerioderFraPesys()),
+            uførePeriode = listOf(
+                TestScenarietSaker.automatiskUføre.uførePerioderFraPesys(),
+                TestScenarietSaker.manuellUføre.uførePerioderFraPesys(),
+            ),
             alderPerioder = listOf(TestScenarietSaker.automatiskAlder.alderPerioderFraPesys()),
         )
 
@@ -77,6 +81,25 @@ internal class ReguleringGrunnbeløpIT {
                         sakstype = Sakstype.ALDER,
                         fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
                         tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+
+                    opprettInnvilgetSøknadsbehandling(
+                        fnr = TestScenarietSaker.manuellUføre.fnr.toString(),
+                        sakstype = Sakstype.UFØRE,
+                        fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
+                        tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
+                        fradrag = { sakId, behandlingId ->
+                            leggTilFradrag(
+                                sakId = sakId,
+                                behandlingId = behandlingId,
+                                fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
+                                tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
+                                fradragstyper = TestScenarietSaker.manuellUføre.andreFradrag,
+                                client = client,
+                            )
+                        },
                         client = this.client,
                         appComponents = appComponents,
                     )
@@ -124,7 +147,7 @@ internal class ReguleringGrunnbeløpIT {
                         it.size shouldBe 1
                         it.single()
                     }
-                    kjøring.sakerAntall shouldBe 2
+                    kjøring.sakerAntall shouldBe 3
 
                     with(kjøring.reguleringerAutomatisk) {
                         size shouldBe 2
@@ -132,6 +155,16 @@ internal class ReguleringGrunnbeløpIT {
                             deserialize<ReguleringOppsummeringJson>(it)
                                 .reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
                         }
+                    }
+
+                    with(kjøring.reguleringerManuell) {
+                        size shouldBe 1
+                        forEach {
+                            deserialize<ReguleringOppsummeringJson>(it)
+                                .reguleringstype shouldBe "MANUELL"
+                        }
+
+                        // TODO verifiser årsak
                     }
                 }
             }
@@ -187,6 +220,15 @@ object TestScenarietSaker {
         sakstype = Sakstype.ALDER,
         finnesIPesys = true,
     )
+
+    // TODO automatisk uten innvilget i Pesys??
+
+    val manuellUføre = TestSakReguleringIT.create(
+        fnr = Fnr("00000000003"),
+        sakstype = Sakstype.UFØRE,
+        finnesIPesys = true,
+        andreFradrag = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
+    )
 }
 
 data class TestSakReguleringIT(
@@ -198,11 +240,47 @@ data class TestSakReguleringIT(
     val tilOgMedFørRegulering: LocalDate,
     val fraOgMedEtterRegulering: LocalDate,
 
-    val perioderFraPesys: PesysPerioderForPerson,
+    val finnesIPesys: Boolean = false,
+    val andreFradrag: List<Fradragstype.Kategori>,
 ) {
 
-    fun uførePerioderFraPesys(): UføreBeregningsperioderPerPerson = perioderFraPesys as UføreBeregningsperioderPerPerson
-    fun alderPerioderFraPesys(): AlderBeregningsperioderPerPerson = perioderFraPesys as AlderBeregningsperioderPerPerson
+    fun uførePerioderFraPesys(): UføreBeregningsperioderPerPerson = UføreBeregningsperioderPerPerson(
+        fnr = fnr.toString(),
+        perioder = listOf(
+            UføreBeregningsperiode(
+                netto = 1000,
+                fom = fraOgMed,
+                tom = tilOgMedFørRegulering,
+                grunnbelop = GRUNNBELØP_2024,
+                oppjustertInntektEtterUfore = 0,
+            ),
+            UføreBeregningsperiode(
+                netto = 1200,
+                fom = fraOgMedEtterRegulering,
+                tom = null,
+                grunnbelop = GRUNNBELØP_2025,
+                oppjustertInntektEtterUfore = 0,
+            ),
+        ),
+    )
+
+    fun alderPerioderFraPesys(): AlderBeregningsperioderPerPerson = AlderBeregningsperioderPerPerson(
+        fnr = fnr.toString(),
+        perioder = listOf(
+            AlderBeregningsperiode(
+                netto = 1000,
+                fom = fraOgMed,
+                tom = tilOgMedFørRegulering,
+                grunnbelop = GRUNNBELØP_2024,
+            ),
+            AlderBeregningsperiode(
+                netto = 1200,
+                fom = fraOgMedEtterRegulering,
+                tom = null,
+                grunnbelop = GRUNNBELØP_2025,
+            ),
+        ),
+    )
 
     companion object {
         fun create(
@@ -213,52 +291,8 @@ data class TestSakReguleringIT(
             tilOgMedFørRegulering: LocalDate = april(REGULERINGSÅR).tilOgMed,
             fraOgMedEtterRegulering: LocalDate = januar(REGULERINGSÅR).fraOgMed,
             finnesIPesys: Boolean = false,
+            andreFradrag: List<Fradragstype.Kategori> = emptyList(),
         ): TestSakReguleringIT {
-            val perioderFraPesys = if (finnesIPesys) {
-                when (sakstype) {
-                    Sakstype.ALDER -> AlderBeregningsperioderPerPerson(
-                        fnr = fnr.toString(),
-                        perioder = listOf(
-                            AlderBeregningsperiode(
-                                netto = 1000,
-                                fom = fraOgMed,
-                                tom = tilOgMedFørRegulering,
-                                grunnbelop = GRUNNBELØP_2024,
-                            ),
-                            AlderBeregningsperiode(
-                                netto = 1200,
-                                fom = fraOgMedEtterRegulering,
-                                tom = null,
-                                grunnbelop = GRUNNBELØP_2025,
-                            ),
-                        ),
-                    )
-
-                    Sakstype.UFØRE,
-                    -> UføreBeregningsperioderPerPerson(
-                        fnr = fnr.toString(),
-                        perioder = listOf(
-                            UføreBeregningsperiode(
-                                netto = 1000,
-                                fom = fraOgMed,
-                                tom = tilOgMedFørRegulering,
-                                grunnbelop = GRUNNBELØP_2024,
-                                oppjustertInntektEtterUfore = 0,
-                            ),
-                            UføreBeregningsperiode(
-                                netto = 1200,
-                                fom = fraOgMedEtterRegulering,
-                                tom = null,
-                                grunnbelop = GRUNNBELØP_2025,
-                                oppjustertInntektEtterUfore = 0,
-                            ),
-                        ),
-                    )
-                }
-            } else {
-                null
-            }
-
             return TestSakReguleringIT(
                 fnr = fnr,
                 sakstype = sakstype,
@@ -266,7 +300,8 @@ data class TestSakReguleringIT(
                 tilOgMed = tilOgMed,
                 tilOgMedFørRegulering = tilOgMedFørRegulering,
                 fraOgMedEtterRegulering = fraOgMedEtterRegulering,
-                perioderFraPesys = perioderFraPesys ?: UføreBeregningsperioderPerPerson(fnr.toString(), emptyList()),
+                finnesIPesys = finnesIPesys,
+                andreFradrag = andreFradrag,
             )
         }
     }
