@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.regulering
 
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
@@ -18,6 +20,7 @@ import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummeringJson
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -26,11 +29,13 @@ import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2024
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2025
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.REGULERINGSÅR
+import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 import java.time.LocalDate
@@ -68,118 +73,100 @@ internal class ReguleringGrunnbeløpIT {
         fun `full reguleringsjobb`() {
             withMigratedDb { dataSource ->
                 applikasjonFørNyttGrunnbeløp(dataSource) { appComponents ->
-                    opprettInnvilgetSøknadsbehandling(
-                        fnr = TestScenarietSaker.automatiskUføre.fnr.toString(),
-                        sakstype = Sakstype.UFØRE,
-                        fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
-                        tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
-                        client = this.client,
-                        appComponents = appComponents,
-                    )
-                    opprettInnvilgetSøknadsbehandling(
-                        fnr = TestScenarietSaker.automatiskAlder.fnr.toString(),
-                        sakstype = Sakstype.ALDER,
-                        fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
-                        tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
-                        client = this.client,
-                        appComponents = appComponents,
-                    )
-
-                    opprettInnvilgetSøknadsbehandling(
-                        fnr = TestScenarietSaker.manuellUføre.fnr.toString(),
-                        sakstype = Sakstype.UFØRE,
-                        fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
-                        tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
-                        fradrag = { sakId, behandlingId ->
-                            leggTilFradrag(
-                                sakId = sakId,
-                                behandlingId = behandlingId,
-                                fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
-                                tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
-                                fradragstyper = TestScenarietSaker.manuellUføre.andreFradrag,
-                                client = client,
-                            )
-                        },
-                        client = this.client,
-                        appComponents = appComponents,
-                    )
+                    TestScenarietSaker.automatiskUføre.opprettSak(client, appComponents)
+                    TestScenarietSaker.automatiskAlder.opprettSak(client, appComponents)
+                    TestScenarietSaker.manuellUføre.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
 
-                    with(TestScenarietSaker.automatiskUføre) {
-                        val sakJson = hentSakRequest(fnr, sakstype, client)
-                        sakJson.reguleringer.size shouldBe 1
-                        with(sakJson.reguleringer.single()) {
-                            reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
-                            val regulertBeregning = beregning!!.månedsberegninger.single {
-                                it.fraOgMed == MAI_STRENG
-                            }
+                    TestScenarietSaker.automatiskUføre.verifiserAutomatisk(this.client)
 
-                            val søknadsbehandling = sakJson.behandlinger.single()
-                            val beregningFørRegulering = søknadsbehandling.beregning!!.månedsberegninger.single {
-                                it.fraOgMed == MAI_STRENG
-                            }
+                    TestScenarietSaker.automatiskAlder.verifiserAutomatisk(this.client)
 
-                            regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
-                        }
-                    }
+                    TestScenarietSaker.manuellUføre.verifiserManuell(client)
 
-                    with(TestScenarietSaker.automatiskAlder) {
-                        val sakJson = hentSakRequest(fnr, sakstype, client)
-                        sakJson.reguleringer.size shouldBe 1
-                        with(sakJson.reguleringer[0]) {
-                            reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
-                            val regulertBeregning = beregning!!.månedsberegninger.single {
-                                it.fraOgMed == MAI_STRENG
-                            }
-
-                            val søknadsbehandling = sakJson.behandlinger.single()
-                            val beregningFørRegulering = søknadsbehandling.beregning!!.månedsberegninger.single {
-                                it.fraOgMed == MAI_STRENG
-                            }
-
-                            regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
-                        }
-                    }
-
-                    val kjøring = hentReguleringKjøringRequest(client).let {
-                        it.size shouldBe 1
-                        it.single()
-                    }
-                    kjøring.sakerAntall shouldBe 3
-
-                    with(kjøring.reguleringerAutomatisk) {
-                        size shouldBe 2
-                        forEach {
-                            deserialize<ReguleringOppsummeringJson>(it)
-                                .reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
-                        }
-                    }
-
-                    with(kjøring.reguleringerManuell) {
-                        size shouldBe 1
-                        forEach {
-                            deserialize<ReguleringOppsummeringJson>(it)
-                                .reguleringstype shouldBe "MANUELL"
-                        }
-
-                        // TODO verifiser årsak
-                    }
+                    hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
             }
         }
-        // TODO en test som kjører reguleringsjobb med flere utfall samtidig
-        // TODO scenariet 1 automatisk - uføre CHECK
-        // TODO scenariet 1 automatisk - alder CHECK
-        // TODO scenariet 2 manuell forventet - Har fradrag som
-        // TODO scenariet 2 manuell forventet - en annen varient? alder?
-        // TODO scenariet 3 Fører til revurdering
 
-        // TODO scenariet 3 forventet feil
-        // TODO scenariet 4 uventet feil
-        // TODO Verifier hver enkelt overordnet
-        // TODO Verifiser reguleringsjobb resultat mer detaljert
+        private fun TestSakReguleringIT.opprettSak(client: HttpClient, appComponents: AppComponents) {
+            opprettInnvilgetSøknadsbehandling(
+                fnr = fnr.toString(),
+                sakstype = sakstype,
+                fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
+                tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
+                fradrag = { sakId, behandlingId ->
+                    leggTilFradrag(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
+                        tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
+                        fradragstyper = andreFradrag,
+                        client = client,
+                    )
+                },
+                client = client,
+                appComponents = appComponents,
+            )
+        }
+
+        private fun TestSakReguleringIT.verifiserAutomatisk(client: HttpClient) {
+            val sakJson = hentSakRequest(fnr, sakstype, client)
+            sakJson.reguleringer.size shouldBe 1
+            with(sakJson.reguleringer.single()) {
+                reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
+                val regulertBeregning = beregning!!.månedsberegninger.single {
+                    it.fraOgMed == MAI_STRENG
+                }
+
+                val søknadsbehandling = sakJson.behandlinger.single()
+                val beregningFørRegulering = søknadsbehandling.beregning!!.månedsberegninger.single {
+                    it.fraOgMed == MAI_STRENG
+                }
+
+                regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
+            }
+        }
+
+        private fun TestSakReguleringIT.verifiserManuell(client: HttpClient) {
+            val sakJson = hentSakRequest(fnr, sakstype, client)
+            sakJson.reguleringer.size shouldBe 1
+            with(sakJson.reguleringer[0]) {
+                reguleringstype shouldBe "MANUELL"
+                beregning shouldBe null
+                årsakForManuell.size shouldBe 1
+                (årsakForManuell.single() as ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag).let {
+                    andreFradrag shouldContain Fradragstype.Kategori.valueOf(it.fradragskategori)
+                    it.fradragTilhører shouldBe FradragTilhører.BRUKER.name
+                }
+            }
+        }
+        // TODO scenariet 3 Fører til revurdering
+        // TODO scenariet 4 allerede åpen regulering
+        // TODO scenariet 5 forventet feil
+        // TODO scenariet 6 uventet feil
+
+        private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
+            sakerAntall shouldBe 3
+
+            with(reguleringerAutomatisk) {
+                size shouldBe 2
+                forEach {
+                    deserialize<ReguleringOppsummeringJson>(it)
+                        .reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
+                }
+            }
+
+            with(reguleringerManuell) {
+                size shouldBe 1
+                forEach {
+                    deserialize<ReguleringOppsummeringJson>(it)
+                        .reguleringstype shouldBe "MANUELL"
+                }
+            }
+        }
     }
 
     @Nested

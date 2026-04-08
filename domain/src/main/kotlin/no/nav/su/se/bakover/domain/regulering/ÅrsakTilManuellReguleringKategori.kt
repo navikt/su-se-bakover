@@ -5,7 +5,6 @@ enum class ÅrsakTilManuellReguleringKategori {
     YtelseErMidlertidigStanset,
     ForventetInntektErStørreEnn0,
     UtbetalingFeilet,
-    BrukerManglerSupplement,
     SupplementInneholderIkkeFradraget,
     FinnesFlerePerioderAvFradrag,
     FradragErUtenlandsinntekt,
@@ -17,4 +16,8 @@ enum class ÅrsakTilManuellReguleringKategori {
     VedtakstidslinjeErIkkeSammenhengende,
     DelvisOpphør,
     MerEnn1Eps,
+    ManglerRegulertBeløpForFradrag,
+
+    // Gammel
+    BrukerManglerSupplement,
 }

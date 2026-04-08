@@ -86,12 +86,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String? = null
     }
 
-    data class BrukerManglerSupplement(
-        val fradragskategori: String,
-        val fradragTilhører: String,
-        override val begrunnelse: String,
-    ) : ÅrsakTilManuellReguleringJson
-
     data class SupplementInneholderIkkeFradraget(
         val fradragskategori: String,
         val fradragTilhører: String,
@@ -167,6 +161,19 @@ sealed interface ÅrsakTilManuellReguleringJson {
     data class DelvisOpphør(
         val opphørsperioder: List<PeriodeJson>,
         override val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson
+
+    data class ManglerRegulertBeløpForFradrag(
+        val fradragTilhører: String,
+        val fradragskategori: String,
+        override val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson
+
+    // Gammelt
+    data class BrukerManglerSupplement(
+        val fradragskategori: String,
+        val fradragTilhører: String,
+        override val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
     companion object {
@@ -270,8 +277,7 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 begrunnelse = this.begrunnelse,
             )
 
-            // TODO bjg lage ny
-            is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> BrukerManglerSupplement(
+            is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ManglerRegulertBeløpForFradrag(
                 fradragskategori = fradragskategori.toString(),
                 fradragTilhører = fradragTilhører.toString(),
                 begrunnelse = begrunnelse,
