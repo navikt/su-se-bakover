@@ -1,6 +1,4 @@
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -16,7 +14,9 @@ internal class ReguleringKjøringPostgresRepoTest {
             val reguleringKjøringRepo = testDataHelper.reguleringKjøringRepo
             val reguleringKjøring = lagTestReguleringKjøring()
             reguleringKjøringRepo.lagre(reguleringKjøring)
-            reguleringKjøringRepo.hent(reguleringKjøring.id) shouldBe reguleringKjøring
+            val result = reguleringKjøringRepo.hent()
+            result.size shouldBe 1
+            result.single() shouldBe reguleringKjøring
         }
     }
 
@@ -27,12 +27,12 @@ internal class ReguleringKjøringPostgresRepoTest {
         dryrun = true,
         startTid = LocalDateTime.of(2026, 1, 1, 12, 0),
         sakerAntall = 2,
-        sakerIkkeLøpende = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
-        sakerAlleredeRegulert = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
-        sakerMåRevurderes = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
-        reguleringerSomFeilet = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
-        reguleringerAlleredeÅpen = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
-        reguleringerManuell = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
-        reguleringerAutomatisk = Json.parseToJsonElement("""["123","321"]""".trimIndent()).jsonArray,
+        sakerIkkeLøpende = listOf("123", "321"),
+        sakerAlleredeRegulert = listOf("123", "321"),
+        sakerMåRevurderes = listOf("123", "321"),
+        reguleringerSomFeilet = listOf("123", "321"),
+        reguleringerAlleredeÅpen = listOf("123", "321"),
+        reguleringerManuell = listOf("123", "321"),
+        reguleringerAutomatisk = listOf("123", "321"),
     )
 }

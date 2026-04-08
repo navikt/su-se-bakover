@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.mottaker.mottakerRoutes
 import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
 import no.nav.su.se.bakover.web.routes.person.personRoutes
+import no.nav.su.se.bakover.web.routes.regulering.regulerTestRoute
 import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
@@ -173,6 +174,9 @@ internal fun Application.setupKtorRoutes(
                     sakStatistikkRoutes(services.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
                     mottakerRoutes(services.mottakerService)
+
+                    // Test
+                    regulerTestRoute(databaseRepos.reguleringKjøringRepo, applicationConfig.runtimeEnvironment)
                 }
             }
         }

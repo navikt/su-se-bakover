@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.database.regulering
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
+import kotliquery.Row
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
-import java.util.UUID
 import kotlin.to
 
 class ReguleringKjøringPostgresRepo(
@@ -71,19 +71,19 @@ class ReguleringKjøringPostgresRepo(
                         "dryrun" to oppsummering.dryrun,
                         "start_tid" to oppsummering.startTid,
                         "saker_antall" to oppsummering.sakerAntall,
-                        "saker_ikke_loepende" to oppsummering.sakerIkkeLøpende.toString(),
+                        "saker_ikke_loepende" to serialize(oppsummering.sakerIkkeLøpende),
                         "saker_ikke_loepende_antall" to oppsummering.sakerIkkeLøpende.size,
-                        "saker_allerede_reguelert" to oppsummering.sakerAlleredeRegulert.toString(),
+                        "saker_allerede_reguelert" to serialize(oppsummering.sakerAlleredeRegulert),
                         "saker_allerede_reguelert_antall" to oppsummering.sakerAlleredeRegulert.size,
-                        "saker_maa_revurderes" to oppsummering.sakerMåRevurderes.toString(),
+                        "saker_maa_revurderes" to serialize(oppsummering.sakerMåRevurderes),
                         "saker_maa_revurderes_antall" to oppsummering.sakerMåRevurderes.size,
-                        "reguleringer_som_feilet" to oppsummering.reguleringerSomFeilet.toString(),
+                        "reguleringer_som_feilet" to serialize(oppsummering.reguleringerSomFeilet),
                         "reguleringer_som_feilet_antall" to oppsummering.reguleringerSomFeilet.size,
-                        "reguleringer_allerede_aapen" to oppsummering.reguleringerAlleredeÅpen.toString(),
+                        "reguleringer_allerede_aapen" to serialize(oppsummering.reguleringerAlleredeÅpen),
                         "reguleringer_allerede_aapen_antall" to oppsummering.reguleringerAlleredeÅpen.size,
-                        "reguleringer_manuell" to oppsummering.reguleringerManuell.toString(),
+                        "reguleringer_manuell" to serialize(oppsummering.reguleringerManuell),
                         "reguleringer_manuell_antall" to oppsummering.reguleringerManuell.size,
-                        "reguleringer_automatisk" to oppsummering.reguleringerAutomatisk.toString(),
+                        "reguleringer_automatisk" to serialize(oppsummering.reguleringerAutomatisk),
                         "reguleringer_automatisk_antall" to oppsummering.reguleringerAutomatisk.size,
                     ),
                     session,
@@ -92,31 +92,32 @@ class ReguleringKjøringPostgresRepo(
         }
     }
 
-    override fun hent(id: UUID): ReguleringKjøring? {
+    override fun hent(): List<ReguleringKjøring> {
         return sessionFactory.withSession { session ->
             """
-                select * from reguleringskjøring where id = :id
-            """.trimIndent().hent(
-                params = mapOf("id" to id),
+                select * from reguleringskjøring
+            """.trimIndent().hentListe(
+                params = emptyMap(),
                 session = session,
-            ) { row ->
-                ReguleringKjøring(
-                    id = row.uuid("id"),
-                    aar = row.int("aar"),
-                    type = row.string("type"),
-                    dryrun = row.boolean("dryrun"),
-                    startTid = row.localDateTime("start_tid"),
-                    sakerAntall = row.int("saker_antall"),
-                    sakerIkkeLøpende = Json.parseToJsonElement(row.string("saker_ikke_loepende")).jsonArray,
-                    sakerAlleredeRegulert = Json.parseToJsonElement(row.string("saker_allerede_reguelert")).jsonArray,
-                    sakerMåRevurderes = Json.parseToJsonElement(row.string("saker_maa_revurderes")).jsonArray,
-                    reguleringerSomFeilet = Json.parseToJsonElement(row.string("reguleringer_som_feilet")).jsonArray,
-                    reguleringerAlleredeÅpen = Json.parseToJsonElement(row.string("reguleringer_allerede_aapen")).jsonArray,
-                    reguleringerManuell = Json.parseToJsonElement(row.string("reguleringer_manuell")).jsonArray,
-                    reguleringerAutomatisk = Json.parseToJsonElement(row.string("reguleringer_automatisk")).jsonArray,
-
-                )
-            }
+            ) { row -> row.toReguleringKjøring() }
         }
     }
+}
+
+private fun Row.toReguleringKjøring(): ReguleringKjøring {
+    return ReguleringKjøring(
+        id = uuid("id"),
+        aar = int("aar"),
+        type = string("type"),
+        dryrun = boolean("dryrun"),
+        startTid = localDateTime("start_tid"),
+        sakerAntall = int("saker_antall"),
+        sakerIkkeLøpende = string("saker_ikke_loepende").deserializeList(),
+        sakerAlleredeRegulert = string("saker_allerede_reguelert").deserializeList(),
+        sakerMåRevurderes = string("saker_maa_revurderes").deserializeList(),
+        reguleringerSomFeilet = string("reguleringer_som_feilet").deserializeList(),
+        reguleringerAlleredeÅpen = string("reguleringer_allerede_aapen").deserializeList(),
+        reguleringerManuell = string("reguleringer_manuell").deserializeList(),
+        reguleringerAutomatisk = string("reguleringer_automatisk").deserializeList(),
+    )
 }

@@ -5,8 +5,6 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonPrimitive
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
@@ -220,32 +218,32 @@ class ReguleringAutomatiskServiceImpl(
 
             val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
                 it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
-            }.map { JsonPrimitive(it.toString()) }
+            }.map { serialize(it) }
 
             val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
                 it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
-            }.map { JsonPrimitive(it.toString()) }
+            }.map { serialize(it) }
 
             // TODO denne må tester litt ekstra siden det er to ulike klasser som blit til jsonb
             val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
                 (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
-            }.map { JsonPrimitive(it.toString()) }
+            }.map { serialize(it) }
 
             val reguleringerSomFeilet = lefts.filter {
                 it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                     it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
                     it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
                     it is KunneIkkeRegulereAutomatisk.UkjentFeil
-            }.map { JsonPrimitive(it.toString()) }
+            }.map { serialize(it) }
 
             val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
-                .map { JsonPrimitive(it.toString()) }
+                .map { serialize(it) }
 
             val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
-                JsonPrimitive(serialize(it))
+                serialize(it)
             }
             val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
-                JsonPrimitive(serialize(it))
+                serialize(it)
             }
 
             val reguleringKjøring = ReguleringKjøring(
@@ -255,13 +253,13 @@ class ReguleringAutomatiskServiceImpl(
                 dryrun = testRun != null,
                 startTid = startTid,
                 sakerAntall = alleSaker.size,
-                sakerIkkeLøpende = JsonArray(sakerIkkeLøpende),
-                sakerAlleredeRegulert = JsonArray(sakerAlleredeRegulert),
-                sakerMåRevurderes = JsonArray(sakerMåRevurderes),
-                reguleringerSomFeilet = JsonArray(reguleringerSomFeilet),
-                reguleringerAlleredeÅpen = JsonArray(reguleringerAlleredeÅpen),
-                reguleringerManuell = JsonArray(reguleringerManuell),
-                reguleringerAutomatisk = JsonArray(reguleringerAutomatisk),
+                sakerIkkeLøpende = sakerIkkeLøpende,
+                sakerAlleredeRegulert = sakerAlleredeRegulert,
+                sakerMåRevurderes = sakerMåRevurderes,
+                reguleringerSomFeilet = reguleringerSomFeilet,
+                reguleringerAlleredeÅpen = reguleringerAlleredeÅpen,
+                reguleringerManuell = reguleringerManuell,
+                reguleringerAutomatisk = reguleringerAutomatisk,
             )
             reguleringKjøringRepo.lagre(reguleringKjøring)
             logResultat(resultater)

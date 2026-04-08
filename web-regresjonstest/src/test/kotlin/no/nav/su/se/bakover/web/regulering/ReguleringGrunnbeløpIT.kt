@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.regulering
 
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
@@ -11,7 +10,6 @@ import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -28,8 +26,7 @@ import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2024
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2025
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.REGULERINGSÅR
-import no.nav.su.se.bakover.web.routes.sak.SakJson
-import no.nav.su.se.bakover.web.sak.hent.hentSakForFnr
+import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -89,7 +86,8 @@ internal class ReguleringGrunnbeløpIT {
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
 
-                    val automatiskSakUføre = sakGetRequest(automtatiskUføreSak, this.client)
+                    val automatiskSakUføre =
+                        hentSakRequest(automtatiskUføreSak.fnr, automtatiskUføreSak.sakstype, client)
                     with(automatiskSakUføre) {
                         reguleringer.size shouldBe 1
                         with(reguleringer[0]) {
@@ -107,7 +105,7 @@ internal class ReguleringGrunnbeløpIT {
                         }
                     }
 
-                    val automatiskSakAlder = sakGetRequest(automatiskAlderSak, this.client)
+                    val automatiskSakAlder = hentSakRequest(automatiskAlderSak.fnr, automatiskAlderSak.sakstype, client)
                     with(automatiskSakAlder) {
                         reguleringer.size shouldBe 1
                         with(reguleringer[0]) {
@@ -125,7 +123,11 @@ internal class ReguleringGrunnbeløpIT {
                         }
                     }
 
-                    // TODO verifiser mot reguleringsresultat tabell
+                    val kjøringer = hentReguleringKjøringRequest(client)
+                    kjøringer.size shouldBe 1
+                    val kjøring = kjøringer.single()
+                    kjøring.sakerAntall shouldBe 2
+                    kjøring.reguleringerAutomatisk.size shouldBe 2
                 }
             }
         }
@@ -145,14 +147,6 @@ internal class ReguleringGrunnbeløpIT {
     @Nested
     inner class `Enkelt scenariet` {
         // TODO egne scope med tester for alle scenarier vi ønsker å teste
-    }
-
-    fun sakGetRequest(testSak: TestSakReguleringIT, client: HttpClient): SakJson {
-        try {
-            return deserialize<SakJson>(hentSakForFnr(testSak.fnr.toString(), testSak.sakstype.toString(), client = client))
-        } catch (e: Exception) {
-            throw RuntimeException("Kunne ikke hente sak for fnr ${testSak.fnr}. Er sak opprettet med søknadsbehandling?", e)
-        }
     }
 
     private fun applikasjonFørNyttGrunnbeløp(
