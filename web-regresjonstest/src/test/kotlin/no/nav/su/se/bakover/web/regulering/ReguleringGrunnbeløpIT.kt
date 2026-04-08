@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummeringJson
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -54,13 +53,11 @@ internal class ReguleringGrunnbeløpIT {
 
     @Nested
     inner class `Full reguleringsjobb` {
-        val automtatiskUføreSak = TestScenarietSaker.automatiskUføreSak(Fnr("00000000001"))
-        val automatiskAlderSak = TestScenarietSaker.automatiskAlderSak(fnrOver67)
 
         // Alle testsaker som trenger beløp fra pesys må legges til her
         val pesysStub = PesysclientStub.build(
-            uførePeriode = listOf(automtatiskUføreSak.uførePerioderFraPesys()),
-            alderPerioder = listOf(automatiskAlderSak.alderPerioderFraPesys()),
+            uførePeriode = listOf(TestScenarietSaker.automatiskUføre.uførePerioderFraPesys()),
+            alderPerioder = listOf(TestScenarietSaker.automatiskAlder.alderPerioderFraPesys()),
         )
 
         @Test
@@ -68,16 +65,15 @@ internal class ReguleringGrunnbeløpIT {
             withMigratedDb { dataSource ->
                 applikasjonFørNyttGrunnbeløp(dataSource) { appComponents ->
                     opprettInnvilgetSøknadsbehandling(
-                        fnr = automtatiskUføreSak.fnr.toString(),
+                        fnr = TestScenarietSaker.automatiskUføre.fnr.toString(),
                         sakstype = Sakstype.UFØRE,
                         fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
                         tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
                         client = this.client,
                         appComponents = appComponents,
                     )
-                    // TODO feiler fordi personoppsalg stuber person under 67 år.. testoppbyggingen må også stube personoppslag...
                     opprettInnvilgetSøknadsbehandling(
-                        fnr = automatiskAlderSak.fnr.toString(),
+                        fnr = TestScenarietSaker.automatiskAlder.fnr.toString(),
                         sakstype = Sakstype.ALDER,
                         fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
                         tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
@@ -88,17 +84,16 @@ internal class ReguleringGrunnbeløpIT {
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
 
-                    val automatiskSakUføre =
-                        hentSakRequest(automtatiskUføreSak.fnr, automtatiskUføreSak.sakstype, client)
-                    with(automatiskSakUføre) {
-                        reguleringer.size shouldBe 1
-                        with(reguleringer[0]) {
+                    with(TestScenarietSaker.automatiskUføre) {
+                        val sakJson = hentSakRequest(fnr, sakstype, client)
+                        sakJson.reguleringer.size shouldBe 1
+                        with(sakJson.reguleringer.single()) {
                             reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
                             val regulertBeregning = beregning!!.månedsberegninger.single {
                                 it.fraOgMed == MAI_STRENG
                             }
 
-                            val søknadsbehandling = behandlinger.single()
+                            val søknadsbehandling = sakJson.behandlinger.single()
                             val beregningFørRegulering = søknadsbehandling.beregning!!.månedsberegninger.single {
                                 it.fraOgMed == MAI_STRENG
                             }
@@ -107,16 +102,16 @@ internal class ReguleringGrunnbeløpIT {
                         }
                     }
 
-                    val automatiskSakAlder = hentSakRequest(automatiskAlderSak.fnr, automatiskAlderSak.sakstype, client)
-                    with(automatiskSakAlder) {
-                        reguleringer.size shouldBe 1
-                        with(reguleringer[0]) {
+                    with(TestScenarietSaker.automatiskAlder) {
+                        val sakJson = hentSakRequest(fnr, sakstype, client)
+                        sakJson.reguleringer.size shouldBe 1
+                        with(sakJson.reguleringer[0]) {
                             reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
                             val regulertBeregning = beregning!!.månedsberegninger.single {
                                 it.fraOgMed == MAI_STRENG
                             }
 
-                            val søknadsbehandling = behandlinger.single()
+                            val søknadsbehandling = sakJson.behandlinger.single()
                             val beregningFørRegulering = søknadsbehandling.beregning!!.månedsberegninger.single {
                                 it.fraOgMed == MAI_STRENG
                             }
@@ -125,14 +120,18 @@ internal class ReguleringGrunnbeløpIT {
                         }
                     }
 
-                    val kjøringer = hentReguleringKjøringRequest(client)
-                    kjøringer.size shouldBe 1
-                    val kjøring = kjøringer.single()
+                    val kjøring = hentReguleringKjøringRequest(client).let {
+                        it.size shouldBe 1
+                        it.single()
+                    }
                     kjøring.sakerAntall shouldBe 2
-                    kjøring.reguleringerAutomatisk.size shouldBe 2
-                    kjøring.reguleringerAutomatisk.forEach {
-                        val automatisk = deserialize<ReguleringOppsummeringJson>(it)
-                        automatisk.reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
+
+                    with(kjøring.reguleringerAutomatisk) {
+                        size shouldBe 2
+                        forEach {
+                            deserialize<ReguleringOppsummeringJson>(it)
+                                .reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
+                        }
                     }
                 }
             }
@@ -177,21 +176,17 @@ internal class ReguleringGrunnbeløpIT {
 // TODO egen fil
 object TestScenarietSaker {
 
-    fun automatiskUføreSak(fnr: Fnr): TestSakReguleringIT {
-        return TestSakReguleringIT.create(
-            fnr = fnr,
-            sakstype = Sakstype.UFØRE,
-            finnesIPesys = true,
-        )
-    }
+    val automatiskUføre = TestSakReguleringIT.create(
+        fnr = Fnr("00000000001"),
+        sakstype = Sakstype.UFØRE,
+        finnesIPesys = true,
+    )
 
-    fun automatiskAlderSak(fnr: Fnr): TestSakReguleringIT {
-        return TestSakReguleringIT.create(
-            fnr = fnr,
-            sakstype = Sakstype.ALDER,
-            finnesIPesys = true,
-        )
-    }
+    val automatiskAlder = TestSakReguleringIT.create(
+        fnr = Fnr("00000000002"),
+        sakstype = Sakstype.ALDER,
+        finnesIPesys = true,
+    )
 }
 
 data class TestSakReguleringIT(
