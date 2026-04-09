@@ -67,6 +67,7 @@ class ReguleringStatusUteståendeService(
         }
 
         return ReguleringStatus(
+            aar = sisteMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
             sakerMedUtebetalingIMai = sakerMedUtbetalingMai.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp,
@@ -109,6 +110,7 @@ class ReguleringStatusUteståendeService(
 }
 
 data class ReguleringStatus(
+    val aar: Int,
     val sisteGrunnbeløpOgSatser: SisteGrunnbeløpOgSatser,
     val sakerMedUtebetalingIMai: Int,
     val sakerMedGammelG: List<SakMedGammeltGrunnbeløp>,
