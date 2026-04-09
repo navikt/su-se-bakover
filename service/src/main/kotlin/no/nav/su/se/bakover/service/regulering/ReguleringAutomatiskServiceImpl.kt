@@ -118,6 +118,7 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
+        val startTid = LocalDateTime.now()
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
         val resultater = alleSaker
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
@@ -210,7 +211,7 @@ class ReguleringAutomatiskServiceImpl(
                 }
             }
         return resultater.also {
-            lagreResultat(fraOgMedMåned, testRun, alleSaker, it)
+            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it)
             logResultat(resultater)
         }
     }
@@ -253,12 +254,12 @@ class ReguleringAutomatiskServiceImpl(
 
     private fun lagreResultat(
         fraOgMedMåned: Måned,
+        startTid: LocalDateTime,
         testRun: ReguleringTestRun? = null,
         alleSaker: List<SakInfo>,
         resultater: List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>,
     ) {
         val (lefts, rights) = resultater.split()
-        val startTid = LocalDateTime.now()
 
         val sakerSkalIkkeRegulere =
             lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
