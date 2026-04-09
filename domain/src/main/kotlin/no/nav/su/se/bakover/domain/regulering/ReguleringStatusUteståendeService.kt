@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import økonomi.domain.utbetaling.UtbetalingRepo
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.Year
@@ -35,7 +36,7 @@ class ReguleringStatusUteståendeService(
         )
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
-        val sakerMedUtbetalingMai = hentSakerMedLøpendeUtbetalingForMåned(alleSaker, sisteMai)
+        val sakerMedUtbetalingMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, sisteMai)
         val (løpendeSakerIkkefunnet, løpendeSaker) = sakerMedUtbetalingMai.split()
 
         val sakerMedGammeltGrunnbeløp = løpendeSaker.mapNotNull {
@@ -84,11 +85,7 @@ class ReguleringStatusUteståendeService(
         }.let { Måned.fra(it) }
     }
 
-    /**
-     * @return A list where each entry is either the `Saksnummer` (in case of a fetch failure)
-     *         or the resolved `Sak` for cases with ongoing payments during the specified month.
-     */
-    private fun hentSakerMedLøpendeUtbetalingForMåned(
+    private fun hentSakerMedLøpendeUtbetalingEllerStansForMåned(
         saker: List<SakInfo>,
         måned: Måned,
     ): List<Either<Saksnummer, Sak>> {
@@ -101,7 +98,16 @@ class ReguleringStatusUteståendeService(
         return saker.filter {
             utbetalingerPerSak[it.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
                 { false },
-                { true },
+                {
+                    when (it) {
+                        is UtbetalingslinjePåTidslinje.Reaktivering,
+                        is UtbetalingslinjePåTidslinje.Ny,
+                        is UtbetalingslinjePåTidslinje.Stans,
+                        -> true
+
+                        is UtbetalingslinjePåTidslinje.Opphør -> false
+                    }
+                },
             ) == true
         }.map { sakInfo ->
             sakService.hentSak(sakInfo.sakId).mapLeft { sakInfo.saksnummer }
