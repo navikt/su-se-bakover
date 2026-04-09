@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
 sealed interface KunneIkkeRegulereAutomatisk {
     data object FantIkkeSak : KunneIkkeRegulereAutomatisk
+
+    // TODO AUTO-REG-26 - vurder om åpne skal slettes og lages ny
     data object HarÅpenReguleringFraFør : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeHenteEllerOppretteRegulering(

@@ -10,13 +10,13 @@ data class ReguleringKjøring(
     val dryrun: Boolean,
     val startTid: LocalDateTime,
     val sakerAntall: Int,
-    val sakerIkkeLøpende: List<String>,
-    val sakerAlleredeRegulert: List<String>,
-    val sakerMåRevurderes: List<String>,
-    val reguleringerSomFeilet: List<String>,
-    val reguleringerAlleredeÅpen: List<String>,
-    val reguleringerManuell: List<String>,
-    val reguleringerAutomatisk: List<String>,
+    val sakerIkkeLøpende: List<Reguleringsresultat>,
+    val sakerAlleredeRegulert: List<Reguleringsresultat>,
+    val sakerMåRevurderes: List<Reguleringsresultat>,
+    val reguleringerSomFeilet: List<Reguleringsresultat>,
+    val reguleringerAlleredeÅpen: List<Reguleringsresultat>,
+    val reguleringerManuell: List<Reguleringsresultat>,
+    val reguleringerAutomatisk: List<Reguleringsresultat>,
 ) {
     companion object {
         const val REGULERINGSTYPE_GRUNNBELØP = "GRUNNBELØP"

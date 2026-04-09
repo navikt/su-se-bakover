@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
 interface ReguleringKjøringRepo {
-    fun lagre(oppsummering: ReguleringKjøring)
+    fun lagre(kjøring: ReguleringKjøring)
     fun hent(): List<ReguleringKjøring>
 }

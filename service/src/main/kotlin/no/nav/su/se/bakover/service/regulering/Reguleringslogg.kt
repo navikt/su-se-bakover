@@ -84,6 +84,8 @@ private fun Sequence<Map<ÅrsakTilManuellReguleringKategori, String>>.toCSVLogga
                     ÅrsakTilManuellReguleringKategori.MerEnn1Eps ->
                         "saksnummer;fradragskategori;fradragTilhører\n" +
                             it.value.flatMap { it.values }.joinToString("\n")
+
+                    ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag -> ""
                 },
             )
         }.toSet()
