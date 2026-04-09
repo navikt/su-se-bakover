@@ -289,8 +289,7 @@ class ReguleringAutomatiskServiceImpl(
                 utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
                 beskrivelse = when (it.feil) {
                     is Sak.KanIkkeRegulere.MåRevurdere -> (it.feil as Sak.KanIkkeRegulere.MåRevurdere).årsak.name
-                    Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> it.feil.toString()
-                    else -> "Feil feiltype på dette stadiet"
+                    else -> it.feil.toString()
                 },
             )
         }
@@ -315,11 +314,11 @@ class ReguleringAutomatiskServiceImpl(
             }
 
         val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
-            val årsak = (it.reguleringstype as Reguleringstype.MANUELL).problemer.first().kategori
-            it.toResultat(årsak.name)
+            val årsaker = (it.reguleringstype as Reguleringstype.MANUELL).problemer.map { it.kategori.name }
+            it.toResultat(utfall = Reguleringsresultat.Utfall.MANUELL, beskrivelse = årsaker.joinToString(", "))
         }
         val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
-            it.toResultat("Fullført automatisk")
+            it.toResultat(utfall = Reguleringsresultat.Utfall.AUTOMATISK, beskrivelse = "Fullført automatisk")
         }
 
         val reguleringKjøring = ReguleringKjøring(

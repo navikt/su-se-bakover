@@ -53,9 +53,10 @@ data class Reguleringsresultat(
 
 fun ReguleringOppsummering.toResultat(
     beskrivelse: String,
+    utfall: Reguleringsresultat.Utfall,
 ) = Reguleringsresultat(
     saksnummer = saksnummer,
     behandlingsId = behandlingsId,
-    utfall = Reguleringsresultat.Utfall.valueOf(reguleringstype.type()),
+    utfall = utfall,
     beskrivelse = beskrivelse,
 )
