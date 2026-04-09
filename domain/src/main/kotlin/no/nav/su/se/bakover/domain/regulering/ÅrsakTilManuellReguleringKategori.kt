@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.regulering
 enum class ÅrsakTilManuellReguleringKategori {
     FradragMåHåndteresManuelt,
     YtelseErMidlertidigStanset,
-    ForventetInntektErStørreEnn0,
     UtbetalingFeilet,
     SupplementInneholderIkkeFradraget,
     FinnesFlerePerioderAvFradrag,
@@ -20,4 +19,5 @@ enum class ÅrsakTilManuellReguleringKategori {
 
     // Gammel
     BrukerManglerSupplement,
+    ForventetInntektErStørreEnn0,
 }
