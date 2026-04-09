@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
@@ -267,37 +266,31 @@ class ReguleringAutomatiskServiceImpl(
         val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
             it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
         }.map {
-            serialize(
-                Reguleringsresultat(
-                    utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
-                    beskrivelse = it.toString(),
-                ),
+            Reguleringsresultat(
+                utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
+                beskrivelse = it.toString(),
             )
         }
 
         val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
             it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
         }.map {
-            serialize(
-                Reguleringsresultat(
-                    utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
-                    beskrivelse = it.toString(),
-                ),
+            Reguleringsresultat(
+                utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
+                beskrivelse = it.toString(),
             )
         }
 
         val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
             (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
         }.map {
-            serialize(
-                Reguleringsresultat(
-                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                    beskrivelse = when (it.feil) {
-                        is Sak.KanIkkeRegulere.MåRevurdere -> (it.feil as Sak.KanIkkeRegulere.MåRevurdere).årsak.name
-                        Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> it.feil.toString()
-                        else -> "Feil feiltype på dette stadiet"
-                    },
-                ),
+            Reguleringsresultat(
+                utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
+                beskrivelse = when (it.feil) {
+                    is Sak.KanIkkeRegulere.MåRevurdere -> (it.feil as Sak.KanIkkeRegulere.MåRevurdere).årsak.name
+                    Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> it.feil.toString()
+                    else -> "Feil feiltype på dette stadiet"
+                },
             )
         }
 
@@ -307,34 +300,30 @@ class ReguleringAutomatiskServiceImpl(
                 it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
                 it is KunneIkkeRegulereAutomatisk.UkjentFeil
         }.map {
-            serialize(
-                Reguleringsresultat(
-                    utfall = Reguleringsresultat.Utfall.FEILET,
-                    beskrivelse = it.toString(),
-                ),
+            Reguleringsresultat(
+                utfall = Reguleringsresultat.Utfall.FEILET,
+                beskrivelse = it.toString(),
             )
         }
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
             .map {
-                serialize(
-                    Reguleringsresultat(
-                        utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
-                        beskrivelse = it.toString(),
-                    ),
+                Reguleringsresultat(
+                    utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
+                    beskrivelse = it.toString(),
                 )
             }
 
         val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
             val årsak = (it.reguleringstype as Reguleringstype.MANUELL).problemer.first().kategori
-            serialize(it.toResultat(årsak.name))
+            it.toResultat(årsak.name)
         }
         val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
-            serialize(it.toResultat("Fullført automatisk"))
+            it.toResultat("Fullført automatisk")
         }
 
         val reguleringKjøring = ReguleringKjøring(
             id = UUID.randomUUID(),
-            aar = fraOgMedMåned.årOgMåned.monthValue,
+            aar = fraOgMedMåned.årOgMåned.year,
             type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
             dryrun = testRun != null,
             startTid = startTid,

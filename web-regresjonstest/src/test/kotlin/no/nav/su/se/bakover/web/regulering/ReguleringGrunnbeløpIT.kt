@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
@@ -164,7 +163,7 @@ internal class ReguleringGrunnbeløpIT {
             with(reguleringerAutomatisk) {
                 size shouldBe 2
                 forEach {
-                    deserialize<Reguleringsresultat>(it)
+                    it
                         .utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
             }
@@ -172,7 +171,7 @@ internal class ReguleringGrunnbeløpIT {
             with(reguleringerManuell) {
                 size shouldBe 1
                 forEach {
-                    val resultat = deserialize<Reguleringsresultat>(it)
+                    val resultat = it
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.MANUELL
                     resultat.beskrivelse shouldBe "ManglerRegulertBeløpForFradrag"
                 }
@@ -181,7 +180,7 @@ internal class ReguleringGrunnbeløpIT {
             with(sakerMåRevurderes) {
                 size shouldBe 1
                 forEach {
-                    val resultat = deserialize<Reguleringsresultat>(it)
+                    val resultat = it
                     // TODO resultat.saksnummer shouldBe saksnummer..
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
                     resultat.beskrivelse shouldBe "DIFFERANSE_MED_EKSTERNE_BELØP"

@@ -16,7 +16,7 @@ class ReguleringKjøringPostgresRepo(
     private val dbMetrics: DbMetrics,
 ) : ReguleringKjøringRepo {
 
-    override fun lagre(oppsummering: ReguleringKjøring) {
+    override fun lagre(kjøring: ReguleringKjøring) {
         dbMetrics.timeQuery("lagreReguleringKjøring") {
             sessionFactory.withSession { session ->
                 """
@@ -65,26 +65,26 @@ class ReguleringKjøringPostgresRepo(
                     )
                 """.trimIndent().insert(
                     mapOf(
-                        "id" to oppsummering.id,
-                        "aar" to oppsummering.aar,
-                        "type" to oppsummering.type,
-                        "dryrun" to oppsummering.dryrun,
-                        "start_tid" to oppsummering.startTid,
-                        "saker_antall" to oppsummering.sakerAntall,
-                        "saker_ikke_loepende" to serialize(oppsummering.sakerIkkeLøpende),
-                        "saker_ikke_loepende_antall" to oppsummering.sakerIkkeLøpende.size,
-                        "saker_allerede_reguelert" to serialize(oppsummering.sakerAlleredeRegulert),
-                        "saker_allerede_reguelert_antall" to oppsummering.sakerAlleredeRegulert.size,
-                        "saker_maa_revurderes" to serialize(oppsummering.sakerMåRevurderes),
-                        "saker_maa_revurderes_antall" to oppsummering.sakerMåRevurderes.size,
-                        "reguleringer_som_feilet" to serialize(oppsummering.reguleringerSomFeilet),
-                        "reguleringer_som_feilet_antall" to oppsummering.reguleringerSomFeilet.size,
-                        "reguleringer_allerede_aapen" to serialize(oppsummering.reguleringerAlleredeÅpen),
-                        "reguleringer_allerede_aapen_antall" to oppsummering.reguleringerAlleredeÅpen.size,
-                        "reguleringer_manuell" to serialize(oppsummering.reguleringerManuell),
-                        "reguleringer_manuell_antall" to oppsummering.reguleringerManuell.size,
-                        "reguleringer_automatisk" to serialize(oppsummering.reguleringerAutomatisk),
-                        "reguleringer_automatisk_antall" to oppsummering.reguleringerAutomatisk.size,
+                        "id" to kjøring.id,
+                        "aar" to kjøring.aar,
+                        "type" to kjøring.type,
+                        "dryrun" to kjøring.dryrun,
+                        "start_tid" to kjøring.startTid,
+                        "saker_antall" to kjøring.sakerAntall,
+                        "saker_ikke_loepende" to serialize(kjøring.sakerIkkeLøpende),
+                        "saker_ikke_loepende_antall" to kjøring.sakerIkkeLøpende.size,
+                        "saker_allerede_reguelert" to serialize(kjøring.sakerAlleredeRegulert),
+                        "saker_allerede_reguelert_antall" to kjøring.sakerAlleredeRegulert.size,
+                        "saker_maa_revurderes" to serialize(kjøring.sakerMåRevurderes),
+                        "saker_maa_revurderes_antall" to kjøring.sakerMåRevurderes.size,
+                        "reguleringer_som_feilet" to serialize(kjøring.reguleringerSomFeilet),
+                        "reguleringer_som_feilet_antall" to kjøring.reguleringerSomFeilet.size,
+                        "reguleringer_allerede_aapen" to serialize(kjøring.reguleringerAlleredeÅpen),
+                        "reguleringer_allerede_aapen_antall" to kjøring.reguleringerAlleredeÅpen.size,
+                        "reguleringer_manuell" to serialize(kjøring.reguleringerManuell),
+                        "reguleringer_manuell_antall" to kjøring.reguleringerManuell.size,
+                        "reguleringer_automatisk" to serialize(kjøring.reguleringerAutomatisk),
+                        "reguleringer_automatisk_antall" to kjøring.reguleringerAutomatisk.size,
                     ),
                     session,
                 )
