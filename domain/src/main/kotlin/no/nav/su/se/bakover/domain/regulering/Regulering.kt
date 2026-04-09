@@ -22,6 +22,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.common.domain.Vurdering
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
@@ -75,6 +76,28 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         reguleringstype2 = reguleringstypeBasertPåFradrag,
     )
 
+    // TODO trekk ut til et sted
+    // TODO valider beløp før regulering er likt
+    val vilkårMedOppdatertIeu = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.let {
+        when (it) {
+            is VilkårsvurderingerRevurdering.Alder -> it
+            is VilkårsvurderingerRevurdering.Uføre -> it.copy(
+                uføre = when (it.uføre) {
+                    UføreVilkår.IkkeVurdert -> throw IllegalStateException("") // TODO ..
+                    is UføreVilkår.Vurdert -> (it.uføre as UføreVilkår.Vurdert).regulerForventetIEU(
+                        clock = clock,
+                        // TODO feilhåndter bedre om ieu mangler her..
+                        regulertIeu = eksterntRegulerteBeløp.inntektEtterUføre!!.etterRegulering.toInt(),
+                    )
+                },
+            )
+        }
+    }
+
+    val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
+        .oppdaterFradragsgrunnlag(fradragOppdatertMedEksterneBeløp)
+        .oppdaterVilkårsvurderinger(vilkårMedOppdatertIeu)
+
     val opprettetRegulering = OpprettetRegulering(
         id = ReguleringId.generer(),
         opprettet = Tidspunkt.now(clock),
@@ -82,9 +105,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         saksnummer = saksnummer,
         saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
         fnr = fnr,
-        grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-            fradragOppdatertMedEksterneBeløp,
-        ),
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         beregning = null,
         simulering = null,
         reguleringstype = reguleringstype,

@@ -2,11 +2,14 @@ package vilkår.uføre.domain
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import vilkår.common.domain.Avslagsgrunn
@@ -19,6 +22,8 @@ import vilkår.common.domain.erLik
 import vilkår.common.domain.kastHvisPerioderErUsortertEllerHarDuplikater
 import vilkår.common.domain.kronologisk
 import vilkår.common.domain.slåSammenLikePerioder
+import java.time.Clock
+import java.util.UUID
 
 const val UFØRETRYGD_MINSTE_ALDER = 18
 const val UFØRETRYGD_MAX_ALDER = 67
@@ -162,6 +167,24 @@ sealed interface UføreVilkår : Vilkår {
                     )
                 }
             }
+        }
+
+        fun regulerForventetIEU(clock: Clock, regulertIeu: Int): Vurdert {
+            return copy(
+                vurderingsperioder = vurderingsperioder.map {
+                    VurderingsperiodeUføre.tryCreate(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        grunnlag = it.grunnlag?.copy(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(clock),
+                            forventetInntekt = regulertIeu,
+                        ),
+                        vurdering = it.vurdering,
+                        vurderingsperiode = it.periode,
+                    ).getOrElse { throw RuntimeException("$it") }
+                }.toNonEmptyList(),
+            )
         }
 
         override fun lagTidslinje(periode: Periode): Vurdert {

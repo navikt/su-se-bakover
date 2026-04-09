@@ -150,7 +150,7 @@ internal class ReguleringGrunnbeløpIT {
 
                 regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
 
-                if (gradertUføretrygd) {
+                if (sakstype != Sakstype.ALDER.value) {
                     val gammelForventetIeu =
                         beregningFørRegulering.fradrag.filter { it.type == Fradragstype.Kategori.ForventetInntekt.name }
                     gammelForventetIeu.size shouldBe 1
@@ -158,8 +158,12 @@ internal class ReguleringGrunnbeløpIT {
                     val regulertForventetIeu =
                         regulertBeregning.fradrag.filter { it.type == Fradragstype.Kategori.ForventetInntekt.name }
                     regulertForventetIeu.size shouldBe 1
-
-                    regulertForventetIeu.single().beløp shouldBeGreaterThan gammelForventetIeu.single().beløp
+                    if (gradertUføretrygd) {
+                        regulertForventetIeu.single().beløp shouldBeGreaterThan gammelForventetIeu.single().beløp
+                    } else {
+                        regulertForventetIeu.single().beløp shouldBe gammelForventetIeu.single().beløp
+                        regulertForventetIeu.single().beløp shouldBe 0.0
+                    }
                 }
             }
         }
