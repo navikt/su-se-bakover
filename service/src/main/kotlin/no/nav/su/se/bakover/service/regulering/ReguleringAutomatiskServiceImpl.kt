@@ -29,14 +29,15 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.toJson
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
+import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -153,6 +154,7 @@ class ReguleringAutomatiskServiceImpl(
                     sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                         when (r.size) {
                             0 -> {}
+                            // TODO AUTO-REG-26 - vurder om åpne skal slettes og lages ny
                             1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
                             else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                         }
@@ -259,38 +261,75 @@ class ReguleringAutomatiskServiceImpl(
         val (lefts, rights) = resultater.split()
         val startTid = LocalDateTime.now()
 
-        // TODO Ikke bare ha liste med årsak, men også maping til saksnummer
         val sakerSkalIkkeRegulere =
             lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
 
         val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
             it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
-        }.map { serialize(it) }
+        }.map {
+            serialize(
+                Reguleringsresultat(
+                    utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
+                    beskrivelse = it.toString(),
+                ),
+            )
+        }
 
         val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
             it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
-        }.map { serialize(it) }
+        }.map {
+            serialize(
+                Reguleringsresultat(
+                    utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
+                    beskrivelse = it.toString(),
+                ),
+            )
+        }
 
-        // TODO denne må tester litt ekstra siden det er to ulike klasser som blit til jsonb
         val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
             (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
-        }.map { serialize(it) }
+        }.map {
+            serialize(
+                Reguleringsresultat(
+                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
+                    beskrivelse = when (it.feil) {
+                        is Sak.KanIkkeRegulere.MåRevurdere -> (it.feil as Sak.KanIkkeRegulere.MåRevurdere).årsak.name
+                        Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> it.feil.toString()
+                        else -> "Feil feiltype på dette stadiet"
+                    },
+                ),
+            )
+        }
 
         val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                 it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
                 it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
                 it is KunneIkkeRegulereAutomatisk.UkjentFeil
-        }.map { serialize(it) }
-
+        }.map {
+            serialize(
+                Reguleringsresultat(
+                    utfall = Reguleringsresultat.Utfall.FEILET,
+                    beskrivelse = it.toString(),
+                ),
+            )
+        }
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
-            .map { serialize(it) }
+            .map {
+                serialize(
+                    Reguleringsresultat(
+                        utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
+                        beskrivelse = it.toString(),
+                    ),
+                )
+            }
 
         val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
-            serialize(it.toJson())
+            val årsak = (it.reguleringstype as Reguleringstype.MANUELL).problemer.first().kategori
+            serialize(it.toResultat(årsak.name))
         }
         val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
-            serialize(it.toJson())
+            serialize(it.toResultat("Fullført automatisk"))
         }
 
         val reguleringKjøring = ReguleringKjøring(

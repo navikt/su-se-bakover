@@ -32,16 +32,30 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
     )
 }
 
-data class ReguleringOppsummeringJson(
-    val saksnummer: Saksnummer,
-    val behandlingsId: UUID,
-    val periode: Periode,
-    val reguleringstype: String,
-    // TODO hvordan fange "problemer"??
-)
-fun ReguleringOppsummering.toJson() = ReguleringOppsummeringJson(
+// TODO en felles for feil og fullført??
+data class Reguleringsresultat(
+    // Nullable midlertidig
+    val saksnummer: Saksnummer? = null,
+    val behandlingsId: UUID? = null,
+    val utfall: Utfall,
+    val beskrivelse: String,
+) {
+    enum class Utfall {
+        AUTOMATISK,
+        MANUELL,
+        FEILET,
+        MÅ_REVURDERE,
+        ALLEREDE_REGULERT,
+        IKKE_LOEPENDE,
+        AAPEN_REGULERING, // TODO vurder om åpne skal slettes og lages ny
+    }
+}
+
+fun ReguleringOppsummering.toResultat(
+    beskrivelse: String,
+) = Reguleringsresultat(
     saksnummer = saksnummer,
     behandlingsId = behandlingsId,
-    periode = periode,
-    reguleringstype = reguleringstype.type(),
+    utfall = Reguleringsresultat.Utfall.valueOf(reguleringstype.type()),
+    beskrivelse = beskrivelse,
 )

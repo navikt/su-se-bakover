@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
-import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummeringJson
+import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -75,6 +75,7 @@ internal class ReguleringGrunnbeløpIT {
                     TestScenarietSaker.AUTOMATISK_UFØRE.opprettSak(client, appComponents)
                     TestScenarietSaker.AUTOMATISK_ALDER.opprettSak(client, appComponents)
                     TestScenarietSaker.MANUELL_UFØRE.opprettSak(client, appComponents)
+                    TestScenarietSaker.MÅ_REVURDERES_UFØRE.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
@@ -84,6 +85,8 @@ internal class ReguleringGrunnbeløpIT {
                     TestScenarietSaker.AUTOMATISK_ALDER.verifiserAutomatisk(this.client)
 
                     TestScenarietSaker.MANUELL_UFØRE.verifiserManuell(client)
+
+                    TestScenarietSaker.MÅ_REVURDERES_UFØRE.verifiserMåRevurderes(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -102,7 +105,7 @@ internal class ReguleringGrunnbeløpIT {
                         behandlingId = behandlingId,
                         fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
                         tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
-                        fradragstyper = andreFradrag,
+                        fradragstyper = fradrag,
                         client = client,
                     )
                 },
@@ -137,32 +140,51 @@ internal class ReguleringGrunnbeløpIT {
                 beregning shouldBe null
                 årsakForManuell.size shouldBe 1
                 (årsakForManuell.single() as ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag).let {
-                    andreFradrag shouldContain Fradragstype.Kategori.valueOf(it.fradragskategori)
+                    fradrag shouldContain Fradragstype.Kategori.valueOf(it.fradragskategori)
                     it.fradragTilhører shouldBe FradragTilhører.BRUKER.name
                 }
             }
         }
-        // TODO scenariet 3 Fører til revurdering
-        // TODO scenariet 4 allerede åpen regulering
-        // TODO scenariet 5 forventet feil
-        // TODO scenariet 6 uventet feil
+
+        private fun TestSakReguleringIT.verifiserMåRevurderes(client: HttpClient) {
+            val sakJson = hentSakRequest(fnr, sakstype, client)
+            sakJson.reguleringer.size shouldBe 0
+        }
+
+        // TODO scenariet allerede åpen regulering
+        // TODO scenariet allerede regulert
+        // TODO scenariet ikke løpende
+
+        // TODO scenariet forventet feil
+        // TODO scenariet uventet feil
 
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 3
+            sakerAntall shouldBe 4
 
             with(reguleringerAutomatisk) {
                 size shouldBe 2
                 forEach {
-                    deserialize<ReguleringOppsummeringJson>(it)
-                        .reguleringstype shouldBe Reguleringstype.AUTOMATISK.type()
+                    deserialize<Reguleringsresultat>(it)
+                        .utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
             }
 
             with(reguleringerManuell) {
                 size shouldBe 1
                 forEach {
-                    deserialize<ReguleringOppsummeringJson>(it)
-                        .reguleringstype shouldBe "MANUELL"
+                    val resultat = deserialize<Reguleringsresultat>(it)
+                    resultat.utfall shouldBe Reguleringsresultat.Utfall.MANUELL
+                    resultat.beskrivelse shouldBe "ManglerRegulertBeløpForFradrag"
+                }
+            }
+
+            with(sakerMåRevurderes) {
+                size shouldBe 1
+                forEach {
+                    val resultat = deserialize<Reguleringsresultat>(it)
+                    // TODO resultat.saksnummer shouldBe saksnummer..
+                    resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
+                    resultat.beskrivelse shouldBe "DIFFERANSE_MED_EKSTERNE_BELØP"
                 }
             }
         }
@@ -198,25 +220,31 @@ object TestScenarietSaker {
     val AUTOMATISK_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000001"),
         sakstype = Sakstype.UFØRE,
-        finnesIPesys = true,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd),
     )
 
     val AUTOMATISK_ALDER = TestSakReguleringIT.create(
         fnr = Fnr("00000000002"),
         sakstype = Sakstype.ALDER,
-        finnesIPesys = true,
+        fradrag = listOf(Fradragstype.Kategori.Alderspensjon),
     )
-
-    // TODO automatisk uten innvilget i Pesys??
 
     val MANUELL_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000003"),
         sakstype = Sakstype.UFØRE,
-        finnesIPesys = true,
-        andreFradrag = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
+        fradrag = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
     )
 
-    val alle = listOf(AUTOMATISK_UFØRE, AUTOMATISK_ALDER, MANUELL_UFØRE)
+    val MÅ_REVURDERES_UFØRE = TestSakReguleringIT.create(
+        fnr = Fnr("00000000004"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd),
+        diffMellomSuOgPesys = true,
+    )
+
+    // TODO automatisk uten innvilget i Pesys??
+
+    val alle = listOf(AUTOMATISK_UFØRE, AUTOMATISK_ALDER, MANUELL_UFØRE, MÅ_REVURDERES_UFØRE)
 }
 
 data class TestSakReguleringIT(
@@ -228,22 +256,24 @@ data class TestSakReguleringIT(
     val tilOgMedFørRegulering: LocalDate,
     val fraOgMedEtterRegulering: LocalDate,
 
-    val innvilgetIPesys: Boolean = false,
-    val andreFradrag: List<Fradragstype.Kategori>,
+    val fradrag: List<Fradragstype.Kategori>,
+
+    val innvilgetIPesys: Boolean,
+    val diffMellomSuOgPesys: Boolean,
 ) {
 
     fun uførePerioderFraPesys(): UføreBeregningsperioderPerPerson = UføreBeregningsperioderPerPerson(
         fnr = fnr.toString(),
         perioder = listOf(
             UføreBeregningsperiode(
-                netto = 1000,
+                netto = if (diffMellomSuOgPesys) 10100 else 10000,
                 fom = fraOgMed,
                 tom = tilOgMedFørRegulering,
                 grunnbelop = GRUNNBELØP_2024,
                 oppjustertInntektEtterUfore = 0,
             ),
             UføreBeregningsperiode(
-                netto = 1200,
+                netto = 10250,
                 fom = fraOgMedEtterRegulering,
                 tom = null,
                 grunnbelop = GRUNNBELØP_2025,
@@ -256,13 +286,13 @@ data class TestSakReguleringIT(
         fnr = fnr.toString(),
         perioder = listOf(
             AlderBeregningsperiode(
-                netto = 1000,
+                netto = 10000,
                 fom = fraOgMed,
                 tom = tilOgMedFørRegulering,
                 grunnbelop = GRUNNBELØP_2024,
             ),
             AlderBeregningsperiode(
-                netto = 1200,
+                netto = 10250,
                 fom = fraOgMedEtterRegulering,
                 tom = null,
                 grunnbelop = GRUNNBELØP_2025,
@@ -278,8 +308,9 @@ data class TestSakReguleringIT(
             tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
             tilOgMedFørRegulering: LocalDate = april(REGULERINGSÅR).tilOgMed,
             fraOgMedEtterRegulering: LocalDate = januar(REGULERINGSÅR).fraOgMed,
-            finnesIPesys: Boolean = false,
-            andreFradrag: List<Fradragstype.Kategori> = emptyList(),
+            fradrag: List<Fradragstype.Kategori>,
+            innvilgetIPesys: Boolean = true,
+            diffMellomSuOgPesys: Boolean = false,
         ): TestSakReguleringIT {
             return TestSakReguleringIT(
                 fnr = fnr,
@@ -288,8 +319,9 @@ data class TestSakReguleringIT(
                 tilOgMed = tilOgMed,
                 tilOgMedFørRegulering = tilOgMedFørRegulering,
                 fraOgMedEtterRegulering = fraOgMedEtterRegulering,
-                innvilgetIPesys = finnesIPesys,
-                andreFradrag = andreFradrag,
+                fradrag = fradrag,
+                innvilgetIPesys = innvilgetIPesys,
+                diffMellomSuOgPesys = diffMellomSuOgPesys,
             )
         }
     }
