@@ -62,6 +62,11 @@ sealed interface ÅrsakTilManuellRegulering {
         override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag,
     ) : ÅrsakTilManuellRegulering
 
+    data class ManglerIeuFraPesys(
+        override val begrunnelse: String = "Mangler IEU fra Pesys. Trolig på grunn av manuell behandling i Pesys.",
+        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys,
+    ) : ÅrsakTilManuellRegulering
+
     // TODO auto-reg-26 - blir historisk
     sealed interface FradragMåHåndteresManuelt : ÅrsakTilManuellRegulering {
         val fradragskategori: Fradragstype.Kategori

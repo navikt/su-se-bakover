@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -22,11 +23,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.common.domain.Vurdering
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
+import java.math.BigDecimal
 import java.time.Clock
 import kotlin.collections.ifEmpty
+import kotlin.to
 
 private val log: Logger = LoggerFactory.getLogger("Regulering")
 
@@ -60,6 +66,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
         ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
 
+    // TODO fra og med her ---->
     val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
 
     val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
@@ -69,11 +76,22 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         return it.left()
     }
 
+    val (reguleringstypeIeu, vilkårMedOppdatertIeu) = regulerForventetIeuOmGyldig(
+        vilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        clock = clock,
+    ).getOrElse { return it.left() }
+
     // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
     val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
         reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-        reguleringstype2 = reguleringstypeBasertPåFradrag,
+        reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(reguleringstypeBasertPåFradrag, reguleringstypeIeu),
     )
+
+    val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
+        .oppdaterFradragsgrunnlag(fradragOppdatertMedEksterneBeløp)
+        .oppdaterVilkårsvurderinger(vilkårMedOppdatertIeu)
+    // TODO til og med hit bør trekkes ut i eget scope..
 
     val opprettetRegulering = OpprettetRegulering(
         id = ReguleringId.generer(),
@@ -82,9 +100,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         saksnummer = saksnummer,
         saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
         fnr = fnr,
-        grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-            fradragOppdatertMedEksterneBeløp,
-        ),
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         beregning = null,
         simulering = null,
         reguleringstype = reguleringstype,
@@ -98,6 +114,53 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     }
 
     return opprettetRegulering.right()
+}
+
+fun regulerForventetIeuOmGyldig(
+    vilkårsvurderinger: VilkårsvurderingerRevurdering,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+    clock: Clock,
+): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, VilkårsvurderingerRevurdering>> {
+    if (vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder) {
+        return (Reguleringstype.AUTOMATISK to vilkårsvurderinger).right()
+    } else {
+        val eksisterendeVilkårMedIeu = when ((vilkårsvurderinger as VilkårsvurderingerRevurdering.Uføre).uføre) {
+            UføreVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke regulere en ikke vurdert uføretrygd")
+            is UføreVilkår.Vurdert -> (vilkårsvurderinger.uføre as UføreVilkår.Vurdert)
+        }
+        val uføreGrunnlagMedIeu = eksisterendeVilkårMedIeu.vurderingsperioder.mapNotNull { it.grunnlag }.filter {
+            it.uføregrad.value < 100
+        }
+        if (uføreGrunnlagMedIeu.isEmpty()) {
+            return (Reguleringstype.AUTOMATISK to vilkårsvurderinger).right()
+        }
+
+        val eksterntRegulertIeu = eksterntRegulerteBeløp.inntektEtterUføre?.etterRegulering?.toInt()
+            ?: return (Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.ManglerIeuFraPesys()) to vilkårsvurderinger).right()
+
+        // Er en loop fordi typen er en list, men under en regulering vil det alltid bare være en periode
+        for (vilkårPeriodeGrunnlag in uføreGrunnlagMedIeu) {
+            val bruktBeløp = BigDecimal(vilkårPeriodeGrunnlag.forventetInntekt).setScale(2)
+            if (bruktBeløp != eksterntRegulerteBeløp.inntektEtterUføre.førRegulering) {
+                return Sak.KanIkkeRegulere.MåRevurdere(
+                    årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
+                    diffBeløp = listOf(
+                        BruktFradragUliktEksterntBeløp(
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            tilhører = FradragTilhører.BRUKER,
+                            bruktBeløp = bruktBeløp,
+                            eksterntBeløp = eksterntRegulerteBeløp.inntektEtterUføre.førRegulering,
+                        ),
+                    ),
+                ).left()
+            }
+        }
+
+        val vilkårMedOppdatertRegulertIeu = vilkårsvurderinger.copy(
+            uføre = eksisterendeVilkårMedIeu.regulerForventetIEU(clock, eksterntRegulertIeu),
+        )
+        return (Reguleringstype.AUTOMATISK to vilkårMedOppdatertRegulertIeu).right()
+    }
 }
 
 fun Sak.hentGjeldendeVedtaksdataForRegulering(

@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import vilkår.vurderinger.domain.harForventetInntektStørreEnn0
 
 sealed interface Reguleringstype {
     data object AUTOMATISK : Reguleringstype
@@ -35,19 +33,6 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
                 begrunnelse = "Saken er midlertidig stanset",
             ),
         )
-    }
-
-    // TODO AUTO-REG-26 Fjern
-    if (this.vilkårsvurderinger is VilkårsvurderingerRevurdering.Uføre) {
-        this.vilkårsvurderinger.uføreVilkårKastHvisAlder().let {
-            if (it.grunnlag.harForventetInntektStørreEnn0()) {
-                problemer.add(
-                    ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(
-                        begrunnelse = "Forventet inntekt er større enn 0",
-                    ),
-                )
-            }
-        }
     }
 
     // TODO AUTO-REG-26 hvorfor må dette da gjøres manuelt?? Det er vel kun om det er opphørt frem i tid som er problematisk og det skjer jo ikke?

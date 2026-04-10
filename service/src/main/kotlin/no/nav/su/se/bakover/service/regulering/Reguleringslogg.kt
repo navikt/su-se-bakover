@@ -86,6 +86,7 @@ private fun Sequence<Map<ÅrsakTilManuellReguleringKategori, String>>.toCSVLogga
                             it.value.flatMap { it.values }.joinToString("\n")
 
                     ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag -> ""
+                    ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys -> ""
                 },
             )
         }.toSet()
@@ -162,6 +163,7 @@ private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellRe
                     )
 
                     is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> årsak.toCSVLoggableString(saksnummer)
+                    is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> årsak.toCSVLoggableString(saksnummer)
                 }
             }.let {
                 it.groupBy {
@@ -177,6 +179,11 @@ private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellRe
 }
 
 private fun ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag.toCSVLoggableString(
+    saksnummer: Saksnummer,
+): Map<ÅrsakTilManuellReguleringKategori, String> =
+    mapOf(this.kategori to saksnummer.toString())
+
+private fun ÅrsakTilManuellRegulering.ManglerIeuFraPesys.toCSVLoggableString(
     saksnummer: Saksnummer,
 ): Map<ÅrsakTilManuellReguleringKategori, String> =
     mapOf(this.kategori to saksnummer.toString())
