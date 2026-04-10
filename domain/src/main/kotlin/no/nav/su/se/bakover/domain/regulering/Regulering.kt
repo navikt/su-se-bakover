@@ -82,15 +82,10 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock = clock,
     ).getOrElse { return it.left() }
 
-    val reguleringstypeFradragOgIeu = Reguleringstype.utledReguleringsTypeFrom(
-        reguleringstype1 = reguleringstypeBasertPåFradrag,
-        reguleringstype2 = reguleringstypeIeu,
-    )
-
     // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
     val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
         reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-        reguleringstype2 = reguleringstypeFradragOgIeu,
+        reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(reguleringstypeBasertPåFradrag, reguleringstypeIeu),
     )
 
     val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
