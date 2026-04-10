@@ -21,7 +21,24 @@ internal fun leggTilFormue(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     måInnhenteMerInformasjon: Boolean = false,
+    harEps: Boolean = false,
     body: () -> String = {
+        val epsFormueJson = if (harEps) {
+            """
+            {
+              "verdiIkkePrimærbolig": 0,
+              "verdiEiendommer": 0,
+              "verdiKjøretøy": 0,
+              "innskudd": 0,
+              "verdipapir": 0,
+              "pengerSkyldt": 0,
+              "kontanter": 0,
+              "depositumskonto": 0
+            }
+            """.trimIndent()
+        } else {
+            "null"
+        }
         """
                 [
                   {
@@ -29,7 +46,7 @@ internal fun leggTilFormue(
                           "fraOgMed": "$fraOgMed",
                           "tilOgMed": "$tilOgMed"
                         },
-                        "epsFormue": null,
+                        "epsFormue": $epsFormueJson,
                         "søkersFormue": {
                           "verdiIkkePrimærbolig": 0,
                           "verdiEiendommer": 0,
