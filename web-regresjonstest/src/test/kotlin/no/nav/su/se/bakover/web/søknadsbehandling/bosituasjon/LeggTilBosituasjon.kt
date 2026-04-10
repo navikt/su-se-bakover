@@ -23,6 +23,10 @@ internal fun leggTilBosituasjon(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
+    epsFnr: String? = null,
+    delerBolig: Boolean? = false,
+    erEpsFylt67: Boolean? = null,
+    erEPSUførFlyktning: Boolean? = null,
     body: () -> String = {
         //language=json
         """
@@ -33,10 +37,14 @@ internal fun leggTilBosituasjon(
                               "fraOgMed": "$fraOgMed",
                               "tilOgMed": "$tilOgMed"
                             },
-                            "epsFnr": null,
-                            "delerBolig": false,
-                            "erEPSUførFlyktning": null,
-                            "erEpsFylt67": null,
+                            "epsFnr": ${epsFnr?.let{
+            """
+                                "$it"
+            """.trimIndent()
+        }},
+                            "delerBolig": $delerBolig,
+                            "erEPSUførFlyktning": $erEPSUførFlyktning,
+                            "erEpsFylt67": $erEpsFylt67,
                             "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
                           }
                       ]
@@ -53,7 +61,8 @@ internal fun leggTilBosituasjon(
             listOf(brukerrolle),
             client = client,
         ) {
-            setBody(body())
+            val body = body()
+            setBody(body)
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK
