@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -33,7 +34,9 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_ALDER
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UFØRE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.søknadsbehandling.fradrag.leggTilFradrag
@@ -83,6 +86,8 @@ internal class ReguleringGrunnbeløpIT {
                     MANUELL_UFØRE.opprettSak(client, appComponents)
                     MÅ_REVURDERES_UFØRE.opprettSak(client, appComponents)
                     AUTOMATISK_UFØRE_MED_IEU.opprettSak(client, appComponents)
+                    MANUELL_UFØRE_MED_IEU.opprettSak(client, appComponents)
+                    REVURDERING_UFØRE_MED_IEU.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
@@ -91,11 +96,16 @@ internal class ReguleringGrunnbeløpIT {
 
                     AUTOMATISK_ALDER.verifiserAutomatisk(this.client)
 
-                    MANUELL_UFØRE.verifiserManuell(client)
+                    MANUELL_UFØRE.verifiserManuell(
+                        ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag,
+                        client,
+                    )
 
                     MÅ_REVURDERES_UFØRE.verifiserMåRevurderes(client)
 
                     AUTOMATISK_UFØRE_MED_IEU.verifiserAutomatisk(client)
+                    MANUELL_UFØRE_MED_IEU.verifiserManuell(ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys, client)
+                    REVURDERING_UFØRE_MED_IEU.verifiserMåRevurderes(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -168,16 +178,24 @@ internal class ReguleringGrunnbeløpIT {
             }
         }
 
-        private fun TestSakReguleringIT.verifiserManuell(client: HttpClient) {
+        private fun TestSakReguleringIT.verifiserManuell(
+            årsak: ÅrsakTilManuellReguleringKategori,
+            client: HttpClient,
+        ) {
             val sakJson = hentSakRequest(fnr, sakstype, client)
             sakJson.reguleringer.size shouldBe 1
             with(sakJson.reguleringer[0]) {
                 reguleringstype shouldBe "MANUELL"
                 beregning shouldBe null
                 årsakForManuell.size shouldBe 1
-                (årsakForManuell.single() as ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag).let {
-                    fradrag shouldContain Fradragstype.Kategori.valueOf(it.fradragskategori)
-                    it.fradragTilhører shouldBe FradragTilhører.BRUKER.name
+                if (årsak == ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag) {
+                    (årsakForManuell.single() as ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag).let {
+                        fradrag shouldContain Fradragstype.Kategori.valueOf(it.fradragskategori)
+                        it.fradragTilhører shouldBe FradragTilhører.BRUKER.name
+                    }
+                }
+                if (årsak == ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys) {
+                    årsakForManuell.single() shouldBe ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
                 }
             }
         }
@@ -195,29 +213,24 @@ internal class ReguleringGrunnbeløpIT {
         // TODO scenariet uventet feil
 
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 5
+            sakerAntall shouldBe 7
 
             with(reguleringerAutomatisk) {
                 size shouldBe 3
-                forEach {
-                    it
-                        .utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
+                forEach { resultat ->
+                    resultat.utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
             }
 
             with(reguleringerManuell) {
-                size shouldBe 1
-                forEach {
-                    val resultat = it
-                    resultat.utfall shouldBe Reguleringsresultat.Utfall.MANUELL
-                    resultat.beskrivelse shouldBe "ManglerRegulertBeløpForFradrag"
-                }
+                size shouldBe 2
+                single { it.beskrivelse == "ManglerRegulertBeløpForFradrag" }.utfall shouldBe Reguleringsresultat.Utfall.MANUELL
+                single { it.beskrivelse == "ManglerIeuFraPesys" }.utfall shouldBe Reguleringsresultat.Utfall.MANUELL
             }
 
             with(sakerMåRevurderes) {
-                size shouldBe 1
-                forEach {
-                    val resultat = it
+                size shouldBe 2
+                forEach { resultat ->
                     // TODO resultat.saksnummer shouldBe saksnummer..
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
                     resultat.beskrivelse shouldBe "DIFFERANSE_MED_EKSTERNE_BELØP"
@@ -285,9 +298,33 @@ object TestScenarietSaker {
         gradertUføretrygd = true,
     )
 
+    val MANUELL_UFØRE_MED_IEU = TestSakReguleringIT.create(
+        fnr = Fnr("00000000006"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd),
+        gradertUføretrygd = true,
+        nullIeu = true,
+    )
+
+    val REVURDERING_UFØRE_MED_IEU = TestSakReguleringIT.create(
+        fnr = Fnr("00000000007"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd),
+        gradertUføretrygd = true,
+        diffMellomSuOgPesys = true,
+    )
+
     // TODO automatisk uten innvilget i Pesys??
 
-    val alle = listOf(AUTOMATISK_UFØRE, AUTOMATISK_ALDER, MANUELL_UFØRE, MÅ_REVURDERES_UFØRE, AUTOMATISK_UFØRE_MED_IEU)
+    val alle = listOf(
+        AUTOMATISK_UFØRE,
+        AUTOMATISK_ALDER,
+        MANUELL_UFØRE,
+        MÅ_REVURDERES_UFØRE,
+        AUTOMATISK_UFØRE_MED_IEU,
+        MANUELL_UFØRE_MED_IEU,
+        REVURDERING_UFØRE_MED_IEU,
+    )
 }
 
 data class TestSakReguleringIT(
@@ -303,6 +340,7 @@ data class TestSakReguleringIT(
 
     val innvilgetIPesys: Boolean,
     val gradertUføretrygd: Boolean,
+    val nullIeu: Boolean,
     val diffMellomSuOgPesys: Boolean,
 ) {
 
@@ -314,14 +352,32 @@ data class TestSakReguleringIT(
                 fom = fraOgMed,
                 tom = tilOgMedFørRegulering,
                 grunnbelop = GRUNNBELØP_2024,
-                oppjustertInntektEtterUfore = if (gradertUføretrygd) 1000 else 0,
+                oppjustertInntektEtterUfore = if (gradertUføretrygd) {
+                    if (diffMellomSuOgPesys) {
+                        1010
+                    } else if (nullIeu) {
+                        null
+                    } else {
+                        1000
+                    }
+                } else {
+                    0
+                },
             ),
             UføreBeregningsperiode(
                 netto = 10250,
                 fom = fraOgMedEtterRegulering,
                 tom = null,
                 grunnbelop = GRUNNBELØP_2025,
-                oppjustertInntektEtterUfore = if (gradertUføretrygd) 1100 else 0,
+                oppjustertInntektEtterUfore = if (gradertUføretrygd) {
+                    if (nullIeu) {
+                        null
+                    } else {
+                        1100
+                    }
+                } else {
+                    0
+                },
             ),
         ),
     )
@@ -355,6 +411,7 @@ data class TestSakReguleringIT(
             fradrag: List<Fradragstype.Kategori>,
             innvilgetIPesys: Boolean = true,
             gradertUføretrygd: Boolean = false,
+            nullIeu: Boolean = false,
             diffMellomSuOgPesys: Boolean = false,
         ): TestSakReguleringIT {
             return TestSakReguleringIT(
@@ -367,6 +424,7 @@ data class TestSakReguleringIT(
                 fradrag = fradrag,
                 innvilgetIPesys = innvilgetIPesys,
                 gradertUføretrygd = gradertUføretrygd,
+                nullIeu = nullIeu,
                 diffMellomSuOgPesys = diffMellomSuOgPesys,
             )
         }

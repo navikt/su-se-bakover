@@ -288,7 +288,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
 
     data object ManglerIeuFraPesys : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt
+            ÅrsakTilManuellRegulering.ManglerIeuFraPesys()
     }
 
     companion object {
