@@ -169,6 +169,10 @@ sealed interface ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String?,
     ) : ÅrsakTilManuellReguleringJson
 
+    data object ManglerIeuFraPesys : ÅrsakTilManuellReguleringJson {
+        override val begrunnelse: String? = null
+    }
+
     // Gammelt
     data class BrukerManglerSupplement(
         val fradragskategori: String,
@@ -282,6 +286,8 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 fradragTilhører = fradragTilhører.toString(),
                 begrunnelse = begrunnelse,
             )
+
+            is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ManglerIeuFraPesys
         }
     }
 }

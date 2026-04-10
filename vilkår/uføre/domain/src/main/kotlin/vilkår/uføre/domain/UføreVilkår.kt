@@ -182,7 +182,7 @@ sealed interface UføreVilkår : Vilkår {
                         ),
                         vurdering = it.vurdering,
                         vurderingsperiode = it.periode,
-                    ).getOrElse { throw RuntimeException("$it") }
+                    ).getOrElse { throw IllegalStateException("$it") }
                 }.toNonEmptyList(),
             )
         }

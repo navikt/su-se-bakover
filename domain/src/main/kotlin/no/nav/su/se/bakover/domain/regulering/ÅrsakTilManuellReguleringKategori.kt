@@ -16,6 +16,7 @@ enum class ÅrsakTilManuellReguleringKategori {
     DelvisOpphør,
     MerEnn1Eps,
     ManglerRegulertBeløpForFradrag,
+    ManglerIeuFraPesys,
 
     // Gammel
     BrukerManglerSupplement,
