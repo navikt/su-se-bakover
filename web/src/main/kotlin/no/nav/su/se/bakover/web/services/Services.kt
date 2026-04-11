@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.aap.AapJobService
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import person.domain.PersonService
 import vilkår.skatt.application.SkatteService
@@ -70,6 +71,7 @@ data class Services(
     val sakstatistikkBigQueryService: SakStatistikkBigQueryService,
     val pesysJobService: PesysJobService,
     val aapJobService: AapJobService,
+    val fradragsjobbenService: FradragsjobbenService,
     val fritekstAvslagService: FritekstAvslagService,
     val søknadStatistikkService: SøknadStatistikkService,
     val mottakerService: MottakerService,
