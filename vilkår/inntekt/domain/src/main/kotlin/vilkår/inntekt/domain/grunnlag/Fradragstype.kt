@@ -197,7 +197,7 @@ sealed class Fradragstype {
     data object SupplerendeStønad : Fradragstype() {
         override val kategori: Kategori = Kategori.SupplerendeStønad
         override val måJusteresVedGEndring: Boolean = true
-        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
+        override val kanJusteresAutomatisk: Boolean = true
     }
 
     data object Sykepenger : Fradragstype() {

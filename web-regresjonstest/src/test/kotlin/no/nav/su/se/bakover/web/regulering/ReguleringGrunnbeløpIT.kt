@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.web.regulering
 
 import common.presentation.beregning.FradragRequestJson
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
@@ -114,7 +112,7 @@ internal class ReguleringGrunnbeløpIT {
                     MANUELL_UFØRE_MED_IEU.verifiserManuell(ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys, client)
                     REVURDERING_UFØRE_MED_IEU.verifiserMåRevurderes(client)
 
-                    ALDER_MED_EPS_MED_SU.verifiserManuell(ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag, client)
+                    ALDER_MED_EPS_MED_SU.verifiserAutomatisk(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -221,15 +219,10 @@ internal class ReguleringGrunnbeløpIT {
                 årsakForManuell.size shouldBe 1
                 if (verifiserÅrsak == ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag) {
                     (årsakForManuell.single() as ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag).let { årsakForManuell ->
-                        fradrag.map { it.type } shouldContain årsakForManuell.fradragskategori
-                        val fradragÅrsak = fradrag.singleOrNull { it.type == årsakForManuell.fradragskategori }
-                        fradragÅrsak shouldNotBe null
+                        val fradragÅrsak = fradrag.singleOrNull()
+                        fradragÅrsak?.type shouldBe årsakForManuell.fradragskategori
                         fradragÅrsak?.tilhører shouldBe årsakForManuell.fradragTilhører
-                        if (fradragÅrsak!!.type == Fradragstype.Kategori.SupplerendeStønad.name) {
-                            årsakForManuell.fradragTilhører shouldBe FradragTilhører.EPS.name
-                        } else {
-                            årsakForManuell.fradragTilhører shouldBe FradragTilhører.BRUKER.name
-                        }
+                        årsakForManuell.fradragTilhører shouldBe FradragTilhører.BRUKER.name
                     }
                 }
                 if (verifiserÅrsak == ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys) {
@@ -254,15 +247,15 @@ internal class ReguleringGrunnbeløpIT {
             sakerAntall shouldBe 8
 
             with(reguleringerAutomatisk) {
-                size shouldBe 3
+                size shouldBe 4
                 forEach { resultat ->
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
             }
 
             with(reguleringerManuell) {
-                size shouldBe 3
-                filter { it.beskrivelse == "ManglerRegulertBeløpForFradrag" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 2
+                size shouldBe 2
+                filter { it.beskrivelse == "ManglerRegulertBeløpForFradrag" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
                 filter { it.beskrivelse == "ManglerIeuFraPesys" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
             }
 
