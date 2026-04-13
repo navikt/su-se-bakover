@@ -32,25 +32,6 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
     )
 }
 
-// TODO en felles for feil og fullført??
-data class Reguleringsresultat(
-    // Nullable midlertidig
-    val saksnummer: Saksnummer? = null,
-    val behandlingsId: UUID? = null,
-    val utfall: Utfall,
-    val beskrivelse: String,
-) {
-    enum class Utfall {
-        AUTOMATISK,
-        MANUELL,
-        FEILET,
-        MÅ_REVURDERE,
-        ALLEREDE_REGULERT,
-        IKKE_LOEPENDE,
-        AAPEN_REGULERING, // TODO vurder om åpne skal slettes og lages ny
-    }
-}
-
 fun ReguleringOppsummering.toResultat(
     beskrivelse: String,
     utfall: Reguleringsresultat.Utfall,
