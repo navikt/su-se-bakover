@@ -14,6 +14,17 @@ internal class SøknadsinnholdInputValidatorTest {
     }
 
     @Test
+    fun `skal tillate paragraftegn`() {
+        val søknad = gyldigUføreSøknad().copy(
+            inntektOgPensjon = InntektOgPensjonJson(
+                andreYtelserINav = "sosialstønad § 3-2",
+            ),
+        )
+
+        SøknadsinnholdInputValidator.valider(søknad).isEmpty() shouldBe true
+    }
+
+    @Test
     fun `avviser mistenkelig tekst`() {
         val søknad = gyldigUføreSøknad().copy(
             formue = gyldigUføreSøknad().formue.copy(
