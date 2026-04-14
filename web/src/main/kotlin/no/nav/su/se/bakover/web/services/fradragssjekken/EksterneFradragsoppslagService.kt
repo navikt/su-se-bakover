@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
+import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -107,13 +109,14 @@ internal class EksterneFradragsoppslagService(
         måned: Måned,
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
+        val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         return runBlocking {
             fnr.chunked(AAP_PARALLELLE_OPPSLAG)
                 .flatMap { fnrChunk ->
                     fnrChunk.map { personFnr ->
                         async(Dispatchers.IO) {
-                            personFnr to hentAapOppslagForFnr(personFnr, måned)
+                            personFnr to hentAapOppslagForFnr(personFnr, måned, correlationId)
                         }
                     }.awaitAll()
                 }
@@ -124,11 +127,13 @@ internal class EksterneFradragsoppslagService(
     private fun hentAapOppslagForFnr(
         fnr: Fnr,
         måned: Måned,
+        correlationId: CorrelationId,
     ): EksterntOppslag {
         return aapKlient.hentMaksimum(
             fnr = fnr,
             fraOgMedDato = måned.fraOgMed,
             tilOgMedDato = måned.tilOgMed,
+            correlationId = correlationId,
         ).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: AAP-oppslag feilet for fnr {}", fnr)
