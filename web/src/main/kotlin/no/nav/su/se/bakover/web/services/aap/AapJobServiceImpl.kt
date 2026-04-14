@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.aap
 
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -37,6 +38,7 @@ class AapJobServiceImpl(
                 fnr = fnr,
                 fraOgMedDato = fraOgMedDato,
                 tilOgMedDato = tilOgMedDato,
+                correlationId = getOrCreateCorrelationIdFromThreadLocal(),
             ).fold(
                 { err ->
                     log.warn("AAP: Feil ved henting av maksimum for fnr {}. {} - {}", fnr, err.httpStatus, err.message)

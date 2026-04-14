@@ -9,10 +9,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.client.ClientError
-import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -30,6 +30,7 @@ interface AapApiInternClient {
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
+        correlationId: CorrelationId,
     ): Either<ClientError, MaksimumResponseDto>
 }
 
@@ -38,6 +39,7 @@ class AapApiInternClientStub : AapApiInternClient {
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
+        correlationId: CorrelationId,
     ): Either<ClientError, MaksimumResponseDto> {
         return MaksimumResponseDto(vedtak = emptyList()).right()
     }
@@ -56,8 +58,9 @@ class AapApiInternHttpClient(
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
+        correlationId: CorrelationId,
     ): Either<ClientError, MaksimumResponseDto> {
-        val callId = getOrCreateCorrelationIdFromThreadLocal().toString()
+        val callId = correlationId.toString()
 
         val (_, response, result) = "$baseUrl$maksimumUri"
             .httpPost()

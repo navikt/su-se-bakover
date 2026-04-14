@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.aap.MaksimumRequestDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
@@ -74,12 +75,13 @@ class AapApiInternHttpClientTest {
                 ),
             )
 
+            val correlationid = "correlationId"
             stubFor(
                 post(urlPathEqualTo("/maksimum"))
                     .withHeader(HttpHeaders.ContentType, containing(ContentType.Application.Json.toString()))
                     .withHeader(HttpHeaders.Accept, containing(ContentType.Application.Json.toString()))
-                    .withHeader(NAV_CALL_ID_HEADER, equalTo("correlationId"))
-                    .withHeader(CORRELATION_ID_HEADER, equalTo("correlationId"))
+                    .withHeader(NAV_CALL_ID_HEADER, equalTo(correlationid))
+                    .withHeader(CORRELATION_ID_HEADER, equalTo(correlationid))
                     .withRequestBody(equalToJson(expectedRequest))
                     .willReturn(
                         aResponse()
@@ -89,7 +91,7 @@ class AapApiInternHttpClientTest {
                     ),
             )
 
-            val result = createClient(baseUrl()).hentMaksimum(fnr, fraOgMedDato, tilOgMedDato)
+            val result = createClient(baseUrl()).hentMaksimum(fnr, fraOgMedDato, tilOgMedDato, CorrelationId(correlationid))
 
             result.shouldBeRight(expectedResponse)
         }
@@ -113,6 +115,7 @@ class AapApiInternHttpClientTest {
                 fnr = Fnr("22503904369"),
                 fraOgMedDato = LocalDate.now(),
                 tilOgMedDato = LocalDate.now(),
+                CorrelationId.generate(),
             )
 
             result.shouldBeLeft().let { error: ClientError ->
