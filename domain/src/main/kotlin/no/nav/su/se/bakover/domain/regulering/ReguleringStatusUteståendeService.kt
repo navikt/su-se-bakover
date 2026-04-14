@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
-import io.ktor.util.date.Month
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -15,7 +14,6 @@ import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
-import java.time.Year
 import java.time.YearMonth
 import kotlin.collections.filter
 import kotlin.collections.map
@@ -27,20 +25,20 @@ class ReguleringStatusUteståendeService(
     val clock: Clock,
 ) {
 
-    fun hentStatusSisteGrunnbeløp(): ReguleringStatus {
-        val sisteMai = hentSisteMai(clock)
+    fun hentStatusSisteGrunnbeløp(aar: Int): ReguleringStatus {
+        val etterspurtMai = Måned.fra(YearMonth.of(aar, 5))
         val sisteBeløper = SisteGrunnbeløpOgSatser(
-            grunnbeløp = satsFactory.grunnbeløp(sisteMai).grunnbeløpPerÅr,
-            garantipensjonOrdinær = satsFactory.ordinærAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
-            garantipensjonHøy = satsFactory.høyAlder(sisteMai).garantipensjonForMåned.garantipensjonPerÅr,
+            grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
+            garantipensjonOrdinær = satsFactory.ordinærAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+            garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
         )
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
-        val sakerMedUtbetalingMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, sisteMai)
-        val (løpendeSakerIkkefunnet, løpendeSaker) = sakerMedUtbetalingMai.split()
+        val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
+        val (løpendeSakerIkkefunnet, løpendeOgMidlertidigStansSaker) = sakerMedUtbetalingOgStansMai.split()
 
-        val sakerMedGammeltGrunnbeløp = løpendeSaker.mapNotNull {
-            val beregning = it.hentGjeldendeMånedsberegninger(sisteMai, clock).singleOrNull()
+        val sakerMedGammeltGrunnbeløp = løpendeOgMidlertidigStansSaker.mapNotNull {
+            val beregning = it.hentGjeldendeMånedsberegninger(etterspurtMai, clock).singleOrNull()
                 ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
 
             val benyttetG = beregning.getBenyttetGrunnbeløp()
@@ -68,21 +66,12 @@ class ReguleringStatusUteståendeService(
         }
 
         return ReguleringStatus(
-            aar = sisteMai.fraOgMed.year,
+            aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
-            sakerMedUtebetalingIMai = sakerMedUtbetalingMai.size,
+            sakerMedUtebetalingIMai = sakerMedUtbetalingOgStansMai.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp,
             løpendeSakerIkkeFunner = løpendeSakerIkkefunnet,
         )
-    }
-
-    private fun hentSisteMai(clock: Clock): Måned {
-        val åretsMai = YearMonth.of(Year.now(clock).value, Month.MAY.ordinal + 1)
-        return if (YearMonth.now(clock).isBefore(åretsMai)) {
-            åretsMai.minusYears(1)
-        } else {
-            åretsMai
-        }.let { Måned.fra(it) }
     }
 
     private fun hentSakerMedLøpendeUtbetalingEllerStansForMåned(

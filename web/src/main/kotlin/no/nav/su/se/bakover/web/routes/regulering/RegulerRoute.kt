@@ -443,7 +443,14 @@ internal fun Route.reguler(
 
     get("$REGULERING_PATH/status-regulering-utestaende") {
         authorize(Brukerrolle.Drift) {
-            val status = reguleringStatusUteståendeService.hentStatusSisteGrunnbeløp()
+            val aar = call.parameters["aar"]?.toIntOrNull()
+                ?: return@authorize call.svar(
+                    HttpStatusCode.BadRequest.errorJson(
+                        "aar parameter mangler eller er ugyldig",
+                        "aar_mangler_eller_ugyldig",
+                    ),
+                )
+            val status = reguleringStatusUteståendeService.hentStatusSisteGrunnbeløp(aar)
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
         }
     }

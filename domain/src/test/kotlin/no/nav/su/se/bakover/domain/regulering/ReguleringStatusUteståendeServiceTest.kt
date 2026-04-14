@@ -59,7 +59,7 @@ internal class ReguleringStatusUteståendeServiceTest {
             clock = clock,
         )
 
-        val result = service.hentStatusSisteGrunnbeløp()
+        val result = service.hentStatusSisteGrunnbeløp(2025)
 
         with(result.sisteGrunnbeløpOgSatser) {
             grunnbeløp shouldBe 130160
