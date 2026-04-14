@@ -57,8 +57,8 @@ class PesysHttpClient(
                 }
             },
             { error ->
-                log.error("Alder: HTTP error from Pesys", error)
                 val body = response.body().toByteArray().toString(Charsets.UTF_8)
+                log.error("HTTP error from Pesys alder. body=$body", error)
                 ClientError(
                     httpStatus = error.response.statusCode,
                     message = body.ifBlank {
@@ -97,8 +97,8 @@ class PesysHttpClient(
                 }
             },
             { error ->
-                log.error("HTTP error from Pesys uføre", error)
                 val body = response.body().toByteArray().toString(Charsets.UTF_8)
+                log.error("HTTP error from Pesys uføre. body=$body", error)
                 ClientError(
                     httpStatus = error.response.statusCode,
                     message = body.ifBlank {
