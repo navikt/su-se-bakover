@@ -6,11 +6,9 @@ import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.client.ClientError
-import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -36,7 +34,6 @@ class PesysHttpClient(
         if (fnrList.isEmpty()) {
             return ResponseDtoAlder(emptyList()).right()
         }
-        val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         val fullUrl = "$baseUrl$alderUri"
         val (_, response, result) =
@@ -45,7 +42,6 @@ class PesysHttpClient(
                 .authentication().bearer(azureAd.getSystemToken(clientId))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .header(CORRELATION_ID_HEADER, correlationId)
                 .body(serialize(fnrList.map(Fnr::toString)))
                 .responseString()
 
@@ -79,7 +75,6 @@ class PesysHttpClient(
         if (fnrList.isEmpty()) {
             return ResponseDtoUføre(emptyList()).right()
         }
-        val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         val fullUrl = "$baseUrl$uforeUri"
         val (_, response, result) =
@@ -88,7 +83,6 @@ class PesysHttpClient(
                 .authentication().bearer(azureAd.getSystemToken(clientId))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .header(CORRELATION_ID_HEADER, correlationId)
                 .body(serialize(fnrList.map(Fnr::toString)))
                 .responseString()
 
