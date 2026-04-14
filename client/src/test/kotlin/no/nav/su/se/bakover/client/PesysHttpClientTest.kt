@@ -122,12 +122,6 @@ class PesysHttpClientTest {
         "24415045545",
     ).map { Fnr(it) }
 
-    val emptyResponse = """
-            {
-              "resultat": []
-            }
-    """.trimIndent()
-
     private fun mockAzureAd() = mock<AzureAd> {
         on { getSystemToken(any()) } doReturn "token"
     }

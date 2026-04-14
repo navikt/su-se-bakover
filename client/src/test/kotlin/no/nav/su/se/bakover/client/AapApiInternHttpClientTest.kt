@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client
 
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.containing
-import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
@@ -15,8 +14,6 @@ import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.aap.MaksimumRequestDto
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
-import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
@@ -31,10 +28,6 @@ import org.mockito.kotlin.mock
 import java.time.LocalDate
 
 class AapApiInternHttpClientTest {
-    companion object {
-        private const val NAV_CALL_ID_HEADER = "nav-callid"
-    }
-
     private fun mockAzureAd() = mock<AzureAd> {
         on { getSystemToken(any()) } doReturn "token"
     }
@@ -75,13 +68,10 @@ class AapApiInternHttpClientTest {
                 ),
             )
 
-            val correlationid = "correlationId"
             stubFor(
                 post(urlPathEqualTo("/maksimum"))
                     .withHeader(HttpHeaders.ContentType, containing(ContentType.Application.Json.toString()))
                     .withHeader(HttpHeaders.Accept, containing(ContentType.Application.Json.toString()))
-                    .withHeader(NAV_CALL_ID_HEADER, equalTo(correlationid))
-                    .withHeader(CORRELATION_ID_HEADER, equalTo(correlationid))
                     .withRequestBody(equalToJson(expectedRequest))
                     .willReturn(
                         aResponse()
@@ -91,7 +81,7 @@ class AapApiInternHttpClientTest {
                     ),
             )
 
-            val result = createClient(baseUrl()).hentMaksimum(fnr, fraOgMedDato, tilOgMedDato, CorrelationId(correlationid))
+            val result = createClient(baseUrl()).hentMaksimum(fnr, fraOgMedDato, tilOgMedDato)
 
             result.shouldBeRight(expectedResponse)
         }
@@ -115,7 +105,6 @@ class AapApiInternHttpClientTest {
                 fnr = Fnr("22503904369"),
                 fraOgMedDato = LocalDate.now(),
                 tilOgMedDato = LocalDate.now(),
-                CorrelationId.generate(),
             )
 
             result.shouldBeLeft().let { error: ClientError ->

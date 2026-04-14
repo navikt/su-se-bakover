@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
-import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.BeregnAap
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
@@ -86,7 +85,6 @@ class AapReguleringerServiceImpl(
         fnr = fnr,
         fraOgMedDato = fraOgMedDato,
         tilOgMedDato = reguleringstidspunkt,
-        correlationId = getOrCreateCorrelationIdFromThreadLocal(),
     ).fold(
         ifLeft = {
             log.warn("AAP-regulering: Klarte ikke hente maksimum for fnr {}", fnr)
