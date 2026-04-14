@@ -46,7 +46,7 @@ sealed interface Regulering : Stønadsbehandling {
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
 
-    val eksterntRegulerteBeløp: EksterntRegulerteBeløp
+    val eksterntRegulerteBeløp: EksterntRegulerteBeløp?
 
     fun erÅpen(): Boolean
 
