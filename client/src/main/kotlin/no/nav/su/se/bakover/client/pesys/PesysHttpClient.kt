@@ -33,6 +33,9 @@ class PesysHttpClient(
     val alderUri = "alderspensjon/vedtak/iverksatt" // + eks:  ?fom=2024-12-15"
     val uforeUri = "uforetrygd/ekstern/supplerede-stonad/beregningsperioder"
     override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoAlder> {
+        if (fnrList.isEmpty()) {
+            return ResponseDtoAlder(emptyList()).right()
+        }
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         val fullUrl = "$baseUrl$alderUri"
@@ -73,6 +76,9 @@ class PesysHttpClient(
         fnrList: List<Fnr>,
         dato: LocalDate,
     ): Either<ClientError, ResponseDtoUføre> {
+        if (fnrList.isEmpty()) {
+            return ResponseDtoUføre(emptyList()).right()
+        }
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
 
         val fullUrl = "$baseUrl$uforeUri"
