@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.PesysConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -122,12 +121,6 @@ class PesysHttpClientTest {
         "24415045545",
     ).map { Fnr(it) }
 
-    val emptyResponse = """
-            {
-              "resultat": []
-            }
-    """.trimIndent()
-
     private fun mockAzureAd() = mock<AzureAd> {
         on { getSystemToken(any()) } doReturn "token"
     }
@@ -203,10 +196,7 @@ class PesysHttpClientTest {
 
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(emptyList(), datoFom)
 
-            result.shouldBeLeft().let { clientError: ClientError ->
-                clientError.httpStatus shouldBe 500
-                clientError.message shouldContain bodymsg
-            }
+            result.shouldBeRight(ResponseDtoAlder(emptyList()))
         }
     }
 

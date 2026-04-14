@@ -8,8 +8,6 @@ import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
-import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -20,8 +18,6 @@ import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-private const val NAV_CALL_ID_HEADER = "nav-callid"
-
 /**
  * https://aap-api.intern.dev.nav.no/swagger-ui/index.html#/Maksimum/post_maksimum
  */
@@ -30,7 +26,6 @@ interface AapApiInternClient {
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
-        correlationId: CorrelationId,
     ): Either<ClientError, MaksimumResponseDto>
 }
 
@@ -39,7 +34,6 @@ class AapApiInternClientStub : AapApiInternClient {
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
-        correlationId: CorrelationId,
     ): Either<ClientError, MaksimumResponseDto> {
         return MaksimumResponseDto(vedtak = emptyList()).right()
     }
@@ -58,18 +52,12 @@ class AapApiInternHttpClient(
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
-        correlationId: CorrelationId,
     ): Either<ClientError, MaksimumResponseDto> {
-        val callId = correlationId.toString()
-
         val (_, response, result) = "$baseUrl$maksimumUri"
             .httpPost()
             .authentication().bearer(azureAd.getSystemToken(clientId))
             .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
-            // NAV API contract uses this lowercase header name.
-            .header(NAV_CALL_ID_HEADER, callId)
-            .header(CORRELATION_ID_HEADER, callId)
             .body(
                 serialize(
                     MaksimumRequestDto(
