@@ -28,6 +28,7 @@ internal object SøknadsinnholdInputValidator {
         '+',
         '&',
         '_',
+        '§',
     )
 
     // Aksenttegn
