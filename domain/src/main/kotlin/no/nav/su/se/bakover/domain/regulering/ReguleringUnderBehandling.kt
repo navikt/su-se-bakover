@@ -30,8 +30,9 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
-sealed class ReguleringUnderBehandling :
-    Regulering,
+sealed class ReguleringUnderBehandling(
+    override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+) : Regulering,
     BehandlingMedAttestering {
     override fun erÅpen() = true
     override fun erAvsluttet() = false
@@ -191,7 +192,9 @@ sealed class ReguleringUnderBehandling :
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
-    ) : ReguleringUnderBehandling()
+    ) : ReguleringUnderBehandling(
+        eksterntRegulerteBeløp,
+    )
 
     data class BeregnetRegulering(
         override val id: ReguleringId,
@@ -208,7 +211,9 @@ sealed class ReguleringUnderBehandling :
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
-    ) : ReguleringUnderBehandling() {
+    ) : ReguleringUnderBehandling(
+        eksterntRegulerteBeløp,
+    ) {
         fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler) = TilAttestering(
             saksbehandler = saksbehandler,
             id = id,
@@ -241,7 +246,9 @@ sealed class ReguleringUnderBehandling :
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
-    ) : ReguleringUnderBehandling() {
+    ) : ReguleringUnderBehandling(
+        eksterntRegulerteBeløp,
+    ) {
 
         fun godkjenn(attestant: NavIdentBruker.Attestant, clock: Clock): IverksattRegulering {
             val godkjentRegulering = copy(

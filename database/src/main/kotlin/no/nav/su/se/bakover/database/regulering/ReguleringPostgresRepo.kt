@@ -258,7 +258,7 @@ internal class ReguleringPostgresRepo(
                                 is IverksattRegulering -> regulering.opprettetRegulering.attesteringer.toDatabaseJson()
                                 is ReguleringUnderBehandling -> regulering.attesteringer.toDatabaseJson()
                             },
-                            "eksternt_regulerte_belop" to serialize(regulering.eksterntRegulerteBeløp),
+                            "eksternt_regulerte_belop" to regulering.eksterntRegulerteBeløp?.let { serialize(it) },
                         ),
                         session,
                     )
@@ -324,7 +324,8 @@ internal class ReguleringPostgresRepo(
             sakstype = Sakstype.from(string("type")),
         )
         val attesteringer = stringOrNull("attestering")?.toAttesteringshistorikk() ?: Attesteringshistorikk.empty()
-        val eksterntRegulerteBeløp = deserialize<EksterntRegulerteBeløp>(string("eksternt_regulerte_belop"))
+        val eksterntRegulerteBeløp =
+            stringOrNull("eksternt_regulerte_belop")?.let { deserialize<EksterntRegulerteBeløp>(it) }
 
         return lagRegulering(
             status = status,
@@ -370,8 +371,20 @@ internal class ReguleringPostgresRepo(
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
         attesteringer: Attesteringshistorikk,
-        eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+        eksterntRegulerteBeløp: EksterntRegulerteBeløp?,
     ): Regulering {
+        val eksterntRegulerteBeløp =
+            if (eksterntRegulerteBeløp == null && (status == ReguleringStatus.IVERKSATT || status == ReguleringStatus.AVSLUTTET)) {
+                EksterntRegulerteBeløp(
+                    brukerFnr = fnr,
+                    beløpBruker = emptyList(),
+                    beløpEps = emptyList(),
+                    inntektEtterUføre = null,
+                )
+            } else {
+                eksterntRegulerteBeløp
+                    ?: throw IllegalStateException("Regulering under behandling mangler eksternt regulerte beløp")
+            }
         return OpprettetRegulering(
             id = id,
             opprettet = opprettet,
