@@ -9,15 +9,12 @@ import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
-import no.nav.su.se.bakover.common.infrastructure.correlation.CORRELATION_ID_HEADER
-import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.slf4j.Logger
-import org.slf4j.MDC
 import java.time.LocalDate
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
@@ -42,6 +39,8 @@ internal class EksterneFradragsoppslagService(
         fnr: List<Fnr>,
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
+        if (fnr.isEmpty()) return emptyMap()
+
         return pesysKlient.hentVedtakForPersonPaaDatoAlder(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_ALDER, fnr.size)
@@ -57,6 +56,8 @@ internal class EksterneFradragsoppslagService(
         fnr: List<Fnr>,
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
+        if (fnr.isEmpty()) return emptyMap()
+
         return pesysKlient.hentVedtakForPersonPaaDatoUføre(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_UFORE, fnr.size)
@@ -107,16 +108,12 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
 
-        val correlationId = getOrCreateCorrelationIdFromThreadLocal().toString()
-
         return runBlocking {
             fnr.chunked(AAP_PARALLELLE_OPPSLAG)
                 .flatMap { fnrChunk ->
                     fnrChunk.map { personFnr ->
                         async(Dispatchers.IO) {
-                            withMdcCorrelationId(correlationId) {
-                                personFnr to hentAapOppslagForFnr(personFnr, måned)
-                            }
+                            personFnr to hentAapOppslagForFnr(personFnr, måned)
                         }
                     }.awaitAll()
                 }
@@ -158,24 +155,6 @@ private fun List<SjekkPlan>.hentFnrForYtelsePåTversAvSjekkplaner(ytelse: Ekster
         .filter { it.ytelse == ytelse }
         .map { it.fnr }
         .distinct()
-}
-
-private inline fun <T> withMdcCorrelationId(
-    correlationId: String,
-    block: () -> T,
-): T {
-    val previousCorrelationId = MDC.get(CORRELATION_ID_HEADER)
-
-    return try {
-        MDC.put(CORRELATION_ID_HEADER, correlationId)
-        block()
-    } finally {
-        if (previousCorrelationId == null) {
-            MDC.remove(CORRELATION_ID_HEADER)
-        } else {
-            MDC.put(CORRELATION_ID_HEADER, previousCorrelationId)
-        }
-    }
 }
 
 private fun List<PesysPeriode>.gyldigPå(dato: LocalDate): Either<String, PesysPeriode?> {

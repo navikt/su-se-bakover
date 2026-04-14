@@ -251,6 +251,7 @@ import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.aap.AapJobService
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
@@ -1605,6 +1606,23 @@ open class AccessCheckProxy(
                 override fun hentMaksimum() {
                     throw RuntimeException("Skal ikke kalle AAP-jobb fra routes")
                     // NO-OP
+                }
+            },
+            fradragsjobbenService = object : FradragsjobbenService {
+                override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
+                    services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun)
+                }
+
+                override fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean) {
+                    services.fradragsjobbenService.kjørFradragssjekkForMåned(måned, dryRun)
+                }
+
+                override fun validerKjøringForMåned(måned: Måned, dryRun: Boolean) {
+                    services.fradragsjobbenService.validerKjøringForMåned(måned, dryRun)
+                }
+
+                override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
+                    return services.fradragsjobbenService.harOrdinaerKjoringForMåned(måned)
                 }
             },
             sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {

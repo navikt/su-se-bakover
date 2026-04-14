@@ -16,6 +16,9 @@ import java.util.UUID
 
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
+    fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean = false)
+    fun validerKjøringForMåned(måned: Måned, dryRun: Boolean = false)
+    fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
 
 private const val INTERN_SAK_BATCH_STORRELSE = 500
@@ -47,7 +50,15 @@ internal class FradragsjobbenServiceImpl(
      *
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
-        val måned = Måned.now(clock)
+        kjørFradragssjekkForMåned(måned = Måned.now(clock), dryRun = dryRun)
+    }
+
+    override fun kjørFradragssjekkForMåned(
+        måned: Måned,
+        dryRun: Boolean,
+    ) {
+        validerKjøringForMåned(måned, dryRun)
+
         val sjekkplaner = hentAlleSaker()
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .flatMap { sakerPerBatch ->
@@ -61,6 +72,23 @@ internal class FradragsjobbenServiceImpl(
             sjekkplaner = sjekkplaner,
             startmelding = "Starter fradragssjekk for måned $måned",
         )
+    }
+
+    override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
+        return fradragssjekkRunPostgresRepo.harOrdinaerKjoringForMåned(måned)
+    }
+
+    override fun validerKjøringForMåned(
+        måned: Måned,
+        dryRun: Boolean,
+    ) {
+        if (måned < Måned.now(clock)) {
+            throw FradragssjekkKanIkkeKjøresForTidligereMånedException(måned)
+        }
+
+        if (!dryRun && harOrdinaerKjoringForMåned(måned)) {
+            throw FradragssjekkAlleredeKjørtForMånedException(måned)
+        }
     }
 
     private fun kjørOgLagreKjøring(
@@ -392,3 +420,11 @@ internal class FradragsjobbenServiceImpl(
         )
     }
 }
+
+internal class FradragssjekkAlleredeKjørtForMånedException(
+    måned: Måned,
+) : IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
+
+internal class FradragssjekkKanIkkeKjøresForTidligereMånedException(
+    måned: Måned,
+) : IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")
