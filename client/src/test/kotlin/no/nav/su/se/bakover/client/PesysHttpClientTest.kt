@@ -179,23 +179,8 @@ class PesysHttpClientTest {
     @Test
     fun `henting feiler med tom fnr-liste`() {
         startedWireMockServerWithCorrelationId {
-            // Stub for 500 når listen er tom
-            val bodymsg = "Mangler fnrliste"
             val datoFom = LocalDate.now()
-            stubFor(
-                post(urlPathEqualTo("/alderspensjon/vedtak/iverksatt"))
-                    .withQueryParam("fom", equalTo(datoFom.toString()))
-                    .withHeader("Content-Type", containing("application/json"))
-                    .willReturn(
-                        aResponse()
-                            .withStatus(500)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(bodymsg),
-                    ),
-            )
-
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(emptyList(), datoFom)
-
             result.shouldBeRight(ResponseDtoAlder(emptyList()))
         }
     }
