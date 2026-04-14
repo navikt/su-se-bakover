@@ -81,10 +81,11 @@ class ReguleringAutomatiskServiceImpl(
                     RuntimeException("Inkluderer stacktrace"),
                 )
                 sikkerLogg.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
-                KunneIkkeRegulereAutomatisk.UkjentFeil
+
+                throw it
             }
             .fold(
-                ifLeft = { listOf(it.left()) },
+                ifLeft = { it },
                 ifRight = { it },
             )
     }
@@ -132,7 +133,7 @@ class ReguleringAutomatiskServiceImpl(
                         sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
                     }.getOrElse {
                         log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                        return@map KunneIkkeRegulereAutomatisk.FantIkkeSak.left()
+                        return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
                     }
 
                     // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
@@ -148,14 +149,17 @@ class ReguleringAutomatiskServiceImpl(
                                 )
                             }
 
-                            return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+                            return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
+                                feil,
+                                saksnummer,
+                            ).left()
                         }
 
                     sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                         when (r.size) {
                             0 -> {}
                             // TODO AUTO-REG-26 - vurder om åpne skal slettes og lages ny
-                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør.left()
+                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
                             else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                         }
                     }
@@ -191,7 +195,7 @@ class ReguleringAutomatiskServiceImpl(
                     it.flatMap { (sak, vedtaksdata) ->
                         val feil = feilPåEksterneReguleringer.find { it.fnr == sak.fnr }
                         if (feil != null) {
-                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil).left()
+                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil, sak.saksnummer).left()
                         } else {
                             Pair(sak, vedtaksdata).right()
                         }
@@ -231,7 +235,7 @@ class ReguleringAutomatiskServiceImpl(
             satsFactory = satsFactory,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
-            return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+            return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil, sak.saksnummer).left()
         }
 
         if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
@@ -241,7 +245,7 @@ class ReguleringAutomatiskServiceImpl(
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
-                .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil) }
+                .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil, saksnummer = saksnummer) }
                 .fold(
                     ifLeft = { it.left() },
                     ifRight = { it.toReguleringForLogResultat().right() },
@@ -268,6 +272,7 @@ class ReguleringAutomatiskServiceImpl(
             it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
         }.map {
             Reguleringsresultat(
+                saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
                 beskrivelse = it.toString(),
             )
@@ -277,6 +282,7 @@ class ReguleringAutomatiskServiceImpl(
             it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
         }.map {
             Reguleringsresultat(
+                saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
                 beskrivelse = it.toString(),
             )
@@ -286,6 +292,7 @@ class ReguleringAutomatiskServiceImpl(
             (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
         }.map {
             Reguleringsresultat(
+                saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
                 beskrivelse = when (it.feil) {
                     is Sak.KanIkkeRegulere.MåRevurdere -> (it.feil as Sak.KanIkkeRegulere.MåRevurdere).årsak.name
@@ -297,10 +304,10 @@ class ReguleringAutomatiskServiceImpl(
         val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                 it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
-                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
-                it is KunneIkkeRegulereAutomatisk.UkjentFeil
+                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet
         }.map {
             Reguleringsresultat(
+                saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.FEILET,
                 beskrivelse = it.toString(),
             )
@@ -308,6 +315,7 @@ class ReguleringAutomatiskServiceImpl(
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
             .map {
                 Reguleringsresultat(
+                    saksnummer = it.saksnummer,
                     utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
                     beskrivelse = it.toString(),
                 )
@@ -427,7 +435,12 @@ class ReguleringAutomatiskServiceImpl(
                 if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
                     forsøkAutomatiskReguleringEllerOverførTilManuell(oppdatertRegulering, sak, true)
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
-                        .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil) }
+                        .mapLeft { feil ->
+                            KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
+                                saksnummer = TODO("Endepunkt skal ryddes vekk"),
+                                feil = feil,
+                            )
+                        }
                 } else {
                     log.info("Oppdatering av regulering for saksnummer ${sak.saksnummer}. Reguleringen må behandles manuelt pga ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
                     oppdatertRegulering.also {

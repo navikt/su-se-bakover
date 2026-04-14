@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -290,7 +291,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(saksnummer = sakOgVedtak.first.saksnummer, feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
 
@@ -387,7 +388,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
+                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(saksnummer = sak.saksnummer, feil = Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
         }
 
@@ -415,7 +416,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2023), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
-                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
+                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(saksnummer = sak.saksnummer, feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                     .left()
             }
         }
@@ -596,7 +597,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
             it.size shouldBe 1
             it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
-                KunneIkkeBehandleRegulering.KunneIkkeSimulere,
+                saksnummer = sak.saksnummer,
+                feil = KunneIkkeBehandleRegulering.KunneIkkeSimulere,
             ).left()
         }
     }

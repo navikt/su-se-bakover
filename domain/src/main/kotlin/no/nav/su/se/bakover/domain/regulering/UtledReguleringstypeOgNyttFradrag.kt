@@ -89,6 +89,10 @@ private fun utledPerFradragstypeOgTilhørende(
             ).right()
     }
 
+    if (fradragstype.kategori == Fradragstype.Kategori.SupplerendeStønad) {
+        return (Reguleringstype.AUTOMATISK to originaltFradrag).right()
+    }
+
     val eksterntBeløp = when (fradragTilhører) {
         FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.finn(fradragstype)
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)

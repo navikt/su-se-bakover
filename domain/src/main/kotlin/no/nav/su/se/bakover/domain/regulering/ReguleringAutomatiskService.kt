@@ -1,29 +1,37 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
 sealed interface KunneIkkeRegulereAutomatisk {
-    data object FantIkkeSak : KunneIkkeRegulereAutomatisk
+    val saksnummer: Saksnummer
+
+    data class FantIkkeSak(
+        override val saksnummer: Saksnummer,
+    ) : KunneIkkeRegulereAutomatisk
 
     // TODO AUTO-REG-26 - vurder om åpne skal slettes og lages ny
-    data object HarÅpenReguleringFraFør : KunneIkkeRegulereAutomatisk
+    data class HarÅpenReguleringFraFør(
+        override val saksnummer: Saksnummer,
+    ) : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeHenteEllerOppretteRegulering(
         val feil: Sak.KanIkkeRegulere,
+        override val saksnummer: Saksnummer,
     ) : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
+        override val saksnummer: Saksnummer,
     ) : KunneIkkeRegulereAutomatisk
 
     data class UthentingFradragPesysFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
+        override val saksnummer: Saksnummer,
     ) : KunneIkkeRegulereAutomatisk
-
-    data object UkjentFeil : KunneIkkeRegulereAutomatisk
 }
 
 interface ReguleringAutomatiskService {
