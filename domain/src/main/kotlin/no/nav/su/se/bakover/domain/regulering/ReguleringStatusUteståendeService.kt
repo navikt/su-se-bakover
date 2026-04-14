@@ -34,10 +34,10 @@ class ReguleringStatusUteståendeService(
         )
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
-        val sakerMedUtbetalingMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
-        val (løpendeSakerIkkefunnet, løpendeSaker) = sakerMedUtbetalingMai.split()
+        val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
+        val (løpendeSakerIkkefunnet, løpendeOgMidlertidigStansSaker) = sakerMedUtbetalingOgStansMai.split()
 
-        val sakerMedGammeltGrunnbeløp = løpendeSaker.mapNotNull {
+        val sakerMedGammeltGrunnbeløp = løpendeOgMidlertidigStansSaker.mapNotNull {
             val beregning = it.hentGjeldendeMånedsberegninger(etterspurtMai, clock).singleOrNull()
                 ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
 
@@ -68,7 +68,7 @@ class ReguleringStatusUteståendeService(
         return ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
-            sakerMedUtebetalingIMai = sakerMedUtbetalingMai.size,
+            sakerMedUtebetalingIMai = sakerMedUtbetalingOgStansMai.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp,
             løpendeSakerIkkeFunner = løpendeSakerIkkefunnet,
         )
