@@ -146,7 +146,7 @@ internal fun finnRelatertIdOmgjøringKlage(
                     klage.id.right()
                 }
                 else -> {
-                    log.error("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $sakId")
+                    log.warn("Klage ${klage.id} er ikke FerdigstiltOmgjortKlage men ${klage.javaClass.name}. Dette skjer hvis saksbehandler ikke har ferdigstilt klagen. Sakid: $sakId")
                     KunneIkkeOppretteRevurdering.KlageErIkkeFerdigstiltOmgjortKlage.left()
                 }
             }
