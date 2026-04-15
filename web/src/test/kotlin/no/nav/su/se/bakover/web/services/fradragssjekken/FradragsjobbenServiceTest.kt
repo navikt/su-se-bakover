@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import kotlin.test.assertFailsWith
 
 internal class FradragsjobbenServiceTest {
 
@@ -40,7 +41,7 @@ internal class FradragsjobbenServiceTest {
     }
 
     @Test
-    fun `kan kjøre ikke fradragssjekk for inneværende måned hvis vanlig kjøring er gjort`() {
+    fun `kan ikke kjøre fradragssjekk for inneværende måned hvis vanlig kjøring er gjort`() {
         val naaVærendeMåned: Måned = Måned.now(fixedClock)
 
         val service = lagService(
@@ -49,6 +50,16 @@ internal class FradragsjobbenServiceTest {
             },
         )
         service.validerKjøringForMåned(naaVærendeMåned) shouldBe FradragsSjekkFeil.AlleredeKjørtForMåned
+    }
+
+    @Test
+    fun `direkte kall til kjørFradragssjekkForMåned validerer også måned`() {
+        val service = lagService()
+        val tidligereMaaned: Måned = Måned.now(fixedClock).minusMonths(1L)
+
+        assertFailsWith<IllegalArgumentException> {
+            service.kjørFradragssjekkForMånedMedValidering(tidligereMaaned, dryRun = false)
+        }
     }
 
     private fun lagService(

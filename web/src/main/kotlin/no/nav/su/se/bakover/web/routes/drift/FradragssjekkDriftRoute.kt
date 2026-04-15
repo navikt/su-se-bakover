@@ -58,7 +58,7 @@ internal fun Route.fradragssjekkDriftRoute(
 
                 CoroutineScope(Dispatchers.IO).launch {
                     runCatching {
-                        fradragsjobbenService.kjørFradragssjekkForMåned(
+                        fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(
                             måned = måned,
                             dryRun = body.dryRun,
                         )

@@ -1614,8 +1614,8 @@ open class AccessCheckProxy(
                     services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun)
                 }
 
-                override fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean) {
-                    return services.fradragsjobbenService.kjørFradragssjekkForMåned(måned, dryRun)
+                override fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean) {
+                    return services.fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(måned, dryRun)
                 }
 
                 override fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil? {

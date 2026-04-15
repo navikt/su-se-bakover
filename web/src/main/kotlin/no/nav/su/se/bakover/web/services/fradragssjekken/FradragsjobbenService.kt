@@ -16,7 +16,7 @@ import java.util.UUID
 
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
-    fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean = false)
+    fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean = false)
     fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil?
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
@@ -50,34 +50,15 @@ internal class FradragsjobbenServiceImpl(
      *
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
-        // Vurder om denne skal få inn måned manuelt fra jobben og sjekkes mot denne evt bare ikke basere oss på clock
-        val måned = Måned.now(clock)
-        val kanKjøre = validerKjøringForMåned(måned)
-        when (kanKjøre) {
-            FradragsSjekkFeil.AlleredeKjørtForMåned -> throw IllegalStateException("Er allerede kjørt for måned $måned")
-            FradragsSjekkFeil.DatoErFremITid -> throw IllegalStateException("Kan ikke kjøre frem i tid $måned")
-            FradragsSjekkFeil.DatoErTilbakeITid -> throw IllegalStateException("Kan ikke kjøre tilbake i tid $måned")
-            null -> Unit
-        }
-        kjørFradragssjekkForMåned(måned = måned, dryRun = dryRun)
+        kjørFradragssjekkForMånedMedValidering(måned = Måned.now(clock), dryRun = dryRun)
     }
 
-    override fun kjørFradragssjekkForMåned(
+    override fun kjørFradragssjekkForMånedMedValidering(
         måned: Måned,
         dryRun: Boolean,
     ) {
-        val sjekkplaner = hentAlleSaker()
-            .chunked(INTERN_SAK_BATCH_STORRELSE)
-            .flatMap { sakerPerBatch ->
-                lagSjekkplanerForLøpendeSaker(hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned), måned)
-            }
-
-        kjørOgLagreKjøring(
-            måned = måned,
-            dryRun = dryRun,
-            sjekkplaner = sjekkplaner,
-            startmelding = "Starter fradragssjekk for måned $måned",
-        )
+        requireGyldigKjøringForMåned(måned = måned)
+        kjørFradragssjekkForMåned(måned = måned, dryRun = dryRun)
     }
 
     override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
@@ -99,6 +80,35 @@ internal class FradragsjobbenServiceImpl(
             return FradragsSjekkFeil.AlleredeKjørtForMåned
         }
         return null
+    }
+
+    private fun requireGyldigKjøringForMåned(
+        måned: Måned,
+    ) {
+        when (validerKjøringForMåned(måned = måned)) {
+            FradragsSjekkFeil.AlleredeKjørtForMåned -> throw IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
+            FradragsSjekkFeil.DatoErFremITid -> throw IllegalArgumentException("Fradragssjekk kan ikke kjøres for fremtidig måned $måned")
+            FradragsSjekkFeil.DatoErTilbakeITid -> throw IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")
+            null -> Unit
+        }
+    }
+
+    private fun kjørFradragssjekkForMåned(
+        måned: Måned,
+        dryRun: Boolean,
+    ) {
+        val sjekkplaner = hentAlleSaker()
+            .chunked(INTERN_SAK_BATCH_STORRELSE)
+            .flatMap { sakerPerBatch ->
+                lagSjekkplanerForLøpendeSaker(hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned), måned)
+            }
+
+        kjørOgLagreKjøring(
+            måned = måned,
+            dryRun = dryRun,
+            sjekkplaner = sjekkplaner,
+            startmelding = "Starter fradragssjekk for måned $måned",
+        )
     }
 
     private fun kjørOgLagreKjøring(
