@@ -120,7 +120,7 @@ private fun Klage.finnRelatertIdFraFerdigstiltOmgjortKlage(
         }
 
         else -> {
-            log.error(
+            log.warn(
                 "Klage $id er ikke FerdigstiltOmgjortKlage men ${javaClass.name}. Sakid: $sakId",
             )
             FantIkkeRelatertKlageId.KlageErIkkeFerdigstiltOmgjortKlage.left()
