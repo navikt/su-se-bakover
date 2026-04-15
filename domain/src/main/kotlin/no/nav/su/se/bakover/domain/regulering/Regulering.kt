@@ -67,40 +67,34 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
 
     // TODO fra og med her ---->
-    val (reguleringstype, grunnlagsdataOgVilkårsvurderinger) = Either.catch {
-        val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
+    val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
 
-        val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
-            fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-        ).getOrElse {
-            return it.left()
-        }
-
-        val (reguleringstypeIeu, vilkårMedOppdatertIeu) = regulerForventetIeuOmGyldig(
-            vilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-            clock = clock,
-        ).getOrElse { return it.left() }
-
-        // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
-        val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
-            reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-            reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(
-                reguleringstypeBasertPåFradrag,
-                reguleringstypeIeu,
-            ),
-        )
-
-        val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
-            .oppdaterFradragsgrunnlag(fradragOppdatertMedEksterneBeløp)
-            .oppdaterVilkårsvurderinger(vilkårMedOppdatertIeu)
-        // TODO til og med hit bør trekkes ut i eget scope..
-
-        reguleringstype to grunnlagsdataOgVilkårsvurderinger
-    }.getOrElse {
-        return Sak.KanIkkeRegulere.UkjentFeil(it).left()
+    val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
+        fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+    ).getOrElse {
+        return it.left()
     }
+
+    val (reguleringstypeIeu, vilkårMedOppdatertIeu) = regulerForventetIeuOmGyldig(
+        vilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        clock = clock,
+    ).getOrElse { return it.left() }
+
+    // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
+    val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
+        reguleringstype1 = reguleringstypeVedGenerelleProblemer,
+        reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(
+            reguleringstypeBasertPåFradrag,
+            reguleringstypeIeu,
+        ),
+    )
+
+    val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
+        .oppdaterFradragsgrunnlag(fradragOppdatertMedEksterneBeløp)
+        .oppdaterVilkårsvurderinger(vilkårMedOppdatertIeu)
+    // TODO til og med hit bør trekkes ut i eget scope..
 
     val opprettetRegulering = OpprettetRegulering(
         id = ReguleringId.generer(),

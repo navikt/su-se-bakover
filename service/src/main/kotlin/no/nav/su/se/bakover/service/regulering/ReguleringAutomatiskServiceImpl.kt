@@ -140,7 +140,7 @@ class ReguleringAutomatiskServiceImpl(
                     val vedtaksdata =
                         sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                             when (feil) {
-                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring, is Sak.KanIkkeRegulere.UkjentFeil -> log.info(
+                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
                                     "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
                                 )
 
@@ -205,12 +205,19 @@ class ReguleringAutomatiskServiceImpl(
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
-                        sak.kjørForSak(
-                            satsFactory = satsFactory,
-                            vedtaksdata = vedtaksdata,
-                            sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
-                            testRun = testRun,
-                        )
+                        Either.catch {
+                            sak.kjørForSak(
+                                satsFactory = satsFactory,
+                                vedtaksdata = vedtaksdata,
+                                sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
+                                testRun = testRun,
+                            )
+                        }.getOrElse {
+                            KunneIkkeRegulereAutomatisk.UkjentFeil(
+                                feil = it,
+                                saksnummer = sak.saksnummer,
+                            ).left()
+                        }
                     }
                 }
             }
@@ -306,6 +313,7 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
+        /*
         val feiletFørBehandling = sakerSkalIkkeRegulere.filter { it.feil is Sak.KanIkkeRegulere.UkjentFeil }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -314,10 +322,14 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val feiletUnderBehandling = lefts.filter {
+         */
+
+        // val feiletUnderBehandling = lefts.filter {
+        val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                 it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
-                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet
+                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
+                it is KunneIkkeRegulereAutomatisk.UkjentFeil
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -326,7 +338,7 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val reguleringerSomFeilet = feiletFørBehandling + feiletUnderBehandling
+        // val reguleringerSomFeilet = feiletFørBehandling + feiletUnderBehandling
 
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
             .map {

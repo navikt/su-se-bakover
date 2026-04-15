@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2024
@@ -70,9 +71,19 @@ internal class ReguleringGrunnbeløpIT {
         const val GRUNNBELØP_2025 = 130160
 
         val klokkeFørNyttGrunnbeløp: Clock =
-            TikkendeKlokke(Clock.fixed(1.januar(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC))
+            TikkendeKlokke(
+                Clock.fixed(
+                    1.januar(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC),
+                    ZoneOffset.UTC,
+                ),
+            )
         val klokkeEtterNyttGrunnbeløp: Clock =
-            TikkendeKlokke(Clock.fixed(25.mai(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC))
+            TikkendeKlokke(
+                Clock.fixed(
+                    25.mai(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC),
+                    ZoneOffset.UTC,
+                ),
+            )
     }
 
     @Nested
@@ -104,7 +115,16 @@ internal class ReguleringGrunnbeløpIT {
                         client,
                         appComponents,
                         tilOgMed = juli(REGULERINGSÅR).tilOgMed,
-                        fradrag = emptyList(),
+                        fradrag = UFØRE_MANGLER_I_SENERE_PERIODE.fradrag.map {
+                            it.copy(
+                                periode = PeriodeJson(
+                                    it.periode!!.fraOgMed,
+                                    juli(REGULERINGSÅR).tilOgMed.toString(),
+                                ),
+                                type = Fradragstype.Kategori.Kapitalinntekt.name,
+                                beløp = 1010000.0,
+                            )
+                        },
                     )
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
@@ -195,7 +215,7 @@ internal class ReguleringGrunnbeløpIT {
             tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
             fradrag: List<FradragRequestJson> = this.fradrag,
         ) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+            val sakJson = hentSak(client)
             opprettIverksattRevurdering(
                 sakid = sakJson.id,
                 client = client,
@@ -218,8 +238,12 @@ internal class ReguleringGrunnbeløpIT {
             )
         }
 
+        private fun TestSakReguleringIT.hentSak(client: HttpClient) = hentSakRequest(fnr, sakstype, client).also {
+            saksnummer = it.saksnummer
+        }
+
         private fun TestSakReguleringIT.verifiserAutomatisk(client: HttpClient) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+            val sakJson = hentSak(client)
             sakJson.reguleringer.size shouldBe 1
             with(sakJson.reguleringer.single()) {
                 reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
@@ -256,7 +280,7 @@ internal class ReguleringGrunnbeløpIT {
             verifiserÅrsak: ÅrsakTilManuellReguleringKategori,
             client: HttpClient,
         ) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+            val sakJson = hentSak(client)
             sakJson.reguleringer.size shouldBe 1
             with(sakJson.reguleringer[0]) {
                 reguleringstype shouldBe "MANUELL"
@@ -277,7 +301,7 @@ internal class ReguleringGrunnbeløpIT {
         }
 
         private fun TestSakReguleringIT.verifiserBleIkkeRegulert(client: HttpClient) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+            val sakJson = hentSak(client)
             sakJson.reguleringer.size shouldBe 0
         }
 
@@ -313,7 +337,10 @@ internal class ReguleringGrunnbeløpIT {
             with(reguleringerSomFeilet) {
                 size shouldBe 1
                 // TODO Legg til testcenariet for ikke regulert i Pesys!
-                // TODO verifiser mangler fradrag
+                single { it.saksnummer.nummer == UFØRE_MANGLER_I_SENERE_PERIODE.saksnummer }.let { resultat ->
+                    resultat.utfall shouldBe Reguleringsresultat.Utfall.FEILET
+                    resultat.beskrivelse shouldBe "UkjentFeil(feil=java.lang.IllegalStateException: Fant ingen fradragstype Uføretrygd for bruker, saksnummer=${resultat.saksnummer})"
+                }
             }
         }
     }
@@ -429,6 +456,7 @@ object TestScenarietSaker {
 data class TestSakReguleringIT(
     val fnr: Fnr,
     val sakstype: Sakstype,
+    var saksnummer: Long? = null,
 
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,

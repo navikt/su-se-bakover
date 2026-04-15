@@ -35,7 +35,8 @@ sealed interface KunneIkkeRegulereAutomatisk {
 
     data class UkjentFeil(
         val feil: Throwable,
-    )
+        override val saksnummer: Saksnummer,
+    ) : KunneIkkeRegulereAutomatisk
 }
 
 interface ReguleringAutomatiskService {

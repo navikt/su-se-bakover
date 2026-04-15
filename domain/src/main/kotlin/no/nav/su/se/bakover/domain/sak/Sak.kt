@@ -346,11 +346,6 @@ data class Sak(
                 val eksterntBeløp: BigDecimal,
             )
         }
-
-        // TODO kan erstattes på øveerste nivååeeett...
-        data class UkjentFeil(
-            val feil: Throwable,
-        ) : KanIkkeRegulere
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

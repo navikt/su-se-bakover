@@ -91,7 +91,11 @@ class ReguleringerFraPesysServiceImpl(
                 null
             }
 
-            val regulertIeu = if (brukerMedEps.sakstype == Sakstype.UFØRE && fradragstypeBrukerFraPesys.venstreVerdi() == null) {
+            val regulertIeu = if (
+                brukerMedEps.sakstype == Sakstype.UFØRE &&
+                fradragstypeBrukerFraPesys.venstreVerdi() == null &&
+                fradragstypeBrukerFraPesys.høyreVerdi() != null
+            ) {
                 utledInntektEtterUføre(brukerMedEps.fnr, månedFørRegulering, perioderFraPesys)
             } else {
                 null
