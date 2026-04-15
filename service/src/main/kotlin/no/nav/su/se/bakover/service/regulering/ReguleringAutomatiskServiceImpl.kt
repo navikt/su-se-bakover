@@ -140,7 +140,7 @@ class ReguleringAutomatiskServiceImpl(
                     val vedtaksdata =
                         sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                             when (feil) {
-                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring, is Sak.KanIkkeRegulere.Feilet -> log.info(
+                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring, is Sak.KanIkkeRegulere.UkjentFeil -> log.info(
                                     "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
                                 )
 
@@ -205,7 +205,6 @@ class ReguleringAutomatiskServiceImpl(
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
-                        // TODO Either.catch her også
                         sak.kjørForSak(
                             satsFactory = satsFactory,
                             vedtaksdata = vedtaksdata,
@@ -246,7 +245,12 @@ class ReguleringAutomatiskServiceImpl(
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
-                .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil, saksnummer = saksnummer) }
+                .mapLeft { feil ->
+                    KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
+                        feil = feil,
+                        saksnummer = saksnummer,
+                    )
+                }
                 .fold(
                     ifLeft = { it.left() },
                     ifRight = { it.toReguleringForLogResultat().right() },
@@ -302,7 +306,7 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val feiletFørBehandling = sakerSkalIkkeRegulere.filter { it.feil is Sak.KanIkkeRegulere.Feilet }.map {
+        val feiletFørBehandling = sakerSkalIkkeRegulere.filter { it.feil is Sak.KanIkkeRegulere.UkjentFeil }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.FEILET,

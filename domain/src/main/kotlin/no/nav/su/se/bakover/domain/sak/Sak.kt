@@ -347,7 +347,8 @@ data class Sak(
             )
         }
 
-        data class Feilet(
+        // TODO kan erstattes på øveerste nivååeeett...
+        data class UkjentFeil(
             val feil: Throwable,
         ) : KanIkkeRegulere
     }

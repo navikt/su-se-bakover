@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.revurdering
 
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
@@ -131,16 +132,14 @@ internal fun opprettIverksattRevurdering(
             appComponents = appComponents,
         )
     },
-    informasjonSomRevurderes: String = """
-            [
-                "Uførhet",
-                "Bosituasjon",
-                "Formue",
-                "Utenlandsopphold",
-                "Flyktning",
-                "Inntekt"
-            ]
-    """.trimIndent(),
+    informasjonSomRevurderes: List<Revurderingsteg> = listOf(
+        Revurderingsteg.Uførhet,
+        Revurderingsteg.Bosituasjon,
+        Revurderingsteg.Formue,
+        Revurderingsteg.Utenlandsopphold,
+        Revurderingsteg.Flyktning,
+        Revurderingsteg.Inntekt,
+    ),
 ): String {
     return opprettRevurdering(
         sakId = sakid,

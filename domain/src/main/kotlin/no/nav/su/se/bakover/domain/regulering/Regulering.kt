@@ -99,7 +99,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
 
         reguleringstype to grunnlagsdataOgVilkårsvurderinger
     }.getOrElse {
-        return Sak.KanIkkeRegulere.Feilet(it).left()
+        return Sak.KanIkkeRegulere.UkjentFeil(it).left()
     }
 
     val opprettetRegulering = OpprettetRegulering(

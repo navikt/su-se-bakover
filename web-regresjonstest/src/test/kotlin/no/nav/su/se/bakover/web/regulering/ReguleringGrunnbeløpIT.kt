@@ -20,11 +20,14 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -39,6 +42,8 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_MED_IEU
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_MANGLER_I_SENERE_PERIODE
+import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
@@ -65,9 +70,9 @@ internal class ReguleringGrunnbeløpIT {
         const val GRUNNBELØP_2025 = 130160
 
         val klokkeFørNyttGrunnbeløp: Clock =
-            Clock.fixed(1.januar(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+            TikkendeKlokke(Clock.fixed(1.januar(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC))
         val klokkeEtterNyttGrunnbeløp: Clock =
-            Clock.fixed(25.mai(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+            TikkendeKlokke(Clock.fixed(25.mai(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC))
     }
 
     @Nested
@@ -93,6 +98,14 @@ internal class ReguleringGrunnbeløpIT {
                     MANUELL_UFØRE_MED_IEU.opprettSak(client, appComponents)
                     REVURDERING_UFØRE_MED_IEU.opprettSak(client, appComponents)
                     ALDER_MED_EPS_MED_SU.opprettSak(client, appComponents)
+
+                    UFØRE_MANGLER_I_SENERE_PERIODE.opprettSak(client, appComponents)
+                    UFØRE_MANGLER_I_SENERE_PERIODE.revurder(
+                        client,
+                        appComponents,
+                        tilOgMed = juli(REGULERINGSÅR).tilOgMed,
+                        fradrag = emptyList(),
+                    )
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
@@ -106,13 +119,15 @@ internal class ReguleringGrunnbeløpIT {
                         client,
                     )
 
-                    MÅ_REVURDERES_UFØRE.verifiserMåRevurderes(client)
+                    MÅ_REVURDERES_UFØRE.verifiserBleIkkeRegulert(client)
 
                     AUTOMATISK_UFØRE_MED_IEU.verifiserAutomatisk(client)
                     MANUELL_UFØRE_MED_IEU.verifiserManuell(ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys, client)
-                    REVURDERING_UFØRE_MED_IEU.verifiserMåRevurderes(client)
+                    REVURDERING_UFØRE_MED_IEU.verifiserBleIkkeRegulert(client)
 
                     ALDER_MED_EPS_MED_SU.verifiserAutomatisk(client)
+
+                    UFØRE_MANGLER_I_SENERE_PERIODE.verifiserBleIkkeRegulert(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -170,6 +185,36 @@ internal class ReguleringGrunnbeløpIT {
                 },
                 client = client,
                 appComponents = appComponents,
+            )
+        }
+
+        private fun TestSakReguleringIT.revurder(
+            client: HttpClient,
+            appComponents: AppComponents,
+            fraOgMed: LocalDate = januar(REGULERINGSÅR).fraOgMed,
+            tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
+            fradrag: List<FradragRequestJson> = this.fradrag,
+        ) {
+            val sakJson = hentSakRequest(fnr, sakstype, client)
+            opprettIverksattRevurdering(
+                sakid = sakJson.id,
+                client = client,
+                fraogmed = fraOgMed.toString(),
+                tilogmed = tilOgMed.toString(),
+                appComponents = appComponents,
+                informasjonSomRevurderes = listOf(
+                    Revurderingsteg.Inntekt,
+                ),
+                leggTilFradrag = { sakId, behandlingId, fraOgMed, tilOgMed ->
+                    no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        fradrag = fradrag,
+                        client = client,
+                    )
+                },
             )
         }
 
@@ -231,7 +276,7 @@ internal class ReguleringGrunnbeløpIT {
             }
         }
 
-        private fun TestSakReguleringIT.verifiserMåRevurderes(client: HttpClient) {
+        private fun TestSakReguleringIT.verifiserBleIkkeRegulert(client: HttpClient) {
             val sakJson = hentSakRequest(fnr, sakstype, client)
             sakJson.reguleringer.size shouldBe 0
         }
@@ -240,11 +285,8 @@ internal class ReguleringGrunnbeløpIT {
         // TODO scenariet allerede regulert
         // TODO scenariet ikke løpende
 
-        // TODO scenariet forventet feil
-        // TODO scenariet uventet feil
-
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 8
+            sakerAntall shouldBe 9
 
             with(reguleringerAutomatisk) {
                 size shouldBe 4
@@ -266,6 +308,12 @@ internal class ReguleringGrunnbeløpIT {
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
                     resultat.beskrivelse shouldBe "DIFFERANSE_MED_EKSTERNE_BELØP"
                 }
+            }
+
+            with(reguleringerSomFeilet) {
+                size shouldBe 1
+                // TODO Legg til testcenariet for ikke regulert i Pesys!
+                // TODO verifiser mangler fradrag
             }
         }
     }
@@ -355,6 +403,14 @@ object TestScenarietSaker {
         eps = AUTOMATISK_ALDER,
     )
 
+    // En innvilget periode blir endret og fjerner fradragstype i perioden som løper over mai
+    val UFØRE_MANGLER_I_SENERE_PERIODE = TestSakReguleringIT.create(
+        fnr = Fnr("00000000010"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        innvilgetIPesys = false,
+    )
+
     // TODO automatisk uten innvilget i Pesys??
 
     val alle = listOf(
@@ -366,6 +422,7 @@ object TestScenarietSaker {
         MANUELL_UFØRE_MED_IEU,
         REVURDERING_UFØRE_MED_IEU,
         ALDER_MED_EPS_MED_SU,
+        UFØRE_MANGLER_I_SENERE_PERIODE,
     )
 }
 

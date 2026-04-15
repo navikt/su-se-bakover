@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -46,7 +46,7 @@ class LeggTilFamiliegjenforeningVilkårIT {
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                     client = this.client,
-                    informasjonSomRevurderes = serialize(listOf("Familiegjenforening")),
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Familiegjenforening),
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 

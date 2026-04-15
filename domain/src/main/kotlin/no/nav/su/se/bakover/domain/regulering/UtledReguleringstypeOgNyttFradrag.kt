@@ -94,6 +94,7 @@ private fun utledPerFradragstypeOgTilhørende(
     }
 
     val eksterntBeløp = when (fradragTilhører) {
+        // TODO finn her kan faktisk feile hvis det mangler i Pesys
         FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.finn(fradragstype)
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }

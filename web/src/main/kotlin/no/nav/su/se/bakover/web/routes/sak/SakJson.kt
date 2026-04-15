@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
@@ -36,7 +37,10 @@ data class SakJson(
     val behandlinger: List<SøknadsbehandlingJson>,
     val utbetalinger: List<UtbetalingJson>,
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
-    val revurderinger: List<RevurderingJson>,
+    // Legges til for at den skal ignoreres ved deserialisering med Jackson.
+    // Den kan ikke deseraliserse som sealed og per nå er det ingen tester som bruker feltet.
+    @param:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val revurderinger: List<RevurderingJson> = emptyList(),
     val vedtak: List<VedtakJson>,
     val klager: List<KlageJson>,
     val reguleringer: List<ReguleringJson>,

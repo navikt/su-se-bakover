@@ -32,6 +32,10 @@ sealed interface KunneIkkeRegulereAutomatisk {
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
     ) : KunneIkkeRegulereAutomatisk
+
+    data class UkjentFeil(
+        val feil: Throwable,
+    )
 }
 
 interface ReguleringAutomatiskService {
