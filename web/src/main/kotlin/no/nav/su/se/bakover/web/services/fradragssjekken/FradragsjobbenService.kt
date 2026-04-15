@@ -50,15 +50,22 @@ internal class FradragsjobbenServiceImpl(
      *
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
-        kjørFradragssjekkForMåned(måned = Måned.now(clock), dryRun = dryRun)
+        // Vurder om denne skal få inn måned manuelt fra jobben og sjekkes mot denne evt bare ikke basere oss på clock
+        val måned = Måned.now(clock)
+        val kanKjøre = validerKjøringForMåned(måned)
+        when (kanKjøre) {
+            FradragsSjekkFeil.AlleredeKjørtForMåned -> throw IllegalStateException("Er allerede kjørt for måned $måned")
+            FradragsSjekkFeil.DatoErFremITid -> throw IllegalStateException("Kan ikke kjøre frem i tid $måned")
+            FradragsSjekkFeil.DatoErTilbakeITid -> throw IllegalStateException("Kan ikke kjøre tilbake i tid $måned")
+            null -> Unit
+        }
+        kjørFradragssjekkForMåned(måned = måned, dryRun = dryRun)
     }
 
     override fun kjørFradragssjekkForMåned(
         måned: Måned,
         dryRun: Boolean,
     ) {
-        validerKjøringForMåned(måned)
-
         val sjekkplaner = hentAlleSaker()
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .flatMap { sakerPerBatch ->
