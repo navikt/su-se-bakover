@@ -16,8 +16,8 @@ import java.util.UUID
 
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
-    fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean = false)
-    fun validerKjøringForMåned(måned: Måned, dryRun: Boolean = false)
+    fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean = false)
+    fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil?
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
 
@@ -50,28 +50,15 @@ internal class FradragsjobbenServiceImpl(
      *
      */
     override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
-        kjørFradragssjekkForMåned(måned = Måned.now(clock), dryRun = dryRun)
+        kjørFradragssjekkForMånedMedValidering(måned = Måned.now(clock), dryRun = dryRun)
     }
 
-    override fun kjørFradragssjekkForMåned(
+    override fun kjørFradragssjekkForMånedMedValidering(
         måned: Måned,
         dryRun: Boolean,
     ) {
-        validerKjøringForMåned(måned, dryRun)
-
-        val sjekkplaner = hentAlleSaker()
-            .chunked(INTERN_SAK_BATCH_STORRELSE)
-            .flatMap { sakerPerBatch ->
-                hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                    .let { lagSjekkplanerForLøpendeSaker(it, måned) }
-            }
-
-        kjørOgLagreKjøring(
-            måned = måned,
-            dryRun = dryRun,
-            sjekkplaner = sjekkplaner,
-            startmelding = "Starter fradragssjekk for måned $måned",
-        )
+        requireGyldigKjøringForMåned(måned = måned)
+        kjørFradragssjekkForMåned(måned = måned, dryRun = dryRun)
     }
 
     override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
@@ -80,15 +67,48 @@ internal class FradragsjobbenServiceImpl(
 
     override fun validerKjøringForMåned(
         måned: Måned,
-        dryRun: Boolean,
-    ) {
-        if (måned < Måned.now(clock)) {
-            throw FradragssjekkKanIkkeKjøresForTidligereMånedException(måned)
+    ): FradragsSjekkFeil? {
+        val inneværendeMåned = Måned.now(clock)
+        if (måned < inneværendeMåned) {
+            return FradragsSjekkFeil.DatoErTilbakeITid
+        }
+        if (måned > inneværendeMåned) {
+            return FradragsSjekkFeil.DatoErFremITid
         }
 
-        if (!dryRun && harOrdinaerKjoringForMåned(måned)) {
-            throw FradragssjekkAlleredeKjørtForMånedException(måned)
+        if (harOrdinaerKjoringForMåned(måned)) {
+            return FradragsSjekkFeil.AlleredeKjørtForMåned
         }
+        return null
+    }
+
+    private fun requireGyldigKjøringForMåned(
+        måned: Måned,
+    ) {
+        when (validerKjøringForMåned(måned = måned)) {
+            FradragsSjekkFeil.AlleredeKjørtForMåned -> throw IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
+            FradragsSjekkFeil.DatoErFremITid -> throw IllegalArgumentException("Fradragssjekk kan ikke kjøres for fremtidig måned $måned")
+            FradragsSjekkFeil.DatoErTilbakeITid -> throw IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")
+            null -> Unit
+        }
+    }
+
+    private fun kjørFradragssjekkForMåned(
+        måned: Måned,
+        dryRun: Boolean,
+    ) {
+        val sjekkplaner = hentAlleSaker()
+            .chunked(INTERN_SAK_BATCH_STORRELSE)
+            .flatMap { sakerPerBatch ->
+                lagSjekkplanerForLøpendeSaker(hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned), måned)
+            }
+
+        kjørOgLagreKjøring(
+            måned = måned,
+            dryRun = dryRun,
+            sjekkplaner = sjekkplaner,
+            startmelding = "Starter fradragssjekk for måned $måned",
+        )
     }
 
     private fun kjørOgLagreKjøring(
@@ -421,10 +441,8 @@ internal class FradragsjobbenServiceImpl(
     }
 }
 
-internal class FradragssjekkAlleredeKjørtForMånedException(
-    måned: Måned,
-) : IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
-
-internal class FradragssjekkKanIkkeKjøresForTidligereMånedException(
-    måned: Måned,
-) : IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")
+sealed interface FradragsSjekkFeil {
+    data object AlleredeKjørtForMåned : FradragsSjekkFeil
+    data object DatoErTilbakeITid : FradragsSjekkFeil
+    data object DatoErFremITid : FradragsSjekkFeil
+}

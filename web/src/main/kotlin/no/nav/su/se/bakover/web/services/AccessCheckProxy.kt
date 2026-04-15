@@ -251,6 +251,7 @@ import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.aap.AapJobService
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
@@ -1613,12 +1614,12 @@ open class AccessCheckProxy(
                     services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun)
                 }
 
-                override fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean) {
-                    services.fradragsjobbenService.kjørFradragssjekkForMåned(måned, dryRun)
+                override fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean) {
+                    return services.fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(måned, dryRun)
                 }
 
-                override fun validerKjøringForMåned(måned: Måned, dryRun: Boolean) {
-                    services.fradragsjobbenService.validerKjøringForMåned(måned, dryRun)
+                override fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil? {
+                    return services.fradragsjobbenService.validerKjøringForMåned(måned)
                 }
 
                 override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {

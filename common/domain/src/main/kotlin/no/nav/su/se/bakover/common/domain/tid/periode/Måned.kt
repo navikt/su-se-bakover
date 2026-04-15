@@ -44,6 +44,10 @@ data class Måned private constructor(
         return fra(årOgMåned.plusMonths(monthsToAdd))
     }
 
+    fun minusMonths(monthsToSubtract: Long): Måned {
+        return fra(årOgMåned.minusMonths(monthsToSubtract))
+    }
+
     fun tilPeriode(): Periode {
         return create(fraOgMed, tilOgMed)
     }
