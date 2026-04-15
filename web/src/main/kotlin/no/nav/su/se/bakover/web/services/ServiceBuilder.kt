@@ -360,6 +360,7 @@ data object ServiceBuilder {
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
+            vedtakRepo = databaseRepos.vedtakRepo,
             clock = clock,
             dokumentRepo = databaseRepos.dokumentRepo,
             brevService = brevService,
