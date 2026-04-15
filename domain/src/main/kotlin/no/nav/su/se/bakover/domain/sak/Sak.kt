@@ -346,6 +346,10 @@ data class Sak(
                 val eksterntBeløp: BigDecimal,
             )
         }
+
+        data class Feilet(
+            val feil: Throwable,
+        ) : KanIkkeRegulere
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

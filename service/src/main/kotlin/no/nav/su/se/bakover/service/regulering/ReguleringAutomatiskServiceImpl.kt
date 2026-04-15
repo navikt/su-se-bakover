@@ -140,7 +140,7 @@ class ReguleringAutomatiskServiceImpl(
                     val vedtaksdata =
                         sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
                             when (feil) {
-                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
+                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring, is Sak.KanIkkeRegulere.Feilet -> log.info(
                                     "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
                                 )
 
@@ -205,6 +205,7 @@ class ReguleringAutomatiskServiceImpl(
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
+                        // TODO Either.catch her også
                         sak.kjørForSak(
                             satsFactory = satsFactory,
                             vedtaksdata = vedtaksdata,
@@ -301,7 +302,15 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val reguleringerSomFeilet = lefts.filter {
+        val feiletFørBehandling = sakerSkalIkkeRegulere.filter { it.feil is Sak.KanIkkeRegulere.Feilet }.map {
+            Reguleringsresultat(
+                saksnummer = it.saksnummer,
+                utfall = Reguleringsresultat.Utfall.FEILET,
+                beskrivelse = it.feil.toString(),
+            )
+        }
+
+        val feiletUnderBehandling = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                 it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
                 it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet
@@ -312,6 +321,9 @@ class ReguleringAutomatiskServiceImpl(
                 beskrivelse = it.toString(),
             )
         }
+
+        val reguleringerSomFeilet = feiletFørBehandling + feiletUnderBehandling
+
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
             .map {
                 Reguleringsresultat(
