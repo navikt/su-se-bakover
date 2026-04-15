@@ -17,7 +17,7 @@ import java.util.UUID
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
     fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean = false)
-    fun validerKjøringForMåned(måned: Måned, dryRun: Boolean = false): FradragsSjekkFeil?
+    fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil?
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
 
@@ -57,13 +57,12 @@ internal class FradragsjobbenServiceImpl(
         måned: Måned,
         dryRun: Boolean,
     ) {
-        validerKjøringForMåned(måned, dryRun)
+        validerKjøringForMåned(måned)
 
         val sjekkplaner = hentAlleSaker()
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .flatMap { sakerPerBatch ->
-                hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                    .let { lagSjekkplanerForLøpendeSaker(it, måned) }
+                lagSjekkplanerForLøpendeSaker(hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned), måned)
             }
 
         kjørOgLagreKjøring(
@@ -80,12 +79,12 @@ internal class FradragsjobbenServiceImpl(
 
     override fun validerKjøringForMåned(
         måned: Måned,
-        dryRun: Boolean,
     ): FradragsSjekkFeil? {
-        if (måned < Måned.now(clock)) {
+        val inneværendeMåned = Måned.now(clock)
+        if (måned < inneværendeMåned) {
             return FradragsSjekkFeil.DatoErTilbakeITid
         }
-        if (måned > Måned.now(clock)) {
+        if (måned > inneværendeMåned) {
             return FradragsSjekkFeil.DatoErFremITid
         }
 

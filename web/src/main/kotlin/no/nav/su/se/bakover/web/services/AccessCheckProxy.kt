@@ -1618,8 +1618,8 @@ open class AccessCheckProxy(
                     services.fradragsjobbenService.kjørFradragssjekkForMåned(måned, dryRun)
                 }
 
-                override fun validerKjøringForMåned(måned: Måned, dryRun: Boolean): FradragsSjekkFeil? {
-                    return services.fradragsjobbenService.validerKjøringForMåned(måned, dryRun)
+                override fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil? {
+                    return services.fradragsjobbenService.validerKjøringForMåned(måned)
                 }
 
                 override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {

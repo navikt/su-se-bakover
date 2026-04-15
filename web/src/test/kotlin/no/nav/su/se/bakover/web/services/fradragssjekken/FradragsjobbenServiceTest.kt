@@ -15,7 +15,7 @@ internal class FradragsjobbenServiceTest {
         val service = lagService()
         val tidligereMaaned: Måned = Måned.now(fixedClock).minusMonths(1L)
 
-        service.validerKjøringForMåned(tidligereMaaned, dryRun = false) shouldBe FradragsSjekkFeil.DatoErTilbakeITid
+        service.validerKjøringForMåned(tidligereMaaned) shouldBe FradragsSjekkFeil.DatoErTilbakeITid
     }
 
     @Test
@@ -23,7 +23,7 @@ internal class FradragsjobbenServiceTest {
         val service = lagService()
         val nesteMaaned: Måned = Måned.now(fixedClock).plusMonths(1L)
 
-        service.validerKjøringForMåned(nesteMaaned, dryRun = false) shouldBe FradragsSjekkFeil.DatoErFremITid
+        service.validerKjøringForMåned(nesteMaaned) shouldBe FradragsSjekkFeil.DatoErFremITid
     }
 
     @Test
@@ -36,7 +36,7 @@ internal class FradragsjobbenServiceTest {
             },
         )
 
-        service.validerKjøringForMåned(naaVærendeMåned, dryRun = false) shouldBe null
+        service.validerKjøringForMåned(naaVærendeMåned) shouldBe null
     }
 
     @Test
@@ -48,7 +48,7 @@ internal class FradragsjobbenServiceTest {
                 on { harOrdinaerKjoringForMåned(naaVærendeMåned) } doReturn true
             },
         )
-        service.validerKjøringForMåned(naaVærendeMåned, dryRun = false) shouldBe FradragsSjekkFeil.AlleredeKjørtForMåned
+        service.validerKjøringForMåned(naaVærendeMåned) shouldBe FradragsSjekkFeil.AlleredeKjørtForMåned
     }
 
     private fun lagService(

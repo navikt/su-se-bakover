@@ -33,10 +33,7 @@ internal fun Route.fradragssjekkDriftRoute(
             call.withBody<Body> { body ->
                 val måned = Måned.parse(body.maaned) ?: return@withBody call.svar(ugyldigMåned)
 
-                val result = fradragsjobbenService.validerKjøringForMåned(
-                    måned = måned,
-                    dryRun = body.dryRun,
-                )
+                val result = fradragsjobbenService.validerKjøringForMåned(måned = måned)
                 when (result) {
                     FradragsSjekkFeil.AlleredeKjørtForMåned -> return@withBody call.svar(
                         HttpStatusCode.Conflict.errorJson(
