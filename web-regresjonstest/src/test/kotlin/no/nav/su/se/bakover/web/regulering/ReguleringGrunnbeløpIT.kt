@@ -456,7 +456,6 @@ object TestScenarietSaker {
         innvilgetIPesys = false,
     )
 
-    // ManglerPeriodeFørOgEtterReguleringFraPesys
     val UFØRE_IKKE_REGULERT_PESYS = TestSakReguleringIT.create(
         fnr = Fnr("00000000011"),
         sakstype = Sakstype.UFØRE,

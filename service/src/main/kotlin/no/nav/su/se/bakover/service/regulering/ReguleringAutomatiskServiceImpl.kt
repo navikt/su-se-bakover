@@ -313,18 +313,6 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        /*
-        val feiletFørBehandling = sakerSkalIkkeRegulere.filter { it.feil is Sak.KanIkkeRegulere.UkjentFeil }.map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.FEILET,
-                beskrivelse = it.feil.toString(),
-            )
-        }
-
-         */
-
-        // val feiletUnderBehandling = lefts.filter {
         val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                 it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
@@ -337,8 +325,6 @@ class ReguleringAutomatiskServiceImpl(
                 beskrivelse = it.toString(),
             )
         }
-
-        // val reguleringerSomFeilet = feiletFørBehandling + feiletUnderBehandling
 
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
             .map {
