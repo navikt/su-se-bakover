@@ -17,7 +17,7 @@ import java.util.UUID
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
     fun kjørFradragssjekkForMåned(måned: Måned, dryRun: Boolean = false)
-    fun validerKjøringForMåned(måned: Måned, dryRun: Boolean = false)
+    fun validerKjøringForMåned(måned: Måned, dryRun: Boolean = false): FradragsSjekkFeil?
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
 
@@ -81,14 +81,18 @@ internal class FradragsjobbenServiceImpl(
     override fun validerKjøringForMåned(
         måned: Måned,
         dryRun: Boolean,
-    ) {
+    ): FradragsSjekkFeil? {
         if (måned < Måned.now(clock)) {
-            throw FradragssjekkKanIkkeKjøresForTidligereMånedException(måned)
+            return FradragsSjekkFeil.DatoErTilbakeITid
+        }
+        if (måned > Måned.now(clock)) {
+            return FradragsSjekkFeil.DatoErFremITid
         }
 
-        if (!dryRun && harOrdinaerKjoringForMåned(måned)) {
-            throw FradragssjekkAlleredeKjørtForMånedException(måned)
+        if (harOrdinaerKjoringForMåned(måned)) {
+            return FradragsSjekkFeil.AlleredeKjørtForMåned
         }
+        return null
     }
 
     private fun kjørOgLagreKjøring(
@@ -421,10 +425,8 @@ internal class FradragsjobbenServiceImpl(
     }
 }
 
-internal class FradragssjekkAlleredeKjørtForMånedException(
-    måned: Måned,
-) : IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
-
-internal class FradragssjekkKanIkkeKjøresForTidligereMånedException(
-    måned: Måned,
-) : IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")
+sealed interface FradragsSjekkFeil {
+    data object AlleredeKjørtForMåned : FradragsSjekkFeil
+    data object DatoErTilbakeITid : FradragsSjekkFeil
+    data object DatoErFremITid : FradragsSjekkFeil
+}
