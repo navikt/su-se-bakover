@@ -40,7 +40,7 @@ internal class EksterneFradragsoppslagService(
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
-
+        log.info("Henter pesys-alder-oppslag for {} personer", fnr.size)
         return pesysKlient.hentVedtakForPersonPaaDatoAlder(fnr, dato).fold(
             ifLeft = {
                 log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_ALDER, fnr.size)
@@ -57,6 +57,8 @@ internal class EksterneFradragsoppslagService(
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
+
+        log.info("Henter pesys-uføre-oppslag for {} personer", fnr.size)
 
         return pesysKlient.hentVedtakForPersonPaaDatoUføre(fnr, dato).fold(
             ifLeft = {
@@ -107,7 +109,7 @@ internal class EksterneFradragsoppslagService(
         måned: Måned,
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
-
+        log.info("Henter AAP-oppslag for {} personer", fnr.size)
         return runBlocking {
             fnr.chunked(AAP_PARALLELLE_OPPSLAG)
                 .flatMap { fnrChunk ->
