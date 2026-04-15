@@ -97,10 +97,36 @@ internal class FradragsjobbenServiceImpl(
         måned: Måned,
         dryRun: Boolean,
     ) {
-        val sjekkplaner = hentAlleSaker()
+        val alleSaker = hentAlleSaker()
+        val totaltAntallInterneBatcher = antallBatcher(alleSaker.size, INTERN_SAK_BATCH_STORRELSE)
+        var internBatchNummer = 0
+        var vurderteSaker = 0
+
+        log.info(
+            "Fradragssjekk: Starter bygging av sjekkplaner for måned {}. Antall saker: {}, interne batcher: {}",
+            måned,
+            alleSaker.size,
+            totaltAntallInterneBatcher,
+        )
+
+        val sjekkplaner = alleSaker
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .flatMap { sakerPerBatch ->
-                lagSjekkplanerForLøpendeSaker(hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned), måned)
+                internBatchNummer++
+                vurderteSaker += sakerPerBatch.size
+                val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
+                lagSjekkplanerForLøpendeSaker(løpendeSaker, måned).also { batchSjekkplaner ->
+                    log.info(
+                        "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkplaner i batch: {}",
+                        internBatchNummer,
+                        totaltAntallInterneBatcher,
+                        måned,
+                        sakerPerBatch.size,
+                        vurderteSaker,
+                        løpendeSaker.size,
+                        batchSjekkplaner.size,
+                    )
+                }
             }
 
         kjørOgLagreKjøring(
@@ -121,17 +147,37 @@ internal class FradragsjobbenServiceImpl(
         val kjoringId = UUID.randomUUID()
         val startet = clock.instant()
         val saksresultater = mutableListOf<FradragssjekkSakResultat>()
+        val totaltAntallEksterneBatcher = antallBatcher(sjekkplaner.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
+        var eksternBatchNummer = 0
 
-        log.info("{} med kjøring {}. dryRun={}", startmelding, kjoringId, dryRun)
+        log.info(
+            "{} med kjøring {}. dryRun={}. Antall sjekkplaner: {}, eksterne batcher: {}",
+            startmelding,
+            kjoringId,
+            dryRun,
+            sjekkplaner.size,
+            totaltAntallEksterneBatcher,
+        )
 
         try {
             sjekkplaner
                 .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
                 .forEach { sjekkplanBatch ->
+                    eksternBatchNummer++
                     saksresultater += prosesserSjekkplanBatch(
                         sjekkplaner = sjekkplanBatch,
                         måned = måned,
                         dryRun = dryRun,
+                    )
+
+                    log.info(
+                        "Fradragssjekk: Ekstern batch {}/{} ferdig for kjøring {} og måned {}. Batchstørrelse: {}, saksresultater hittil: {}",
+                        eksternBatchNummer,
+                        totaltAntallEksterneBatcher,
+                        kjoringId,
+                        måned,
+                        sjekkplanBatch.size,
+                        saksresultater.size,
                     )
                 }
 
@@ -163,6 +209,14 @@ internal class FradragsjobbenServiceImpl(
             )
             throw e
         }
+    }
+
+    private fun antallBatcher(
+        total: Int,
+        batchStørrelse: Int,
+    ): Int {
+        if (total == 0) return 0
+        return (total + batchStørrelse - 1) / batchStørrelse
     }
 
     private fun loggOppsummering(
