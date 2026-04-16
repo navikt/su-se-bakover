@@ -183,7 +183,14 @@ internal class FradragsjobbenServiceImpl(
                     )
                 }
 
-            val resultat = FradragssjekkResultat(saksresultater = saksresultater)
+            val resultat = FradragssjekkResultat(
+                saksresultater = saksresultater.map {
+                    when (it.status) {
+                        FradragssjekkSakStatus.OPPGAVE_OPPRETTET -> it
+                        else -> it.copy(sjekkplan = it.sjekkplan.copy(sak = it.sjekkplan.sak, sjekkpunkter = emptyList()))
+                    }
+                },
+            )
             val kjoring = FradragssjekkKjøring(
                 id = kjoringId,
                 dato = dato,

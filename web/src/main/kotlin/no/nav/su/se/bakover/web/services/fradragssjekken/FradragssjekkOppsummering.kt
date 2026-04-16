@@ -21,7 +21,7 @@ data class FradragssjekkFradragStatistikk(
 )
 
 internal fun FradragssjekkKjøring.lagOppsummering(): FradragssjekkOppsummering {
-    val sakerMedOpprettetOppgave = resultat.saksresultater.filter { it.status.harOpprettetOppgave }
+    val sakerMedOpprettetOppgave = resultat.saksresultater.filter { it.status.harOpprettetOppgave() }
 
     return FradragssjekkOppsummering(
         antallOppgaver = sakerMedOpprettetOppgave.size,
@@ -74,7 +74,7 @@ private fun List<FradragssjekkSakResultat>.tilFradragsstatistikk(): List<Fradrag
 }
 
 private fun FradragssjekkSakResultat.tilOppgaveårsaker(): List<Oppgaveårsak> {
-    if (!status.harOpprettetOppgave) return emptyList()
+    if (!status.harOpprettetOppgave()) return emptyList()
 
     return tilEksplisitteOppgaveårsaker()
 }

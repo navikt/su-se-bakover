@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
@@ -92,6 +93,7 @@ internal enum class FradragssjekkKjøringStatus {
     FEILET,
 }
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 internal data class FradragssjekkSakResultat(
     val sakId: UUID,
     val status: FradragssjekkSakStatus,
@@ -104,16 +106,17 @@ internal data class FradragssjekkSakResultat(
     val feilmelding: String? = null,
 )
 
-internal enum class FradragssjekkSakStatus(
-    val harOpprettetOppgave: Boolean = false,
-) {
+internal enum class FradragssjekkSakStatus {
     INGEN_AVVIK,
     KUN_OBSERVASJON,
     EKSTERN_FEIL,
     OPPGAVE_IKKE_OPPRETTET_DRY_RUN,
-    OPPGAVE_OPPRETTET(harOpprettetOppgave = true),
+    OPPGAVE_OPPRETTET,
     OPPGAVEOPPRETTELSE_FEILET,
     INVARIANTBRUDD,
+    ;
+
+    fun harOpprettetOppgave(): Boolean = this == OPPGAVE_OPPRETTET
 }
 
 internal data class EksternFeilPåSjekkpunkt(

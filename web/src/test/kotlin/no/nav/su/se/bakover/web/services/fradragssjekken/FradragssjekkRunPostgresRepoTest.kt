@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotContain
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -110,6 +112,32 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                 deserialize<FradragssjekkOppsummering>(row.string("oppsummering"))
             }
         } shouldBe kjoring.lagOppsummering()
+    }
+
+    @Test
+    fun `serialiserer ikke null eller tomme felt for saksresultat`() {
+        val json = serialize(
+            FradragssjekkSakResultat(
+                sakId = UUID.randomUUID(),
+                status = FradragssjekkSakStatus.INGEN_AVVIK,
+                sjekkplan = SjekkPlanData(
+                    sak = SakInfo(
+                        sakId = UUID.randomUUID(),
+                        saksnummer = Saksnummer(2021999),
+                        fnr = Fnr("12345678901"),
+                        type = Sakstype.ALDER,
+                    ),
+                    sjekkpunkter = emptyList(),
+                ),
+            ),
+        )
+
+        json shouldNotContain "\"feilmelding\""
+        json shouldNotContain "\"eksterneFeil\""
+        json shouldNotContain "\"oppgaveAvvik\""
+        json shouldNotContain "\"observasjoner\""
+        json shouldNotContain "\"opprettetOppgave\""
+        json shouldNotContain "\"mislykketOppgaveopprettelse\""
     }
 
     @Test
