@@ -71,6 +71,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Avslagsgrunn
 import java.time.LocalDate
 import java.util.UUID
@@ -107,6 +108,14 @@ internal class VedtakPostgresRepo(
     private val klageRepo: KlagePostgresRepo,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : VedtakRepo {
+
+    override fun hentVedtakSomKanRevurderesForSak(sakId: UUID): List<VedtakSomKanRevurderes> {
+        return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSak") {
+            sessionFactory.withSession { session ->
+                hentForSakId(sakId, session).filterIsInstance<VedtakSomKanRevurderes>()
+            }
+        }
+    }
 
     override fun hentVedtakForId(vedtakId: UUID): Vedtak? {
         return sessionFactory.withSession { session ->

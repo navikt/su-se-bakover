@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -14,6 +13,7 @@ import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
@@ -52,6 +53,7 @@ import java.util.UUID
 
 class SakServiceImpl(
     private val sakRepo: SakRepo,
+    private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
     private val dokumentRepo: DokumentRepo,
     private val brevService: BrevService,
@@ -104,9 +106,20 @@ class SakServiceImpl(
         sakId: UUID,
         periode: Periode,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
-        return hentSak(sakId).mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }.flatMap { sak ->
-            sak.hentGjeldendeVedtaksdata(periode, clock).mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
+        if (sakRepo.hentSakInfo(sakId) == null) {
+            return KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak.left()
         }
+
+        val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
+        if (vedtakSomKanRevurderes.isEmpty()) {
+            return KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak.left()
+        }
+
+        return GjeldendeVedtaksdata(
+            periode = periode,
+            vedtakListe = vedtakSomKanRevurderes.toNonEmptyList(),
+            clock = clock,
+        ).right()
     }
 
     override fun historiskGrunnlagForVedtaketsPeriode(

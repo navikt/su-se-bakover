@@ -187,6 +187,7 @@ private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
             it.periode.inneholder(måned)
     }
 
+    // TODO: kan være flere av og til
     return when (relevanteFradrag.size) {
         0 -> null
         1 -> relevanteFradrag.single().månedsbeløp
