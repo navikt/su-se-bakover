@@ -104,12 +104,14 @@ internal data class FradragssjekkSakResultat(
     val feilmelding: String? = null,
 )
 
-internal enum class FradragssjekkSakStatus {
+internal enum class FradragssjekkSakStatus(
+    val harOpprettetOppgave: Boolean = false,
+) {
     INGEN_AVVIK,
     KUN_OBSERVASJON,
     EKSTERN_FEIL,
     OPPGAVE_IKKE_OPPRETTET_DRY_RUN,
-    OPPGAVE_OPPRETTET,
+    OPPGAVE_OPPRETTET(harOpprettetOppgave = true),
     OPPGAVEOPPRETTELSE_FEILET,
     INVARIANTBRUDD,
 }
@@ -203,6 +205,7 @@ internal sealed interface Fradragsfunn {
     data class Oppgaveavvik(
         val kode: OppgaveConfig.Fradragssjekk.AvvikKode,
         val oppgavetekst: String,
+        val fradragstype: FradragstypeData? = null,
     ) : Fradragsfunn
 
     data class Observasjon(
