@@ -6,6 +6,7 @@ import dokument.domain.Brevtype
 import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
+import dokument.domain.Dokumenttilstand
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
@@ -62,6 +63,9 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
+import tilbakekreving.domain.vedtak.VedtakTilbakekrevingsbehandling
+import vedtak.domain.Vedtak
 import java.util.UUID
 
 internal class SakServiceImplTest {
@@ -87,6 +91,49 @@ internal class SakServiceImplTest {
         actual.getOrFail() shouldBe sak.hentGjeldendeVedtaksdata(vedtak.periode, fixedClock).getOrFail()
         verify(sakRepo).hentSakInfo(sak.id)
         verify(sakRepo, never()).hentSak(any<UUID>())
+        verify(vedtakRepo).hentVedtakSomKanRevurderesForSak(sak.id)
+    }
+
+    @Test
+    fun `hentGjeldendeVedtaksdata ignorerer tilbakekrevingsvedtak`() {
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+        val sakMedTilbakekrevingsvedtak = sak.copy(
+            vedtakListe = sak.vedtakListe + nyttTilbakekrevingsvedtak(),
+        )
+        val sakRepo: SakRepo = mock {
+            on { hentSakInfo(sak.id) } doReturn sakMedTilbakekrevingsvedtak.info()
+        }
+        val vedtakRepo: VedtakRepo = mock {
+            on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn listOf(vedtak)
+        }
+
+        val actual = SakServiceImpl(sakRepo, vedtakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+            .hentGjeldendeVedtaksdata(sak.id, vedtak.periode)
+
+        actual.getOrFail() shouldBe sakMedTilbakekrevingsvedtak.hentGjeldendeVedtaksdata(vedtak.periode, fixedClock).getOrFail()
+        verify(sakRepo).hentSakInfo(sak.id)
+        verify(vedtakRepo).hentVedtakSomKanRevurderesForSak(sak.id)
+    }
+
+    @Test
+    fun `hentGjeldendeVedtaksdata returnerer IngenVedtak når saken kun har tilbakekrevingsvedtak`() {
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+        val sakMedBareTilbakekrevingsvedtak = sak.copy(
+            vedtakListe = listOf(nyttTilbakekrevingsvedtak()),
+        )
+        val sakRepo: SakRepo = mock {
+            on { hentSakInfo(sak.id) } doReturn sakMedBareTilbakekrevingsvedtak.info()
+        }
+        val vedtakRepo: VedtakRepo = mock {
+            on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn emptyList()
+        }
+
+        val actual = SakServiceImpl(sakRepo, vedtakRepo, fixedClock, mock(), mock(), mock(), mock(), mock())
+            .hentGjeldendeVedtaksdata(sak.id, vedtak.periode)
+
+        sakMedBareTilbakekrevingsvedtak.hentGjeldendeVedtaksdata(vedtak.periode, fixedClock).isLeft() shouldBe true
+        actual shouldBe KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak.left()
+        verify(sakRepo).hentSakInfo(sak.id)
         verify(vedtakRepo).hentVedtakSomKanRevurderesForSak(sak.id)
     }
 
@@ -427,3 +474,12 @@ internal class SakServiceImplTest {
         ).hentEpsSaksIderForBrukersSak(brukersSak.id) shouldBe listOf(epsSak.id)
     }
 }
+
+private fun nyttTilbakekrevingsvedtak(): Vedtak = VedtakTilbakekrevingsbehandling(
+    id = UUID.randomUUID(),
+    opprettet = fixedTidspunkt,
+    saksbehandler = saksbehandler,
+    attestant = NavIdentBruker.Attestant("attestant"),
+    dokumenttilstand = Dokumenttilstand.GENERERT,
+    behandling = mock<IverksattTilbakekrevingsbehandling>(),
+)
