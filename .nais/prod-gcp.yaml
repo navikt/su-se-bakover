@@ -128,15 +128,19 @@ spec:
     path: /isready
     initialDelay: 25
     timeout: 10
+  terminationGracePeriodSeconds: 180
   replicas:
     min: 1
     max: 2
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 85
   resources:
     limits:
       memory: 4Gi
     requests:
       memory: 2Gi
-      cpu: 1000m
+      cpu: 1300m
   ingresses:
     - https://su-se-bakover-gcp.intern.nav.no # bytt til https://su-se-bakover.intern.nav.no etter migrering?
     - https://su-se-bakover.intern.nav.no # brukes av frikort
