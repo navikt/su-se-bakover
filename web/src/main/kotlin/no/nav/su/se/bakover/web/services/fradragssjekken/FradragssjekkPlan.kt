@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 /**
@@ -185,12 +186,11 @@ private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
     tilhører: FradragTilhører,
     måned: Måned,
 ): Double? {
-    val relevanteFradrag = grunnlagsdata.fradragsgrunnlag.filter {
-        it.fradragstype == fradragstype &&
-            it.tilhører == tilhører &&
-            it.periode.inneholder(måned) &&
-            it.utenlandskInntekt == null
-    }
+    val relevanteFradrag = finnRelevanteFradragsgrunnlag(
+        fradragstype = fradragstype,
+        tilhører = tilhører,
+        måned = måned,
+    )
 
     // TODO: kan være flere av og til
     return when (relevanteFradrag.size) {
@@ -199,5 +199,18 @@ private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
         else -> error(
             "Forventet maks ett fradrag for type=$fradragstype, tilhører=$tilhører, måned=$måned, men fant ${relevanteFradrag.size} fradrag: $relevanteFradrag",
         )
+    }
+}
+
+internal fun GjeldendeVedtaksdata.finnRelevanteFradragsgrunnlag(
+    fradragstype: Fradragstype,
+    tilhører: FradragTilhører,
+    måned: Måned,
+): List<Fradragsgrunnlag> {
+    return grunnlagsdata.fradragsgrunnlag.filter {
+        it.fradragstype == fradragstype &&
+            it.tilhører == tilhører &&
+            it.periode.inneholder(måned) &&
+            it.utenlandskInntekt == null
     }
 }

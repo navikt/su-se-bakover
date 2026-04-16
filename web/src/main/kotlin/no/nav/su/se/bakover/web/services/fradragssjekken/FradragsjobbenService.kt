@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
+import satser.domain.SatsFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
@@ -30,6 +31,7 @@ internal class FradragsjobbenServiceImpl(
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
     private val utbetalingsRepo: UtbetalingRepo,
+    private val satsFactory: SatsFactory,
     private val fradragssjekkRunPostgresRepo: FradragssjekkRunPostgresRepo,
     private val clock: Clock,
 ) : FradragsjobbenService {
@@ -109,22 +111,22 @@ internal class FradragsjobbenServiceImpl(
             totaltAntallInterneBatcher,
         )
 
-        val sjekkplaner = alleSaker
+        val sjekkgrunnlag = alleSaker
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .flatMap { sakerPerBatch ->
                 internBatchNummer++
                 vurderteSaker += sakerPerBatch.size
                 val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                lagSjekkplanerForLøpendeSaker(løpendeSaker, måned).also { batchSjekkplaner ->
+                lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
                     log.info(
-                        "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkplaner i batch: {}",
+                        "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkgrunnlag i batch: {}",
                         internBatchNummer,
                         totaltAntallInterneBatcher,
                         måned,
                         sakerPerBatch.size,
                         vurderteSaker,
                         løpendeSaker.size,
-                        batchSjekkplaner.size,
+                        batchSjekkgrunnlag.size,
                     )
                 }
             }
@@ -132,7 +134,7 @@ internal class FradragsjobbenServiceImpl(
         kjørOgLagreKjøring(
             måned = måned,
             dryRun = dryRun,
-            sjekkplaner = sjekkplaner,
+            sjekkgrunnlag = sjekkgrunnlag,
             startmelding = "Starter fradragssjekk for måned $måned",
         )
     }
@@ -140,32 +142,32 @@ internal class FradragsjobbenServiceImpl(
     private fun kjørOgLagreKjøring(
         måned: Måned,
         dryRun: Boolean,
-        sjekkplaner: List<SjekkPlan>,
+        sjekkgrunnlag: List<SjekkgrunnlagForSak>,
         startmelding: String,
     ) {
         val dato = java.time.LocalDate.now(clock)
         val kjoringId = UUID.randomUUID()
         val startet = clock.instant()
         val saksresultater = mutableListOf<FradragssjekkSakResultat>()
-        val totaltAntallEksterneBatcher = antallBatcher(sjekkplaner.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
+        val totaltAntallEksterneBatcher = antallBatcher(sjekkgrunnlag.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
         var eksternBatchNummer = 0
 
         log.info(
-            "{} med kjøring {}. dryRun={}. Antall sjekkplaner: {}, eksterne batcher: {}",
+            "{} med kjøring {}. dryRun={}. Antall sjekkgrunnlag: {}, eksterne batcher: {}",
             startmelding,
             kjoringId,
             dryRun,
-            sjekkplaner.size,
+            sjekkgrunnlag.size,
             totaltAntallEksterneBatcher,
         )
 
         try {
-            sjekkplaner
+            sjekkgrunnlag
                 .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-                .forEach { sjekkplanBatch ->
+                .forEach { sjekkgrunnlagBatch ->
                     eksternBatchNummer++
                     saksresultater += prosesserSjekkplanBatch(
-                        sjekkplaner = sjekkplanBatch,
+                        sjekkgrunnlag = sjekkgrunnlagBatch,
                         måned = måned,
                         dryRun = dryRun,
                     )
@@ -176,7 +178,7 @@ internal class FradragsjobbenServiceImpl(
                         totaltAntallEksterneBatcher,
                         kjoringId,
                         måned,
-                        sjekkplanBatch.size,
+                        sjekkgrunnlagBatch.size,
                         saksresultater.size,
                     )
                 }
@@ -282,34 +284,40 @@ internal class FradragsjobbenServiceImpl(
     private fun hentSakerMedLøpendeUtbetalingForMåned(
         saker: List<SakInfo>,
         måned: Måned,
-    ): List<SakInfo> {
+    ): List<LøpendeSakForMåned> {
         if (saker.isEmpty()) return emptyList()
 
         val utbetalingerPerSak = utbetalingsRepo.hentOversendteUtbetalingerForSakIder(
             saker.map { it.sakId },
         )
 
-        return saker.filter { sak ->
+        return saker.mapNotNull { sak ->
             utbetalingerPerSak[sak.sakId]
                 ?.hentGjeldendeUtbetaling(måned.fraOgMed)
                 ?.fold(
-                    { false },
-                    { true },
-                ) == true
+                    ifLeft = { null },
+                    ifRight = { LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp) },
+                )
         }
     }
 
-    private fun lagSjekkplanerForLøpendeSaker(
-        løpendeSaker: List<SakInfo>,
+    private fun lagSjekkgrunnlagForLøpendeSaker(
+        løpendeSaker: List<LøpendeSakForMåned>,
         måned: Måned,
-    ): List<SjekkPlan> {
-        return løpendeSaker.mapNotNull { sak ->
-            hentGjeldendeVedtaksdataForSak(sak, måned)?.let { gjeldendeVedtaksdata ->
+    ): List<SjekkgrunnlagForSak> {
+        return løpendeSaker.mapNotNull { løpendeSak ->
+            hentGjeldendeVedtaksdataForSak(løpendeSak.sak, måned)?.let { gjeldendeVedtaksdata ->
                 lagSjekkplanForSak(
-                    sak = sak,
+                    sak = løpendeSak.sak,
                     gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                     måned = måned,
-                )
+                )?.let { sjekkplan ->
+                    SjekkgrunnlagForSak(
+                        sjekkplan = sjekkplan,
+                        gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                        gjeldendeMånedsutbetaling = løpendeSak.gjeldendeMånedsutbetaling,
+                    )
+                }
             }
         }
     }
@@ -328,17 +336,20 @@ internal class FradragsjobbenServiceImpl(
     }
 
     private fun prosesserSjekkplanBatch(
-        sjekkplaner: List<SjekkPlan>,
+        sjekkgrunnlag: List<SjekkgrunnlagForSak>,
         måned: Måned,
         dryRun: Boolean,
     ): List<FradragssjekkSakResultat> {
-        if (sjekkplaner.isEmpty()) return emptyList()
+        if (sjekkgrunnlag.isEmpty()) return emptyList()
 
         // Kan tenkes at man burde transformert og merged den med sjekkplan direkte kontra å åpne opp på denne måten for feil hits
-        val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(sjekkplaner, måned)
-        return sjekkplaner.map { sjekkplan ->
+        val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(
+            sjekkgrunnlag.map { it.sjekkplan },
+            måned,
+        )
+        return sjekkgrunnlag.map { grunnlag ->
             prosesserSjekkplan(
-                sjekkplan = sjekkplan,
+                sjekkgrunnlag = grunnlag,
                 måned = måned,
                 oppslagsresultater = oppslagsresultater,
                 dryRun = dryRun,
@@ -347,11 +358,12 @@ internal class FradragsjobbenServiceImpl(
     }
 
     private fun prosesserSjekkplan(
-        sjekkplan: SjekkPlan,
+        sjekkgrunnlag: SjekkgrunnlagForSak,
         måned: Måned,
         oppslagsresultater: EksterneOppslagsresultater,
         dryRun: Boolean,
     ): FradragssjekkSakResultat {
+        val sjekkplan = sjekkgrunnlag.sjekkplan
         return try {
             val eksterneFeil = finnEksterneFeilForSak(sjekkplan, oppslagsresultater)
             if (eksterneFeil.isNotEmpty()) {
@@ -363,7 +375,15 @@ internal class FradragsjobbenServiceImpl(
                 )
             }
 
-            when (val avviksvurdering = finnAvvikForSak(sjekkplan, oppslagsresultater)) {
+            when (
+                val avviksvurdering = finnAvvikForSak(
+                    sjekkgrunnlag = sjekkgrunnlag,
+                    måned = måned,
+                    oppslagsresultater = oppslagsresultater,
+                    satsFactory = satsFactory,
+                    clock = clock,
+                )
+            ) {
                 Avviksvurdering.IngenDiff -> FradragssjekkSakResultat(
                     sakId = sjekkplan.sak.sakId,
                     status = FradragssjekkSakStatus.INGEN_AVVIK,
@@ -417,13 +437,20 @@ internal class FradragsjobbenServiceImpl(
             }
         } catch (e: ManglerLagretOppslagsresultatException) {
             log.error("Fradragssjekk: feil for sak {}. {}", sjekkplan.sak.sakId, e.message, e)
-            FradragssjekkSakResultat(
-                sakId = sjekkplan.sak.sakId,
-                status = FradragssjekkSakStatus.INVARIANTBRUDD,
-                sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
-                feilmelding = e.message,
-            )
+            lagInvariantbruddResultat(sjekkplan, e.message)
         }
+    }
+
+    private fun lagInvariantbruddResultat(
+        sjekkplan: SjekkPlan,
+        feilmelding: String?,
+    ): FradragssjekkSakResultat {
+        return FradragssjekkSakResultat(
+            sakId = sjekkplan.sak.sakId,
+            status = FradragssjekkSakStatus.INVARIANTBRUDD,
+            sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+            feilmelding = feilmelding,
+        )
     }
 
     // Som Iterable.partition men uten type erasure

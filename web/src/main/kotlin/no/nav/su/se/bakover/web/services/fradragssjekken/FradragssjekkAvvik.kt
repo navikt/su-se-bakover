@@ -1,21 +1,36 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import beregning.domain.BeregningStrategyFactory
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
+import kotlin.math.abs
 
-private const val BELOPS_TOLERANSE_I_KR = 10.0
+private const val UTBETALINGS_TOLERANSE_PROSENT = 10L
 
 internal fun finnAvvikForSak(
-    sjekkplan: SjekkPlan,
+    sjekkgrunnlag: SjekkgrunnlagForSak,
+    måned: Måned,
     oppslagsresultater: EksterneOppslagsresultater,
+    satsFactory: SatsFactory,
+    clock: Clock,
 ): Avviksvurdering {
-    val avvik = sjekkplan.sjekkpunkter
+    val beregningsstrategiFactory = BeregningStrategyFactory(
+        clock = clock,
+        satsFactory = satsFactory,
+    )
+    val avvik = sjekkgrunnlag.sjekkplan.sjekkpunkter
         .mapNotNull { sjekkpunkt ->
             vurderAvvik(
                 sjekkpunkt = sjekkpunkt,
                 oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt),
+                sjekkgrunnlag = sjekkgrunnlag,
+                måned = måned,
+                beregningsstrategiFactory = beregningsstrategiFactory,
             )
         }
 
@@ -29,9 +44,18 @@ internal fun finnAvvikForSak(
 private fun vurderAvvik(
     sjekkpunkt: Sjekkpunkt,
     oppslag: EksterntOppslag,
+    sjekkgrunnlag: SjekkgrunnlagForSak,
+    måned: Måned,
+    beregningsstrategiFactory: BeregningStrategyFactory,
 ): Fradragsfunn? {
     return when (oppslag) {
-        is EksterntOppslag.Funnet -> vurderFunnetOppslag(sjekkpunkt, oppslag.beløp)
+        is EksterntOppslag.Funnet -> vurderFunnetOppslag(
+            sjekkpunkt = sjekkpunkt,
+            eksterntBeløp = oppslag.beløp,
+            sjekkgrunnlag = sjekkgrunnlag,
+            måned = måned,
+            beregningsstrategiFactory = beregningsstrategiFactory,
+        )
         EksterntOppslag.IngenTreff -> vurderIngenTreff(sjekkpunkt)
         is EksterntOppslag.Feil -> null
     }
@@ -40,7 +64,11 @@ private fun vurderAvvik(
 private fun vurderFunnetOppslag(
     sjekkpunkt: Sjekkpunkt,
     eksterntBeløp: Double,
+    sjekkgrunnlag: SjekkgrunnlagForSak,
+    måned: Måned,
+    beregningsstrategiFactory: BeregningStrategyFactory,
 ): Fradragsfunn? {
+    val toleranseTekst = toleransegrenseTekst()
     val lokaltBeløp = sjekkpunkt.lokaltBeløp ?: return Fradragsfunn.Oppgaveavvik(
         kode = OppgaveConfig.Fradragssjekk.AvvikKode.MANGLER_FRADRAG_I_SUAPP,
         oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${
@@ -50,21 +78,32 @@ private fun vurderFunnetOppslag(
         }, men mangler fradrag på saken.",
     )
 
-    return when (vurderBeløpsdifferanse(lokaltBeløp, eksterntBeløp)) {
-        Beløpsvurdering.IngenDifferanse -> null
-        is Beløpsvurdering.InsignifikantDifferanse -> Fradragsfunn.Observasjon(
+    if (harSammeBeløp(lokaltBeløp, eksterntBeløp)) {
+        return null
+    }
+
+    return when (
+        val utbetalingsendring = vurderMånedsutbetalingsendring(
+            sjekkpunkt = sjekkpunkt,
+            eksterntBeløp = eksterntBeløp,
+            sjekkgrunnlag = sjekkgrunnlag,
+            måned = måned,
+            beregningsstrategiFactory = beregningsstrategiFactory,
+        )
+    ) {
+        is MånedsutbetalingsendringVurdering.InnenforToleransegrense -> Fradragsfunn.Observasjon(
             kode = Observasjonskode.INSIGNIFIKANT_BELOEPSDIFFERANSE,
-            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er mindre enn 10kr fra vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
+            loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som ville endret månedsutbetalingen fra ${formatBeløp(sjekkgrunnlag.gjeldendeMånedsutbetaling.toDouble())} til ${formatBeløp(utbetalingsendring.nyMånedsutbetaling.toDouble())}. Endringen er innenfor toleransegrensen på $toleranseTekst.",
         )
 
-        is Beløpsvurdering.SignifikantDifferanseOver10Kr -> Fradragsfunn.Oppgaveavvik(
-            kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som er 10kr eller mer unna vårt registrerte beløp ${formatBeløp(lokaltBeløp)}.",
+        is MånedsutbetalingsendringVurdering.UtenforToleransegrense -> Fradragsfunn.Oppgaveavvik(
+            kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som ville endret månedsutbetalingen fra ${formatBeløp(sjekkgrunnlag.gjeldendeMånedsutbetaling.toDouble())} til ${formatBeløp(utbetalingsendring.nyMånedsutbetaling.toDouble())}. Endringen er over toleransegrensen på $toleranseTekst av tidligere månedsutbetaling.",
         )
 
-        is Beløpsvurdering.UgyldigDifferanse -> Fradragsfunn.Oppgaveavvik(
+        is MånedsutbetalingsendringVurdering.UgyldigEndring -> Fradragsfunn.Oppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
-            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ugyldig beløpsdifferanse. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.ytelseNavn}.",
+            oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp, men vi klarte ikke beregne endring i månedsutbetaling. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.ytelseNavn}. Feil=${utbetalingsendring.grunn}.",
         )
     }
 }
@@ -85,26 +124,116 @@ private fun Sjekkpunkt.brukerType(): String = when (tilhører) {
     FradragTilhører.EPS -> "EPS"
 }
 
-// TODO positiv/negativ diff er fortsatt ikke modellert, bare absoluttverdi.
-private fun vurderBeløpsdifferanse(
-    lokaltBeløp: Double,
+private fun vurderMånedsutbetalingsendring(
+    sjekkpunkt: Sjekkpunkt,
     eksterntBeløp: Double,
-): Beløpsvurdering {
-    val differanse = kotlin.math.abs(lokaltBeløp.minus(eksterntBeløp))
+    sjekkgrunnlag: SjekkgrunnlagForSak,
+    måned: Måned,
+    beregningsstrategiFactory: BeregningStrategyFactory,
+): MånedsutbetalingsendringVurdering {
+    return runCatching {
+        beregnNyMånedsutbetaling(
+            sjekkpunkt = sjekkpunkt,
+            eksterntBeløp = eksterntBeløp,
+            sjekkgrunnlag = sjekkgrunnlag,
+            måned = måned,
+            beregningsstrategiFactory = beregningsstrategiFactory,
+        )
+    }.fold(
+        onSuccess = { nyMånedsutbetaling ->
+            if (erUtenforToleransegrense(
+                    gammeltMånedsbeløp = sjekkgrunnlag.gjeldendeMånedsutbetaling,
+                    nyttMånedsbeløp = nyMånedsutbetaling,
+                )
+            ) {
+                MånedsutbetalingsendringVurdering.UtenforToleransegrense(nyMånedsutbetaling)
+            } else {
+                MånedsutbetalingsendringVurdering.InnenforToleransegrense(nyMånedsutbetaling)
+            }
+        },
+        onFailure = {
+            MånedsutbetalingsendringVurdering.UgyldigEndring(it.message ?: it::class.simpleName ?: "Ukjent feil")
+        },
+    )
+}
 
-    return when {
-        differanse == 0.0 -> Beløpsvurdering.IngenDifferanse
-        differanse < BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.InsignifikantDifferanse
-        differanse >= BELOPS_TOLERANSE_I_KR -> Beløpsvurdering.SignifikantDifferanseOver10Kr
-        else -> Beløpsvurdering.UgyldigDifferanse
+private fun beregnNyMånedsutbetaling(
+    sjekkpunkt: Sjekkpunkt,
+    eksterntBeløp: Double,
+    sjekkgrunnlag: SjekkgrunnlagForSak,
+    måned: Måned,
+    beregningsstrategiFactory: BeregningStrategyFactory,
+): Int {
+    val nyBeregning = beregningsstrategiFactory.beregn(
+        grunnlagsdataOgVilkårsvurderinger = sjekkgrunnlag.gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
+            .oppdaterFradragsgrunnlag(
+                oppdaterRelevantFradragsgrunnlagMedEksterntBeløp(
+                    sjekkpunkt = sjekkpunkt,
+                    eksterntBeløp = eksterntBeløp,
+                    sjekkgrunnlag = sjekkgrunnlag,
+                    måned = måned,
+                ),
+            ),
+        begrunnelse = null,
+        sakstype = sjekkgrunnlag.sjekkplan.sak.type,
+    )
+
+    return nyBeregning.getMånedsberegninger()
+        .singleOrNull { it.måned == måned }
+        ?.getSumYtelse()
+        ?: error("Forventet nøyaktig én månedsberegning for måned $måned i fradragssjekken")
+}
+
+private fun oppdaterRelevantFradragsgrunnlagMedEksterntBeløp(
+    sjekkpunkt: Sjekkpunkt,
+    eksterntBeløp: Double,
+    sjekkgrunnlag: SjekkgrunnlagForSak,
+    måned: Måned,
+) = sjekkgrunnlag.gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.let { fradragsgrunnlag ->
+    val relevanteFradrag = sjekkgrunnlag.gjeldendeVedtaksdata.finnRelevanteFradragsgrunnlag(
+        fradragstype = sjekkpunkt.fradragstype,
+        tilhører = sjekkpunkt.tilhører,
+        måned = måned,
+    )
+
+    require(relevanteFradrag.size == 1) {
+        "Forventet nøyaktig ett relevant fradragsgrunnlag for type=${sjekkpunkt.fradragstype}, tilhører=${sjekkpunkt.tilhører}, måned=$måned, men fant ${relevanteFradrag.size}"
+    }
+
+    val fradragSomSkalOppdateres = relevanteFradrag.single()
+
+    fradragsgrunnlag.map {
+        if (it == fradragSomSkalOppdateres) {
+            it.oppdaterBeløpMedEksternRegulering(BigDecimal.valueOf(eksterntBeløp))
+        } else {
+            it
+        }
     }
 }
 
-private sealed interface Beløpsvurdering {
-    data object IngenDifferanse : Beløpsvurdering
-    data object InsignifikantDifferanse : Beløpsvurdering
-    data object SignifikantDifferanseOver10Kr : Beløpsvurdering
-    data object UgyldigDifferanse : Beløpsvurdering
+internal fun erUtenforToleransegrense(
+    gammeltMånedsbeløp: Int,
+    nyttMånedsbeløp: Int,
+): Boolean {
+    val endringIMånedsutbetaling = abs(nyttMånedsbeløp.toLong() - gammeltMånedsbeløp.toLong())
+    val tillattEndringIMånedsutbetaling = (gammeltMånedsbeløp.toLong() * UTBETALINGS_TOLERANSE_PROSENT) / 100
+
+    return endringIMånedsutbetaling > tillattEndringIMånedsutbetaling
+}
+
+private fun harSammeBeløp(
+    lokaltBeløp: Double,
+    eksterntBeløp: Double,
+): Boolean {
+    return BigDecimal.valueOf(lokaltBeløp).compareTo(BigDecimal.valueOf(eksterntBeløp)) == 0
+}
+
+private fun toleransegrenseTekst(): String = "$UTBETALINGS_TOLERANSE_PROSENT%"
+
+private sealed interface MånedsutbetalingsendringVurdering {
+    data class InnenforToleransegrense(val nyMånedsutbetaling: Int) : MånedsutbetalingsendringVurdering
+    data class UtenforToleransegrense(val nyMånedsutbetaling: Int) : MånedsutbetalingsendringVurdering
+    data class UgyldigEndring(val grunn: String) : MånedsutbetalingsendringVurdering
 }
 
 private fun formatBeløp(beløp: Double): String {

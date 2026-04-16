@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Instant
@@ -21,6 +22,17 @@ internal data class Sjekkpunkt(
     val fradragstype: Fradragstype,
     val ytelse: EksternYtelse,
     val lokaltBeløp: Double?,
+)
+
+internal data class LøpendeSakForMåned(
+    val sak: SakInfo,
+    val gjeldendeMånedsutbetaling: Int,
+)
+
+internal data class SjekkgrunnlagForSak(
+    val sjekkplan: SjekkPlan,
+    val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+    val gjeldendeMånedsutbetaling: Int,
 )
 
 internal enum class EpsKategori {
