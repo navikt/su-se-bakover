@@ -132,45 +132,53 @@ class ReguleringAutomatiskServiceImpl(
 
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
                     val (sakid, saksnummer, _) = sakInfo
-
-                    // val reguleringer = reguleringService.hentReguleringerForSak(sakid)
-                    val reguleringer = reguleringRepo.hentForSakId(sakid)
-                    reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
-                        when (r.size) {
-                            0 -> {}
-                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
-                            else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                    Either.catch {
+                        val reguleringer = reguleringRepo.hentForSakId(sakid)
+                        reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+                            when (r.size) {
+                                0 -> {}
+                                1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
+                                else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                            }
                         }
-                    }
 
-                    val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
-                    val vedtaksdata =
-                        hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, sakInfo, vedtakSomKanRevurderes, clock).getOrElse { feil ->
-                            when (feil) {
-                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
-                                    "Regulering for saksnummer $saksnummer gjennomføres ikke på grunn av $feil",
-                                )
+                        val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
+                        val vedtaksdata =
+                            hentGjeldendeVedtaksdataForRegulering(
+                                fraOgMedMåned,
+                                sakInfo,
+                                vedtakSomKanRevurderes,
+                                clock,
+                            ).getOrElse { feil ->
+                                when (feil) {
+                                    Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
+                                        "Regulering for saksnummer $saksnummer gjennomføres ikke på grunn av $feil",
+                                    )
 
-                                is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                                    "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                                )
+                                    is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                                    )
+                                }
+
+                                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
+                                    feil,
+                                    saksnummer,
+                                ).left()
                             }
 
-                            return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
-                                feil,
-                                saksnummer,
-                            ).left()
+                        // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
+                        val sak: Sak = Either.catch {
+                            sakService.hentSak(sakId = sakid)
+                                .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
+                        }.getOrElse {
+                            log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
+                            return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
                         }
 
-                    // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
-                    val sak: Sak = Either.catch {
-                        sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-                    }.getOrElse {
-                        log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                        return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
+                        Pair(sak, vedtaksdata).right()
+                    }.getOrElse { feil ->
+                        KunneIkkeRegulereAutomatisk.UkjentFeil(feil, saksnummer).left()
                     }
-
-                    Pair(sak, vedtaksdata).right()
                 }
 
                 val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights().map { it.first }
