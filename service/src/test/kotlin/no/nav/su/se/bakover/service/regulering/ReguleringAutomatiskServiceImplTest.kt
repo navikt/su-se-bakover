@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argShouldBe
@@ -47,7 +48,6 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -74,6 +74,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.grunnbeløpsendringer
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -125,9 +126,21 @@ internal class ReguleringAutomatiskServiceImplTest {
             },
         )
 
+        val sakerPerId = (1..antallSaker).associate { _ ->
+            val sakId = UUID.randomUUID()
+            sakId to sak.copy(
+                id = sakId,
+                fnr = Fnr.generer(),
+            )
+        }
+        val alleSaker = sakerPerId.values.map { it.info() }
+
         val reguleringRepo = mock<ReguleringRepo> {
             on { hent(any()) } doReturn sak.reguleringer.firstOrNull()
-            on { hentForSakId(any(), any()) } doReturn sak.reguleringer
+            alleSaker.forEach {
+                val sak = sakerPerId[it.sakId]!!
+                on { hentForSakId(it.sakId) } doReturn sak.reguleringer
+            }
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
         val reguleringKjøringRepo = mock<ReguleringKjøringRepo>()
@@ -141,6 +154,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
         }
         val vedtakService = mock<VedtakService>()
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentVedtakSomKanRevurderesForSak(any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
         val sessionFactory = TestSessionFactory()
         val satsFactory = satsFactoryTestPåDato()
         val reguleringService = ReguleringServiceImpl(
@@ -152,14 +168,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
         )
 
-        val sakerPerId = (1..antallSaker).associate { _ ->
-            val sakId = UUID.randomUUID()
-            sakId to sak.copy(
-                id = sakId,
-                fnr = Fnr.generer(),
-            )
-        }
-        val alleSaker = sakerPerId.values.map { it.info() }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
             on { hentSak(any<UUID>()) } doAnswer { invocation ->
@@ -190,6 +198,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         val service = ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
+            vedtakRepo = vedtakRepo,
             clock = clock,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
@@ -592,7 +601,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                 ),
             ),
         )
-        val reguleringService = lagReguleringAutomatiskServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock)
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
+        val reguleringService = lagReguleringAutomatiskServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock, vedtakRepo = vedtakRepo)
 
         reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
             it.size shouldBe 1
@@ -613,7 +625,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
 
-        val reguleringRepo = mock<ReguleringRepo> {}
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hentForSakId(sak.id) } doReturn sak.reguleringer
+        }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -627,6 +641,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             }
         }
         val vedtakMock = mock<VedtakService> {}
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
         val sessionMock = mock<SessionFactory> {}
         val satsFactory = satsFactoryTestPåDato(25.mai(2021))
         val clock = fixedClockAt(25.mai(2021))
@@ -643,6 +660,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringRepo = reguleringRepo,
             reguleringService = reguleringService,
             sakService = sakService,
+            vedtakRepo = vedtakRepo,
             satsFactory = satsFactory,
             clock = clock,
             statistikkService = mock(),
@@ -684,7 +702,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         verify(utbetalingService).simulerUtbetaling(any())
 
         verifyNoMoreInteractions(sakService)
-        verifyNoMoreInteractions(reguleringRepo)
         verifyNoMoreInteractions(utbetalingService)
         verifyNoMoreInteractions(vedtakMock)
         verifyNoInteractions(sessionMock)
@@ -700,7 +717,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
 
-        val reguleringRepo = mock<ReguleringRepo> {}
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hentForSakId(sak.id) } doReturn sak.reguleringer
+        }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -714,6 +733,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             }
         }
         val vedtakMock = mock<VedtakService> {}
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
         val sessionMock = mock<SessionFactory> {}
         val clock = fixedClockAt(25.mai(2021))
 
@@ -733,6 +755,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         ReguleringAutomatiskServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
+            vedtakRepo = vedtakRepo,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
             statistikkService = mock(),
@@ -781,7 +804,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         verify(utbetalingService).simulerUtbetaling(any())
 
         verifyNoMoreInteractions(sakService)
-        verifyNoMoreInteractions(reguleringRepo)
         verifyNoMoreInteractions(utbetalingService)
         verifyNoMoreInteractions(vedtakMock)
         verifyNoInteractions(sessionMock)
@@ -796,7 +818,38 @@ internal class ReguleringAutomatiskServiceImplTest {
         scrambleUtbetaling: Boolean = true,
         clock: Clock = tikkendeFixedClock(),
         beløp: Int = 20000,
+        vedtakRepo: VedtakRepo = mock {
+            on { hentVedtakSomKanRevurderesForSak(any()) } doAnswer {
+                sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            }
+        },
     ): ReguleringAutomatiskServiceImpl {
+        val vedtaksliste = if (lagFeilutbetaling) {
+            listOf(
+                (sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling).let { vedtak ->
+                    VedtakInnvilgetSøknadsbehandling.createFromPersistence(
+                        id = vedtak.id,
+                        opprettet = vedtak.opprettet,
+                        behandling = vedtak.behandling.let {
+                            it.copy(
+                                grunnlagsdataOgVilkårsvurderinger = it.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
+                                    fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0)),
+                                ),
+                            )
+                        },
+                        saksbehandler = vedtak.saksbehandler,
+                        attestant = vedtak.attestant,
+                        periode = vedtak.periode,
+                        beregning = vedtak.beregning,
+                        simulering = vedtak.simulering,
+                        utbetalingId = vedtak.utbetalingId,
+                        dokumenttilstand = vedtak.dokumenttilstand,
+                    )
+                },
+            )
+        } else {
+            sak.vedtakListe
+        }
         val sakMedEndringer = if (scrambleUtbetaling) {
             sak.copy(
                 // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
@@ -808,32 +861,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     ),
                 ),
                 // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering
-                vedtakListe = if (lagFeilutbetaling) {
-                    listOf(
-                        (sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling).let { vedtak ->
-                            VedtakInnvilgetSøknadsbehandling.createFromPersistence(
-                                id = vedtak.id,
-                                opprettet = vedtak.opprettet,
-                                behandling = vedtak.behandling.let {
-                                    it.copy(
-                                        grunnlagsdataOgVilkårsvurderinger = it.grunnlagsdataOgVilkårsvurderinger.oppdaterFradragsgrunnlag(
-                                            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0)),
-                                        ),
-                                    )
-                                },
-                                saksbehandler = vedtak.saksbehandler,
-                                attestant = vedtak.attestant,
-                                periode = vedtak.periode,
-                                beregning = vedtak.beregning,
-                                simulering = vedtak.simulering,
-                                utbetalingId = vedtak.utbetalingId,
-                                dokumenttilstand = vedtak.dokumenttilstand,
-                            )
-                        },
-                    )
-                } else {
-                    sak.vedtakListe
-                },
+                vedtakListe = vedtaksliste,
             )
         } else {
             sak
@@ -852,7 +880,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         )
         val reguleringRepo = mock<ReguleringRepo> {
             on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
-            on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
+            on { hentForSakId(sakMedEndringer.id) } doReturn sakMedEndringer.reguleringer
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
         val utbetalingService = mock<UtbetalingService> { service ->
@@ -882,6 +910,15 @@ internal class ReguleringAutomatiskServiceImplTest {
             },
             satsFactory = satsFactory,
             reguleringRepo = reguleringRepo,
+            vedtakRepo = if (lagFeilutbetaling) {
+                mock {
+                    on { hentVedtakSomKanRevurderesForSak(any()) } doAnswer {
+                        vedtaksliste.filterIsInstance<VedtakSomKanRevurderes>()
+                    }
+                }
+            } else {
+                vedtakRepo
+            },
             clock = clock,
             reguleringService = reguleringService,
             statistikkService = mock(),

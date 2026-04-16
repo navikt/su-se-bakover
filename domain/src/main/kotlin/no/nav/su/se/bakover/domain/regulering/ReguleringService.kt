@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIv
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
+import java.util.UUID
 
 sealed interface KunneIkkeBehandleRegulering {
     data object KunneIkkeBeregne : KunneIkkeBehandleRegulering
@@ -32,4 +33,6 @@ interface ReguleringService {
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
         sessionContext: TransactionContext? = null,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering>
+
+    fun hentReguleringerForSak(sakId: UUID): Reguleringer
 }

@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -52,6 +53,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val sakService: SakService,
+    private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
     private val satsFactory: SatsFactory,
     private val reguleringService: ReguleringServiceImpl,
@@ -128,43 +130,55 @@ class ReguleringAutomatiskServiceImpl(
                     "Automatisk regulering: Starter batch ${batchIndex + 1} av ${(alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE}. Antall saker i batch: ${sakerPerBatch.size}",
                 )
 
-                val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { (sakid, saksnummer, _) ->
-                    val sak: Sak = Either.catch {
-                        sakService.hentSak(sakId = sakid).getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-                    }.getOrElse {
-                        log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                        return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
-                    }
+                val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
+                    val (sakid, saksnummer, _) = sakInfo
+                    Either.catch {
+                        val reguleringer = reguleringRepo.hentForSakId(sakid)
+                        reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+                            when (r.size) {
+                                0 -> {}
+                                1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
+                                else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                            }
+                        }
 
-                    // TODO AUTO-REG-26 raskere måte å sjekke om ikke løpende uten før hele saksobjektet hentes
-                    val vedtaksdata =
-                        sak.hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, clock).getOrElse { feil ->
-                            when (feil) {
-                                Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
-                                    "Regulering for saksnummer ${sak.saksnummer} gjennomføres ikke på grunn av $feil",
-                                )
+                        val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
+                        val vedtaksdata =
+                            hentGjeldendeVedtaksdataForRegulering(
+                                fraOgMedMåned,
+                                sakInfo,
+                                vedtakSomKanRevurderes,
+                                clock,
+                            ).getOrElse { feil ->
+                                when (feil) {
+                                    Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
+                                        "Regulering for saksnummer $saksnummer gjennomføres ikke på grunn av $feil",
+                                    )
 
-                                is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                                    "Regulering for saksnummer ${sak.saksnummer}: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                                )
+                                    is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                                    )
+                                }
+
+                                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
+                                    feil,
+                                    saksnummer,
+                                ).left()
                             }
 
-                            return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
-                                feil,
-                                saksnummer,
-                            ).left()
+                        // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
+                        val sak: Sak = Either.catch {
+                            sakService.hentSak(sakId = sakid)
+                                .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
+                        }.getOrElse {
+                            log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
+                            return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
                         }
 
-                    sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
-                        when (r.size) {
-                            0 -> {}
-                            // TODO AUTO-REG-26 - vurder om åpne skal slettes og lages ny
-                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
-                            else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-                        }
+                        Pair(sak, vedtaksdata).right()
+                    }.getOrElse { feil ->
+                        KunneIkkeRegulereAutomatisk.UkjentFeil(feil, saksnummer).left()
                     }
-
-                    Pair(sak, vedtaksdata).right()
                 }
 
                 val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights().map { it.first }
@@ -286,7 +300,7 @@ class ReguleringAutomatiskServiceImpl(
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
-                beskrivelse = it.toString(),
+                beskrivelse = "",
             )
         }
 
@@ -296,7 +310,7 @@ class ReguleringAutomatiskServiceImpl(
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
-                beskrivelse = it.toString(),
+                beskrivelse = "",
             )
         }
 

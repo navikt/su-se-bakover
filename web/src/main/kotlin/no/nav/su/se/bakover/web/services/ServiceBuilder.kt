@@ -638,6 +638,7 @@ data object ServiceBuilder {
         val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
+            vedtakRepo = databaseRepos.vedtakRepo,
             satsFactory = satsFactory,
             reguleringService = reguleringService,
             clock = clock,
