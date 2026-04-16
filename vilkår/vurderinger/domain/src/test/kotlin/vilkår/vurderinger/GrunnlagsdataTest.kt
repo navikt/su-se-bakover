@@ -13,7 +13,7 @@ import vilkår.vurderinger.domain.Grunnlagsdata
 internal class GrunnlagsdataTest {
 
     @Test
-    fun `hentBrukteFradragstyperBasertPå ignorerer utenlandsk fradrag`() {
+    fun `hentBrukteFradragstyperBasertPåKunNorske ignorerer utenlandsk fradrag`() {
         val måned = april(2026)
         val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(
@@ -38,7 +38,7 @@ internal class GrunnlagsdataTest {
     }
 
     @Test
-    fun `hentBrukteFradragstyperBasertPå returnerer kun ikke-utenlandsk fradragstype`() {
+    fun `hentBrukteFradragstyperBasertPåKunNorske returnerer kun ikke-utenlandsk fradragstype`() {
         val måned = april(2026)
         val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(
