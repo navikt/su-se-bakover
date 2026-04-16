@@ -38,7 +38,7 @@ data class SakJson(
     val utbetalinger: List<UtbetalingJson>,
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
     // Legges til for at den skal ignoreres ved deserialisering med Jackson.
-    // Den kan ikke deseraliserse som sealed og per nå er det ingen tester som bruker feltet.
+    // Den kan ikke deserialiseres som sealed og per nå er det ingen tester som bruker feltet.
     @param:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val revurderinger: List<RevurderingJson> = emptyList(),
     val vedtak: List<VedtakJson>,
