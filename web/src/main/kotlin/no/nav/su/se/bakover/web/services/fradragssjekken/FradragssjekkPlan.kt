@@ -27,7 +27,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
  *
  */
 
-private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.common.domain.Jackson")
+private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkPlan")
 internal fun lagSjekkplanForSak(
     sak: SakInfo,
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
